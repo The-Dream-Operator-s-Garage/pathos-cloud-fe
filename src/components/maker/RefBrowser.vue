@@ -1,0 +1,535 @@
+<template>
+  <div class="ref-browser">
+
+    <!-- ── Browse & search ─────────────────────────────────── -->
+    <div class="ref-browser__section-label">Reference browser</div>
+
+    <!-- Kind tabs — search one element type at a time -->
+    <div class="ref-kinds">
+      <button
+        v-for="k in kindTabs"
+        :key="k.key"
+        type="button"
+        class="ref-kind"
+        :class="{ 'is-active': kind === k.key }"
+        :style="kind === k.key ? { '--kind-color': k.color } : {}"
+        @click="setKind(k.key)"
+      >
+        <q-icon :name="k.icon" size="13px" />
+        <span>{{ k.label }}</span>
+      </button>
+    </div>
+
+    <!-- Search box -->
+    <q-input
+      v-model="query" :dark="false" outlined dense
+      class="ref-search"
+      :placeholder="searchPlaceholder"
+      clearable
+      @update:model-value="onQueryInput"
+    >
+      <template #prepend><q-icon name="search" size="16px" /></template>
+    </q-input>
+
+    <!-- Results -->
+    <div class="ref-results">
+      <div v-if="searching" class="ref-results__state">
+        <q-spinner size="18px" color="primary" />
+      </div>
+      <div v-else-if="results.length === 0" class="ref-results__state">
+        {{ query ? 'No ' + kindLabel + ' matches.' : 'Newest ' + kindLabel + ' appear here.' }}
+      </div>
+      <button
+        v-else
+        v-for="r in results"
+        :key="r.address"
+        type="button"
+        class="ref-result"
+        :class="{ 'is-added': isAdded(r.address) }"
+        :title="isAdded(r.address) ? 'Already referenced' : 'Add to references'"
+        @click="add(r)"
+      >
+        <q-icon :name="iconFor(r.kind)" size="13px" class="ref-result__icon"
+          :style="{ color: colorFor(r.kind) }" />
+        <span class="ref-result__lines">
+          <span class="ref-result__primary">{{ r.primary }}</span>
+          <span v-if="r.secondary" class="ref-result__secondary">{{ r.secondary }}</span>
+        </span>
+        <q-icon :name="isAdded(r.address) ? 'check' : 'add'" size="14px" class="ref-result__add" />
+      </button>
+    </div>
+
+    <!-- Direct address fallback -->
+    <q-input
+      v-model="addressInput" :dark="false" outlined dense
+      class="ref-address"
+      placeholder="…or paste an address / [[pathos:…]] ref"
+      :error="!!addressHint" :error-message="addressHint"
+      @update:model-value="addressHint = ''"
+      @keyup.enter.prevent="addByAddress"
+    >
+      <template #prepend><q-icon name="hub" size="14px" /></template>
+      <template #append>
+        <q-btn flat dense round size="sm" icon="add" :loading="addressChecking"
+          :disable="!addressInput || !addressInput.trim()" @click="addByAddress" />
+      </template>
+    </q-input>
+
+    <!-- ── Selected references ─────────────────────────────── -->
+    <div class="ref-browser__section-label q-mt-sm">
+      In this post
+      <span class="ref-browser__count mono">{{ references.length }}</span>
+    </div>
+
+    <div v-if="references.length === 0" class="ref-list__empty">
+      Nothing referenced yet — pick elements above. They join the post's
+      CONTENT path after the body; use <q-icon name="keyboard_return" size="11px" />
+      to also invoke one inline at the cursor.
+    </div>
+
+    <div v-else class="ref-list">
+      <div
+        v-for="(r, i) in references"
+        :key="r.address"
+        class="ref-item"
+        :class="{ 'is-dragging': dragIndex === i }"
+        draggable="true"
+        @dragstart="onDragStart(i, $event)"
+        @dragover.prevent="onDragOver(i)"
+        @dragend="onDragEnd"
+      >
+        <q-icon name="drag_indicator" size="14px" class="ref-item__grip" />
+        <span class="ref-item__index mono">{{ i + 1 }}</span>
+        <InfoChip dense :address="r.address" :primary="r.primary" class="ref-item__chip" />
+        <span class="ref-item__actions">
+          <button type="button" class="ref-item__btn" title="Invoke at cursor"
+            @click="$emit('invoke', r)">
+            <q-icon name="keyboard_return" size="13px" />
+          </button>
+          <button type="button" class="ref-item__btn" title="Move up"
+            :disabled="i === 0" @click="move(i, -1)">
+            <q-icon name="expand_less" size="13px" />
+          </button>
+          <button type="button" class="ref-item__btn" title="Move down"
+            :disabled="i === references.length - 1" @click="move(i, 1)">
+            <q-icon name="expand_more" size="13px" />
+          </button>
+          <button type="button" class="ref-item__btn ref-item__btn--danger" title="Remove"
+            @click="removeAt(i)">
+            <q-icon name="close" size="13px" />
+          </button>
+        </span>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+import { defineComponent, ref, computed, onMounted } from 'vue'
+import InfoChip from 'src/components/shared/InfoChip.vue'
+import { refService } from 'src/services/ref.service'
+import { kindFor } from 'src/utils/kinds'
+
+// Reference kinds a CONTENT path can carry (posts are skeletons).
+const REF_KINDS = new Set(['nodes', 'paths', 'skeletons', 'labels'])
+
+const KIND_TABS = [
+  { key: 'posts', label: 'Posts', icon: 'article', color: '#6c4d72' },
+  { key: 'nodes', label: 'Nodes', icon: 'adjust', color: '#2C3D4E' },
+  { key: 'labels', label: 'Labels', icon: 'label_important', color: '#00829c' },
+  { key: 'paths', label: 'Paths', icon: 'route', color: '#4d8a83' },
+  { key: 'skeletons', label: 'Skels', icon: 'schema', color: '#5b6c82' }
+]
+
+export default defineComponent({
+  name: 'RefBrowser',
+  components: { InfoChip },
+  props: {
+    // [{ address, primary }] — v-model:references
+    references: { type: Array, default: () => [] }
+  },
+  emits: ['update:references', 'invoke'],
+
+  setup (props, { emit }) {
+    const kind = ref('posts')
+    const query = ref('')
+    const results = ref([])
+    const searching = ref(false)
+    let debounceTimer = null
+    let searchSeq = 0
+
+    const kindLabel = computed(() =>
+      KIND_TABS.find(t => t.key === kind.value)?.label.toLowerCase() || 'element')
+
+    const searchPlaceholder = computed(() =>
+      kind.value === 'paths' ? 'Path id or hash prefix…' : `Search ${kindLabel.value}…`)
+
+    const runSearch = async () => {
+      const seq = ++searchSeq
+      searching.value = true
+      try {
+        const r = await refService.search(kind.value, query.value || '', 8)
+        if (seq === searchSeq) results.value = r.success ? r.results : []
+      } catch (_) {
+        if (seq === searchSeq) results.value = []
+      } finally {
+        if (seq === searchSeq) searching.value = false
+      }
+    }
+
+    const onQueryInput = () => {
+      clearTimeout(debounceTimer)
+      debounceTimer = setTimeout(runSearch, 300)
+    }
+
+    const setKind = (k) => {
+      kind.value = k
+      runSearch()
+    }
+
+    onMounted(runSearch)
+
+    // ── selection management ────────────────────────────────
+    const isAdded = (address) => props.references.some(r => r.address === address)
+
+    const emitRefs = (list) => emit('update:references', list)
+
+    const add = (r) => {
+      if (isAdded(r.address)) return
+      emitRefs([...props.references, { address: r.address, primary: r.primary || '' }])
+    }
+
+    const removeAt = (i) => {
+      const next = [...props.references]
+      next.splice(i, 1)
+      emitRefs(next)
+    }
+
+    const move = (i, delta) => {
+      const j = i + delta
+      if (j < 0 || j >= props.references.length) return
+      const next = [...props.references]
+      ;[next[i], next[j]] = [next[j], next[i]]
+      emitRefs(next)
+    }
+
+    // Native drag reorder — swap live while hovering so the list previews
+    // its final order.
+    const dragIndex = ref(null)
+    const onDragStart = (i, e) => {
+      dragIndex.value = i
+      e.dataTransfer.effectAllowed = 'move'
+    }
+    const onDragOver = (i) => {
+      if (dragIndex.value === null || dragIndex.value === i) return
+      const next = [...props.references]
+      const [moved] = next.splice(dragIndex.value, 1)
+      next.splice(i, 0, moved)
+      dragIndex.value = i
+      emitRefs(next)
+    }
+    const onDragEnd = () => { dragIndex.value = null }
+
+    // ── direct address fallback ─────────────────────────────
+    const addressInput = ref('')
+    const addressHint = ref('')
+    const addressChecking = ref(false)
+
+    const addByAddress = async () => {
+      const raw = (addressInput.value || '').trim()
+      if (!raw) return
+      const m = raw.match(/([a-z]+)\/([0-9a-f]{16,64})/i)
+      if (!m || !REF_KINDS.has(m[1])) {
+        addressHint.value = 'Use nodes/<hash>, paths/<hash>, skeletons/<hash> or labels/<hash>'
+        return
+      }
+      const address = `${m[1]}/${m[2]}`
+      if (isAdded(address)) { addressHint.value = 'Already added'; return }
+      addressChecking.value = true
+      try {
+        const r = await refService.summary(address)
+        if (r?.success && r.summary?.id != null) {
+          add({ address, primary: r.summary.primary || '' })
+          addressInput.value = ''
+        } else {
+          addressHint.value = 'No element found at that address'
+        }
+      } catch (_) {
+        addressHint.value = 'No element found at that address'
+      } finally { addressChecking.value = false }
+    }
+
+    const iconFor = (k) => kindFor(k).icon
+    const colorFor = (k) => kindFor(k).color
+
+    return {
+      kindTabs: KIND_TABS,
+      kind,
+      kindLabel,
+      searchPlaceholder,
+      query,
+      results,
+      searching,
+      onQueryInput,
+      setKind,
+      isAdded,
+      add,
+      removeAt,
+      move,
+      dragIndex,
+      onDragStart,
+      onDragOver,
+      onDragEnd,
+      addressInput,
+      addressHint,
+      addressChecking,
+      addByAddress,
+      iconFor,
+      colorFor
+    }
+  }
+})
+</script>
+
+<style lang="scss" scoped>
+// Visual grammar borrowed from the labels/feed pages: white cards with
+// hairline ink borders, mono uppercase section labels, carved inset pits,
+// teal selection accents.
+.ref-browser {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 0;
+}
+
+.ref-browser__section-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.7em;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-soft);
+  font-family: var(--font-mono);
+}
+
+.ref-browser__count {
+  font-size: 0.9em;
+  color: rgba(var(--ink-rgb), 0.5);
+  background: rgba(var(--ink-rgb), 0.07);
+  border-radius: 7px;
+  padding: 0 6px;
+}
+
+// ── Kind tabs — pill row tinted per kind, like the label chips ──
+.ref-kinds {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.ref-kind {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 24px;
+  padding: 0 9px;
+  border: 1px solid rgba(var(--ink-rgb), 0.18);
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.6);
+  color: var(--ink-soft);
+  font-family: var(--font-mono);
+  font-size: 0.68em;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s, border-color 0.12s, box-shadow 0.12s;
+
+  &:hover { border-color: rgba(var(--ink-rgb), 0.4); color: var(--ink); }
+
+  &.is-active {
+    --kind-color: #00829c;
+    color: #fff;
+    background: var(--kind-color);
+    border-color: var(--kind-color);
+    box-shadow: var(--shadow-carved-pressed);
+  }
+}
+
+.ref-search :deep(.q-field__control) { background: #fff; }
+
+// ── Results — sibling of the feed's post-square head rows ──
+.ref-results {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-height: 90px;
+  max-height: 230px;
+  overflow-y: auto;
+  padding: 6px;
+  border-radius: var(--radius-sm);
+  background: rgba(var(--ink-rgb), 0.05);
+  box-shadow:
+    inset 0 2px 5px rgba(var(--ink-rgb-deep), 0.14),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.35);
+
+  scrollbar-width: thin;
+  scrollbar-color: rgba(var(--ink-rgb), 0.3) transparent;
+  &::-webkit-scrollbar       { width: 4px; }
+  &::-webkit-scrollbar-track { background: transparent; }
+  &::-webkit-scrollbar-thumb { background: rgba(var(--ink-rgb), 0.3); border-radius: 2px; }
+}
+
+.ref-results__state {
+  padding: 18px 8px;
+  text-align: center;
+  font-size: 0.76em;
+  color: var(--ink-mute);
+}
+
+.ref-result {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 8px;
+  border: 1px solid rgba(var(--ink-rgb), 0.14);
+  border-radius: 7px;
+  background: var(--paper-card);
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.12s, box-shadow 0.12s;
+
+  &:hover {
+    border-color: rgba(0, 130, 156, 0.5);
+    .ref-result__add { color: #00829c; }
+  }
+
+  &.is-added {
+    border-color: rgba(0, 130, 156, 0.35);
+    background: rgba(0, 130, 156, 0.06);
+    cursor: default;
+    .ref-result__add { color: #00829c; }
+  }
+}
+
+.ref-result__icon { flex-shrink: 0; }
+
+.ref-result__lines {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+  line-height: 1.3;
+}
+
+.ref-result__primary {
+  font-size: 0.76em;
+  font-weight: 600;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ref-result__secondary {
+  font-size: 0.66em;
+  color: var(--ink-mute);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ref-result__add {
+  flex-shrink: 0;
+  color: rgba(var(--ink-rgb), 0.35);
+}
+
+.ref-address { margin-top: -2px; }
+.ref-address :deep(.q-field__control) { background: #fff; }
+
+// ── Selected list ──
+.ref-list__empty {
+  font-size: 0.74em;
+  color: var(--ink-mute);
+  line-height: 1.5;
+  padding: 8px 10px;
+  border: 1px dashed rgba(var(--ink-rgb), 0.25);
+  border-radius: var(--radius-sm);
+}
+
+.ref-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  overflow-y: auto;
+  min-height: 0;
+
+  scrollbar-width: thin;
+  scrollbar-color: rgba(var(--ink-rgb), 0.3) transparent;
+  &::-webkit-scrollbar       { width: 4px; }
+  &::-webkit-scrollbar-track { background: transparent; }
+  &::-webkit-scrollbar-thumb { background: rgba(var(--ink-rgb), 0.3); border-radius: 2px; }
+}
+
+.ref-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 6px;
+  border: 1px solid rgba(var(--ink-rgb), 0.14);
+  border-radius: 7px;
+  background: var(--paper-card);
+  transition: border-color 0.12s, opacity 0.12s;
+
+  &:hover { border-color: rgba(0, 130, 156, 0.45); }
+  &.is-dragging { opacity: 0.45; border-style: dashed; }
+}
+
+.ref-item__grip {
+  color: rgba(var(--ink-rgb), 0.3);
+  cursor: grab;
+  flex-shrink: 0;
+}
+
+.ref-item__index {
+  font-size: 0.66em;
+  color: var(--ink-mute);
+  min-width: 14px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.ref-item__chip {
+  flex: 1;
+  min-width: 0;
+}
+
+.ref-item__actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 1px;
+  flex-shrink: 0;
+}
+
+.ref-item__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border: none;
+  border-radius: 5px;
+  background: transparent;
+  color: rgba(var(--ink-rgb), 0.5);
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+
+  &:hover:not(:disabled) { background: rgba(var(--ink-rgb), 0.1); color: var(--ink); }
+  &:disabled { opacity: 0.25; cursor: default; }
+
+  &--danger:hover:not(:disabled) {
+    background: rgba(var(--coral-rgb), 0.14);
+    color: var(--coral-deep);
+  }
+}
+</style>

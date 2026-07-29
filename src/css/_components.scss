@@ -1,0 +1,637 @@
+// ──────────────────────────────────────────────────────────────
+// SHARED COMPONENT CLASSES — referenced from many .vue files
+//
+// Centralized here so a rebrand only touches this file (and tokens) rather
+// than every component. Keep `.pathos-card`, `.label-chip`, `.maker-*`,
+// `.nav-btn`, and `.interaction-bar` here.
+// ──────────────────────────────────────────────────────────────
+@use 'mixins' as *;
+
+// ── PATHOS-CARD — the canonical content surface (carved + translucent) ──
+.pathos-card {
+  @include carved(0.50);
+  transition: box-shadow 0.18s ease, transform 0.12s ease;
+
+  &:hover {
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.95),
+      inset 0 -1px 0 rgba(var(--ink-rgb-deep), 0.08),
+      0 2px 4px  rgba(var(--ink-rgb-deep), 0.12),
+      0 10px 22px rgba(var(--ink-rgb-deep), 0.14);
+  }
+}
+
+// ── LABEL CHIP — used in label sliders, pickers, scrolls ──
+.label-chip { @include chip; }
+
+// ── LABEL SCROLL — horizontal label rail ──
+.label-scroll-row {
+  display: flex;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  gap: 6px;
+  padding: 4px 0;
+  @include scrollbar-ink;
+  &::-webkit-scrollbar { height: 3px; }
+}
+
+// ── PATH BREADCRUMB ──
+.path-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.78em;
+  color: var(--ink-soft);
+  span { color: var(--ink); }
+  .sep { opacity: 0.45; }
+}
+
+// ── NAV ACTIVE LINK ──
+.my-menu-link {
+  background: var(--ink) !important;
+  color: var(--paper) !important;
+  text-shadow: var(--ink) -1px -1px 0;
+  border-radius: var(--radius-sm);
+}
+
+// ── MAKER OVERLAY — modal dialog backdrop ──
+.maker-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(var(--ink-rgb-deep), 0.35);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.maker-dialog {
+  @include carved(0.82);
+  border-radius: var(--radius-lg);
+  width: min(680px, 96vw);
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 28px;
+  @include scrollbar-ink;
+}
+
+// ── INTERACTION BAR (post/node detail pages) ──
+.interaction-bar {
+  @include carved(0.40);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  padding: 10px 14px;
+}
+.interaction-group { display: flex; align-items: center; gap: 2px; }
+.int-btn      { color: var(--ink) !important; }
+.int-btn-text { color: var(--ink) !important; font-size: 0.82em; }
+.int-count    { font-size: 0.82em; color: var(--ink); min-width: 16px; }
+.int-sep      { width: 1px; height: 16px; background: rgba(var(--ink-rgb), 0.22); margin: 0 4px; }
+
+// ── PUSHY NAV BUTTON — a genuine Quasar push button (<q-btn push>) in the
+// NavigationBar footer, wearing a light-green-1 face. Quasar's push preset
+// supplies the 3D bottom lip AND the press-down animation natively, so there
+// is NO fake colored ledge here (the old surface-4 "blue" ledge + drop shadow
+// are gone) — we only paint the face and set the compact footer sizing.
+.nav-btn {
+  min-width: 34px;
+  min-height: 30px;
+  height: 30px;
+  padding: 0 8px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(var(--ink-rgb-deep), 0.40);
+  background: #f1f8e9;             // Quasar light-green-1
+  color: var(--ink-1);
+  font-family: var(--font-display);
+
+  // q-btn lays its icon/label row out inside .q-btn__content.
+  .q-btn__content { gap: 2px; }
+
+  &:hover:not(.disabled) {
+    background: #dcedc8;           // light-green-2, a shade deeper on hover
+    color: var(--ink-1);
+  }
+
+  &.disabled {
+    opacity: 0.30;
+  }
+}
+
+// ── DOCK WINDOW CHROME — shared by the bottom-docked windows rising from
+// the navigation bar (MakerDock, UploaderDock, StackPanel, PinsDrawer):
+// glass shell, thin header bar, Mac-style traffic lights, folder-tab strip
+// and the slide-in transition. Each component keeps only its own layout.
+// The four CREATION docks add `.dock-window--creation` (below), which
+// replaces the glass shell with the brown plaque and pins the shared
+// right-half geometry; chat keeps this base shell as-is.
+.dock-window {
+  position: fixed;
+  // Bottom docks (maker/uploader/chat/label/skeleton) shift left of the
+  // stack/pins side column (--dock-right = windows.dockRight) so they render
+  // BESIDE that column, never on top. The mirrored pins/stack panels opt
+  // out (they don't set --dock-right) — they stay flush to the right edge and,
+  // being split across the top/bottom halves, never collide with a rail.
+  right: var(--dock-right, 0px);
+  // The bar's top edge PLUS the frieze footer band standing on it — see
+  // --dock-bottom in _tokens.scss. Anchoring to --nav-footer-h alone would
+  // bury each dock's bottom --frieze-h behind that opaque strip. The pins
+  // widget opts out (it re-states --nav-footer-h) because it is one of the
+  // two things the band is meant to run BEHIND.
+  bottom: var(--dock-bottom);
+  display: flex;
+  flex-direction: column;
+  background: var(--surface-glass-strong);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(var(--ink-rgb), 0.18);
+  border-right: none;
+  border-bottom: none;
+  border-top-left-radius: var(--radius-lg);
+  box-shadow: 0 -10px 40px rgba(var(--ink-rgb-deep), 0.18);
+  overflow: hidden;
+  transition: width 0.18s ease, height 0.18s ease, right 0.18s ease;
+}
+
+.dock-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: var(--dock-bar-h);
+  padding: 0 10px 0 14px;
+  background: rgba(255, 255, 255, 0.55);
+  border-bottom: 1px solid rgba(var(--ink-rgb), 0.14);
+  flex-shrink: 0;
+  user-select: none;
+}
+
+.dock-bar__icon { color: #00829c; }
+
+.dock-bar__title {
+  font-size: 0.72em;
+  color: var(--ink);
+  letter-spacing: 0.06em;
+}
+
+.dock-bar__meta {
+  font-size: 0.64em;
+  color: var(--ink-mute);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+// Classic Mac traffic lights — glyphs fade in when the cluster is hovered.
+.traffic {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+
+  &:hover .traffic__dot .q-icon { opacity: 1; }
+}
+
+.traffic__dot {
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: filter 0.12s;
+
+  .q-icon {
+    font-size: 9px;
+    color: rgba(0, 0, 0, 0.55);
+    opacity: 0;
+    transition: opacity 0.12s;
+  }
+
+  &:hover { filter: brightness(1.08); }
+  &:active { filter: brightness(0.92); }
+
+  &--green  { background: #28c840; border-color: #1d9c30; }
+  &--yellow { background: #febc2e; border-color: #d29b21; }
+  &--red    { background: #ff5f57; border-color: #d84f47; }
+}
+
+// Folder-tab strip under the header (one tab per draft / upload in course).
+.dock-tabs {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  padding: 6px 12px 0;
+  border-bottom: 1px solid rgba(var(--ink-rgb), 0.14);
+  flex-shrink: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+  &::-webkit-scrollbar { display: none; }
+}
+
+.dock-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 26px;
+  padding: 0 8px 0 10px;
+  border: 1px solid rgba(var(--ink-rgb), 0.16);
+  border-bottom: none;
+  border-radius: 8px 8px 0 0;
+  background: rgba(255, 255, 255, 0.45);
+  color: var(--ink-soft);
+  font-family: var(--font-mono);
+  font-size: 0.7em;
+  cursor: pointer;
+  max-width: 200px;
+  flex-shrink: 0;
+  transition: background 0.12s, color 0.12s;
+
+  &:hover { background: rgba(255, 255, 255, 0.7); color: var(--ink); }
+
+  &.is-active {
+    background: var(--paper-card);
+    color: var(--ink-1);
+    border-color: rgba(var(--ink-rgb), 0.28);
+    box-shadow: inset 0 2px 0 #00829c;
+  }
+
+  &--new {
+    padding: 0 8px;
+    border-radius: 8px 8px 0 0;
+    color: rgba(var(--ink-rgb), 0.5);
+    &:hover { color: #00829c; }
+  }
+}
+
+.dock-tab__icon { flex-shrink: 0; }
+
+.dock-tab__label {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dock-tab__x {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  color: rgba(var(--ink-rgb), 0.45);
+  flex-shrink: 0;
+
+  &:hover {
+    background: rgba(var(--coral-rgb), 0.18);
+    color: var(--coral-deep);
+  }
+}
+
+.dock-slide-enter-active, .dock-slide-leave-active { transition: transform 0.2s ease, opacity 0.2s ease; }
+.dock-slide-enter-from, .dock-slide-leave-to { transform: translateY(24px); opacity: 0; }
+
+// ── CREATION-WINDOW footprint + coat (2026-07-27) — the four creative docks
+// (maker, uploader, skeleton builder, label maker; NOT chat, which keeps the
+// glass shell for now). One shared geometry instead of four per-dock
+// width/height pairs: the window stands in the RIGHT HALF of the screen —
+// `left: 50vw` puts its left edge at half the window, `right` clears the
+// stack/pins column by a --dock-gap of daylight (the side bars stay above
+// every dock by their own fixed z 3100, parked or expanded), `top` hangs it
+// the same daylight under the crown strip, and the bottom still merges with
+// the footer's frieze band. Both top corners round — the window floats clear
+// of both screen edges now, where the old shell was flush right and rounded
+// only its outer-left corner. The bottom stays square on the band.
+//
+// The COAT is the side widgets': a flat --brown-1 plaque with --brown-3
+// drawing every line of the chrome — shell border, bar hairline, tab strip —
+// and the bar inked like the parked side bars (--brown-8 glyph + title,
+// --brown-4 meta). No glass and no blur: an opaque plaque needs neither, and
+// the backdrop-filter was costing composite work on a window this large. The
+// drop shadow goes all round (the old -10px band said "rising from the bar";
+// a box with daylight on three sides casts like the flyout instead). Each
+// dock's CONTENT keeps its own palette — the accents stay where the work is,
+// the chrome around it goes quiet.
+.dock-window--creation {
+  --dock-gap: 14px;
+  left: 50vw;
+  right: calc(var(--dock-right, 0px) + var(--dock-gap));
+  top: calc(var(--frieze-h) + var(--dock-gap));
+  // Straight off the NAV BAR's top edge, OVER the frieze footer band
+  // (2026-07-27, second pass — it stood on the band's top via --dock-bottom
+  // first). The band is opaque at z 3000 and these docks are 3010+, so the
+  // bottom --frieze-h of the window paints over it instead of being buried —
+  // which is the whole reason --dock-bottom existed, and why chat (still on
+  // the old shell) keeps it.
+  bottom: var(--nav-footer-h);
+  width: auto;
+  height: auto;
+  background: var(--brown-1);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border: 1px solid var(--brown-3);
+  border-bottom: none;
+  border-top-left-radius: var(--radius-lg);
+  border-top-right-radius: var(--radius-lg);
+  box-shadow: 0 12px 38px rgba(0, 0, 0, 0.45);
+  transition: left 0.18s ease, right 0.18s ease, top 0.18s ease;
+
+  .dock-bar {
+    background: var(--brown-1);
+    border-bottom: 1px solid var(--brown-3);
+  }
+  .dock-bar__icon,
+  .dock-bar__title { color: var(--brown-8); }
+  .dock-bar__meta  { color: var(--brown-4); }
+
+  // The tab strip on the plaque: resting tabs are the wells' --brown-2 in
+  // --brown-3 rims; the ACTIVE tab keeps its paper face and teal inset — the
+  // one accent left on the chrome, saying "current" the way it always has.
+  .dock-tabs { border-bottom: 1px solid var(--brown-3); }
+  .dock-tab {
+    background: var(--brown-2);
+    border-color: var(--brown-3);
+    color: var(--brown-8);
+
+    &:hover { background: var(--brown-1); color: var(--brown-10, #3e2723); }
+    &.is-active {
+      background: var(--paper-card);
+      border-color: var(--brown-4);
+    }
+  }
+}
+
+// Maximize fills the whole slot from the screen's left edge to the side
+// column; the top gap and the right daylight stay — the crown strip and the
+// side bars are never covered.
+.dock-window--creation.is-max {
+  left: 0;
+  border-left: none;
+  border-top-left-radius: 0;
+}
+
+// The 50/50 capture split pre-dates this geometry and keeps its own
+// bottom-anchored 80vh panes: un-setting top lets the split rules' height
+// resolve against `bottom` again (top + height would otherwise win the
+// over-constraint and detach the halves from the bar).
+.dock-window--creation.is-split-left,
+.dock-window--creation.is-split-right {
+  top: auto;
+}
+
+// Narrow screens: the right half is too little window — take the full width
+// and give up the left daylight, exactly as the old per-dock media rules did.
+@media (max-width: 900px) {
+  .dock-window--creation {
+    left: 0;
+    border-left: none;
+    border-top-left-radius: 0;
+  }
+}
+
+// 50/50 split tiling (windows.split): the skeleton builder parks on the
+// left half while a companion editor (maker/uploader) fills the right half
+// so a freshly created element can be captured straight into a slot.
+// !important beats each dock's own width/height rules while split.
+.dock-window.is-split-left {
+  left: 0;
+  right: auto;
+  width: 50vw !important;
+  height: 80vh !important;
+  border-left: none;
+  border-right: 1px solid rgba(var(--ink-rgb), 0.18);
+  border-top-left-radius: 0;
+  border-top-right-radius: var(--radius-lg);
+}
+
+.dock-window.is-split-right {
+  width: calc(50vw - var(--dock-right, 0px)) !important;
+  height: 80vh !important;
+}
+
+// ── PARKED SIDE-BAR CHROME — the stack/pins widgets are each ONE element
+// with two presentations (2026-07-24, third pass — the separate rail tree is
+// gone): expanded = the 300px panel, parked = the SAME element narrowed to
+// the thin icon column (`is-parked` on the panel root, width --dock-rail-w),
+// its ONE list scroller persisting through the morph with every SidePanelItem
+// flipped to its collapsed icon face. Both widgets share one right-edge
+// column — the stack hangs from the top, pins rises from the bottom — and cap
+// at their share of the 90vh side band (--dock-stack-h 63vh / --dock-pins-h
+// 27vh, a 70/30 split since 2026-07-24), so they never overlap. Each also
+// carries a FriezeBar band at BOTH ends of its list well: at the widget's
+// outer edge (stack top / pins bottom) and between the well and its own
+// header/head glyph. The page content
+// pads right by railWidth (stores/windows.js) so the parked column never
+// covers it, and the other bottom docks shift left beside it via --dock-right.
+//
+// The morph is IN PLACE (2026-07-24, 7th pass): both faces of an item share
+// --side-item-h / --side-item-gap, both lists carry the same padding + gap,
+// and the head glyph below is exactly as tall as the header bar it replaces
+// (--dock-bar-h), so every item unravels at the very level its parked chip
+// sat on. Neither widget over-expands either: both shrink to fit their item
+// bundle and only scroll once they hit their cap.
+
+// Head glyph — the parked widget's marker, standing in for the header bar
+// (and exactly as tall as it, --dock-bar-h, so the list box below/above it
+// keeps its offset). NOT a button-looking button: no smoke pebble, border or
+// carved shadow, just a tiny brown-4 icon sitting flat on the plaque
+// (matching the frieze chrome). Hovering the parked column expands the panel
+// (2026-07-24 — the old .dock-side-tab folder handle is gone); the glyph
+// keeps its tap for touch screens, where hover doesn't exist.
+// Ink is **brown-8** (2026-07-24, 8th pass — was brown-4): the glyph stands in
+// for the header's icon, which is brown-8, so parking a widget must not change
+// the color of its own mark. Padding dropped to 0 and the glyph itself grown
+// (20px in both SFCs, was 14) so the icon fills its band instead of floating
+// in air a long way from the scroll well. The 30px BOX height is load-bearing
+// — see above — so the air comes out of the glyph, never out of the box.
+.dock-side-head {
+  flex-shrink: 0;
+  height: var(--dock-bar-h);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  border: none;
+  background: transparent;
+  box-shadow: none;
+  color: var(--brown-8);
+  transition: opacity 0.12s;
+
+  &:hover { opacity: 0.65; }
+}
+
+// Expanded side-widget header: with the amber traffic light gone (2026-07-24,
+// 7th pass) the bar ITSELF is the park control — hover already parks the
+// widget on the way out, this keeps a tap for touch screens.
+//
+// The info box wears ONE consistent ink (2026-07-24, 8th pass): the kind icon
+// and the title are both **brown-8** — the drawer's item ink, so the box reads
+// as one piece of chrome instead of a teal-or-coral glyph beside grey text —
+// while the step/pin count meta sits at the far right in the lighter
+// **brown-4**, subordinate to the title. The per-widget icon tints
+// (`.dock-bar__icon--stack` ink-2 / `--pins` coral) are gone.
+.dock-bar--park {
+  cursor: pointer;
+
+  .dock-bar__icon,
+  .dock-bar__title { color: var(--brown-8); }
+  .dock-bar__meta  { color: var(--brown-4); }
+
+  &:hover .dock-bar__title { opacity: 0.75; }
+}
+
+// Trailing control in a side widget's info box, sitting at its very right end
+// (after the count meta): a flat brown-8 glyph on the plaque, no pebble or
+// border — same restraint as `.dock-side-head`. `@click.stop` in the SFC keeps
+// it from parking the widget through the bar underneath.
+.dock-bar__action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--brown-8);
+  cursor: pointer;
+  transition: background 0.12s, opacity 0.12s;
+
+  &:hover { background: rgba(var(--ink-rgb), 0.10); }
+  &:active { opacity: 0.7; }
+}
+
+// ── PICKER POPUP — light dropdown for the maker selects ──
+// The q-select menus teleport to <body>, which carries Quasar's global dark
+// mode; force the paper palette so options stay readable on light dialogs.
+.picker-popup-light {
+  background: #ffffff !important;
+  color: var(--ink) !important;
+  border: 1px solid rgba(var(--ink-rgb), 0.18);
+
+  .q-item { color: var(--ink); }
+  .q-item--active { color: var(--coral-deep); }
+}
+
+// ── MARKDOWN RENDERED — content body styling ──
+// Global stylesheet: plain descendant selectors (`:deep()` only works in
+// scoped SFC styles and is ignored by the browser here). Ink-on-paper
+// palette shared with the label/node/post subject panels.
+.md-rendered {
+  color: var(--ink);
+  font-size: 0.92em;
+  line-height: 1.8;
+  h1, h2, h3 {
+    color: var(--ink);
+    font-family: var(--font-display);
+    margin: 1em 0 0.4em;
+    @include inset-font;
+  }
+  h1 { font-size: 1.5em; border-bottom: 1px solid rgba(var(--ink-rgb), 0.22); padding-bottom: .3em; }
+  h2 { font-size: 1.2em; }
+  h3 { font-size: 1.05em; }
+  p  { margin: 0.6em 0; }
+  a  { color: #00829c; text-decoration: none; &:hover { text-decoration: underline; } }
+  code {
+    background: rgba(var(--ink-rgb), 0.10);
+    color: var(--ink);
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-family: var(--font-mono);
+    font-size: 0.88em;
+  }
+  pre {
+    background: #f6f8fb;
+    border: 1px solid rgba(var(--ink-rgb), 0.18);
+    border-radius: 6px;
+    padding: 12px 16px;
+    overflow-x: auto;
+    code { background: transparent; padding: 0; color: var(--ink); }
+  }
+  blockquote {
+    border-left: 3px solid rgba(var(--ink-rgb), 0.45);
+    margin: 0.8em 0;
+    padding: 4px 12px;
+    color: var(--ink-soft);
+    font-style: italic;
+  }
+  ul, ol { padding-left: 1.4em; margin: 0.5em 0; }
+  hr { border: none; border-top: 1px solid rgba(var(--ink-rgb), 0.22); margin: 1em 0; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.88em;
+    th, td { border: 1px solid rgba(var(--ink-rgb), 0.20); padding: 6px 10px; }
+    th     { background: rgba(var(--ink-rgb), 0.10); color: var(--ink); }
+  }
+  img { max-width: 100%; border-radius: 4px; }
+}
+
+// ── NAV RETURN HALO — "you came back from here" ──
+// Luminous yellow glow applied by useStateHolder to the [data-nav-focus]
+// element matching the route the user just returned from. Double-pulses,
+// then fades out; the class is removed right after the animation ends.
+.nav-return-halo {
+  border-radius: inherit;
+  animation: nav-halo-fade 4s ease-out forwards;
+}
+@keyframes nav-halo-fade {
+  0% {
+    box-shadow:
+      0 0 0 4px  rgba(var(--halo-yellow-rgb), 0.95),
+      0 0 26px 10px rgba(var(--halo-yellow-rgb), 0.70);
+  }
+  18% {
+    box-shadow:
+      0 0 0 3px  rgba(var(--halo-yellow-rgb), 0.55),
+      0 0 14px 4px  rgba(var(--halo-yellow-rgb), 0.35);
+  }
+  36% {
+    box-shadow:
+      0 0 0 4px  rgba(var(--halo-yellow-rgb), 0.95),
+      0 0 26px 10px rgba(var(--halo-yellow-rgb), 0.70);
+  }
+  100% {
+    box-shadow:
+      0 0 0 0 rgba(var(--halo-yellow-rgb), 0),
+      0 0 0 0 rgba(var(--halo-yellow-rgb), 0);
+  }
+}
+
+// ── PIONEER GOLD — the one-and-only origin entity ──
+// Applied by the chip family (MicroChip / InfoChip / EntityName / EntityMini)
+// whenever a reference resolves to the pioneer. Gold surface; content reads
+// as carved into the metal (dark relief above, light catch below). Global +
+// !important on purpose: it must beat every per-kind scoped chip tint.
+.pioneer-gold {
+  background: linear-gradient(160deg,
+    #f9e492 0%, #eeca52 35%, #d5a72a 58%, #efc953 80%, #bd8c10 100%) !important;
+  border-color: #a67c00 !important;
+  color: #5f4700 !important;
+  text-shadow:
+    0 -1px 0 rgba(74, 52, 0, 0.50),
+    0  1px 0 rgba(255, 247, 208, 0.85);
+  box-shadow:
+    inset 0  1px 1px rgba(255, 250, 222, 0.80),
+    inset 0 -1px 2px rgba(120, 80, 0, 0.40),
+    0 1px 3px rgba(120, 80, 0, 0.22);
+
+  .q-icon {
+    color: #6b4e00 !important;
+    opacity: 1 !important;
+    filter: drop-shadow(0 1px 0 rgba(255, 247, 208, 0.85));
+  }
+
+  &.is-link:hover {
+    background: linear-gradient(160deg,
+      #ffee9f 0%, #f5d35f 35%, #ddb02f 58%, #f6d466 80%, #c8961a 100%) !important;
+    border-color: #8a6700 !important;
+    color: #4a3800 !important;
+  }
+}

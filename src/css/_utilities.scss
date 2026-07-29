@@ -1,0 +1,118 @@
+// ──────────────────────────────────────────────────────────────
+// UTILITIES — granular helper classes (use directly in templates)
+//
+// Borrowed and consolidated from the old project (rounded-*, glass-*,
+// borders, fonts, etc.) plus a few new ones for the current dashboard.
+// ──────────────────────────────────────────────────────────────
+@use 'mixins' as *;
+
+// ── PAGE BACKGROUND ──
+.bg-surface { @include neon-bg-surface; }
+.bg-aqua    { @include neon-bg-aqua;    }
+.bg-cake    { @include neon-bg-cake;    }
+.bg-candy   { @include neon-bg-candy;   }
+
+// Page-level shorthand kept from the old project. .bg-grid is now a soft
+// dot-grid over the surface gradient instead of the old SVG circuit board.
+.bg-base {
+  @include neon-bg-surface;
+}
+.bg-gral {
+  background: var(--paper-card);
+}
+.bg-grid {
+  @include neon-bg-surface;
+  background-image:
+    radial-gradient(circle at 107% 30%, var(--surface-1) 0%, var(--surface-2) 50%, var(--aqua-3) 100%),
+    radial-gradient(rgba(var(--ink-rgb), 0.06) 1px, transparent 1px),
+    radial-gradient(rgba(var(--ink-rgb), 0.06) 1px, transparent 1px);
+  background-size: cover, 22px 22px, 22px 22px;
+  background-position: 0 0, 0 0, 11px 11px;
+}
+
+// ── GLASS LAYERS — light to dark ──
+.glass        { @include glass(0.66, 6px); }
+.glass-light  { @include glass-light(0.8); }
+.glass-soft   { @include glass(0.5, 4px); }
+.glass-dark   { @include glass-dark(0.9); }
+
+// ── TYPOGRAPHY ──
+.nasalization { font-family: var(--font-display); letter-spacing: 0.05em; }
+.mono         { font-family: var(--font-mono); }
+
+.inset-font      { @include inset-font; }
+.anti-inset-font { @include anti-inset-font; }
+
+.text-ink       { color: var(--ink) !important; }
+.text-ink-soft  { color: var(--ink-soft) !important; }
+.text-accent    { color: var(--ink) !important; }
+.text-dim       { color: var(--ink-soft); opacity: 0.75; }
+.text-hash      { font-family: var(--font-mono); font-size: 0.72em; color: var(--ink-soft); opacity: 0.7; }
+
+.font-13 { font-size: 1.3em; }
+.font-12 { font-size: 1.2em; }
+.font-10 { font-size: 1em;   }
+.font-9  { font-size: 0.9em; }
+.font-8  { font-size: 0.8em; }
+.font-7  { font-size: 0.7em; }
+.font-6  { font-size: 0.6em; }
+
+.text-title { font-size: 0.9em; font-weight: bold; }
+
+.overflowed {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+// ── ROUNDING ──
+.rounded-xs   { border-radius: var(--radius-xs); }
+.rounded-sm   { border-radius: var(--radius-sm); }
+.rounded-md   { border-radius: var(--radius-md); }
+.rounded-lg   { border-radius: var(--radius-lg); }
+.rounded-xl   { border-radius: var(--radius-xl); }
+
+.rounded-u    { border-top-left-radius: var(--radius-md); border-top-right-radius: var(--radius-md); }
+.rounded-d    { border-bottom-left-radius: var(--radius-md); border-bottom-right-radius: var(--radius-md); }
+.rounded-l    { border-top-left-radius: var(--radius-lg); border-bottom-left-radius: var(--radius-lg); }
+.rounded-r    { border-top-right-radius: var(--radius-lg); border-bottom-right-radius: var(--radius-lg); }
+
+// Legacy aliases from the old project (preserve template compatibility).
+.rounded-1    { border-radius: var(--radius-xs); }
+.rounded-2    { border-radius: var(--radius-sm); }
+.rounded-3    { border-radius: var(--radius-xl); }
+.rounded-10   { border-radius: var(--radius-lg); }
+.rounded-u-1  { border-top-left-radius: var(--radius-sm); border-top-right-radius: var(--radius-sm); }
+.rounded-l-1  { border-top-left-radius: var(--radius-sm); border-bottom-left-radius: var(--radius-sm); }
+.rounded-l-2  { border-top-left-radius: var(--radius-md); border-bottom-left-radius: var(--radius-md); }
+.rounded-r-2  { border-top-right-radius: var(--radius-md); border-bottom-right-radius: var(--radius-md); }
+
+// ── BORDERS ──
+.borders         { @include raised-border; }
+.borders-light   { border: var(--border-light); }
+.borders-line    { border: var(--border-line); }
+.borders-soft    { box-shadow: var(--paper-mute) 1px 1px 0; }
+
+.grey-square     { border: 1px solid var(--paper-line); }
+.grey-border-3   { border: 0.3px solid var(--paper-line-2); }
+.grey-border-5   { border: 0.5px solid var(--paper-line-2); }
+.grey-sides      { border-left: 1px solid var(--paper-line); border-right: 1px solid var(--paper-line); }
+.grey-bottom     { border-bottom: 1px solid var(--paper-line); }
+.grey-sides-v    { border-top: 1px solid var(--paper-line); }
+.blue-grey-square{ border: 2px solid var(--ink-soft); }
+
+// ── LAYOUT ──
+.full        { width: 100%; height: 100%; }
+.child       { flex: 1; min-height: 0; }
+.fit         { height: fit-content; block-size: fit-content; }
+.container-v { display: flex; flex-direction: column; }
+.hidden-overflow { overflow: hidden; }
+
+// ── DECORATIVE BACKGROUNDS ──
+.neon-aqua     { @include neon-bg-aqua; }
+.neon-surface  { @include neon-bg-surface; }
+.neon-cake     { @include neon-bg-cake; }
+.neon-candy    { @include neon-bg-candy; }
+
+// ── SCROLLBAR ──
+.scrollbar-ink  { @include scrollbar-ink; }

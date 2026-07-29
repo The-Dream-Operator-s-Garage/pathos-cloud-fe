@@ -1,0 +1,11 @@
+# Dependencies + build output (the deploy branch carries builds; main never does)
+node_modules/
+dist/
+.quasar/
+
+# Local env/tooling
+.env
+.env.local
+.DS_Store
+*.log
+thumbs.db

@@ -1,0 +1,575 @@
+// ──────────────────────────────────────────────────────────────
+// DESIGN TOKENS — pathos.cloud, faithful port of the old aesthetic
+//
+// Ported from /Users/allegue/dev/pathos-cloud-frontend/src/css/quasar.variables.scss
+//
+// CSS custom properties drive everything. Sass `$` mirrors are provided so
+// `@mixin` calls and Quasar's variables.scss can still consume them.
+//
+// To re-theme: change values inside `:root {}` — every component using
+// `var(--token)` updates without touching .vue files.
+// ──────────────────────────────────────────────────────────────
+
+// ── INK & PAPER — high-contrast slate on translucent paper ──
+// Refit to match the inspiration mock: deeper, more saturated ink for body
+// text so it sings on the gradient page; ink-soft sits one notch lighter for
+// secondary labels.
+$ink-1:        #1F2A38;   // headings / strong contrast
+$ink:          #2C3D4E;   // body text + primary
+$ink-2:        #3F506A;
+$ink-soft:     #5B6C82;
+$ink-mute:     #8995A8;   // for hash / time-ago / disabled labels
+$ink-glow:     rgba(255, 255, 255, 0.85);  // inner top highlight (carved)
+$paper:        #f8f9fb;
+$paper-card:   #ffffff;
+$paper-mute:   #d8dde6;
+$paper-line:   #cfd5e0;
+$paper-line-2: #a6acb8;
+
+// ── ACCENT (semantic interactive colors) ──
+$coral:        #DC4A5C;   // primary action / pin tack / save
+$coral-soft:   #ec6d7d;
+$coral-deep:   #b53445;
+
+// ── SURFACE (yellow → mint → teal — the page background) ──
+$surface-1: #FFFB97;  // lemon
+$surface-2: #97FFCF;  // mint
+$surface-3: #2FE1D6;  // teal
+$surface-4: #38C6BD;
+
+// ── BROWN (Quasar palette brown-1 — the flat plaque coat for footer,
+// drawer, and the stack/pins docks; brown-4 is the darker plaque-edge lip).
+// `$brown-1` is ALSO the LIT half of the post information flyout's well bevel
+// (2026-07-27): its bottom + right borders, where the sunk `$grey-4` floor
+// climbs back to a `$grey-3` plaque, with `$grey-5` shadowing the top + left.
+// The tone is that box's own history — what its coat and lines were before
+// they went neutral — and at #efebe9 it is `$grey-3`'s #eeeeee one hue over, so
+// the lip changes HUE and not value: warmth catching the light rather than a
+// lighter line ──
+$brown-1: #efebe9;
+$brown-2: #d7ccc8;
+$brown-3: #bcaaa4;
+$brown-4: #a1887f;
+$brown-8: #4e342e;
+
+// The INK of the NodeMini quoted into the post information flyout (2026-07-27,
+// last pass of the day) — its header row (kind glyph, title, open glyph) and
+// its four foot glyphs, through `--node-mini-head-ink` + `--node-mini-foot-glyph`,
+// plus the SOURCE PANE's text, set on that pane directly by the flyout. So every
+// WORD on that panel is the box's ink — head row, foot glyphs and document alike
+// — while every surface under them is the node's: `$teal-1` panes on a `$grey-3`
+// coat. The box letters what it is showing you; the node supplies what it is
+// made of.
+// The 900 of the family, so it stands at `$teal-10`'s own index and the panel's
+// ink changed HUE and nothing else — the third tone tried at that index in one
+// day (teal → `$grey-10` → here).
+//
+// Brown because the BOX is brown where it is anything: `$brown-8` inks the
+// flyout's own header and the frieze band's waves are brown, and those were the
+// only warm things left on a plaque, a well and a line system all drawn in
+// neutrals. A quoted node lettered in the host's own family reads as part of the
+// box in a way a neutral cannot — a grey ink says "not teal", a brown one says
+// whose panel this is. Two steps darker than that header ink (#3e2723 against
+// #4e342e), which is the right order: the box names itself once at the top and
+// the document it is showing you is the darkest thing in it ──
+$brown-10: #3e2723;
+
+// ── BLUE-GREY (Quasar palette, 2026-07-25) — the FEED SURFACE's colorway:
+// FriezeBarVertical's plaque + waves + lip (and its mirrored variant B,
+// FriezeBarVerticalB, which shares every token), and the feed container's own
+// background, which is the SAME -1 coat, so the box and the frieze edges
+// framing it read as one continuous material.
+//
+// It is a TRUE COLORWAY OF FriezeHeader rather than a variation on it: the
+// bar took the header's own tone mapping (base -1, waves -3 and -4, lip -3
+// = the wave-one tone) and only changed the hue family, brown → blue-grey.
+// It reached this through lime and then teal, in an inverted arrangement
+// (deep -8 plaque, light waves), earlier the same day — those tokens went
+// out with that pass and no frieze reads them.
+// To try another hue: swap these three Quasar hexes and the var names in
+// FriezeBarVertical.vue + FriezeBarVerticalB.vue + FeedPage.vue — nothing
+// else reads them ──
+$blue-grey-1: #eceff1;
+$blue-grey-2: #cfd8dc;
+$blue-grey-3: #b0bec5;
+$blue-grey-4: #90a4ae;
+// The colorway's INK — same index as `$brown-8` is in the brown family above
+// (both are Material 700), so the feed's dark tone parallels the drawer's
+// exactly one hue family over ──
+$blue-grey-8: #455a64;
+
+// ── The feed post square's PIT FLOOR (Quasar palette, 2026-07-25) — the box
+// the interpreted markdown sits in. It is the ONE tone on the feed surface
+// deliberately outside the blue-grey colorway above: everything else there
+// is made of the container's material, so a near-white floor reads as a
+// different material set INTO the card rather than more of it. The line
+// drawn around that floor is NOT a new token — it is `$blue-grey-3`, the
+// colorway's own lip/hairline ink, the same one the frieze bars draw the
+// container's side borders with ──
+$grey-1: #fafafa;
+
+// NO CURRENT ROLE on the node panel. It was the RING around the NodeMini quoted
+// into the post information flyout for part of 2026-07-27 — a 1px `outline`, the
+// one edge in that box drawn to SEPARATE rather than to close a shape, and a
+// thread of LIGHT: one step over the `$grey-3` well it landed on and two over
+// the `$grey-4` coat it rang. Dark rings were tried twice and both said too much
+// beside a panel already separating on HUE (`$grey-6` shouted; `$grey-3` was the
+// well's own tone and disappeared outright). The extra edge is a 2px `$teal-13`
+// BASE on the panel's bottom border now, and the ring was not needed once the
+// two reading panes went `$teal-1` themselves: the colorway is back inside the
+// panel, where a ring in the same tone was a third statement of it round the
+// outside ──
+$grey-2: #f5f5f5;
+
+// ── TEAL (Quasar palette, 2026-07-26) — the NODE PREVIEW's colorway.
+// A `![[pathos:nodes/…]]` block embed drops a NodeMini into a post body, and
+// posts are read on two surfaces drawn in two different materials (the feed
+// card's blue-greys, the post viewer's white paper). Giving the node panel a
+// hue of its own is what makes it read as ANOTHER ELEMENT quoted into the
+// post rather than more of the post — and it is the same three-role mapping
+// the brown and blue-grey families use above: -1 coats the panel, -3 draws
+// every line on it (outer border, zone dividers, the header's vertical
+// hairlines), and -10 inks everything written on it EXCEPT the foot's chip,
+// which is a neutral object and is lettered in `$grey-8` (see below).
+// Not -8, the index the
+// brown and blue-grey families use: on a -1 coat it is only ~4:1, thin at
+// chip size, where -10 clears 10:1 and lets an 11px glyph read as a mark ──
+$teal-1: #e0f2f1;
+// The line tone for a node panel whose COAT has left the colorway
+// (2026-07-27; it also spent two passes as the inverted chip's icon+type ink
+// and was removed with that design). `$teal-3` is drawn FOR a `$teal-1` coat.
+// On the post information flyout, where the coat is the host's `$grey-3`, the
+// panel is asked to state its divisions QUIETLY — the box around it is pale and
+// a -3 line was the one emphatic thing left on it — so the lines go a step
+// LIGHTER rather than darker, and the panel is read by hue and arrangement
+// instead of by contrast. Its one loud edge is the `$teal-13` base underneath,
+// which is loud on PURPOSE and on one side only ──
+$teal-2: #b2dfdb;
+$teal-3: #80cbc4;
+$teal-10: #004d40;
+
+// The CHIP'S OWN INK, and the one place on the panel that is not written in the
+// colorway (2026-07-26). The chip is a NEUTRAL object — a `$grey-3` pill drawn
+// in `$grey-5` — so it is lettered in a neutral too: ONE tone for all four
+// parts, 5.3:1 on the -3 fill, with MicroChip's shipped opacities doing the
+// hierarchy on top (full strength on the icon and the HASH, .7 on the type
+// word, .35 on the separators). It briefly ran two steps, a near-black -10 on
+// the three parts that NAME the address over this -8 on the hash; one tone
+// inverts that reading, and better — the hash is now the STRONGEST thing in the
+// chip and the word "node" recedes behind it, which is the right order for a
+// label whose whole job is to introduce an address.
+//
+// It leaves the `$teal-12` base as the ONLY teal left on the chip, which is the
+// point: everything the pill is made of is neutral, and the one accent states
+// that it is a thing lying on the panel rather than part of it.
+//
+// The hash took the long way here and the walk is worth keeping, because every
+// stop failed for the same reason — the fill is light, so a light tone has
+// nothing to hold it. It went -11, then the -12/-13/-14 accents, then the -1
+// coat itself with a top-and-bottom `text-shadow` EDGE (walked -3 → -5 → -6,
+// since inside an object -3 measured 1.06:1 and disappeared) propping it up,
+// then teal ink at -10, then teal -8, then here. Ink needs no prop; an address
+// is the one thing on this panel a reader might copy character by character.
+// The outline and its tokens are gone. (-8 is #616161 — the very hex the pill
+// itself wore as `$grey-14` when it was dark and the teal was written ON it) ──
+$grey-8: #616161;
+
+// The NODE CHIP, in the middle of the foot, states an ADDRESS — a different
+// kind of fact from the title above it and the tallies beside it — so it is
+// the one thing on the panel drawn as a separate OBJECT: a PILL lying on the
+// coat rather than another zone of it.
+//
+// The fill is NEUTRAL — `$grey-3`, not the colorway's own teal. A teal pill on
+// a teal panel is the same material at two lightnesses and reads as a patch of
+// the coat; a slate one is a different material LYING on it. The pill was DARK
+// for two passes ($grey-14, #616161) with the teal written on it, the panel
+// inverted, then mid ($grey-5, #bdbdbd); it is LIGHT now, so the inversion is
+// off — and the chip is not written in the colorway at all any more: a neutral
+// pill drawn in neutral lines is lettered in `$grey-8`, which leaves the
+// `$teal-12` base as the only teal on it.
+//
+// At -3 the neutrality is doing ALL the work: #eeeeee and the `$teal-1` coat
+// are the same LIGHTNESS (1.00:1 — luminance 0.855 against 0.857), so the pill
+// no longer separates from the panel by tone at all. What states it is an
+// object is its HUE (slate on teal), its outer hairline — two steps darker at
+// `$grey-5`, since in the fill's own tone it extended the pill instead of
+// drawing it — and the base under it.
+// It is also the fill on which INK reads at all — the grey it wears now is
+// 5.3:1 on it — which is why the hash could stop being a light tone
+// propped up by an outline and go back to being lettering ──
+$grey-3: #eeeeee;
+
+
+// BOTH of the pill's neutral lines, two steps down from the fill (2026-07-26):
+// the hairline all the way round OUTSIDE the box, and the seam INSIDE it along
+// the bottom only, between the content and the `$teal-12` base. One tone for the
+// two of them, so the pill's own drawing is a single material and the mint base
+// is the only edge that stands apart.
+//
+// NEUTRAL on purpose: a teal on either would have joined the panel's line system
+// and claimed to divide something, where a grey can only read as the same
+// material — creased on the inside, edged on the outside — which is what makes
+// the base look like a layer the chip stands on rather than a border round it.
+//
+// -5 because the nearer steps cannot be SEEN on this fill, which both lines
+// learned separately: the seam went in at -4 (1.14:1) before settling here, and
+// the ring walked `$teal-3` → -3 (the fill itself, 1.00:1, drawing nothing at
+// all) → -4 (1.14:1, an edge only under magnification) → -6 (#9e9e9e, 2.3:1,
+// heavier than a hairline wants) → here. 1.6:1 against the fill and 1.6:1
+// against the `$teal-1` coat. It is also the tone the pill itself wore two
+// passes ago ──
+$grey-5: #bdbdbd;
+
+
+// One step under `$grey-3`, and the LINE that goes with it (2026-07-26). Added
+// for the feed's post information flyout, whose coat moved off the side
+// widgets' warm `$brown-1` to the neutral `$grey-3`: `$brown-4` then drew every
+// line on it — the plaque's outer border and the well's rim — and a warm edge
+// round a neutral box reads as trim borrowed from another surface. This is the
+// neutral at brown-4's place in its own scale, so the box states its edges in
+// the material it is made of.
+//
+// It is a QUIET line by design (1.06:1 on `$grey-3`): the flyout floats free on
+// a near-black canvas, where the drop shadow already separates it from the page
+// and the border only has to close the shape. It was also the WELL's only
+// statement for a day, that container sharing the plaque's exact tone — and
+// since 2026-07-27 this hex is the well's FLOOR instead, sunk one step into the
+// plaque (1.14:1), which leaves the tonal step stating where the container is
+// and the rim free to state what KIND of edge it is: a two-tone BEVEL,
+// `$grey-5` on the top and left, `$brown-1` on the bottom and right. Four even
+// lines in this tone had gone invisible the moment the floor took it. The
+// panel's scrollbar thumb had to move to `$grey-5` for the same reason ──
+$grey-4: #e0e0e0;
+
+// The post information flyout's FRIEZE BASE (2026-07-26). The band inside that
+// box was the one thing on it still wearing the side widgets' warm plaque —
+// `$brown-4`, FriezeBar's own default — after the coat and every line went
+// neutral; this is the neutral it moved to. It is NOT brown-4's counterpart in
+// lightness the way `$grey-4` is: brown-4 is a light plaque with LIGHTER waves
+// on it, and -9 is dark, so the band inverts — the brown-1/-2 waves stay put
+// and now read AS THE LIGHT on a dark base rather than as figures on a light
+// one. That is the point of the tone: a dark strip is what makes the band the
+// one carved thing in an otherwise flat, pale box ──
+$grey-9: #424242;
+
+// NO CURRENT ROLE. It was the INK of the node panel quoted into the post
+// information flyout for part of 2026-07-27 — the header row through
+// `--node-mini-head-ink`, then the foot's four glyphs through
+// `--node-mini-foot-glyph` — and lost both to `$brown-10` the same day, which
+// is the same 900 index in the family the BOX is drawn in where this is the
+// neutral one. Kept for the lesson: at this index the choice is not about
+// contrast at all (both clear 15:1 on the panes they letter), it is about
+// WHOSE ink it is.
+// It is `$teal-10`'s counterpart by INDEX, the same relation `$grey-4` has to
+// `$brown-4`: both are their family's 900, so the header keeps the exact weight
+// it had in teal and only changes hue. Nothing about the reading moves — 15.9:1
+// on the `$grey-1` title box where the teal measured 10.8:1, both far past any
+// threshold that matters at 14px.
+//
+// It is the LAST of that panel's four surfaces to go neutral (coat, lines, hover,
+// now the ink), which is why the ink is dialled per ZONE rather than panel-wide:
+// the source pane and the foot's COUNTS keep `$teal-10`, so the box still says
+// NODE below its header — with the `$teal-1` ring, that is what is left of the
+// colorway. The foot's split is the finer version of the same rule: the glyph is
+// a fixed label and takes this neutral, the number is the reading and does not.
+// The viewer's own vote keeps its semantic green/red throughout ──
+$grey-10: #212121;
+
+// The HOVER accent (2026-07-26). MiniPanel's family-wide hover reddens the
+// panel's border with `$coral`, which is the one thing on a node panel that
+// is not in its own colorway — so the node panel answers the pointer in mint
+// instead, and it answers with its WHOLE LINE SYSTEM: the outer border and
+// every inner hairline (the head/body/foot dividers, the header's zone splits,
+// the foot's two section rules) go -11 together. At rest those lines are one
+// tone, -3, so lighting them as one is the same statement the panel already
+// makes — hover changes the LINES' colour, not which lines there are. -11 is a
+// Quasar ACCENT (A100), deliberately brighter than anything on the 50→900
+// ramp, so hovering READS AS A LIFT: the lines go lighter and cooler than
+// their resting -3, the same direction the shadow and the 1px rise move ──
+$teal-11: #a7ffeb;
+
+// The CHIP's one mark of its own: the 2px foot the pill stands on, in the ACCENT
+// ramp's A200 — a tone belonging to nothing else on the panel, so the pill is
+// seated on its own line rather than on another of the panel's. Staying off -11
+// keeps it clear of the hover tone, so the chip's mark and the pointer's are
+// never the same colour at once.
+//
+// It is a HUE against a neutral, not a contrast: 1.07:1 on the pill and 1.08:1
+// against the coat below, which reads as a mint LINE and nothing more. That is
+// the fill's doing — `$grey-3` sits at 0.855 luminance, the coat at 0.857 and
+// the accents run 0.40 → 0.79, so nothing light separates on it. It is the last
+// survivor of a run of accents the HASH went through for the same reason and
+// gave up on (-12 → -13 #1de9b6 → -14 #00bfa5, then the coat with an edge, then
+// `$teal-10` ink at 8.6:1); a foot is allowed to be decoration, a string is not ──
+$teal-12: #64ffda;
+// A400, the next accent up — Quasar defines it, this file has to declare the
+// hex like every other Sass mirror here. It is the BASE under the node panel
+// quoted into the post information flyout (2026-07-27): the same mint as -12
+// with the chroma up and a step of value behind it (0.79 → 0.66 luminance), for
+// the one 2px edge in a box drawn entirely in hairlines. The HASH tried it and
+// gave it up (see above) — a decorative foot can carry an accent this strong, a
+// string of characters cannot.
+$teal-13: #1de9b6;
+
+// ── AQUA (mint → cyan, used for highlights and the page top-right glow) ──
+$aqua-1: #E8FFE8;
+$aqua-2: #A6FFF2;
+$aqua-3: #74F9FF;
+$aqua-4: #00E0FF;
+
+// ── CAKE (soft pastels — chips, badges, sub-accents) ──
+$cake-green:  #89F8CE;
+$cake-lemon:  #F5FAC7;
+$cake-pink:   #DEC8ED;
+$cake-purple: #CC99F9;
+
+// ── NEON CANDY (light/mid/heavy triads — buttons, decorative) ──
+$n-light-blue:  #99feff;
+$n-light-pink:  #ff99fe;
+$n-light-lemon: #feff99;
+
+$n-mid-blue:    #94daff;
+$n-mid-pink:    #ff94da;
+$n-mid-lemon:   #daff94;
+
+$n-heavy-blue:  #94b3fd;
+$n-heavy-pink:  #fd94b3;
+$n-heavy-lemon: #b3fd94;
+
+// ── DARK MUTE (used inside borders/labels/dark surfaces) ──
+$dark-lemon-green: #C7CA99;
+$dark-lemon-grey:  #727572;
+$dark-yellow-bg:   #686147;
+$dark-red-bg:      #68474e;
+$dark-blue-bg:     rgba(71, 78, 104, 0.9);
+
+// ── SEMANTIC (Quasar) ──
+$positive:  #21BA45;
+$negative:  #C10015;
+$info:      #31CCEC;
+$warning:   #F2C037;
+
+// ── EXPOSE AS CSS CUSTOM PROPERTIES ──
+:root {
+  // Ink & paper
+  --ink-1:        #{$ink-1};
+  --ink:          #{$ink};
+  --ink-2:        #{$ink-2};
+  --ink-soft:     #{$ink-soft};
+  --ink-mute:     #{$ink-mute};
+  --ink-rgb:      44, 61, 78;        // for rgba(var(--ink-rgb), ...)
+  --ink-rgb-deep: 31, 42, 56;        // ink-1 in rgb form (for inner shadows)
+  --ink-glow:     #{$ink-glow};
+  --paper:        #{$paper};
+  --paper-card:   #{$paper-card};
+  --paper-mute:   #{$paper-mute};
+  --paper-line:   #{$paper-line};
+  --paper-line-2: #{$paper-line-2};
+
+  // Accents
+  --coral:        #{$coral};
+  --coral-soft:   #{$coral-soft};
+  --coral-deep:   #{$coral-deep};
+  --coral-rgb:    220, 74, 92;
+  --accent:       #{$coral};   // generic interactive accent (links, selected borders)
+
+  // Surface / aqua
+  --surface-1: #{$surface-1};
+  --surface-2: #{$surface-2};
+  --surface-3: #{$surface-3};
+  --surface-4: #{$surface-4};
+  --aqua-1:    #{$aqua-1};
+  --aqua-2:    #{$aqua-2};
+  --aqua-3:    #{$aqua-3};
+  --aqua-4:    #{$aqua-4};
+  --aqua-rgb:  116, 249, 255;        // aqua-3 in rgb form
+  --brown-1:   #{$brown-1};          // Quasar brown-1 — plaque coat
+  --brown-2:   #{$brown-2};          // Quasar brown-2 — FriezeBar's lighter wave layer AND the stack/pins inset scroll WELLS + their scrollbar track (back here 2026-07-24 after a brief spell at brown-3)
+  --brown-3:   #{$brown-3};          // Quasar brown-3 — the frieze/footer/drawer hairlines (frieze border-bottom, drawer border-right, the nav bar's inner dividers)
+  --brown-4:   #{$brown-4};          // Quasar brown-4 — stack/pins side-bar OUTER borders AND (2026-07-24) the scroll wells' rims + dock scrollbar thumb + the count meta in the side widgets' info box
+  // Blue-grey — the feed surface's colorway (2026-07-25): FriezeHeader's
+  // OWN tone mapping (base -1, waves -3 + -4, lip -3) in a different hue
+  // family. Compare the brown roles above — they line up one to one.
+  --blue-grey-1: #{$blue-grey-1};    // Quasar blue-grey-1 — the plaque coat (⇔ brown-1 on the crown strip): BOTH FriezeBarVertical's base AND the feed container's background, so box and edges are one material
+  --blue-grey-2: #{$blue-grey-2};    // Quasar blue-grey-2 — the feed stream's SCROLL BED (2026-07-25), the well the post cards lie on. Added when the bed settled here after passing through -4 and -3 the same day; it is NOT part of the frieze bars' tone mapping, which uses 1/3/4 only
+  --blue-grey-3: #{$blue-grey-3};    // Quasar blue-grey-3 — the bar's wave layer one AND its lip/hairline, which draws the feed container's side borders (⇔ brown-3) AND (2026-07-25) EVERY line on the feed's post cards: their outer border (1px, with a 2px bottom) and their markdown pit's 1px inner one, plus the title plate's rim. One ink for every line on the surface — only the weight distinguishes them
+  --blue-grey-4: #{$blue-grey-4};    // Quasar blue-grey-4 — the bar's wave layer two (⇔ brown-4). It briefly drew the post card's outer border (2026-07-25) before that moved to a thicker -3
+  --blue-grey-8: #{$blue-grey-8};    // Quasar blue-grey-8 — the colorway's INK (⇔ brown-8, same Material 700 index): the feed post card's TITLE text inside its grey-1 plate AND the feed head band's "Public Feed" heading (end of 2026-07-25, replacing the platform `text-accent` teal — the head is the container's own material, so it takes the colorway's own ink)
+  // (`--blue-grey-3-rgb` lived here for the head band's translucent glass coat;
+  //  the band went flat `--blue-grey-1` at the end of 2026-07-25 and the token
+  //  went with its only consumer. The recipe is recorded in FeedStream.vue.)
+  --grey-1:      #{$grey-1};         // Quasar grey-1 — the feed post square's markdown PIT floor (2026-07-25; was a 5% ink tint of the card). Its border is --blue-grey-3, not a token of its own
+  --grey-4:      #{$grey-4};         // Quasar grey-4 — the feed post information flyout's OUTER BORDER, and until 2026-07-27 every other line on that box as well: the inset well's rim (a --grey-5/--brown-1 bevel since) and the well's scrollbar thumb (--grey-5 since). It also drew every line of the NodeMini quoted inside that box for part of 2026-07-27 (`--node-mini-rule`) — outer border, head/body/foot dividers, header zone splits, foot section rules, both pane rims — on the argument that ONE line system from the box's outermost edge to the hairlines three levels inside it makes the node part of the box rather than a visitor with its own conventions. That argument lost when the panel's two reading panes went --teal-1 and its ink went --brown-10: with the node's own material back INSIDE it, lines belonging to the box read as the box drawing on the node, and they are --teal-2 now (the panes spent two later passes neutral — flush --grey-3, then this tone — and came back to --teal-1, which is where both stand). (It was also that panel's COAT for part of the same day, one step under the --grey-3 plaque so the node read as a solid block set INTO the box, with the --grey-1 source pane at 1.26:1 inside it — paper laid in a frame; the coat is --grey-3 now — flush with the plaque and a step ABOVE the sunk --grey-4 well, so the panel is raised rather than inset — and the pane is --teal-1, an inset stated by hue.) Originally just: (2026-07-26): the plaque's outer border, the inset well's rim, and the well's scrollbar thumb. The neutral standing at --brown-4's place in its own scale, added when that box's coat went from the side widgets' warm --brown-1 to --grey-3 and their warm rims read as borrowed trim. Quiet on purpose (1.06:1 on the coat): the shadow separates the box from the page, so the border only closes the shape — and the rim was the ONE thing stating where the container inside it began for as long as the well shared the plaque's exact tone. Since 2026-07-27 this tone is that WELL'S OWN FLOOR — sunk one step into the --grey-3 plaque (1.14:1), a floor rather than a region drawn on the box, which is what gives the quoted panel something to be raised out of. Two consequences: the well's rim is now its own fill and draws nothing (kept, since the step took its job and the rim states the well again the moment anything moves back), and the panel's scrollbar thumb had to leave this tone for --grey-5, having been drawn in its own track's colour. It was also the floor of that panel's two READING PANES for one pass the same day — correct as depth (1.14:1 under the coat) and wrong as material, a document drawn in the box's line tone belonging to the box rather than to the node; they are --teal-1
+  --grey-9:      #{$grey-9};         // Quasar grey-9 — the PLAQUE BASE of the FriezeBar band inside the post information flyout (2026-07-26), fed in through that component's `--frieze-bar-base` seam; everywhere else the band keeps its default --brown-4. The band was the last warm thing on a box whose coat and lines had both gone neutral. Dark where brown-4 is light, so the motif inverts: the --brown-2/--brown-1 waves are unchanged and now read as the LIGHT on a dark strip — which is also what makes the band the one carved thing in a flat, pale box
+  --grey-10:     #{$grey-10};        // Quasar grey-10 — NO current role. It was the INK of the NodeMini quoted into the post information flyout for part of 2026-07-27, first the header row (`--node-mini-head-ink`) and then the foot's four glyphs (`--node-mini-foot-glyph`) beside it, and lost both to --brown-10 within the day. Kept for the lesson, which is not about contrast: at the 900 index every candidate clears 12:1 on the panes it letters, so the choice is WHOSE ink it is — and a neutral on a panel whose host is brown wherever it is anything could only say "not teal" where the brown says whose box this is
+
+  // Teal — the NODE PREVIEW's colorway (2026-07-26). Read only by
+  // NodeMini, which wears it on every surface so a node quoted into a post
+  // looks like a node wherever the post is read. THE HUE IS A DIAL: the two
+  // roles never move, so trying another family is these two Quasar hexes,
+  // the two var names below, and the four `var()` fallbacks in NodeMini —
+  // it went light-green → green → teal → lime → amber → back to teal in one
+  // afternoon, and nothing else on the platform noticed.
+  --teal-1: #{$teal-1};  // Quasar teal-1 — the node panel's coat, head to foot (one uniform tone; the head/body/foot tone-split every other Mini uses is off here). On the post information flyout, where that coat is dialled to the host's --grey-3, this tone instead draws the TWO READING PANES inside it (2026-07-27): the raw title's box and the source pane, both --grey-1 near-white before, and both neutral for two passes in between (--grey-3 flush, then --grey-4 inset) before coming back here. The teal had been pushed out to a single ring by then, and the panes are where a reader's eye actually is, so the arrangement became the plainer one — a NEUTRAL panel with the document tinted inside it rather than a tinted panel with a near-white document set in. It also gives the pane its edge back: --grey-1 on this coat measured 1.04:1 and was drawn by its rim alone, where -1 sits at 1.08:1 AND carries a hue the coat has none of. (The source pane spent one pass flush with the coat, at 1.00:1 — legible, since the rim is tinted where both surfaces are neutral, but it flattens panel and document into one plane — and one pass a step UNDER it at --grey-4, correct as depth and wrong as material: a document drawn in the box's own line-and-floor tone belongs to the box rather than to the node.) It also RANG that panel for part of the same day, as a 1px `outline` — the coat the panel gave up when it took the box's tones, restated once on the outermost line, separating by HUE where no neutral could (1.00:1 against the --grey-3 well, hue doing all of it). The ring went out with the panes coming in: the colorway is INSIDE the panel now, and the extra edge is a 2px --teal-13 base on its bottom border
+  --teal-2: #{$teal-2};  // Quasar teal-2 — the LINE SYSTEM of the node panel quoted into the post information flyout (NodeMini's `--node-mini-rule` dial): its outer border AND every inner hairline in one value — head/body/foot dividers, header zone splits, foot section rules, both pane rims. A step lighter than the -3 those lines take by default, since -3 is drawn for a -1 coat and this panel's coat is the host's --grey-2. It holds the job for the SECOND time (2026-07-27, and the walk in between is the record: -3 → --grey-5 → here → --grey-3 → --grey-5 at 2px → --grey-4 → here again). What it does is state the divisions QUIETLY and by HUE, and that is inaudible on a panel where teal is only the ink and one ring — which is why it went out — and exactly right once the two reading panes are --teal-1 too: the panel is the node's material again, so its lines belong to the node
+  --teal-3: #{$teal-3};  // Quasar teal-3 — EVERY line on the node panel: its outer border (1px, with a 2px bottom, the feed card's uneven-border device at Mini scale), the head/body/foot dividers, the vertical hairlines that split its header into icon | title | open and its foot into votes | chip | tallies, NOT the foot's chip, whose three edges are all its own: a --grey-5 hairline and seam and a --teal-12 base
+  --teal-10: #{$teal-10}; // Quasar teal-10 — NodeMini's colorway INK: the header zones' own ink (mostly the open glyph since 2026-07-27 — the round pill and address chip are neutral objects) and the source pane's text. The foot it also lettered (pills, tallies, counts) went with the foot that day; the flat caption thumbs that replaced the pills are --grey-8. On the post information flyout the header goes --brown-10 through `--node-mini-head-ink` and the source pane's text with it — that box letters the node in its OWN ink and gives it the colorway as MATERIAL instead (--teal-1 panes, --teal-2 lines)
+  // The NODE CHIP, in the middle of the foot — a light PILL (fully round side
+  // edges) lying on the foot's own coat, ringed in the panel's line tone.
+  --grey-8: #{$grey-8};    // Quasar grey-8 — ALL FOUR of the chip's parts (icon, type word, separators, hash), 5.3:1 on the -3 fill, hierarchy left to MicroChip's .85/.7/.35 opacities. The chip is a neutral object, so it is lettered in a neutral: the panel's --teal-10 inks everything EXCEPT this pill. Same hex the pill itself wore when it was a dark --grey-14 slab
+  --grey-5: #{$grey-5};    // Quasar grey-5 — BOTH of the pill's neutral lines (the 1px hairline all round outside it and the seam inside its bottom edge), AND, in the post information flyout since 2026-07-27, the SHADOWED half of its well's bevel (top + left borders, against --brown-1 on the bottom + right and a --grey-4 floor: darker than the fill on the two walls a top-left light cannot reach, lighter on the two it strikes) and that well's scrollbar thumb: the thumb was --grey-4 and quiet at 1.14:1 on a pale well, and when that well took --grey-4 itself the thumb was left drawn in its own track's tone — invisible — so it went a step darker, to 1.34:1 on the sunk floor. Also the tone to reach for if that well ever wants a visible rim, its --grey-4 one now being its own fill. 1.6:1 against the fill and the coat alike; NEUTRAL so neither joins the panel's teal line system, which leaves the --teal-12 base as the only edge that stands apart. (It was the pill's own fill two passes ago.) It drew the whole LINE SYSTEM of the NodeMini quoted into the post information flyout twice on 2026-07-27 and holds neither job now (that is --grey-4). It was the EMPHATIC neutral there — 1.42:1 on the --grey-4 coat of that morning, 1.72:1 on the --grey-2 one of that afternoon, the darkest thing in a box where every other edge is stated lighter than what it sits on — and it is the pass that found the panel's ceiling: thickened to 2px on top of that tone, the panel's own divisions came out ahead of everything they divide, in a box whose plaque, well and frieze band are all single pixels. Both the 2px and the width dial that allowed it were reverted
+
+  --grey-2:      #{$grey-2};         // Quasar grey-2 — NO current role. It was the COAT of the NodeMini quoted into the post information flyout for part of 2026-07-27 (through that component's `--node-mini-coat` dial; everywhere else a node preview keeps its --teal-1), one step ABOVE the --grey-3 plaque and well of that afternoon, so the panel was the LIGHTEST thing in the box — raised rather than inset, which is what a viewer's one object should be: not a block quoted from somewhere but the thing the box is showing you. That RELATION is what stands and the tone is not how it is stated any more: the coat is --grey-3 (flush with the plaque) and the WELL sank to --grey-4 instead, so the panel is raised out of its container while remaining the box's own material. (It was --grey-4, a step UNDER the plaque, earlier the same day.) Consequence to know: the pane inside it lost its tonal step against this coat — --grey-1 measured 1.04:1 here against 1.26:1 on the --grey-4 coat of that morning, where it read as paper laid in a frame — which is what eventually moved both reading panes to --teal-1, an inset stated by hue instead. This tone also WAS the source pane for one pass late that day (1.00:1, panel and document one continuous surface drawn apart by the --teal-2 rim alone); it reverted, a document being something the box holds rather than more of the box. This tone also ringed that panel for part of the same day, as a thread of LIGHT (1.06:1 on the well, 1.21:1 on the then-coat), and lost the job to --teal-1 for the lesson worth keeping: where hue does all the work, a neutral is the one thing that cannot state an edge
+  --grey-3: #{$grey-3};    // Quasar grey-3 — the chip's fill. NEUTRAL on purpose: a TEAL pill on a teal panel is one material at two lightnesses and reads as a patch of the coat, where slate reads as a token lying on it. At -3 that hue difference is the WHOLE difference — the fill and the coat are the same lightness (1.00:1), so the ring and the foot are what state the pill's edges. (It drew the flyout NodeMini's whole line system twice on 2026-07-27 and reads BOTH ways round, which is the useful part: 1.14:1 and LIGHTER than the --grey-4 coat of that morning, then 1.06:1 and darker than the --grey-2 one of that afternoon. Neither held — lighter left the panel no structure to read, darker-by-a-hair left it none either — and the lines are --grey-4 now, the tone the rest of the box already draws in)
+  --teal-12: #{$teal-12};  // Quasar teal-12 (accent A200) — the 2px foot under the chip's pill, the one tone on the panel belonging to nothing else. A mint line on a neutral, reading as a LINE and not as a contrast (1.07:1 on the pill, 1.08:1 on the coat). The ONLY teal left on the chip: its fill, both hairlines and all its lettering are neutrals (--grey-3/-5/-10/-8). Since 2026-07-27 it is ALSO the HOVER tone of the node panel quoted in the post information flyout (`--node-mini-rule-hover`, taking its outer border + every inner hairline at once). It held that panel's 2px BASE as well for one day, and the two jobs on one panel were a knowing cost — on the CHIP the base deliberately stays off the hover tone so an object's own mark and the pointer's are never the same colour at once — so the BASE moved up to --teal-13 and this tone kept hover alone. The alternative was moving hover DOWN to --teal-11, which is drawn for a --teal-1 coat and reads weakly on a neutral one — the same property that makes it work as the chip's foot is what makes it work there: at 1.14:1 on that panel's coat, against resting lines within a hair of the same value, it cannot answer the pointer by weight or by value — both are DARKER than the coat and within a hair of each other — so it answers by CHROMA alone, a neutral hairline arriving in colour on a panel already read by hue
+  --teal-13: #{$teal-13};  // Quasar teal-13 (accent A400, #1de9b6) — the 2px BASE under the node panel quoted into the post information flyout (2026-07-27), added with that pass; -12 held the job for the day before it. The panel's one mark of its own, so it is the one line in that box allowed to be a COLOUR rather than a tone: -12 (A200, #64ffda) is the pale mint that reads as a line at 1.08:1 on a light coat, where -13 is the same hue with the chroma turned up and a step of value behind it — a base you can see is doing something from across the box, which is what a 2px edge on ONE side is for. It also un-crosses a knowing cost recorded on -12: the panel's HOVER tone is --teal-12, so base and pointer used to speak the same colour, and moving the base off it restores the chip's own rule — an object's mark and the pointer's are never the same at once. Keep them different if either moves
+  --teal-11: #{$teal-11};  // Quasar teal-11 (accent A100, mint) — the panel's HOVER tone, replacing MiniPanel's family-wide coral so the node panel answers the pointer in its own colorway. It takes the WHOLE line system at once — outer border + every inner hairline — via `--panel-rule` and `--node-rule`; brighter than their resting --teal-3, so hover reads as a lift. It is the DEFAULT, not the only tone: a host that dials the panel's coat or lines must dial `--node-mini-rule-hover` with them or this mint flares on a panel with no teal on it — the flyout takes --teal-12 instead
+
+  --brown-8:   #{$brown-8};          // Quasar brown-8 — drawer item ink (icons + labels + section headers) + the Back chip's solid fill + (2026-07-24) the stack/pins info-box ink: kind icon, title, `.dock-bar__action` history button, and the parked head glyph that stands in for them
+  --brown-10:  #{$brown-10};         // Quasar brown-10 — the INK of the NodeMini quoted into the post information flyout (2026-07-27): its header row's zone ink through `--node-mini-head-ink` (mostly the open glyph — the round pill and address chip are their own neutral objects), and the source pane's text. (It also took the foot's four glyphs through `--node-mini-foot-glyph` — never the counts, never the viewer's own vote — until the foot and that dial went, later the same day.) The family's 900, standing at --teal-10's own index, so the panel's ink changes HUE and nothing else; it is the third tone at that index in one day (teal-10 → --grey-10 → here). BROWN because the box is brown where it is anything at all: --brown-8 inks the flyout's own header and the frieze band's waves are brown, and on a plaque, a well and a line system drawn entirely in neutrals those were the only warm marks left. A quoted node lettered in the HOST's family reads as part of the box where a neutral only reads as "not teal". Two steps darker than that header ink (#3e2723 vs #4e342e): the box names itself once at the top and the document it is showing you is the darkest thing in it
+
+  // Luminous yellow — the "you came back from here" return halo.
+  --halo-yellow:     #ffe94a;
+  --halo-yellow-rgb: 255, 233, 74;
+
+  // Cake & neon
+  --cake-green:  #{$cake-green};
+  --cake-lemon:  #{$cake-lemon};
+  --cake-pink:   #{$cake-pink};
+  --cake-purple: #{$cake-purple};
+  --neon-blue:   #{$n-light-blue};
+  --neon-pink:   #{$n-light-pink};
+  --neon-lemon:  #{$n-light-lemon};
+  --neon-mid-blue: #{$n-mid-blue};
+  --neon-mid-pink: #{$n-mid-pink};
+
+  // Semantic
+  --positive:    #{$positive};
+  --negative:    #{$negative};
+  --info:        #{$info};
+  --warning:     #{$warning};
+
+  // ── PRESENTATION TOKENS ──
+  // Heavier rounding to match the inspiration's pill-and-pebble vocabulary.
+  --radius-xs:  0.25em;
+  --radius-sm:  0.5em;
+  --radius-md:  0.85em;
+  --radius-lg:  1.25em;
+  --radius-pill: 999px;
+  --radius-xl:  2.5em;
+
+  // Carved shadow stack — the signature "embossed" look:
+  //   1) crisp inner top highlight (the "light catches the top edge")
+  //   2) soft outer drop shadow (the panel sits on a soft cushion)
+  //   3) optional thin ink halo for separation on busy gradients
+  --shadow-carved:
+    inset 0 1px 0 rgba(255, 255, 255, 0.85),
+    inset 0 -1px 0 rgba(var(--ink-rgb-deep), 0.06),
+    0 1px 2px rgba(var(--ink-rgb-deep), 0.10),
+    0 6px 18px rgba(var(--ink-rgb-deep), 0.10);
+
+  --shadow-carved-pressed:
+    inset 0 2px 4px rgba(var(--ink-rgb-deep), 0.18),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.40),
+    0 1px 2px rgba(var(--ink-rgb-deep), 0.06);
+
+  --shadow-card:    0 6px 18px rgba(var(--ink-rgb-deep), 0.08);
+  --shadow-soft:    0 2px 6px  rgba(var(--ink-rgb-deep), 0.06);
+  --shadow-raised:  #{$ink-glow} 1px 1px 0;
+
+  // Left-edge shadow of the RIGHT-EDGE COLUMN (2026-07-24) — the stack/pins
+  // side widgets in BOTH presentations plus the nav bar's pin-tack slot, which
+  // continues that column down through the footer. A slight leftward cast, no
+  // vertical offset, so the whole column reads as one raised strip lying on
+  // top of the page and the nav bar.
+  --shadow-side-edge: -5px 0 12px rgba(var(--ink-rgb-deep), 0.16);
+
+  --border-ink:     1px solid rgba(var(--ink-rgb), 0.18);
+  --border-hair:    1px solid rgba(var(--ink-rgb), 0.10);
+  --border-light:   1.5px solid rgba(255, 255, 255, 0.7);
+  --border-line:    1px solid #{$paper-line};
+
+  // Translucent surfaces — paper levels (the gradient bleeds through)
+  --surface-glass:  rgba(255, 255, 255, 0.45);
+  --surface-glass-soft: rgba(255, 255, 255, 0.30);
+  --surface-glass-strong: rgba(255, 255, 255, 0.70);
+
+  // Typography
+  --font-display:   'Nasalization', 'Orbitron', sans-serif;
+  --font-mono:      'Space Mono', monospace;
+
+  // ── MERCURY PLAQUE — the chrome surfaces (drawer / footer / stack /
+  // pins) wear FLAT pastel plaques: clean single colors, deliberately NO
+  // metal-sheen or glass gradients (those read as dirt on big surfaces —
+  // the sheen vocabulary lives only inside FriezeHeader.vue itself).
+
+  // Smoke — the complementary smoky layer for controls and texts sitting
+  // ON a pastel plaque (dark ink fog, two strengths).
+  --smoke:        rgba(31, 42, 56, 0.14);
+  --smoke-mid:    rgba(31, 42, 56, 0.30);
+  --smoke-strong: rgba(31, 42, 56, 0.85);
+
+  // ── LAYOUT METRICS ──
+  // EXACT height of the fixed bottom NavigationBar (.nav-bar sets
+  // `height: var(--nav-footer-h)`). The docked windows and the pins widget
+  // sit at `bottom: var(--nav-footer-h)` so their bottom edges merge with the
+  // bar's top edge — change it here and everything stays flush. Any
+  // viewport-bounded surface (e.g. subject-panel) subtracts it too.
+  --nav-footer-h: 48px;
+
+  // Where the base `.dock-window` shell stands — the bar's top edge PLUS the
+  // frieze footer band that sits on it (2026-07-25). FriezeFooter is an
+  // opaque --frieze-h strip parked at `bottom: var(--nav-footer-h)`, so a
+  // dock BELOW its z anchored to the bar alone would lose its bottom
+  // --frieze-h behind it; this token stands such a dock ON the band instead.
+  // Since 2026-07-27 only CHAT actually rests here: the four creation docks
+  // moved above the band's z (3010+ > 3000, stores/windows.js) and anchor
+  // straight to `--nav-footer-h`, painting OVER the band
+  // (`.dock-window--creation`), as the parked minitab strip now does too.
+  // The pinned column and the left drawer never used it — they keep
+  // `bottom: var(--nav-footer-h)` and run down OVER the band, which is
+  // what covers its two ends.
+  --dock-bottom: calc(var(--nav-footer-h) + var(--frieze-h));
+
+  // EXACT height of the fixed top FriezeHeader (the mercury-wave crown
+  // strip mounted by BOTH layouts). Percentage of the viewport — not
+  // pixels — so the band scales with the device. The page containers pad
+  // down by this token so content never hides under the plaque.
+  --frieze-h: 3vh;
+
+  // Mirrored side widgets (StackPanel drops from the very top over the
+  // frieze, PinsDrawer rises from the very bottom over the nav footer), both
+  // presentations (expanded panel + parked icon column). Together they may use
+  // at most a 90vh BAND — the ~10vh left over (minus the nav footer the pins
+  // widget stands on) is the breathing gap in the middle that keeps them from
+  // ever touching; past their cap the content scrolls inside instead of
+  // expanding into each other.
+  //
+  // That band is split **70/30 in the stack's favour** (2026-07-24 — it was an
+  // even 45/45 half each): navigation history is the long, fast-growing list,
+  // the pinned set is a short curated one. Keep the two adding up to 90vh.
+  --dock-stack-h: 63vh; // 70% of the 90vh side band
+  --dock-pins-h:  27vh; // 30% of the 90vh side band
+
+  // Width of the stack/pins side widgets while PARKED — the same panel
+  // element narrowed to a thin icon column at the right edge (`is-parked` in
+  // StackPanel/PinsDrawer). Keep in sync with RAIL_W (42 + 4 gap) in
+  // stores/windows.js, which reserves the column for the page + other docks.
+  --dock-rail-w: 42px;
+
+  // EXACT height of the dock header bar (.dock-bar) — and of the parked side
+  // widgets' head glyph (.dock-side-head), which stands in for it. Equal
+  // heights keep the list box at the same offset in both presentations.
+  --dock-bar-h: 30px;
+
+  // Vertical rhythm SHARED by the two faces of a stack/pins item
+  // (SidePanelItem): the item box height and the gap between items are
+  // IDENTICAL parked (icon button) and expanded (informative row), so every
+  // item keeps its exact vertical position through the morph — the list
+  // unravels in place instead of re-flowing. The expanded row's text is
+  // compacted and the parked icon button grown until they meet here; the
+  // parked column's width (--dock-rail-w) caps how wide that button can go,
+  // so it reads as a rounded vertical key rather than a square.
+  --side-item-h: 36px;
+  --side-item-gap: 4px;
+}

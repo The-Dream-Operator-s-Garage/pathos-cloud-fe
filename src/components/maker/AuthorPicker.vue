@@ -1,0 +1,142 @@
+<template>
+  <div class="author-picker" :class="{ 'is-compact': compact }">
+    <div v-if="!compact" class="picker-label">
+      <q-icon name="person" size="13px" class="q-mr-xs" />
+      <span>Authoring as</span>
+    </div>
+
+    <q-select
+      :model-value="modelValue"
+      :options="options"
+      :option-label="optionLabel"
+      :option-value="optionValue"
+      :loading="loading"
+      dense outlined :dark="false"
+      emit-value map-options
+      :hide-dropdown-icon="options.length <= 1"
+      :readonly="options.length <= 1"
+      class="picker-select"
+      popup-content-class="picker-popup-light"
+      @update:model-value="$emit('update:modelValue', $event)"
+    >
+      <template #selected-item="{ opt }">
+        <div v-if="opt && opt.display_name" class="row items-center no-wrap" style="gap:6px;">
+          <q-icon :name="iconFor(opt.kind)" size="13px" class="kind-icon" />
+          <span class="display-name">{{ opt.display_name }}</span>
+          <q-chip dense outline size="xs" :color="colorFor(opt.kind)"
+            class="q-ma-none q-ml-xs kind-chip">
+            {{ opt.kind }}
+          </q-chip>
+        </div>
+        <!-- Value that couldn't be mapped to an option (authorables fetch
+             failed): show the raw entity id, never a bare "unknown". -->
+        <span v-else-if="opt != null" class="display-name">entity #{{ opt.id ?? opt }}</span>
+      </template>
+
+      <template #option="{ opt, itemProps }">
+        <!-- The identity tree, indented by depth (alter-egos nest under
+             their parent identity, at any depth). -->
+        <q-item v-bind="itemProps" dense :style="{ paddingLeft: (12 + (opt.depth || 0) * 14) + 'px' }">
+          <q-item-section avatar>
+            <q-icon :name="iconFor(opt.kind)" size="14px" />
+          </q-item-section>
+          <q-item-section>
+            <q-item-label style="font-size:0.85em;">{{ opt.display_name }}</q-item-label>
+            <q-item-label caption style="font-size:0.7em;">
+              {{ opt.kind }}<span v-if="opt.acting"> · acting</span>
+            </q-item-label>
+          </q-item-section>
+        </q-item>
+      </template>
+    </q-select>
+  </div>
+</template>
+
+<script>
+import { defineComponent, ref, onMounted } from 'vue'
+import { authService } from 'src/services/auth.service'
+
+const ICON = { USER: 'person', ORGANIZATION: 'reduce_capacity', ALTER_EGO: 'theater_comedy', ORG_ALTER_EGO: 'theater_comedy', BOT: 'smart_toy' }
+const COLOR = { USER: 'primary', ORGANIZATION: 'teal', ALTER_EGO: 'purple', ORG_ALTER_EGO: 'teal', BOT: 'grey' }
+
+export default defineComponent({
+  name: 'AuthorPicker',
+  props: {
+    // v-model: the selected entity id
+    modelValue: { type: Number, default: null },
+    compact: { type: Boolean, default: false }
+  },
+  emits: ['update:modelValue', 'options-loaded'],
+
+  setup (props, { emit }) {
+    const options = ref([])
+    const loading = ref(true)
+
+    const optionLabel = (opt) => opt?.display_name || ''
+    const optionValue = (opt) => opt?.id
+
+    const iconFor = (k) => ICON[k] || 'person'
+    const colorFor = (k) => COLOR[k] || 'primary'
+
+    onMounted(async () => {
+      try {
+        const result = await authService.getAuthorables()
+        if (result.success) {
+          // Org rows carry `switchable` (2026-07): MEMBER seats list their
+          // MASK but cannot author as the org entity itself — drop those
+          // rows here (resolveAuthorId would 403 them anyway).
+          options.value = result.authorables.filter(o => o.switchable !== false)
+          // Default selection: the identity the user is logged in as right
+          // now (`acting`, which may be an alter-ego), falling back to the
+          // root USER row. A parent-restored value (e.g. a reopened draft)
+          // is kept only if it still exists in the identity tree — a stale
+          // id (author deleted, or a pre-reseed draft) would render as an
+          // unmappable raw number and, with a single option, readonly-lock
+          // the field.
+          const acting = result.authorables.find(o => o.acting) ||
+            result.authorables.find(o => o.kind === 'USER')
+          const known = result.authorables.some(o => o.id === props.modelValue)
+          if (acting && !known) emit('update:modelValue', acting.id)
+          emit('options-loaded', result.authorables)
+        }
+      } catch (_) { /* leave empty */ }
+      loading.value = false
+    })
+
+    return { options, loading, optionLabel, optionValue, iconFor, colorFor }
+  }
+})
+</script>
+
+<style lang="scss" scoped>
+.author-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.picker-label {
+  display: flex;
+  align-items: center;
+  font-size: 0.72em;
+  color: rgba(var(--ink-rgb), 0.7);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding-left: 2px;
+}
+
+.picker-select {
+  font-size: 0.88em;
+}
+
+.author-picker.is-compact {
+  gap: 0;
+  .picker-select { font-size: 0.78em; }
+  :deep(.q-field--dense .q-field__control) { height: 30px; min-height: 30px; }
+  :deep(.q-field__marginal)                { height: 30px; }
+}
+
+.kind-icon  { color: var(--ink); }
+.display-name { color: #d8d8e8; }
+.kind-chip  { font-size: 0.6em; }
+</style>

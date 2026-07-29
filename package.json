@@ -1,0 +1,35 @@
+{
+  "name": "pathos-dashboard",
+  "version": "0.0.1",
+  "description": "pathos.cloud user interface",
+  "productName": "pathos.cloud",
+  "author": "allegue",
+  "private": true,
+  "scripts": {
+    "dev": "quasar dev",
+    "build": "quasar build",
+    "lint": "eslint --ext .js,.vue ./src"
+  },
+  "dependencies": {
+    "@quasar/extras": "^1.16.4",
+    "axios": "^1.6.0",
+    "dompurify": "^3.4.10",
+    "marked": "^9.0.0",
+    "pinia": "^2.1.6",
+    "quasar": "^2.14.0",
+    "vue": "^3.3.4",
+    "vue-router": "^4.2.4"
+  },
+  "devDependencies": {
+    "@babel/eslint-parser": "^7.22.7",
+    "@quasar/app-webpack": "^3.11.0",
+    "autoprefixer": "^10.5.0",
+    "eslint": "^8.46.0",
+    "eslint-config-standard": "^17.1.0",
+    "eslint-plugin-import": "^2.28.0",
+    "eslint-plugin-n": "^16.0.1",
+    "eslint-plugin-promise": "^6.1.1",
+    "eslint-plugin-vue": "^9.17.0",
+    "sass": "^1.35.2"
+  }
+}

@@ -1,0 +1,20 @@
+// pathos.cloud — Quasar SCSS variables
+//
+// These map our design tokens onto Quasar's primary/secondary/etc. so that
+// out-of-the-box Quasar components (q-btn color="primary", q-chip outline
+// color="secondary", etc.) pick up the brand automatically. The actual
+// token definitions live in src/css/_tokens.scss.
+
+@import './tokens';
+
+$primary:   $ink;        // dominant interactive color = ink (#474E68)
+$secondary: $aqua-4;     // bright cyan for accents / links (#00E0FF)
+$accent:    $cake-purple;// soft pastel accent (#CC99F9)
+
+$dark:      $ink-1;      // dark surfaces fall back to the ink-1 grey
+$dark-page: $ink;
+
+$positive:  $positive;
+$negative:  $negative;
+$info:      $info;
+$warning:   $warning;

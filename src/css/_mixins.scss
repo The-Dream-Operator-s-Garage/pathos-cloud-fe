@@ -1,0 +1,146 @@
+// ──────────────────────────────────────────────────────────────
+// MIXINS — composable building blocks for the pathos look
+//
+// Use mixins in scoped <style> blocks of .vue components. They consume the
+// CSS custom properties from _tokens.scss so a theme swap reaches them too.
+// ──────────────────────────────────────────────────────────────
+@use 'sass:math';
+
+// ── GLASS — translucent surface with a backdrop blur. Strong gradient
+//    bleed-through is the point: the inspiration is mostly see-through.
+@mixin glass($alpha: 0.45, $blur: 10px) {
+  background: rgba(255, 255, 255, $alpha);
+  backdrop-filter: blur($blur);
+  -webkit-backdrop-filter: blur($blur);
+}
+
+// ── GLASS-LIGHT — slightly more opaque (used inside cards and headers)
+@mixin glass-light($alpha: 0.60) {
+  background: rgba(255, 255, 255, $alpha);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+// ── GLASS-STRONG — for surfaces that need readable text inside
+//    even when the gradient is busy (e.g., maker dialog).
+@mixin glass-strong($alpha: 0.78) {
+  background: rgba(255, 255, 255, $alpha);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+// ── CARVED — the signature embossed look. Use on ANY rounded surface
+//    that should feel "lifted off the gradient": cards, buttons, chips.
+//    Combines: glass background, inner top highlight, soft drop shadow,
+//    barely-visible ink-tinted border.
+@mixin carved($alpha: 0.50) {
+  background: rgba(255, 255, 255, $alpha);
+  border: var(--border-ink);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-carved);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+// ── CARVED-PRESSED — used on actively pressed / selected / inset
+//    elements. Same family but with the shadow stack inverted.
+@mixin carved-pressed {
+  background: rgba(255, 255, 255, 0.30);
+  border: var(--border-ink);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-carved-pressed);
+}
+
+// ── GLASS-DARK — translucent ink panel (sparingly: tooltips, popovers)
+@mixin glass-dark($alpha: 0.9) {
+  background: rgba(var(--ink-rgb), $alpha);
+  box-shadow: var(--shadow-card);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+// ── RAISED-BORDER — the signature "lifted card" border: 0.1em ink stroke
+//    + a soft white shadow that gives it physical depth.
+@mixin raised-border {
+  border: var(--border-ink);
+  box-shadow: var(--shadow-raised);
+}
+
+// ── INSET-FONT — engraved text effect (ink color + a soft white shadow).
+//    The old project uses this for nearly every legible label.
+@mixin inset-font {
+  color: var(--ink);
+  text-shadow: var(--ink-glow) 1px 1px 0;
+}
+
+// ── ANTI-INSET — outline ink behind a light foreground (for contrast on
+//    bright surfaces — e.g., neon buttons).
+@mixin anti-inset-font {
+  text-shadow: var(--ink) 1px 1px 0;
+}
+
+// ── CARD — the canonical pathos card: glass + ink border + soft round
+@mixin card {
+  @include glass-light(0.8);
+  border: var(--border-line);
+  border-radius: var(--radius-md);
+  transition: box-shadow 0.18s ease, transform 0.12s ease;
+
+  &:hover {
+    box-shadow: var(--shadow-card);
+    transform: translateY(-1px);
+  }
+}
+
+// ── NEON BACKGROUNDS — the brand gradients ──
+// The "surface" gradient is the canonical page background. Two stacked
+// radials give the soft sage→lemon→aqua bloom seen in the inspiration mock.
+@mixin neon-bg-surface {
+  background:
+    radial-gradient(ellipse at 90% 100%, var(--aqua-2) 0%, transparent 55%),
+    radial-gradient(ellipse at 10% 0%,   var(--surface-2) 0%, transparent 50%),
+    radial-gradient(circle at 50% 50%,   var(--surface-1) 0%, var(--aqua-2) 100%);
+}
+@mixin neon-bg-aqua {
+  background: radial-gradient(circle at 107% 30%, var(--aqua-1) 0%, var(--aqua-2) 50%, var(--aqua-3) 100%);
+}
+@mixin neon-bg-cake {
+  background: radial-gradient(circle at 30% 107%, var(--cake-purple) 0%, var(--cake-pink) 30%, var(--cake-lemon) 60%, var(--cake-green) 100%);
+}
+@mixin neon-bg-candy {
+  background: radial-gradient(circle at 90% 107%, var(--neon-pink) 0%, var(--neon-blue) 50%, var(--neon-lemon) 100%);
+}
+
+// ── INK-RING — focus ring + soft glow halo around interactive elements
+@mixin ink-ring($color: var(--ink), $alpha: 0.18) {
+  border: 1px solid $color;
+  box-shadow: 0 0 0 3px rgba(var(--ink-rgb), $alpha);
+}
+
+// ── SCROLLBAR-INK — consistent slim scrollbars in the ink palette
+@mixin scrollbar-ink {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(var(--ink-rgb), 0.35) transparent;
+  &::-webkit-scrollbar       { width: 4px; height: 4px; }
+  &::-webkit-scrollbar-track { background: transparent; }
+  &::-webkit-scrollbar-thumb { background: rgba(var(--ink-rgb), 0.35); border-radius: 2px; }
+}
+
+// ── CHIP — pill-shaped label/tag in ink-on-paper
+@mixin chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 99px;
+  border: 1px solid rgba(var(--ink-rgb), 0.35);
+  background: rgba(245, 245, 245, 0.6);
+  color: var(--ink);
+  font-size: 0.72em;
+  white-space: nowrap;
+  transition: background 0.15s, border-color 0.15s;
+
+  &:hover {
+    background: rgba(var(--ink-rgb), 0.10);
+    border-color: rgba(var(--ink-rgb), 0.65);
+  }
+}

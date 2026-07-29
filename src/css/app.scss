@@ -1,0 +1,77 @@
+// ──────────────────────────────────────────────────────────────
+// pathos.cloud — global stylesheet
+//
+// Architecture: this file is intentionally thin. It loads the design tokens,
+// mixins, utilities, and shared component classes — then sets a handful of
+// global page-level rules. Everything else lives in the per-component scoped
+// SCSS or in the partials below.
+//
+// To re-theme:  edit src/css/_tokens.scss
+// To add a mixin: edit src/css/_mixins.scss
+// To add a utility class: edit src/css/_utilities.scss
+// To add a shared component class: edit src/css/_components.scss
+// ──────────────────────────────────────────────────────────────
+
+// Web fonts. Space Mono (Google) is the monospace used for hashes and
+// stack-style UI. Nasalization — the brand display face — ships LOCALLY
+// (css/fonts/nasalization.otf): it is not a real Google font, so the old
+// remote @import silently fell back to Orbitron/sans.
+@import url('https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap');
+
+@font-face {
+  font-family: 'Nasalization';
+  src: url('./fonts/nasalization.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+// Foundation partials (order matters — tokens first).
+@import './tokens';
+@import './mixins';
+@import './utilities';
+@import './components';
+
+// ── PAGE — the starfield-noise plate is the canvas: a black 700×700
+// specular-noise tile (assets/backgrounds/starfield-noise.svg) repeated
+// edge to edge, dimmed by a subtle opaque grey-3 (#eeeeee) glass wash so
+// the stars don't blaze at the eye. The body.body--dark selector must
+// ride along — Quasar's dark mode paints body with --q-dark-page at
+// higher specificity, and it would bury the starfield otherwise.
+html, body {
+  height: 100%;
+}
+body, body.body--dark {
+  margin: 0;
+  color: var(--ink);
+  font-family: 'Inter', 'Helvetica Neue', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background:
+    linear-gradient(rgba(238, 238, 238, 0.16), rgba(238, 238, 238, 0.16)),
+    url('../assets/backgrounds/starfield-noise.svg') repeat,
+    #000000;
+  background-attachment: fixed;
+}
+
+// ── DISPLAY FACE — Nasalization on main titles and every button. ──
+.q-btn {
+  font-family: var(--font-display);
+  letter-spacing: 0.03em;
+}
+.text-h1, .text-h2, .text-h3, .text-h4, .text-h5, .text-h6 {
+  font-family: var(--font-display);
+}
+
+// Quasar's <q-page-container> needs to be transparent so the body gradient
+// shows through every page.
+.q-page-container,
+.q-page {
+  background: transparent;
+}
+
+// Selection — soft mint for the light surfaces.
+::selection {
+  background: rgba(var(--ink-rgb), 0.18);
+  color: var(--ink);
+}
