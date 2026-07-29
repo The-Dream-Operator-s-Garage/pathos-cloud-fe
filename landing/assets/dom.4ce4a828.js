@@ -1,0 +1,1 @@
+import{y as e}from"./index.333032b3.js";function c(t,n){const r=t.style;for(const t in n)r[t]=n[t]}function u(t){if(null==t)return;if("string"==typeof t)try{return document.querySelector(t)||void 0}catch{return}const n=e(t);return n?n.$el||n:void 0}export{c,u as g};

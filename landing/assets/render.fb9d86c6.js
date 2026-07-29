@@ -1,0 +1,1 @@
+function a(o,n){return void 0!==o&&o()||n}function o(o,n){return void 0!==o?n.concat(o()):n}export{o as a,a as h};
