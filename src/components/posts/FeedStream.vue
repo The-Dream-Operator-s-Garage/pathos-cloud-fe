@@ -58,6 +58,21 @@
           <div class="text-dim" style="font-size:0.74em;">Every POST instance, newest first.</div>
         </div>
         <q-space />
+        <!-- THE TRUST LENS (Thread J, 2026-07-29) — filter the stream by
+             invite-chain distance: "all" is the open feed, "≤N" keeps only
+             posts whose OWNER sits within N hops of you on the web of trust
+             the invite chain already is (rides `GET /feed?maxHops=`).
+             Session-local on purpose: a lens is something you look through,
+             not a setting that silently follows you to tomorrow. -->
+        <div class="feed-stream__lens" title="Trust lens — only authors within N invite-chain hops of you">
+          <button
+            v-for="opt in LENS_OPTS" :key="String(opt.v)"
+            type="button"
+            class="feed-stream__lens-btn"
+            :class="{ 'is-on': maxHops === opt.v }"
+            @click="setLens(opt.v)"
+          >{{ opt.label }}</button>
+        </div>
         <q-badge v-if="total > 0" color="primary" outline>{{ total }}</q-badge>
       </header>
 
@@ -145,6 +160,19 @@
                 :org="item.author.org"
                 :size="16"
               />
+
+              <!-- TRUST CHIP (Thread J) — the author's invite-chain distance
+                   from YOU, stated as recorded fact: "2 hops", tooltip
+                   carrying the whole vouch path ("you › allegue › garage").
+                   Part of the author unit, so it sits with the identity
+                   block before the section's closing rule. Your own posts
+                   read "you"; no chip when the API had no viewer to measure
+                   from. -->
+              <span
+                v-if="item.author?.trust"
+                class="post-square__trust mono"
+                :title="trustTitle(item.author.trust)"
+              >{{ trustLabel(item.author.trust) }}</span>
 
               <!-- Full-bleed vertical hairline closing the AUTHOR section,
                    the same device as the head strip's `__head-rule`: it runs
@@ -388,12 +416,31 @@ export default defineComponent({
     })
     onBeforeUnmount(() => { if (ro) ro.disconnect(); ro = null })
 
+    // THE TRUST LENS state — null is the open feed. Options are few and
+    // fixed because hop counts on this platform are small integers: 1 is
+    // "people I (or my inviter) directly vouched for", 3 reaches the org
+    // masks two rings out.
+    const LENS_OPTS = [
+      { v: null, label: 'all' },
+      { v: 1, label: '≤1' },
+      { v: 2, label: '≤2' },
+      { v: 3, label: '≤3' }
+    ]
+    const maxHops = ref(null)
+    const setLens = (v) => {
+      if (maxHops.value === v) return
+      maxHops.value = v
+      load()
+    }
+
     const load = async () => {
       loading.value = true
       try {
         // `body: 'full'` — the cards ARE the posts here, so each item carries
         // its whole markdown body instead of the 280-char preview slice.
-        const r = await feedService.getPublic({ limit: 30, body: 'full' })
+        const params = { limit: 30, body: 'full' }
+        if (maxHops.value != null) params.maxHops = maxHops.value
+        const r = await feedService.getPublic(params)
         if (r.success) {
           items.value = r.items
           total.value = r.total
@@ -404,6 +451,18 @@ export default defineComponent({
     }
 
     onMounted(load)
+
+    // The trust chip's two lines. Label states the DISTANCE; the tooltip
+    // walks the PATH — every vouch between you and the author, in order.
+    const trustLabel = (trust) =>
+      trust.hops === 0 ? 'you' : `${trust.hops} hop${trust.hops === 1 ? '' : 's'}`
+
+    const trustTitle = (trust) => {
+      if (trust.hops === 0) return 'This is you'
+      const names = (trust.path || []).map((p) => p.name)
+      if (names.length) names[0] = 'you'
+      return `Invite chain: ${names.join(' › ')}`
+    }
 
     // The two lines of the identity block. `display_name` is what the
     // author's USER_PROFILE says to call them, `username` is the login
@@ -523,6 +582,11 @@ export default defineComponent({
       cardName,
       labelPaths,
       postBody,
+      LENS_OPTS,
+      maxHops,
+      setLens,
+      trustLabel,
+      trustTitle,
       // `absoluteTime` is no longer exposed — the head strip's time-ago chip
       // it fed is gone, and `momentTitle` calls it directly for the one
       // tooltip that still needs an absolute form.
@@ -623,6 +687,39 @@ export default defineComponent({
 }
 
 .feed-stream__title { min-width: 0; }
+
+// THE TRUST LENS (Thread J) — a small segmented control in the head band,
+// drawn entirely in the surface's own colorway: `--grey-1` plates rimmed
+// `--blue-grey-3` (the title plate's exact recipe), and the ON state is the
+// colorway's dark end as a FLOOR — `--blue-grey-8` under white ink, the one
+// inversion the band allows itself so the active lens reads at a glance.
+.feed-stream__lens {
+  display: flex;
+  flex: 0 0 auto;
+  border: 1px solid var(--blue-grey-3, #b0bec5);
+  border-radius: var(--radius-sm, 7px);
+  overflow: hidden;
+  background: var(--grey-1, #fafafa);
+}
+
+.feed-stream__lens-btn {
+  border: 0;
+  border-right: 1px solid var(--blue-grey-3, #b0bec5);
+  background: transparent;
+  color: var(--blue-grey-8, #455a64);
+  font-family: inherit;
+  font-size: 0.66em;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  padding: 3px 8px;
+  cursor: pointer;
+  &:last-child { border-right: 0; }
+  &:hover { background: var(--blue-grey-1, #eceff1); }
+  &.is-on {
+    background: var(--blue-grey-8, #455a64);
+    color: #fff;
+  }
+}
 
 // The band's MAIN TEXT is the colorway's ink (end of 2026-07-25) —
 // `--blue-grey-8`, the same ink the post cards' titles carry on their
@@ -1454,6 +1551,25 @@ export default defineComponent({
 // scope attribute, so no :deep() is needed.
 .post-square__byline .org-logo-chip {
   margin-left: -3px;
+}
+
+// TRUST CHIP (Thread J) — invite-chain distance, part of the author unit
+// like the badge above it (same pulled-in margin, same "belongs to the
+// identity" argument). Drawn as a tiny plate in the card's own recipe:
+// `--grey-1` floor, `--blue-grey-3` rim, the colorway's dark ink. Zero
+// hops ("you") stays quiet; the tooltip walks the whole vouch path.
+.post-square__trust {
+  margin-left: -3px;
+  flex: 0 0 auto;
+  font-size: 0.58em;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  color: var(--blue-grey-8, #455a64);
+  background: var(--grey-1, #fafafa);
+  border: 1px solid var(--blue-grey-3, #b0bec5);
+  border-radius: 9px;
+  padding: 1px 6px;
 }
 
 .post-square__identity-text {

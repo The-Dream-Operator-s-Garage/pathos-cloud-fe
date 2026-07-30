@@ -160,6 +160,7 @@ import { useUploaderStore } from 'src/stores/uploader'
 import { useSkeletonBuilderStore } from 'src/stores/skeletonBuilder'
 import { useLabelMakerStore } from 'src/stores/labelMaker'
 import { useGeoStore } from 'src/stores/geo'
+import { useEventsStore } from 'src/stores/events'
 
 export default defineComponent({
   name: 'MainLayout',
@@ -224,6 +225,9 @@ export default defineComponent({
       // Entering the platform: offer to anchor new moments to the user's
       // approximate city (one-time consent; see stores/geo.js).
       useGeoStore().maybeAsk()
+      // The push spine (Thread A): open the app's ONE SSE connection —
+      // no-op when logged out; the store owns reconnection.
+      useEventsStore().connect()
     })
 
     return { drawer, mini, hideDrawer, makerStore, uploaderStore, skeletonBuilderStore, labelMakerStore, windows, pinsRefreshKey, onPostCreated, onUploaded, goToProfile, canGoBack, goBack }

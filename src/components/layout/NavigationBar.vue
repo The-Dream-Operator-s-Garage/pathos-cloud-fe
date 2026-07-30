@@ -122,7 +122,11 @@
            The navigation-stack panel likewise has no button here. ── -->
       <div class="nav-right">
         <!-- Chat: the conversation window (distinctive teal treatment —
-             chats are where entities meet, not another maker). -->
+             chats are where entities meet, not another maker). The UNREAD
+             BADGE (Thread A) rides it: the event spine's live unread count
+             — messages, polls, invites, grants, comments all land here or
+             one click away. Opening the dock marks the queue seen (coarse
+             v1 ack; see stores/events.js). -->
         <q-btn
           push no-caps
           class="nav-btn chat-btn"
@@ -132,6 +136,11 @@
         >
           <q-icon name="forum" size="15px" />
           <span class="chat-btn-label">chat</span>
+          <q-badge
+            v-if="events.unreadCount > 0"
+            floating color="amber-9" text-color="black"
+            class="chat-unread-badge"
+          >{{ events.unreadCount }}</q-badge>
         </q-btn>
 
         <div class="nav-divider" />
@@ -235,6 +244,7 @@ import { useUploaderStore, uploadLabel } from 'src/stores/uploader'
 import { useSkeletonBuilderStore, builderLabel } from 'src/stores/skeletonBuilder'
 import { useLabelMakerStore } from 'src/stores/labelMaker'
 import { useChatStore } from 'src/stores/chat'
+import { useEventsStore } from 'src/stores/events'
 import { pinService } from 'src/services/pin.service'
 import { typeIcon } from './navTypeIcons'
 
@@ -257,6 +267,7 @@ export default defineComponent({
     const skeletonBuilderStore = useSkeletonBuilderStore()
     const labelMakerStore = useLabelMakerStore()
     const chatStore = useChatStore()
+    const events = useEventsStore()
 
     // ── Chat window toggle (footer-button semantics) ─────────
     const chatExpanded = computed(() => chatStore.isOpen && !chatStore.isMinimized)
@@ -264,6 +275,12 @@ export default defineComponent({
       if (!chatStore.isOpen) chatStore.open()
       else if (chatStore.isMinimized) chatStore.restore()
       else chatStore.close()
+      // Surfacing the dock is SEEING the queue — the badge's coarse v1
+      // semantics (every event kind lands in a chat surface or the polls
+      // band one click away). Targeted per-event acks live in ChatDock.
+      if (chatStore.isOpen && !chatStore.isMinimized && events.unreadCount > 0) {
+        events.ackAll()
+      }
     }
 
     // ── PIN state ────────────────────────────────────────────
@@ -460,6 +477,7 @@ export default defineComponent({
       minitabRight,
       chatExpanded,
       toggleChat,
+      events,
       parkedTabs
     }
   }
@@ -829,6 +847,15 @@ export default defineComponent({
 }
 
 .pins-count-badge {
+  font-size: 0.62em !important;
+  padding: 0 4px !important;
+  min-height: 12px !important;
+  letter-spacing: 0;
+}
+
+// The event spine's unread count on the chat button — same tiny amber
+// treatment as the pin tack's counter (they share the bar; one voice).
+.chat-unread-badge {
   font-size: 0.62em !important;
   padding: 0 4px !important;
   min-height: 12px !important;

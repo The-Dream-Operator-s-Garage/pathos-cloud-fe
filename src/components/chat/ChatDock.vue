@@ -180,6 +180,7 @@ import { defineComponent, ref, computed, watch, nextTick, onBeforeUnmount } from
 import { useChatStore } from 'src/stores/chat'
 import { useWindowsStore } from 'src/stores/windows'
 import { useAuthStore } from 'src/stores/auth'
+import { useEventsStore } from 'src/stores/events'
 import { chatService } from 'src/services/chat.service'
 import { refService } from 'src/services/ref.service'
 import MessageBubble from './MessageBubble.vue'
@@ -375,7 +376,25 @@ export default defineComponent({
       sending.value = false
     }
 
-    // ── Lifecycle: load on open, light refresh while visible ──
+    // ── Live append (Thread A): the event spine is the primary refresh.
+    // A pushed chat.message / poll.* / org.invite for the OPEN conversation
+    // reloads its feed inside the same second and acks that event (it was
+    // seen where it lives); anything for another conversation refreshes
+    // the previews so the list's last-line + order stay honest.
+    const events = useEventsStore()
+    const CHAT_KINDS = ['chat.message', 'poll.minted', 'poll.decided', 'org.invite']
+    watch(() => events.lastEvent, (e) => {
+      if (!e || !CHAT_KINDS.includes(e.kind)) return
+      if (!store.isOpen || store.isMinimized) return
+      if (e.meta?.chat_id != null && e.meta.chat_id === store.activeChatId) {
+        loadFeed({ silent: true })
+        events.ack([e.id])
+      }
+      loadChats()
+    })
+
+    // ── Lifecycle: load on open + a slow poll as the SSE fallback (the
+    // spine does the live work; this catches a dropped stream).
     let pollTimer = null
     watch(() => [store.isOpen, store.isMinimized], async ([open, min]) => {
       clearInterval(pollTimer)
@@ -385,7 +404,7 @@ export default defineComponent({
         scrollToEnd()
         pollTimer = setInterval(() => {
           if (store.activeChatId) loadFeed({ silent: true })
-        }, 15000)
+        }, 60000)
       }
     }, { immediate: true })
 
