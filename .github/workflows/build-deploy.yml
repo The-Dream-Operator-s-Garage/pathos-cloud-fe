@@ -1,0 +1,57 @@
+# Build the SPA off-server and commit it onto the `deploy` branch —
+# the same artifact the Mac used to build by hand. The server's
+# ~/bin/deploy-pathos.sh keeps pulling `deploy` unchanged (--ff-only,
+# so this appends commits, never force-pushes).
+name: Build dashboard to deploy branch
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+
+      - name: Build SPA
+        run: npx quasar build
+        env:
+          PATHOS_API_URL: https://api.pathos.cloud
+
+      - uses: actions/checkout@v4
+        with:
+          ref: deploy
+          path: .deploy-branch
+
+      - name: Commit build onto deploy branch
+        run: |
+          SRC=$(git rev-parse --short "$GITHUB_SHA")
+          rsync -a --delete --exclude=.git --exclude=.well-known --exclude=.htaccess \
+            dist/spa/ .deploy-branch/
+          {
+            echo "built: $(date -u +%FT%TZ)"
+            echo "source: $SRC"
+            echo "PATHOS_API_URL: https://api.pathos.cloud"
+          } > .deploy-branch/BUILD_INFO.txt
+          cd .deploy-branch
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "build identical to current deploy branch — nothing to push"
+          else
+            git commit -m "Build: CI build of main (source $SRC)"
+            git push origin deploy
+          fi
