@@ -158,6 +158,7 @@
           <section v-if="surroundSections" class="side-panel surround-panel q-pa-sm">
             <ElementSurround
               :sections="surroundSections"
+              :provenance-ref="pathRow?.path"
               :show-author="false"
               :show-moment="false"
               :show-labels="false"

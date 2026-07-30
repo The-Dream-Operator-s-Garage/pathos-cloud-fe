@@ -32,6 +32,7 @@
           :to="sections.forkedFrom.route"
         />
       </template>
+      <ProvenanceBadge v-if="provenanceRef" :ref-path="provenanceRef" />
       <q-space />
       <div v-if="showScores && sections.scores" class="surround-scores row items-center q-gutter-x-xs">
         <q-icon name="arrow_upward" size="14px" :class="{ 'text-positive': sections.scores.mine === 'UP' }" />
@@ -96,6 +97,7 @@ import { defineComponent, computed } from 'vue'
 import InfoChip from './InfoChip.vue'
 import HashLink from './HashLink.vue'
 import MomentInfo from 'src/components/moments/MomentInfo.vue'
+import ProvenanceBadge from './ProvenanceBadge.vue'
 
 const BAND_DEFS = [
   { key: 'versions', title: 'Versions', icon: 'history' },
@@ -108,10 +110,14 @@ const BAND_DEFS = [
 
 export default defineComponent({
   name: 'ElementSurround',
-  components: { InfoChip, HashLink, MomentInfo },
+  components: { InfoChip, HashLink, MomentInfo, ProvenanceBadge },
   props: {
     // The response of useElementSurround / refService.surround.
     sections: { type: Object, default: null },
+    // '<kind>/<hash>' of the element itself — when set (and the kind is
+    // verifiable: paths/links/nodes), the truth-spine badge joins the
+    // header row. The badge hides itself for anything else.
+    provenanceRef: { type: String, default: null },
     showAuthor: { type: Boolean, default: true },
     showMoment: { type: Boolean, default: true },
     showLabels: { type: Boolean, default: true },

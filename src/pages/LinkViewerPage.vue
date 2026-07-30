@@ -195,6 +195,7 @@
                 <div class="anchor-block__label">surround</div>
                 <ElementSurround
                   :sections="surroundSections"
+                  :provenance-ref="link?.path"
                   :show-author="false"
                   :show-moment="false"
                   :show-labels="false"

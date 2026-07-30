@@ -99,6 +99,7 @@
                 <span class="meta-typename">({{ typeName }})</span>
               </div>
               <q-space />
+              <ProvenanceBadge :ref-path="node.path" />
               <span class="meta-hash mono" :title="node.path">{{ node.path }}</span>
               <q-btn
                 flat dense size="sm" icon="content_copy"
@@ -356,6 +357,7 @@ import NodeForkItem from 'src/components/nodes/NodeForkItem.vue'
 import ForkConfirmPanel from 'src/components/nodes/ForkConfirmPanel.vue'
 import BottomSplitter from 'src/components/shared/BottomSplitter.vue'
 import FileContractBadge from 'src/components/files/FileContractBadge.vue'
+import ProvenanceBadge from 'src/components/shared/ProvenanceBadge.vue'
 import AccessDeniedBanner from 'src/components/shared/AccessDeniedBanner.vue'
 import { lockedInfoFromError } from 'src/utils/access'
 
@@ -364,7 +366,7 @@ const TYPE_COLORS = { NOTE: 'primary', FILE: 'teal', URL: 'secondary', REFERENCE
 
 export default defineComponent({
   name: 'NodeDetailPage',
-  components: { LabelSlider, MomentInfo, CommentItem, PostCommentItem, ElementActions, NodeContentViewer, PostMakerSurface, NodeForkItem, ForkConfirmPanel, BottomSplitter, FileContractBadge, AccessDeniedBanner },
+  components: { LabelSlider, MomentInfo, CommentItem, PostCommentItem, ElementActions, NodeContentViewer, PostMakerSurface, NodeForkItem, ForkConfirmPanel, BottomSplitter, FileContractBadge, ProvenanceBadge, AccessDeniedBanner },
   setup () {
     const route = useRoute()
     const router = useRouter()
