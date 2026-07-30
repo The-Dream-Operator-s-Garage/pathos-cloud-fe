@@ -178,6 +178,18 @@
                identity tree (their root login or one of its alter-egos).
                Organization entities (type 3) skip it — their masks are
                managed through the org surfaces, never minted here. -->
+<!-- Origin constellation (2026-07-30): the lineage sky — unravel
+               through alter-egos to the root, then down the invitation
+               chain to the pioneer. Disclosure-gated server-side; owners
+               flip the switch inside the dialog. -->
+          <q-btn
+            outline no-caps
+            icon="hub" label="Origin constellation"
+            class="full-width q-mb-sm"
+            @click="originOpen = true"
+          />
+          <OriginTree v-model="originOpen" :entity-id="entity.id" />
+
           <AlterEgoPanel v-if="entity.type_id !== 3" :entity-id="entity.id" />
           <section class="anchor-panel side-panel">
             <div class="anchor-panel__header">
@@ -298,6 +310,7 @@ import EntityAvatar from 'src/components/entities/EntityAvatar.vue'
 import SecretInfo from 'src/components/secrets/SecretInfo.vue'
 import LabelSlider from 'src/components/labels/LabelSlider.vue'
 import AlterEgoPanel from 'src/components/entities/AlterEgoPanel.vue'
+import OriginTree from 'src/components/entities/OriginTree.vue'
 import EntityOrganizations from 'src/components/entities/EntityOrganizations.vue'
 import EntityContributions from 'src/components/entities/EntityContributions.vue'
 import EntityPolls from 'src/components/entities/EntityPolls.vue'
@@ -306,7 +319,7 @@ const ENTITY_TYPES = { 1: 'USER', 2: 'BOT', 3: 'ORGANIZATION', 4: 'ALTER_EGO', 5
 
 export default defineComponent({
   name: 'EntityProfilePage',
-  components: { InfoChip, MomentInfo, EntityInfo, EntityAvatar, SecretInfo, LabelSlider, AlterEgoPanel, EntityOrganizations, EntityContributions, EntityPolls },
+  components: { InfoChip, MomentInfo, EntityInfo, EntityAvatar, SecretInfo, LabelSlider, AlterEgoPanel, OriginTree, EntityOrganizations, EntityContributions, EntityPolls },
   setup () {
     const route = useRoute()
     const router = useRouter()
@@ -425,6 +438,8 @@ export default defineComponent({
     onMounted(load)
     watch(() => route.params.id, load)
 
+    const originOpen = ref(false)
+
     return {
       entity,
       moment,
@@ -433,6 +448,7 @@ export default defineComponent({
       loading,
       isSelf,
       isPioneer,
+      originOpen,
       displayName,
       entityTypeLabel,
       inviter,

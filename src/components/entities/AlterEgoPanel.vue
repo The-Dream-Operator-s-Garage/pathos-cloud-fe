@@ -51,39 +51,75 @@
         </div>
       </div>
 
-      <!-- Creation module — mints a new alter-ego under the viewed entity. -->
+      <!-- Creation window trigger (2026-07-30: the inline form became a
+           DIALOG with inheritance + origin disclosure). -->
       <div class="ego-block">
-        <div class="ego-block__label">new alter-ego</div>
-        <div class="ego-hint">
-          A sub-entity minted on the pathchain under
-          <strong>{{ tree ? tree.display_name : 'this entity' }}</strong>.
-          You can log in as it, and it can hold alter-egos of its own.
-        </div>
-        <q-input
-          v-model="newName"
-          dense outlined
-          label="Name"
-          maxlength="64"
-          class="q-mb-sm ego-input"
-          @keyup.enter="create"
-        />
-        <q-input
-          v-model="newBio"
-          dense outlined autogrow
-          label="Bio (optional)"
-          class="q-mb-sm ego-input"
-        />
         <q-btn
           color="primary" unelevated dense size="sm"
-          icon="add" label="Create alter-ego"
+          icon="add" label="New alter-ego…"
           class="full-width"
-          :disable="!newName.trim()"
-          :loading="creating"
-          @click="create"
+          @click="createOpen = true"
         />
       </div>
 
     </div>
+
+    <!-- ══ THE CREATION WINDOW ══ A new identity is born here: what it's
+         called, what it carries down from the root (face, bio), and
+         whether the thread back to you is public or private. -->
+    <q-dialog v-model="createOpen">
+      <q-card class="ego-create">
+        <q-card-section class="ego-create__head">
+          <q-icon name="auto_awesome" size="16px" />
+          <span>New alter-ego of <strong>{{ tree ? tree.display_name : 'this entity' }}</strong></span>
+        </q-card-section>
+
+        <q-card-section class="q-pt-none">
+          <q-input
+            v-model="newName"
+            dense outlined autofocus
+            label="Name"
+            maxlength="64"
+            class="q-mb-sm ego-input"
+            @keyup.enter="create"
+          />
+          <q-input
+            v-model="newBio"
+            dense outlined autogrow
+            label="Bio (optional)"
+            class="q-mb-md ego-input"
+          />
+
+          <div class="ego-create__label">inherit from your root identity</div>
+          <q-checkbox v-model="inheritPhoto" dense size="sm" label="profile photo (the root's face)" class="ego-create__opt" />
+          <q-checkbox v-model="inheritBio" dense size="sm" label="bio (only if none written above)" class="ego-create__opt q-mb-md" />
+
+          <div class="ego-create__label">origin disclosure</div>
+          <q-toggle
+            v-model="disclose"
+            dense color="amber"
+            :label="disclose ? 'public — anyone can trace this identity to you' : 'private — others see the thread fade before it reaches you'"
+            class="ego-create__toggle"
+          />
+          <div class="ego-hint q-mt-xs">
+            The choice lives as the profile's ORIGIN record — an ordinary
+            content-privacy setting you can flip later from the origin
+            constellation.
+          </div>
+        </q-card-section>
+
+        <q-card-actions align="right" class="q-pt-none">
+          <q-btn flat dense no-caps label="Cancel" @click="createOpen = false" />
+          <q-btn
+            color="primary" unelevated dense no-caps
+            icon="add" label="Mint identity"
+            :disable="!newName.trim()"
+            :loading="creating"
+            @click="create"
+          />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
   </section>
 </template>
 
@@ -112,6 +148,10 @@ export default defineComponent({
     const switching = ref(false)
     const newName = ref('')
     const newBio = ref('')
+    const createOpen = ref(false)
+    const inheritPhoto = ref(false)
+    const inheritBio = ref(false)
+    const disclose = ref(false)
 
     const actingName = computed(() =>
       authStore.user?.display_name || authStore.user?.username || ('entity #' + authStore.entityId))
@@ -136,12 +176,18 @@ export default defineComponent({
       try {
         const r = await entityService.createAlterEgo(props.entityId, {
           name: newName.value.trim(),
-          bio: newBio.value.trim() || undefined
+          bio: newBio.value.trim() || undefined,
+          inherit: { photo: inheritPhoto.value, bio: inheritBio.value },
+          discloseOrigin: disclose.value
         })
         if (r.success) {
-          $q.notify({ type: 'positive', message: `Alter-ego "${r.entity.display_name}" created` })
+          $q.notify({ type: 'positive', message: `Alter-ego "${r.entity.display_name}" created${disclose.value ? ' — origin public' : ' — origin private'}` })
           newName.value = ''
           newBio.value = ''
+          inheritPhoto.value = false
+          inheritBio.value = false
+          disclose.value = false
+          createOpen.value = false
           load()
         } else {
           $q.notify({ type: 'negative', message: r.error?.message || 'Creation failed' })
@@ -186,6 +232,10 @@ export default defineComponent({
       switching,
       newName,
       newBio,
+      createOpen,
+      inheritPhoto,
+      inheritBio,
+      disclose,
       actingName,
       create,
       switchTo
@@ -262,4 +312,27 @@ export default defineComponent({
 }
 
 .ego-input :deep(.q-field__label) { font-size: 0.85em; }
+
+// The creation window — plain platform card; the drama lives in the
+// origin toggle's amber and its plain-words consequence line.
+.ego-create {
+  width: 380px;
+  max-width: 92vw;
+
+  &__head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+  }
+  &__label {
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    opacity: 0.55;
+    margin-bottom: 4px;
+  }
+  &__opt { display: block; font-size: 0.8rem; }
+  &__toggle :deep(.q-toggle__label) { font-size: 0.78rem; }
+}
 </style>

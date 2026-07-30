@@ -127,6 +127,9 @@
              — messages, polls, invites, grants, comments all land here or
              one click away. Opening the dock marks the queue seen (coarse
              v1 ack; see stores/events.js). -->
+<!-- Global search (Thread E, 2026-07-30): one input over
+             GET /api/search — self-contained button + dialog. -->
+        <GlobalSearch />
         <q-btn
           push no-caps
           class="nav-btn chat-btn"
@@ -247,9 +250,11 @@ import { useChatStore } from 'src/stores/chat'
 import { useEventsStore } from 'src/stores/events'
 import { pinService } from 'src/services/pin.service'
 import { typeIcon } from './navTypeIcons'
+import GlobalSearch from 'src/components/shared/GlobalSearch.vue'
 
 export default defineComponent({
   name: 'NavigationBar',
+  components: { GlobalSearch },
   emits: ['toggle-drawer', 'open-maker', 'open-uploader', 'open-skeleton-builder', 'open-label-maker', 'pins-changed'],
   props: {
     // Increment to force a pin-state refresh from the parent (e.g. after the
