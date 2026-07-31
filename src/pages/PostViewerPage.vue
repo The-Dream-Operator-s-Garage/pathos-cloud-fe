@@ -166,7 +166,11 @@
                   class="markdown-scroll subject-panel__body-inset"
                   @click="onContentClick"
                 >
-                  <MarkdownBody class="md-rendered post-md-rendered" :text="contentBody" :transform-html="docLinkTransform" ref-display="mini" />
+                  <!-- `auto` tier (2026-07-31, was 'mini'): node refs that
+                       resolve to embeddable URLs or media files bloom into
+                       NodeMini panels; every other bare ref reads as a
+                       micro chip. ![[…]] / -[[…]] sigils overrule per ref. -->
+                  <MarkdownBody class="md-rendered post-md-rendered" :text="contentBody" :transform-html="docLinkTransform" ref-display="auto" />
 
                 </div>
               </div>

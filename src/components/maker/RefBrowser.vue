@@ -102,6 +102,17 @@
         <span class="ref-item__index mono">{{ i + 1 }}</span>
         <InfoChip dense :address="r.address" :primary="r.primary" class="ref-item__chip" />
         <span class="ref-item__actions">
+          <!-- How this reference SHOWS in the post — auto (content decides:
+               URL/media nodes bloom, the rest stay chips), micro (always
+               the smallest chip, -[[…]]) or mini (always the full panel,
+               ![[…]]). Applies to the inline invoke AND to the appended
+               References list. -->
+          <button type="button" class="ref-item__display mono"
+            :class="'is-' + displayOf(r)"
+            :title="'Preview tier: ' + displayOf(r) + ' — click to change'"
+            @click="cycleDisplay(i)">
+            {{ displayOf(r) }}
+          </button>
           <button type="button" class="ref-item__btn" title="Invoke at cursor"
             @click="$emit('invoke', r)">
             <q-icon name="keyboard_return" size="13px" />
@@ -205,6 +216,19 @@ export default defineComponent({
       emitRefs(next)
     }
 
+    // ── display tier (auto → micro → mini) ─────────────────
+    // Stored ON the reference object so the choice travels with the draft
+    // (maker store persists it) and buildBody's References list sees it.
+    const DISPLAY_CYCLE = ['auto', 'micro', 'mini']
+    const displayOf = (r) => DISPLAY_CYCLE.includes(r.display) ? r.display : 'auto'
+
+    const cycleDisplay = (i) => {
+      const next = [...props.references]
+      const cur = displayOf(next[i])
+      next[i] = { ...next[i], display: DISPLAY_CYCLE[(DISPLAY_CYCLE.indexOf(cur) + 1) % DISPLAY_CYCLE.length] }
+      emitRefs(next)
+    }
+
     const move = (i, delta) => {
       const j = i + delta
       if (j < 0 || j >= props.references.length) return
@@ -275,6 +299,8 @@ export default defineComponent({
       isAdded,
       add,
       removeAt,
+      displayOf,
+      cycleDisplay,
       move,
       dragIndex,
       onDragStart,
@@ -509,6 +535,39 @@ export default defineComponent({
   align-items: center;
   gap: 1px;
   flex-shrink: 0;
+}
+
+// The display-tier toggle — a tiny stamped word, tinted by what it says:
+// auto stays quiet, micro takes the ink, mini takes the browse accent teal
+// (the tier that blooms the teal NodeMini panel).
+.ref-item__display {
+  display: inline-flex;
+  align-items: center;
+  height: 16px;
+  padding: 0 5px;
+  margin-right: 2px;
+  border: 1px solid rgba(var(--ink-rgb), 0.22);
+  border-radius: 8px;
+  background: transparent;
+  font-size: 0.58em;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--ink-mute);
+  cursor: pointer;
+  transition: color 0.12s, border-color 0.12s, background 0.12s;
+
+  &:hover { border-color: rgba(var(--ink-rgb), 0.45); }
+
+  &.is-micro {
+    color: var(--ink);
+    border-color: rgba(var(--ink-rgb), 0.45);
+    background: rgba(var(--ink-rgb), 0.06);
+  }
+  &.is-mini {
+    color: #00829c;
+    border-color: rgba(0, 130, 156, 0.5);
+    background: rgba(0, 130, 156, 0.08);
+  }
 }
 
 .ref-item__btn {

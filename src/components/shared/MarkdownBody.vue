@@ -10,6 +10,11 @@
                    referenced CONTENT: image nodes preview their photo,
                    image paths become a little slider, …)
          'micro' — the smallest hash chip (node surfaces stay compact)
+         'auto'  — content decides (the POST surfaces): a node ref that
+                   resolves to an embeddable URL or a media file blooms
+                   into its NodeMini panel, everything else stays micro
+       The AUTHOR's sigil always beats the surface tier: ![[…]] is the
+       full Mini and -[[…]] is the micro chip, on every surface.
        See src/utils/pathosRefs.js for the reference format. -->
   <div>
     <div ref="root" class="markdown-body" :class="{ 'has-mini-refs': refDisplay === 'mini' }" v-html="html" />
@@ -18,15 +23,19 @@
       :key="slot.key"
       :to="slot.el"
     >
-      <!-- ![[pathos:…]] block embeds always render the full Mini panel,
-           whatever the surface's inline chip tier is. -->
       <ElementMini
-        v-if="slot.ref.embed || refDisplay === 'mini'"
+        v-if="tierOf(slot.ref) === 'mini'"
         :address="slot.ref.address"
         :label="slot.ref.label"
       />
+      <NodeRefAuto
+        v-else-if="tierOf(slot.ref) === 'auto' && slot.ref.prefix === 'nodes'"
+        :address="slot.ref.address"
+        :label="slot.ref.label"
+        @upgrade="upgradeSlot(slot)"
+      />
       <RefMicro
-        v-else-if="refDisplay === 'micro'"
+        v-else-if="tierOf(slot.ref) === 'micro' || tierOf(slot.ref) === 'auto'"
         :address="slot.ref.address"
         :label="slot.ref.label"
       />
@@ -64,16 +73,18 @@ export default defineComponent({
     RefMicro,
     // Async: ElementMini renders Minis which may render MarkdownBody-free
     // excerpts, but PostMini/NodeMini live in component trees that import
-    // shared pieces — lazy load breaks any accidental cycle.
-    ElementMini: defineAsyncComponent(() => import('./ElementMini.vue'))
+    // shared pieces — lazy load breaks any accidental cycle. NodeRefAuto
+    // mounts ElementMini itself, so it rides the same lazy seam.
+    ElementMini: defineAsyncComponent(() => import('./ElementMini.vue')),
+    NodeRefAuto: defineAsyncComponent(() => import('src/components/nodes/NodeRefAuto.vue'))
   },
   props: {
     text: { type: String, default: '' },
-    // Chip tier for inline [[pathos:…]] references: info | mini | micro.
+    // Chip tier for inline [[pathos:…]] references: info | mini | micro | auto.
     refDisplay: {
       type: String,
       default: 'info',
-      validator: v => ['info', 'mini', 'micro'].includes(v)
+      validator: v => ['info', 'mini', 'micro', 'auto'].includes(v)
     },
     // Optional hook applied to the sanitized HTML string before display —
     // used by callers that post-process links (e.g. doc-relative hrefs).
@@ -117,7 +128,21 @@ export default defineComponent({
     onMounted(mountChips)
     watch(html, mountChips)
 
-    return { root, html, chipSlots }
+    // The slot's effective tier: the author's sigil wins ('embed' → mini,
+    // 'micro' → micro), a bare ref takes the surface's refDisplay.
+    const tierOf = (refInfo) => {
+      if (refInfo.display === 'embed') return 'mini'
+      if (refInfo.display === 'micro') return 'micro'
+      return props.refDisplay
+    }
+
+    // An auto node ref that resolved to media widens its placeholder to
+    // figure treatment — same class a ![[…]] embed slot is born with.
+    const upgradeSlot = (slot) => {
+      slot.el?.classList?.add('pathos-ref-embed')
+    }
+
+    return { root, html, chipSlots, tierOf, upgradeSlot }
   }
 })
 </script>

@@ -308,12 +308,17 @@
                  never clipped off), and it scrolls in place, which is what
                  makes the square a window onto the whole post rather than a
                  truncation of it. -->
+            <!-- `auto` ref tier (2026-07-31): a bare node ref that resolves
+                 to an embeddable URL (YouTube, Wikipedia, …) or a media
+                 file blooms into its teal NodeMini panel right on the card;
+                 every other ref stays the micro chip. Authors overrule per
+                 ref: ![[…]] forces the panel, -[[…]] forces the chip. -->
             <div v-if="postBody(item)" class="post-square__pit" @click.stop>
               <MarkdownBody
                 class="post-square__md"
                 :text="postBody(item)"
                 :breaks="false"
-                ref-display="micro"
+                ref-display="auto"
               />
             </div>
 

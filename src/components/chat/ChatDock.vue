@@ -200,7 +200,7 @@ import PollCard from './PollCard.vue'
 import OrgInviteCard from 'src/components/organizations/OrgInviteCard.vue'
 import AccessTreeDialog from 'src/components/maker/AccessTreeDialog.vue'
 
-const REF_RE = /!?\[\[pathos:[a-z]+\/[0-9a-f]{4,64}(?:\|[^\]]*)?\]\]/
+const REF_RE = /[!-]?\[\[pathos:[a-z]+\/[0-9a-f]{4,64}(?:\|[^\]]*)?\]\]/
 
 export default defineComponent({
   name: 'ChatDock',

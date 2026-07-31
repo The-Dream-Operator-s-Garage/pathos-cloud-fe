@@ -62,7 +62,7 @@
           <span class="maker-surface__hint">
             {{ draft.parent
               ? 'The comment is a full post — markdown body, inline [[pathos:…]] chips and all.'
-              : 'The body becomes the post\'s markdown node. Insert references inline as [[pathos:…]] chips — staged ones you don\'t insert are appended as a References list.' }}
+              : 'The body becomes the post\'s markdown node. Insert references inline as [[pathos:…]] chips — staged ones you don\'t insert are appended as a References list. Each reference\'s auto/micro/mini stamp picks how it previews on the post.' }}
           </span>
           <q-space />
           <span v-if="errorMsg" class="maker-surface__msg text-negative">{{ errorMsg }}</span>
@@ -151,13 +151,19 @@ export default defineComponent({
       if (draft.value) store.patchDraft(draft.value.id, p)
     }
 
+    // The reference's chosen preview tier → its sigil: mini forces the
+    // full panel (![[…]]), micro forces the smallest chip (-[[…]]), auto
+    // writes the bare ref and lets the reading surface decide (URL/media
+    // nodes bloom, the rest stay chips).
+    const sigilOf = (r) => (r.display === 'mini' ? '!' : r.display === 'micro' ? '-' : '')
+
     // Drop a [[pathos:…]] chip at the editor caret so a reference can be
     // invoked anywhere in the body, not just trail the post.
     const invokeRef = (r) => {
       const label = (r.primary || '').replace(/[[\]|]/g, '').trim()
       const chip = label
-        ? `[[pathos:${r.address}|${label}]]`
-        : `[[pathos:${r.address}]]`
+        ? `${sigilOf(r)}[[pathos:${r.address}|${label}]]`
+        : `${sigilOf(r)}[[pathos:${r.address}]]`
       editorRef.value?.insertText(chip)
     }
 
@@ -217,9 +223,12 @@ export default defineComponent({
       if (!d.parent) {
         const missing = d.references.filter(x => !body.includes(x.address))
         if (missing.length) {
+          // Each appended ref keeps its chosen preview tier: the sigil
+          // rides INSIDE the list item (after "- "), so the markdown list
+          // marker and the display marker never collide.
           const line = (x) => {
             const label = (x.primary || '').replace(/[[\]|]/g, '').trim()
-            return `- [[pathos:${x.address}${label ? '|' + label : ''}]]`
+            return `- ${sigilOf(x)}[[pathos:${x.address}${label ? '|' + label : ''}]]`
           }
           body += '\n\n---\n\n**References**\n\n' + missing.map(line).join('\n')
         }
