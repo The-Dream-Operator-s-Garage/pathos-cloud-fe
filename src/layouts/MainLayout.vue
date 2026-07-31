@@ -5,7 +5,9 @@
          the corner); the page container pads down by --frieze-h below. -->
     <FriezeHeader />
 
-    <q-drawer v-if="!hideDrawer" v-model="drawer" show-if-above :mini="mini" :width="220" :mini-width="56"
+    <!-- mini-width 42 = --dock-rail-w: the collapsed drawer mirrors the
+         stack/pins parked column on the opposite edge, one rail each side. -->
+    <q-drawer v-if="!hideDrawer" v-model="drawer" show-if-above :mini="mini" :width="220" :mini-width="42"
       bordered class="pathos-drawer" @mouseover="mini = false" @mouseout="mini = true">
 
       <!-- The drawer starts at the very TOP-LEFT corner, OVER the fixed crown
@@ -280,10 +282,15 @@ aside.q-drawer {
     width: 100%;
   }
 
+  // Denser than Quasar's defaults (2026-07-31): the collapsed drawer is
+  // --dock-rail-w (42px) to mirror the stack/pins column — with 2×5px item
+  // margins that leaves a 32px chip, so rows tighten to 40px min-height and
+  // the section rhythm shrinks a notch to match.
   .q-item {
     color: var(--brown-8);
     border-radius: var(--radius-sm);
-    margin: 2px 6px;
+    margin: 2px 5px;
+    min-height: 40px;
     transition: background 0.12s, color 0.12s;
   }
 
@@ -291,7 +298,7 @@ aside.q-drawer {
   // the spaced-separator vertical rhythm, but NO horizontal margin: they
   // must run the full drawer width edge to edge.
   .drawer-frieze {
-    margin: 8px 0;
+    margin: 6px 0;
   }
   // The topmost band REPLACES the crown strip over the drawer's column, so it
   // must match FriezeHeader's box EXACTLY or the band would step at the
@@ -334,7 +341,8 @@ aside.q-drawer {
     color: var(--brown-8) !important;
     font-size: 0.62em;
     letter-spacing: 0.12em;
-    padding: 8px 16px 4px;
+    padding: 6px 14px 3px;
+    min-height: 0;
     font-family: var(--font-display);
   }
 
@@ -347,7 +355,7 @@ aside.q-drawer {
     background: var(--brown-8);
     border: 1px solid var(--brown-8);
     color: var(--brown-1);
-    margin: 4px 6px 6px;
+    margin: 4px 5px 5px;
     font-weight: 600;
     letter-spacing: 0.04em;
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25);
