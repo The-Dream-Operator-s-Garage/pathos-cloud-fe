@@ -88,6 +88,13 @@
             <header class="chat-dock__conv-head">
               <q-icon name="forum" size="14px" />
               <strong>{{ othersOf(activeChat) }}</strong>
+              <!-- Presence IS the SSE connection (Thread G): the dot means
+                   the other side holds a live stream right now. -->
+              <span
+                v-if="othersOnline"
+                class="chat-dock__presence"
+                title="connected now"
+              />
             </header>
 
             <!-- Consent gate (2026-07): a pending seat gets the accept /
@@ -140,6 +147,13 @@
                   :mine="isMine(item)"
                   :when="item.moment"
                 />
+                <!-- The quiet seen line (Thread G): under the newest of MY
+                     messages the other side's watermark covers. -->
+                <div
+                  v-if="seenMarker && seenMarker.afterId === item.id"
+                  class="chat-dock__seen"
+                  :title="seenMarker.at || undefined"
+                >{{ seenMarker.text }}</div>
               </template>
               <div v-if="!loadingFeed && !items.length" class="chat-dock__hint">
                 No messages yet — the conversation starts with you.
@@ -329,6 +343,35 @@ export default defineComponent({
       return h > 0 ? `${h}h ${m}m` : `${m}m`
     })
 
+    // ── Delivery semantics (Thread G) ───────────────────────
+    // The server advances each member's watermark (last_read_link_id) when
+    // they read the feed; the seen line sits under the newest of MY
+    // messages that some other member's watermark covers — anything after
+    // it is implicitly un-seen. Group chats name who has seen it.
+    const seenMarker = computed(() => {
+      const others = (members.value || []).filter((m) => !m.is_me)
+      if (!others.length) return null
+      const mineSeen = [...items.value].reverse().find((i) =>
+        i.kind === 'message' && i.link_id && isMine(i) &&
+        others.some((m) => (m.last_read_link_id || 0) >= i.link_id))
+      if (!mineSeen) return null
+      const seers = others.filter((m) => (m.last_read_link_id || 0) >= mineSeen.link_id)
+      const at = seers
+        .map((m) => m.last_read_at).filter(Boolean).sort().pop() || null
+      return {
+        afterId: mineSeen.id,
+        at: at ? new Date(at).toLocaleString() : null,
+        text: others.length === 1
+          ? 'seen'
+          : 'seen by ' + seers.map((m) => m.display_name || m.username || `#${m.id}`).join(', ')
+      }
+    })
+
+    // Presence: the feed's member roster carries `online` (a live SSE
+    // stream exists for that entity right now).
+    const othersOnline = computed(() =>
+      (members.value || []).some((m) => !m.is_me && m.online))
+
     const consent = async (verb) => {
       if (!store.activeChatId) return
       consenting.value = verb
@@ -419,8 +462,17 @@ export default defineComponent({
     const events = useEventsStore()
     const CHAT_KINDS = ['chat.message', 'poll.minted', 'poll.decided', 'org.invite']
     watch(() => events.lastEvent, (e) => {
-      if (!e || !CHAT_KINDS.includes(e.kind)) return
+      if (!e) return
       if (!store.isOpen || store.isMinimized) return
+      // chat.read is SILENT (arrives pre-read, no ack): the other side's
+      // watermark moved — refresh the open conversation's seen line only.
+      if (e.kind === 'chat.read') {
+        if (e.meta?.chat_id != null && e.meta.chat_id === store.activeChatId) {
+          loadFeed({ silent: true })
+        }
+        return
+      }
+      if (!CHAT_KINDS.includes(e.kind)) return
       if (e.meta?.chat_id != null && e.meta.chat_id === store.activeChatId) {
         loadFeed({ silent: true })
         events.ack([e.id])
@@ -479,7 +531,9 @@ export default defineComponent({
       composerLocked,
       composerHint,
       agentAway,
-      agentAwayIn
+      agentAwayIn,
+      seenMarker,
+      othersOnline
     }
   }
 })
@@ -630,6 +684,23 @@ export default defineComponent({
   font-size: 0.82em;
   border-bottom: 1px solid rgba(var(--ink-rgb), 0.12);
   .q-icon { color: #00829c; }
+}
+
+.chat-dock__presence {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #21ba45;
+  box-shadow: 0 0 0 2px rgba(#21ba45, 0.22);
+  flex-shrink: 0;
+}
+
+.chat-dock__seen {
+  font-size: 0.62em;
+  color: var(--ink-mute, #8995a8);
+  text-align: right;
+  padding: 0 6px;
+  margin-top: -2px;
 }
 
 .chat-dock__msgs {
