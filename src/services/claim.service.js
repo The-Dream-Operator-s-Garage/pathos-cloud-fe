@@ -18,6 +18,14 @@ export const claimService = {
     return data
   },
 
+  // Stage 2 — the disagreement graph around a claim: { root, nodes, edges }.
+  // Edges are provenance-stamped ({ kind: disputes|supports, from, to,
+  // evidence, by, via, at }); nodes the viewer cannot read are locked stubs.
+  async topology (claimId, params = {}) {
+    const { data } = await api.get(`/claims/${claimId}/topology`, { params })
+    return data
+  },
+
   // stance ∈ 'endorse' | 'dispute'. A dispute MUST carry a resolvable
   // ref (422 code 40004 otherwise) — no evidence-free objections; the
   // ref + note land as a comment on the claim.

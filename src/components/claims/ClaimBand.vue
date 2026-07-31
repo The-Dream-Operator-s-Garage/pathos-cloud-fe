@@ -48,6 +48,11 @@
       This claim cites no evidence.
     </div>
 
+    <!-- Stage 2 — the disagreement topology: renders only when the claim
+         has edges (disputed by / stands against / cited as support).
+         Re-keyed on every vote so the graph follows the argument. -->
+    <ClaimTopology :key="topoKey" :claim-id="claimId" />
+
     <!-- Stance controls. Authors retract; readers endorse or dispute
          (one live stance each — revoting replaces). -->
     <footer class="claim-band__actions">
@@ -124,10 +129,11 @@ import { hashOf } from 'src/utils/kinds'
 import MarkdownBody from 'src/components/shared/MarkdownBody.vue'
 import ProvenanceBadge from 'src/components/shared/ProvenanceBadge.vue'
 import ClaimEvidenceNode from './ClaimEvidenceNode.vue'
+import ClaimTopology from './ClaimTopology.vue'
 
 export default defineComponent({
   name: 'ClaimBand',
-  components: { MarkdownBody, ProvenanceBadge, ClaimEvidenceNode },
+  components: { MarkdownBody, ProvenanceBadge, ClaimEvidenceNode, ClaimTopology },
   props: {
     claimId: { type: Number, required: true },
     ownerId: { type: Number, default: null }
@@ -144,6 +150,7 @@ export default defineComponent({
     const disputeRef = ref('')
     const disputeNote = ref('')
     const error = ref('')
+    const topoKey = ref(0) // bumped on vote/retract — remounts the topology band
 
     const isAuthor = computed(() => auth.entityId != null && auth.entityId === props.ownerId)
 
@@ -172,6 +179,7 @@ export default defineComponent({
           disputeRef.value = ''
           disputeNote.value = ''
           await load()
+          topoKey.value += 1
           emit('changed')
         } else {
           error.value = r?.error?.message || 'vote failed'
@@ -201,6 +209,7 @@ export default defineComponent({
           const r = await claimService.retract(props.claimId)
           if (r?.success) {
             await load()
+            topoKey.value += 1
             emit('changed')
           } else {
             error.value = r?.error?.message || 'retract failed'
@@ -222,6 +231,7 @@ export default defineComponent({
       disputeRef,
       disputeNote,
       error,
+      topoKey,
       endorse,
       dispute,
       confirmRetract
