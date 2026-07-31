@@ -105,6 +105,18 @@
               />
             </div>
 
+            <!-- Agent availability (2026-07-31): a free-tier agent whose
+                 quota bundle says the daily pool is empty announces WHEN
+                 it is back — read from the AGENT_PROFILE skeleton's stored
+                 state, never by spending a provider request. -->
+            <div v-if="agentAway" class="chat-dock__agent-away">
+              <q-icon name="hourglass_bottom" size="15px" />
+              <span>
+                {{ agentAway.name || 'This agent' }} is not available —
+                free-tier quota resets in {{ agentAwayIn }}
+              </span>
+            </div>
+
             <div ref="scrollRef" class="chat-dock__msgs">
               <template v-for="item in items" :key="item.id">
                 <!-- Access polls: the decider gets the Yes/No card. -->
@@ -294,6 +306,29 @@ export default defineComponent({
       return 'Message — [[pathos:kind/hash]] refs render as minis'
     })
 
+    // ── Agent availability (2026-07-31) ─────────────────────
+    // A free-tier agent member whose quota bundle says the pool is empty:
+    // the band tells the human WHEN it is back. `resets_at` comes from the
+    // AGENT_PROFILE skeleton's QUOTA_RESET moment; the countdown just
+    // reads the clock — no request is ever spent asking "are you up".
+    const nowTick = ref(Date.now())
+    const tickTimer = setInterval(() => { nowTick.value = Date.now() }, 30000)
+    onBeforeUnmount(() => clearInterval(tickTimer))
+    const agentAway = computed(() => {
+      const m = (members.value || []).find((mm) =>
+        !mm.is_me && mm.agent && mm.agent.free_tier && !mm.agent.available)
+      return m ? m.agent : null
+    })
+    const agentAwayIn = computed(() => {
+      if (!agentAway.value?.resets_at) return 'a while'
+      const s = Math.max(0,
+        Math.round((new Date(agentAway.value.resets_at).getTime() - nowTick.value) / 1000))
+      const mins = Math.ceil(s / 60)
+      const h = Math.floor(mins / 60)
+      const m = mins % 60
+      return h > 0 ? `${h}h ${m}m` : `${m}m`
+    })
+
     const consent = async (verb) => {
       if (!store.activeChatId) return
       consenting.value = verb
@@ -442,7 +477,9 @@ export default defineComponent({
       consent,
       gateMsg,
       composerLocked,
-      composerHint
+      composerHint,
+      agentAway,
+      agentAwayIn
     }
   }
 })
@@ -637,6 +674,17 @@ export default defineComponent({
   color: var(--coral-deep, #b25e49);
   text-align: right;
   padding: 0 14px 8px;
+}
+.chat-dock__agent-away {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  font-size: 0.78em;
+  border-bottom: 1px dashed rgba(#b25e49, 0.45);
+  background: rgba(#b25e49, 0.06);
+  .q-icon { color: #b25e49; }
+  span { flex: 1; }
 }
 
 .chat-dock__empty {
