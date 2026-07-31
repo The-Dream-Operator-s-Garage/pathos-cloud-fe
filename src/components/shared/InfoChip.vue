@@ -23,6 +23,14 @@
       <span class="info-chip__primary mono-when-locked">{{ primaryLine }}</span>
       <span v-if="secondaryLine && !dense" class="info-chip__secondary">{{ secondaryLine }}</span>
     </span>
+    <!-- Claim refs wear their STATUS at a glance (Thread D reader surface):
+         the summary carries claim { id, status } for CLAIM instances. -->
+    <span
+      v-if="claimStatus"
+      class="info-chip__status"
+      :class="'status-' + claimStatus"
+      :title="'claim · ' + claimStatus"
+    >{{ claimStatus }}</span>
     <!-- Locked chips open the request-permission panel instead of routing. -->
     <q-menu v-if="isLocked" anchor="bottom left" self="top left" :offset="[0, 4]">
       <RequestAccessPanel :address="lockedAddress" />
@@ -135,7 +143,10 @@ export default defineComponent({
     const isPioneer = computed(() =>
       props.pioneer || resolved.value?.pioneer === true)
 
+    const claimStatus = computed(() => resolved.value?.claim?.status || null)
+
     return {
+      claimStatus,
       meta,
       loading,
       primaryLine,
@@ -209,6 +220,23 @@ export default defineComponent({
 }
 
 .info-chip__icon { flex-shrink: 0; opacity: 0.9; }
+
+// Claim STATUS pill — one shared palette with MicroChip's status dot and
+// the claim band so every surface states a claim's standing identically.
+.info-chip__status {
+  flex-shrink: 0;
+  padding: 0 5px;
+  border-radius: var(--radius-pill);
+  font-size: 0.6em;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #fff;
+  &.status-open      { background: #5b6c82; }
+  &.status-supported { background: #2e6a3a; }
+  &.status-disputed  { background: #a03d3d; }
+  &.status-retracted { background: #8995a8; text-decoration: line-through; }
+}
 
 .info-chip__lines {
   display: flex;

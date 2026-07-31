@@ -20,6 +20,14 @@
       <span class="micro-chip__sep">/</span>
     </template>
     <span class="micro-chip__hash mono">{{ display || hash }}</span>
+    <!-- Claim STATUS dot — a chip this small states the standing as a
+         color; the word rides the tooltip. Palette matches InfoChip's
+         status pill (Thread D reader surface). -->
+    <span
+      v-if="claimStatus"
+      class="micro-chip__status"
+      :class="'status-' + claimStatus"
+    />
   </component>
 </template>
 
@@ -54,7 +62,10 @@ export default defineComponent({
     // username). The hash stays reachable through the tooltip.
     display: { type: String, default: '' },
     // Golden one-and-only treatment: star icon, `pioneer` type, carved gold.
-    pioneer: { type: Boolean, default: false }
+    pioneer: { type: Boolean, default: false },
+    // Claim refs: 'open' | 'supported' | 'disputed' | 'retracted' renders
+    // a status dot; null (every non-claim) renders nothing.
+    claimStatus: { type: String, default: null }
   },
   setup (props) {
     const meta = computed(() => {
@@ -74,9 +85,10 @@ export default defineComponent({
       return meta.value.route(props.id)
     })
 
-    const tooltip = computed(() =>
-      props.fullAddress || props.path || `${meta.value.kind}/${hash.value}`
-    )
+    const tooltip = computed(() => {
+      const addr = props.fullAddress || props.path || `${meta.value.kind}/${hash.value}`
+      return props.claimStatus ? `${addr}\nclaim · ${props.claimStatus}` : addr
+    })
 
     const rootTag = computed(() => route.value ? 'router-link' : 'span')
 
@@ -133,6 +145,18 @@ export default defineComponent({
 }
 
 .micro-chip__icon { flex-shrink: 0; opacity: 0.85; }
+
+// Claim STATUS dot — same palette as InfoChip's status pill.
+.micro-chip__status {
+  flex-shrink: 0;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  &.status-open      { background: #5b6c82; }
+  &.status-supported { background: #2e6a3a; }
+  &.status-disputed  { background: #a03d3d; }
+  &.status-retracted { background: #8995a8; }
+}
 .micro-chip__sep  { flex-shrink: 0; opacity: 0.35; }
 .micro-chip__type {
   flex-shrink: 0;

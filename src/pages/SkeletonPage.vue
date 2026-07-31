@@ -112,6 +112,17 @@
           </header>
         </main>
 
+        <!-- CLAIM instances carry the argument band (Thread D reader
+             surface) — the author's read: status, tally, evidence tree,
+             retract. Votes/retract rebind STATUS, so the band reloads
+             the slot table underneath it. -->
+        <ClaimBand
+          v-if="isClaimInstance"
+          :claim-id="skeletonId"
+          :owner-id="skeleton.owner_id"
+          @changed="reloadSlots"
+        />
+
         <SkeletonInstanceEditor
           :skeleton-id="skeletonId"
           :slots="slots"
@@ -122,6 +133,16 @@
       <div v-else-if="skeleton" class="skeleton-grid">
         <!-- ── LEFT: structure column ── -->
         <div class="skeleton-main">
+
+        <!-- CLAIM instances lead with the argument band (Thread D reader
+             surface): statement + status + evidence tree + stance controls.
+             The structure panel below stays the element's raw truth. -->
+        <ClaimBand
+          v-if="isClaimInstance"
+          :claim-id="skeletonId"
+          :owner-id="skeleton.owner_id"
+          @changed="reloadSlots"
+        />
 
         <!-- subject-panel — single container that holds everything about
              the viewed skeleton: identity zone (title row, ElementActions,
@@ -420,6 +441,7 @@ import EntityInfo from 'src/components/entities/EntityInfo.vue'
 import SkeletonRefLinks from 'src/components/shared/SkeletonRefLinks.vue'
 import ElementActions from 'src/components/maker/ElementActions.vue'
 import AccessDeniedBanner from 'src/components/shared/AccessDeniedBanner.vue'
+import ClaimBand from 'src/components/claims/ClaimBand.vue'
 import { lockedInfoFromError } from 'src/utils/access'
 
 // Per-schema icon — ELEMENT:<ref> names collapse to their ELEMENT base.
@@ -482,7 +504,8 @@ export default defineComponent({
     EntityInfo,
     SkeletonRefLinks,
     ElementActions,
-    AccessDeniedBanner
+    AccessDeniedBanner,
+    ClaimBand
   },
 
   setup () {
@@ -589,6 +612,12 @@ export default defineComponent({
     // Schema = an instantiable definition (origin carrying the SCHEMA
     // classification label). Walk surfaces this as skeleton.is_schema.
     const isSchema = computed(() => !!skeleton.value?.is_schema)
+
+    // CLAIM instances mount the argument band (Thread D reader surface).
+    const isClaimInstance = computed(() => {
+      const s = skeleton.value
+      return s?.name === 'CLAIM' && s?.ancestor_id != null && s?.ancestor_id !== s?.id
+    })
 
     // Instances fork generically — except POSTs (their own fork flow on
     // the post viewer) and ELEMENT:* headers (surround plumbing).
@@ -808,6 +837,7 @@ export default defineComponent({
       locked,
       isPostInstance,
       isSchema,
+      isClaimInstance,
       isOwnedInstance,
       isForkableInstance,
       instantiating,

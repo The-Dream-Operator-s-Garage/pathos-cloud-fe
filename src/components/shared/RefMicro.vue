@@ -9,6 +9,7 @@
     :to="route"
     :display="label || undefined"
     :pioneer="isPioneer"
+    :claim-status="claimStatus"
     :full-address="address"
   />
 </template>
@@ -50,8 +51,10 @@ export default defineComponent({
 
     const route = computed(() => resolved.value?.route || null)
     const isPioneer = computed(() => resolved.value?.pioneer === true)
+    // Claim refs carry STATUS down to the chip (Thread D reader surface).
+    const claimStatus = computed(() => resolved.value?.claim?.status || null)
 
-    return { prefix: computed(() => parts.value.prefix), hash: computed(() => parts.value.hash), route, isPioneer }
+    return { prefix: computed(() => parts.value.prefix), hash: computed(() => parts.value.hash), route, isPioneer, claimStatus }
   }
 })
 </script>
