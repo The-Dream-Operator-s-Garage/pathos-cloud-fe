@@ -211,6 +211,40 @@
                 />
               </div>
 
+              <!-- DOG Coin wallet (C1, 2026-08-01): the root login's purse.
+                   Balance + the latest movements; every row's receipt is a
+                   signed TRANSACTION skeleton on the chain. -->
+              <div v-if="isSelf && wallet" class="anchor-block">
+                <div class="anchor-block__label">wallet</div>
+                <div class="wallet-balance">
+                  <q-icon name="toll" size="16px" class="q-mr-xs" />
+                  <span class="wallet-balance__amount mono">{{ wallet.balance }}</span>
+                  <span class="wallet-balance__unit">DOG</span>
+                </div>
+                <div v-if="wallet.transactions.length" class="secret-list q-mt-xs">
+                  <div v-for="tx in wallet.transactions.slice(0, 5)" :key="tx.id" class="secret-row">
+                    <div class="secret-row__top">
+                      <q-icon
+                        :name="tx.direction === 'in' ? 'south_west' : 'north_east'"
+                        :class="tx.direction === 'in' ? 'wallet-tx--in' : 'wallet-tx--out'"
+                        size="14px"
+                      />
+                      <span class="mono">{{ tx.direction === 'in' ? '+' : '−' }}{{ tx.amount }}</span>
+                      <span class="wallet-tx__peer">
+                        {{ tx.direction === 'in' ? tx.from.name : tx.to.name }}
+                      </span>
+                      <InfoChip
+                        v-if="tx.receipt_skeleton_id"
+                        kind="skeletons"
+                        :id="tx.receipt_skeleton_id"
+                        primary="receipt"
+                      />
+                    </div>
+                    <div v-if="tx.memo" class="wallet-tx__memo">{{ tx.memo }}</div>
+                  </div>
+                </div>
+              </div>
+
               <div v-if="isSelf" class="anchor-block">
                 <div class="anchor-block__label">invite secret</div>
                 <div class="invite-hint">
@@ -371,6 +405,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from 'src/stores/auth'
 import { entityService } from 'src/services/entity.service'
 import { authService } from 'src/services/auth.service'
+import { walletService } from 'src/services/wallet.service'
 import { secretService } from 'src/services/secret.service'
 import { parseRef } from 'src/utils/kinds'
 
@@ -412,6 +447,9 @@ export default defineComponent({
     // Doubling-wait curve (2026-08-01) — where this login stands.
     const inviteInfo = ref(null)
     const inviteError = ref('')
+
+    // DOG Coin wallet (C1) — the root login's purse.
+    const wallet = ref(null)
 
     // Recovery mint (Thread H) — inviter-side state.
     const mintingRecovery = ref(false)
@@ -498,7 +536,15 @@ export default defineComponent({
         loadSecrets()
         loadSessions()
         loadInviteStatus()
+        loadWallet()
       }
+    }
+
+    const loadWallet = async () => {
+      try {
+        const r = await walletService.get(1, 5)
+        if (r.success) wallet.value = r.wallet
+      } catch (_) { /* pre-economy API — block simply doesn't render */ }
     }
 
     const loadSecrets = async () => {
@@ -648,6 +694,7 @@ export default defineComponent({
       generatedSecretId,
       generateSecret,
       inviteInfo,
+      wallet,
       inviteError,
       humanWait,
       mySecrets,
@@ -1023,6 +1070,39 @@ export default defineComponent({
   border: 1px solid rgba(var(--ink-rgb), 0.15);
   border-radius: 6px;
   padding: 6px 8px;
+}
+
+// ── DOG Coin wallet (C1) ────────────────────────────────
+.wallet-balance {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  .wallet-balance__amount {
+    font-size: 1.25em;
+    font-weight: 600;
+  }
+  .wallet-balance__unit {
+    font-size: 0.72em;
+    letter-spacing: 0.06em;
+    color: rgba(var(--ink-rgb), 0.5);
+  }
+}
+.wallet-tx--in { color: var(--positive); }
+.wallet-tx--out { color: rgba(var(--ink-rgb), 0.55); }
+.wallet-tx__peer {
+  font-size: 0.78em;
+  color: rgba(var(--ink-rgb), 0.6);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.wallet-tx__memo {
+  font-size: 0.72em;
+  font-style: italic;
+  color: rgba(var(--ink-rgb), 0.45);
+  margin-top: 2px;
 }
 
 // ── "your secrets" list ─────────────────────────────────
