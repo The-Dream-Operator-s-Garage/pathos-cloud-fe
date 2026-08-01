@@ -97,14 +97,14 @@
 </template>
 
 <script>
-import { defineComponent, ref, computed, watch, onMounted } from 'vue';
-import { skeletonService } from 'src/services/skeleton.service';
-import { parseRef } from 'src/utils/kinds';
+import { defineComponent, ref, computed, watch, onMounted } from 'vue'
+import { skeletonService } from 'src/services/skeleton.service'
+import { parseRef } from 'src/utils/kinds'
 
-import MicroChip  from 'src/components/shared/MicroChip.vue';
-import InfoChip   from 'src/components/shared/InfoChip.vue';
-import MomentInfo from 'src/components/moments/MomentInfo.vue';
-import EntityInfo from 'src/components/entities/EntityInfo.vue';
+import MicroChip from 'src/components/shared/MicroChip.vue'
+import InfoChip from 'src/components/shared/InfoChip.vue'
+import MomentInfo from 'src/components/moments/MomentInfo.vue'
+import EntityInfo from 'src/components/entities/EntityInfo.vue'
 
 export default defineComponent({
   name: 'SkeletonUsages',
@@ -115,59 +115,59 @@ export default defineComponent({
     skeleton: { type: Object, default: null }
   },
   setup (props) {
-    const loading = ref(false);
-    const slots   = ref([]);
-    const labels  = ref([]);
-    const owner   = ref(null);
+    const loading = ref(false)
+    const slots = ref([])
+    const labels = ref([])
+    const owner = ref(null)
 
-    const momentId  = computed(() => props.skeleton?.moment_id || null);
+    const momentId = computed(() => props.skeleton?.moment_id || null)
     const momentObj = computed(() =>
       props.skeleton?.moment_time_utc
         ? { id: props.skeleton.moment_id, time_utc: props.skeleton.moment_time_utc }
-        : null);
+        : null)
 
     const lineage = computed(() => {
-      const s = props.skeleton;
-      if (!s) return '';
-      if (s.ancestor_id == null || s.ancestor_id === s.id) return 'origin / template';
-      return `instantiated from #${s.ancestor_id}`;
-    });
+      const s = props.skeleton
+      if (!s) return ''
+      if (s.ancestor_id == null || s.ancestor_id === s.id) return 'origin / template'
+      return `instantiated from #${s.ancestor_id}`
+    })
 
-    const refOf = (s) => parseRef(s.ref || '');
+    const refOf = (s) => parseRef(s.ref || '')
 
     const load = async () => {
-      slots.value = [];
-      labels.value = [];
-      owner.value = null;
-      if (!props.skeleton?.id) return;
-      loading.value = true;
+      slots.value = []
+      labels.value = []
+      owner.value = null
+      if (!props.skeleton?.id) return
+      loading.value = true
       try {
         const [walkR, labelsR] = await Promise.all([
           skeletonService.walk(props.skeleton.id),
           skeletonService.labels(props.skeleton.id).catch(() => ({ labels: [] }))
-        ]);
-        if (walkR.success) slots.value = walkR.slots || [];
-        labels.value = labelsR.labels || [];
+        ])
+        if (walkR.success) slots.value = walkR.slots || []
+        labels.value = labelsR.labels || []
 
         // Owner through the AUTHOR slot when bound, else leave the raw id.
-        const authorSlot = slots.value.find(x => x.slotName === 'AUTHOR');
+        const authorSlot = slots.value.find(x => x.slotName === 'AUTHOR')
         if (authorSlot?.ref) {
-          const r = await skeletonService.resolveRef(authorSlot.ref).catch(() => null);
-          if (r?.success) owner.value = r.row;
+          const r = await skeletonService.resolveRef(authorSlot.ref).catch(() => null)
+          if (r?.success) owner.value = r.row
         }
         if (!owner.value && props.skeleton.owner_id) {
-          owner.value = { id: props.skeleton.owner_id };
+          owner.value = { id: props.skeleton.owner_id }
         }
       } catch (_) { /* leave empty */ }
-      loading.value = false;
-    };
+      loading.value = false
+    }
 
-    onMounted(load);
-    watch(() => props.skeleton?.id, load);
+    onMounted(load)
+    watch(() => props.skeleton?.id, load)
 
-    return { loading, slots, labels, owner, momentId, momentObj, lineage, refOf };
+    return { loading, slots, labels, owner, momentId, momentObj, lineage, refOf }
   }
-});
+})
 </script>
 
 <style lang="scss" scoped>

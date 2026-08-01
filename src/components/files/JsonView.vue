@@ -8,8 +8,8 @@
 </template>
 
 <script>
-import { defineComponent } from 'vue';
-import JsonNode from './JsonNode.vue';
+import { defineComponent } from 'vue'
+import JsonNode from './JsonNode.vue'
 
 export default defineComponent({
   name: 'JsonView',
@@ -17,7 +17,7 @@ export default defineComponent({
   props: {
     value: { type: [Object, Array, String, Number, Boolean, null], default: null }
   }
-});
+})
 </script>
 
 <style lang="scss" scoped>

@@ -27,9 +27,9 @@
 </template>
 
 <script>
-import { defineComponent, ref, watch, onMounted } from 'vue';
-import { labelService } from 'src/services/label.service';
-import HashLink from 'src/components/shared/HashLink.vue';
+import { defineComponent, ref, watch, onMounted } from 'vue'
+import { labelService } from 'src/services/label.service'
+import HashLink from 'src/components/shared/HashLink.vue'
 
 export default defineComponent({
   name: 'LabelTree',
@@ -38,23 +38,23 @@ export default defineComponent({
   props: {
     label: { type: Object, required: true }
   },
-  setup(props) {
-    const chain    = ref([]);
-    const children = ref([]);
+  setup (props) {
+    const chain = ref([])
+    const children = ref([])
 
     const load = async () => {
       const [chainResult, childrenResult] = await Promise.all([
         labelService.getChain(props.label.id),
         labelService.getChildren(props.label.id)
-      ]);
-      if (chainResult.success)    chain.value    = chainResult.chain;
-      if (childrenResult.success) children.value = childrenResult.children;
-    };
+      ])
+      if (chainResult.success) chain.value = chainResult.chain
+      if (childrenResult.success) children.value = childrenResult.children
+    }
 
-    onMounted(load);
-    watch(() => props.label.id, load);
+    onMounted(load)
+    watch(() => props.label.id, load)
 
-    return { chain, children };
+    return { chain, children }
   }
-});
+})
 </script>

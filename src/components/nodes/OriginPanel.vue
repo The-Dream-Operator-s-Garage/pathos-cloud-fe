@@ -82,7 +82,7 @@ export default defineComponent({
     nodeId: { type: Number, default: null }
   },
   setup (props) {
-    const origin  = ref(null)
+    const origin = ref(null)
     const loading = ref(true)
 
     // Backend now reports comment_of.kind ('node' | 'post'). Route + label
@@ -122,13 +122,18 @@ export default defineComponent({
     }
 
     const contentPreview = (raw) => {
-      const stripped = (raw || '').replace(/[#*`_~\[\]>]/g, '').replace(/\n+/g, ' ').trim()
+      const stripped = (raw || '').replace(/[#*`_~[\]>]/g, '').replace(/\n+/g, ' ').trim()
       return stripped.slice(0, 80) + (stripped.length > 80 ? '…' : '')
     }
 
     return {
-      origin, loading, shortHash, contentPreview,
-      commentOfRoute, commentOfKindLabel, commentOfTitle
+      origin,
+      loading,
+      shortHash,
+      contentPreview,
+      commentOfRoute,
+      commentOfKindLabel,
+      commentOfTitle
     }
   }
 })

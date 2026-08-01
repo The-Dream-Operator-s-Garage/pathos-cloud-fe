@@ -31,52 +31,52 @@
 </template>
 
 <script>
-import { defineComponent, computed } from 'vue';
-import MiniPanel from 'src/components/shared/MiniPanel.vue';
-import LinkMicro from './LinkMicro.vue';
-import EntityName from 'src/components/entities/EntityName.vue';
+import { defineComponent, computed } from 'vue'
+import MiniPanel from 'src/components/shared/MiniPanel.vue'
+import LinkMicro from './LinkMicro.vue'
+import EntityName from 'src/components/entities/EntityName.vue'
 
 export default defineComponent({
   name: 'LinkMini',
   components: { MiniPanel, LinkMicro, EntityName },
   props: {
     // Link row { id, path, prev_id, next_id, target_type, target_id, … }.
-    link:       { type: Object, required: true },
+    link: { type: Object, required: true },
     // Resolved target payload from linkService ({ kind, node|label|… }).
-    target:     { type: Object, default: null },
+    target: { type: Object, default: null },
     parentPath: { type: Object, default: null },
-    to:         { type: String, default: null }
+    to: { type: String, default: null }
   },
   setup (props) {
-    const targetRoute = computed(() => props.to || `/links/${props.link.id}`);
+    const targetRoute = computed(() => props.to || `/links/${props.link.id}`)
 
     const chainPosition = computed(() => {
-      const hasPrev = !!props.link.prev_id;
-      const hasNext = !!props.link.next_id;
-      if (!hasPrev && !hasNext) return 'sole link';
-      if (!hasPrev) return 'chain head';
-      if (!hasNext) return 'chain tail';
-      return 'mid-chain';
-    });
+      const hasPrev = !!props.link.prev_id
+      const hasNext = !!props.link.next_id
+      if (!hasPrev && !hasNext) return 'sole link'
+      if (!hasPrev) return 'chain head'
+      if (!hasNext) return 'chain tail'
+      return 'mid-chain'
+    })
 
     // Entity targets render through EntityName (username + pioneer gold);
     // every other kind stays a plain text summary.
     const targetEntity = computed(() =>
-      props.target?.kind === 'entity' ? props.target.entity : null);
+      props.target?.kind === 'entity' ? props.target.entity : null)
 
     const targetSummary = computed(() => {
-      const kind = props.target?.kind;
-      const sub  = kind ? props.target[kind] : null;
-      if (!sub) return `${props.link.target_type} #${props.link.target_id}`;
-      if (kind === 'node')   return (sub.content || '').slice(0, 80) || `node #${sub.id}`;
-      if (kind === 'label')  return sub.name || `label #${sub.id}`;
-      if (kind === 'path')   return `path #${sub.id} (${sub.step_count ?? '?'} steps)`;
-      return sub.title || sub.name || `${kind} #${sub.id}`;
-    });
+      const kind = props.target?.kind
+      const sub = kind ? props.target[kind] : null
+      if (!sub) return `${props.link.target_type} #${props.link.target_id}`
+      if (kind === 'node') return (sub.content || '').slice(0, 80) || `node #${sub.id}`
+      if (kind === 'label') return sub.name || `label #${sub.id}`
+      if (kind === 'path') return `path #${sub.id} (${sub.step_count ?? '?'} steps)`
+      return sub.title || sub.name || `${kind} #${sub.id}`
+    })
 
-    return { targetRoute, chainPosition, targetSummary, targetEntity };
+    return { targetRoute, chainPosition, targetSummary, targetEntity }
   }
-});
+})
 </script>
 
 <style lang="scss" scoped>

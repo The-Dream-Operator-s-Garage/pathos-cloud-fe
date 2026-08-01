@@ -196,99 +196,109 @@
 </template>
 
 <script>
-import { defineComponent, ref, computed, onMounted, watch } from 'vue';
-import { useRoute } from 'vue-router';
-import { secretService } from 'src/services/secret.service';
-import { isHash, shortHash, parseRef } from 'src/utils/kinds';
+import { defineComponent, ref, computed, onMounted, watch } from 'vue'
+import { useRoute } from 'vue-router'
+import { secretService } from 'src/services/secret.service'
+import { isHash, shortHash, parseRef } from 'src/utils/kinds'
 
-import InfoChip    from 'src/components/shared/InfoChip.vue';
-import MomentInfo  from 'src/components/moments/MomentInfo.vue';
-import EntityInfo  from 'src/components/entities/EntityInfo.vue';
-import LabelSlider from 'src/components/labels/LabelSlider.vue';
+import InfoChip from 'src/components/shared/InfoChip.vue'
+import MomentInfo from 'src/components/moments/MomentInfo.vue'
+import EntityInfo from 'src/components/entities/EntityInfo.vue'
+import LabelSlider from 'src/components/labels/LabelSlider.vue'
 
 export default defineComponent({
   name: 'SecretViewerPage',
   components: { InfoChip, MomentInfo, EntityInfo, LabelSlider },
   setup () {
-    const route = useRoute();
+    const route = useRoute()
 
-    const loading  = ref(true);
-    const secret   = ref(null);
-    const owner    = ref(null);
-    const receiver = ref(null);
-    const moment   = ref(null);
-    const decoded  = ref(null);
-    const header   = ref(null);
-    const copied   = ref(false);
+    const loading = ref(true)
+    const secret = ref(null)
+    const owner = ref(null)
+    const receiver = ref(null)
+    const moment = ref(null)
+    const decoded = ref(null)
+    const header = ref(null)
+    const copied = ref(false)
 
     const displayName = (e) =>
-      e?.display_name || e?.username || (e ? 'entity #' + e.id : '');
+      e?.display_name || e?.username || (e ? 'entity #' + e.id : '')
 
-    const headerLabels = computed(() => header.value?.labels || []);
+    const headerLabels = computed(() => header.value?.labels || [])
 
     // Only the proto's declared fields, in proto order.
     const decodedRows = computed(() => {
-      const d = decoded.value;
-      if (!d) return {};
-      const out = {};
+      const d = decoded.value
+      if (!d) return {}
+      const out = {}
       for (const key of ['register', 'author', 'user', 'used', 'tag']) {
-        if (d[key] !== undefined && d[key] !== '') out[key] = d[key];
+        if (d[key] !== undefined && d[key] !== '') out[key] = d[key]
       }
-      return out;
-    });
+      return out
+    })
 
-    const refFor = (val) => parseRef(typeof val === 'string' ? val : '');
+    const refFor = (val) => parseRef(typeof val === 'string' ? val : '')
 
     const formatDate = (raw) => {
-      const d = new Date(raw);
-      return Number.isNaN(d.getTime()) ? String(raw) : d.toISOString().replace('T', ' ').replace(/\.\d+Z$/, ' UTC');
-    };
+      const d = new Date(raw)
+      return Number.isNaN(d.getTime()) ? String(raw) : d.toISOString().replace('T', ' ').replace(/\.\d+Z$/, ' UTC')
+    }
 
     const load = async () => {
-      loading.value = true;
-      secret.value = null;
-      owner.value = null;
-      receiver.value = null;
-      moment.value = null;
-      decoded.value = null;
-      header.value = null;
+      loading.value = true
+      secret.value = null
+      owner.value = null
+      receiver.value = null
+      moment.value = null
+      decoded.value = null
+      header.value = null
 
-      const param = String(route.params.id || '');
+      const param = String(route.params.id || '')
       try {
         const r = isHash(param)
           ? await secretService.getByHash(param)
-          : await secretService.get(parseInt(param));
+          : await secretService.get(parseInt(param))
         if (r.success) {
-          secret.value   = r.secret || null;
-          owner.value    = r.owner || null;
-          receiver.value = r.receiver || null;
-          moment.value   = r.moment || null;
-          decoded.value  = r.decoded || null;
-          header.value   = r.header || null;
+          secret.value = r.secret || null
+          owner.value = r.owner || null
+          receiver.value = r.receiver || null
+          moment.value = r.moment || null
+          decoded.value = r.decoded || null
+          header.value = r.header || null
         }
       } catch (_) { /* leave empty */ }
-      loading.value = false;
-    };
+      loading.value = false
+    }
 
     const copyPath = () => {
-      if (!secret.value?.path) return;
+      if (!secret.value?.path) return
       navigator.clipboard.writeText(secret.value.path).then(() => {
-        copied.value = true;
-        setTimeout(() => { copied.value = false; }, 1500);
-      });
-    };
+        copied.value = true
+        setTimeout(() => { copied.value = false }, 1500)
+      })
+    }
 
-    onMounted(load);
-    watch(() => route.params.id, load);
+    onMounted(load)
+    watch(() => route.params.id, load)
 
     return {
-      loading, secret, owner, receiver, moment, decoded,
-      headerLabels, decodedRows, refFor,
-      displayName, formatDate,
-      copied, copyPath, shortHash
-    };
+      loading,
+      secret,
+      owner,
+      receiver,
+      moment,
+      decoded,
+      headerLabels,
+      decodedRows,
+      refFor,
+      displayName,
+      formatDate,
+      copied,
+      copyPath,
+      shortHash
+    }
   }
-});
+})
 </script>
 
 <style lang="scss" scoped>

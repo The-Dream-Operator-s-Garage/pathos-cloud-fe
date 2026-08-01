@@ -37,10 +37,10 @@
 </template>
 
 <script>
-import { defineComponent, computed, ref, watchEffect } from 'vue';
-import MiniPanel from 'src/components/shared/MiniPanel.vue';
-import EntityMicro from './EntityMicro.vue';
-import { entitySummary } from 'src/utils/entityDisplay';
+import { defineComponent, computed, ref, watchEffect } from 'vue'
+import MiniPanel from 'src/components/shared/MiniPanel.vue'
+import EntityMicro from './EntityMicro.vue'
+import { entitySummary } from 'src/utils/entityDisplay'
 
 export default defineComponent({
   name: 'EntityMini',
@@ -48,43 +48,43 @@ export default defineComponent({
   props: {
     // Enriched entity shape: { id, path, username, display_name, joined_at, bio }
     entity: { type: Object, required: true },
-    to:     { type: String, default: null }
+    to: { type: String, default: null }
   },
   setup (props) {
-    const targetRoute = computed(() => props.to || `/entities/${props.entity.id}`);
+    const targetRoute = computed(() => props.to || `/entities/${props.entity.id}`)
 
     // Enriched entities don't carry ancestry, so pioneer status comes from
     // the cached summary lookup.
-    const isPioneer = ref(false);
+    const isPioneer = ref(false)
     watchEffect(() => {
-      if (props.entity?.id == null) return;
+      if (props.entity?.id == null) return
       entitySummary({ id: props.entity.id })
-        .then((s) => { isPioneer.value = s?.pioneer === true; });
-    });
+        .then((s) => { isPioneer.value = s?.pioneer === true })
+    })
 
     const effectiveTitle = computed(() =>
       props.entity.display_name || props.entity.username || `entity #${props.entity.id}`
-    );
+    )
 
     const joinedAgo = computed(() => {
-      const iso = props.entity.joined_at;
-      if (!iso) return '';
-      const d = Date.now() - new Date(iso).getTime();
-      if (d < 0) return '';
-      const s = Math.floor(d / 1000);
-      if (s < 60) return `${s}s ago`;
-      const m = Math.floor(s / 60);
-      if (m < 60) return `${m}m ago`;
-      const h = Math.floor(m / 60);
-      if (h < 24) return `${h}h ago`;
-      const days = Math.floor(h / 24);
-      if (days < 30) return `${days}d ago`;
-      try { return new Date(iso).toLocaleDateString(); } catch (_) { return iso; }
-    });
+      const iso = props.entity.joined_at
+      if (!iso) return ''
+      const d = Date.now() - new Date(iso).getTime()
+      if (d < 0) return ''
+      const s = Math.floor(d / 1000)
+      if (s < 60) return `${s}s ago`
+      const m = Math.floor(s / 60)
+      if (m < 60) return `${m}m ago`
+      const h = Math.floor(m / 60)
+      if (h < 24) return `${h}h ago`
+      const days = Math.floor(h / 24)
+      if (days < 30) return `${days}d ago`
+      try { return new Date(iso).toLocaleDateString() } catch (_) { return iso }
+    })
 
-    return { targetRoute, effectiveTitle, joinedAgo, isPioneer };
+    return { targetRoute, effectiveTitle, joinedAgo, isPioneer }
   }
-});
+})
 </script>
 
 <style lang="scss" scoped>

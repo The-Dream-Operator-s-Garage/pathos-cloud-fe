@@ -21,7 +21,7 @@
 <script>
 import { defineComponent, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { KINDS, kindFor } from 'src/utils/kinds'
+import { KINDS } from 'src/utils/kinds'
 
 export default defineComponent({
   name: 'HashLink',

@@ -26,28 +26,28 @@
 </template>
 
 <script>
-import { defineComponent, ref, onMounted, watch } from 'vue';
-import { nodeService } from 'src/services/node.service';
-import NodeCard from 'src/components/nodes/NodeCard.vue';
+import { defineComponent, ref, onMounted } from 'vue'
+import { nodeService } from 'src/services/node.service'
+import NodeCard from 'src/components/nodes/NodeCard.vue'
 
 export default defineComponent({
   name: 'NodeExplorerPage',
   components: { NodeCard },
-  setup() {
-    const nodes   = ref([]);
-    const loading = ref(true);
-    const search  = ref('');
+  setup () {
+    const nodes = ref([])
+    const loading = ref(true)
+    const search = ref('')
 
     const load = async () => {
-      loading.value = true;
-      const result = await nodeService.list({ limit: 50 });
-      if (result.success) nodes.value = result.nodes;
-      loading.value = false;
-    };
+      loading.value = true
+      const result = await nodeService.list({ limit: 50 })
+      if (result.success) nodes.value = result.nodes
+      loading.value = false
+    }
 
-    onMounted(load);
+    onMounted(load)
 
-    return { nodes, loading, search };
+    return { nodes, loading, search }
   }
-});
+})
 </script>

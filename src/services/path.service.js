@@ -1,4 +1,4 @@
-import api from './api';
+import api from './api'
 
 // Paths are primal pathchain types (like nodes). Each `/paths/:id` route
 // resolves a Path ROW by its DB id; the backend walks the on-disk link
@@ -6,8 +6,8 @@ import api from './api';
 export const pathService = {
   // direction: 'reverse' (newest first, default) or 'forward' (head→tail).
   async byId (id, direction = 'reverse') {
-    const { data } = await api.get(`/paths/${id}`, { params: { direction } });
-    return data;
+    const { data } = await api.get(`/paths/${id}`, { params: { direction } })
+    return data
   },
   // Resolve a Path by its `paths/<hash>` ref. Accepts either the bare
   // hash or the full ref. Used by surfaces that hold the hash but not
@@ -15,8 +15,8 @@ export const pathService = {
   async byHash (hashOrRef, direction = 'reverse') {
     const hash = hashOrRef && hashOrRef.includes('/')
       ? hashOrRef.split('/').pop()
-      : hashOrRef;
-    const { data } = await api.get(`/paths/by-hash/${hash}`, { params: { direction } });
-    return data;
+      : hashOrRef
+    const { data } = await api.get(`/paths/by-hash/${hash}`, { params: { direction } })
+    return data
   }
-};
+}

@@ -23,7 +23,7 @@ export default defineComponent({
   name: 'LabelSlider',
   components: { LabelViewer },
   props: {
-    labels:  { type: Array,   default: () => [] },
+    labels: { type: Array, default: () => [] },
     loading: { type: Boolean, default: false }
   }
 })

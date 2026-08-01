@@ -12,20 +12,20 @@
 </template>
 
 <script>
-import { defineComponent } from 'vue';
-import InfoChip from 'src/components/shared/InfoChip.vue';
+import { defineComponent } from 'vue'
+import InfoChip from 'src/components/shared/InfoChip.vue'
 
 export default defineComponent({
   name: 'SecretInfo',
   components: { InfoChip },
   props: {
-    id:        { type: [Number, String], default: null },
-    hashStr:   { type: String, default: '' },
-    address:   { type: String, default: '' },
-    primary:   { type: String, default: '' },
+    id: { type: [Number, String], default: null },
+    hashStr: { type: String, default: '' },
+    address: { type: String, default: '' },
+    primary: { type: String, default: '' },
     secondary: { type: String, default: '' },
-    to:        { type: String, default: null },
-    dense:     { type: Boolean, default: false }
+    to: { type: String, default: null },
+    dense: { type: Boolean, default: false }
   }
-});
+})
 </script>

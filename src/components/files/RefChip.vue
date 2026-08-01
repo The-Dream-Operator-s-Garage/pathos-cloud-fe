@@ -15,9 +15,9 @@
 </template>
 
 <script>
-import { defineComponent, computed, inject } from 'vue';
-import MicroChip from 'src/components/shared/MicroChip.vue';
-import { parseRef } from 'src/utils/kinds';
+import { defineComponent, computed, inject } from 'vue'
+import MicroChip from 'src/components/shared/MicroChip.vue'
+import { parseRef } from 'src/utils/kinds'
 
 export default defineComponent({
   name: 'RefChip',
@@ -26,22 +26,24 @@ export default defineComponent({
     address: { type: String, required: true }
   },
   setup (props) {
-    const treeNav = inject('treeNav', null);
+    const treeNav = inject('treeNav', null)
 
     const ref = computed(() =>
       parseRef(props.address) || {
-        prefix: 'unknown', kind: 'unknown',
-        hash: props.address, address: props.address
+        prefix: 'unknown',
+        kind: 'unknown',
+        hash: props.address,
+        address: props.address
       }
-    );
+    )
 
     const onClick = () => {
-      if (treeNav) treeNav.reveal(ref.value.address);
-    };
+      if (treeNav) treeNav.reveal(ref.value.address)
+    }
 
-    return { ref, onClick };
+    return { ref, onClick }
   }
-});
+})
 </script>
 
 <style lang="scss" scoped>

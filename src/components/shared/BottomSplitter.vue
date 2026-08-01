@@ -94,44 +94,44 @@
 </template>
 
 <script>
-import { defineComponent, ref, computed, onBeforeUnmount } from 'vue';
+import { defineComponent, ref, computed, onBeforeUnmount } from 'vue'
 
 // Footer-only height: the tab strip (36px) plus the 8px grip.
-const FOOTER_H = 44;
+const FOOTER_H = 44
 
 // Snap threshold — if the user drops the grip within this many px of
 // FOOTER_H, collapse to footer-only. Avoids leaving an awkward 50px
 // pane visible.
-const SNAP_THRESHOLD = 36;
+const SNAP_THRESHOLD = 36
 
 // Default open height when expanding from the footer with no stored
 // "last open" preference (first ever expand on a fresh session).
-const DEFAULT_OPEN_H = 320;
+const DEFAULT_OPEN_H = 320
 
 const readStored = (key, fallback) => {
-  if (typeof window === 'undefined') return fallback;
+  if (typeof window === 'undefined') return fallback
   try {
-    const raw = window.localStorage.getItem(key);
-    const n = raw ? parseInt(raw, 10) : NaN;
-    return Number.isFinite(n) && n > 0 ? n : fallback;
-  } catch (_) { return fallback; }
-};
+    const raw = window.localStorage.getItem(key)
+    const n = raw ? parseInt(raw, 10) : NaN
+    return Number.isFinite(n) && n > 0 ? n : fallback
+  } catch (_) { return fallback }
+}
 
 const writeStored = (key, value) => {
-  if (typeof window === 'undefined') return;
-  try { window.localStorage.setItem(key, String(value)); } catch (_) { /* swallow */ }
-};
+  if (typeof window === 'undefined') return
+  try { window.localStorage.setItem(key, String(value)) } catch (_) { /* swallow */ }
+}
 
 export default defineComponent({
   name: 'BottomSplitter',
   props: {
-    modelValue:   { type: String, default: 'comment' },
+    modelValue: { type: String, default: 'comment' },
     commentCount: { type: Number, default: 0 },
-    forkCount:    { type: Number, default: 0 },
-    voteUp:       { type: Number, default: 0 },
-    voteDown:     { type: Number, default: 0 },
-    viewerVote:   { type: String, default: null },
-    storageKey:   { type: String, default: 'bottom-splitter-h' },
+    forkCount: { type: Number, default: 0 },
+    voteUp: { type: Number, default: 0 },
+    voteDown: { type: Number, default: 0 },
+    viewerVote: { type: String, default: null },
+    storageKey: { type: String, default: 'bottom-splitter-h' },
     // When true, ignore any stored height on mount and start at footer
     // height. The user-preferred *open* height (storageKey + ':open')
     // is still honored when the splitter is toggled open afterwards.
@@ -139,12 +139,12 @@ export default defineComponent({
   },
   emits: ['update:modelValue', 'vote'],
   setup (props, { emit }) {
-    const rootEl = ref(null);
+    const rootEl = ref(null)
 
     const activeTab = computed({
       get: () => props.modelValue,
       set: (v) => emit('update:modelValue', v)
-    });
+    })
 
     // Initial height — restore from localStorage if previously set,
     // otherwise start collapsed (footer only) so the body is fully
@@ -152,87 +152,87 @@ export default defineComponent({
     // true the host forces footer-only on mount regardless of storage.
     const height = ref(
       props.defaultCollapsed ? FOOTER_H : readStored(props.storageKey, FOOTER_H)
-    );
+    )
 
-    const isCollapsed = computed(() => height.value <= FOOTER_H + 2);
-    const containerStyle = computed(() => ({ height: height.value + 'px' }));
+    const isCollapsed = computed(() => height.value <= FOOTER_H + 2)
+    const containerStyle = computed(() => ({ height: height.value + 'px' }))
 
     // ── Drag state ────────────────────────────────────────
-    const dragging = ref(false);
-    const startY   = ref(0);
-    const startH   = ref(0);
+    const dragging = ref(false)
+    const startY = ref(0)
+    const startH = ref(0)
 
     const clamp = (next) => {
-      const panel = rootEl.value?.parentElement;
+      const panel = rootEl.value?.parentElement
       // Reserve at least 120px for the identity/meta/banner zones
       // above the body — never let the splitter eat the panel head.
-      const maxH = panel ? Math.max(FOOTER_H, panel.clientHeight - 120) : 800;
-      if (next < FOOTER_H) return FOOTER_H;
-      if (next > maxH)     return maxH;
-      return next;
-    };
+      const maxH = panel ? Math.max(FOOTER_H, panel.clientHeight - 120) : 800
+      if (next < FOOTER_H) return FOOTER_H
+      if (next > maxH) return maxH
+      return next
+    }
 
     const onMove = (ev) => {
-      if (!dragging.value) return;
-      const clientY = ev.touches ? ev.touches[0].clientY : ev.clientY;
-      const dy = startY.value - clientY;
-      height.value = clamp(startH.value + dy);
-    };
+      if (!dragging.value) return
+      const clientY = ev.touches ? ev.touches[0].clientY : ev.clientY
+      const dy = startY.value - clientY
+      height.value = clamp(startH.value + dy)
+    }
 
     const stopDrag = () => {
-      if (!dragging.value) return;
-      dragging.value = false;
-      if (height.value < FOOTER_H + SNAP_THRESHOLD) height.value = FOOTER_H;
-      writeStored(props.storageKey, height.value);
-      window.removeEventListener('mousemove', onMove);
-      window.removeEventListener('mouseup', stopDrag);
-      window.removeEventListener('touchmove', onMove);
-      window.removeEventListener('touchend', stopDrag);
-      document.body.style.userSelect = '';
-      document.body.style.cursor     = '';
-    };
+      if (!dragging.value) return
+      dragging.value = false
+      if (height.value < FOOTER_H + SNAP_THRESHOLD) height.value = FOOTER_H
+      writeStored(props.storageKey, height.value)
+      window.removeEventListener('mousemove', onMove)
+      window.removeEventListener('mouseup', stopDrag)
+      window.removeEventListener('touchmove', onMove)
+      window.removeEventListener('touchend', stopDrag)
+      document.body.style.userSelect = ''
+      document.body.style.cursor = ''
+    }
 
     const startDrag = (ev) => {
-      const clientY = ev.touches ? ev.touches[0].clientY : ev.clientY;
-      dragging.value = true;
-      startY.value   = clientY;
-      startH.value   = height.value;
-      window.addEventListener('mousemove', onMove);
-      window.addEventListener('mouseup', stopDrag);
-      window.addEventListener('touchmove', onMove, { passive: false });
-      window.addEventListener('touchend', stopDrag);
-      document.body.style.userSelect = 'none';
-      document.body.style.cursor     = 'ns-resize';
-    };
+      const clientY = ev.touches ? ev.touches[0].clientY : ev.clientY
+      dragging.value = true
+      startY.value = clientY
+      startH.value = height.value
+      window.addEventListener('mousemove', onMove)
+      window.addEventListener('mouseup', stopDrag)
+      window.addEventListener('touchmove', onMove, { passive: false })
+      window.addEventListener('touchend', stopDrag)
+      document.body.style.userSelect = 'none'
+      document.body.style.cursor = 'ns-resize'
+    }
 
     const toggleCollapsed = () => {
       if (isCollapsed.value) {
-        const stored = readStored(props.storageKey + ':open', DEFAULT_OPEN_H);
-        height.value = clamp(stored > FOOTER_H ? stored : DEFAULT_OPEN_H);
+        const stored = readStored(props.storageKey + ':open', DEFAULT_OPEN_H)
+        height.value = clamp(stored > FOOTER_H ? stored : DEFAULT_OPEN_H)
       } else {
-        writeStored(props.storageKey + ':open', height.value);
-        height.value = FOOTER_H;
+        writeStored(props.storageKey + ':open', height.value)
+        height.value = FOOTER_H
       }
-      writeStored(props.storageKey, height.value);
-    };
+      writeStored(props.storageKey, height.value)
+    }
 
     // Clicking a tab while collapsed should open the panel so users
     // don't have to drag first. Re-clicking the active tab collapses.
     const onTabClick = (tab) => {
       if (activeTab.value === tab) {
-        toggleCollapsed();
+        toggleCollapsed()
       } else {
-        activeTab.value = tab;
-        if (isCollapsed.value) toggleCollapsed();
+        activeTab.value = tab
+        if (isCollapsed.value) toggleCollapsed()
       }
-    };
+    }
 
     onBeforeUnmount(() => {
-      window.removeEventListener('mousemove', onMove);
-      window.removeEventListener('mouseup', stopDrag);
-      window.removeEventListener('touchmove', onMove);
-      window.removeEventListener('touchend', stopDrag);
-    });
+      window.removeEventListener('mousemove', onMove)
+      window.removeEventListener('mouseup', stopDrag)
+      window.removeEventListener('touchmove', onMove)
+      window.removeEventListener('touchend', stopDrag)
+    })
 
     // Imperative: grow the splitter to AT LEAST `minPx` if it's
     // currently shorter. Hosts call this when they reveal tall slot
@@ -241,9 +241,9 @@ export default defineComponent({
     // of the host's UI, not a height the user chose. releaseMinHeight
     // restores whichever stored preference the user actually picked.
     const ensureMinHeight = (minPx) => {
-      if (!Number.isFinite(minPx) || minPx <= height.value) return;
-      height.value = clamp(minPx);
-    };
+      if (!Number.isFinite(minPx) || minPx <= height.value) return
+      height.value = clamp(minPx)
+    }
 
     // Counterpart to ensureMinHeight: snap back to the user's stored
     // height (footer by default) when the host UI that needed the
@@ -251,18 +251,25 @@ export default defineComponent({
     // splitter taller while the composer was open, that drag persisted
     // through stopDrag and the stored value reflects it.
     const releaseMinHeight = () => {
-      const stored = readStored(props.storageKey, FOOTER_H);
-      if (stored < height.value) height.value = clamp(stored);
-    };
+      const stored = readStored(props.storageKey, FOOTER_H)
+      if (stored < height.value) height.value = clamp(stored)
+    }
 
     return {
       rootEl,
-      activeTab, height, isCollapsed, dragging, containerStyle,
-      startDrag, toggleCollapsed, onTabClick,
-      ensureMinHeight, releaseMinHeight
-    };
+      activeTab,
+      height,
+      isCollapsed,
+      dragging,
+      containerStyle,
+      startDrag,
+      toggleCollapsed,
+      onTabClick,
+      ensureMinHeight,
+      releaseMinHeight
+    }
   }
-});
+})
 </script>
 
 <style lang="scss" scoped>

@@ -52,24 +52,24 @@
 </template>
 
 <script>
-import { defineComponent, ref, computed, onMounted, watch } from 'vue';
-import { useQuasar } from 'quasar';
-import JsonView from './JsonView.vue';
-import { fileService } from 'src/services/file.service';
-import { kindFor } from 'src/utils/kinds.js';
+import { defineComponent, ref, computed, onMounted, watch } from 'vue'
+import { useQuasar } from 'quasar'
+import JsonView from './JsonView.vue'
+import { fileService } from 'src/services/file.service'
+import { kindFor } from 'src/utils/kinds.js'
 
-const PROTO_KEYWORDS = /\b(syntax|message|required|optional|repeated|string|int32|int64|float|double|bool|enum|true|false)\b/g;
+const PROTO_KEYWORDS = /\b(syntax|message|required|optional|repeated|string|int32|int64|float|double|bool|enum|true|false)\b/g
 
 const escapeHtml = (s) => s
   .replace(/&/g, '&amp;')
   .replace(/</g, '&lt;')
-  .replace(/>/g, '&gt;');
+  .replace(/>/g, '&gt;')
 
 const highlightProto = (raw) =>
   escapeHtml(raw)
     .replace(/^(\s*\/\/.*)$/gm, '<span class="p-comment">$1</span>')
     .replace(/"([^"]*)"/g, '<span class="p-str">"$1"</span>')
-    .replace(PROTO_KEYWORDS, '<span class="p-kw">$1</span>');
+    .replace(PROTO_KEYWORDS, '<span class="p-kw">$1</span>')
 
 export default defineComponent({
   name: 'DecodedContentInline',
@@ -79,73 +79,79 @@ export default defineComponent({
     node: { type: Object, required: true }
   },
   setup (props) {
-    const $q = useQuasar();
+    const $q = useQuasar()
 
     // Decoded pane leads at 70%, `.proto` trails at 30%. Draggable within
     // [20, 85]. On phones the split flips to a stacked (horizontal) bar.
-    const split   = ref(70);
-    const stacked = computed(() => $q.screen.lt.sm);
+    const split = ref(70)
+    const stacked = computed(() => $q.screen.lt.sm)
 
-    const decoded   = ref(null);
-    const loading   = ref(false);
-    const error     = ref('');
-    const proto     = ref('');
-    const protoLoading = ref(false);
-    const protoError   = ref('');
+    const decoded = ref(null)
+    const loading = ref(false)
+    const error = ref('')
+    const proto = ref('')
+    const protoLoading = ref(false)
+    const protoError = ref('')
 
     // Map the on-disk plural prefix to its singular proto slug via the
     // canonical kinds map. Naive `slice(0, -1)` mis-singularizes `entities`
     // → `entitie` (no `entitie.proto` ⇒ 404 on the schema fetch).
-    const singularKind = computed(() => kindFor(props.node.kind).kind);
+    const singularKind = computed(() => kindFor(props.node.kind).kind)
 
-    const protoHighlighted = computed(() => highlightProto(proto.value || ''));
+    const protoHighlighted = computed(() => highlightProto(proto.value || ''))
 
     const loadDecoded = async () => {
-      loading.value = true;
-      error.value   = '';
+      loading.value = true
+      error.value = ''
       try {
-        const res = await fileService.decode(props.node.path);
-        if (!res.success) throw new Error(res.error?.message || 'decode failed');
-        decoded.value = res.decoded;
+        const res = await fileService.decode(props.node.path)
+        if (!res.success) throw new Error(res.error?.message || 'decode failed')
+        decoded.value = res.decoded
       } catch (e) {
-        error.value = e.message || 'decode failed';
+        error.value = e.message || 'decode failed'
       } finally {
-        loading.value = false;
+        loading.value = false
       }
-    };
+    }
 
     const loadProto = async () => {
-      if (proto.value) return;
-      protoLoading.value = true;
-      protoError.value   = '';
+      if (proto.value) return
+      protoLoading.value = true
+      protoError.value = ''
       try {
-        const res = await fileService.getProto(singularKind.value);
-        if (!res.success) throw new Error(res.error?.message || 'proto fetch failed');
-        proto.value = res.source;
+        const res = await fileService.getProto(singularKind.value)
+        if (!res.success) throw new Error(res.error?.message || 'proto fetch failed')
+        proto.value = res.source
       } catch (e) {
-        protoError.value = e.message || 'no proto available';
+        protoError.value = e.message || 'no proto available'
       } finally {
-        protoLoading.value = false;
+        protoLoading.value = false
       }
-    };
+    }
 
     onMounted(() => {
-      loadDecoded();
-      loadProto();
-    });
+      loadDecoded()
+      loadProto()
+    })
     watch(() => props.node.path, () => {
-      loadDecoded();
-      proto.value = '';
-      loadProto();
-    });
+      loadDecoded()
+      proto.value = ''
+      loadProto()
+    })
 
     return {
-      split, stacked,
-      decoded, loading, error,
-      proto, protoLoading, protoError, protoHighlighted
-    };
+      split,
+      stacked,
+      decoded,
+      loading,
+      error,
+      proto,
+      protoLoading,
+      protoError,
+      protoHighlighted
+    }
   }
-});
+})
 </script>
 
 <style lang="scss" scoped>

@@ -36,29 +36,29 @@
 </template>
 
 <script>
-import { defineComponent, computed } from 'vue';
-import { timeAgo } from 'src/utils/time';
-import MiniPanel   from 'src/components/shared/MiniPanel.vue';
-import SecretMicro from './SecretMicro.vue';
-import EntityName  from 'src/components/entities/EntityName.vue';
+import { defineComponent, computed } from 'vue'
+import { timeAgo } from 'src/utils/time'
+import MiniPanel from 'src/components/shared/MiniPanel.vue'
+import SecretMicro from './SecretMicro.vue'
+import EntityName from 'src/components/entities/EntityName.vue'
 
 export default defineComponent({
   name: 'SecretMini',
   components: { MiniPanel, SecretMicro, EntityName },
   props: {
     // Sanitized secret row { id, path, owner_id, receiver_id, used_at, … }.
-    secret:   { type: Object, required: true },
-    owner:    { type: Object, default: null },
+    secret: { type: Object, required: true },
+    owner: { type: Object, default: null },
     receiver: { type: Object, default: null },
-    to:       { type: String, default: null }
+    to: { type: String, default: null }
   },
   setup (props) {
-    const targetRoute = computed(() => props.to || `/secrets/${props.secret.id}`);
+    const targetRoute = computed(() => props.to || `/secrets/${props.secret.id}`)
     const usedAgo = computed(() =>
-      props.secret?.used_at ? timeAgo(props.secret.used_at) : '');
-    return { targetRoute, usedAgo };
+      props.secret?.used_at ? timeAgo(props.secret.used_at) : '')
+    return { targetRoute, usedAgo }
   }
-});
+})
 </script>
 
 <style lang="scss" scoped>

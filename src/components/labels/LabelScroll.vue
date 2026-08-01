@@ -5,15 +5,15 @@
 </template>
 
 <script>
-import { defineComponent } from 'vue';
-import LabelChip from './LabelChip.vue';
+import { defineComponent } from 'vue'
+import LabelChip from './LabelChip.vue'
 
 export default defineComponent({
   name: 'LabelScroll',
   components: { LabelChip },
   props: {
-    labels:        { type: Array, default: () => [] },
+    labels: { type: Array, default: () => [] },
     showAncestors: { type: Boolean, default: false }
   }
-});
+})
 </script>

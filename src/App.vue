@@ -3,8 +3,8 @@
 </template>
 
 <script>
-import { defineComponent, onMounted } from 'vue';
-import { authService } from 'src/services/auth.service';
+import { defineComponent, onMounted } from 'vue'
+import { authService } from 'src/services/auth.service'
 
 export default defineComponent({
   name: 'App',
@@ -14,9 +14,9 @@ export default defineComponent({
     // interceptor in api.js clears the cache and redirects to /auth.
     onMounted(() => {
       if (localStorage.getItem('pathos_token')) {
-        authService.verify().catch(() => { /* interceptor handles 401 */ });
+        authService.verify().catch(() => { /* interceptor handles 401 */ })
       }
-    });
+    })
   }
-});
+})
 </script>

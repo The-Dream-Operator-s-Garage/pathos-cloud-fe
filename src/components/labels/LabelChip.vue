@@ -1,7 +1,7 @@
 <template>
   <span class="label-chip" @click="$emit('click', label)">
     <span v-if="showAncestors && ancestors.length" class="text-dim">
-      <span v-for="(a, i) in ancestors" :key="a.id">
+      <span v-for="a in ancestors" :key="a.id">
         {{ a.name }}<span class="sep"> / </span>
       </span>
     </span>
@@ -10,29 +10,29 @@
 </template>
 
 <script>
-import { defineComponent, ref, onMounted } from 'vue';
-import { labelService } from 'src/services/label.service';
+import { defineComponent, ref, onMounted } from 'vue'
+import { labelService } from 'src/services/label.service'
 
 export default defineComponent({
   name: 'LabelChip',
   emits: ['click'],
   props: {
-    label:         { type: Object, required: true },
+    label: { type: Object, required: true },
     showAncestors: { type: Boolean, default: false }
   },
-  setup(props) {
-    const ancestors = ref([]);
+  setup (props) {
+    const ancestors = ref([])
 
     onMounted(async () => {
       if (props.showAncestors && props.label.ancestor_id) {
-        const result = await labelService.getChain(props.label.id);
+        const result = await labelService.getChain(props.label.id)
         if (result.success) {
-          ancestors.value = result.chain.slice(0, -1);
+          ancestors.value = result.chain.slice(0, -1)
         }
       }
-    });
+    })
 
-    return { ancestors };
+    return { ancestors }
   }
-});
+})
 </script>

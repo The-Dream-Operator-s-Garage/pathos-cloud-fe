@@ -32,8 +32,8 @@
 </template>
 
 <script>
-import { defineComponent, computed } from 'vue';
-import { kindFor } from 'src/utils/kinds';
+import { defineComponent, computed } from 'vue'
+import { kindFor } from 'src/utils/kinds'
 
 export default defineComponent({
   name: 'AddressChain',
@@ -50,26 +50,26 @@ export default defineComponent({
 
   setup (props) {
     const segments = computed(() => {
-      const parts = (props.path || '').split('/').filter(Boolean);
-      const out = [];
+      const parts = (props.path || '').split('/').filter(Boolean)
+      const out = []
       for (let i = 0; i < parts.length; i += 2) {
-        const prefix = parts[i];
-        const hash   = parts[i + 1] || '';
-        const meta   = kindFor(prefix);
+        const prefix = parts[i]
+        const hash = parts[i + 1] || ''
+        const meta = kindFor(prefix)
         out.push({
           prefix,
           hash,
           kind: meta.kind,
           icon: meta.icon,
-          to:   props.routes[prefix] || null
-        });
+          to: props.routes[prefix] || null
+        })
       }
-      return out;
-    });
+      return out
+    })
 
-    return { segments };
+    return { segments }
   }
-});
+})
 </script>
 
 <style lang="scss" scoped>

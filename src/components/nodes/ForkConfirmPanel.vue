@@ -55,15 +55,15 @@ export default defineComponent({
   emits: ['cancel', 'confirm'],
   props: {
     // What sort of thing is being forked — drives only the heading label.
-    kind:    { type: String, default: 'post' },
+    kind: { type: String, default: 'post' },
     loading: { type: Boolean, default: false }
   },
   setup (props) {
     const kindLabel = computed(() => {
-      if (props.kind === 'node')    return 'node'
+      if (props.kind === 'node') return 'node'
       if (props.kind === 'comment') return 'comment'
-      if (props.kind === 'fork')    return 'fork'
-      if (props.kind === 'path')    return 'path'
+      if (props.kind === 'fork') return 'fork'
+      if (props.kind === 'path') return 'path'
       return 'post'
     })
     return { kindLabel }

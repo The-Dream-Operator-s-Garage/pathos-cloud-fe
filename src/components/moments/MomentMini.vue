@@ -30,11 +30,11 @@
 </template>
 
 <script>
-import { defineComponent, computed } from 'vue';
-import { date } from 'quasar';
-import { timeAgo } from 'src/utils/time';
-import MiniPanel   from 'src/components/shared/MiniPanel.vue';
-import MomentMicro from './MomentMicro.vue';
+import { defineComponent, computed } from 'vue'
+import { date } from 'quasar'
+import { timeAgo } from 'src/utils/time'
+import MiniPanel from 'src/components/shared/MiniPanel.vue'
+import MomentMicro from './MomentMicro.vue'
 
 export default defineComponent({
   name: 'MomentMini',
@@ -43,32 +43,32 @@ export default defineComponent({
     // Moment row { id, path, space_x, space_y, space_z, time, time_utc }.
     moment: { type: Object, required: true },
     // Optional server-resolved { datetime, place } lines.
-    human:  { type: Object, default: null },
-    to:     { type: String, default: null }
+    human: { type: Object, default: null },
+    to: { type: String, default: null }
   },
   setup (props) {
-    const targetRoute = computed(() => props.to || `/moments/${props.moment.id}`);
+    const targetRoute = computed(() => props.to || `/moments/${props.moment.id}`)
 
     const headline = computed(() => {
-      if (props.human?.datetime) return props.human.datetime;
-      const raw = props.moment?.time_utc;
-      if (!raw) return `moment #${props.moment.id}`;
-      const d = new Date(raw);
-      if (Number.isNaN(d.getTime())) return `moment #${props.moment.id}`;
+      if (props.human?.datetime) return props.human.datetime
+      const raw = props.moment?.time_utc
+      if (!raw) return `moment #${props.moment.id}`
+      const d = new Date(raw)
+      if (Number.isNaN(d.getTime())) return `moment #${props.moment.id}`
       // Format in UTC (pathchain's canonical time) — quasar formatDate is
       // local-only, so shift by the tz offset first.
-      const u = new Date(d.getTime() + d.getTimezoneOffset() * 60000);
-      return date.formatDate(u, 'ddd, D MMM YYYY · h:mm A');
-    });
+      const u = new Date(d.getTime() + d.getTimezoneOffset() * 60000)
+      return date.formatDate(u, 'ddd, D MMM YYYY · h:mm A')
+    })
 
-    const ago = computed(() => timeAgo(null, props.moment) || '');
+    const ago = computed(() => timeAgo(null, props.moment) || '')
 
     const hasCoords = computed(() =>
-      Number(props.moment?.space_x) !== 0 || Number(props.moment?.space_y) !== 0);
+      Number(props.moment?.space_x) !== 0 || Number(props.moment?.space_y) !== 0)
 
-    return { targetRoute, headline, ago, hasCoords };
+    return { targetRoute, headline, ago, hasCoords }
   }
-});
+})
 </script>
 
 <style lang="scss" scoped>

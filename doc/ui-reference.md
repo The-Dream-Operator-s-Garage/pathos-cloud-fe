@@ -311,3 +311,11 @@ The typing session keylogger for NOTE nodes is stubbed at the data model:
 - [docs/concepts/labels.md](../../docs/concepts/labels.md) — LabelViewer's MOMENT-chip styling
 - [docs/concepts/post-tree.md](../../docs/concepts/post-tree.md) — PostCommentItem recursion
 - [api/doc/api-reference.md](../../api/doc/api-reference.md) — payload shapes
+
+## Dev flow surfaces (2026-08-01 — docs/concepts/development-flow.md)
+
+| piece | notes |
+|---|---|
+| `components/dev/GithubPrCard.vue` | The native face of a `GITHUB_PR` instance — GitHub sends `X-Frame-Options: DENY`, so a PR is never an EmbedFrame. Reads the walk's slot rows (`slots` prop, textValues only — never fetches): repo/number head, merge-purple state pill (`#8250df`; closed red, open green), 2-line-clamped title, author / base-branch / `+A −D` facts, and the whole card is ONE outbound `<a>` whose href is derived from `REPO`+`NUMBER` (walks only inline NOTE text, so the URL slot's LINK node is provenance, not the card's source). |
+| SkeletonMini delegation | `walk.name === 'GITHUB_PR' && !is_schema` → renders GithubPrCard instead of the generic field table. This is what makes a `![[pathos:skeletons/…]]` block ref in a PR post's body bloom into the card on feed cards, viewers, and the flyout. SkeletonPage mounts the card above the slot table in both branches (owned + read-only), the ClaimBand pattern. |
+| FeedStream label lens | Head band, after the trust lens: a funnel button opens a `q-menu` with the compact `LabelPicker`; an active filter renders as a dark blue-grey-8 chip (name + ×, click to clear). Rides `GET /feed?label=` and syncs `/#/feed?label=<id>` (router.replace; `watch` on `route.query.label` BOTH ways — hash-router gotos reuse the mounted stream, so an onMounted-only read misses in-app arrivals). Every rail chip also grows a hover-revealed funnel (`.post-square__label-filter`) that filters by that chip without leaving the feed. |

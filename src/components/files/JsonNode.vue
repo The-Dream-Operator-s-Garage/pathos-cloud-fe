@@ -47,11 +47,11 @@
 </template>
 
 <script>
-import { defineComponent, computed, ref } from 'vue';
-import RefChip from './RefChip.vue';
-import { parseRef } from 'src/utils/kinds';
+import { defineComponent, computed, ref } from 'vue'
+import RefChip from './RefChip.vue'
+import { parseRef } from 'src/utils/kinds'
 
-const COLLAPSE_AT_DEPTH = 4;
+const COLLAPSE_AT_DEPTH = 4
 
 export default defineComponent({
   name: 'JsonNode',
@@ -65,64 +65,70 @@ export default defineComponent({
     // chip; plain content stays text. Non-strings are never refs.
     const asRef = computed(() =>
       typeof props.value === 'string' ? parseRef(props.value) : null
-    );
+    )
 
     const kind = computed(() => {
-      const v = props.value;
-      if (Array.isArray(v)) return 'array';
-      if (v !== null && typeof v === 'object') return 'object';
-      return 'primitive';
-    });
+      const v = props.value
+      if (Array.isArray(v)) return 'array'
+      if (v !== null && typeof v === 'object') return 'object'
+      return 'primitive'
+    })
 
     const entries = computed(() => {
       if (kind.value === 'array') {
-        return props.value.map((v, i) => ({ key: i, value: v }));
+        return props.value.map((v, i) => ({ key: i, value: v }))
       }
       if (kind.value === 'object') {
-        return Object.keys(props.value).map((k) => ({ key: k, value: props.value[k] }));
+        return Object.keys(props.value).map((k) => ({ key: k, value: props.value[k] }))
       }
-      return [];
-    });
+      return []
+    })
 
-    const openChar  = computed(() => kind.value === 'array' ? '[' : '{');
-    const closeChar = computed(() => kind.value === 'array' ? ']' : '}');
+    const openChar = computed(() => kind.value === 'array' ? '[' : '{')
+    const closeChar = computed(() => kind.value === 'array' ? ']' : '}')
 
     const summary = computed(() => {
-      const n = entries.value.length;
-      if (n === 0) return '';
-      return ` ${n} ${kind.value === 'array' ? 'item' : 'key'}${n === 1 ? '' : 's'} `;
-    });
+      const n = entries.value.length
+      if (n === 0) return ''
+      return ` ${n} ${kind.value === 'array' ? 'item' : 'key'}${n === 1 ? '' : 's'} `
+    })
 
     const display = computed(() => {
-      const v = props.value;
-      if (v === null) return 'null';
-      if (typeof v === 'string') return `"${v}"`;
-      return String(v);
-    });
+      const v = props.value
+      if (v === null) return 'null'
+      if (typeof v === 'string') return `"${v}"`
+      return String(v)
+    })
 
     const primitiveClass = computed(() => {
-      const v = props.value;
-      if (v === null) return 'jv-null';
-      if (typeof v === 'string')  return 'jv-str';
-      if (typeof v === 'boolean') return 'jv-bool';
-      if (typeof v === 'number')  return 'jv-num';
-      return '';
-    });
+      const v = props.value
+      if (v === null) return 'jv-null'
+      if (typeof v === 'string') return 'jv-str'
+      if (typeof v === 'boolean') return 'jv-bool'
+      if (typeof v === 'number') return 'jv-num'
+      return ''
+    })
 
     // Default open shallow nodes; deeper structures start collapsed so a
     // large payload doesn't drown the inline panel on first render.
     const startsOpen = entries.value.length === 0
       ? true
-      : props.depth < COLLAPSE_AT_DEPTH;
-    const open = ref(startsOpen);
+      : props.depth < COLLAPSE_AT_DEPTH
+    const open = ref(startsOpen)
 
     return {
       asRef,
-      kind, entries, openChar, closeChar, summary,
-      display, primitiveClass, open
-    };
+      kind,
+      entries,
+      openChar,
+      closeChar,
+      summary,
+      display,
+      primitiveClass,
+      open
+    }
   }
-});
+})
 </script>
 
 <style lang="scss" scoped>
