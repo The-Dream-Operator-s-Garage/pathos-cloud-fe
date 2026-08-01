@@ -95,7 +95,22 @@
                 class="chat-dock__presence"
                 title="connected now"
               />
+              <!-- The channel contract (Thread K): a standing panel derived
+                   from actual state — seats + every shared ref's audience. -->
+              <q-btn
+                flat dense size="sm" icon="policy" no-caps
+                class="chat-dock__contract-btn"
+                :class="{ 'is-active': contractOpen }"
+                title="The contract — who sees what in this conversation"
+                @click="contractOpen = !contractOpen"
+              />
             </header>
+
+            <ChatContractBand
+              v-if="contractOpen && store.activeChatId"
+              :chat-id="store.activeChatId"
+              :refresh="feedTick"
+            />
 
             <!-- Consent gate (2026-07): a pending seat gets the accept /
                  decline banner — replying also accepts. -->
@@ -211,6 +226,7 @@ import { chatService } from 'src/services/chat.service'
 import { refService } from 'src/services/ref.service'
 import MessageBubble from './MessageBubble.vue'
 import PollCard from './PollCard.vue'
+import ChatContractBand from './ChatContractBand.vue'
 import OrgInviteCard from 'src/components/organizations/OrgInviteCard.vue'
 import AccessTreeDialog from 'src/components/maker/AccessTreeDialog.vue'
 
@@ -218,7 +234,7 @@ const REF_RE = /[!-]?\[\[pathos:[a-z]+\/[0-9a-f]{4,64}(?:\|[^\]]*)?\]\]/
 
 export default defineComponent({
   name: 'ChatDock',
-  components: { MessageBubble, PollCard, OrgInviteCard, AccessTreeDialog },
+  components: { MessageBubble, PollCard, ChatContractBand, OrgInviteCard, AccessTreeDialog },
 
   setup () {
     const store = useChatStore()
@@ -232,6 +248,12 @@ export default defineComponent({
     const loadingFeed = ref(false)
     const sending = ref(false)
     const scrollRef = ref(null)
+
+    // The contract band (Thread K): open state + a tick the band reloads
+    // on — bumped by every successful feed read, so shares and poll
+    // grants re-derive the panel without their own event plumbing.
+    const contractOpen = ref(false)
+    const feedTick = ref(0)
 
     // Consent gate (2026-07): my seat state + the other side's.
     const myStatus = ref('ACCEPTED')
@@ -298,6 +320,7 @@ export default defineComponent({
           myStatus.value = r.my_status || 'ACCEPTED'
           pendingOthers.value = !!r.pending_others
           gateMsg.value = ''
+          feedTick.value++
           if (grew) scrollToEnd()
         }
       } catch (_) { /* conversation may have been left/denied */ }
@@ -533,7 +556,9 @@ export default defineComponent({
       agentAway,
       agentAwayIn,
       seenMarker,
-      othersOnline
+      othersOnline,
+      contractOpen,
+      feedTick
     }
   }
 })
@@ -698,6 +723,12 @@ export default defineComponent({
   font-size: 0.82em;
   border-bottom: 1px solid rgba(var(--ink-rgb), 0.12);
   .q-icon { color: #00829c; }
+}
+
+.chat-dock__contract-btn {
+  margin-left: auto;
+  color: var(--ink-mute, #8995a8);
+  &.is-active { color: #00829c; }
 }
 
 .chat-dock__presence {

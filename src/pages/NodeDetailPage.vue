@@ -285,6 +285,10 @@
         ══════════════════════════════════════════════════════════ -->
         <aside class="node-side">
 
+          <!-- The owner's access contract (Thread K): who can read this
+               node, as recorded grants — hides itself for non-owners. -->
+          <AccessContractPanel :address="node.path" />
+
           <section class="related-panel side-panel side-panel--related">
             <div class="related-panel__header">
               <q-icon name="dashboard" size="14px" class="q-mr-xs" />
@@ -347,6 +351,7 @@ import CommentItem from 'src/components/nodes/CommentItem.vue'
 import PostCommentItem from 'src/components/posts/PostCommentItem.vue'
 import ElementActions from 'src/components/maker/ElementActions.vue'
 import NodeContentViewer from 'src/components/nodes/NodeContentViewer.vue'
+import AccessContractPanel from 'src/components/shared/AccessContractPanel.vue'
 import { bodyOf } from 'src/utils/nodeContent'
 import { hashOf } from 'src/utils/kinds'
 import { useStateHolder } from 'src/composables/useStateHolder'
@@ -366,7 +371,7 @@ const TYPE_COLORS = { NOTE: 'primary', FILE: 'teal', URL: 'secondary', REFERENCE
 
 export default defineComponent({
   name: 'NodeDetailPage',
-  components: { LabelSlider, MomentInfo, CommentItem, PostCommentItem, ElementActions, NodeContentViewer, PostMakerSurface, NodeForkItem, ForkConfirmPanel, BottomSplitter, FileContractBadge, ProvenanceBadge, AccessDeniedBanner },
+  components: { LabelSlider, MomentInfo, CommentItem, PostCommentItem, ElementActions, NodeContentViewer, PostMakerSurface, NodeForkItem, ForkConfirmPanel, BottomSplitter, FileContractBadge, ProvenanceBadge, AccessDeniedBanner, AccessContractPanel },
   setup () {
     const route = useRoute()
     const router = useRouter()

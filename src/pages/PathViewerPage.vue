@@ -159,6 +159,7 @@
             <ElementSurround
               :sections="surroundSections"
               :provenance-ref="pathRow?.path"
+              :access-ref="pathRow?.path"
               :show-author="false"
               :show-moment="false"
               :show-labels="false"

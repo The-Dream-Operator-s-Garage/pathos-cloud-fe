@@ -15,6 +15,13 @@ export const accessService = {
     return data
   },
 
+  // Owner-only: remove `entityId` from the element's audience (mirror
+  // rows only — the on-chain ACCESS link stays as history).
+  async revoke (ref, entityId) {
+    const { data } = await api.post('/access/revoke', { ref, entityId })
+    return data
+  },
+
   // Grant-the-pioneer batch → the elements become public.
   async publish (refs) {
     const { data } = await api.post('/access/publish', { refs })

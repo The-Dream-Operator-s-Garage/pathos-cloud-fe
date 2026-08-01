@@ -21,6 +21,13 @@ export const chatService = {
     return data
   },
 
+  // → { chat, members[], shares[] } — the channel contract (Thread K):
+  // who-sees-what derived from recorded state, never prose.
+  async contract (chatId) {
+    const { data } = await api.get(`/chats/${chatId}/contract`)
+    return data
+  },
+
   // Send; `shareRefs` = refs the sender shares with the conversation.
   async send (chatId, content, shareRefs = []) {
     const { data } = await api.post(`/chats/${chatId}/messages`, { content, shareRefs })

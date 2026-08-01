@@ -196,6 +196,7 @@
                 <ElementSurround
                   :sections="surroundSections"
                   :provenance-ref="link?.path"
+                  :access-ref="link?.path"
                   :show-author="false"
                   :show-moment="false"
                   :show-labels="false"

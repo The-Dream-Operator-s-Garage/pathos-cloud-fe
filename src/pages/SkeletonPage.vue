@@ -123,6 +123,10 @@
           @changed="reloadSlots"
         />
 
+        <!-- The owner's access contract (Thread K): who can read this
+             instance, as recorded grants — with per-row revoke. -->
+        <AccessContractPanel v-if="skeleton.path" :address="skeleton.path" />
+
         <SkeletonInstanceEditor
           :skeleton-id="skeletonId"
           :slots="slots"
@@ -365,6 +369,13 @@
 
         <!-- ── RIGHT: Usages panel — direct instances of this skeleton ── -->
         <aside class="skeleton-side">
+          <!-- The owner's access contract (Thread K) — self-hides for
+               non-owners and ungated elements (schemas stay open). -->
+          <AccessContractPanel
+            v-if="skeleton.path && !isSchema"
+            class="q-mb-sm"
+            :address="skeleton.path"
+          />
           <div class="section-heading" style="padding:0 4px;">
             <q-icon name="how_to_reg" size="16px" class="q-mr-sm" />
             Usages
@@ -442,6 +453,7 @@ import SkeletonRefLinks from 'src/components/shared/SkeletonRefLinks.vue'
 import ElementActions from 'src/components/maker/ElementActions.vue'
 import AccessDeniedBanner from 'src/components/shared/AccessDeniedBanner.vue'
 import ClaimBand from 'src/components/claims/ClaimBand.vue'
+import AccessContractPanel from 'src/components/shared/AccessContractPanel.vue'
 import { lockedInfoFromError } from 'src/utils/access'
 
 // Per-schema icon — ELEMENT:<ref> names collapse to their ELEMENT base.
@@ -505,7 +517,8 @@ export default defineComponent({
     SkeletonRefLinks,
     ElementActions,
     AccessDeniedBanner,
-    ClaimBand
+    ClaimBand,
+    AccessContractPanel
   },
 
   setup () {

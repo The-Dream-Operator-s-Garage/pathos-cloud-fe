@@ -89,6 +89,10 @@
         />
       </div>
     </div>
+
+    <!-- The owner's access contract (Thread K): who can read this element,
+         as recorded grants. Hides itself for non-owners and ungated kinds. -->
+    <AccessContractPanel v-if="accessRef" class="q-mt-sm" :address="accessRef" />
   </div>
 </template>
 
@@ -98,6 +102,7 @@ import InfoChip from './InfoChip.vue'
 import HashLink from './HashLink.vue'
 import MomentInfo from 'src/components/moments/MomentInfo.vue'
 import ProvenanceBadge from './ProvenanceBadge.vue'
+import AccessContractPanel from './AccessContractPanel.vue'
 
 const BAND_DEFS = [
   { key: 'versions', title: 'Versions', icon: 'history' },
@@ -110,7 +115,7 @@ const BAND_DEFS = [
 
 export default defineComponent({
   name: 'ElementSurround',
-  components: { InfoChip, HashLink, MomentInfo, ProvenanceBadge },
+  components: { InfoChip, HashLink, MomentInfo, ProvenanceBadge, AccessContractPanel },
   props: {
     // The response of useElementSurround / refService.surround.
     sections: { type: Object, default: null },
@@ -118,6 +123,9 @@ export default defineComponent({
     // verifiable: paths/links/nodes), the truth-spine badge joins the
     // header row. The badge hides itself for anything else.
     provenanceRef: { type: String, default: null },
+    // '<kind>/<hash>' — when set, the owner's access-contract panel
+    // (who can read this, from recorded grants) closes the surround.
+    accessRef: { type: String, default: null },
     showAuthor: { type: Boolean, default: true },
     showMoment: { type: Boolean, default: true },
     showLabels: { type: Boolean, default: true },
