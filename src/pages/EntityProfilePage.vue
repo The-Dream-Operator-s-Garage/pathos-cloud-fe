@@ -214,14 +214,25 @@
               <div v-if="isSelf" class="anchor-block">
                 <div class="anchor-block__label">invite secret</div>
                 <div class="invite-hint">
-                  Share this secret with someone you want to invite. Each secret is one-time use.
+                  Share this secret with someone you want to invite. Each secret is one-time use —
+                  and the wait before your next invitation doubles every time you extend one.
+                </div>
+                <div v-if="inviteInfo" class="invite-hint">
+                  Invitation #{{ inviteInfo.invitation_number }}
+                  <template v-if="inviteInfo.can_invite_now"> · unlocked</template>
+                  <template v-else> · unlocks in {{ humanWait(inviteInfo.retry_after_s) }}</template>
+                  <template v-if="inviteInfo.inherited_handicap">
+                    ({{ inviteInfo.inherited_handicap }} inherited from your inviter)
+                  </template>
                 </div>
                 <q-btn
                   color="primary" unelevated dense size="sm"
                   label="Generate secret"
                   :loading="generatingSecret"
+                  :disable="inviteInfo ? !inviteInfo.can_invite_now : false"
                   @click="generateSecret"
                 />
+                <div v-if="inviteError" class="anchor-empty q-mt-xs">{{ inviteError }}</div>
                 <div v-if="generatedSecret" class="q-mt-sm">
                   <SecretInfo
                     v-if="generatedSecretId"
@@ -398,6 +409,10 @@ export default defineComponent({
     const mySecrets = ref([])
     const loadingSecrets = ref(false)
 
+    // Doubling-wait curve (2026-08-01) — where this login stands.
+    const inviteInfo = ref(null)
+    const inviteError = ref('')
+
     // Recovery mint (Thread H) — inviter-side state.
     const mintingRecovery = ref(false)
     const recoverySecret = ref('')
@@ -482,6 +497,7 @@ export default defineComponent({
       if (isSelf.value) {
         loadSecrets()
         loadSessions()
+        loadInviteStatus()
       }
     }
 
@@ -494,8 +510,25 @@ export default defineComponent({
       loadingSecrets.value = false
     }
 
+    const loadInviteStatus = async () => {
+      try {
+        const r = await authService.inviteStatus()
+        if (r.success) inviteInfo.value = r.invite
+      } catch (_) { /* leave null — button stays enabled, server still gates */ }
+    }
+
+    // "in 3s" / "in 4m" / "in 2.5h" / "in 12d" / "in 1.2y"
+    const humanWait = (s) => {
+      if (s < 60) return `${Math.ceil(s)}s`
+      if (s < 3600) return `${Math.ceil(s / 60)}m`
+      if (s < 86400) return `${Math.round(s / 360) / 10}h`
+      if (s < 31536000) return `${Math.round(s / 8640) / 10}d`
+      return `${Math.round(s / 3153600) / 10}y`
+    }
+
     const generateSecret = async () => {
       generatingSecret.value = true
+      inviteError.value = ''
       try {
         const result = await authService.generateSecret()
         if (result.success) {
@@ -503,8 +536,15 @@ export default defineComponent({
           generatedSecretId.value = result.secret.id || null
           loadSecrets()
         }
+      } catch (err) {
+        // 429 = the doubling wait hasn't elapsed — surface when it will.
+        const e = err.response?.data?.error
+        inviteError.value = e?.retry_after_s
+          ? `Not yet — invitation #${e.invite?.invitation_number} unlocks in ${humanWait(e.retry_after_s)}`
+          : (e?.message || 'Generation failed')
       } finally {
         generatingSecret.value = false
+        loadInviteStatus()
       }
     }
 
@@ -607,6 +647,9 @@ export default defineComponent({
       generatedSecret,
       generatedSecretId,
       generateSecret,
+      inviteInfo,
+      inviteError,
+      humanWait,
       mySecrets,
       loadingSecrets,
       isMyInvitee,

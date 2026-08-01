@@ -34,6 +34,14 @@ export const authService = {
     return data
   },
 
+  // Where the caller stands on the doubling-wait invitation curve:
+  // { invite: { invitation_number, wait_s, next_allowed_at, can_invite_now,
+  //   retry_after_s, inherited_handicap, minted, curve } }
+  async inviteStatus () {
+    const { data } = await api.get('/identity/invite-status')
+    return data
+  },
+
   async getStatus () {
     const { data } = await api.get('/identity/status')
     return data
