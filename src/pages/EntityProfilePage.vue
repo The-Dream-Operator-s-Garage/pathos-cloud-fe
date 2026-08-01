@@ -233,6 +233,64 @@
                 </div>
               </div>
 
+              <!-- Recovery mint (Thread H): the invite chain is the recovery
+                   infrastructure — on an INVITEE's profile, their inviter can
+                   mint a one-time reset secret bound to this entity. -->
+              <div v-if="isMyInvitee" class="anchor-block">
+                <div class="anchor-block__label">password recovery</div>
+                <div class="invite-hint">
+                  You invited this person. If they're locked out, mint a recovery
+                  secret and hand it to them — it resets only their password,
+                  one time, and only for them.
+                </div>
+                <q-btn
+                  color="primary" unelevated dense size="sm"
+                  label="Mint recovery secret"
+                  :loading="mintingRecovery"
+                  @click="mintRecovery"
+                />
+                <div v-if="recoverySecret" class="generated-hash mono q-mt-sm">{{ recoverySecret }}</div>
+                <div v-if="recoveryError" class="anchor-empty q-mt-xs">{{ recoveryError }}</div>
+              </div>
+
+              <!-- Device sessions (Thread H): every login is a listed,
+                   revocable session. Revoking one kills that device's token. -->
+              <div v-if="isSelf" class="anchor-block">
+                <div class="anchor-block__label">sessions</div>
+                <div v-if="loadingSessions" class="text-center q-py-sm">
+                  <q-spinner color="primary" size="18px" />
+                </div>
+                <div v-else-if="!sessions.length" class="anchor-empty">
+                  no listed sessions — tokens minted before session tracking
+                  aren't listed until their next login
+                </div>
+                <div v-else class="secret-list">
+                  <div v-for="s in sessions" :key="s.id" class="secret-row session-row">
+                    <div class="secret-row__top">
+                      <q-icon name="devices" size="14px" class="session-row__icon" />
+                      <span class="session-row__agent" :title="s.user_agent || 'unknown device'">
+                        {{ deviceLabel(s) }}
+                      </span>
+                      <span
+                        v-if="s.current"
+                        class="secret-status secret-status--unused"
+                      >this device</span>
+                      <q-btn
+                        v-else
+                        flat dense size="xs" icon="close" color="negative"
+                        title="Revoke this session"
+                        :loading="revokingId === s.id"
+                        @click="revokeSession(s)"
+                      />
+                    </div>
+                    <div class="secret-row__used-by">
+                      <span class="rail-label">last seen</span>
+                      <span class="session-row__time mono">{{ timeLabel(s.last_seen_at || s.created_at) }}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               <div v-if="isSelf" class="anchor-block">
                 <div class="anchor-block__label">your secrets</div>
                 <div v-if="loadingSecrets" class="text-center q-py-sm">
@@ -253,10 +311,12 @@
                       <span
                         class="secret-status"
                         :class="s.status === 'used' ? 'secret-status--used' : 'secret-status--unused'"
-                      >{{ s.status }}</span>
+                      >{{ s.type === 'reset' ? 'reset · ' + s.status : s.status }}</span>
                     </div>
                     <div v-if="s.receiver" class="secret-row__used-by">
-                      <span class="rail-label">used by</span>
+                      <!-- A reset secret's receiver is bound at MINT (who it
+                           recovers); an invite's receiver arrives at use. -->
+                      <span class="rail-label">{{ s.type === 'reset' ? (s.status === 'used' ? 'recovered' : 'recovers') : 'used by' }}</span>
                       <EntityInfo :id="s.receiver.id" dense />
                     </div>
                   </div>
@@ -338,8 +398,28 @@ export default defineComponent({
     const mySecrets = ref([])
     const loadingSecrets = ref(false)
 
+    // Recovery mint (Thread H) — inviter-side state.
+    const mintingRecovery = ref(false)
+    const recoverySecret = ref('')
+    const recoveryError = ref('')
+
+    // Device sessions (Thread H) — self-side state.
+    const sessions = ref([])
+    const loadingSessions = ref(false)
+    const revokingId = ref(null)
+
     const id = computed(() => parseInt(route.params.id))
     const isSelf = computed(() => entity.value && authStore.user && authStore.user.id === entity.value.id)
+
+    // True when the viewed entity is a person THIS login invited — the
+    // client-side gate for the recovery-mint block (the server re-checks:
+    // only the inviter's identity tree may mint). Alter-egos/orgs are
+    // skipped — recovery is for login-holding USER entities.
+    const isMyInvitee = computed(() => {
+      const e = entity.value
+      return !!e && !isSelf.value && e.type_id === 1 &&
+        !!authStore.rootEntityId && e.ancestor_id === authStore.rootEntityId
+    })
 
     // The one-and-only origin entity: ancestor self-ref (or null). The
     // controller ships ancestor_id, so no extra lookup is needed here.
@@ -386,6 +466,9 @@ export default defineComponent({
       generatedSecret.value = ''
       generatedSecretId.value = null
       mySecrets.value = []
+      recoverySecret.value = ''
+      recoveryError.value = ''
+      sessions.value = []
       try {
         const r = await entityService.get(id.value)
         if (r.success) {
@@ -396,7 +479,10 @@ export default defineComponent({
         }
       } catch (_) { /* leave null */ }
       loading.value = false
-      if (isSelf.value) loadSecrets()
+      if (isSelf.value) {
+        loadSecrets()
+        loadSessions()
+      }
     }
 
     const loadSecrets = async () => {
@@ -420,6 +506,68 @@ export default defineComponent({
       } finally {
         generatingSecret.value = false
       }
+    }
+
+    // ── Recovery mint (Thread H) ─────────────────────────────
+    const mintRecovery = async () => {
+      mintingRecovery.value = true
+      recoveryError.value = ''
+      try {
+        const result = await authService.mintRecoverySecret(entity.value.id)
+        if (result.success) recoverySecret.value = result.secret.hash
+        else recoveryError.value = result.error?.message || 'Mint failed'
+      } catch (err) {
+        recoveryError.value = err.response?.data?.error?.message || 'Mint failed'
+      } finally {
+        mintingRecovery.value = false
+      }
+    }
+
+    // ── Device sessions (Thread H) ───────────────────────────
+    const loadSessions = async () => {
+      loadingSessions.value = true
+      try {
+        const r = await authService.sessions()
+        if (r.success) sessions.value = r.sessions
+      } catch (_) { /* leave empty */ }
+      loadingSessions.value = false
+    }
+
+    const revokeSession = async (s) => {
+      revokingId.value = s.id
+      try {
+        const r = await authService.revokeSession(s.id)
+        if (r.success) sessions.value = sessions.value.filter(x => x.id !== s.id)
+      } catch (_) { /* row stays */ }
+      revokingId.value = null
+    }
+
+    // "Chrome · Mac" out of a user-agent string — a glance label, not parsing.
+    const deviceLabel = (s) => {
+      const ua = s.user_agent || ''
+      if (!ua) return 'unknown device'
+      const browser = /Edg\//.test(ua) ? 'Edge'
+        : /OPR\//.test(ua) ? 'Opera'
+          : /Chrome\//.test(ua) ? 'Chrome'
+            : /Safari\//.test(ua) && /Version\//.test(ua) ? 'Safari'
+              : /Firefox\//.test(ua) ? 'Firefox'
+                : ua.split('/')[0].slice(0, 24)
+      const os = /Android/.test(ua) ? 'Android'
+        : /iPhone|iPad/.test(ua) ? 'iOS'
+          : /Mac OS X|Macintosh/.test(ua) ? 'Mac'
+            : /Windows/.test(ua) ? 'Windows'
+              : /Linux/.test(ua) ? 'Linux' : null
+      return os ? `${browser} · ${os}` : browser
+    }
+
+    const timeLabel = (t) => {
+      if (!t) return '—'
+      const d = new Date(t)
+      const mins = Math.floor((Date.now() - d.getTime()) / 60000)
+      if (mins < 1) return 'just now'
+      if (mins < 60) return `${mins}m ago`
+      if (mins < 60 * 24) return `${Math.floor(mins / 60)}h ago`
+      return d.toLocaleDateString()
     }
 
     const logout = () => {
@@ -461,6 +609,17 @@ export default defineComponent({
       generateSecret,
       mySecrets,
       loadingSecrets,
+      isMyInvitee,
+      mintingRecovery,
+      recoverySecret,
+      recoveryError,
+      mintRecovery,
+      sessions,
+      loadingSessions,
+      revokingId,
+      revokeSession,
+      deviceLabel,
+      timeLabel,
       logout,
       copied,
       copyPath
@@ -869,6 +1028,23 @@ export default defineComponent({
   padding-top: 5px;
   border-top: 1px dotted rgba(var(--ink-rgb), 0.12);
 }
+
+// ── Sessions (Thread H) — device rows in the secrets' chrome ──
+.session-row__icon {
+  flex: 0 0 auto;
+  opacity: 0.55;
+}
+
+.session-row__agent {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.78em;
+}
+
+.session-row__time { font-size: 0.74em; }
 
 // ── Log out — big, unmissable, below the anchors panel ──
 .logout-btn {

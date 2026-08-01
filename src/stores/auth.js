@@ -37,6 +37,17 @@ export const useAuthStore = defineStore('auth', {
       return result
     },
 
+    // Password recovery via the invite chain (Thread H): redeem a reset
+    // secret minted by your inviter — a success logs this device in.
+    async recover (secret, username, newPassword) {
+      const result = await authService.resetPassword(secret, username, newPassword)
+      if (result.success) {
+        this.token = result.token
+        this.user = result.entity
+      }
+      return result
+    },
+
     // Internal log-in: act as an alter-ego (or return to the root identity).
     // The API re-issues the JWT; everything downstream (makers, feeds,
     // profile links) reads the new acting identity from this store.

@@ -58,7 +58,43 @@ export const authService = {
     return data
   },
 
+  // ── Password recovery via the invite chain (Thread H) ────────────────
+  // Inviter-only: mint a one-time reset secret bound to an invitee's entity.
+  async mintRecoverySecret (entityId) {
+    const { data } = await api.post('/identity/recovery/mint', { entityId })
+    return data
+  },
+
+  // Unauthenticated redeem — a success logs this device in.
+  async resetPassword (secret, username, newPassword) {
+    const { data } = await api.post('/identity/recovery/reset', { secret, username, newPassword })
+    if (data.success) {
+      localStorage.setItem('pathos_token', data.token)
+      localStorage.setItem('pathos_user', JSON.stringify(data.entity))
+    }
+    return data
+  },
+
+  // ── Device sessions (Thread H) ───────────────────────────────────────
+  async sessions () {
+    const { data } = await api.get('/identity/sessions')
+    return data
+  },
+
+  async revokeSession (id) {
+    const { data } = await api.post(`/identity/sessions/${id}/revoke`)
+    return data
+  },
+
   logout () {
+    // Best-effort server-side revoke of THIS session before dropping the
+    // token — a sid-less (legacy/driver) token is a server no-op. The
+    // header is explicit because the interceptor may read localStorage
+    // AFTER the removes below have run.
+    const token = localStorage.getItem('pathos_token')
+    if (token) {
+      api.post('/identity/logout', {}, { headers: { Authorization: `Bearer ${token}` } }).catch(() => {})
+    }
     localStorage.removeItem('pathos_token')
     localStorage.removeItem('pathos_user')
   },

@@ -17,10 +17,11 @@
       <div class="auth-plaque__body">
         <section class="auth-half">
           <div class="auth-half__head">
-            <div class="auth-half__title nasalization">enter</div>
-            <div class="auth-half__sub">the chain remembers you</div>
+            <div class="auth-half__title nasalization">{{ recovering ? 'recover' : 'enter' }}</div>
+            <div class="auth-half__sub">{{ recovering ? 'your inviter vouches you back in' : 'the chain remembers you' }}</div>
           </div>
-          <q-form class="auth-form" @submit.prevent="handleLogin">
+
+          <q-form v-if="!recovering" class="auth-form" @submit.prevent="handleLogin">
             <q-input v-model="loginForm.username" label="Username" outlined dense
               class="auth-field" label-color="brown-8" color="teal-10"
               :rules="[v => !!v || 'Required']" />
@@ -29,8 +30,38 @@
               :rules="[v => !!v || 'Required']" />
             <q-btn type="submit" class="auth-cta auth-cta--enter nasalization full-width"
               :loading="loading" label="Enter the pathchain" unelevated />
+            <button type="button" class="auth-toggle" @click="recovering = true">
+              lost your password? your inviter can mint you a recovery secret
+            </button>
           </q-form>
-          <div class="auth-epigraph">
+
+          <!-- Recovery (Thread H): redeem a reset secret minted by YOUR
+               inviter — the invite chain is the recovery infrastructure. -->
+          <q-form v-else class="auth-form" @submit.prevent="handleRecover">
+            <div class="auth-secret">
+              <div class="auth-secret__head nasalization">
+                <q-icon name="restart_alt" size="15px" class="q-mr-xs" />
+                A vouch from your inviter
+              </div>
+              <q-input v-model="recoverForm.secret" label="Recovery secret" outlined dense
+                class="auth-field auth-field--secret" label-color="brown-8" color="teal-10"
+                hint="ask the person who invited you to mint one"
+                :rules="[v => !!v || 'Required']" />
+            </div>
+            <q-input v-model="recoverForm.username" label="Username" outlined dense
+              class="auth-field" label-color="brown-8" color="teal-10"
+              :rules="[v => !!v || 'Required']" />
+            <q-input v-model="recoverForm.newPassword" label="New password" type="password" outlined dense
+              class="auth-field" label-color="brown-8" color="teal-10"
+              :rules="[v => !!v || 'Required', v => v.length >= 8 || 'Min 8 chars']" />
+            <q-btn type="submit" class="auth-cta auth-cta--enter nasalization full-width"
+              :loading="loading" label="Recover & enter" unelevated />
+            <button type="button" class="auth-toggle" @click="recovering = false">
+              back to log in
+            </button>
+          </q-form>
+
+          <div v-if="!recovering" class="auth-epigraph">
             what moves through the chain cannot be silently rewritten —
             every statement keeps its origin, its history, its audience
           </div>
@@ -91,6 +122,8 @@ export default defineComponent({
 
     const loginForm = reactive({ username: '', password: '' })
     const registerForm = reactive({ secret: '', username: '', password: '' })
+    const recovering = ref(false)
+    const recoverForm = reactive({ secret: '', username: '', newPassword: '' })
 
     const handleLogin = async () => {
       loading.value = true
@@ -122,7 +155,33 @@ export default defineComponent({
       }
     }
 
-    return { loading, errorMsg, loginForm, registerForm, handleLogin, handleRegister }
+    const handleRecover = async () => {
+      loading.value = true
+      errorMsg.value = ''
+      try {
+        const result = await authStore.recover(
+          recoverForm.secret, recoverForm.username, recoverForm.newPassword
+        )
+        if (result.success) router.push('/feed')
+        else errorMsg.value = result.error?.message || 'Recovery failed'
+      } catch (err) {
+        errorMsg.value = err.response?.data?.error?.message || 'Connection error'
+      } finally {
+        loading.value = false
+      }
+    }
+
+    return {
+      loading,
+      errorMsg,
+      loginForm,
+      registerForm,
+      recovering,
+      recoverForm,
+      handleLogin,
+      handleRegister,
+      handleRecover
+    }
   }
 })
 </script>
@@ -327,6 +386,22 @@ export default defineComponent({
   padding: 0 20px 14px;
   font-size: 0.84em;
   color: #b71c1c;
+}
+
+// Quiet mode toggle under the CTA — a text control, not a button plaque.
+.auth-toggle {
+  margin-top: 10px;
+  background: none;
+  border: none;
+  padding: 0;
+  text-align: left;
+  cursor: pointer;
+  font-size: 0.72em;
+  letter-spacing: 0.02em;
+  color: var(--brown-4);
+  text-decoration: underline dotted;
+
+  &:hover { color: var(--brown-8); }
 }
 
 // Quiet thesis line filling the enter half's slack under its CTA.
