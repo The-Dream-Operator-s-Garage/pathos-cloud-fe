@@ -82,6 +82,26 @@
                 title="Fork this instantiation into your own copy — contents referenced, surround fresh"
                 @click="forkThisInstance"
               />
+              <q-btn-dropdown
+                outline dense no-caps size="sm" color="primary" icon="download"
+                label="Export" :loading="exporting"
+                title="Take this skeleton with you — unraveled layers with chain evidence, or instance rows for a chart"
+              >
+                <q-list dense>
+                  <q-item v-close-popup clickable @click="exportSkeleton('bundle')">
+                    <q-item-section>
+                      <q-item-label>Bundle · 3 layers deep</q-item-label>
+                      <q-item-label caption>every element with its signature + verify verdict</q-item-label>
+                    </q-item-section>
+                  </q-item>
+                  <q-item v-close-popup clickable @click="exportSkeleton('rows')">
+                    <q-item-section>
+                      <q-item-label>Rows · tabular</q-item-label>
+                      <q-item-label caption>instance slots as data rows, every cell a chain ref</q-item-label>
+                    </q-item-section>
+                  </q-item>
+                </q-list>
+              </q-btn-dropdown>
               <ElementActions
                 target-type="skeleton"
                 :source-id="skeleton.id"
@@ -189,6 +209,26 @@
                 title="Fork this instantiation into your own copy — contents referenced, surround fresh"
                 @click="forkThisInstance"
               />
+              <q-btn-dropdown
+                outline dense no-caps size="sm" color="primary" icon="download"
+                label="Export" :loading="exporting"
+                title="Take this skeleton with you — unraveled layers with chain evidence, or instance rows for a chart"
+              >
+                <q-list dense>
+                  <q-item v-close-popup clickable @click="exportSkeleton('bundle')">
+                    <q-item-section>
+                      <q-item-label>Bundle · 3 layers deep</q-item-label>
+                      <q-item-label caption>every element with its signature + verify verdict</q-item-label>
+                    </q-item-section>
+                  </q-item>
+                  <q-item v-close-popup clickable @click="exportSkeleton('rows')">
+                    <q-item-section>
+                      <q-item-label>Rows · tabular</q-item-label>
+                      <q-item-label caption>instance slots as data rows, every cell a chain ref</q-item-label>
+                    </q-item-section>
+                  </q-item>
+                </q-list>
+              </q-btn-dropdown>
               <ElementActions
                 target-type="skeleton"
                 :source-id="skeleton.id"
@@ -704,6 +744,29 @@ export default defineComponent({
       forking.value = false
     }
 
+    // Deep export (2026-08-01, data-ownership thread A): download the
+    // skeleton unraveled 3 layers (bundle) or its instance rows, as a JSON
+    // file — the chunk that leaves the platform still carrying its chain
+    // evidence.
+    const exporting = ref(false)
+    const exportSkeleton = async (format) => {
+      if (!skeletonId.value) return
+      exporting.value = true
+      try {
+        const r = await skeletonService.exportDeep(skeletonId.value, { format, depth: 3 })
+        if (r.success) {
+          const name = (skeleton.value?.name || 'skeleton').toLowerCase().replace(/[^a-z0-9]+/g, '-')
+          const blob = new Blob([JSON.stringify(r.export, null, 2)], { type: 'application/json' })
+          const a = document.createElement('a')
+          a.href = URL.createObjectURL(blob)
+          a.download = `pathos-${name}-${skeletonId.value}-${format}.json`
+          a.click()
+          URL.revokeObjectURL(a.href)
+        }
+      } catch (_) { /* 403 root → the banner path already told the story */ }
+      exporting.value = false
+    }
+
     // Re-walk just the slots after an inline bind (keeps the editor's rows
     // and the header title fresh without a full page reload).
     const reloadSlots = async () => {
@@ -873,6 +936,8 @@ export default defineComponent({
       instantiateSchema,
       forkSchema,
       forking,
+      exporting,
+      exportSkeleton,
       forkThisInstance,
       forks,
       reloadSlots,

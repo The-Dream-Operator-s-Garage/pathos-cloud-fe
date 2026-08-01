@@ -31,6 +31,14 @@ export const skeletonService = {
     return data
   },
 
+  // Deep export (2026-08-01, data-ownership thread A): the skeleton
+  // unraveled `depth` layers with chain evidence (format 'bundle'), or the
+  // tabular projection of its instances (format 'rows').
+  async exportDeep (id, { depth = 3, format = 'bundle', limit } = {}) {
+    const { data } = await api.get(`/skeletons/${id}/export`, { params: { depth, format, limit } })
+    return data
+  },
+
   async templateHead (name) {
     const { data } = await api.get(`/skeletons/templates/${name}`)
     return data
