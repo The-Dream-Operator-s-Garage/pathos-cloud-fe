@@ -14,6 +14,11 @@
 
   <InfoChip v-else-if="failed" :kind="'skeletons'" :address="address" :label="name" />
 
+  <!-- GITHUB_PR instances bloom into the native PR card instead of the
+       generic field table (open-source dev flow, 2026-08-01) — so a
+       ![[pathos:skeletons/…]] block ref in a PR post's body IS the embed. -->
+  <GithubPrCard v-else-if="isGithubPr" :slots="slots" />
+
   <MiniPanel v-else :to="targetRoute">
     <template #title>
       <q-icon :name="skeletonKind.icon" size="13px" class="q-mr-xs skeleton-mini__icon" />
@@ -58,13 +63,14 @@
 import { defineComponent, ref, computed, onMounted, watch } from 'vue'
 import MiniPanel from 'src/components/shared/MiniPanel.vue'
 import InfoChip from 'src/components/shared/InfoChip.vue'
+import GithubPrCard from 'src/components/dev/GithubPrCard.vue'
 import { skeletonService } from 'src/services/skeleton.service'
 import { refService } from 'src/services/ref.service'
 import { kindFor, shortHash } from 'src/utils/kinds'
 
 export default defineComponent({
   name: 'SkeletonMini',
-  components: { MiniPanel, InfoChip },
+  components: { MiniPanel, InfoChip, GithubPrCard },
   props: {
     // Skeleton id — walks directly.
     id: { type: [Number, String], default: null },
@@ -130,7 +136,12 @@ export default defineComponent({
 
     const boundCount = computed(() => slots.value.filter(s => s.ref).length)
 
-    return { loading, failed, walk, skeletonKind, headline, targetRoute, rows, boundCount, shortHash }
+    // GITHUB_PR instances (never the schema head itself) wear the PR card.
+    const isGithubPr = computed(() =>
+      walk.value.name === 'GITHUB_PR' && !walk.value.is_schema
+    )
+
+    return { loading, failed, walk, slots, skeletonKind, headline, targetRoute, rows, boundCount, isGithubPr, shortHash }
   }
 })
 </script>

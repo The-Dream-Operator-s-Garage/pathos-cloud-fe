@@ -73,6 +73,36 @@
             @click="setLens(opt.v)"
           >{{ opt.label }}</button>
         </div>
+        <!-- THE LABEL LENS (open-source dev flow, 2026-08-01) — filter the
+             stream by one label AND its whole subtree (rides
+             `GET /feed?label=`, resolved server-side like the trust lens so
+             the count stays honest). Unlike the trust lens it IS in the URL
+             (`/#/feed?label=<id>`): "everything labeled DEVELOPMENT" is a
+             place you send someone, where a trust radius is a way you look. -->
+        <button
+          v-if="labelFilter"
+          type="button"
+          class="feed-stream__label-chip mono"
+          :title="'Filtering by ' + labelFilter.name + ' — click to clear'"
+          @click="setLabelFilter(null)"
+        >
+          <q-icon name="filter_alt" size="12px" />
+          <span class="feed-stream__label-chip-name">{{ labelFilter.name }}</span>
+          <q-icon name="close" size="12px" />
+        </button>
+        <button
+          v-else
+          type="button"
+          class="feed-stream__lens-btn feed-stream__label-open"
+          title="Filter the feed by a label"
+        >
+          <q-icon name="filter_alt" size="13px" />
+          <q-menu v-model="labelMenuOpen" anchor="bottom right" self="top right">
+            <div class="feed-stream__label-menu">
+              <LabelPicker compact @picked="onLabelPicked" />
+            </div>
+          </q-menu>
+        </button>
         <q-badge v-if="total > 0" color="primary" outline>{{ total }}</q-badge>
       </header>
 
@@ -273,21 +303,33 @@
                  element to sit on, which the inset rail is not. -->
             <div v-if="labelPaths(item).length" class="post-square__rail-strip">
               <div class="post-square__rail">
-                <router-link
-                  v-for="lp in labelPaths(item)"
-                  :key="lp.id"
-                  :to="'/labels/' + lp.id"
-                  class="post-square__label mono"
-                  :title="lp.path"
-                  @click.stop
-                >
-                  <span
-                    v-for="(name, i) in lp.names"
-                    :key="i"
-                    class="post-square__label-step"
-                    :class="{ 'is-leaf': i === lp.names.length - 1 }"
-                  >{{ name }}</span>
-                </router-link>
+                <!-- Each chip is the LINK to the label's page; the funnel
+                     beside it (hover-revealed — the head band's picker covers
+                     touch) is the second way into the label lens: filter the
+                     stream by this chip without leaving the feed. -->
+                <template v-for="lp in labelPaths(item)" :key="lp.id">
+                  <router-link
+                    :to="'/labels/' + lp.id"
+                    class="post-square__label mono"
+                    :title="lp.path"
+                    @click.stop
+                  >
+                    <span
+                      v-for="(name, i) in lp.names"
+                      :key="i"
+                      class="post-square__label-step"
+                      :class="{ 'is-leaf': i === lp.names.length - 1 }"
+                    >{{ name }}</span>
+                  </router-link>
+                  <button
+                    type="button"
+                    class="post-square__label-filter"
+                    :title="'Filter the feed by ' + lp.names[lp.names.length - 1]"
+                    @click.stop.prevent="setLabelFilter({ id: lp.id, name: lp.names[lp.names.length - 1] })"
+                  >
+                    <q-icon name="filter_alt" size="11px" />
+                  </button>
+                </template>
               </div>
             </div>
 
@@ -365,8 +407,11 @@
 </template>
 
 <script>
-import { defineComponent, ref, onMounted, onBeforeUnmount } from 'vue'
+import { defineComponent, ref, watch, onMounted, onBeforeUnmount } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { feedService } from 'src/services/feed.service'
+import { labelService } from 'src/services/label.service'
+import LabelPicker from 'src/components/maker/LabelPicker.vue'
 import { useStateHolder } from 'src/composables/useStateHolder'
 import { timeAgo, absoluteTime } from 'src/utils/time'
 import EntityAvatar from 'src/components/entities/EntityAvatar.vue'
@@ -376,7 +421,7 @@ import MarkdownBody from 'src/components/shared/MarkdownBody.vue'
 
 export default defineComponent({
   name: 'FeedStream',
-  components: { EntityAvatar, OrgLogoChip, PostMicro, MarkdownBody },
+  components: { EntityAvatar, OrgLogoChip, PostMicro, MarkdownBody, LabelPicker },
   props: {
     // The post whose information flyout is open, if any. The stream does not
     // own that state: the flyout is placed OUTSIDE the feed container (it
@@ -438,6 +483,52 @@ export default defineComponent({
       load()
     }
 
+    // THE LABEL LENS state — `{ id, name }` or null. Shareable on purpose:
+    // the id rides `/#/feed?label=` so a filtered feed is a link you can
+    // hand someone (the name is re-resolved from the id on arrival).
+    const route = useRoute()
+    const router = useRouter()
+    const labelFilter = ref(null)
+    const labelMenuOpen = ref(false)
+
+    const syncLabelQuery = () => {
+      const q = { ...route.query }
+      if (labelFilter.value) q.label = String(labelFilter.value.id)
+      else delete q.label
+      router.replace({ query: q }).catch(() => {})
+    }
+
+    const setLabelFilter = (l) => {
+      if ((labelFilter.value?.id || null) === (l?.id || null)) return
+      labelFilter.value = l
+      syncLabelQuery()
+      load()
+    }
+
+    const onLabelPicked = (leaf) => {
+      labelMenuOpen.value = false
+      setLabelFilter(leaf ? { id: leaf.id, name: leaf.name } : null)
+    }
+
+    // Arriving on `?label=` while the stream is ALREADY mounted (hash-router
+    // gotos reuse the component — the flyout param learned this first): the
+    // query is the source of truth, so follow it both ways.
+    watch(() => route.query.label, async (v) => {
+      const qid = parseInt(v)
+      if (!qid) {
+        if (labelFilter.value) { labelFilter.value = null; load() }
+        return
+      }
+      if (labelFilter.value?.id === qid) return
+      try {
+        const r = await labelService.get(qid)
+        if (r.success && r.label) {
+          labelFilter.value = { id: r.label.id, name: r.label.name }
+          load()
+        }
+      } catch (_) { /* dead id — stay on the open feed */ }
+    })
+
     const load = async () => {
       loading.value = true
       try {
@@ -445,6 +536,7 @@ export default defineComponent({
         // its whole markdown body instead of the 280-char preview slice.
         const params = { limit: 30, body: 'full' }
         if (maxHops.value != null) params.maxHops = maxHops.value
+        if (labelFilter.value) params.label = labelFilter.value.id
         const r = await feedService.getPublic(params)
         if (r.success) {
           items.value = r.items
@@ -455,7 +547,18 @@ export default defineComponent({
       await holder.restore()
     }
 
-    onMounted(load)
+    onMounted(async () => {
+      // Arriving on `/#/feed?label=<id>` — resolve the name for the chip
+      // before the first load; a dead id just falls back to the open feed.
+      const qid = parseInt(route.query.label)
+      if (qid) {
+        try {
+          const r = await labelService.get(qid)
+          if (r.success && r.label) labelFilter.value = { id: r.label.id, name: r.label.name }
+        } catch (_) { /* open feed */ }
+      }
+      await load()
+    })
 
     // The trust chip's two lines. Label states the DISTANCE; the tooltip
     // walks the PATH — every vouch between you and the author, in order.
@@ -590,6 +693,10 @@ export default defineComponent({
       LENS_OPTS,
       maxHops,
       setLens,
+      labelFilter,
+      labelMenuOpen,
+      setLabelFilter,
+      onLabelPicked,
       trustLabel,
       trustTitle,
       // `absoluteTime` is no longer exposed — the head strip's time-ago chip
@@ -724,6 +831,52 @@ export default defineComponent({
     background: var(--blue-grey-8, #455a64);
     color: #fff;
   }
+}
+
+// THE LABEL LENS (2026-08-01) — one control, two faces. The funnel
+// button borrows the lens box's language (same rim, radius, floor); the
+// ACTIVE face is a chip drawn like a lens button locked `is-on`: the
+// dark blue-grey-8 plaque says "the stream you are reading is filtered".
+.feed-stream__label-open {
+  border: 1px solid var(--blue-grey-3, #b0bec5);
+  border-radius: var(--radius-sm, 7px);
+  background: var(--grey-1, #fafafa);
+  flex: 0 0 auto;
+  padding: 3px 7px;
+  display: flex;
+  align-items: center;
+}
+
+.feed-stream__label-chip {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: 0 0 auto;
+  max-width: 22ch;
+  border: 1px solid var(--blue-grey-8, #455a64);
+  border-radius: var(--radius-sm, 7px);
+  background: var(--blue-grey-8, #455a64);
+  color: #fff;
+  font-size: 0.66em;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  padding: 3px 8px;
+  cursor: pointer;
+  &:hover { background: var(--blue-grey-7, #546e7a); }
+}
+
+.feed-stream__label-chip-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+// The picker floats in a q-menu — a small light plaque, wide enough for
+// the leaf names the dropdown states as `[PARENT] > NAME`.
+.feed-stream__label-menu {
+  width: 260px;
+  padding: 8px;
+  background: var(--grey-1, #fafafa);
 }
 
 // The band's MAIN TEXT is the colorway's ink (end of 2026-07-25) —
@@ -1479,6 +1632,25 @@ export default defineComponent({
 }
 
 .post-square__label:hover .post-square__label-step.is-leaf { color: #00829c; }
+
+// The chip's FUNNEL (2026-08-01) — the second door into the label lens:
+// filter the stream by this chip without leaving the feed. Hover-revealed
+// (the rail is a hover surface already; touch has the head band's picker),
+// and pulled against its chip's gap so the pair reads as one unit.
+.post-square__label-filter {
+  flex: 0 0 auto;
+  border: 0;
+  background: transparent;
+  color: rgba(var(--ink-rgb), 0.45);
+  padding: 0 2px;
+  margin-left: -4px;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.12s;
+
+  .post-square__rail:hover & { opacity: 0.6; }
+  &:hover { opacity: 1 !important; color: #00829c; }
+}
 
 // The ORIGIN row — author, post hash, tallies. Rigid: it is the last thing a
 // square may give up, so it never enters the flex give-and-take above.

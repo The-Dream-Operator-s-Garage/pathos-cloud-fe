@@ -123,6 +123,10 @@
           @changed="reloadSlots"
         />
 
+        <!-- GITHUB_PR instances lead with the native PR card (open-source
+             dev flow, 2026-08-01) — the raw slot table stays below. -->
+        <GithubPrCard v-if="isGithubPrInstance" :slots="slots" class="q-mb-md" />
+
         <!-- The owner's access contract (Thread K): who can read this
              instance, as recorded grants — with per-row revoke. -->
         <AccessContractPanel v-if="skeleton.path" :address="skeleton.path" />
@@ -147,6 +151,9 @@
           :owner-id="skeleton.owner_id"
           @changed="reloadSlots"
         />
+
+        <!-- GITHUB_PR instances lead with the native PR card here too. -->
+        <GithubPrCard v-if="isGithubPrInstance" :slots="slots" class="q-mb-md" />
 
         <!-- subject-panel — single container that holds everything about
              the viewed skeleton: identity zone (title row, ElementActions,
@@ -453,6 +460,7 @@ import SkeletonRefLinks from 'src/components/shared/SkeletonRefLinks.vue'
 import ElementActions from 'src/components/maker/ElementActions.vue'
 import AccessDeniedBanner from 'src/components/shared/AccessDeniedBanner.vue'
 import ClaimBand from 'src/components/claims/ClaimBand.vue'
+import GithubPrCard from 'src/components/dev/GithubPrCard.vue'
 import AccessContractPanel from 'src/components/shared/AccessContractPanel.vue'
 import { lockedInfoFromError } from 'src/utils/access'
 
@@ -507,6 +515,7 @@ const labelChipClass = (l) => {
 export default defineComponent({
   name: 'SkeletonPage',
   components: {
+    GithubPrCard,
     SlotRenderer,
     SkeletonSquares,
     SkeletonUsages,
@@ -630,6 +639,12 @@ export default defineComponent({
     const isClaimInstance = computed(() => {
       const s = skeleton.value
       return s?.name === 'CLAIM' && s?.ancestor_id != null && s?.ancestor_id !== s?.id
+    })
+
+    // GITHUB_PR instances mount the native PR card (open-source dev flow).
+    const isGithubPrInstance = computed(() => {
+      const s = skeleton.value
+      return s?.name === 'GITHUB_PR' && s?.ancestor_id != null && s?.ancestor_id !== s?.id
     })
 
     // Instances fork generically — except POSTs (their own fork flow on
@@ -851,6 +866,7 @@ export default defineComponent({
       isPostInstance,
       isSchema,
       isClaimInstance,
+      isGithubPrInstance,
       isOwnedInstance,
       isForkableInstance,
       instantiating,
