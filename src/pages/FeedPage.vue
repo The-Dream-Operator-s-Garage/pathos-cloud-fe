@@ -20,7 +20,7 @@
          window slot (see .feed-page) and reaches the window's top edge, so
          anything laid inside it scrolls sideways without ever moving the page
          itself, and stands OVER the crown strip. -->
-    <div class="feed-track">
+    <div ref="trackEl" class="feed-track" @scroll.passive="onTrackScroll">
       <!-- Feed container — left-packed, 40% of the track's width, window top
            to nav bar. Its two side EDGES are vertical
            frieze bars (the crown strip turned 90° CW, blue-grey colorway),
@@ -49,7 +49,19 @@
          its left and the parked stack/pins column off its right — so "the
          right half of the available screen" needs no measurement. -->
     <transition name="feed-flyout">
-      <div v-if="selected" class="feed-flyout">
+      <!-- The slot follows the track's horizontal scroll (2026-07-31 — the
+           "flyout doesn't follow" G8 limit): its left/right restate the
+           47.5%/5% rhythm shifted by scrollLeft, so the box rides WITH the
+           container instead of hanging over whatever slides under it. Done
+           on left/right, not transform — the enter/leave transition owns
+           transform, and an inline one would freeze the animation. -->
+      <div
+        v-if="selected" class="feed-flyout"
+        :style="trackScroll ? {
+          left: `calc(47.5% - ${trackScroll}px)`,
+          right: `calc(5% + ${trackScroll}px)`
+        } : null"
+      >
         <FeedPostFlyout :item="selected" @close="clearSelection" />
       </div>
     </transition>
@@ -92,6 +104,13 @@ export default defineComponent({
 
     const clearSelection = () => { selected.value = null }
 
+    // Horizontal scroll-follow (G8 limit closed 2026-07-31): mirror the
+    // track's scrollLeft so the flyout's slot shifts with the content. The
+    // track only overflows when its content exceeds it, so this is usually 0.
+    const trackEl = ref(null)
+    const trackScroll = ref(0)
+    const onTrackScroll = () => { trackScroll.value = trackEl.value?.scrollLeft || 0 }
+
     // Escape closes it — the flyout hovers over the page rather than being
     // part of it, and a floating box needs a dismissal that does not require
     // finding its close button.
@@ -99,7 +118,7 @@ export default defineComponent({
     onMounted(() => window.addEventListener('keydown', onKeydown))
     onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
 
-    return { pageStyleFn, selected, onSelect, clearSelection }
+    return { pageStyleFn, selected, onSelect, clearSelection, trackEl, trackScroll, onTrackScroll }
   }
 })
 </script>
@@ -235,10 +254,11 @@ export default defineComponent({
 // resolve against this page's content box, which is the same box the track
 // fills, so the two sets line up exactly.
 //
-// One known limit: the track scrolls HORIZONTALLY and the flyout does not, so
-// on a window narrow enough to make the track overflow, the container can
-// slide under the box. The track only overflows when its content exceeds it,
-// which the 42.5%-wide container never does on its own.
+// The track-scroll limit is CLOSED (2026-07-31): the page mirrors the
+// track's scrollLeft into an inline left/right override on this slot, so
+// when the track overflows and scrolls, the box shifts with the content
+// instead of hanging over whatever slides under it. The override rides
+// left/right (not transform — the enter/leave transition owns transform).
 .feed-flyout {
   // The daylight the box keeps off each band, on top of the band's own height.
   // Deliberately NOT the 5% the horizontal gaps use: that resolves against the

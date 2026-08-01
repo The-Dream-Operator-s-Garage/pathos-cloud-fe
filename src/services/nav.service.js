@@ -35,5 +35,12 @@ export const navService = {
   async getStates () {
     const { data } = await api.get('/nav/state')
     return data
+  },
+
+  // The caller's NAVIGATION skeleton as a routable element — the stack
+  // widget's history clock opens its viewer.
+  async getNavigationSkeleton () {
+    const { data } = await api.get('/nav/skeleton')
+    return data
   }
 }

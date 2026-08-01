@@ -304,12 +304,15 @@ export default defineComponent({
       copyResetTimer = setTimeout(() => { copiedId.value = null }, 1400)
     }
 
-    // History control in the info box (2026-07-24, 8th pass). The clock glyph
-    // stands for "the pinned list's own history" — the surface it should open
-    // is not defined yet, so this is deliberately a stub: the affordance is
-    // placed and styled, the destination is still to come.
-    const onHistory = () => {
-      // TODO(history): open the pinned-list history surface once it exists.
+    // History control in the info box (2026-07-24, 8th pass; destination
+    // landed 2026-07-31, Thread H): the clock opens the user's PINS skeleton
+    // viewer — unpin splices keep their pairs on the spine, so that element
+    // IS the pinned list's own history.
+    const onHistory = async () => {
+      try {
+        const r = await pinService.skeleton()
+        if (r.success && r.skeleton?.id) router.push(`/skeletons/${r.skeleton.id}`)
+      } catch (_) { /* leave the pins as is */ }
     }
 
     // The widget sits just ABOVE the nav footer (bottom: --nav-footer-h),

@@ -37,8 +37,27 @@
               </span>
             </td>
             <td class="col-value" @click.stop="beginEdit(s)">
+              <!-- inline DATE editor — moments-constrained fields (BIRTHDAY
+                   et al.): a picked date mints/reuses the moment server-side
+                   and binds its ref (dates are moments, never text). -->
+              <div v-if="editingDate === s.slotName" class="cell-edit" @click.stop>
+                <input
+                  v-model="editDate" type="date" class="cell-date-input"
+                  @keydown.enter.prevent="commitDate(s)"
+                  @keydown.esc="cancelDateEdit"
+                >
+                <div class="cell-edit__actions">
+                  <button type="button" class="cell-btn cell-btn--ok" title="Save (Enter)" @click="commitDate(s)">
+                    <q-icon name="check" size="14px" />
+                  </button>
+                  <button type="button" class="cell-btn" title="Cancel (Esc)" @click="cancelDateEdit">
+                    <q-icon name="close" size="14px" />
+                  </button>
+                </div>
+              </div>
+
               <!-- inline text editor -->
-              <div v-if="editing === s.slotName" class="cell-edit" @click.stop>
+              <div v-else-if="editing === s.slotName" class="cell-edit" @click.stop>
                 <q-input
                   v-model="editText" :dark="false" outlined dense autofocus
                   type="textarea" autogrow
@@ -66,14 +85,17 @@
                     <button v-if="canText(s)" type="button" class="cell-btn" title="Edit text" @click="beginEdit(s)">
                       <q-icon name="edit" size="13px" />
                     </button>
+                    <button v-if="isDateSlot(s)" type="button" class="cell-btn" title="Pick a date" @click="beginEdit(s)">
+                      <q-icon name="event" size="13px" />
+                    </button>
                     <button type="button" class="cell-btn cell-btn--danger" title="Clear" @click="clearSlot(s)">
                       <q-icon name="close" size="13px" />
                     </button>
                   </div>
                 </div>
                 <div v-else class="cell-empty">
-                  <q-icon name="edit" size="12px" class="q-mr-xs" />
-                  <span>{{ canText(s) ? 'click to type — or drop / pick an element' : 'drop or pick a ' + s.expectedKind }}</span>
+                  <q-icon :name="isDateSlot(s) ? 'event' : 'edit'" size="12px" class="q-mr-xs" />
+                  <span>{{ emptyHint(s) }}</span>
                   <span v-if="saving === s.slotName" class="cell-saving"><q-spinner size="12px" /></span>
                 </div>
               </template>
@@ -139,6 +161,7 @@ import { defineComponent, ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import ElementMini from 'src/components/shared/ElementMini.vue'
 import SlotRefPicker from 'src/components/maker/SlotRefPicker.vue'
 import { skeletonService } from 'src/services/skeleton.service'
+import { momentService } from 'src/services/moment.service'
 import { useSkeletonBuilderStore } from 'src/stores/skeletonBuilder'
 import { useMakerStore } from 'src/stores/maker'
 import { useUploaderStore } from 'src/stores/uploader'
@@ -178,9 +201,19 @@ export default defineComponent({
     // ── inline text editing ──
     const editing = ref(null)
     const editText = ref('')
+    // Moments-constrained fields open a DATE picker instead (dates are
+    // moments, never text — docs/concepts/moment.md).
+    const isDateSlot = (s) => s.expectedKind === 'moments'
+    const editingDate = ref(null)
+    const editDate = ref('')
     const beginEdit = (s) => {
-      if (editing.value === s.slotName) return
+      if (editing.value === s.slotName || editingDate.value === s.slotName) return
       selectedSlot.value = s.slotName
+      if (isDateSlot(s)) {
+        editingDate.value = s.slotName
+        editDate.value = ''
+        return
+      }
       // Only fields that accept text open the inline editor; constrained
       // ref fields are filled by drag/pick from the right.
       if (!canText(s)) return
@@ -192,6 +225,29 @@ export default defineComponent({
       const text = editText.value
       editing.value = null
       await bind(s.slotName, { text })
+    }
+
+    // ── inline date editing (moments fields) ──
+    const cancelDateEdit = () => { editingDate.value = null; editDate.value = '' }
+    const commitDate = async (s) => {
+      const when = editDate.value
+      if (!when) { cancelDateEdit(); return }
+      editingDate.value = null
+      saving.value = s.slotName
+      try {
+        const r = await momentService.ensure(when)
+        if (r.success) await bind(s.slotName, r.moment.path)
+        else flashErr(r.error?.message || 'Could not mint the moment')
+      } catch (e) {
+        flashErr(e?.response?.data?.error?.message || 'Could not mint the moment')
+      } finally {
+        if (saving.value === s.slotName) saving.value = null
+      }
+    }
+
+    const emptyHint = (s) => {
+      if (isDateSlot(s)) return 'click to pick a date — or drop / pick a moment'
+      return canText(s) ? 'click to type — or drop / pick an element' : 'drop or pick a ' + s.expectedKind
     }
 
     // ── binding ──
@@ -277,6 +333,12 @@ export default defineComponent({
       beginEdit,
       cancelEdit,
       commitText,
+      isDateSlot,
+      editingDate,
+      editDate,
+      cancelDateEdit,
+      commitDate,
+      emptyHint,
       clearSlot,
       assign,
       onDrop,
@@ -419,6 +481,19 @@ export default defineComponent({
 }
 .cell-edit__input { flex: 1; min-width: 0; }
 .cell-edit__actions { display: flex; flex-direction: column; gap: 4px; }
+
+// Native date input in the cell's chrome (moments fields).
+.cell-date-input {
+  flex: 1;
+  min-width: 0;
+  padding: 6px 8px;
+  border: 1px solid rgba(var(--ink-rgb), 0.25);
+  border-radius: 6px;
+  background: #fff;
+  font: inherit;
+  font-size: 0.85em;
+  color: inherit;
+}
 
 .cell-btn {
   display: inline-flex;

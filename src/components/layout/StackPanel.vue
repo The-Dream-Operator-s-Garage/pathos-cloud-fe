@@ -236,12 +236,16 @@ export default defineComponent({
       return key ? (summaries[key]?.author?.username || null) : null
     }
 
-    // History control in the info box (2026-07-24, 8th pass). The clock glyph
-    // stands for "the stack's own history" — the surface it should open is not
-    // defined yet, so this is deliberately a stub: the affordance is placed and
-    // styled, the destination is still to come.
-    const onHistory = () => {
-      // TODO(history): open the navigation-stack history surface once it exists.
+    // History control in the info box (2026-07-24, 8th pass; destination
+    // landed 2026-07-31, Thread H): the clock opens the user's NAVIGATION
+    // skeleton viewer — the stack's history IS that on-chain element
+    // (navService records every visit onto its PATH_REF path).
+    const onHistory = async () => {
+      try {
+        const { navService } = await import('src/services/nav.service')
+        const r = await navService.getNavigationSkeleton()
+        if (r.success && r.skeleton?.id) router.push(`/skeletons/${r.skeleton.id}`)
+      } catch (_) { /* leave the stack as is */ }
     }
 
     // The widget hangs from the screen's top-right corner (top: 0); z 3100
