@@ -76,7 +76,10 @@ export default defineComponent({
     // also labels the InfoChip fallback when resolution fails.
     name: { type: String, default: '' }
   },
-  setup (props) {
+  // What the walk resolved ({ id, name, path }) — hosts that frame this
+  // panel (SkeletonFlyout) title themselves after it (2026-07-31).
+  emits: ['resolved'],
+  setup (props, { emit }) {
     const loading = ref(false)
     const failed = ref(false)
     const walk = ref({})
@@ -98,6 +101,7 @@ export default defineComponent({
         if (!r.success) throw new Error('walk failed')
         walk.value = r.skeleton
         slots.value = r.slots || []
+        emit('resolved', { id: r.skeleton.id, name: r.skeleton.name, path: r.skeleton.path })
       } catch (_) {
         failed.value = true
         walk.value = {}

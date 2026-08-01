@@ -67,12 +67,82 @@
       <div v-else class="contract-band__hint">
         Nothing on the table yet — refs you send open here, with who can read them.
       </div>
+
+      <!-- Attention receipts (Thread G stage 2): SYMMETRIC by design —
+           receipts render only while EVERY seat consents, both sides see
+           the same rows, and flipping your toggle off stops them for
+           everyone at once. The window opens at the LAST consent, so
+           nothing attended before consent is ever reported. -->
+      <div class="contract-band__attention">
+        <div class="contract-attention__head">
+          <q-icon name="visibility" size="12px" />
+          <span class="contract-attention__title">Attention receipts</span>
+          <q-toggle
+            :model-value="myAttention"
+            dense size="28px" color="teal-8"
+            :title="myAttention ? 'withdraw consent — stops receipts for everyone' : 'consent — receipts flow once every seat consents'"
+            @update:model-value="onToggleAttention"
+          />
+        </div>
+        <template v-if="attention">
+          <div class="contract-band__seats">
+            <span
+              v-for="m in attention.members"
+              :key="'att-' + m.id"
+              class="contract-band__seat"
+              :title="m.attention.enabled && m.attention.since ? 'consented' : 'not consenting'"
+            >
+              <span :class="{ 'is-me': m.is_me }">{{ m.display_name || m.username || `#${m.id}` }}</span>
+              <span class="contract-band__pill" :class="m.attention.enabled ? '' : 'is-declined'">
+                {{ m.attention.enabled ? 'consents' : 'off' }}
+              </span>
+            </span>
+          </div>
+          <template v-if="attention.mutual">
+            <div
+              v-for="r in attention.receipts"
+              :key="'r-' + r.ref"
+              class="contract-share"
+            >
+              <div class="contract-share__what">
+                <q-icon :name="kindFor(r.kind).icon" size="13px" :style="{ color: kindFor(r.kind).color }" />
+                <router-link
+                  v-if="r.summary && r.summary.route"
+                  :to="r.summary.route"
+                  class="contract-share__name"
+                >{{ r.summary.primary }}</router-link>
+                <span v-else class="contract-share__name">{{ (r.summary && r.summary.primary) || shortHash(r.ref) }}</span>
+              </div>
+              <div class="contract-share__audience">
+                <span
+                  v-for="a in r.attention"
+                  :key="'ra-' + a.entity_id"
+                  class="contract-share__viewer"
+                  :class="{ 'is-out': !a.at }"
+                  :title="a.at ? `attended ${a.visits} time${a.visits === 1 ? '' : 's'}, last ${new Date(a.at).toLocaleString()}` : 'not attended in this window'"
+                >
+                  <q-icon :name="a.at ? 'visibility' : 'visibility_off'" size="11px" />
+                  {{ nameOf(a.entity_id) }}<template v-if="a.visits > 1"> ×{{ a.visits }}</template>
+                </span>
+              </div>
+            </div>
+            <div v-if="!attention.receipts.length" class="contract-band__hint">
+              Mutual — receipts open here as refs land on the table.
+            </div>
+          </template>
+          <div v-else class="contract-band__hint">
+            Receipts flow only while <b>every</b> seat consents — symmetric,
+            per-conversation, revocable. Nothing attended before the last
+            consent is ever shared.
+          </div>
+        </template>
+      </div>
     </template>
   </div>
 </template>
 
 <script>
-import { defineComponent, ref, watch } from 'vue'
+import { defineComponent, ref, watch, computed } from 'vue'
 import { chatService } from 'src/services/chat.service'
 import { kindFor, shortHash } from 'src/utils/kinds'
 
@@ -88,18 +158,37 @@ export default defineComponent({
   setup (props) {
     const data = ref(null)
     const loading = ref(false)
+    const attention = ref(null)
 
     const load = async () => {
-      if (!props.chatId) { data.value = null; return }
+      if (!props.chatId) { data.value = null; attention.value = null; return }
       loading.value = !data.value
       try {
         const r = await chatService.contract(props.chatId)
         if (r.success) data.value = r
       } catch (_) { /* the band keeps its last derivation */ }
+      try {
+        const a = await chatService.attention(props.chatId)
+        if (a.success) attention.value = a
+      } catch (_) { /* same */ }
       loading.value = false
     }
 
     watch(() => [props.chatId, props.refresh], load, { immediate: true })
+
+    // My consent state, off the attention read (any of my seats counts).
+    const myAttention = computed(() =>
+      (attention.value?.members || []).some((m) => m.is_me && m.attention.enabled))
+
+    const onToggleAttention = async (v) => {
+      try {
+        await chatService.setAttention(props.chatId, v)
+      } catch (_) { /* the reload below states the real outcome */ }
+      try {
+        const a = await chatService.attention(props.chatId)
+        if (a.success) attention.value = a
+      } catch (_) { /* keep last */ }
+    }
 
     const nameOf = (entityId) => {
       const m = (data.value?.members || []).find((mm) => mm.id === entityId)
@@ -126,7 +215,18 @@ export default defineComponent({
       return s.public ? 'public element' : 'can read'
     }
 
-    return { data, loading, kindFor, shortHash, nameOf, seatTitle, viewerTitle }
+    return {
+      data,
+      loading,
+      attention,
+      myAttention,
+      onToggleAttention,
+      kindFor,
+      shortHash,
+      nameOf,
+      seatTitle,
+      viewerTitle
+    }
   }
 })
 </script>
@@ -239,4 +339,33 @@ export default defineComponent({
   .q-icon { opacity: 0.85; }
   &.is-out { color: #a5121f; }
 }
+
+// Attention receipts (G stage 2) — a dashed rule sets the consent section
+// off from the contract's recorded-state rows above it: same band, a
+// different covenant (what you'll SHARE, not what you can READ).
+.contract-band__attention {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding-top: 6px;
+  border-top: 1px dashed rgba(var(--ink-rgb), 0.18);
+}
+.contract-attention__head {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  .q-icon { color: #0b7a8a; }
+}
+.contract-attention__title {
+  font-size: 0.72em;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--ink, #1f2a38);
+  margin-right: auto;
+}
+// The receipts reuse .contract-share rows: an eye that means ATTENDED
+// (not "can read") — the tooltip carries count + last time. A member
+// with no attention in the window is quiet grey, not the audience red:
+// "hasn't looked yet" is not a denial.
+.contract-band__attention .contract-share__viewer.is-out { color: var(--ink-mute, #8995a8); }
 </style>

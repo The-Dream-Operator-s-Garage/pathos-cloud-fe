@@ -365,7 +365,7 @@ export default defineComponent({
 // The source pane's ceiling therefore comes from `--node-source-max-h`, a
 // CUSTOM PROPERTY, which inherits down the DOM and so ignores that trap
 // entirely. It is declared by the SURFACE that knows the height — the
-// flyout sets `calc(20cqh - 34px)` on `.post-flyout`, capping the whole quoted
+// flyout sets `calc(20cqh - 34px)` on `.skeleton-flyout`, capping the whole quoted
 // PANEL at a fifth of that box — exactly as `--media-max-h` works.
 // A panel mounted anywhere that publishes neither gets NodeMini's default.
 .panel-excerpt {

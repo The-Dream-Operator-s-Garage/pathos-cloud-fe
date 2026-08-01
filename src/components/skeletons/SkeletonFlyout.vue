@@ -3,17 +3,19 @@
   widget.
 
   WHAT IT IS reframed on the fifth pass: this is a viewer for a SKELETON, and
-  what it is pointed at here is one post skeleton INSTANTIATION. That is why
-  the head reads "Post's Skeleton" and wears the skeleton kind's glyph rather
-  than the post one — the box is named for the thing it views, and the post is
-  merely the instance in front of it.
+  what it is usually pointed at is one post skeleton INSTANTIATION. That is
+  why the head reads "Post's Skeleton" and wears the skeleton kind's glyph
+  rather than the post one — the box is named for the thing it views, and the
+  post is merely the instance in front of it.
 
-  The FILE and the CSS class still say `FeedPostFlyout` / `.post-flyout`, and
-  it still lives under `components/posts/`. That is deliberate, not a leftover:
-  it takes a `GET /feed` item and mounts `FeedPostPanel`, so it can only show
-  a post's skeleton today. Renaming and moving it belongs with the work that
-  makes it accept any skeleton — a promise of genericity the props do not keep
-  yet would be worse than the mismatch.
+  GENERIC since 2026-07-31 (the deferred G8 item, closed): the box now keeps
+  the promise its name made. It takes EITHER a `GET /feed` item (a post —
+  mounts `FeedPostPanel`, the rich face) OR any bare skeleton reference via
+  `skeleton-ref` (a 'skeletons/<hash>' address or a numeric id — mounts
+  `SkeletonMini`, the keys+populated-fields face every non-POST skeleton
+  already wears in post bodies). The rename/move (`FeedPostFlyout` under
+  `components/posts/` → `SkeletonFlyout` under `components/skeletons/`)
+  landed with this work, exactly as the fifth pass said it should.
 
   What it holds is not new: `FeedPostPanel` is the same panel the legacy feed
   laid out in its right-hand column (full excerpt, every bound element as a
@@ -55,22 +57,21 @@
   window slot is. This component just fills what it is given.
 -->
 <template>
-  <aside class="post-flyout" role="dialog" aria-label="Post's Skeleton">
+  <aside class="skeleton-flyout" role="dialog" :aria-label="title">
     <!-- Info box — kind glyph + what this is + the id, closing with the
          one control. Same run as the stack/pins headers, minus the park tap:
          this widget is dismissed, not minimized.
 
          The glyph is the SKELETON kind's, taken from `utils/kinds.js` rather
-         than written in (2026-07-26): this box is a skeleton viewer that
-         happens to be showing a post skeleton instantiation, so it wears the
-         glyph of what it VIEWS, not of what it is currently pointed at. It was
-         `edit_note` — which is not a generic document icon but literally
-         `KINDS.posts.icon`, the platform's post glyph. -->
-    <header class="dock-bar post-flyout__bar">
+         than written in (2026-07-26): this box is a skeleton viewer, so it
+         wears the glyph of what it VIEWS, not of what it is currently pointed
+         at. It was `edit_note` — which is not a generic document icon but
+         literally `KINDS.posts.icon`, the platform's post glyph. -->
+    <header class="dock-bar skeleton-flyout__bar">
       <q-icon :name="skeletonKind.icon" size="14px" class="dock-bar__icon" />
-      <span class="dock-bar__title nasalization">Post's Skeleton</span>
+      <span class="dock-bar__title nasalization">{{ title }}</span>
       <q-space />
-      <span class="dock-bar__meta mono">#{{ item.skeleton_id }}</span>
+      <span class="dock-bar__meta mono">{{ meta }}</span>
       <button type="button" class="dock-bar__action" @click="$emit('close')">
         <q-icon name="close" size="15px" />
         <q-tooltip anchor="bottom middle" self="top middle">Close (Esc)</q-tooltip>
@@ -93,37 +94,86 @@
          So the right half won and simply extends: the usual `-mirror` masks
          anchored at the LEFT EDGE again, tiling rightward across the box,
          which is what every other frieze on the platform does. -->
-    <FriezeBar slim class="post-flyout__frieze" />
+    <FriezeBar slim class="skeleton-flyout__frieze" />
 
     <!-- The inset well. The panel inside it is the ONE scroller (its own
-         `__scroll` track), so the well never scrolls and the panel's head
-         stays put at the top while its groups run under it. -->
-    <div class="post-flyout__well">
-      <FeedPostPanel :item="item" />
+         `__scroll` track for a post; the generic wrapper for anything else),
+         so the well never scrolls and the panel's head stays put at the top
+         while its groups run under it. -->
+    <div class="skeleton-flyout__well">
+      <FeedPostPanel v-if="item" :item="item" />
+      <!-- Any other skeleton: the keys+populated-fields face. SkeletonMini
+           self-resolves from an address or id, so the flyout needs to know
+           nothing about what it was pointed at. -->
+      <div v-else class="skeleton-flyout__generic">
+        <SkeletonMini
+          :id="skeletonId" :address="skeletonAddress"
+          @resolved="onResolved"
+        />
+      </div>
     </div>
   </aside>
 </template>
 
 <script>
-import { defineComponent } from 'vue'
+import { defineComponent, computed, ref } from 'vue'
 import FriezeBar from 'src/components/layout/FriezeBar.vue'
 import FeedPostPanel from 'src/components/posts/FeedPostPanel.vue'
-import { kindFor } from 'src/utils/kinds'
+import SkeletonMini from 'src/components/skeletons/SkeletonMini.vue'
+import { kindFor, shortHash } from 'src/utils/kinds'
 
 export default defineComponent({
-  name: 'FeedPostFlyout',
-  components: { FriezeBar, FeedPostPanel },
+  name: 'SkeletonFlyout',
+  components: { FriezeBar, FeedPostPanel, SkeletonMini },
   props: {
-    // One feed item, exactly as `GET /feed` returns it.
-    item: { type: Object, required: true }
+    // One feed item, exactly as `GET /feed` returns it (a POST — the rich
+    // face). Optional since 2026-07-31: give either this or `skeletonRef`.
+    item: { type: Object, default: null },
+    // ANY skeleton — a 'skeletons/<hash>' address or a numeric id.
+    skeletonRef: { type: [String, Number], default: null }
   },
   emits: ['close'],
-  setup () {
+  setup (props) {
+    // The generic face reports what it resolved (name + id) so the header
+    // can title the box after the actual instance.
+    const resolved = ref(null)
+    const onResolved = (info) => { resolved.value = info }
+
+    const skeletonId = computed(() => {
+      if (props.skeletonRef == null) return null
+      const n = Number(props.skeletonRef)
+      return Number.isNaN(n) ? null : n
+    })
+    const skeletonAddress = computed(() =>
+      typeof props.skeletonRef === 'string' && props.skeletonRef.includes('/')
+        ? props.skeletonRef
+        : ''
+    )
+
+    const title = computed(() => {
+      if (props.item) return "Post's Skeleton"
+      const name = resolved.value?.name
+      return name ? `${name} Skeleton` : 'Skeleton'
+    })
+    const meta = computed(() => {
+      if (props.item) return `#${props.item.skeleton_id}`
+      if (resolved.value?.id != null) return `#${resolved.value.id}`
+      if (skeletonAddress.value) return shortHash(skeletonAddress.value, 10)
+      return skeletonId.value != null ? `#${skeletonId.value}` : ''
+    })
+
     // The SKELETON kind, for the header glyph — the same static lookup
     // `SkeletonMini` makes. Through `kinds.js` so that re-glyphing skeletons
     // platform-wide moves this header with everything else, rather than
     // leaving one hand-written icon behind.
-    return { skeletonKind: kindFor('skeletons') }
+    return {
+      skeletonKind: kindFor('skeletons'),
+      skeletonId,
+      skeletonAddress,
+      title,
+      meta,
+      onResolved
+    }
   }
 })
 </script>
@@ -140,12 +190,12 @@ export default defineComponent({
 // the same pass, because a warm `--brown-4` edge round a neutral box reads as
 // trim borrowed from another surface; `--grey-4` is the neutral standing at
 // brown-4's place in its own scale. The frieze band's plaque base followed on
-// the third (see `.post-flyout__frieze`), which leaves the brown-8 header ink
+// the third (see `.skeleton-flyout__frieze`), which leaves the brown-8 header ink
 // and the band's wave motif as the only warm things on the box.
 //
 // `overflow: hidden` is load-bearing: the frieze band runs edge to edge and
 // would otherwise square off the corners it passes.
-.post-flyout {
+.skeleton-flyout {
   height: 100%;
   display: flex;
   flex-direction: column;
@@ -265,7 +315,7 @@ export default defineComponent({
 // IS the plaque's top, so one uniform coat and no rule under it — the frieze
 // band below states where the head ends. Keep this in step with the plaque's
 // background; two tones here and the head reads as a separate strip laid on.
-.post-flyout__bar {
+.skeleton-flyout__bar {
   background: var(--grey-3);
   border-bottom: none;
   flex: 0 0 auto;
@@ -291,7 +341,7 @@ export default defineComponent({
 // and now read as the light ON a dark strip. That leaves the band the one
 // carved, one dark thing in a flat `--grey-3` box — and the `--brown-8` header
 // ink above it the only warmth left.
-.post-flyout__frieze {
+.skeleton-flyout__frieze {
   flex: 0 0 auto;
   --frieze-bar-base: var(--grey-9);
 }
@@ -342,7 +392,7 @@ export default defineComponent({
 // invisible on all four sides — which is what made the bevel the obvious use
 // for it: an edge that is no longer needed to state WHERE the container is, is
 // free to state what KIND of edge it is.
-.post-flyout__well {
+.skeleton-flyout__well {
   flex: 1 1 auto;
   min-height: 0;
   min-width: 0;
@@ -368,7 +418,7 @@ export default defineComponent({
 //   · no coat — its `pathos-card` white and 12px padding are the well's job now.
 // Its own `__scroll` track stays the scroller, which is what keeps the panel's
 // head pinned while the groups run.
-.post-flyout__well :deep(.feed-post-panel) {
+.skeleton-flyout__well :deep(.feed-post-panel) {
   position: static;
   flex: 1 1 auto;
   min-width: 0;
@@ -530,7 +580,7 @@ export default defineComponent({
 // on it. Moving the base up the accent scale rather than moving hover down
 // keeps it — the other way out, hover at `--teal-11`, is drawn for a `--teal-1`
 // coat and reads weakly on a neutral one. Keep them apart if either moves.
-.post-flyout__well :deep(.mini-panel) {
+.skeleton-flyout__well :deep(.mini-panel) {
   // 2px on the bottom, 1px on the other three — NodeMini's own proportion, the
   // flyout having spent the day arguing itself out of it: the base was flattened
   // to 1px on the grounds that the ring already seated the panel and a heavy
@@ -558,7 +608,7 @@ export default defineComponent({
 // the two rules either side of this one (the even border, the flattened pills),
 // which are host opinions about a quoted panel and live with the host.
 //
-// SPECIFICITY, not `!important`: `.post-flyout__well[data-v] :deep(x)` carries
+// SPECIFICITY, not `!important`: `.skeleton-flyout__well[data-v] :deep(x)` carries
 // two classes and an attribute against NodeMini's own one-class-plus-attribute
 // rules, so these win on their own. Anything reaching a MicroChip internal
 // would not — see the `!important`s in NodeMini's chip block for why.
@@ -571,7 +621,7 @@ export default defineComponent({
 // chip's 70% allowance — went with NodeMini's foot on 2026-07-27: the chip
 // is in the panel's header now and the thumbs ride the embed caption, which
 // a raw-mode markdown quote does not have.)
-.post-flyout__well {
+.skeleton-flyout__well {
   :deep(.node-mini__zone) { padding: 2px 6px; }
 
   // The MIDDLE, on both counts. MiniPanel's body inset and the pane's own
@@ -621,6 +671,19 @@ export default defineComponent({
   // human title lives on the zone's tooltip.)
 }
 
+// The GENERIC face's frame (2026-07-31): SkeletonMini is a compact panel
+// drawn for post bodies, so in here it gets the well's whole width and its
+// own scroll track — the same one-scroller rule the post face keeps, just
+// owned by this wrapper instead of FeedPostPanel's `__scroll`.
+.skeleton-flyout__generic {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  overflow: auto;
+
+  :deep(.mini-panel) { width: 100%; }
+}
+
 // The panel's scrollbar, one step darker than the floor it runs on: `--grey-5`
 // (2026-07-27). It was `--grey-4` — the box's line tone, and quiet at 1.14:1 on
 // the `--grey-3` well of the day before — and the well going `--grey-4` itself
@@ -629,7 +692,7 @@ export default defineComponent({
 // 4px bar needs. It was brown-4 for exactly as long as the well was brown; a
 // warm thumb is the one moving thing on the surface and would be the first
 // place the eye caught the old colorway.
-.post-flyout__well :deep(.feed-post-panel__scroll) {
+.skeleton-flyout__well :deep(.feed-post-panel__scroll) {
   scrollbar-color: var(--grey-5) transparent;
 
   &::-webkit-scrollbar-thumb { background: var(--grey-5); }

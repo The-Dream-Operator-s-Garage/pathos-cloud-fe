@@ -34,6 +34,19 @@ export const chatService = {
     return data
   },
 
+  // Attention receipts (Thread G stage 2, 2026-07-31): consent states +
+  // (only while EVERY seat consents) who attended each shared ref since
+  // the mutual window opened. Symmetric, per-chat, revocable.
+  async attention (chatId) {
+    const { data } = await api.get(`/chats/${chatId}/attention`)
+    return data
+  },
+
+  async setAttention (chatId, enabled) {
+    const { data } = await api.post(`/chats/${chatId}/attention`, { enabled })
+    return data
+  },
+
   // Consent gate (2026-07): answer your own seat. A reply also accepts.
   async accept (chatId) {
     const { data } = await api.post(`/chats/${chatId}/accept`)

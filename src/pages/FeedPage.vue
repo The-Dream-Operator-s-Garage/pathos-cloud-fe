@@ -56,28 +56,29 @@
            on left/right, not transform — the enter/leave transition owns
            transform, and an inline one would freeze the animation. -->
       <div
-        v-if="selected" class="feed-flyout"
+        v-if="selected || flyoutRef" class="feed-flyout"
         :style="trackScroll ? {
           left: `calc(47.5% - ${trackScroll}px)`,
           right: `calc(5% + ${trackScroll}px)`
         } : null"
       >
-        <FeedPostFlyout :item="selected" @close="clearSelection" />
+        <SkeletonFlyout :item="selected" :skeleton-ref="flyoutRef" @close="clearSelection" />
       </div>
     </transition>
   </q-page>
 </template>
 
 <script>
-import { defineComponent, ref, onMounted, onBeforeUnmount } from 'vue'
+import { defineComponent, ref, watch, onMounted, onBeforeUnmount } from 'vue'
+import { useRoute } from 'vue-router'
 import FriezeBarVertical from 'src/components/layout/FriezeBarVertical.vue'
 import FriezeBarVerticalB from 'src/components/layout/FriezeBarVerticalB.vue'
 import FeedStream from 'src/components/posts/FeedStream.vue'
-import FeedPostFlyout from 'src/components/posts/FeedPostFlyout.vue'
+import SkeletonFlyout from 'src/components/skeletons/SkeletonFlyout.vue'
 
 export default defineComponent({
   name: 'FeedPage',
-  components: { FriezeBarVertical, FriezeBarVerticalB, FeedStream, FeedPostFlyout },
+  components: { FriezeBarVertical, FriezeBarVerticalB, FeedStream, SkeletonFlyout },
   setup () {
     // Quasar's default style-fn stamps an inline `min-height` on the page
     // derived from the layout height — which would make the page taller than
@@ -94,15 +95,26 @@ export default defineComponent({
     // node, provenance, labels, tallies), so opening the box costs no request.
     const selected = ref(null)
 
+    // ANY skeleton in the flyout (2026-07-31 — the deferred G8 item, closed):
+    // `/#/feed?flyout=skeletons/<hash>` (or a bare id) opens the box on that
+    // skeleton's generic face. The query param is read on entry and on
+    // in-place route changes; selecting a post card supersedes it.
+    const route = useRoute()
+    const flyoutRef = ref(null)
+    watch(() => route.query.flyout, (v) => {
+      if (v) { flyoutRef.value = String(v); selected.value = null }
+    }, { immediate: true })
+
     // TOGGLE, not set: the trigger for a post that is already open is the way
     // to close it again. Both triggers (title plate, foot chip) come through
     // here, so either closes what either opened.
     const onSelect = (item) => {
+      flyoutRef.value = null
       selected.value =
         selected.value && selected.value.skeleton_id === item.skeleton_id ? null : item
     }
 
-    const clearSelection = () => { selected.value = null }
+    const clearSelection = () => { selected.value = null; flyoutRef.value = null }
 
     // Horizontal scroll-follow (G8 limit closed 2026-07-31): mirror the
     // track's scrollLeft so the flyout's slot shifts with the content. The
@@ -118,7 +130,7 @@ export default defineComponent({
     onMounted(() => window.addEventListener('keydown', onKeydown))
     onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
 
-    return { pageStyleFn, selected, onSelect, clearSelection, trackEl, trackScroll, onTrackScroll }
+    return { pageStyleFn, selected, flyoutRef, onSelect, clearSelection, trackEl, trackScroll, onTrackScroll }
   }
 })
 </script>
