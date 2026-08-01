@@ -550,6 +550,14 @@ export default defineComponent({
     width: calc(100vw - var(--dock-right, 0px));
     height: calc(100vh - var(--dock-bottom));
   }
+
+  // Mobile pass (Thread H): the whole width (the rail reserve is 0 here).
+  // Stated in the SCOPED block — the base 74vw above outranks any global
+  // override (scoped selectors carry the data-v attribute's specificity).
+  @media (max-width: 600px) {
+    width: 100vw;
+    height: calc(100vh - var(--dock-bottom));
+  }
 }
 
 .chat-dock__bar-icon { color: #00829c; }
@@ -562,6 +570,12 @@ export default defineComponent({
   grid-template-columns: minmax(220px, 280px) minmax(0, 1fr);
   flex: 1;
   min-height: 0;
+
+  // Mobile pass (Thread H): the conversations column gives the thread most
+  // of a 375px screen (the dock itself goes full-width in _components.scss).
+  @media (max-width: 600px) {
+    grid-template-columns: minmax(110px, 34%) minmax(0, 1fr);
+  }
 }
 
 // ── Conversations column ──

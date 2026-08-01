@@ -70,6 +70,11 @@ function loadPanels () {
   return out
 }
 
+// Mobile pass (Thread H item 1, 2026-07-31): under this width the stack/pins
+// widgets hide (CSS in _components.scss) and the layout stops reserving
+// their column. Keep in sync with the @media blocks that key on it.
+const MOBILE_MQ = '(max-width: 600px)'
+
 export const useWindowsStore = defineStore('windows', {
   state: () => ({
     // Expanded windows, back → front (the last entry paints on top).
@@ -79,7 +84,12 @@ export const useWindowsStore = defineStore('windows', {
     // editor (maker/uploader) beside it while capturing a new element into
     // a slot. { left: <window key>, right: <window key> } or null. Not
     // persisted — a reload lands back in normal stacking.
-    split: null
+    split: null,
+    // True under MOBILE_MQ — flips the rail reserves off. Kept live by
+    // initViewportWatch() (called once from MainLayout).
+    isMobile: typeof window !== 'undefined' && window.matchMedia
+      ? window.matchMedia(MOBILE_MQ).matches
+      : false
   }),
 
   getters: {
@@ -97,13 +107,15 @@ export const useWindowsStore = defineStore('windows', {
     // One permanent column reserve — kept even while a panel is expanded (the
     // expanded panel is a transient overlay; a constant pad avoids page
     // reflow on every expand/collapse).
-    railWidth () { return this.railKeys.length ? RAIL_W : 0 },
+    railWidth () { return (!this.isMobile && this.railKeys.length) ? RAIL_W : 0 },
     dockRight () { return this.railWidth },
 
     // The minitab strip shares the band just above the bar where the pins
     // widget sits, so it clears the widget's current footprint: the parked
-    // icon column, or the full panel width when expanded.
+    // icon column, or the full panel width when expanded. On mobile the
+    // widgets are hidden, so nothing insets.
     footerPanelInset () {
+      if (this.isMobile) return 0
       const p = this.panels.pins
       if (!p.open) return 0
       return p.minimized ? RAIL_W : PANEL_W
@@ -123,6 +135,18 @@ export const useWindowsStore = defineStore('windows', {
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(this.panels))
       } catch (_) { /* storage blocked — panels just won't survive reload */ }
+    },
+
+    // Keep isMobile live across resizes/orientation flips. Idempotent —
+    // MainLayout calls it once on mount; the listener lives for the app.
+    initViewportWatch () {
+      if (this._mqWatched || typeof window === 'undefined' || !window.matchMedia) return
+      this._mqWatched = true
+      const mq = window.matchMedia(MOBILE_MQ)
+      const apply = () => { this.isMobile = mq.matches }
+      apply()
+      if (mq.addEventListener) mq.addEventListener('change', apply)
+      else mq.addListener(apply)
     },
 
     focus (key) {

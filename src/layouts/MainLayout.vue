@@ -176,7 +176,12 @@ export default defineComponent({
     const skeletonBuilderStore = useSkeletonBuilderStore()
     const labelMakerStore = useLabelMakerStore()
     const windows = useWindowsStore()
-    const drawer = ref(true)
+    // Mobile pass (Thread H): below q-drawer's breakpoint the drawer is an
+    // OVERLAY, and a `true` model at boot drops its fullscreen backdrop over
+    // the whole page — every tap then dies on `.q-drawer__backdrop`. Start
+    // closed on small screens; `show-if-above` still auto-shows it on wide
+    // ones, and the nav bar's menu button toggles it as an overlay here.
+    const drawer = ref(window.innerWidth > 1023)
     const mini = ref(true)
     const hideDrawer = computed(() => !!router.currentRoute.value.meta?.hideDrawer)
     // Bumped by the drawer when it unpins something — NavigationBar watches
@@ -222,6 +227,9 @@ export default defineComponent({
     const goBack = () => { router.back() }
 
     onMounted(async () => {
+      // Mobile pass (Thread H): keep windows.isMobile live so the rail
+      // reserves flip off under 600px (the widgets hide via CSS).
+      windows.initViewportWatch()
       await navStore.restore()
       navStore.push(router.currentRoute.value)
       // Entering the platform: offer to anchor new moments to the user's

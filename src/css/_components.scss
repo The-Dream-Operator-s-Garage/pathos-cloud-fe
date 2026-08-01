@@ -635,3 +635,29 @@
     color: #4a3800 !important;
   }
 }
+
+// ═══════════════════════════════════════════════════════════════════
+// MOBILE PASS (Thread H item 1, 2026-07-31) — the dashboard usable at
+// 375px. One breakpoint, kept in sync with MOBILE_MQ in stores/windows.js
+// (which zeroes the rail reserves the same moment these rules fire).
+// The fixed-position dock system goes ONE SURFACE AT A TIME:
+//   · the stack/pins side widgets hide (their column reserve drops to 0);
+//   · every bottom dock — creation and chat alike — takes the full width
+//     between the screen edges instead of the right half.
+// ═══════════════════════════════════════════════════════════════════
+@media (max-width: 600px) {
+  // The right-edge widgets: hover-driven, permanent-column fixtures — both
+  // presentations meaningless on a 375px touch screen. windows.railWidth
+  // already reads 0 here, so nothing pads for them.
+  .stack-window,
+  .pins-drawer { display: none; }
+
+  // Creation docks: the right-half footprint becomes the whole width
+  // (the shared --dock-gap of daylight kept on both sides).
+  .dock-window--creation {
+    left: var(--dock-gap);
+  }
+
+  // Chat sizes itself in its own SCOPED block (ChatDock.vue) — a global
+  // .chat-dock rule here loses to the scoped base width by specificity.
+}

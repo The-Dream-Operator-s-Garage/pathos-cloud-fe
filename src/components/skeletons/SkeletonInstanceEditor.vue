@@ -359,6 +359,11 @@ export default defineComponent({
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(300px, 360px);
   gap: 18px;
+
+  // Mobile pass (Thread H): the field table and the Populate panel stack.
+  @media (max-width: 600px) {
+    grid-template-columns: minmax(0, 1fr);
+  }
   align-items: start;
 }
 

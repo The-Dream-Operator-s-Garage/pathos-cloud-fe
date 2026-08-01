@@ -259,6 +259,21 @@ export default defineComponent({
 // when the track overflows and scrolls, the box shifts with the content
 // instead of hanging over whatever slides under it. The override rides
 // left/right (not transform — the enter/leave transition owns transform).
+// Mobile pass (Thread H item 1, 2026-07-31): under 600px the container
+// takes the whole track (the stack/pins rail is hidden, so the slot IS the
+// screen minus the drawer's mini column) and the flyout overlays it
+// full-width — one surface at a time, dismissed by Escape/its close button.
+@media (max-width: 600px) {
+  .feed-container {
+    flex: 0 0 95%;
+  }
+
+  .feed-flyout {
+    left: 2.5% !important;   // outranks the scroll-follow inline override
+    right: 2.5% !important;  // (the track can't meaningfully scroll here)
+  }
+}
+
 .feed-flyout {
   // The daylight the box keeps off each band, on top of the band's own height.
   // Deliberately NOT the 5% the horizontal gaps use: that resolves against the
