@@ -3,7 +3,7 @@
        element grid when a direct read 403s (code 40310). A subject-panel
        style frame (white body, chrome header) sized to the viewport —
        thin header carrying the item's kind icon + hashname, then the
-       picture banner: the porcelain octopus guards the left, the message
+       picture banner: TALAVERO, the porcelain octopus, guards the left, the message
        + the cloth-textured "Request Access" button sit on the slate
        field. The button fires the same loop as the locked chips: a chat
        message into the owner's inbox + the access poll they answer. On
@@ -32,12 +32,12 @@
         <img
           class="octo-banner__art octo-banner__art--wide"
           :src="octoWide"
-          alt="A porcelain octopus guarding a private element"
+          alt="Talavero, the porcelain octopus, guarding a private element"
         >
         <img
           class="octo-banner__art octo-banner__art--tall"
           :src="octoTall"
-          alt="A porcelain octopus guarding a private element"
+          alt="Talavero, the porcelain octopus, guarding a private element"
         >
 
         <div class="octo-banner__msg">

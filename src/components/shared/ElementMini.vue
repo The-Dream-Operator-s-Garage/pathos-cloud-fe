@@ -142,6 +142,10 @@ export default defineComponent({
           }
           case 'skeletons': {
             const s = await refService.summary(addr)
+            // The locked stub CARRIES an id (the hash stays visible by
+            // doctrine) — check locked FIRST or a private skeleton mounts
+            // a SkeletonMini that 403s on every field.
+            if (s.success && s.summary?.locked) return { kind: 'locked' }
             if (!s.success || s.summary?.id == null) return { kind: null }
             // POST instances get the post Mini; every other skeleton gets
             // the field-summary SkeletonMini.

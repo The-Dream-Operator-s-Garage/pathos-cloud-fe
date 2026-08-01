@@ -3,7 +3,11 @@
        [[pathos:…]] ref. Wraps MicroChip and self-resolves its route (and
        pioneer treatment) via /refs/summary — used on NODE surfaces where
        references stay compact, versus posts where they bloom into Minis. -->
+  <!-- A locked ref renders the lock-bubbled chip instead — clicking opens
+       the request panel Talavero guards, same as the block tier. -->
+  <LockedChip v-if="isLocked" :address="address" />
   <MicroChip
+    v-else
     :kind="prefix"
     :hash-str="hash"
     :to="route"
@@ -17,11 +21,12 @@
 <script>
 import { defineComponent, ref, computed, onMounted, watch } from 'vue'
 import MicroChip from './MicroChip.vue'
+import LockedChip from './LockedChip.vue'
 import { refService } from 'src/services/ref.service'
 
 export default defineComponent({
   name: 'RefMicro',
-  components: { MicroChip },
+  components: { MicroChip, LockedChip },
   props: {
     // '<kind>/<hash>' reference.
     address: { type: String, default: '' },
@@ -53,8 +58,11 @@ export default defineComponent({
     const isPioneer = computed(() => resolved.value?.pioneer === true)
     // Claim refs carry STATUS down to the chip (Thread D reader surface).
     const claimStatus = computed(() => resolved.value?.claim?.status || null)
+    // Access doctrine: the summary's locked stub means the viewer cannot
+    // read this element — the chip must say so, not sit inert.
+    const isLocked = computed(() => resolved.value?.locked === true)
 
-    return { prefix: computed(() => parts.value.prefix), hash: computed(() => parts.value.hash), route, isPioneer, claimStatus }
+    return { prefix: computed(() => parts.value.prefix), hash: computed(() => parts.value.hash), route, isPioneer, claimStatus, isLocked }
   }
 })
 </script>

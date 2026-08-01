@@ -4,6 +4,13 @@
        button. The request lands as a chat message + access poll on the
        owner's side (chat layer). -->
   <div class="req-access" @click.stop>
+    <!-- Talavero, the porcelain octopus, guards every element you cannot
+         read — the same guardian as the full-page banner, at chip scale. -->
+    <img
+      class="req-access__talavero"
+      :src="talavero"
+      alt="Talavero, the porcelain octopus, guarding this private element"
+    >
     <div class="req-access__head">
       <q-icon name="lock" size="14px" />
       <span>Private element</span>
@@ -41,6 +48,7 @@
 <script>
 import { defineComponent, ref, computed } from 'vue'
 import { accessService } from 'src/services/access.service'
+import talavero from 'src/assets/access-octopus-gray.png'
 
 export default defineComponent({
   name: 'RequestAccessPanel',
@@ -79,7 +87,7 @@ export default defineComponent({
       } finally { sending.value = false }
     }
 
-    return { message, sending, sent, errorMsg, shortHash, send }
+    return { message, sending, sent, errorMsg, shortHash, send, talavero }
   }
 })
 </script>
@@ -95,6 +103,21 @@ export default defineComponent({
   background: var(--paper-card, #ffffff);
   color: var(--ink, #1f2a38);
 }
+// Talavero's banner strip — the landscape shot cropped to his half, on
+// its own slate field (the image's own background, so no seam).
+.req-access__talavero {
+  display: block;
+  width: calc(100% + 24px);
+  margin: -10px -12px 0;
+  height: 86px;
+  object-fit: cover;
+  object-position: left 35%;
+  background: #2e3c45;
+  border-radius: 6px 6px 0 0;
+  pointer-events: none;
+  user-select: none;
+}
+
 .req-access__head {
   display: flex;
   align-items: center;
