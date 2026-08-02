@@ -336,7 +336,18 @@
   border-bottom: none;
   border-top-left-radius: var(--radius-lg);
   border-top-right-radius: var(--radius-lg);
-  box-shadow: 0 12px 38px rgba(0, 0, 0, 0.45);
+  // NO DOWNWARD CAST (2026-08-02, user ask: an open maker/uploader "looks
+  // like it's floating on top of the bar"). The old `0 12px 38px` at 45%
+  // black was offset twelve pixels DOWN, and this dock's bottom edge IS the
+  // nav bar's top edge — so the darkest part of its shadow landed on the bar
+  // across the dock's whole width. A bottom-anchored panel RISES from the
+  // bar; it is welded to it, and a panel welded to a surface casts nothing
+  // onto it. What is left reaches up and to the LEFT only: the negative
+  // spread pulls the box in 6px so the blur's own half-radius (15px) can
+  // never out-reach the -10px offset downward (15 - 6 - 10 = -1px), and the
+  // -10px x-offset does the same on the right, where the dock meets the
+  // side-widget column.
+  box-shadow: -10px -10px 30px -6px rgba(0, 0, 0, 0.42);
   transition: left 0.18s ease, right 0.18s ease, top 0.18s ease;
 
   .dock-bar {

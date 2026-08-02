@@ -87,7 +87,8 @@ export default defineComponent({ name: 'FriezeFooter' })
   // The nav bar's top edge underneath carries a matching cast of its own,
   // which lands ON this band: it cannot be written on `.nav-bar` (that footer
   // is a z-2600 stacking context, and this strip is opaque at 3000), so it
-  // lives in `.nav-top-shadow`, a lifted sibling box at z 3040 — see
+  // lived in `.nav-top-shadow`, a lifted sibling box at z 3040, DELETED
+  // 2026-08-02 with every other effect on that bar — see
   // NavigationBar.vue.
   box-shadow: 0 -2px 6px rgba(var(--ink-rgb-deep), 0.10);
 }
