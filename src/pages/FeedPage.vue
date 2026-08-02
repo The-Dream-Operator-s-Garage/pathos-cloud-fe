@@ -5,7 +5,8 @@
   left over by the chrome — from the very TOP of the window (it runs UP OVER
   the frieze crown strip), over the nav bar, right of the drawer, left of the
   stack/pins column — with a single blue-grey container box LEFT-PACKED in it
-  at 40% width (2026-07-27, third sizing pass that day: 50% → 30% → 40%),
+  at 45% width (2026-08-02 user ask, +5 over the 40% that 2026-07-27's
+  three sizing passes settled on: 50% → 30% → 40%),
   full slot height, a sliver of daylight off the drawer's edge.
 
   The container is no longer empty (2026-07-25): the post stream that was
@@ -21,7 +22,7 @@
          anything laid inside it scrolls sideways without ever moving the page
          itself, and stands OVER the crown strip. -->
     <div ref="trackEl" class="feed-track" @scroll.passive="onTrackScroll">
-      <!-- Feed container — left-packed, 40% of the track's width, window top
+      <!-- Feed container — left-packed, 45% of the track's width, window top
            to nav bar. Its two side EDGES are vertical
            frieze bars (the crown strip turned 90° CW, blue-grey colorway),
            lips facing inward. They are a MIRRORED PAIR (2026-07-25): variant
@@ -51,14 +52,14 @@
     <transition name="feed-flyout">
       <!-- The slot follows the track's horizontal scroll (2026-07-31 — the
            "flyout doesn't follow" G8 limit): its left/right restate the
-           47.5%/5% rhythm shifted by scrollLeft, so the box rides WITH the
+           52.5%/5% rhythm shifted by scrollLeft, so the box rides WITH the
            container instead of hanging over whatever slides under it. Done
            on left/right, not transform — the enter/leave transition owns
            transform, and an inline one would freeze the animation. -->
       <div
         v-if="selected || flyoutRef" class="feed-flyout"
         :style="trackScroll ? {
-          left: `calc(47.5% - ${trackScroll}px)`,
+          left: `calc(52.5% - ${trackScroll}px)`,
           right: `calc(5% + ${trackScroll}px)`
         } : null"
       >
@@ -176,18 +177,18 @@ export default defineComponent({
   justify-content: flex-start;
 }
 
-// 40% wide overall (2026-07-27 — user ask; the day walked 50% → 30% → 40%,
-// having grown to 50% from 40% on 2026-07-25) — the two vertical frieze bars
+// 45% wide overall (2026-08-02 — user ask; 2026-07-27 walked 50% → 30% →
+// 40%, having grown to 50% from 40% on 2026-07-25) — the two vertical frieze bars
 // are its EDGES, not extras bolted outside it, so the percentage covers the
 // whole box. The bars replace the plain side borders it used to draw: each
 // bar carries that hairline as its inward-facing lip (lime-3 at first,
 // blue-grey-3 since the bar's colorway moved, 2026-07-25).
 .feed-container {
-  flex: 0 0 40%;
+  flex: 0 0 45%;
   height: 100%;
   display: flex;
   align-items: stretch;
-  // Holds the 40% EXACTLY, now that the box has content in it. A flex item's
+  // Holds the 45% EXACTLY, now that the box has content in it. A flex item's
   // default `min-width: auto` is a floor at its content's min-content size,
   // and that floor OUTRANKS a percentage flex-basis — the stream's widest
   // nowrap post title measured out to 54.6% of the track before this line.
@@ -196,14 +197,14 @@ export default defineComponent({
   min-width: 0;
   // A FORTIETH OF THE TRACK of daylight off the drawer's edge (a hairline
   // 8px until 2026-07-25, then a tenth, 5% for most of the range since, and
-  // halved to 2.5% on 2026-07-27 with the box at 40%), so the frieze still
+  // halved to 2.5% on 2026-07-27), so the frieze still
   // reads as its own object rather than as trim on the
   // drawer. Carried as the ITEM's margin, not the track's
   // padding — the reason matters more at this width: a percentage flex-basis
   // resolves against the track's CONTENT box, so padding here would quietly
-  // make the box 40% of (track − gap) instead of a true 40%. As a
-  // margin the two percentages share that basis and simply add: 2.5 + 40 =
-  // 42.5% of the track, so the box keeps its exact 40% and nothing overflows.
+  // make the box 45% of (track − gap) instead of a true 45%. As a
+  // margin the two percentages share that basis and simply add: 2.5 + 45 =
+  // 47.5% of the track, so the box keeps its exact 45% and nothing overflows.
   margin-left: 2.5%;
   background: var(--blue-grey-1); // Quasar blue-grey-1 — the same plaque coat the frieze bars wear, so box and edges are one material
 
@@ -257,9 +258,9 @@ export default defineComponent({
 // the same percentages the container uses so the two boxes share one rhythm
 // across the track (restated with each container resize, 2026-07-27):
 //
-//     2.5% gap │ container 40% │ 5% gap │ FLYOUT 47.5% │ 5% gap
+//     2.5% gap │ container 45% │ 5% gap │ FLYOUT 42.5% │ 5% gap
 //
-// so its left edge sits at 47.5% — the container's own 42.5% (margin +
+// so its left edge sits at 52.5% — the container's own 47.5% (margin +
 // width) plus the box gap. The drawer-side gap halved to 2.5% that day; the
 // two gaps AROUND the flyout deliberately did not follow, so the flyout
 // keeps the same daylight off both of its neighbours. The percentages
@@ -298,7 +299,7 @@ export default defineComponent({
   position: absolute;
   top: calc(var(--frieze-h) + var(--flyout-gap));
   bottom: calc(var(--frieze-h) + var(--flyout-gap));
-  left: 47.5%;
+  left: 52.5%;
   right: 5%;
   // Over the crown strip and the frieze footer (3000) and over the feed
   // container (3001), which it stands beside; under the left drawer (3050)
