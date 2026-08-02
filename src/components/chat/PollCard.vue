@@ -8,8 +8,8 @@
        requester sees their own target still locked until the yes lands. -->
   <div class="poll-card" :class="'is-' + status">
     <div class="poll-card__head">
-      <q-icon :name="kind === 'label' ? 'new_label' : 'how_to_vote'" size="15px" />
-      <span>{{ kind === 'label' ? 'Label suggestion' : 'Access poll' }}</span>
+      <q-icon :name="kind === 'label' ? 'new_label' : kind === 'approval' ? 'fact_check' : 'how_to_vote'" size="15px" />
+      <span>{{ kind === 'label' ? 'Label suggestion' : kind === 'approval' ? 'Approval' : 'Access poll' }}</span>
       <span class="poll-card__status">{{ status }}</span>
     </div>
 
@@ -18,7 +18,7 @@
     <div v-if="canDecide" class="poll-card__actions">
       <q-btn
         unelevated dense no-caps size="sm" color="positive" icon="check"
-        :label="kind === 'label' ? 'Yes — add the label' : 'Yes — grant access'"
+        :label="kind === 'label' ? 'Yes — add the label' : kind === 'approval' ? 'Yes — approve' : 'Yes — grant access'"
         :loading="voting === 'yes'" :disable="!!voting"
         @click="cast('yes')"
       />
@@ -37,7 +37,7 @@
       />
     </div>
     <div v-else-if="status === 'pending'" class="poll-card__wait">
-      waiting for the owner's answer…
+      {{ kind === 'approval' ? 'waiting for the decision…' : "waiting for the owner's answer…" }}
     </div>
     <div v-if="errorMsg" class="poll-card__err">{{ errorMsg }}</div>
   </div>
@@ -130,7 +130,8 @@ export default defineComponent({
   background: rgba(#9b6cb0, 0.06);
 
   &.is-granted,
-  &.is-accepted { border-color: rgba(#21ba45, 0.55); background: rgba(#21ba45, 0.05); }
+  &.is-accepted,
+  &.is-approved { border-color: rgba(#21ba45, 0.55); background: rgba(#21ba45, 0.05); }
   &.is-denied,
   &.is-declined { border-color: rgba(#c10015, 0.45); background: rgba(#c10015, 0.04); }
 }
@@ -146,7 +147,8 @@ export default defineComponent({
   color: #9b6cb0;
 
   .is-granted &,
-  .is-accepted & { color: #1a9436; }
+  .is-accepted &,
+  .is-approved & { color: #1a9436; }
   .is-denied &,
   .is-declined & { color: #a5121f; }
 }
