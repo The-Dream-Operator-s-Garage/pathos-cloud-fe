@@ -36,7 +36,8 @@
        whole stack the strip already sits in rather than inventing one:
          3100  the pinned side column (stack/pins) — covers the band's RIGHT
                end, since it too runs down to `bottom: var(--nav-footer-h)`
-         3050  the left drawer — same, at the LEFT end
+         3120  the left drawer — same, at the LEFT end (it runs PAST this
+               line to the window floor since 2026-08-02)
          3001  the feed container — HOVERS OVER the band, exactly as it runs
                up over the crown strip; the container's bottom edge lands on
                this band's box, so on /feed it overlays both ends of the page

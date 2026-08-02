@@ -1,20 +1,21 @@
 <template>
   <q-layout view="lHh Lpr lff">
     <!-- Mercury frieze crown strip — fixed edge-to-edge over everything but
-         the left drawer (z 3000 < the drawer's 3050, which overlaps it from
+         the left drawer (z 3000 < the drawer's 3120, which overlaps it from
          the corner); the page container pads down by --frieze-h below. -->
     <FriezeHeader />
 
     <!-- mini-width = --dock-rail-w, READ FROM THE TOKEN rather than restated
          (2026-08-02): the collapsed drawer mirrors the stack/pins parked
-         column on the opposite edge, AND the nav bar's burger block continues
-         this exact column down through the footer — three surfaces on one
-         number, so the number is fetched once instead of typed three times. -->
+         column on the opposite edge, AND its own footer block (plus the nav
+         bar's, whenever the drawer is gone) continues this exact column down
+         through the bar's row — several surfaces on one number, so the number
+         is fetched once instead of typed each time. -->
     <q-drawer v-if="!hideDrawer" v-model="drawer" show-if-above :mini="mini" :width="220" :mini-width="drawerRailW"
       bordered class="pathos-drawer" @mouseover="mini = false" @mouseout="mini = true">
 
       <!-- The drawer starts at the very TOP-LEFT corner, OVER the fixed crown
-           strip (z 3050 > the frieze's 3000), so this band REPLACES the strip
+           strip (z 3120 > the frieze's 3000), so this band REPLACES the strip
            across the drawer's column instead of stacking under it: it is
            pinned (outside the scroll area, never scrolls away) and wears the
            crown strip's exact geometry — same --frieze-h box, same brown-3
@@ -129,6 +130,35 @@
           </q-item>
         </q-list>
       </q-scroll-area>
+
+      <!-- THE BURGER LIVES IN THE DRAWER NOW (2026-08-02, user ask). The
+           drawer runs to the WINDOW FLOOR and lies over the nav bar, so its
+           last --nav-footer-h is the bar's own row: this block IS that row,
+           rebuilt from the bar's parts — brown-1 plaque, brown-3 top lip on
+           the same pixel as the bar's `border-top`, and the 41px brown-4
+           rail block + hairline at its left end holding the 28px inverted
+           chip. The column the burger belonged to (drawer rail → bar block)
+           is now one uninterrupted strip owned by ONE surface.
+           Its job here is only to CLOSE: while the drawer stands there is
+           nothing to open, and when it goes the bar grows its own burger
+           back in exactly this spot (NavigationBar's `.burger-slot`). -->
+      <div class="drawer-footer">
+        <div class="drawer-burger-slot">
+          <q-btn
+            round unelevated no-caps
+            class="drawer-burger-btn"
+            @click="drawer = false"
+          >
+            <q-icon name="menu_open" size="15px" />
+            <q-tooltip anchor="center right" self="center left">Hide the menu</q-tooltip>
+          </q-btn>
+        </div>
+        <!-- The hairline that closes the rail block: 41px + this = 42px =
+             --dock-rail-w. In the mini state the drawer is exactly that wide,
+             so this line falls outside the content box and the drawer's own
+             brown-3 `border-right` stands in for it (same ink, same pixel). -->
+        <div class="drawer-footer-hairline" />
+      </div>
     </q-drawer>
 
     <!-- Page content gives up the width of the parked stack/pins column on the
@@ -142,15 +172,16 @@
          nav bar's top edge, so the window is closed by a band answering the
          one that opens it (2026-07-25). MainLayout only: AuthLayout has a
          strip but no nav bar for this to stand on. It sits at the crown
-         strip's OWN z 3000 — under the drawer (3050) and the pinned column
-         (3100), whose bottom edges land on the same line and so cover the
-         band's two ends, and under the feed container (3001), which hovers
+         strip's OWN z 3000 — under the drawer (3120, which runs past this
+         line to the window floor and covers the band's LEFT end) and the
+         pinned column (3100, whose bottom edge lands on this line and covers
+         the RIGHT one), and under the feed container (3001), which hovers
          over it just as it runs up over the strip. -->
     <FriezeFooter />
 
     <NavigationBar
       :pins-refresh-key="pinsRefreshKey"
-      :drawer-open="drawer"
+      :show-burger="showBurger"
       @toggle-drawer="drawer = !drawer"
       @open-maker="makerStore.open()"
       @open-uploader="uploaderStore.open()"
@@ -230,6 +261,13 @@ export default defineComponent({
     const drawerRailW = parseInt(
       getComputedStyle(document.documentElement).getPropertyValue('--dock-rail-w'), 10) || 42
     const hideDrawer = computed(() => !!router.currentRoute.value.meta?.hideDrawer)
+    // The burger is ONE button that changes address (2026-08-02): it rides in
+    // the drawer's own footer block while the drawer stands, and the nav bar
+    // grows it back — same slot, same pixel — only once the drawer is gone.
+    // Never both, so the two can never disagree about the column's posture.
+    // On a hideDrawer route there is no drawer to summon, so the bar keeps
+    // its bare left end rather than a button that would do nothing.
+    const showBurger = computed(() => !drawer.value && !hideDrawer.value)
     // Bumped by the drawer when it unpins something — NavigationBar watches
     // this to refresh the tack indicator state.
     const pinsRefreshKey = ref(0)
@@ -304,7 +342,7 @@ export default defineComponent({
       useEventsStore().connect()
     })
 
-    return { drawer, mini, drawerRailW, hideDrawer, makerStore, uploaderStore, skeletonBuilderStore, labelMakerStore, windows, pinsRefreshKey, onPostCreated, onUploaded, user, isAlterEgo, profileName, profileHandle, goToProfile, handleLogout, canGoBack, goBack }
+    return { drawer, mini, drawerRailW, hideDrawer, showBurger, makerStore, uploaderStore, skeletonBuilderStore, labelMakerStore, windows, pinsRefreshKey, onPostCreated, onUploaded, user, isAlterEgo, profileName, profileHandle, goToProfile, handleLogout, canGoBack, goBack }
   }
 })
 </script>
@@ -316,15 +354,36 @@ export default defineComponent({
 // silently didn't either; the drawer was painted by Quasar's --q-dark).
 
 // Kill Quasar's dark paint on the aside; the skin lives on the content.
-// The drawer also OVERLAPS the crown strip (2026-07-24): it runs from the
-// screen's very top-left corner and outranks the fixed FriezeHeader (3000),
-// wearing its own frieze band up there instead of hiding under the strip.
-// It stops at the nav footer's top edge in exchange — sitting above 2600 it
-// would otherwise paint over the bar's left cluster (menu/profile/logout).
+// The drawer OVERLAPS the crown strip (2026-07-24): it runs from the screen's
+// very top-left corner and outranks the fixed FriezeHeader (3000), wearing its
+// own frieze band up there instead of hiding under the strip.
+//
+// SINCE 2026-08-02 IT DOES THE SAME AT THE OTHER END (user ask): `bottom: 0`,
+// so the column runs the WHOLE window height and lies OVER the nav bar instead
+// of stopping at its top edge. z 3120 clears the bar (3110), which had been
+// raised above everything precisely so nothing could paint on it — the drawer
+// is now the ONE deliberate exception, and it does not cover any control the
+// bar needs: the bar's left cluster is empty while the drawer stands (its
+// burger moved INTO the drawer's own footer block, `.drawer-footer` below),
+// and even expanded the drawer is 220px, far short of the right cluster.
+// The one visible cost is the drawer's `6px 0 22px` shadow washing the bar's
+// plaque again for those last 48px — which is correct now: the drawer really
+// is lying on top of it there.
 aside.q-drawer {
   background: transparent !important;
-  z-index: 3050;
-  bottom: var(--nav-footer-h);
+  z-index: 3120;
+  bottom: 0;
+}
+
+// MOBILE OVERLAY: below q-drawer's breakpoint the drawer is modal and dims the
+// page behind it. Quasar's backdrop ships at 2999 — under the nav bar (3110),
+// which mattered little while the drawer stopped at the bar's top edge, but now
+// that the drawer LIES OVER the bar an undimmed strip of chrome poking out
+// beside a dimmed page reads as a bug (and its buttons stayed live under a
+// modal). 3115 dims the bar with everything else and still passes under the
+// drawer itself (3120).
+.q-drawer__backdrop {
+  z-index: 3115;
 }
 
 // Smooth the page's right padding as the parked side column comes and goes.
@@ -346,12 +405,71 @@ aside.q-drawer {
   border-right: 1px solid #BCAAA4 !important; // Quasar brown-3
   box-shadow: 6px 0 22px rgba(0, 0, 0, 0.30);
 
-  // The list takes whatever is left below the pinned band (min-height:0 lets
-  // it actually shrink so the q-scroll-area scrolls instead of overflowing).
+  // The list takes whatever is left between the pinned band and the pinned
+  // burger block (min-height:0 lets it actually shrink so the q-scroll-area
+  // scrolls instead of overflowing).
   .drawer-scroll {
     flex: 1 1 auto;
     min-height: 0;
     width: 100%;
+  }
+
+  // ── The drawer's own nav-bar row (2026-08-02) ────────────
+  // The drawer reaches the window floor now, so its last --nav-footer-h lands
+  // exactly on the nav bar underneath. Rather than hide the bar there, this
+  // block REBUILDS that row inside the drawer: the same brown-1 plaque, the
+  // same brown-3 top lip on the same pixel as the bar's `border-top`, and the
+  // same 41px brown-4 rail block at the left end. Whatever the drawer's width,
+  // the bar reads as continuous — the drawer just owns those pixels.
+  .drawer-footer {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: stretch;
+    height: var(--nav-footer-h);
+    background: var(--brown-1);
+    border-top: 1px solid var(--brown-3);
+    overflow: hidden;               // clips the hairline in the 42px mini state
+  }
+
+  // The rail block — NavigationBar's `.burger-slot` to the pixel: the column's
+  // darker brown-4 coat, `--dock-rail-w` less the hairline that closes it, the
+  // chip floating centred with padding on both sides.
+  .drawer-burger-slot {
+    flex: 0 0 auto;
+    width: calc(var(--dock-rail-w) - 1px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--brown-4);
+  }
+
+  .drawer-footer-hairline {
+    flex: 0 0 auto;
+    width: 1px;
+    background: var(--brown-3);
+  }
+
+  // The chip: the same 28px inverted-brown circle the pin tack and the old
+  // bar burger wear (flat brown-8 face + rim, brown-1 glyph, inset top
+  // highlight, brown-7 on hover — NOT Quasar's push preset).
+  .drawer-burger-btn {
+    width: 28px;
+    height: 28px;
+    min-width: 28px;
+    min-height: 28px;
+    padding: 0;
+    border-radius: 50%;
+    background: var(--brown-8);
+    border: 1px solid var(--brown-8);
+    color: var(--brown-1);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25);
+
+    .q-icon { color: var(--brown-1) !important; opacity: 1; transition: transform 0.14s ease; }
+
+    &:hover {
+      background: #5d4037;          // Quasar brown-7 — lifts on hover
+      border-color: #5d4037;
+    }
   }
 
   // Denser than Quasar's defaults (2026-07-31): the collapsed drawer is

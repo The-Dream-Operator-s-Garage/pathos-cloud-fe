@@ -3,34 +3,33 @@
 
     <div class="nav-bar">
 
-      <!-- ── LEFT: the drawer column continued down through the bar. The
-           burger is the pin tack's MIRROR TWIN (2026-08-02): same 42px slot
+      <!-- ── LEFT: the drawer column continued down through the bar — but
+           ONLY WHILE THERE IS NO DRAWER (2026-08-02). The drawer runs to the
+           window floor now and lies over this bar, carrying the burger in its
+           own footer block on exactly these pixels; the button appears HERE
+           when the drawer is gone, so the left rail block is never absent and
+           never doubled. It is the pin tack's MIRROR TWIN: same 42px slot
            (--dock-rail-w less the hairline that closes it), same darker
            brown-4 coat, same 28px inverted-brown circle floating centred in
-           it — so the left edge reads as one uninterrupted column running
-           from the drawer's own mini rail down into the bar, exactly as the
-           pinned column does on the right. Identity actions (profile,
-           logout) are GONE from the bar: the drawer's own profile block is
-           where the acting identity lives now. ── -->
-      <div class="nav-left">
-        <div class="burger-slot">
+           it — the left edge reads as one uninterrupted column whichever
+           surface owns it. Identity actions (profile, logout) are GONE from
+           the bar: the drawer's own profile block is where the acting
+           identity lives now. ── -->
+      <div class="nav-left" :class="{ 'nav-left--bare': !showBurger }">
+        <div v-if="showBurger" class="burger-slot">
           <q-btn
             round unelevated no-caps
             class="burger-btn"
             @click="$emit('toggle-drawer')"
           >
-            <!-- Open → the classic horizontal burger with its closing arrow.
-                 COLLAPSED → the SAME burger stood on END, a quarter turn of
-                 the identical glyph rather than a different icon: the drawer
-                 it opens is a vertical column, and the mark states that
-                 column's posture. (`view_week`'s three vertical bars were
-                 tried first and read as a pause button.) -->
-            <q-icon
-              :name="drawerOpen ? 'menu_open' : 'menu'"
-              size="15px"
-              :class="{ 'burger-glyph--upright': !drawerOpen }"
-            />
-            <q-tooltip>{{ drawerOpen ? 'Collapse the menu' : 'Expand the menu' }}</q-tooltip>
+            <!-- The burger stood on END — a quarter turn of the same glyph
+                 the drawer's own chip wears open (`menu_open`), rather than a
+                 different icon: the drawer it summons is a vertical column,
+                 and the mark states that column's posture. (`view_week`'s
+                 three vertical bars were tried first and read as a pause
+                 button.) -->
+            <q-icon name="menu" size="15px" class="burger-glyph--upright" />
+            <q-tooltip>Show the menu</q-tooltip>
           </q-btn>
         </div>
       </div>
@@ -190,10 +189,11 @@ export default defineComponent({
     // Increment to force a pin-state refresh from the parent (e.g. after the
     // PinsDrawer unpins something so the tack indicator updates).
     pinsRefreshKey: { type: Number, default: 0 },
-    // The left drawer's own v-model, routed back down so the burger can
-    // state the column's posture (open = horizontal burger + closing arrow,
-    // collapsed = the burger stood on end).
-    drawerOpen: { type: Boolean, default: false }
+    // Does the LEFT rail block belong to this bar right now? True only when
+    // no drawer stands (MainLayout owns the call) — the drawer carries the
+    // burger in its own footer block on these same pixels while it is there,
+    // so exactly one of the two renders it at any moment.
+    showBurger: { type: Boolean, default: false }
   },
   setup (props, { emit }) {
     const route = useRoute()
@@ -401,7 +401,8 @@ export default defineComponent({
   // Raising the bar above all of them is the whole fix, and it is safe
   // precisely BECAUSE nothing overlaps its box — the bar covers no panel, it
   // only stops being painted on. 3110 clears the side widgets (3100), the
-  // drawer (3050), the minitab strip (3045), every dock (3010+), the feed
+  // drawer (3050 then — it is 3120 now and deliberately lies OVER this bar's
+  // empty left end, see MainLayout), the minitab strip (3045), every dock (3010+), the feed
   // container (3001) and the frieze bands (3000).
   z-index: 3110;
   background: transparent !important;
@@ -441,7 +442,7 @@ export default defineComponent({
 // band rather than floating a band-height above it. z 3045: over the band
 // (3000), the feed container (3001) and every dock (3010+, so a parked tab
 // stays clickable while another window is expanded — taskbar semantics),
-// under the drawer (3050) and the side widgets (3100). `right` is bound
+// under the drawer (3120) and the side widgets (3100). `right` is bound
 // inline (base 10px, shifted left by the pins-widget inset) so parked tabs
 // clear that column.
 .minitab-strip {
@@ -569,6 +570,13 @@ export default defineComponent({
 }
 .nav-left  { gap: 0; padding: 0;         border-right: 1px solid var(--brown-3); }
 .nav-right { gap: 8px; padding-left: 6px; border-left:  1px solid var(--brown-3); }
+
+// While the drawer stands it owns this end of the bar (its own footer block
+// draws the rail block + hairline on these very pixels), so the section keeps
+// its grid track but renders NOTHING: no block, and no closing hairline either
+// — a lone brown-3 line at x=0 under the drawer's shadow reads as a seam in a
+// surface that is supposed to be continuous.
+.nav-left--bare { border-right: none; }
 
 // The middle is now pure slack — no content, no padding, just the 1fr track
 // that holds the two edge clusters apart.
