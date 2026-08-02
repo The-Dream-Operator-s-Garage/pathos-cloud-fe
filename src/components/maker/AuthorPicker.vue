@@ -137,6 +137,8 @@ export default defineComponent({
 }
 
 .kind-icon  { color: var(--ink); }
-.display-name { color: #d8d8e8; }
+// Ink, not the old dark-surface gray — the pickers sit on the light dock
+// plaque and #d8d8e8 rendered the selected author nearly invisible (#675).
+.display-name { color: var(--ink); }
 .kind-chip  { font-size: 0.6em; }
 </style>

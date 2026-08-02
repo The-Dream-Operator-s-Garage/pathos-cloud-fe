@@ -145,4 +145,10 @@ export default defineComponent({
   padding: 12px 14px;
 }
 
+// Phones: the dock is the whole screen (shared mobile chrome) — spend the
+// padding on the editor instead (#675).
+@media (max-width: 600px) {
+  .dock-body { padding: 8px; }
+}
+
 </style>
