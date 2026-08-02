@@ -81,10 +81,10 @@ export default defineComponent({
   -webkit-mask-size: 99% auto;
   -webkit-mask-position: center top;
   filter:
-    drop-shadow(1.5px -1.5px 0 #0b0c10)
-    drop-shadow(0.75px -0.75px 0 #0b0c10)
-    drop-shadow(-1.5px 1.5px 0 #ffffff)
-    drop-shadow(-0.75px 0.75px 0 #ffffff);
+    drop-shadow(1.05px -1.05px 0 #0b0c10)
+    drop-shadow(0.5px -0.5px 0 #0b0c10)
+    drop-shadow(-1.05px 1.05px 0 #ffffff)
+    drop-shadow(-0.5px 0.5px 0 #ffffff);
 }
 
 .frieze-bar-v-b__layer--one {

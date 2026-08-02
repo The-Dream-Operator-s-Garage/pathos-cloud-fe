@@ -111,11 +111,13 @@ export default defineComponent({
   -webkit-mask-repeat: repeat-y;
   -webkit-mask-size: 99% auto;
   -webkit-mask-position: center top;
+  // Stepped 1.5/0.75 → 1.05/0.5 with --frieze-h's 30% cut (2026-08-02), same
+  // move as the horizontal bars — only the rotated signs differ.
   filter:
-    drop-shadow(1.5px -1.5px 0 #0b0c10)
-    drop-shadow(0.75px -0.75px 0 #0b0c10)
-    drop-shadow(-1.5px 1.5px 0 #ffffff)
-    drop-shadow(-0.75px 0.75px 0 #ffffff);
+    drop-shadow(1.05px -1.05px 0 #0b0c10)
+    drop-shadow(0.5px -0.5px 0 #0b0c10)
+    drop-shadow(-1.05px 1.05px 0 #ffffff)
+    drop-shadow(-0.5px 0.5px 0 #ffffff);
 }
 
 .frieze-bar-v__layer--one {

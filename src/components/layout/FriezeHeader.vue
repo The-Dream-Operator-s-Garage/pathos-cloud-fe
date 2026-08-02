@@ -9,9 +9,10 @@
        (matching the left drawer's border-right) so the strip reads as
        a slightly thick plaque. Values: layer1 brown-3 #BCAAA4 · layer2
        brown-4 #A1887F · frieze
-       size 99% · pad 1px · carve 1.5px #ffffff/#0b0c10. Height rides
-       --frieze-h (3vh) so it scales with the device instead of a fixed
-       pixel count; the page containers pad down by the same token.
+       size 99% · pad 1px · carve 1.05px #ffffff/#0b0c10. Height rides
+       --frieze-h (2.1vh — 3vh until 2026-08-02, when the whole frieze
+       family went 30% thinner) so it scales with the device instead of a
+       fixed pixel count; the page containers pad down by the same token.
        Decorative only — pointer-events none, so it never steals a
        click. -->
   <div class="frieze-header" aria-hidden="true">
@@ -67,11 +68,13 @@ export default defineComponent({ name: 'FriezeHeader' })
   -webkit-mask-repeat: repeat-x;
   -webkit-mask-size: auto 99%;
   -webkit-mask-position: left center;
+  // 1.05/0.5 since 2026-08-02, stepped down with --frieze-h's 30% cut from
+  // the original 1.5/0.75 — the groove has to stay narrower than the stroke.
   filter:
-    drop-shadow(-1.5px -1.5px 0 #0b0c10)
-    drop-shadow(-0.75px -0.75px 0 #0b0c10)
-    drop-shadow(1.5px 1.5px 0 #ffffff)
-    drop-shadow(0.75px 0.75px 0 #ffffff);
+    drop-shadow(-1.05px -1.05px 0 #0b0c10)
+    drop-shadow(-0.5px -0.5px 0 #0b0c10)
+    drop-shadow(1.05px 1.05px 0 #ffffff)
+    drop-shadow(0.5px 0.5px 0 #ffffff);
 }
 
 .frieze-header__layer--one {

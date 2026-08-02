@@ -110,10 +110,10 @@ export default defineComponent({ name: 'FriezeFooter' })
   -webkit-mask-size: auto 99%;
   -webkit-mask-position: left center;
   filter:
-    drop-shadow(-1.5px -1.5px 0 #0b0c10)
-    drop-shadow(-0.75px -0.75px 0 #0b0c10)
-    drop-shadow(1.5px 1.5px 0 #ffffff)
-    drop-shadow(0.75px 0.75px 0 #ffffff);
+    drop-shadow(-1.05px -1.05px 0 #0b0c10)
+    drop-shadow(-0.5px -0.5px 0 #0b0c10)
+    drop-shadow(1.05px 1.05px 0 #ffffff)
+    drop-shadow(0.5px 0.5px 0 #ffffff);
 }
 
 .frieze-footer__layer--one {

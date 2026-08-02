@@ -97,11 +97,16 @@
 // supplies the 3D bottom lip AND the press-down animation natively, so there
 // is NO fake colored ledge here (the old surface-4 "blue" ledge + drop shadow
 // are gone) — we only paint the face and set the compact footer sizing.
+// Sizes are stated for the SHORTENED bar (2026-08-02): 30px → 24px tall on
+// 6px of side padding, which is what fits inside `--nav-footer-h`'s 32px (2/3
+// of the old 48) less its 1px top lip. The create bundle's pebbles in
+// NavigationBar carry the identical 24px/8px pair — the two button families
+// sit side by side in the right cluster and must read as one row.
 .nav-btn {
-  min-width: 34px;
-  min-height: 30px;
-  height: 30px;
-  padding: 0 8px;
+  min-width: 30px;
+  min-height: 24px;
+  height: 24px;
+  padding: 0 6px;
   border-radius: var(--radius-sm);
   border: 1px solid rgba(var(--ink-rgb-deep), 0.40);
   background: #f1f8e9;             // Quasar light-green-1

@@ -452,11 +452,14 @@ aside.q-drawer {
   // The chip: the same 28px inverted-brown circle the pin tack and the old
   // bar burger wear (flat brown-8 face + rim, brown-1 glyph, inset top
   // highlight, brown-7 on hover — NOT Quasar's push preset).
+  // 24px since the bar went to 2/3 height (2026-08-02) — this chip must keep
+  // matching NavigationBar's `.burger-slot` chip to the pixel, and 28px no
+  // longer fits in a 32px row.
   .drawer-burger-btn {
-    width: 28px;
-    height: 28px;
-    min-width: 28px;
-    min-height: 28px;
+    width: 24px;
+    height: 24px;
+    min-width: 24px;
+    min-height: 24px;
     padding: 0;
     border-radius: 50%;
     background: var(--brown-8);

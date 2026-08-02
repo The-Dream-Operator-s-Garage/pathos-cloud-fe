@@ -515,7 +515,20 @@ $warning:   #F2C037;
   // sit at `bottom: var(--nav-footer-h)` so their bottom edges merge with the
   // bar's top edge — change it here and everything stays flush. Any
   // viewport-bounded surface (e.g. subject-panel) subtracts it too.
-  --nav-footer-h: 48px;
+  //
+  // 48px → **32px**, TWO THIRDS of the original (2026-08-02, user ask, same
+  // pass as --frieze-h's 30% cut). It went to 24px — a straight half — first,
+  // and that read as too small for the row it has to hold; 2/3 keeps the bar
+  // clearly a bar. Everything anchored to the token followed for free: the
+  // docks, the minitab strip, the pinned column, the drawer's rebuilt bar row,
+  // the feed page's desktop overhang. What did NOT follow is the bar's
+  // CONTENTS, which state their own sizes — the two 28px rail chips (bar
+  // burger + pin tack, and the drawer footer's twin) are 24px, `.nav-btn` and
+  // the create bundle's pebbles went 30px → 24px on tighter padding, and the
+  // glyphs dropped a size (16/15px → 14/13px). 32px less the 1px top lip
+  // leaves 31px of content box, so a 24px chip keeps ~3.5px of air top and
+  // bottom — the same proportion the 28px chip had in the 48px bar.
+  --nav-footer-h: 32px;
 
   // Where the base `.dock-window` shell stands — the bar's top edge PLUS the
   // frieze footer band that sits on it (2026-07-25). FriezeFooter is an
@@ -535,7 +548,22 @@ $warning:   #F2C037;
   // strip mounted by BOTH layouts). Percentage of the viewport — not
   // pixels — so the band scales with the device. The page containers pad
   // down by this token so content never hides under the plaque.
-  --frieze-h: 3vh;
+  //
+  // It is the THICKNESS OF THE WHOLE FRIEZE FAMILY, not just the crown:
+  // FriezeFooter's band, every in-box FriezeBar (brown, and the flyout's
+  // grey-9 restating), and the blue-grey FriezeBarVertical/B read it as
+  // their WIDTH. One number moves all of them together, which is the
+  // point — they are one material seen on different edges.
+  //
+  // 3vh → 2.1vh, i.e. 30% thinner (2026-08-02, user ask): the bands read
+  // right on the main layouts but sat a touch heavy. At a 900px viewport
+  // that is 27px → 18.9px, and the slim variant 13.5px → 9.45px. The
+  // motif follows on its own (the masks fit to the box at `auto 99%`),
+  // but the CARVE does not — the drop-shadow offsets are absolute px, so
+  // both FriezeHeader/FriezeBar and the vertical pair stepped 1.5/0.75 →
+  // 1.05/0.5 with this token to keep the groove narrower than the stroke
+  // it carves. Same reason the slim recipe halves them.
+  --frieze-h: 2.1vh;
 
   // Mirrored side widgets (StackPanel drops from the very top over the
   // frieze, PinsDrawer rises from the very bottom over the nav footer), both

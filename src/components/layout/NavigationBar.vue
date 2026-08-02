@@ -10,7 +10,7 @@
            when the drawer is gone, so the left rail block is never absent and
            never doubled. It is the pin tack's MIRROR TWIN: same 42px slot
            (--dock-rail-w less the hairline that closes it), same darker
-           brown-4 coat, same 28px inverted-brown circle floating centred in
+           brown-4 coat, same 24px inverted-brown circle floating centred in
            it — the left edge reads as one uninterrupted column whichever
            surface owns it. Identity actions (profile, logout) are GONE from
            the bar: the drawer's own profile block is where the acting
@@ -28,7 +28,7 @@
                  and the mark states that column's posture. (`view_week`'s
                  three vertical bars were tried first and read as a pause
                  button.) -->
-            <q-icon name="menu" size="15px" class="burger-glyph--upright" />
+            <q-icon name="menu" size="13px" class="burger-glyph--upright" />
             <q-tooltip>Show the menu</q-tooltip>
           </q-btn>
         </div>
@@ -50,7 +50,7 @@
            is no separate pinned-list toggle anymore — the panel is reached via
            its own rail head (it defaults to that rail and is minimize-only).
            The navigation-stack panel likewise has no button here. ── -->
-      <div class="nav-right">
+      <div class="nav-right" :class="{ 'nav-right--railed': !showTack }">
         <!-- Chat: the conversation window (distinctive teal treatment —
              chats are where entities meet, not another maker). The UNREAD
              BADGE (Thread A) rides it: the event spine's live unread count
@@ -70,7 +70,7 @@
           <!-- Icon ONLY (2026-08-02): the word "chat" said nothing the forum
                glyph does not, and the bar has to hold this cluster inside a
                375px screen. The title/tooltip carries the name. -->
-          <q-icon name="forum" size="16px" />
+          <q-icon name="forum" size="14px" />
           <q-badge
             v-if="events.unreadCount > 0"
             floating color="amber-9" text-color="black"
@@ -84,33 +84,42 @@
              uploader windows -->
         <q-btn-group push class="nav-bundle create-bundle">
           <q-btn push class="create-btn" @click="$emit('open-maker')">
-            <q-icon name="add_circle_outline" size="16px" />
+            <q-icon name="add_circle_outline" size="14px" />
             <q-tooltip>Make post</q-tooltip>
           </q-btn>
           <q-btn push class="create-btn" @click="$emit('open-skeleton-builder')">
-            <q-icon name="schema" size="16px" />
+            <q-icon name="schema" size="14px" />
             <q-tooltip>Build skeletons — define templates, populate and edit instances</q-tooltip>
           </q-btn>
           <q-btn push class="create-btn" @click="$emit('open-label-maker')">
-            <q-icon name="label_important" size="16px" />
+            <q-icon name="label_important" size="14px" />
             <q-tooltip>Label maker — grow, fork and reorganize label trees</q-tooltip>
           </q-btn>
           <q-btn push class="create-btn" @click="$emit('open-uploader')">
-            <q-icon name="upload" size="16px" />
+            <q-icon name="upload" size="14px" />
             <q-tooltip>Upload files, links or notes</q-tooltip>
           </q-btn>
         </q-btn-group>
 
-        <div class="nav-divider" />
+        <div v-if="showTack" class="nav-divider" />
 
-        <!-- Pin tack — the parked pinned column's body continued into the bar:
-             the `.tack-slot` is the column (--dock-rail-w minus the hairline
-             that stands in for its left border) and the tack itself is a small
-             28px circle floating centred inside it, exactly like the parked
-             chips float in their well. Flat inverted-brown chip, same skin as
-             the drawer's Back button (NOT Quasar's push preset); its floating
-             count badge shows how many pins you have. -->
-        <div class="tack-slot">
+        <!-- Pin tack — THE FALLBACK COPY (2026-08-02, user ask: the tack
+             belongs INSIDE the pinned side bar, which now runs to the window
+             floor over this bar and carries it in its own footer block —
+             PinsDrawer.vue). It renders HERE only when that column is not
+             standing, which today means MOBILE (≤600px, where both side
+             widgets hide) or a closed pins panel — exactly the arrangement the
+             burger has on the left end, where the drawer owns the chip while
+             it stands. Never both at once.
+
+             Same block either way: the `.tack-slot` is the pinned column
+             (--dock-rail-w minus the hairline that stands in for its left
+             border) and the tack itself is a 24px circle floating centred
+             inside it, exactly like the parked chips float in their well. Flat
+             inverted-brown chip, same skin as the drawer's Back button (NOT
+             Quasar's push preset); its floating count badge shows how many
+             pins you have. -->
+        <div v-if="showTack" class="tack-slot">
           <q-btn
             round unelevated no-caps
             class="tack-btn"
@@ -118,7 +127,7 @@
             :disable="!pinnable"
             @click="onTackClick"
           >
-            <q-icon name="push_pin" size="15px" :class="{ 'tack-filled': isCurrentPinned }" />
+            <q-icon name="push_pin" size="13px" :class="{ 'tack-filled': isCurrentPinned }" />
             <q-badge v-if="pinsCount > 0" floating color="amber-9" text-color="black"
               class="pins-count-badge">{{ pinsCount }}</q-badge>
             <q-tooltip>{{ pinnable ? (isCurrentPinned ? 'Unpin this' : 'Pin this') : 'Open a node, post, label or skeleton to pin it' }}</q-tooltip>
@@ -358,11 +367,20 @@ export default defineComponent({
       return tabs
     })
 
+    // ── Does the TACK belong to this bar right now? ──────────
+    // Mirror of `showBurger` at the other end (which MainLayout owns): the
+    // pinned column carries the tack in its own footer block while it stands,
+    // so the bar renders one only when that column is absent — on mobile,
+    // where both side widgets hide, or if the panel is ever closed. Exactly
+    // one of the two is on screen at any moment.
+    const showTack = computed(() => windows.isMobile || !windows.panels.pins?.open)
+
     return {
       pinnable,
       isCurrentPinned,
       pinsCount,
       onTackClick,
+      showTack,
       minitabRight,
       chatExpanded,
       toggleChat,
@@ -569,7 +587,21 @@ export default defineComponent({
   align-items: center;
 }
 .nav-left  { gap: 0; padding: 0;         border-right: 1px solid var(--brown-3); }
-.nav-right { gap: 8px; padding-left: 6px; border-left:  1px solid var(--brown-3); }
+// Tighter with the shortened bar (2026-08-02: gap 8 → 6, inset 6 → 5) — the
+// cluster keeps the same proportion of air around 24px buttons that it had
+// around 30px ones.
+.nav-right { gap: 6px; padding-left: 5px; border-left:  1px solid var(--brown-3); }
+
+// When the tack is NOT in this bar, the pinned column standing over the bar's
+// right end is what holds it — and that column is OPAQUE at z 3120, so the
+// cluster has to keep out from under it or the last create button is simply
+// covered (2026-08-02: it was, for the length of one screenshot). The reserve
+// is exactly `--dock-rail-w`, the same 42px the tack's own slot + hairline
+// took, so the cluster does not move when the two arrangements swap. An
+// EXPANDED pins panel (300px) still overlays more of the bar — that state is
+// a transient hover overlay that parks itself on mouse-leave, and it is the
+// same bargain the left drawer strikes with this bar's empty left end.
+.nav-right--railed { padding-right: var(--dock-rail-w); }
 
 // While the drawer stands it owns this end of the bar (its own footer block
 // draws the rail block + hairline on these very pixels), so the section keeps
@@ -617,9 +649,14 @@ export default defineComponent({
   border-radius: var(--radius-sm);
   flex-shrink: 0;
 
+  // 24px on 8px of side padding since the bar was shortened to 2/3
+  // (2026-08-02; it was 30px/10px) — the same box `.nav-btn` takes in
+  // _components.scss, so the chat pebble, the search pebble and these four
+  // read as one row.
   :deep(.q-btn) {
-    min-height: 30px;
-    padding: 0 10px;
+    min-height: 24px;
+    height: 24px;
+    padding: 0 8px;
     background: #e1f5fe;   // Quasar light-blue-1
     color: var(--ink-1);
     border: 1px solid rgba(var(--ink-rgb-deep), 0.40);
@@ -670,21 +707,23 @@ export default defineComponent({
 // raised strip. `position: relative` + z-index keep that cast above the bar's
 // own plaque and the create bundle beside it.
 .tack-slot {
-  margin-left: -8px;                       // cancel .nav-right's gap — butt against it
+  margin-left: -6px;                       // cancel .nav-right's gap — butt against it
 }
 
-// The chip itself is a small CIRCLE (the same 28px box the parked column's
-// chips wear, so it reads as one of them) with no inner padding, floating in
-// its slot. Skin is the drawer's Back button, NOT Quasar's push preset:
+// The chip itself is a small CIRCLE with no inner padding, floating in its
+// slot. It was 28px — the parked column's own chip box — until the bar went to
+// 2/3 height on 2026-08-02: 28px leaves under 2px of air in a 31px content
+// box, so the chip is 24px here while the column's chips upstairs keep their
+// 28px. The floating rhythm is what the two share, not the diameter. Skin is the drawer's Back button, NOT Quasar's push preset:
 // a flat inverted brown chip — solid brown-8 fill, matching brown-8 rim so
 // there is no contrasting outline, brown-1 glyph, a hairline inset highlight
 // along the top, and a brown-7 lift on hover. The burger wears it too.
 .nav-bar .tack-btn,
 .nav-bar .burger-btn {
-  width: 28px;
-  height: 28px;
-  min-width: 28px;
-  min-height: 28px;
+  width: 24px;
+  height: 24px;
+  min-width: 24px;
+  min-height: 24px;
   padding: 0;
   border-radius: 50%;
   background: var(--brown-8);

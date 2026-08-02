@@ -33,7 +33,7 @@
          band STANDS IN for it across the stack's column (matched to
          FriezeHeader's exact box in the styles below). Rendered in both
          presentations (at rail width it shows a small wave slice). -->
-    <FriezeBar class="stack-frieze" />
+    <FriezeBar flip class="stack-frieze" />
 
     <div v-if="history.length === 0 && !win.minimized" class="stack-empty">No visits yet.</div>
 
@@ -79,7 +79,7 @@
          block at the same size, dividing the scroll well from the header /
          head glyph below it — so the well sits between two identical bands and
          the stack icon reads as its own strip of chrome. Both presentations. -->
-    <FriezeBar class="stack-frieze stack-frieze--inner" />
+    <FriezeBar flip class="stack-frieze stack-frieze--inner" />
 
     <!-- Header/controls box at the BOTTOM of the expanded panel (below the
          list), so it sits right beside the newest step. The traffic light is

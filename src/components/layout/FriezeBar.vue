@@ -24,7 +24,7 @@
        absolutely-positioned halves, the left wearing the UN-mirrored
        `mercury-wave-{a,b}.svg` at `mask-position: right`, and never
        `scaleX(-1)` (it mirrors the drop-shadow carve with the motif). -->
-  <div class="frieze-bar" :class="{ 'frieze-bar--slim': slim }" aria-hidden="true">
+  <div class="frieze-bar" :class="{ 'frieze-bar--slim': slim, 'frieze-bar--flip': flip }" aria-hidden="true">
     <div class="frieze-bar__inner">
       <div v-if="!slim" class="frieze-bar__layer frieze-bar__layer--one" />
       <div class="frieze-bar__layer frieze-bar__layer--two" />
@@ -41,7 +41,17 @@ export default defineComponent({
     // Half height, one wave. A whole recipe rather than a knob: at
     // `--frieze-h / 2` the tone, the mask fit and the carve all have to move
     // together or the motif turns to mush, so they move as one named variant.
-    slim: { type: Boolean, default: false }
+    slim: { type: Boolean, default: false },
+    // Run the meander the OTHER WAY (2026-08-02, user ask, for the two
+    // right-edge side widgets). It swaps the masks for the un-mirrored
+    // `mercury-wave-{a,b}.svg` — which by construction ARE this bar's masks
+    // flipped horizontally, each `-mirror` file being its original wrapped in
+    // `translate(231 0) scale(-1 1)` on the same canvas — so the flip costs no
+    // asset and, crucially, is NOT a `transform: scaleX(-1)`: that would
+    // mirror the drop-shadow carve along with the motif and light the band
+    // from the other side. The carve stays exactly where it is; only the wave
+    // turns around.
+    flip: { type: Boolean, default: false }
   }
 })
 </script>
@@ -79,10 +89,10 @@ export default defineComponent({
   -webkit-mask-size: auto 99%;
   -webkit-mask-position: left center;
   filter:
-    drop-shadow(-1.5px -1.5px 0 #0b0c10)
-    drop-shadow(-0.75px -0.75px 0 #0b0c10)
-    drop-shadow(1.5px 1.5px 0 #ffffff)
-    drop-shadow(0.75px 0.75px 0 #ffffff);
+    drop-shadow(-1.05px -1.05px 0 #0b0c10)
+    drop-shadow(-0.5px -0.5px 0 #0b0c10)
+    drop-shadow(1.05px 1.05px 0 #ffffff)
+    drop-shadow(0.5px 0.5px 0 #ffffff);
 }
 
 .frieze-bar__layer--one {
@@ -97,9 +107,29 @@ export default defineComponent({
   -webkit-mask-image: url('../../assets/frieze/mercury-wave-b-mirror.svg');
 }
 
+// ── FLIP (2026-08-02) — the same band with the meander running the other
+// way, for the stack/pins column on the right edge: those bands now mirror the
+// ones the left drawer carries, so the two sides of the window reflect each
+// other instead of repeating. Masks only — the plaque, the tones and the carve
+// are untouched, which is what keeps one light source across the whole page.
+// (`-mirror` files ARE the originals flipped, so this swaps back to them.)
+.frieze-bar--flip {
+  .frieze-bar__layer--one {
+    mask-image: url('../../assets/frieze/mercury-wave-a.svg');
+    -webkit-mask-image: url('../../assets/frieze/mercury-wave-a.svg');
+  }
+
+  .frieze-bar__layer--two {
+    mask-image: url('../../assets/frieze/mercury-wave-b.svg');
+    -webkit-mask-image: url('../../assets/frieze/mercury-wave-b.svg');
+  }
+}
+
 // ── SLIM (2026-07-26) — the band at HALF height, drawn by the brown-1 wave
 // alone. Three things move together, because halving the box without them
-// leaves the motif sub-pixel and the carve wider than the strokes it carves:
+// leaves the motif sub-pixel and the carve wider than the strokes it carves
+// (all three moved again on 2026-08-02, when --frieze-h itself lost 30% —
+// every number here is stated relative to the box, so they follow it):
 //
 //  1. HEIGHT. `--frieze-h / 2`. The 1px vertical pad stays — at this size it
 //     is what keeps the wave off the plaque's own edges, and it is the only
@@ -123,15 +153,18 @@ export default defineComponent({
 //     fills 99% of the inner height, exactly the fraction the full bar gives
 //     the whole FILE. Same 1% breathing, moved to where it can be seen. Nothing
 //     is clipped — only the empty rows leave the box.
-//     Net at a 900px viewport (band 13.5px, inner 11.5px): the 13-row file
-//     lands at 13.46px, so ~1.04px per motif row, where a plain `99%` would
-//     leave ~0.88px — sub-pixel, and the difference between a pattern and a
-//     grey haze. A full-height bar gets ~1.9px per row.
+//     Net at a 900px viewport (band 9.45px since --frieze-h's 30% cut, inner
+//     7.45px): the 13-row file lands at ~8.7px, so ~0.67px per motif row,
+//     where a plain `99%` would leave ~0.57px. Both are sub-pixel now — this
+//     is the size at which the slim band stops being a pattern and becomes a
+//     texture, and the `117%` is what keeps the centre rule (the one mark
+//     that survives at any size) reading as a line. A full-height bar gets
+//     ~1.3px per row.
 //
-//  4. CARVE. The drop-shadow offsets halve with the box (1.5/0.75 → 0.75/0.4).
-//     Left alone, a 1.5px groove would be wider than the ~1.2px stroke it is
-//     supposed to be carving and the band would read as a black-and-white
-//     smear with a brown tint.
+//  4. CARVE. The drop-shadow offsets halve with the box — 0.5/0.3, half of
+//     the full bar's post-2026-08-02 1.05/0.5. Left alone, a 1.5px groove
+//     would be wider than the stroke it is supposed to be carving and the
+//     band would read as a black-and-white smear with a brown tint.
 //
 // The plaque tone is NOT part of this — that is `--frieze-bar-base`, which is
 // orthogonal and set by the host.
@@ -142,10 +175,10 @@ export default defineComponent({
     mask-size: auto 117%;
     -webkit-mask-size: auto 117%;
     filter:
-      drop-shadow(-0.75px -0.75px 0 #0b0c10)
-      drop-shadow(-0.4px -0.4px 0 #0b0c10)
-      drop-shadow(0.75px 0.75px 0 #ffffff)
-      drop-shadow(0.4px 0.4px 0 #ffffff);
+      drop-shadow(-0.5px -0.5px 0 #0b0c10)
+      drop-shadow(-0.3px -0.3px 0 #0b0c10)
+      drop-shadow(0.5px 0.5px 0 #ffffff)
+      drop-shadow(0.3px 0.3px 0 #ffffff);
   }
 }
 </style>

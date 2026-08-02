@@ -64,7 +64,7 @@
          the widget's bottom edge is GONE: the pinned column and the tack in
          the bar below read as one continuous strip, so nothing should cut
          across it there. Both presentations. -->
-    <FriezeBar class="pins-frieze" />
+    <FriezeBar flip class="pins-frieze" />
 
     <div v-if="loading && !win.minimized" class="pins-loading">
       <q-spinner color="red-6" size="22px" />
@@ -112,6 +112,35 @@
           </button>
         </template>
       </SidePanelItem>
+    </div>
+
+    <!-- ── THE TACK LIVES HERE NOW (2026-08-02, user ask: "make sure the pin
+         button is contained inside [the pinned side bar], and that the
+         sidebar is on top of the footer"). The column runs to the WINDOW
+         FLOOR and lies over the nav bar, so its last `--nav-footer-h` IS the
+         bar's row — and this block rebuilds that row inside the widget,
+         exactly as the left drawer's `.drawer-footer` rebuilds it around the
+         burger: brown-1 plaque, a brown-3 `border-top` landing on the same
+         pixel as the bar's own, and the 41px brown-4 rail slot + 1px hairline
+         at the end that faces the page, holding the inverted-brown chip. The
+         two mirror each other across the window — the drawer's slot sits at
+         its LEFT end, this one at its RIGHT, both flush to their screen edge.
+         The bar keeps a tack of its own for the one case this column is
+         absent (mobile, where both side widgets hide) — see NavigationBar. -->
+    <div class="pins-footer">
+      <div class="pins-footer-hairline" />
+      <div class="tack-slot">
+        <q-btn
+          round unelevated no-caps
+          class="tack-btn"
+          :class="{ 'is-pinned': isCurrentPinned }"
+          :disable="!pinnable"
+          @click="onTack"
+        >
+          <q-icon name="push_pin" size="12px" :class="{ 'tack-filled': isCurrentPinned }" />
+          <q-tooltip>{{ pinnable ? (isCurrentPinned ? 'Unpin this' : 'Pin this') : 'Open a node, post, label or skeleton to pin it' }}</q-tooltip>
+        </q-btn>
+      </div>
     </div>
   </aside>
 </template>
@@ -243,6 +272,27 @@ export default defineComponent({
       return !!(t && p.target_type === t.targetType && Number(p.target_id) === t.targetId)
     }
 
+    // ── The TACK, moved in from the nav bar (2026-08-02) ─────────
+    // Everything it needs is already here, so the move cost NO new request:
+    // `currentTarget` is the same route parse the bar did, and the pinned
+    // state is an O(pins) match against the rows this widget already holds —
+    // where the bar had to ask `GET /pins/check` on every route change.
+    const pinnable = computed(() => !!currentTarget.value)
+    const isCurrentPinned = computed(() => pins.value.some(isCurrent))
+
+    const onTack = async () => {
+      const t = currentTarget.value
+      if (!t) return
+      try {
+        if (isCurrentPinned.value) await pinService.unpin(t.targetType, t.targetId)
+        else await pinService.pin(t.targetType, t.targetId)
+        await load()
+        // The bar still carries a fallback tack (mobile) whose count rides on
+        // this signal, and MainLayout routes it back down as `refreshKey`.
+        emit('changed')
+      } catch (_) { /* ignore — surface via tooltip later */ }
+    }
+
     // The element's real viewer route: summary route when resolved (a pinned
     // post's target_type is 'skeleton', but its summary routes to /posts/:id),
     // kind route as fallback.
@@ -315,11 +365,14 @@ export default defineComponent({
       } catch (_) { /* leave the pins as is */ }
     }
 
-    // The widget sits just ABOVE the nav footer (bottom: --nav-footer-h),
-    // seamed to it; z 3100 keeps it above the footer/minitab chrome.
-    const EDGE_Z = 3100
+    // The widget runs to the WINDOW FLOOR and lies OVER the nav bar since
+    // 2026-08-02 (it stopped at the bar's top edge before), so it has to
+    // outrank that bar — which went topmost at 3110 the same week. 3120 is the
+    // left drawer's own number, the other column that deliberately covers the
+    // bar's end; the two never overlap, so they can share it.
+    const EDGE_Z = 3120
 
-    return { win, windows, pins, listPins, summaries, loading, copiedId, listEl, kindKeyOf, hashOf, isCurrent, openPin, onHoverEnter, onHoverLeave, railTitle, onUnpin, onCopy, onHistory, EDGE_Z }
+    return { win, windows, pins, listPins, summaries, loading, copiedId, listEl, kindKeyOf, hashOf, isCurrent, openPin, onHoverEnter, onHoverLeave, railTitle, onUnpin, onCopy, onHistory, pinnable, isCurrentPinned, onTack, EDGE_Z }
   }
 })
 </script>
@@ -340,11 +393,19 @@ export default defineComponent({
 // the page) edges wear a thin classic 1px brown-4 border; the bottom (flush
 // with the bar) and the right (screen edge) meet bare. Rounded top-left corner
 // kept (free corner).
+// ── AND SINCE 2026-08-02 IT RUNS TO THE WINDOW FLOOR (user ask) ──
+// `bottom: 0`, not the bar's top edge: the column lies OVER the nav bar's
+// right end and its last `--nav-footer-h` IS that bar's row, rebuilt inside
+// the widget by `.pins-footer` below around the tack. This is the exact
+// arrangement the left drawer took the same day — two columns bounding the
+// window, each owning the strip of bar under it. The cap grows by the same
+// token so the LIST keeps its `--dock-pins-h` share of the side band: the
+// footer is chrome the widget gained, not space taken from the pins.
 .pins-drawer {
   top: auto;
-  bottom: var(--nav-footer-h);
+  bottom: 0;
   right: 0;
-  max-height: var(--dock-pins-h);
+  max-height: calc(var(--dock-pins-h) + var(--nav-footer-h));
   border-top: 1px solid var(--brown-4);
   border-right: none;
   border-bottom: none;
@@ -400,6 +461,85 @@ export default defineComponent({
 .pins-frieze {
   flex-shrink: 0;
   height: var(--frieze-h);
+}
+
+// ── The widget's own nav-bar row (2026-08-02) ───────────────
+// The column reaches the floor now, so its last --nav-footer-h lands exactly
+// on the bar underneath. Rather than hide the bar there, this block REBUILDS
+// that row inside the widget — the mirror image of MainLayout's
+// `.drawer-footer` at the other end of the window: the same brown-1 plaque,
+// the same brown-3 top lip on the same pixel as the bar's `border-top`, and
+// the same 41px brown-4 rail block, here at the RIGHT end (flush to the screen
+// edge, under the parked column's own body) with its closing hairline facing
+// the page. Whatever the widget's width — 42px parked, 300px expanded — the
+// bar reads as continuous; the column just owns those pixels.
+.pins-footer {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: stretch;
+  justify-content: flex-end;         // the slot hugs the screen edge
+  height: var(--nav-footer-h);
+  background: var(--brown-1);
+  border-top: 1px solid var(--brown-3);
+  overflow: hidden;                  // clips the hairline in the 42px parked state
+}
+
+.pins-footer-hairline {
+  flex: 0 0 auto;
+  width: 1px;
+  background: var(--brown-3);
+}
+
+// NavigationBar's `.tack-slot` to the pixel: the column's darker brown-4 coat,
+// --dock-rail-w less the hairline that closes it, the chip floating centred.
+.pins-footer .tack-slot {
+  flex: 0 0 auto;
+  width: calc(var(--dock-rail-w) - 1px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--brown-4);
+}
+
+// The chip: NavigationBar's tack, unchanged — a flat inverted-brown 24px
+// circle (brown-8 face + rim, brown-1 pushpin, inset top highlight, brown-7 on
+// hover), INVERTING to a brown-1 face with a brown-8 rim + pushpin while the
+// element you are looking at is pinned. The bar's own copy renders only where
+// this column does not (mobile), so the two never disagree on screen.
+.pins-footer .tack-btn {
+  width: 24px;
+  height: 24px;
+  min-width: 24px;
+  min-height: 24px;
+  padding: 0;
+  border-radius: 50%;
+  background: var(--brown-8);
+  border: 1px solid var(--brown-8);
+  color: var(--brown-1);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25);
+
+  .q-icon { color: var(--brown-1); transition: transform 0.14s ease; }
+
+  &:hover:not(.q-btn--disable) {
+    background: #5d4037;             // Quasar brown-7 — lifts on hover
+    border-color: #5d4037;
+  }
+
+  &.is-pinned {
+    background: var(--brown-1);
+    color: var(--brown-8);
+    border-color: var(--brown-8);
+    box-shadow: none;                // no inset highlight on the pale face
+
+    .q-icon { color: var(--brown-8); }
+    // 22° rotation to mimic a pushpin pressed in — the bar's own tack tips
+    // the same way, since this is that button moved, not a new one.
+    .q-icon.tack-filled { transform: rotate(-22deg); }
+
+    &:hover { background: var(--brown-1); }
+  }
+
+  &.q-btn--disable { opacity: 0.45; }
 }
 
 .pins-loading {
