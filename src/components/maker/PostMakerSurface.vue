@@ -34,36 +34,50 @@
           :type-id="2"
           :canonic-labels="canonicLabels"
           :compact="embed"
+          :dense="!embed"
           :initial-author-id="draft.authorEntityId"
           :initial-labels="draft.labels"
           @update:author-entity-id="patch({ authorEntityId: $event })"
           @update:label-ids="patch({ labelIds: $event })"
           @update:user-labels="patch({ labels: $event })"
-        />
-
-        <q-input
-          v-if="!draft.parent"
-          :model-value="draft.title" :dark="false" outlined dense
-          label="Title (optional)"
-          @update:model-value="patch({ title: $event })"
-        />
+        >
+          <!-- The title rides the header row (title | author | labels) so
+               the meta chrome costs ONE control line before the editor. -->
+          <template v-if="!draft.parent" #title>
+            <q-input
+              :model-value="draft.title" :dark="false" outlined dense
+              label="Title (optional)"
+              @update:model-value="patch({ title: $event })"
+            />
+          </template>
+        </MakerHeader>
 
         <NoteEditor
           ref="editorRef"
           class="maker-surface__note"
           :model-value="draft.content"
           :show-save="false"
-          :initial-mode="embed ? 'edit' : 'split'"
+          :initial-mode="embed || isMobile ? 'edit' : 'split'"
           :height="embed ? '200px' : '100%'"
           @update:model-value="patch({ content: $event })"
         />
 
         <footer class="maker-surface__foot">
+          <!-- One line of hint, the full doctrine behind the help glyph —
+               the instructions must never crowd the writing room (#675). -->
           <span class="maker-surface__hint">
             {{ draft.parent
-              ? 'The comment is a full post — markdown body, inline [[pathos:…]] chips and all.'
-              : 'The body becomes the post\'s markdown node. Insert references inline as [[pathos:…]] chips — staged ones you don\'t insert are appended as a References list. Each reference\'s auto/micro/mini stamp picks how it previews on the post.' }}
+              ? 'The comment is a full post — markdown, [[pathos:…]] chips and all.'
+              : 'Markdown body — [[pathos:…]] chips render inline.' }}
           </span>
+          <q-icon v-if="!draft.parent" name="help_outline" size="14px" class="maker-surface__help">
+            <q-tooltip class="maker-surface__help-tip" max-width="340px" :delay="150">
+              The body becomes the post's markdown node. Insert references inline
+              as [[pathos:…]] chips — staged ones you don't insert are appended as
+              a References list. Each reference's auto/micro/mini stamp picks how
+              it previews on the post.
+            </q-tooltip>
+          </q-icon>
           <q-space />
           <span v-if="errorMsg" class="maker-surface__msg text-negative">{{ errorMsg }}</span>
           <span v-if="successMsg" class="maker-surface__msg text-positive">{{ successMsg }}</span>
@@ -117,6 +131,7 @@ import RefBrowser from './RefBrowser.vue'
 import AccessTreeDialog from './AccessTreeDialog.vue'
 import NoteEditor from 'src/components/nodes/NoteEditor.vue'
 import { useMakerStore } from 'src/stores/maker'
+import { useWindowsStore } from 'src/stores/windows'
 import { postService } from 'src/services/post.service'
 import { nodeService } from 'src/services/node.service'
 import { skeletonService } from 'src/services/skeleton.service'
@@ -139,6 +154,10 @@ export default defineComponent({
     const router = useRouter()
     const store = useMakerStore()
     store.load()
+    // Phones open the editor in edit mode — a 375px split pane leaves no
+    // room to write (change request #675); the toggle stays a tap away.
+    const windows = useWindowsStore()
+    const isMobile = computed(() => windows.isMobile)
 
     const editorRef = ref(null)
     const posting = ref(false)
@@ -304,6 +323,7 @@ export default defineComponent({
 
     return {
       store,
+      isMobile,
       draft,
       patch,
       invokeRef,
@@ -375,9 +395,11 @@ export default defineComponent({
 }
 
 // ── Body: editor left, references right (same shape as the dock) ──
+// The refs browser cedes ground to the editor (#675 — "room to write"):
+// it was minmax(280, 340), nearly half the half-screen dock.
 .maker-surface__body {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(280px, 340px);
+  grid-template-columns: minmax(0, 1fr) minmax(230px, 290px);
   gap: 12px;
   flex: 1;
   min-height: 0;
@@ -392,7 +414,7 @@ export default defineComponent({
 .maker-surface__editor {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
   min-width: 0;
   min-height: 0;
 }
@@ -413,11 +435,22 @@ export default defineComponent({
   .q-btn { flex-shrink: 0; }
 }
 
+// One line, ellipsized under pressure — the writing room wins (#675).
 .maker-surface__hint {
   font-size: 0.72em;
   color: var(--ink-mute);
   line-height: 1.35;
-  max-width: 52ch;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+  flex: 0 1 auto;
+}
+
+.maker-surface__help {
+  color: var(--ink-mute);
+  cursor: help;
+  flex-shrink: 0;
 }
 
 .maker-surface__msg { font-size: 0.78em; }
@@ -452,11 +485,24 @@ export default defineComponent({
 }
 
 @media (max-width: 900px) {
+  // Stacked = plain block flow, NOT a one-column grid: the editor's
+  // vh min-height doesn't count into a grid row's intrinsic size, so the
+  // refs row landed on top of the note's overflow. Block never does that.
   .maker-surface__body,
   .maker-surface.is-embed .maker-surface__body {
-    grid-template-columns: 1fr;
+    display: block;
     overflow-y: auto;
   }
+  .maker-surface__refs { margin-top: 12px; }
   .maker-surface__note { min-height: 200px; }
+}
+
+// Phones (keep in sync with MOBILE_MQ in stores/windows.js): everything
+// stacks vertically — title, pickers, editor, refs — and the editor is the
+// piece that gets the room (#675). The hint would fight the buttons for a
+// 375px row; the help tooltip carries the doctrine instead.
+@media (max-width: 600px) {
+  .maker-surface__note { min-height: 48vh; }
+  .maker-surface__hint { display: none; }
 }
 </style>
