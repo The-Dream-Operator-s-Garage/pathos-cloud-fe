@@ -1,5 +1,5 @@
 <template>
-  <q-footer class="nav-footer">
+  <q-footer class="nav-footer" :class="{ 'nav-footer--underlaid': underlaid }">
 
     <div class="nav-bar">
 
@@ -205,6 +205,13 @@ export default defineComponent({
     const chatStore = useChatStore()
     const events = useEventsStore()
 
+    // ── The ONE route the bar gives way to (2026-08-02) ──────
+    // /feed's column runs to the window's bottom edge on desktop and hovers
+    // OVER this bar (FeedPage.vue). Since nothing may climb over the bar's
+    // 3110 without slicing the docks, the bar itself steps down there — see
+    // the `.nav-footer--underlaid` note in the style block below.
+    const underlaid = computed(() => route.path === '/feed')
+
     // ── Chat window toggle (footer-button semantics) ─────────
     const chatExpanded = computed(() => chatStore.isOpen && !chatStore.isMinimized)
     const toggleChat = () => {
@@ -360,7 +367,8 @@ export default defineComponent({
       chatExpanded,
       toggleChat,
       events,
-      parkedTabs
+      parkedTabs,
+      underlaid
     }
   }
 })
@@ -398,6 +406,30 @@ export default defineComponent({
   z-index: 3110;
   background: transparent !important;
   box-shadow: none !important;
+}
+
+// ── …EXCEPT ON /feed, WHERE THE FEED COLUMN STANDS ON IT (2026-08-02) ──
+// The feed's blue-grey column runs to the window's bottom edge on desktop
+// and hovers over this bar's plaque (FeedPage.vue's `min-width: 1024px`
+// block). Something has to give way for that, and it is THIS BAR, not the
+// container: raising the container over 3110 instead would put it over every
+// dock (3010+) too — the chat dock is 74vw wide and would be sliced in half
+// by the column on this very page — while dropping the bar under the
+// container's 3001 changes exactly one relationship and leaves the rest of
+// the sandwich (docks, drawer, side widgets, minitab strip, both frieze
+// bands) untouched. Nothing else overlaps the bar's box, so 2999 costs only
+// what 3110 bought: on /feed the bar can once again catch a dock's or the
+// drawer's drop shadow across its plaque.
+//
+// The minitab strip is unaffected — it is a lifted sibling OUTSIDE the
+// footer (see its note below), so it keeps its own 3045.
+//
+// Desktop only, matching the page: below 1024px the feed still stops at this
+// bar's top edge and the bar stays the topmost chrome.
+@media (min-width: 1024px) {
+  .nav-footer.nav-footer--underlaid {
+    z-index: 2999;
+  }
 }
 
 // ── Minitab strip — ON the frieze footer band itself (2026-07-27; it stood
