@@ -146,6 +146,8 @@ export default defineComponent({
 // margin-top cancels q-page-container's `padding-top: var(--frieze-h)`, so
 // the track — and the container in it — start at y=0 and run UP OVER the
 // fixed crown strip instead of beginning below it.
+// (DESKTOP ONLY it runs one --nav-footer-h LOWER than this — see the
+// `min-width: 1024px` block at the end of this file.)
 .feed-page {
   height: calc(100vh - var(--nav-footer-h));
   margin-top: calc(-1 * var(--frieze-h));
@@ -306,6 +308,50 @@ export default defineComponent({
   // and the pinned stack/pins column (3100), the two surfaces that overlap
   // everything on this page.
   z-index: 3002;
+}
+
+// ── DESKTOP: THE COLUMN RUNS TO THE WINDOW'S BOTTOM EDGE (2026-08-02) ──
+// The page's slot stopped at the nav bar's TOP edge, so the feed column ended
+// there too. On desktop it now runs the FULL 100vh and HOVERS OVER the bar:
+// the last --nav-footer-h of the column stands on the bar's plaque, and the
+// stream scrolls through it, so the box reads as one uninterrupted column
+// from the crown strip to the floor instead of a panel sitting on a shelf.
+//
+// Two halves make that work, and the second one is NOT here:
+//
+//  1. GEOMETRY (this block). `height: 100vh` grows the box by exactly the
+//     bar's height, and the matching NEGATIVE `margin-bottom` takes those
+//     48px back OUT OF FLOW — without it the page container (which pads its
+//     bottom by the fixed footer's height) would be taller than the window
+//     and hand it a vertical scrollbar, the very thing `pageStyleFn` exists
+//     to prevent. Same trick as `margin-top` above, at the other end.
+//
+//  2. PAINT ORDER (NavigationBar.vue). The bar is the topmost fixed chrome
+//     at z 3110 — raised there on 2026-08-02 so no panel's drop shadow could
+//     wash over its plaque — and the feed container is 3001, so growing the
+//     box alone would just hide its new strip behind the bar. The container
+//     deliberately does NOT climb over 3110 to fix that: every dock (3010+,
+//     and the chat dock is 74vw wide) would then be sliced by this column.
+//     Instead the BAR drops below the container ON THIS ROUTE ONLY
+//     (`.nav-footer--underlaid`, same breakpoint) — the one change that
+//     leaves every other layer of the sandwich exactly as it was.
+//
+// Mobile keeps the shelf: the bar is the only chrome down there and covering
+// it with the feed would put post cards under the thumb that opens the menu.
+@media (min-width: 1024px) {
+  .feed-page {
+    height: 100vh;
+    margin-bottom: calc(-1 * var(--nav-footer-h));
+  }
+
+  // The flyout stays exactly where it was — BETWEEN the two bands. Its
+  // `bottom` resolves against the page's box, which just grew a nav bar
+  // taller, so the inset has to name the bar as well to hold still. (The box
+  // has no business over the bar: it is a reading surface, not the column
+  // this change is about.)
+  .feed-flyout {
+    bottom: calc(var(--nav-footer-h) + var(--frieze-h) + var(--flyout-gap));
+  }
 }
 
 // It arrives from the right — the direction it lives in, so the motion says
