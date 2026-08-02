@@ -3,115 +3,46 @@
 
     <div class="nav-bar">
 
-      <!-- ── LEFT: drawer toggle + identity actions ── -->
+      <!-- ── LEFT: the drawer column continued down through the bar. The
+           burger is the pin tack's MIRROR TWIN (2026-08-02): same 42px slot
+           (--dock-rail-w less the hairline that closes it), same darker
+           brown-4 coat, same 28px inverted-brown circle floating centred in
+           it — so the left edge reads as one uninterrupted column running
+           from the drawer's own mini rail down into the bar, exactly as the
+           pinned column does on the right. Identity actions (profile,
+           logout) are GONE from the bar: the drawer's own profile block is
+           where the acting identity lives now. ── -->
       <div class="nav-left">
-        <q-btn push no-caps class="nav-btn" title="Menu" @click="$emit('toggle-drawer')">
-          <q-icon name="menu" size="16px" />
-        </q-btn>
-        <q-btn push no-caps class="nav-btn" title="Profile" @click="goToProfile">
-          <!-- Mask icon while acting as an alter-ego — the internal log-in
-               should be visible at a glance. -->
-          <q-icon :name="isAlterEgo ? 'theater_comedy' : 'person_outline'" size="16px" />
-          <q-tooltip>{{ user?.display_name || user?.username || 'Profile' }}</q-tooltip>
-        </q-btn>
-        <q-btn push no-caps class="nav-btn" title="Logout" @click="handleLogout">
-          <q-icon name="logout" size="16px" />
-        </q-btn>
+        <div class="burger-slot">
+          <q-btn
+            round unelevated no-caps
+            class="burger-btn"
+            @click="$emit('toggle-drawer')"
+          >
+            <!-- Open → the classic horizontal burger with its closing arrow.
+                 COLLAPSED → the SAME burger stood on END, a quarter turn of
+                 the identical glyph rather than a different icon: the drawer
+                 it opens is a vertical column, and the mark states that
+                 column's posture. (`view_week`'s three vertical bars were
+                 tried first and read as a pause button.) -->
+            <q-icon
+              :name="drawerOpen ? 'menu_open' : 'menu'"
+              size="15px"
+              :class="{ 'burger-glyph--upright': !drawerOpen }"
+            />
+            <q-tooltip>{{ drawerOpen ? 'Collapse the menu' : 'Expand the menu' }}</q-tooltip>
+          </q-btn>
+        </div>
       </div>
 
-      <!-- ── CENTER: nav controls + path info ── -->
-      <div class="nav-center">
-        <div class="nav-gap" />
-
-        <!-- Primary navigation -->
-        <div class="btn-group">
-          <q-btn
-            push no-caps
-            class="nav-btn"
-            :disable="!canGoBack"
-            title="Back"
-            @click="back"
-          >
-            <q-icon name="arrow_back" size="16px" />
-          </q-btn>
-
-          <q-btn
-            push no-caps
-            class="nav-btn"
-            :disable="!canGoForward"
-            title="Forward"
-            @click="forward"
-          >
-            <q-icon name="arrow_forward" size="16px" />
-          </q-btn>
-        </div>
-
-        <div class="nav-divider" />
-
-        <!-- Checkpoint navigation -->
-        <div class="btn-group">
-          <q-btn
-            push no-caps
-            class="nav-btn checkpoint-btn"
-            :disable="!canCheckpointBack"
-            title="Previous checkpoint"
-            @click="checkpointBack"
-          >
-            <q-icon name="arrow_back" size="13px" />
-            <q-icon name="flag" size="13px" />
-          </q-btn>
-
-          <q-btn
-            push no-caps
-            class="nav-btn checkpoint-btn"
-            :class="{ active: isCurrentCheckpoint }"
-            title="Toggle checkpoint"
-            @click="toggleCheckpoint"
-          >
-            <q-icon :name="isCurrentCheckpoint ? 'flag' : 'outlined_flag'" size="16px" />
-          </q-btn>
-
-          <q-btn
-            push no-caps
-            class="nav-btn checkpoint-btn"
-            :disable="!canCheckpointForward"
-            title="Next checkpoint"
-            @click="checkpointForward"
-          >
-            <q-icon name="flag" size="13px" />
-            <q-icon name="arrow_forward" size="13px" />
-          </q-btn>
-        </div>
-
-        <div class="nav-divider" />
-
-        <!-- Path info -->
-        <div class="nav-path-info">
-          <span class="step-indicator" v-if="stepLabel">{{ stepLabel }}</span>
-
-          <span v-if="checkpointCount > 0" class="checkpoint-indicator">
-            <q-icon name="flag" size="11px" class="q-mr-xs" />{{ checkpointCount }}
-          </span>
-
-          <div class="nav-divider-v" />
-
-          <span class="current-title" :class="'type-' + (current?.type || 'page')">
-            <q-icon :name="typeIcon(current?.type)" size="12px" class="q-mr-xs" style="opacity:.6;" />
-            {{ current?.title || '—' }}
-          </span>
-        </div>
-
-        <!-- Checkpoint tooltip list -->
-        <div v-if="checkpointCount > 0" class="checkpoint-list" :class="{ visible: showCheckpoints }"
-          @mouseenter="showCheckpoints = true" @mouseleave="showCheckpoints = false">
-          <div v-for="(entry, i) in checkpointEntries" :key="i"
-            class="checkpoint-list-item"
-            @click="jumpToCheckpoint(entry)">
-            <q-icon name="flag" size="11px" class="q-mr-xs text-accent" />
-            <span>{{ entry.title }}</span>
-          </div>
-        </div>
-      </div>
+      <!-- ── CENTER: deliberately EMPTY (2026-08-02). The back/forward pair,
+           the checkpoint trio, the step + current-title readout and the
+           checkpoint dropdown all lived here; they are gone. Navigation
+           history is reached through the drawer's Back button and the stack
+           widget on the right edge, and the current element names itself on
+           the page. What is left is the slack that pushes the right cluster
+           to its edge. ── -->
+      <div class="nav-center" />
 
       <!-- ── RIGHT: chat · create bundle · pin tack. The tack anchors the far
            corner directly BENEATH the pinned-list side panel (which now docks
@@ -137,8 +68,10 @@
           title="Chats — private conversations"
           @click="toggleChat"
         >
-          <q-icon name="forum" size="15px" />
-          <span class="chat-btn-label">chat</span>
+          <!-- Icon ONLY (2026-08-02): the word "chat" said nothing the forum
+               glyph does not, and the bar has to hold this cluster inside a
+               375px screen. The title/tooltip carries the name. -->
+          <q-icon name="forum" size="16px" />
           <q-badge
             v-if="events.unreadCount > 0"
             floating color="amber-9" text-color="black"
@@ -197,24 +130,24 @@
     </div>
   </q-footer>
 
-  <!-- ── The bar's top-edge cast, lifted OUT of the footer's stacking context
-       (2026-07-25). A shadow written on `.nav-bar` cannot be seen: `.nav-footer`
-       is z 2600, which makes it a stacking context, and two opaque surfaces
-       stand on this very edge above that number — the frieze band (3000, at
-       `bottom: var(--nav-footer-h)`) and the feed container (3001, whose track
-       is `height: calc(100vh - var(--nav-footer-h))`, so its bottom edge lands
-       on the same line). This box traces the bar and carries the cast alone, at
-       a z-index that clears both. Decorative, pointer-events none. -->
-  <div class="nav-top-shadow" aria-hidden="true" />
+  <!-- ── There is NO `.nav-top-shadow` box here anymore (2026-08-02, user
+       ask: "remove any effects or overlayers on top of the nav bar — its
+       color differs from the left drawer color"). The bar and the drawer are
+       the same `--brown-1`; what made them read as different materials was
+       everything CASTING onto the bar, and that box was one of them. The
+       whole family is gone — see the `.nav-footer` z-index note in the style
+       block for the one change that stops the rest. ── -->
 
   <!-- ── Minitab strip: the minimized maker/uploader/builders/chat park here
        as folder tabs standing ON the frieze footer band (2026-07-27). It
-       lives OUTSIDE the q-footer for the same reason `.nav-top-shadow` above
-       does: the footer is a z-2600 stacking context and the band is opaque
-       at 3000, so nothing inside the footer can ever paint over it — the
-       strip is a lifted sibling instead, fixed at the bar's top edge with a
-       z that clears the band AND the expanded docks (taskbar semantics: a
-       parked tab stays clickable under an open window). The stack/pins side
+       lives OUTSIDE the q-footer for the reason the deleted
+       `.nav-top-shadow` box did: the footer WAS a z-2600 stacking context
+       and the band is opaque at 3000, so nothing inside the footer could
+       ever paint over it — the strip is a lifted sibling instead, fixed at
+       the bar's top edge with a z that clears the band AND the expanded
+       docks (taskbar semantics: a parked tab stays clickable under an open
+       window). The footer outranks the band now (3110), but the strip stays
+       lifted: 3045 is what keeps it over every dock and under the drawer. The stack/pins side
        panels narrow to thin icon columns on the right edge instead
        (StackPanel/PinsDrawer `is-parked`). ── -->
   <div class="minitab-strip" :style="{ right: minitabRight }">
@@ -238,9 +171,7 @@
 
 <script>
 import { defineComponent, ref, computed, watch, onMounted } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
-import { useNavStore } from 'src/stores/navigation'
-import { useAuthStore } from 'src/stores/auth'
+import { useRoute } from 'vue-router'
 import { useWindowsStore } from 'src/stores/windows'
 import { useMakerStore, draftLabel } from 'src/stores/maker'
 import { useUploaderStore, uploadLabel } from 'src/stores/uploader'
@@ -249,7 +180,6 @@ import { useLabelMakerStore } from 'src/stores/labelMaker'
 import { useChatStore } from 'src/stores/chat'
 import { useEventsStore } from 'src/stores/events'
 import { pinService } from 'src/services/pin.service'
-import { typeIcon } from './navTypeIcons'
 import GlobalSearch from 'src/components/shared/GlobalSearch.vue'
 
 export default defineComponent({
@@ -259,13 +189,14 @@ export default defineComponent({
   props: {
     // Increment to force a pin-state refresh from the parent (e.g. after the
     // PinsDrawer unpins something so the tack indicator updates).
-    pinsRefreshKey: { type: Number, default: 0 }
+    pinsRefreshKey: { type: Number, default: 0 },
+    // The left drawer's own v-model, routed back down so the burger can
+    // state the column's posture (open = horizontal burger + closing arrow,
+    // collapsed = the burger stood on end).
+    drawerOpen: { type: Boolean, default: false }
   },
   setup (props, { emit }) {
-    const router = useRouter()
     const route = useRoute()
-    const navStore = useNavStore()
-    const authStore = useAuthStore()
     const windows = useWindowsStore()
     const makerStore = useMakerStore()
     const uploaderStore = useUploaderStore()
@@ -338,45 +269,12 @@ export default defineComponent({
     // Re-check when parent signals a pin-list mutation (e.g. unpin from drawer).
     watch(() => props.pinsRefreshKey, refreshPinState)
 
-    const user = computed(() => authStore.user)
-    const isAlterEgo = computed(() => authStore.isActingAsAlterEgo)
-
-    // "Profile" is just the logged-in user's entity view. No separate page.
-    const goToProfile = () => {
-      const id = authStore.user?.id
-      if (id) router.push('/entities/' + id)
-    }
-    const handleLogout = () => {
-      authStore.logout()
-      router.push('/auth')
-    }
-
-    const showCheckpoints = ref(false)
-
-    const canGoBack = computed(() => navStore.canGoBack)
-    const canGoForward = computed(() => navStore.canGoForward)
-    const canCheckpointBack = computed(() => navStore.canCheckpointBack)
-    const canCheckpointForward = computed(() => navStore.canCheckpointForward)
-    const isCurrentCheckpoint = computed(() => navStore.isCurrentCheckpoint)
-    const current = computed(() => navStore.current)
-    const stepLabel = computed(() => navStore.stepLabel)
-    const checkpointCount = computed(() => navStore.checkpointIndices.length)
-    const checkpointEntries = computed(() => navStore.checkpointEntries)
-
-    const back = () => navStore.back(router)
-    const forward = () => navStore.forward(router)
-    const toggleCheckpoint = () => navStore.toggleCheckpoint()
-    const checkpointBack = () => navStore.checkpointBack(router)
-    const checkpointForward = () => navStore.checkpointForward(router)
-
-    // Jumps route through the store so return-marking (the yellow halo on
-    // the element you came back from) and persistence both fire.
-    const jumpToCheckpoint = (entry) => {
-      const idx = navStore.history.findIndex(h => h.route === entry.route && h.timestamp === entry.timestamp)
-      if (idx < 0) return
-      navStore.jumpTo(idx, router)
-      showCheckpoints.value = false
-    }
+    // ── The bar carries NO identity actions since 2026-08-02: profile and
+    // logout both moved into the left drawer, whose own profile block states
+    // the acting identity (and wears a mask chip while acting as an
+    // alter-ego). The whole navigation section — back/forward, checkpoints,
+    // the step + current-title readout — went with them; navStore is not
+    // read here anymore. ──
 
     // ── Pins/stack windows live in the windows store and have NO footer
     // button anymore — both dock flush to the top edge and are reached via
@@ -454,31 +352,10 @@ export default defineComponent({
     })
 
     return {
-      user,
-      isAlterEgo,
-      goToProfile,
-      handleLogout,
       pinnable,
       isCurrentPinned,
       pinsCount,
       onTackClick,
-      canGoBack,
-      canGoForward,
-      canCheckpointBack,
-      canCheckpointForward,
-      isCurrentCheckpoint,
-      current,
-      stepLabel,
-      checkpointCount,
-      checkpointEntries,
-      showCheckpoints,
-      typeIcon,
-      back,
-      forward,
-      toggleCheckpoint,
-      checkpointBack,
-      checkpointForward,
-      jumpToCheckpoint,
       minitabRight,
       chatExpanded,
       toggleChat,
@@ -501,10 +378,24 @@ export default defineComponent({
   bottom: 0 !important;
   left: 0 !important;
   right: 0 !important;
-  // The bar's own layer. The parked minitabs no longer ride it — the docks
-  // moved above the feed container (z 3010+, stores/windows.js), so taskbar
-  // semantics now live on the lifted `.minitab-strip` sibling (z 3045).
-  z-index: 2600;
+  // ── THE BAR IS THE TOPMOST FIXED CHROME (2026-08-02) ──
+  // It sat at 2600 for a year, under everything, and that ONE number is why
+  // the bar never looked like the drawer it is painted the same colour as:
+  // nothing OVERLAPS the bar's box (the drawer, the frieze band, the pins/
+  // stack widgets and the creation docks all stop at `bottom:
+  // var(--nav-footer-h)`, which is this bar's top edge) — but every one of
+  // them casts a DROP SHADOW that spills across that line, and at z 2600 the
+  // bar received all of it: the maker/uploader dock's `0 12px 38px` at 45%
+  // black straight down its whole width, the drawer's `6px 0 22px` reaching
+  // ~11px below its own bottom, the pins widget's `0 -10px 40px` reaching
+  // ~10px. Three overlapping washes on an otherwise flat brown-1 plaque.
+  //
+  // Raising the bar above all of them is the whole fix, and it is safe
+  // precisely BECAUSE nothing overlaps its box — the bar covers no panel, it
+  // only stops being painted on. 3110 clears the side widgets (3100), the
+  // drawer (3050), the minitab strip (3045), every dock (3010+), the feed
+  // container (3001) and the frieze bands (3000).
+  z-index: 3110;
   background: transparent !important;
   box-shadow: none !important;
 }
@@ -545,11 +436,12 @@ export default defineComponent({
   background: var(--brown-1);
   color: var(--ink-1);
   cursor: pointer;
-  // A slight cast onto the frieze band the tab now stands over (2026-07-27)
-  // — soft and tight, so the tab reads as lying ON the band rather than
-  // painted into it. The band's own carve is busy, which is why the reach
-  // stays short.
-  box-shadow: 0 2px 8px rgba(var(--ink-rgb-deep), 0.28);
+  // NO CAST (2026-08-02, user ask). It wore `0 2px 8px` onto the frieze band
+  // it stands over, and that DOWNWARD reach — at the bar's own top edge —
+  // is exactly what made a parked tab look like it hovers above the bar
+  // instead of being attached to it. A folder tab is stuck to its drawer;
+  // the shared brown-1 face and the border are what say so.
+  box-shadow: none;
   transition: background 0.12s;
 
   &:hover {
@@ -592,7 +484,11 @@ export default defineComponent({
 
 .nav-bar {
   display: grid;
-  grid-template-columns: auto 1fr auto;
+  // minmax(0, 1fr) for the slack track, NOT a bare 1fr: an `auto` minimum
+  // would let the middle claim its content's min-width and squeeze the two
+  // edge clusters — the rail blocks at the ends are the last thing on this
+  // bar allowed to move (2026-08-02, mobile pass).
+  grid-template-columns: auto minmax(0, 1fr) auto;
   // STRETCH, not center — each section fills the bar's full height so its
   // hairline (section border or `.nav-divider`) touches the top and bottom
   // edges with no vertical inset. The sections center their own buttons.
@@ -613,10 +509,8 @@ export default defineComponent({
   // border-right and this edge all share the raw brown-3 hex again. (The
   // brown-4 frame the bar used to keep survives at the tack slot's block.)
   border-top: 1px solid var(--brown-3);
-  // NO box-shadow here — a cast written on this box is invisible (it cannot
-  // leave `.nav-footer`'s z-2600 stacking context, and the frieze band and the
-  // feed container both stand on this edge above that). It lives in
-  // `.nav-top-shadow` at the end of this file instead.
+  // NO box-shadow here, and no cast anywhere on this bar anymore
+  // (2026-08-02) — see the `.nav-footer` z-index note above.
   // Exact height — the pinned column and the drawer sit at
   // bottom: var(--nav-footer-h), so the bar must fill that space precisely
   // for their edges to merge. (The creation docks and the minitab strip
@@ -633,102 +527,28 @@ export default defineComponent({
 
 // ── Three sections ─────────────────────────────────────────
 // Each is a full-height grid cell (the bar stretches them) that centers its own
-// buttons, so the section borders below run the WHOLE bar height. Side padding
-// is trimmed to a hair — `.nav-right` has none on its right at all, so the tack
-// sits flush against the screen edge under the parked pinned column.
+// buttons, so the section borders below run the WHOLE bar height. NEITHER edge
+// section carries an outside inset anymore: the tack sits flush against the
+// right screen edge under the parked pinned column, and the burger sits flush
+// against the left one under the drawer's mini rail.
 .nav-left, .nav-right {
   display: flex;
   align-items: center;
 }
-.nav-left  { gap: 4px; padding: 0 6px 0 4px; border-right: 1px solid var(--brown-3); }
-.nav-right { gap: 8px; padding-left: 6px;    border-left:  1px solid var(--brown-3); }
+.nav-left  { gap: 0; padding: 0;         border-right: 1px solid var(--brown-3); }
+.nav-right { gap: 8px; padding-left: 6px; border-left:  1px solid var(--brown-3); }
 
-.nav-center { display: flex; align-items: center; gap: 8px; padding: 0 6px; min-width: 0; }
-.nav-gap    { flex: 1; min-width: 0; }
+// The middle is now pure slack — no content, no padding, just the 1fr track
+// that holds the two edge clusters apart.
+.nav-center { min-width: 0; }
 
-.btn-group   { display: flex; align-items: center; gap: 4px; }
 // Every inner hairline on the bar is brown-3 and spans the FULL bar height
-// (`align-self: stretch`, no fixed height) — the section borders above, these
-// dividers and the nested `.nav-divider-v` all carry that ONE lighter ink
-// (2026-07-24, a step up from brown-4), so the lines drawn INSIDE the bar read
-// softer than the brown-4 edges that bound it: the bar's own `border-top` and
-// the tack slot's left edge, where the parked pinned column lands.
+// (`align-self: stretch`, no fixed height) — the section borders above and
+// these dividers all carry that ONE lighter ink (2026-07-24, a step up from
+// brown-4), so the lines drawn INSIDE the bar read softer than the brown-4
+// edges that bound it: the bar's own `border-top` and the two rail blocks at
+// its ends, where the drawer's mini column and the parked pinned column land.
 .nav-divider { width: 1px; align-self: stretch; background: var(--brown-3); flex-shrink: 0; }
-
-// Checkpoint button — lemon flag accent (DIFFERENT semantic from coral
-// tack), retuned to the playground's neon-lemon family on the brown-1 plaque.
-.nav-bar .nav-btn.checkpoint-btn {
-  color: var(--ink-2);
-
-  &:hover:not(.disabled) {
-    color: var(--ink-1);
-    background:
-      linear-gradient(rgba(254, 255, 153, 0.55), rgba(254, 255, 153, 0.55)),
-      #f1f8e9;
-  }
-
-  // The active flag lights lemon; Quasar's push preset supplies the 3D lip,
-  // so only the lemon glow remains — no fake surface-4 ledge.
-  &.active {
-    color: var(--ink-1);
-    background: var(--neon-lemon);
-    box-shadow: 0 0 10px rgba(254, 255, 153, 0.55);
-  }
-}
-
-// ── Path info ────────────────────────────────────────────────
-// Stretched to the full bar height so the hairline INSIDE it can reach both
-// edges too; its own text children stay vertically centered.
-.nav-path-info { display: flex; align-items: center; align-self: stretch; gap: 8px; flex: 1; min-width: 0; overflow: hidden; }
-
-.step-indicator       { font-family: var(--font-mono); font-size: 0.72em; color: var(--ink-2); white-space: nowrap; }
-.checkpoint-indicator { display: inline-flex; align-items: center; font-size: 0.72em; color: var(--ink-2); white-space: nowrap; cursor: pointer; }
-.nav-divider-v        { width: 1px; align-self: stretch; background: var(--brown-3); flex-shrink: 0; }
-
-.current-title {
-  font-size: 0.78em;
-  color: var(--ink-1);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  display: inline-flex;
-  align-items: center;
-
-  &.type-node  { color: var(--ink); }
-  &.type-label { color: #00829c; }   // deep aqua — matches LABEL palette
-  &.type-post  { color: #9a63b8; }   // deep plum — matches POST palette
-  &.type-feed  { color: var(--ink-soft); }
-}
-
-// ── Checkpoint dropdown list ─────────────────────────────────
-.checkpoint-list {
-  position: absolute;
-  bottom: calc(100% + 4px);
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(255, 255, 255, 0.78);
-  border: 1px solid rgba(var(--coral-rgb), 0.35);
-  border-radius: var(--radius-md);
-  min-width: 200px;
-  max-width: 340px;
-  padding: 6px;
-  display: none;
-  z-index: 100;
-  box-shadow: var(--shadow-card);
-  backdrop-filter: blur(4px);
-
-  &.visible { display: block; }
-}
-.checkpoint-list-item {
-  display: flex;
-  align-items: center;
-  padding: 5px 8px;
-  border-radius: 5px;
-  font-size: 0.8em;
-  color: var(--coral-deep);
-  cursor: pointer;
-  &:hover { background: rgba(var(--coral-rgb), 0.12); }
-}
 
 // Chat — the conversation window's button. Aqua treatment on purpose:
 // this is where entities talk, not another maker pebble.
@@ -748,7 +568,6 @@ export default defineComponent({
     border-color: rgba(var(--ink-rgb-deep), 0.50);
   }
 }
-.chat-btn-label { font-size: 0.95em; }
 
 // ── Button bundles (Quasar q-btn-group push) — light-blue-1 pebbles.
 // Quasar's push preset paints the 3D bottom lip AND the press animation
@@ -769,6 +588,33 @@ export default defineComponent({
   }
 }
 
+// ── The two RAIL BLOCKS at the bar's ends ───────────────────
+// One grammar, mirrored (2026-08-02). Each is its side's column continued
+// down through the bar — the drawer's 42px mini rail on the left, the parked
+// pinned column on the right — so the window is bounded by two matching
+// vertical strips that run from the crown strip to the bottom of the screen.
+// Both wear the columns' darker brown-4 coat instead of the bar's brown-1
+// plaque, and both are exactly --dock-rail-w wide COUNTING the hairline that
+// closes them (hence the `- 1px`) — the left block + `.nav-left`'s
+// `border-right` = 42px, the same 42px `q-drawer` gets from `:mini-width`, so
+// the drawer's rail and this block share both edges to the pixel.
+//
+// NEITHER CASTS A SHADOW ANYMORE (2026-08-02). They wore the shared
+// `--shadow-side-edge` (the burger's mirrored, x-offset sign flipped) to read
+// as raised strips lying on the bar — but an inward cast is ink painted onto
+// the plaque right where it meets the block, which both darkened the bar and
+// made each 41px block read ~5px wider than the 42px column above it. The
+// blocks are flat now and state their edges with tone alone.
+.burger-slot, .tack-slot {
+  width: calc(var(--dock-rail-w) - 1px);
+  flex: 0 0 auto;                          // never compressed, at any width
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  justify-content: center;                 // the chip floats centred, padded both sides
+  background: var(--brown-4);
+}
+
 // ── Pin tack ────────────────────────────────────────────────
 // The SLOT is the parked pinned column continued down through the bar: the
 // hairline before it + this box add up to exactly `--dock-rail-w` (42px) flush
@@ -784,25 +630,17 @@ export default defineComponent({
 // raised strip. `position: relative` + z-index keep that cast above the bar's
 // own plaque and the create bundle beside it.
 .tack-slot {
-  width: calc(var(--dock-rail-w) - 1px);   // rail width less that 1px hairline
   margin-left: -8px;                       // cancel .nav-right's gap — butt against it
-  align-self: stretch;
-  display: flex;
-  align-items: center;
-  justify-content: center;                 // the tack floats centred, padded both sides
-  position: relative;
-  z-index: 1;
-  background: var(--brown-4);
-  box-shadow: var(--shadow-side-edge);
 }
 
-// The tack itself is a small CIRCLE (the same 28px box the parked column's
+// The chip itself is a small CIRCLE (the same 28px box the parked column's
 // chips wear, so it reads as one of them) with no inner padding, floating in
-// that slot. Skin is the drawer's Back button, NOT Quasar's push preset:
+// its slot. Skin is the drawer's Back button, NOT Quasar's push preset:
 // a flat inverted brown chip — solid brown-8 fill, matching brown-8 rim so
-// there is no contrasting outline, brown-1 pushpin, a hairline inset highlight
-// along the top, and a brown-7 lift on hover.
-.nav-bar .tack-btn {
+// there is no contrasting outline, brown-1 glyph, a hairline inset highlight
+// along the top, and a brown-7 lift on hover. The burger wears it too.
+.nav-bar .tack-btn,
+.nav-bar .burger-btn {
   width: 28px;
   height: 28px;
   min-width: 28px;
@@ -839,6 +677,21 @@ export default defineComponent({
   }
 }
 
+// The quarter turn that stands the burger on end while the drawer is
+// collapsed. The shared chip rule above already transitions `transform` on
+// `.q-icon` (it is what tips the pushpin), so toggling the drawer ROTATES
+// the mark rather than swapping it — the two icons share the three-bar
+// figure, so `menu_open` lands on the same shape mid-turn.
+.nav-bar .burger-btn .burger-glyph--upright {
+  transform: rotate(90deg);
+}
+
+// The burger does NOT invert the way the tack does. The tack's pale face
+// states a fact about the PAGE (this element is pinned) that nothing else on
+// screen carries; the drawer's own presence states its state already, and a
+// permanently pale chip on the left would break the twinning the whole block
+// exists for. The glyph alone says which way the toggle goes.
+
 // Create bundle — aqua accent, same grammar as before the bundling.
 .create-bundle {
   :deep(.create-btn) {
@@ -867,37 +720,55 @@ export default defineComponent({
   letter-spacing: 0;
 }
 
-// ── Top-edge cast ──────────────────────────────────────────
-// A VERY subtle shadow off the bar's `border-top`, and nothing else: this box
-// has no background, no border and no content.
+// ── The top-edge cast is GONE (2026-08-02) ─────────────────
+// `.nav-top-shadow` — the lifted transparent sibling box that traced the bar
+// at z 3040 to throw a ~9px cast upward — is deleted along with every other
+// effect touching this bar. The bar's `border-top` states the edge on its
+// own, and the bar now reads as the same flat material as the left drawer,
+// which is the point.
+
+// ── MOBILE (2026-08-02) ────────────────────────────────────
+// Kept in sync with the 600px breakpoint in `css/_components.scss` and
+// MOBILE_MQ in `stores/windows.js`. The bar has ONE job at 375px: hold both
+// rail blocks at their full 42px — they are the ONLY way to reach the drawer
+// (burger) and to pin the page (tack) on a phone, since the stack/pins side
+// widgets are hidden at this width — and fit the middle cluster beside them
+// without a single button riding over another.
 //
-// It is a SIBLING of `.nav-footer`, not a child, because that footer's z 2600
-// makes it a stacking context — a cast from inside it tops out at 2600 and both
-// surfaces it must fall on sit higher and are opaque, so it is simply never
-// seen. Here it is 3040, which lands it:
-//   OVER   the frieze footer band (3000) — the band the shadow falls on for
-//          every page but /feed
-//   OVER   the feed container (3001) — on /feed the container's bottom edge
-//          lands on this same line and covers the band, so the cast lands on
-//          the blue-grey plaque instead
-//   UNDER  the left drawer (3050) and the pinned column (3100), which also
-//          stand on the bar's top edge; they keep their own clean bottom, the
-//          same deal they already have with the band.
-//
-// The box traces the bar EXACTLY (bottom 0, full width, --nav-footer-h tall)
-// and is transparent: an outer box-shadow paints only OUTSIDE the border box,
-// so the bar's own face is never darkened by the shadow standing over it, and
-// the left/right spill leaves the viewport. All that is left is the upward
-// reach. Tight and pale — ~9px at 0.16 — the top border should look like an
-// edge the page slides under, not a second band.
-.nav-top-shadow {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  width: 100vw;
-  height: var(--nav-footer-h);
-  z-index: 3040;
-  pointer-events: none;
-  box-shadow: 0 -2px 7px rgba(var(--ink-rgb-deep), 0.16);
+// The rail blocks are already `flex: 0 0 auto` and the slack track is
+// `minmax(0, 1fr)`, so the compression all happens in the right cluster:
+// every gap tightens, both hairline dividers drop (the cluster is short
+// enough here to read as one group without them), and each button loses its
+// side padding down to the icon plus a hair.
+@media (max-width: 600px) {
+  .nav-right {
+    gap: 4px;
+    padding-left: 3px;
+  }
+
+  // Both `.nav-divider`s live in `.nav-right`; nothing else on the bar uses
+  // one anymore.
+  .nav-divider { display: none; }
+
+  // Search + chat: square-ish icon pebbles.
+  .nav-bar .nav-btn {
+    min-width: 30px;
+    padding: 0 5px;
+  }
+
+  // The four create buttons — the widest thing in the cluster. 10px of side
+  // padding each is 80px of the screen spent on air.
+  .nav-bundle :deep(.q-btn) {
+    min-width: 30px;
+    padding: 0 5px;
+  }
+
+  // The tack butts against `.nav-right`'s gap, which just shrank.
+  .tack-slot { margin-left: -4px; }
+
+  // Parked tabs stand on the same band; a long draft title would otherwise
+  // run the strip off the left edge of a 375px screen.
+  .minitab { padding: 0 8px; }
+  .minitab__label { max-width: 9ch; }
 }
 </style>

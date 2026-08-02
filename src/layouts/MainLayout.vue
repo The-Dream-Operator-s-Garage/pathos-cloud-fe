@@ -5,9 +5,12 @@
          the corner); the page container pads down by --frieze-h below. -->
     <FriezeHeader />
 
-    <!-- mini-width 42 = --dock-rail-w: the collapsed drawer mirrors the
-         stack/pins parked column on the opposite edge, one rail each side. -->
-    <q-drawer v-if="!hideDrawer" v-model="drawer" show-if-above :mini="mini" :width="220" :mini-width="42"
+    <!-- mini-width = --dock-rail-w, READ FROM THE TOKEN rather than restated
+         (2026-08-02): the collapsed drawer mirrors the stack/pins parked
+         column on the opposite edge, AND the nav bar's burger block continues
+         this exact column down through the footer — three surfaces on one
+         number, so the number is fetched once instead of typed three times. -->
+    <q-drawer v-if="!hideDrawer" v-model="drawer" show-if-above :mini="mini" :width="220" :mini-width="drawerRailW"
       bordered class="pathos-drawer" @mouseover="mini = false" @mouseout="mini = true">
 
       <!-- The drawer starts at the very TOP-LEFT corner, OVER the fixed crown
@@ -80,14 +83,49 @@
           <FriezeBar class="drawer-frieze" />
           <q-item-label header class="drawer-section-header">IDENTITY</q-item-label>
 
-          <q-item clickable v-ripple @click="goToProfile" active-class="my-menu-link">
-            <q-item-section avatar><q-icon name="face_5" /></q-item-section>
-            <q-item-section>Profile</q-item-section>
+          <!-- PROFILE — a dense identity block, not a menu word (2026-08-02).
+               The nav bar's person/mask button and its logout button are gone;
+               this row is where the acting identity lives now, so it states
+               WHO you are with the same facts the feed card's author section
+               states: the face, the display name, the @handle underneath it.
+               Adapted to the drawer's brown plaque rather than the feed's
+               blue-grey card.
+
+               COLLAPSED (the 42px mini rail) Quasar keeps only the avatar
+               section, which is exactly the right reduction — the face IS the
+               identity at rail scale. Which is also why the mask chip floats
+               on the AVATAR and not beside the name: acting as an alter-ego
+               has to be visible in both drawer states. -->
+          <q-item clickable v-ripple class="drawer-profile-item" @click="goToProfile">
+            <q-item-section avatar>
+              <span class="drawer-profile-face">
+                <EntityAvatar :entity="user" :size="28" />
+                <span v-if="isAlterEgo" class="drawer-profile-mask">
+                  <q-icon name="theater_comedy" size="10px" />
+                  <q-tooltip anchor="center right" self="center left">
+                    Wearing a mask — acting as {{ profileName }}
+                  </q-tooltip>
+                </span>
+              </span>
+            </q-item-section>
+            <q-item-section class="drawer-profile-text">
+              <span class="drawer-profile-name">{{ profileName }}</span>
+              <span class="drawer-profile-handle mono">{{ profileHandle }}</span>
+            </q-item-section>
           </q-item>
 
           <q-item clickable v-ripple :to="'/organizations'" active-class="my-menu-link">
             <q-item-section avatar><q-icon name="reduce_capacity" /></q-item-section>
             <q-item-section>Organizations</q-item-section>
+          </q-item>
+
+          <!-- Logout followed the profile button off the nav bar: an action
+               belongs with the identity it ends — and it CLOSES the section,
+               below the destinations, so it is never something you land on
+               while scanning the list. -->
+          <q-item clickable v-ripple class="drawer-logout-item" @click="handleLogout">
+            <q-item-section avatar><q-icon name="logout" /></q-item-section>
+            <q-item-section>Log out</q-item-section>
           </q-item>
         </q-list>
       </q-scroll-area>
@@ -112,6 +150,7 @@
 
     <NavigationBar
       :pins-refresh-key="pinsRefreshKey"
+      :drawer-open="drawer"
       @toggle-drawer="drawer = !drawer"
       @open-maker="makerStore.open()"
       @open-uploader="uploaderStore.open()"
@@ -157,6 +196,7 @@ import FriezeBar from 'src/components/layout/FriezeBar.vue'
 import NavigationBar from 'src/components/layout/NavigationBar.vue'
 import PinsDrawer from 'src/components/layout/PinsDrawer.vue'
 import StackPanel from 'src/components/layout/StackPanel.vue'
+import EntityAvatar from 'src/components/entities/EntityAvatar.vue'
 import { useMakerStore } from 'src/stores/maker'
 import { useUploaderStore } from 'src/stores/uploader'
 import { useSkeletonBuilderStore } from 'src/stores/skeletonBuilder'
@@ -166,7 +206,7 @@ import { useEventsStore } from 'src/stores/events'
 
 export default defineComponent({
   name: 'MainLayout',
-  components: { MakerDock, UploaderDock, SkeletonBuilderDock, LabelMakerDock, ChatDock, FriezeHeader, FriezeFooter, FriezeBar, NavigationBar, PinsDrawer, StackPanel },
+  components: { MakerDock, UploaderDock, SkeletonBuilderDock, LabelMakerDock, ChatDock, FriezeHeader, FriezeFooter, FriezeBar, NavigationBar, PinsDrawer, StackPanel, EntityAvatar },
   setup () {
     const router = useRouter()
     const navStore = useNavStore()
@@ -183,6 +223,12 @@ export default defineComponent({
     // ones, and the nav bar's menu button toggles it as an overlay here.
     const drawer = ref(window.innerWidth > 1023)
     const mini = ref(true)
+    // The collapsed drawer's width IS `--dock-rail-w` — the same column the
+    // nav bar's `.burger-slot` continues below it and the stack/pins widgets
+    // park into on the far edge. Read the token so the two can never drift
+    // (a mismatch here shows as a step at the bottom-left corner).
+    const drawerRailW = parseInt(
+      getComputedStyle(document.documentElement).getPropertyValue('--dock-rail-w'), 10) || 42
     const hideDrawer = computed(() => !!router.currentRoute.value.meta?.hideDrawer)
     // Bumped by the drawer when it unpins something — NavigationBar watches
     // this to refresh the tack indicator state.
@@ -214,10 +260,28 @@ export default defineComponent({
       if (nodes?.length === 1 && nodes[0]?.id) router.push('/nodes/' + nodes[0].id)
     }
 
-    // "Profile" drawer item resolves to the logged-in user's entity view.
+    // ── The drawer's identity block ──────────────────────────
+    // Same two facts the feed card's author section states: `display_name`
+    // is what the USER_PROFILE says to call you, `username` is the handle
+    // underneath it — the address you can type back. Either may be missing,
+    // so each falls back to the other and finally to the entity id.
+    const user = computed(() => authStore.user)
+    const isAlterEgo = computed(() => authStore.isActingAsAlterEgo)
+    const profileName = computed(() =>
+      authStore.user?.display_name || authStore.user?.username || `entity #${authStore.user?.id}`)
+    const profileHandle = computed(() =>
+      authStore.user?.username ? `@${authStore.user.username}` : `entity #${authStore.user?.id}`)
+
+    // The profile row resolves to the logged-in user's entity view.
     const goToProfile = () => {
       const id = authStore.user?.id
       if (id) router.push('/entities/' + id)
+    }
+
+    // Logout moved off the nav bar into the drawer's IDENTITY section.
+    const handleLogout = () => {
+      authStore.logout()
+      router.push('/auth')
     }
 
     // Back button at the top of the drawer. window.history.state.position
@@ -240,7 +304,7 @@ export default defineComponent({
       useEventsStore().connect()
     })
 
-    return { drawer, mini, hideDrawer, makerStore, uploaderStore, skeletonBuilderStore, labelMakerStore, windows, pinsRefreshKey, onPostCreated, onUploaded, goToProfile, canGoBack, goBack }
+    return { drawer, mini, drawerRailW, hideDrawer, makerStore, uploaderStore, skeletonBuilderStore, labelMakerStore, windows, pinsRefreshKey, onPostCreated, onUploaded, user, isAlterEgo, profileName, profileHandle, goToProfile, handleLogout, canGoBack, goBack }
   }
 })
 </script>
@@ -352,6 +416,82 @@ aside.q-drawer {
     padding: 6px 14px 3px;
     min-height: 0;
     font-family: var(--font-display);
+  }
+
+  // ── Profile — the identity block (2026-08-02) ────────────
+  // The feed card's author section, re-coated for the drawer: the same
+  // face-over-two-lines figure, the same "name over @handle" rhythm, but
+  // drawn in brown-8 on the brown-1 plaque instead of the card's plum on
+  // blue-grey. It is a row of DATA that happens to be clickable, so it sits
+  // a hair taller than the menu rows around it and takes no active-class —
+  // there is no route it can be "on".
+  .drawer-profile-item {
+    min-height: 46px;
+  }
+
+  // The face + its mask chip. `position: relative` is the chip's anchor;
+  // the avatar's own rounded-square tile does the rest.
+  .drawer-profile-face {
+    position: relative;
+    display: inline-flex;
+    line-height: 0;
+  }
+
+  // MASK CHIP — floating on the face's bottom-right corner, the same corner
+  // a badge takes everywhere else on the platform. Inverted brown (brown-8
+  // fill, brown-1 glyph) so it reads at 14px against any generated avatar,
+  // with a brown-1 ring separating it from the tile underneath.
+  .drawer-profile-mask {
+    position: absolute;
+    right: -4px;
+    bottom: -4px;
+    width: 15px;
+    height: 15px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: var(--brown-8);
+    border: 1.5px solid var(--brown-1);
+    .q-icon { color: var(--brown-1) !important; opacity: 1; }
+  }
+
+  // Two stacked lines read as ONE stamp at 1.15 leading — any more and they
+  // break apart into two separate facts (the same figure the feed card's
+  // identity block is set at).
+  .drawer-profile-text {
+    line-height: 1.15;
+    min-width: 0;
+  }
+
+  .drawer-profile-name {
+    font-size: 0.92em;
+    font-weight: 700;
+    color: var(--brown-8);
+    max-width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  // The handle is the address you can type back — mono, quieter, never
+  // wider than the name above it.
+  .drawer-profile-handle {
+    font-size: 0.78em;
+    color: rgba(78, 52, 46, 0.62);   // brown-8 at reading-quiet strength
+    max-width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  // Logout — an action, not a destination, so it takes the Back button's
+  // muted register rather than a navigation row's. No inverted chip: one
+  // loud affordance per drawer, and that one is Back.
+  .drawer-logout-item {
+    color: rgba(78, 52, 46, 0.72);
+    .q-icon { opacity: 0.7; }
+    &:hover { color: var(--brown-8); .q-icon { opacity: 1; } }
   }
 
   // ── Back button — distinctive, pinned-top affordance ─────
