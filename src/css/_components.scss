@@ -652,10 +652,17 @@
   .stack-window,
   .pins-drawer { display: none; }
 
-  // Creation docks: the right-half footprint becomes the whole width
-  // (the shared --dock-gap of daylight kept on both sides).
+  // Creation docks: the whole screen below the crown strip (change
+  // request #675 — "make the tab occupy nearly all available space").
+  // The daylight gaps and rounded corners are desktop manners; on a
+  // phone every pixel of them is writing room lost.
   .dock-window--creation {
-    left: var(--dock-gap);
+    left: 0;
+    right: 0;
+    top: var(--frieze-h);
+    border-right: none;
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
   }
 
   // Chat sizes itself in its own SCOPED block (ChatDock.vue) — a global
