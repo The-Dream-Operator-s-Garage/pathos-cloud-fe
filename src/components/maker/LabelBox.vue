@@ -94,21 +94,26 @@ export default defineComponent({
 }
 
 .label-box.is-compact {
-  padding: 5px 8px;
+  padding: 4px 6px;
   border-radius: 7px;
-  gap: 4px;
-  .box-content { gap: 4px 6px; min-height: 22px; }
+  gap: 3px;
+  .box-content { gap: 3px 5px; min-height: 20px; max-height: 52px; }
 
   .canonic-chip {
-    height: 20px;
-    padding: 0 7px;
-    font-size: 0.66em;
+    height: 18px;
+    padding: 0 6px;
+    font-size: 0.62em;
     .canonic-icon { font-size: 10px; }
     .lock-icon    { font-size: 9px; }
+    .canonic-name {
+      max-width: 22ch;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
   }
-  .removable-wrapper { padding: 1px; border-radius: 11px; }
-  .remove-btn        { width: 14px; height: 14px; margin: 0 1px; }
-  :deep(.label-chip) { font-size: 0.68em; padding: 1px 6px; }
+  .removable-wrapper { padding: 1px; border-radius: 10px; }
+  .remove-btn        { width: 13px; height: 13px; margin: 0 1px; }
+  :deep(.label-chip) { font-size: 0.64em; padding: 1px 5px; }
 }
 
 .box-header {
@@ -120,12 +125,23 @@ export default defineComponent({
   text-transform: uppercase;
 }
 
+// Inner scroll (maker retouch, 2026-08-02): the chip rows cap at ~two
+// lines and scroll inside — a label-happy draft must never push the
+// editor down or collide with the pickers above.
 .box-content {
   display: flex;
   flex-wrap: wrap;
   gap: 6px 8px;
   align-items: center;
   min-height: 28px;
+  max-height: 68px;
+  overflow-y: auto;
+
+  scrollbar-width: thin;
+  scrollbar-color: rgba(var(--ink-rgb), 0.3) transparent;
+  &::-webkit-scrollbar       { width: 4px; }
+  &::-webkit-scrollbar-track { background: transparent; }
+  &::-webkit-scrollbar-thumb { background: rgba(var(--ink-rgb), 0.3); border-radius: 2px; }
 }
 
 // ── Identity chip (author, moment) — locked, dark-gray look ────

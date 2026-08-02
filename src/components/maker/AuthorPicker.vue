@@ -20,7 +20,8 @@
       @update:model-value="$emit('update:modelValue', $event)"
     >
       <template #selected-item="{ opt }">
-        <div v-if="opt && opt.display_name" class="row items-center no-wrap" style="gap:6px;">
+        <div v-if="opt && opt.display_name" class="selected-row row items-center no-wrap"
+          :title="opt.display_name">
           <q-icon :name="iconFor(opt.kind)" size="13px" class="kind-icon" />
           <span class="display-name">{{ opt.display_name }}</span>
           <q-chip dense outline size="xs" :color="colorFor(opt.kind)"
@@ -134,11 +135,35 @@ export default defineComponent({
   .picker-select { font-size: 0.78em; }
   :deep(.q-field--dense .q-field__control) { height: 30px; min-height: 30px; }
   :deep(.q-field__marginal)                { height: 30px; }
+  // The NAME wins the narrow control — a long kind chip (ORG_ALTER_EGO)
+  // was crushing it to nothing. The kind still reads in the dropdown rows.
+  .kind-chip { display: none; }
 }
 
-.kind-icon  { color: var(--ink); }
+// The selected value must NEVER escape its 30px control — a long mask
+// name ("Dream Operator's Garage") wrapped out of the box and over the
+// label box below (maker retouch, 2026-08-02). One line, ellipsized; the
+// full name rides the title tooltip.
+.selected-row {
+  gap: 6px;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+}
+.picker-select :deep(.q-field__native) {
+  flex-wrap: nowrap;
+  overflow: hidden;
+}
+
+.kind-icon  { color: var(--ink); flex-shrink: 0; }
 // Ink, not the old dark-surface gray — the pickers sit on the light dock
 // plaque and #d8d8e8 rendered the selected author nearly invisible (#675).
-.display-name { color: var(--ink); }
-.kind-chip  { font-size: 0.6em; }
+.display-name {
+  color: var(--ink);
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.kind-chip  { font-size: 0.6em; flex-shrink: 0; }
 </style>

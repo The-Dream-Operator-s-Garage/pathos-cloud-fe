@@ -296,7 +296,7 @@ export default defineComponent({
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 12px;
+  padding: 5px 10px;
   background: var(--panel-chrome);
   border-bottom: 1px solid var(--panel-rule);
   flex-shrink: 0;
@@ -349,7 +349,7 @@ export default defineComponent({
   flex: 1;
   min-width: 0;
   overflow-y: auto;
-  padding: 16px 20px;
+  padding: 10px 14px;
 
   scrollbar-width: thin;
   scrollbar-color: rgba(var(--ink-rgb), 0.3) transparent;
@@ -367,9 +367,9 @@ export default defineComponent({
   outline: none;
   color: var(--ink);
   font-family: 'Space Mono', monospace;
-  font-size: 0.88em;
-  line-height: 1.75;
-  padding: 16px 20px;
+  font-size: 0.85em;
+  line-height: 1.6;
+  padding: 10px 14px;
   caret-color: var(--ink);
 
   &::placeholder { color: var(--ink-mute); }
@@ -378,10 +378,24 @@ export default defineComponent({
 // --- Markdown preview ---
 // Colors come from the global .md-rendered class (same pipeline as the
 // viewers), so the preview matches what the saved note will look like.
-// Only sizing is adjusted here.
+// Only sizing is adjusted here — DENSE sizing (maker retouch, 2026-08-02):
+// the pane is a working proof beside the editor, not the reading surface,
+// so headings step down hard (a full-scale h1 ate half the half-dock pane)
+// and the vertical rhythm tightens.
 .md-preview {
-  font-size: 0.9em;
-  line-height: 1.75;
+  font-size: 0.82em;
+  line-height: 1.55;
+
+  :deep(h1) { font-size: 1.45em; margin: 0.5em 0 0.35em; }
+  :deep(h2) { font-size: 1.28em; margin: 0.5em 0 0.3em; }
+  :deep(h3) { font-size: 1.12em; margin: 0.45em 0 0.25em; }
+  :deep(h4), :deep(h5), :deep(h6) { font-size: 1em; margin: 0.4em 0 0.2em; }
+  :deep(h1:first-child), :deep(h2:first-child), :deep(h3:first-child) { margin-top: 0; }
+  :deep(p)  { margin: 0 0 0.6em; }
+  :deep(ul), :deep(ol) { margin: 0 0 0.6em; padding-left: 1.4em; }
+  :deep(hr) { margin: 0.7em 0; }
+  :deep(blockquote) { margin: 0 0 0.6em; }
+  :deep(pre) { margin: 0 0 0.7em; }
 }
 
 // Mobile: stack panes vertically in split mode
