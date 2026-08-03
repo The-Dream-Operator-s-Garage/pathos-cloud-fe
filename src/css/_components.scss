@@ -130,9 +130,10 @@
 // the navigation bar (MakerDock, UploaderDock, StackPanel, PinsDrawer):
 // glass shell, thin header bar, Mac-style traffic lights, folder-tab strip
 // and the slide-in transition. Each component keeps only its own layout.
-// The four CREATION docks add `.dock-window--creation` (below), which
-// replaces the glass shell with the brown plaque and pins the shared
-// right-half geometry; chat keeps this base shell as-is.
+// The FIVE docks that rise from the bar all add `.dock-window--creation`
+// (below) — chat joined them on 2026-08-03 — which replaces the glass shell
+// with an opaque plaque and pins the shared right-half geometry. So this base
+// shell's glass + blur reach only the STACK/PINS widgets now.
 .dock-window {
   position: fixed;
   // Bottom docks (maker/uploader/chat/label/skeleton) shift left of the
@@ -300,8 +301,11 @@
 .dock-slide-enter-from, .dock-slide-leave-to { transform: translateY(24px); opacity: 0; }
 
 // ── CREATION-WINDOW footprint + coat (2026-07-27) — the four creative docks
-// (maker, uploader, skeleton builder, label maker; NOT chat, which keeps the
-// glass shell for now). One shared geometry instead of four per-dock
+// (maker, uploader, skeleton builder, label maker) and, since 2026-08-03,
+// CHAT: five docks, ONE window (user ask — "make the window occupy the same
+// dimensions as the maker and uploader windows when expanded"; verified
+// pixel-identical at 1280×860, x 640 / 580×778 / 60px right / 50px bottom).
+// One shared geometry instead of per-dock
 // width/height pairs: the window stands in the RIGHT HALF of the screen —
 // `left: 50vw` puts its left edge at half the window, `right` clears the
 // stack/pins column by a --dock-gap of daylight (the side bars stay above
@@ -320,8 +324,21 @@
 // a box with daylight on three sides casts like the flyout instead). Each
 // dock's CONTENT keeps its own palette — the accents stay where the work is,
 // the chrome around it goes quiet.
+//
+// THE TONES ARE DIALS (2026-08-03) — `--dock-coat`, `--dock-well`,
+// `--dock-rule`, `--dock-rule-strong`, `--dock-ink` and `--dock-ink-mute` name
+// everything this chrome is drawn with, so a dock in another colorway is a
+// handful of properties on the root and nothing else. CHAT is the first
+// (`.dock-window--chat`, green); the four creative docks leave them at the
+// brown defaults. Written as variables rather than as a repainting modifier
+// because the pieces are reached at three different specificities here (root,
+// `.dock-bar`, `.dock-tab`) plus once again inside the mobile block — a
+// modifier would have had to out-specify each of them separately, and the
+// mobile `border-left` restatement would have quietly won against it.
 .dock-window--creation {
   --dock-gap: 14px;
+  --dock-coat: var(--brown-1);
+  --dock-rule: var(--brown-3);
   left: 50vw;
   right: calc(var(--dock-right, 0px) + var(--dock-gap));
   top: calc(var(--frieze-h) + var(--dock-gap));
@@ -329,15 +346,19 @@
   // (2026-07-27, second pass — it stood on the band's top via --dock-bottom
   // first). The band is opaque at z 3000 and these docks are 3010+, so the
   // bottom --frieze-h of the window paints over it instead of being buried —
-  // which is the whole reason --dock-bottom existed, and why chat (still on
-  // the old shell) keeps it.
+  // which is the whole reason --dock-bottom existed. Chat was its last
+  // consumer and joined this rule on 2026-08-03 (user ask: "make the window
+  // start rendering just over the footer bar, overlaying on top of the footer
+  // frieze bar. We do not want to have the chat float on top of the footer
+  // frieze bar"), so no DOCK anchors to that token now — only the stack/pins
+  // widgets' base shell still reads it.
   bottom: var(--nav-footer-h);
   width: auto;
   height: auto;
-  background: var(--brown-1);
+  background: var(--dock-coat);
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
-  border: 1px solid var(--brown-3);
+  border: 1px solid var(--dock-rule);
   border-bottom: none;
   border-top-left-radius: var(--radius-lg);
   border-top-right-radius: var(--radius-lg);
@@ -356,28 +377,50 @@
   transition: left 0.18s ease, right 0.18s ease, top 0.18s ease;
 
   .dock-bar {
-    background: var(--brown-1);
-    border-bottom: 1px solid var(--brown-3);
+    background: var(--dock-coat);
+    border-bottom: 1px solid var(--dock-rule);
   }
   .dock-bar__icon,
-  .dock-bar__title { color: var(--brown-8); }
-  .dock-bar__meta  { color: var(--brown-4); }
+  .dock-bar__title { color: var(--dock-ink, var(--brown-8)); }
+  .dock-bar__meta  { color: var(--dock-ink-mute, var(--brown-4)); }
 
   // The tab strip on the plaque: resting tabs are the wells' --brown-2 in
   // --brown-3 rims; the ACTIVE tab keeps its paper face and teal inset — the
   // one accent left on the chrome, saying "current" the way it always has.
-  .dock-tabs { border-bottom: 1px solid var(--brown-3); }
+  .dock-tabs { border-bottom: 1px solid var(--dock-rule); }
   .dock-tab {
-    background: var(--brown-2);
-    border-color: var(--brown-3);
-    color: var(--brown-8);
+    background: var(--dock-well, var(--brown-2));
+    border-color: var(--dock-rule);
+    color: var(--dock-ink, var(--brown-8));
 
-    &:hover { background: var(--brown-1); color: var(--brown-10, #3e2723); }
+    &:hover { background: var(--dock-coat); color: var(--brown-10, #3e2723); }
     &.is-active {
       background: var(--paper-card);
-      border-color: var(--brown-4);
+      border-color: var(--dock-rule-strong, var(--brown-4));
     }
   }
+}
+
+// ── CHAT COLORWAY (2026-08-03, user ask: "use green-1 as the main color for
+// the chat window, and also remove the transparency from the background").
+// The chat dock joined the creation footprint the same day — same geometry,
+// same maximize, same mobile chrome — so its own identity is exactly this: the
+// five dials above pointed at the green family (see _tokens.scss § GREEN). The
+// interior (conversations column, bubbles, composer) is ChatDock.vue's, drawn
+// in the same tokens.
+//
+// The transparency went with the footprint change: the old shell was
+// `--surface-glass-strong` over a 12px `backdrop-filter`, the last translucent
+// dock left. A blur is only worth its composite cost when there is something
+// worth seeing through the window, and a chat that now covers half the screen
+// (all of it on a phone) is not that.
+.dock-window--chat {
+  --dock-coat: var(--green-1);
+  --dock-well: var(--green-2);
+  --dock-rule: var(--green-3);
+  --dock-rule-strong: var(--green-4);
+  --dock-ink: var(--green-8);
+  --dock-ink-mute: var(--green-4);
 }
 
 // Maximize fills the whole slot from the screen's left edge to the side
@@ -658,8 +701,11 @@
 // (which zeroes the rail reserves the same moment these rules fire).
 // The fixed-position dock system goes ONE SURFACE AT A TIME:
 //   · the stack/pins side widgets hide (their column reserve drops to 0);
-//   · every bottom dock — creation and chat alike — takes the full width
-//     between the screen edges instead of the right half.
+//   · every bottom dock — the five now share `.dock-window--creation`, chat
+//     included — takes the full width between the screen edges instead of the
+//     right half, keeping a narrow gap on the top and both sides;
+//   · their headers re-lay out for touch: title centred, traffic lights on
+//     the left edge, dots grown 13px → 17px.
 // ═══════════════════════════════════════════════════════════════════
 @media (max-width: 600px) {
   // The right-edge widgets: hover-driven, permanent-column fixtures — both
@@ -668,19 +714,84 @@
   .stack-window,
   .pins-drawer { display: none; }
 
-  // Creation docks: the whole screen below the crown strip (change
-  // request #675 — "make the tab occupy nearly all available space").
-  // The daylight gaps and rounded corners are desktop manners; on a
-  // phone every pixel of them is writing room lost.
-  .dock-window--creation {
-    left: 0;
-    right: 0;
-    top: var(--frieze-h);
-    border-right: none;
-    border-top-left-radius: 0;
-    border-top-right-radius: 0;
+  // Creation docks — CHAT INCLUDED since 2026-08-03 (it carries
+  // `.dock-window--creation` now, so these five docks are one footprint on
+  // every screen). The full width between the screen edges instead of the
+  // right half: `left` is the only thing that has to move, since `top` and
+  // `right` are already stated in terms of --dock-gap and --dock-right reads
+  // 0 here (windows.isMobile).
+  //
+  // A NARROWER GAP, NOT NO GAP (2026-08-03, user ask: "a little bit of space
+  // left between the top end of the screen and the window and also a little
+  // padding on the sides"). Change request #675 had taken the daylight and
+  // both radii away entirely and the dock read as a PAGE — nothing said it
+  // was a window you could put down. 14px → 8px keeps that reading while
+  // giving #675 back most of what it asked for: 16px of a 375px screen, not
+  // 28. The bottom stays welded to the nav bar, which is what a
+  // bottom-docked window is.
+  .dock-window--creation,
+  .dock-window--creation.is-max {
+    --dock-gap: 8px;
+    left: var(--dock-gap);
+    // Both restated: the ≤900px rule above squares the left side off for
+    // tablets and it fires here too. `--dock-rule`, never a literal — the
+    // chat dock's left border has to come back GREEN.
+    border-left: 1px solid var(--dock-rule);
+    border-top-left-radius: var(--radius-lg);
   }
 
-  // Chat sizes itself in its own SCOPED block (ChatDock.vue) — a global
-  // .chat-dock rule here loses to the scoped base width by specificity.
+  // ── MOBILE HEADER (2026-08-03, user ask) — the title CENTRED and the
+  // traffic lights on the LEFT edge, iOS-sheet fashion rather than the
+  // desktop's Mac-window fashion.
+  //
+  // The cluster comes out of the flow (`position: absolute`) instead of
+  // taking `order: -1`, because the five docks put different things between
+  // the title and the lights — the maker has a `q-space`, chat has a
+  // `.dock-bar__left` group — and no single flex arrangement centres the
+  // title in all of them. Out of the flow, the bar centres whatever is left
+  // and the SYMMETRIC side padding (the cluster's own width plus its inset)
+  // is what keeps the centred text off the dots: the text box shrinks
+  // equally on both sides, so its middle stays the bar's middle.
+  // The 80px is the cluster's real footprint plus air: 3 × 17px dots + 2 × 8px
+  // gaps = 67, at an 8px inset = 75. Keep the three numbers in step — the
+  // padding is what stops the centred title sliding UNDER the dots, and it can
+  // only do that while it is wider than they are. The title and meta truncate
+  // rather than overflow for the same reason: a centred flex row that outgrows
+  // its box grows out of BOTH ends, so an untruncated count would put the
+  // title's first letters behind the red dot.
+  .dock-window--creation .dock-bar {
+    position: relative;
+    justify-content: center;
+    padding: 0 80px;
+
+    // The `q-space` between title and lights (maker/uploader/builder/label)
+    // would push the title off centre — it is what right-aligned the cluster
+    // in the first place, and the cluster no longer needs pushing.
+    .q-space { display: none; }
+
+    .dock-bar__title,
+    .dock-bar__meta {
+      min-width: 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  }
+
+  // Bigger dots for touch: 13px → 17px on a wider gap. Still the same
+  // classic lights (the glyphs keep their hover-only reveal — on a phone
+  // that means they show while a press is held).
+  .dock-window--creation .traffic {
+    position: absolute;
+    left: 8px;
+    top: 0;
+    bottom: 0;
+    gap: 8px;
+  }
+
+  .dock-window--creation .traffic__dot {
+    width: 17px;
+    height: 17px;
+    .q-icon { font-size: 11px; }
+  }
 }

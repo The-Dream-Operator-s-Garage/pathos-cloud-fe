@@ -453,8 +453,8 @@ export default defineComponent({
 // and hovers over this bar's plaque (FeedPage.vue's `min-width: 1024px`
 // block). Something has to give way for that, and it is THIS BAR, not the
 // container: raising the container over 3110 instead would put it over every
-// dock (3010+) too — the chat dock is 74vw wide and would be sliced in half
-// by the column on this very page — while dropping the bar under the
+// dock (3010+) too — each stands in the right HALF of the screen and would be
+// sliced by the column on this very page — while dropping the bar under the
 // container's 3001 changes exactly one relationship and leaves the rest of
 // the sandwich (docks, drawer, side widgets, minitab strip, both frieze
 // bands) untouched. Nothing else overlaps the bar's box, so 2999 costs only

@@ -74,6 +74,32 @@ $brown-8: #4e342e;
 // the document it is showing you is the darkest thing in it ──
 $brown-10: #3e2723;
 
+// ── GREEN (Quasar palette, 2026-08-03) — the CHAT WINDOW's colorway. Third
+// member of the frieze family's tone mapping, after brown (crown strip,
+// drawer, side widgets, the four creation docks) and blue-grey (the feed
+// surface): the SAME five roles one hue family over, which is why the chat
+// dock reads as the platform's own material and not as a themed box.
+//
+//   -1 the plaque coat (⇔ brown-1 / blue-grey-1)   — the window, opaque
+//   -2 the wells + the frieze band's lighter wave  (⇔ brown-2)
+//   -3 every hairline of the chrome                (⇔ brown-3)
+//   -4 the frieze band's plaque base + outer rim   (⇔ brown-4)
+//   -8 the colorway's INK, Material 700            (⇔ brown-8 / blue-grey-8)
+//
+// The band between the chat header and its conversation is a plain FriezeBar
+// with all three of its tones dialled here (`--frieze-bar-base` +
+// `--frieze-bar-wave-{one,two}`, see FriezeBar.vue) — the motif, the mask fit
+// and the carve are untouched, so it is the platform's one band wearing this
+// family rather than a second band drawn to look like it.
+// To try another hue: swap these five hexes and the var names in
+// `.dock-window--chat` (_components.scss) + ChatDock.vue — nothing else
+// reads them ──
+$green-1: #e8f5e9;
+$green-2: #c8e6c9;
+$green-3: #a5d6a7;
+$green-4: #81c784;
+$green-8: #388e3c;
+
 // ── BLUE-GREY (Quasar palette, 2026-07-25) — the FEED SURFACE's colorway:
 // FriezeBarVertical's plaque + waves + lip (and its mirrored variant B,
 // FriezeBarVerticalB, which shares every token), and the feed container's own
@@ -387,6 +413,16 @@ $warning:   #F2C037;
   --brown-2:   #{$brown-2};          // Quasar brown-2 — FriezeBar's lighter wave layer AND the stack/pins inset scroll WELLS + their scrollbar track (back here 2026-07-24 after a brief spell at brown-3)
   --brown-3:   #{$brown-3};          // Quasar brown-3 — the frieze/footer/drawer hairlines (frieze border-bottom, drawer border-right, the nav bar's inner dividers)
   --brown-4:   #{$brown-4};          // Quasar brown-4 — stack/pins side-bar OUTER borders AND (2026-07-24) the scroll wells' rims + dock scrollbar thumb + the count meta in the side widgets' info box
+  // Green — the CHAT WINDOW's colorway (2026-08-03, user ask: "use green-1 as
+  // the main color for the chat window … remove the transparency … create a
+  // green frieze bar between the header and the content"). The brown roles
+  // above line up one to one; read by `.dock-window--chat` (the chrome) and
+  // ChatDock.vue (the interior).
+  --green-1: #{$green-1};            // Quasar green-1 — the window's PLAQUE COAT (⇔ brown-1), opaque: the chat shell used to be `--surface-glass-strong` over a 12px backdrop blur, the last translucent dock on the platform
+  --green-2: #{$green-2};            // Quasar green-2 — the inset WELLS (⇔ brown-2): the conversations column's floor, the message scroller's bed, and the frieze band's lighter wave layer
+  --green-3: #{$green-3};            // Quasar green-3 — EVERY hairline of the chat chrome (⇔ brown-3): shell border, header rule, column divider, composer rule, the conversation rows' rims
+  --green-4: #{$green-4};            // Quasar green-4 — the frieze band's PLAQUE BASE (⇔ brown-4, the band's default) and the active conversation row's rim, the one place a line is allowed to be a step heavier
+  --green-8: #{$green-8};            // Quasar green-8 — the colorway's INK (⇔ brown-8 / blue-grey-8, all three Material 700): the header's glyph + title, the column's section heading, the conversation rows' names
   // Blue-grey — the feed surface's colorway (2026-07-25): FriezeHeader's
   // OWN tone mapping (base -1, waves -3 + -4, lip -3) in a different hue
   // family. Compare the brown roles above — they line up one to one.
@@ -556,10 +592,14 @@ $warning:   #F2C037;
   // opaque --frieze-h strip parked at `bottom: var(--nav-footer-h)`, so a
   // dock BELOW its z anchored to the bar alone would lose its bottom
   // --frieze-h behind it; this token stands such a dock ON the band instead.
-  // Since 2026-07-27 only CHAT actually rests here: the four creation docks
-  // moved above the band's z (3010+ > 3000, stores/windows.js) and anchor
-  // straight to `--nav-footer-h`, painting OVER the band
-  // (`.dock-window--creation`), as the parked minitab strip now does too.
+  // NO DOCK RESTS HERE ANY MORE (2026-08-03). The four creation docks moved
+  // above the band's z on 2026-07-27 (3010+ > 3000, stores/windows.js) and
+  // anchor straight to `--nav-footer-h`, painting OVER the band
+  // (`.dock-window--creation`), as the parked minitab strip does too; CHAT was
+  // the last reader and joined them (user ask — it should overlay the footer
+  // frieze bar, not float on top of it). The token's ONE live consumer is now
+  // the base `.dock-window` shell's own `bottom`, i.e. the STACK widget (the
+  // pins widget opts out by re-stating --nav-footer-h).
   // The pinned column and the left drawer never used it — they keep
   // `bottom: var(--nav-footer-h)` and run down OVER the band, which is
   // what covers its two ends.

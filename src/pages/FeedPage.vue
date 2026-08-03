@@ -331,7 +331,7 @@ export default defineComponent({
 //     wash over its plaque — and the feed container is 3001, so growing the
 //     box alone would just hide its new strip behind the bar. The container
 //     deliberately does NOT climb over 3110 to fix that: every dock (3010+,
-//     and the chat dock is 74vw wide) would then be sliced by this column.
+//     each half the screen wide) would then be sliced by this column.
 //     Instead the BAR drops below the container ON THIS ROUTE ONLY
 //     (`.nav-footer--underlaid`, same breakpoint) — the one change that
 //     leaves every other layer of the sandwich exactly as it was.

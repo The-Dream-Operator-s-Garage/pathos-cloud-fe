@@ -1,20 +1,29 @@
 <template>
-  <!-- The chat window — 7th docked window rising from the nav bar (same
-       chrome as the maker). Left column: the conversations you're part of
-       + the new-conversation entity search. Main area: the open
-       conversation as classic chat — others left, you right — with a
-       composer whose [[pathos:…]] refs route through the access tree in
-       SHARE mode (grant to the conversation, never publish). -->
+  <!-- The chat window — 7th docked window rising from the nav bar. Since
+       2026-08-03 it wears the CREATION FOOTPRINT (`.dock-window--creation`,
+       user ask: "make the window occupy the same dimensions as the maker and
+       uploader windows when expanded"), so the five docks are one window on
+       every screen — right half of the display, daylight off the crown strip
+       and the side column, welded to the nav bar's top edge OVER the footer
+       frieze band. Its own identity is the GREEN COLORWAY
+       (`.dock-window--chat`, opaque — the glass shell and its backdrop blur
+       are gone) plus the frieze band under the header.
+
+       Left column: the conversations you're part of + the new-conversation
+       entity search. Main area: the open conversation as classic chat —
+       others left, you right — with a composer whose [[pathos:…]] refs route
+       through the access tree in SHARE mode (grant to the conversation,
+       never publish). -->
   <transition name="dock-slide">
     <section
       v-if="store.isOpen && !store.isMinimized"
-      class="chat-dock dock-window"
-      :class="{ 'is-maximized': store.isMaximized }"
+      class="chat-dock dock-window dock-window--creation dock-window--chat"
+      :class="{ 'is-max': store.isMaximized, 'is-faces': facesOnly, 'is-list-open': listOverlay }"
       :style="{ zIndex: windows.zOf('chat'), '--dock-right': windows.dockRight + 'px' }"
     >
       <header class="dock-bar">
         <div class="dock-bar__left">
-          <q-icon name="forum" size="15px" class="chat-dock__bar-icon" />
+          <q-icon name="forum" size="15px" class="dock-bar__icon" />
           <span class="dock-bar__title">Chats</span>
           <span v-if="chats.length" class="dock-bar__meta">{{ chats.length }} conversation{{ chats.length === 1 ? '' : 's' }}</span>
         </div>
@@ -25,12 +34,34 @@
         </div>
       </header>
 
+      <!-- The platform's own band, dressed in this window's family (the three
+           `--frieze-bar-*` dials — see the style block). It divides the
+           header from the conversation the way the crown strip divides the
+           chrome from the page. -->
+      <FriezeBar class="chat-dock__frieze" />
+
       <div class="chat-dock__body">
-        <!-- ── Conversations column ── -->
+        <!-- ── Conversations column ──
+             On a phone this is a FACES RAIL by default (2026-08-03, user ask:
+             "display the contacts as images only so we have more space to look
+             at the chats"), and the head's one control expands it into a
+             full-width overlay where the entity search is usable again. -->
         <aside class="chat-dock__list">
           <div class="chat-dock__list-head">
-            <span>conversations</span>
+            <!-- Mobile only: the rail ⇄ overlay handle. It leads the row so it
+                 lands under the thumb at the column's own edge, and it is the
+                 ONLY thing the head shows while the rail is narrow. -->
             <q-btn
+              v-if="windows.isMobile"
+              flat dense size="sm" no-caps
+              :icon="listOverlay ? 'chevron_left' : 'manage_search'"
+              :title="listOverlay ? 'Back to the conversation' : 'Expand contacts — search and pick'"
+              class="chat-dock__list-toggle"
+              @click="listOverlay = !listOverlay"
+            />
+            <span v-if="!facesOnly">conversations</span>
+            <q-btn
+              v-if="!facesOnly"
               flat dense size="sm" icon="add_comment" no-caps
               :class="{ 'is-active': composeOpen }"
               title="Start a conversation"
@@ -38,7 +69,7 @@
             />
           </div>
 
-          <div v-if="composeOpen" class="chat-dock__new">
+          <div v-if="composeOpen && !facesOnly" class="chat-dock__new">
             <q-input
               v-model="entityQuery"
               dense outlined :dark="false"
@@ -60,6 +91,14 @@
             </button>
           </div>
 
+          <!-- A conversation row is the FEED CARD's byline block (2026-08-03,
+               user ask: "make the recent chat bubbles on the left side have
+               more details, just like the author bubbles on the feed post
+               cards … the image and org badges in a dense style"): face, name
+               over @handle, org badge. Same components, same 26/15px dense
+               sizing — a person reads the same wherever the platform draws
+               them. In a group the first seat carries the face and a `+n`
+               chip states the rest. -->
           <div class="chat-dock__rows">
             <button
               v-for="c in chats"
@@ -67,16 +106,36 @@
               type="button"
               class="chat-row"
               :class="{ 'is-active': c.id === store.activeChatId }"
+              :title="othersOf(c)"
               @click="openChat(c.id)"
             >
-              <div class="chat-row__names">
-                {{ othersOf(c) }}
+              <span class="chat-row__who">
+                <EntityAvatar :entity="peerOf(c)" :id="peerOf(c) ? null : c.owner_id" :size="26" />
+                <span v-if="extraPeers(c)" class="chat-row__more mono">+{{ extraPeers(c) }}</span>
+                <span class="chat-row__ident">
+                  <span class="chat-row__name">{{ othersOf(c) }}</span>
+                  <!-- An AGENT seat has no user_login, so no handle — the line
+                       is dropped rather than left as an empty row, which would
+                       make the block taller than its neighbour's for nothing. -->
+                  <span v-if="peerHandle(c)" class="chat-row__handle mono">{{ peerHandle(c) }}</span>
+                </span>
+                <!-- `:link="false"` is not a preference — the row IS a
+                     <button>, and the chip's default router-link would nest
+                     interactive content inside it (invalid, and the anchor
+                     swallows the row's own tap). The org's page stays one tap
+                     away through the conversation header. -->
+                <OrgLogoChip
+                  v-if="peerOrg(c)"
+                  :org="peerOrg(c)"
+                  :size="15"
+                  :link="false"
+                />
                 <span v-if="c.my_status === 'PENDING'" class="chat-row__badge">invitation</span>
                 <span v-else-if="c.my_status === 'DECLINED'" class="chat-row__badge is-declined">declined</span>
-              </div>
-              <div v-if="c.last" class="chat-row__last">{{ c.last.excerpt }}</div>
+              </span>
+              <span v-if="c.last" class="chat-row__last">{{ c.last.excerpt }}</span>
             </button>
-            <div v-if="!loadingChats && !chats.length" class="chat-dock__hint">
+            <div v-if="!loadingChats && !chats.length && !facesOnly" class="chat-dock__hint">
               No conversations yet — find an entity above and say hi.
             </div>
           </div>
@@ -196,7 +255,10 @@
 
           <div v-else class="chat-dock__empty">
             <q-icon name="forum" size="28px" />
-            <span>Pick a conversation — or start one with the + above.</span>
+            <!-- The faces rail hides the + (and the names), so on a phone the
+                 empty state names the control that IS on screen. -->
+            <span v-if="facesOnly">Pick a face on the left — or expand the contacts to start a conversation.</span>
+            <span v-else>Pick a conversation — or start one with the + above.</span>
           </div>
         </main>
       </div>
@@ -229,12 +291,24 @@ import PollCard from './PollCard.vue'
 import ChatContractBand from './ChatContractBand.vue'
 import OrgInviteCard from 'src/components/organizations/OrgInviteCard.vue'
 import AccessTreeDialog from 'src/components/maker/AccessTreeDialog.vue'
+import EntityAvatar from 'src/components/entities/EntityAvatar.vue'
+import OrgLogoChip from 'src/components/organizations/OrgLogoChip.vue'
+import FriezeBar from 'src/components/layout/FriezeBar.vue'
 
 const REF_RE = /[!-]?\[\[pathos:[a-z]+\/[0-9a-f]{4,64}(?:\|[^\]]*)?\]\]/
 
 export default defineComponent({
   name: 'ChatDock',
-  components: { MessageBubble, PollCard, ChatContractBand, OrgInviteCard, AccessTreeDialog },
+  components: {
+    MessageBubble,
+    PollCard,
+    ChatContractBand,
+    OrgInviteCard,
+    AccessTreeDialog,
+    EntityAvatar,
+    OrgLogoChip,
+    FriezeBar
+  },
 
   setup () {
     const store = useChatStore()
@@ -265,6 +339,20 @@ export default defineComponent({
     const entityQuery = ref('')
     const entityResults = ref([])
 
+    // ── The contacts column on a phone (2026-08-03) ──────────
+    // Two presentations of ONE column, the same device the stack/pins side
+    // widgets use: a narrow FACES RAIL by default — avatars alone, so the
+    // thread gets the screen — and, on the head's one control, a full-width
+    // OVERLAY where the entity search and the rows' names are usable again.
+    // An overlay rather than a wider grid track: at 375px a column wide enough
+    // to type a search into leaves the conversation nothing, and the rail is
+    // what the reader came back to.
+    const listOverlay = ref(false)
+    const facesOnly = computed(() => windows.isMobile && !listOverlay.value)
+    // Leaving the phone (rotate, resize) drops the overlay — it is a mobile
+    // presentation and would otherwise sit over a desktop conversation.
+    watch(() => windows.isMobile, (m) => { if (!m) listOverlay.value = false })
+
     const shareOpen = ref(false)
     const pendingText = ref('')
 
@@ -277,8 +365,29 @@ export default defineComponent({
 
     const othersOf = (c) => {
       if (!c) return ''
-      const others = (c.members || []).filter((m) => !m.is_me)
+      const others = peersOf(c)
       return others.map((m) => m.display_name || m.username || `#${m.id}`).join(', ') || 'just you'
+    }
+
+    // ── The other seats, as identity cards ───────────────────
+    // Since 2026-08-03 the API's member cards carry `photo` + `org` (the
+    // batched getIdentityCards read the feed uses), so a conversation row can
+    // draw the same face-and-badge block a post card's byline does. The FIRST
+    // peer carries the row's face and handle and the rest are stated as a
+    // count: a 26px avatar per member would make a group row taller than the
+    // list it lives in.
+    const peersOf = (c) => (c?.members || []).filter((m) => !m.is_me)
+    const peerOf = (c) => peersOf(c)[0] || null
+    const extraPeers = (c) => Math.max(0, peersOf(c).length - 1)
+    const peerHandle = (c) => {
+      const p = peerOf(c)
+      return p?.username ? `@${p.username}` : ''
+    }
+    // A MASK's badge — the org it publishes under. `org.self` marks an org
+    // acting as itself, where the badge would only repeat the name beside it.
+    const peerOrg = (c) => {
+      const org = peerOf(c)?.org
+      return org && !org.self ? org : null
     }
 
     const isMine = (item) => myIds.value.includes(item.author?.id)
@@ -414,6 +523,9 @@ export default defineComponent({
     const openChat = (id) => {
       store.setActive(id)
       composeOpen.value = false
+      // Picking a conversation IS the overlay's purpose — it closes back to
+      // the faces rail so the thread you just chose is what you see.
+      listOverlay.value = false
       loadFeed()
     }
 
@@ -537,6 +649,12 @@ export default defineComponent({
       pendingText,
       activeChat,
       othersOf,
+      peerOf,
+      peerHandle,
+      peerOrg,
+      extraPeers,
+      listOverlay,
+      facesOnly,
       isMine,
       myIds,
       loadFeed,
@@ -565,51 +683,50 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
+// GEOMETRY IS THE CREATION DOCK'S (2026-08-03) — `.dock-window--creation` in
+// _components.scss states left/right/top/bottom and `width/height: auto`, and
+// `.dock-window--chat` states the tones. What was here before — `74vw × 72vh`,
+// an `.is-maximized` pair and a mobile width — had to GO, not be overridden: a
+// scoped `.chat-dock[data-v-…]` selector outranks those global rules, so any
+// leftover width declaration would have quietly kept the old footprint.
 .chat-dock {
-  width: 74vw;
-  height: 72vh;
   display: flex;
   flex-direction: column;
-
-  &.is-maximized {
-    width: calc(100vw - var(--dock-right, 0px));
-    height: calc(100vh - var(--dock-bottom));
-  }
-
-  // Mobile pass (Thread H): the whole width (the rail reserve is 0 here).
-  // Stated in the SCOPED block — the base 74vw above outranks any global
-  // override (scoped selectors carry the data-v attribute's specificity).
-  @media (max-width: 600px) {
-    width: 100vw;
-    height: calc(100vh - var(--dock-bottom));
-  }
 }
 
-.chat-dock__bar-icon { color: #00829c; }
+// The band under the header, in this window's family. The recipe (masks, mask
+// fit, carve) is FriezeBar's and untouched; only the three tones move, and they
+// keep the brown band's exact role mapping — base -4, waves -2 then -1 — so the
+// motif reads the same, one hue family over. `flex: 0 0 auto` because the shell
+// is a flex column and a decorative band is the first thing it would squash.
+.chat-dock__frieze {
+  flex: 0 0 auto;
+  --frieze-bar-base: var(--green-4);
+  --frieze-bar-wave-one: var(--green-2);
+  --frieze-bar-wave-two: var(--green-1);
+}
+
 .dock-bar__left { display: flex; align-items: center; gap: 7px; min-width: 0; }
 .dock-bar__title { font-weight: 700; font-size: 0.78em; }
-.dock-bar__meta { font-size: 0.68em; color: var(--ink-mute, #8995a8); text-transform: uppercase; letter-spacing: 0.05em; }
+.dock-bar__meta { font-size: 0.68em; text-transform: uppercase; letter-spacing: 0.05em; }
 
 .chat-dock__body {
+  position: relative;   // the phone's expanded contacts column overlays this
   display: grid;
   grid-template-columns: minmax(220px, 280px) minmax(0, 1fr);
   flex: 1;
   min-height: 0;
-
-  // Mobile pass (Thread H): the conversations column gives the thread most
-  // of a 375px screen (the dock itself goes full-width in _components.scss).
-  @media (max-width: 600px) {
-    grid-template-columns: minmax(110px, 34%) minmax(0, 1fr);
-  }
 }
 
 // ── Conversations column ──
+// A WELL (--green-2) set into the window's --green-1 coat, the same figure/
+// ground step the side widgets' scroll wells take out of their brown plaque.
 .chat-dock__list {
   display: flex;
   flex-direction: column;
   min-height: 0;
-  border-right: 1px solid rgba(var(--ink-rgb), 0.14);
-  background: rgba(var(--ink-rgb), 0.025);
+  border-right: 1px solid var(--green-3);
+  background: var(--green-2);
 }
 
 .chat-dock__list-head {
@@ -621,8 +738,9 @@ export default defineComponent({
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: var(--ink-mute, #8995a8);
-  .q-btn.is-active { color: #00829c; }
+  color: var(--green-8);
+  .q-btn { color: var(--green-8); }
+  .q-btn.is-active { color: var(--green-8); background: var(--green-1); }
 }
 
 .chat-dock__new {
@@ -630,7 +748,7 @@ export default defineComponent({
   flex-direction: column;
   gap: 4px;
   padding: 4px 10px 8px;
-  border-bottom: 1px dashed rgba(var(--ink-rgb), 0.16);
+  border-bottom: 1px dashed var(--green-4);
 }
 
 .chat-dock__entity {
@@ -638,15 +756,15 @@ export default defineComponent({
   align-items: center;
   gap: 6px;
   padding: 4px 8px;
-  border: 1px solid rgba(var(--ink-rgb), 0.14);
+  border: 1px solid var(--green-3);
   border-radius: 6px;
   background: var(--paper-card, #ffffff);
   font-family: inherit;
   font-size: 0.78em;
   cursor: pointer;
   text-align: left;
-  &:hover { border-color: #00829c; color: #00829c; }
-  .q-icon { color: #9b6cb0; }
+  &:hover { border-color: var(--green-8); color: var(--green-8); }
+  .q-icon { color: var(--green-4); }
 }
 .chat-dock__entity-hash { margin-left: auto; opacity: 0.45; font-size: 0.85em; }
 
@@ -658,38 +776,100 @@ export default defineComponent({
   display: flex;
   flex-direction: column;
   gap: 4px;
+
+  scrollbar-width: thin;
+  scrollbar-color: var(--green-4) transparent;
+  &::-webkit-scrollbar       { width: 4px; }
+  &::-webkit-scrollbar-thumb { background: var(--green-4); border-radius: 2px; }
 }
 
+// A row is a --green-1 card on the column's --green-2 floor; the ACTIVE one
+// goes to PAPER, which is the same "current = the lightest thing here" device
+// the dock tab strip uses, with --green-4 (the colorway's heavy line) closing
+// it. Nothing here is translucent: the whole window is opaque now.
 .chat-row {
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  padding: 7px 10px;
-  border: 1px solid rgba(var(--ink-rgb), 0.12);
+  gap: 3px;
+  padding: 6px 8px;
+  border: 1px solid var(--green-3);
   border-radius: 8px;
-  background: var(--paper-card, #ffffff);
+  background: var(--green-1);
   font-family: inherit;
   cursor: pointer;
   text-align: left;
   transition: border-color 0.12s, background 0.12s;
 
-  &:hover { border-color: rgba(#00829c, 0.5); }
+  &:hover { border-color: var(--green-4); }
   &.is-active {
-    border-color: #00829c;
-    background: rgba(#00829c, 0.07);
+    border-color: var(--green-4);
+    background: var(--paper-card, #ffffff);
   }
 }
-.chat-row__names { font-size: 0.8em; font-weight: 700; color: var(--ink, #1f2a38); }
+
+// ── The identity block, dense (⇔ `.post-square__identity` on a feed card) ──
+// Same 5px face-to-text gap, same two stacked lines at 1.15 leading, same
+// pulled-in badge — a provenance stamp you recognise rather than read.
+.chat-row__who {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+}
+
+.chat-row__ident {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.15;
+  min-width: 0;
+}
+
+.chat-row__name {
+  font-size: 0.74em;
+  font-weight: 700;
+  color: var(--green-8);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.chat-row__handle {
+  font-size: 0.62em;
+  color: rgba(var(--ink-rgb), 0.5);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+// The badge belongs to the face beside it, not to the row — pulled in against
+// the row's own gap so the pair reads as one unit ("this person, over there").
+// The class lands on OrgLogoChip's ROOT, which carries this file's scope
+// attribute, so no :deep() is needed.
+.chat-row__who .org-logo-chip { margin-left: -2px; flex: 0 0 auto; }
+
+// A group's remaining seats, stated as a count rather than as more faces.
+.chat-row__more {
+  flex: 0 0 auto;
+  font-size: 0.6em;
+  font-weight: 700;
+  color: var(--green-8);
+  background: var(--green-2);
+  border: 1px solid var(--green-3);
+  border-radius: 7px;
+  padding: 0 4px;
+}
+
 .chat-row__badge {
-  margin-left: 6px;
-  font-size: 0.72em;
+  margin-left: auto;
+  font-size: 0.62em;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  padding: 0 6px;
+  padding: 0 5px;
   border-radius: 7px;
-  border: 1px solid rgba(#0b7a8a, 0.55);
-  color: #0b7a8a;
+  border: 1px solid var(--green-4);
+  color: var(--green-8);
+  flex: 0 0 auto;
   &.is-declined { border-color: rgba(#c10015, 0.45); color: #a5121f; }
 }
 .chat-row__last {
@@ -721,14 +901,15 @@ export default defineComponent({
   gap: 8px;
   padding: 8px 14px;
   font-size: 0.82em;
-  border-bottom: 1px solid rgba(var(--ink-rgb), 0.12);
-  .q-icon { color: #00829c; }
+  border-bottom: 1px solid var(--green-3);
+  color: var(--green-8);
+  .q-icon { color: var(--green-8); }
 }
 
 .chat-dock__contract-btn {
   margin-left: auto;
-  color: var(--ink-mute, #8995a8);
-  &.is-active { color: #00829c; }
+  color: var(--green-4);
+  &.is-active { color: var(--green-8); }
 }
 
 .chat-dock__presence {
@@ -748,6 +929,8 @@ export default defineComponent({
   margin-top: -2px;
 }
 
+// The thread lies on the window's own coat (--green-1, inherited from the
+// shell) — the bubbles carry the tone difference, so the bed stays quiet.
 .chat-dock__msgs {
   flex: 1;
   min-height: 0;
@@ -758,9 +941,9 @@ export default defineComponent({
   gap: 4px;
 
   scrollbar-width: thin;
-  scrollbar-color: rgba(var(--ink-rgb), 0.3) transparent;
+  scrollbar-color: var(--green-4) transparent;
   &::-webkit-scrollbar       { width: 4px; }
-  &::-webkit-scrollbar-thumb { background: rgba(var(--ink-rgb), 0.3); border-radius: 2px; }
+  &::-webkit-scrollbar-thumb { background: var(--green-4); border-radius: 2px; }
 }
 
 .chat-dock__composer {
@@ -768,7 +951,7 @@ export default defineComponent({
   align-items: flex-end;
   gap: 8px;
   padding: 10px 14px;
-  border-top: 1px solid rgba(var(--ink-rgb), 0.12);
+  border-top: 1px solid var(--green-3);
 
   .q-input { flex: 1; }
   .q-btn { flex-shrink: 0; margin-bottom: 2px; }
@@ -780,9 +963,10 @@ export default defineComponent({
   gap: 8px;
   padding: 8px 14px;
   font-size: 0.78em;
-  border-bottom: 1px dashed rgba(#0b7a8a, 0.45);
-  background: rgba(#0b7a8a, 0.05);
-  .q-icon { color: #0b7a8a; }
+  border-bottom: 1px dashed var(--green-4);
+  background: var(--green-2);
+  color: var(--green-8);
+  .q-icon { color: var(--green-8); }
   span { flex: 1; }
 }
 .chat-dock__gate {
@@ -812,5 +996,77 @@ export default defineComponent({
   gap: 10px;
   color: var(--ink-mute, #8995a8);
   font-size: 0.82em;
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// PHONE — the contacts column's two presentations (2026-08-03, user ask:
+// "on mobile only, display the contacts as images only so we have more space
+// to look at the chats. Find a way to expand that section if i want to so i
+// can search for a contact there").
+//
+// ONE column, two states — the stack/pins device, and for the same reason: a
+// rail and a panel that are different elements drift apart, where two
+// presentations of one element cannot. `facesOnly` (mobile ∧ not expanded)
+// narrows the grid track and hides everything in a row except its face;
+// `listOverlay` lifts the same column out over the conversation at full width
+// so the search field and the names have room. The window's own footprint
+// (full width less a --dock-gap, rounded top corners, centred header, traffic
+// on the left) is the SHARED mobile chrome in _components.scss — chat gets it
+// for free now that it is a `.dock-window--creation`.
+// ═══════════════════════════════════════════════════════════════════
+@media (max-width: 600px) {
+  // 46px = the 26px avatar + the row's 8px side padding + its 1px rims, plus
+  // the column's own 6px list padding. Keep in step with `.chat-row` and
+  // EntityAvatar's `:size` in the template, or the faces clip.
+  .chat-dock.is-faces .chat-dock__body {
+    grid-template-columns: 46px minmax(0, 1fr);
+  }
+
+  .chat-dock.is-faces {
+    .chat-dock__list-head {
+      justify-content: center;
+      padding: 6px 0 2px;
+    }
+
+    .chat-dock__rows { padding: 6px 4px; }
+
+    // The row IS its face: no name, no handle, no preview, no badge text. The
+    // active conversation still reads — it keeps the paper fill and the heavy
+    // rim, which is all a 26px tile needs to say "this one".
+    .chat-row {
+      padding: 3px;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .chat-row__ident,
+    .chat-row__last,
+    .chat-row__more,
+    .chat-row__badge { display: none; }
+
+    // The badge survives as a DOT in the corner of the tile — an invitation
+    // is the one thing on a collapsed row a reader must not miss.
+    .chat-row__who { position: relative; gap: 0; }
+    .chat-row__who .org-logo-chip {
+      position: absolute;
+      right: -3px;
+      bottom: -3px;
+      margin: 0;
+    }
+  }
+
+  // Expanded: the same column, lifted over the thread. `position: absolute`
+  // inside `.chat-dock__body` (which is `position: relative`), so the grid
+  // track it left behind collapses to nothing and the conversation keeps
+  // rendering underneath — coming back is one tap, with no reload.
+  .chat-dock.is-list-open .chat-dock__list {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    border-right: none;
+  }
+
+  // The handle keeps a touch target of its own in both presentations.
+  .chat-dock__list-toggle { min-width: 30px; }
 }
 </style>

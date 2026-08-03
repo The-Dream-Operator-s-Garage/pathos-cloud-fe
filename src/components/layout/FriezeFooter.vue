@@ -48,8 +48,9 @@
        so the CREATION docks anchor straight to the bar's top edge and paint
        their bottom --frieze-h OVER this band, and the parked minitabs stand
        ON it too (a lifted z-3045 sibling of the footer — see
-       NavigationBar.vue). Only chat still stands on the band's top via
-       `--dock-bottom` (_tokens.scss), keeping the old shell. The pinned
+       NavigationBar.vue). Chat was the last dock still standing on the
+       band's top via `--dock-bottom` (_tokens.scss) and joined the others on
+       2026-08-03, so EVERY dock paints over this band now. The pinned
        column and the drawer never needed any of it — they are what covers
        the ends.
 

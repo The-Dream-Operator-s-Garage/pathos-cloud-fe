@@ -7,7 +7,11 @@
        masks are the HORIZONTALLY MIRRORED exports of the header's
        waves (mercury-wave-{a,b}-mirror.svg) and the palette is pushed
        darker/inverted: brown-4 plaque base with brown-2 + brown-1
-       waves (the header is brown-1 base / brown-3+4 waves).
+       waves (the header is brown-1 base / brown-3+4 waves). All three
+       tones are DIALS a host box may set on the element it mounts this
+       on — `--frieze-bar-base` + `--frieze-bar-wave-{one,two}` — which
+       is how the chat window wears the band in green (see the style
+       block; the recipe underneath them never moves).
        Decorative only — pointer-events none.
 
        `slim` (2026-07-26) is the HALF-HEIGHT variant — see the style
@@ -63,12 +67,24 @@ export default defineComponent({
   padding: 1px 0;
   pointer-events: none;
   // flat Quasar brown-4 plaque — darker inversion of the header's brown-1.
-  // The base is the band's ONE dial (2026-07-26): a host box that is not in
+  // The base was the band's ONE dial (2026-07-26): a host box that is not in
   // the brown colorway sets `--frieze-bar-base` on the element it mounts this
-  // on and the plaque follows, waves untouched. Every existing placement
-  // leaves it unset and keeps brown-4; the post information flyout feeds it
-  // --grey-9. Only the BASE is a variable — the two wave layers are the motif
-  // itself and re-toning them would be a different bar, not this one dressed.
+  // on and the plaque follows. Most placements leave it unset and keep
+  // brown-4; the post information flyout feeds it --grey-9.
+  //
+  // THE WAVES ARE DIALS TOO since 2026-08-03 (`--frieze-bar-wave-one/two`
+  // below), which reverses a note that stood here: that re-toning them "would
+  // be a different bar, not this one dressed". What settled it is that the
+  // platform already HAS a band in a second family — FriezeBarVertical is
+  // FriezeHeader's tone mapping (base -1, waves -3/-4) in blue-grey — so a
+  // whole colorway of this band is a thing the design does, not a costume.
+  // The chat window asked for the third (green): base --green-4, waves
+  // --green-2 + --green-1. What must NOT move with the tones is the recipe —
+  // the two masks, the `auto 99%` fit and the carve's drop-shadow offsets are
+  // the band itself. Dial all THREE together or the motif goes flat: the
+  // waves have to sit a step or two ABOVE their base, since the carve lights
+  // them from the top left and reads as a groove only when the ink is lighter
+  // than the plaque it is cut into.
   background: var(--frieze-bar-base, var(--brown-4));
 }
 
@@ -96,13 +112,13 @@ export default defineComponent({
 }
 
 .frieze-bar__layer--one {
-  background-color: var(--brown-2); // Quasar brown-2
+  background-color: var(--frieze-bar-wave-one, var(--brown-2)); // Quasar brown-2
   mask-image: url('../../assets/frieze/mercury-wave-a-mirror.svg');
   -webkit-mask-image: url('../../assets/frieze/mercury-wave-a-mirror.svg');
 }
 
 .frieze-bar__layer--two {
-  background-color: var(--brown-1); // Quasar brown-1
+  background-color: var(--frieze-bar-wave-two, var(--brown-1)); // Quasar brown-1
   mask-image: url('../../assets/frieze/mercury-wave-b-mirror.svg');
   -webkit-mask-image: url('../../assets/frieze/mercury-wave-b-mirror.svg');
 }
@@ -166,8 +182,10 @@ export default defineComponent({
 //     would be wider than the stroke it is supposed to be carving and the
 //     band would read as a black-and-white smear with a brown tint.
 //
-// The plaque tone is NOT part of this — that is `--frieze-bar-base`, which is
-// orthogonal and set by the host.
+// The TONES are not part of this — those are the three `--frieze-bar-*` dials,
+// which are orthogonal to the recipe and set by the host. (One interaction to
+// know: slim drops layer one, so a host that dials only `--frieze-bar-wave-one`
+// dresses a band that isn't drawn.)
 .frieze-bar--slim {
   height: calc(var(--frieze-h) / 2);
 
