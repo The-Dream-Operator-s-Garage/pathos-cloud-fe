@@ -136,6 +136,26 @@
       </div>
 
     </div>
+
+    <!-- ── FLOOR BAND (2026-08-02, user ask: "a dark brown frieze bar below
+         the nav footer bar — the ones from inside the left drawer"). The
+         drawer's own FriezeBar, unchanged: brown-4 plaque, brown-2 + brown-1
+         waves, the DARK inversion of the crown strip — where FriezeFooter,
+         riding this bar's top edge, is the crown's pale mirror. The page is
+         now closed by two bands with the bar between them.
+
+         INSIDE the q-footer, under `.nav-bar`, rather than a fixed sibling:
+         the footer is what Quasar measures to pad the page, so mounting the
+         band here makes the page's bottom inset grow with it and nothing can
+         slide beneath the strip. The bar's row keeps --nav-bar-h; the footer
+         as a whole is --nav-footer-h, which is that row plus this band, and
+         that total is what every anchored surface still reads.
+
+         The drawer and the pinned column run PAST this footer to the window
+         floor, so each repeats the band inside its own rebuilt bar row
+         (MainLayout `.drawer-footer`, PinsDrawer `.pins-footer`) and the
+         line runs unbroken from screen edge to screen edge. ── -->
+    <FriezeBar />
   </q-footer>
 
   <!-- ── There is NO `.nav-top-shadow` box here anymore (2026-08-02, user
@@ -189,10 +209,11 @@ import { useChatStore } from 'src/stores/chat'
 import { useEventsStore } from 'src/stores/events'
 import { pinService } from 'src/services/pin.service'
 import GlobalSearch from 'src/components/shared/GlobalSearch.vue'
+import FriezeBar from 'src/components/layout/FriezeBar.vue'
 
 export default defineComponent({
   name: 'NavigationBar',
-  components: { GlobalSearch },
+  components: { GlobalSearch, FriezeBar },
   emits: ['toggle-drawer', 'open-maker', 'open-uploader', 'open-skeleton-builder', 'open-label-maker', 'pins-changed'],
   props: {
     // Increment to force a pin-state refresh from the parent (e.g. after the
@@ -562,13 +583,15 @@ export default defineComponent({
   border-top: 1px solid var(--brown-3);
   // NO box-shadow here, and no cast anywhere on this bar anymore
   // (2026-08-02) — see the `.nav-footer` z-index note above.
-  // Exact height — the pinned column and the drawer sit at
-  // bottom: var(--nav-footer-h), so the bar must fill that space precisely
-  // for their edges to merge. (The creation docks and the minitab strip
-  // anchor to this same edge and paint OVER the frieze band since
-  // 2026-07-27; only chat still stands one --frieze-h higher — see
-  // --dock-bottom in _tokens.scss.)
-  height: var(--nav-footer-h);
+  // Exact height — the BAR'S OWN ROW, not the whole footer: since the floor
+  // band went in below it (2026-08-02) the footer is one --frieze-h taller
+  // than this plaque, and --nav-footer-h is that total. The pinned column and
+  // the drawer still sit at `bottom: var(--nav-footer-h)`, which is this
+  // plaque's TOP edge, so their edges merge with it exactly as before. (The
+  // creation docks and the minitab strip anchor to that same edge and paint
+  // OVER the frieze footer band since 2026-07-27; only chat still stands one
+  // --frieze-h higher — see --dock-bottom in _tokens.scss.)
+  height: var(--nav-bar-h);
   position: relative;
   user-select: none;
   // The pinned side panel (expanded panel OR parked column) sits ON TOP of the

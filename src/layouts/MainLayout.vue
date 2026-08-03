@@ -133,7 +133,7 @@
 
       <!-- THE BURGER LIVES IN THE DRAWER NOW (2026-08-02, user ask). The
            drawer runs to the WINDOW FLOOR and lies over the nav bar, so its
-           last --nav-footer-h is the bar's own row: this block IS that row,
+           last --nav-bar-h is the bar's own row: this block IS that row,
            rebuilt from the bar's parts — brown-1 plaque, brown-3 top lip on
            the same pixel as the bar's `border-top`, and the 41px brown-4
            rail block + hairline at its left end holding the 28px inverted
@@ -159,6 +159,15 @@
              brown-3 `border-right` stands in for it (same ink, same pixel). -->
         <div class="drawer-footer-hairline" />
       </div>
+
+      <!-- The floor band, continued across the drawer's column (2026-08-02).
+           The bar under here carries the same FriezeBar inside its footer, but
+           the drawer runs PAST that footer to the window floor and owns these
+           pixels — so it draws the band itself and the line reads unbroken
+           from screen edge to screen edge. Un-flipped, exactly like the
+           drawer's own section dividers above it; the pinned column at the
+           other end takes `flip`, matching ITS siblings. -->
+      <FriezeBar class="drawer-floor-frieze" />
     </q-drawer>
 
     <!-- Page content gives up the width of the parked stack/pins column on the
@@ -421,14 +430,27 @@ aside.q-drawer {
   // same brown-3 top lip on the same pixel as the bar's `border-top`, and the
   // same 41px brown-4 rail block at the left end. Whatever the drawer's width,
   // the bar reads as continuous — the drawer just owns those pixels.
+  //
+  // It takes --nav-bar-h, the bar's ROW, not --nav-footer-h: since the floor
+  // band went in (same day) the chrome is that row plus a --frieze-h band, and
+  // the drawer rebuilds both — this block, then `.drawer-floor-frieze` under
+  // it. Sized to the total instead, the block would swallow the band's pixels
+  // and drop the burger chip half a band low.
   .drawer-footer {
     flex: 0 0 auto;
     display: flex;
     align-items: stretch;
-    height: var(--nav-footer-h);
+    height: var(--nav-bar-h);
     background: var(--brown-1);
     border-top: 1px solid var(--brown-3);
     overflow: hidden;               // clips the hairline in the 42px mini state
+  }
+
+  // The band that closes the column, on the window floor. `flex: 0 0 auto` so
+  // it keeps its own --frieze-h against the scroll area's `flex: 1 1 auto`
+  // above it — the component states a height, not a basis.
+  .drawer-floor-frieze {
+    flex: 0 0 auto;
   }
 
   // The rail block — NavigationBar's `.burger-slot` to the pixel: the column's

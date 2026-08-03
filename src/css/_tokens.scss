@@ -510,11 +510,15 @@ $warning:   #F2C037;
   --smoke-strong: rgba(31, 42, 56, 0.85);
 
   // ── LAYOUT METRICS ──
-  // EXACT height of the fixed bottom NavigationBar (.nav-bar sets
-  // `height: var(--nav-footer-h)`). The docked windows and the pins widget
-  // sit at `bottom: var(--nav-footer-h)` so their bottom edges merge with the
-  // bar's top edge — change it here and everything stays flush. Any
-  // viewport-bounded surface (e.g. subject-panel) subtracts it too.
+  // EXACT height of the NavigationBar's own row — the plaque that holds the
+  // burger, the create bundle and the tack (.nav-bar sets
+  // `height: var(--nav-bar-h)`), and the row the left drawer and the pinned
+  // column REBUILD inside their own footers so the bar reads as continuous.
+  //
+  // Split out of --nav-footer-h on 2026-08-02, when a floor frieze band went
+  // in UNDER the bar: the token below stopped being the bar's height and
+  // became the whole bottom chrome, so the bar's row needed a name of its
+  // own. The 32px is that token's old value, moved here unchanged.
   //
   // 48px → **32px**, TWO THIRDS of the original (2026-08-02, user ask, same
   // pass as --frieze-h's 30% cut). It went to 24px — a straight half — first,
@@ -528,7 +532,24 @@ $warning:   #F2C037;
   // glyphs dropped a size (16/15px → 14/13px). 32px less the 1px top lip
   // leaves 31px of content box, so a 24px chip keeps ~3.5px of air top and
   // bottom — the same proportion the 28px chip had in the 48px bar.
-  --nav-footer-h: 32px;
+  --nav-bar-h: 32px;
+
+  // TOTAL height of the bottom chrome — the bar's row PLUS the floor frieze
+  // band standing under it (2026-08-02, user ask: "a dark brown frieze bar
+  // below the nav footer bar, the ones from inside the left drawer"). That
+  // band is a FriezeBar mounted inside the q-footer, beneath `.nav-bar`, and
+  // it is repeated inside the drawer's and the pinned column's own footers so
+  // the line runs unbroken from edge to edge.
+  //
+  // This token is what everything else on the page reads, and it keeps its
+  // exact old MEANING — "how far up from the window floor the bottom chrome
+  // reaches". The docked windows, the minitab strip, the pinned column, the
+  // drawer and the feed container sit at `bottom: var(--nav-footer-h)`, so
+  // their bottom edges still merge with the bar's TOP edge; any
+  // viewport-bounded surface (e.g. subject-panel) still subtracts the whole
+  // chrome. Nothing anchored to it needed touching when the band went in —
+  // only `.nav-bar` itself, which wants the row and not the total.
+  --nav-footer-h: calc(var(--nav-bar-h) + var(--frieze-h));
 
   // Where the base `.dock-window` shell stands — the bar's top edge PLUS the
   // frieze footer band that sits on it (2026-07-25). FriezeFooter is an

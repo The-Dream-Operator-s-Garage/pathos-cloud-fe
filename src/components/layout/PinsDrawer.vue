@@ -117,7 +117,7 @@
     <!-- ── THE TACK LIVES HERE NOW (2026-08-02, user ask: "make sure the pin
          button is contained inside [the pinned side bar], and that the
          sidebar is on top of the footer"). The column runs to the WINDOW
-         FLOOR and lies over the nav bar, so its last `--nav-footer-h` IS the
+         FLOOR and lies over the nav bar, so its last `--nav-bar-h` IS the
          bar's row — and this block rebuilds that row inside the widget,
          exactly as the left drawer's `.drawer-footer` rebuilds it around the
          burger: brown-1 plaque, a brown-3 `border-top` landing on the same
@@ -142,6 +142,15 @@
         </q-btn>
       </div>
     </div>
+
+    <!-- The floor band, continued across this column (2026-08-02) — the
+         mirror of MainLayout's `.drawer-floor-frieze` at the other end of the
+         window. The nav bar carries the same band inside its footer, but this
+         column runs PAST that footer to the window floor and owns these
+         pixels, so it draws its own and the line runs unbroken edge to edge.
+         `flip`, like the band this widget already carries at the top of its
+         list well: the right edge mirrors the left. -->
+    <FriezeBar flip class="pins-floor-frieze" />
   </aside>
 </template>
 
@@ -395,8 +404,9 @@ export default defineComponent({
 // kept (free corner).
 // ── AND SINCE 2026-08-02 IT RUNS TO THE WINDOW FLOOR (user ask) ──
 // `bottom: 0`, not the bar's top edge: the column lies OVER the nav bar's
-// right end and its last `--nav-footer-h` IS that bar's row, rebuilt inside
-// the widget by `.pins-footer` below around the tack. This is the exact
+// right end and its last `--nav-footer-h` IS that bar's chrome, rebuilt inside
+// the widget by `.pins-footer` (the row, around the tack) plus
+// `.pins-floor-frieze` (the band under it). This is the exact
 // arrangement the left drawer took the same day — two columns bounding the
 // window, each owning the strip of bar under it. The cap grows by the same
 // token so the LIST keeps its `--dock-pins-h` share of the side band: the
@@ -473,15 +483,26 @@ export default defineComponent({
 // edge, under the parked column's own body) with its closing hairline facing
 // the page. Whatever the widget's width — 42px parked, 300px expanded — the
 // bar reads as continuous; the column just owns those pixels.
+//
+// --nav-bar-h, the ROW, not --nav-footer-h: since the floor band went in
+// (same day) the chrome is that row plus a --frieze-h band, and this column
+// rebuilds both — this block, then `.pins-floor-frieze` under it. On the total
+// the block would eat the band's pixels and the tack would sit half a band low.
 .pins-footer {
   flex: 0 0 auto;
   display: flex;
   align-items: stretch;
   justify-content: flex-end;         // the slot hugs the screen edge
-  height: var(--nav-footer-h);
+  height: var(--nav-bar-h);
   background: var(--brown-1);
   border-top: 1px solid var(--brown-3);
   overflow: hidden;                  // clips the hairline in the 42px parked state
+}
+
+// The band that closes the column, on the window floor — `flex: 0 0 auto` so
+// it holds its own --frieze-h against the list well above it.
+.pins-floor-frieze {
+  flex: 0 0 auto;
 }
 
 .pins-footer-hairline {
