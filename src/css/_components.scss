@@ -375,13 +375,46 @@
   box-shadow: -10px -10px 30px -6px rgba(0, 0, 0, 0.42);
   transition: left 0.18s ease, right 0.18s ease, top 0.18s ease;
 
+  // HEADER LAYOUT — title centred, traffic lights pinned to the left edge,
+  // iOS-sheet fashion rather than the old Mac-window one (2026-08-04, user
+  // ask: desktop should match the pattern mobile already had). Out of the
+  // flow (`position: absolute`) rather than `order: -1`, because the five
+  // docks put different things between the title and the lights — the
+  // maker has a `q-space`, chat has a `.dock-bar__left` group — and no
+  // single flex arrangement centres the title in all of them. The
+  // SYMMETRIC 80px side padding is what keeps the centred text off the
+  // dots: it was sized for the mobile cluster (3 × 17px dots + 2 × 8px
+  // gaps = 67, at an 8px inset = 75) and clears the smaller 13px-dot
+  // desktop cluster with room to spare.
   .dock-bar {
+    position: relative;
+    justify-content: center;
+    padding: 0 80px;
     background: var(--dock-coat);
     border-bottom: 1px solid var(--dock-rule);
+
+    // The `q-space` between title and lights (maker/uploader/builder/label)
+    // would push the title off centre — it is what right-aligned the
+    // cluster in the first place, and the cluster no longer needs pushing.
+    .q-space { display: none; }
   }
   .dock-bar__icon,
   .dock-bar__title { color: var(--dock-ink, var(--brown-8)); }
   .dock-bar__meta  { color: var(--dock-ink-mute, var(--brown-4)); }
+  .dock-bar__title,
+  .dock-bar__meta {
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .traffic {
+    position: absolute;
+    left: 8px;
+    top: 0;
+    bottom: 0;
+  }
 
   // The tab strip on the plaque: resting tabs are the wells' --brown-2 in
   // --brown-3 rims; the ACTIVE tab keeps its paper face and teal inset — the
@@ -739,52 +772,12 @@
     border-top-left-radius: var(--radius-lg);
   }
 
-  // ── MOBILE HEADER (2026-08-03, user ask) — the title CENTRED and the
-  // traffic lights on the LEFT edge, iOS-sheet fashion rather than the
-  // desktop's Mac-window fashion.
-  //
-  // The cluster comes out of the flow (`position: absolute`) instead of
-  // taking `order: -1`, because the five docks put different things between
-  // the title and the lights — the maker has a `q-space`, chat has a
-  // `.dock-bar__left` group — and no single flex arrangement centres the
-  // title in all of them. Out of the flow, the bar centres whatever is left
-  // and the SYMMETRIC side padding (the cluster's own width plus its inset)
-  // is what keeps the centred text off the dots: the text box shrinks
-  // equally on both sides, so its middle stays the bar's middle.
-  // The 80px is the cluster's real footprint plus air: 3 × 17px dots + 2 × 8px
-  // gaps = 67, at an 8px inset = 75. Keep the three numbers in step — the
-  // padding is what stops the centred title sliding UNDER the dots, and it can
-  // only do that while it is wider than they are. The title and meta truncate
-  // rather than overflow for the same reason: a centred flex row that outgrows
-  // its box grows out of BOTH ends, so an untruncated count would put the
-  // title's first letters behind the red dot.
-  .dock-window--creation .dock-bar {
-    position: relative;
-    justify-content: center;
-    padding: 0 80px;
-
-    // The `q-space` between title and lights (maker/uploader/builder/label)
-    // would push the title off centre — it is what right-aligned the cluster
-    // in the first place, and the cluster no longer needs pushing.
-    .q-space { display: none; }
-
-    .dock-bar__title,
-    .dock-bar__meta {
-      min-width: 0;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-  }
-
-  // Bigger dots for touch: 13px → 17px on a wider gap. Still the same
+  // Bigger dots for touch: 13px → 17px on a wider gap (the header layout
+  // itself — centred title, traffic lights pinned left — is shared with
+  // desktop now; see `.dock-window--creation` above). Still the same
   // classic lights (the glyphs keep their hover-only reveal — on a phone
   // that means they show while a press is held).
   .dock-window--creation .traffic {
-    position: absolute;
-    left: 8px;
-    top: 0;
-    bottom: 0;
     gap: 8px;
   }
 

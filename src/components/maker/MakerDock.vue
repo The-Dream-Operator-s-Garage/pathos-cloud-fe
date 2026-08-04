@@ -17,18 +17,18 @@
         </span>
         <q-space />
         <div class="traffic">
-          <button type="button" class="traffic__dot traffic__dot--green"
-            :title="store.isMaximized ? 'Restore size' : 'Maximize'"
-            @click="store.toggleMaximize()">
-            <q-icon :name="store.isMaximized ? 'close_fullscreen' : 'open_in_full'" />
+          <button type="button" class="traffic__dot traffic__dot--red"
+            title="Close (drafts are kept)" @click="store.close()">
+            <q-icon name="close" />
           </button>
           <button type="button" class="traffic__dot traffic__dot--yellow"
             title="Minimize" @click="store.minimize()">
             <q-icon name="remove" />
           </button>
-          <button type="button" class="traffic__dot traffic__dot--red"
-            title="Close (drafts are kept)" @click="store.close()">
-            <q-icon name="close" />
+          <button type="button" class="traffic__dot traffic__dot--green"
+            :title="store.isMaximized ? 'Restore size' : 'Maximize'"
+            @click="store.toggleMaximize()">
+            <q-icon :name="store.isMaximized ? 'close_fullscreen' : 'open_in_full'" />
           </button>
         </div>
       </header>

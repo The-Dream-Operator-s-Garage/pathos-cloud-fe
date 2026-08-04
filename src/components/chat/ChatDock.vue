@@ -28,9 +28,9 @@
           <span v-if="chats.length" class="dock-bar__meta">{{ chats.length }} conversation{{ chats.length === 1 ? '' : 's' }}</span>
         </div>
         <div class="traffic">
-          <button class="traffic__dot traffic__dot--green" title="Maximize" @click="store.toggleMaximize()" />
-          <button class="traffic__dot traffic__dot--yellow" title="Minimize to the bar" @click="store.minimize()" />
           <button class="traffic__dot traffic__dot--red" title="Close" @click="store.close()" />
+          <button class="traffic__dot traffic__dot--yellow" title="Minimize to the bar" @click="store.minimize()" />
+          <button class="traffic__dot traffic__dot--green" title="Maximize" @click="store.toggleMaximize()" />
         </div>
       </header>
 
