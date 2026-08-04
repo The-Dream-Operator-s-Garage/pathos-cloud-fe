@@ -587,34 +587,17 @@ $warning:   #F2C037;
   // only `.nav-bar` itself, which wants the row and not the total.
   --nav-footer-h: calc(var(--nav-bar-h) + var(--frieze-h));
 
-  // Where the base `.dock-window` shell stands — the bar's top edge PLUS the
-  // frieze footer band that sits on it (2026-07-25). FriezeFooter is an
-  // opaque --frieze-h strip parked at `bottom: var(--nav-footer-h)`, so a
-  // dock BELOW its z anchored to the bar alone would lose its bottom
-  // --frieze-h behind it; this token stands such a dock ON the band instead.
-  // NO DOCK RESTS HERE ANY MORE (2026-08-03). The four creation docks moved
-  // above the band's z on 2026-07-27 (3010+ > 3000, stores/windows.js) and
-  // anchor straight to `--nav-footer-h`, painting OVER the band
-  // (`.dock-window--creation`), as the parked minitab strip does too; CHAT was
-  // the last reader and joined them (user ask — it should overlay the footer
-  // frieze bar, not float on top of it). The token's ONE live consumer is now
-  // the base `.dock-window` shell's own `bottom`, i.e. the STACK widget (the
-  // pins widget opts out by re-stating --nav-footer-h).
-  // The pinned column and the left drawer never used it — they keep
-  // `bottom: var(--nav-footer-h)` and run down OVER the band, which is
-  // what covers its two ends.
-  --dock-bottom: calc(var(--nav-footer-h) + var(--frieze-h));
-
   // EXACT height of the fixed top FriezeHeader (the mercury-wave crown
   // strip mounted by BOTH layouts). Percentage of the viewport — not
   // pixels — so the band scales with the device. The page containers pad
   // down by this token so content never hides under the plaque.
   //
   // It is the THICKNESS OF THE WHOLE FRIEZE FAMILY, not just the crown:
-  // FriezeFooter's band, every in-box FriezeBar (brown, and the flyout's
-  // grey-9 restating), and the blue-grey FriezeBarVertical/B read it as
-  // their WIDTH. One number moves all of them together, which is the
-  // point — they are one material seen on different edges.
+  // every in-box FriezeBar (brown, the floor band's pale restating, the
+  // flyout's grey-9 one, chat's green one) and the blue-grey
+  // FriezeBarVertical/B read it as their WIDTH. One number moves all of them
+  // together, which is the point — they are one material seen on different
+  // edges.
   //
   // 3vh → 2.1vh, i.e. 30% thinner (2026-08-02, user ask): the bands read
   // right on the main layouts but sat a touch heavy. At a 900px viewport

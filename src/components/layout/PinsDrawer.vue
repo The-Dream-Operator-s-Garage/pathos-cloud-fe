@@ -149,7 +149,8 @@
          column runs PAST that footer to the window floor and owns these
          pixels, so it draws its own and the line runs unbroken edge to edge.
          `flip`, like the band this widget already carries at the top of its
-         list well: the right edge mirrors the left. -->
+         list well: the right edge mirrors the left. In the crown strip's pale
+         palette since 2026-08-04 — see NavigationBar's `.nav-floor-frieze`. -->
     <FriezeBar flip class="pins-floor-frieze" />
   </aside>
 </template>
@@ -503,6 +504,11 @@ export default defineComponent({
 // it holds its own --frieze-h against the list well above it.
 .pins-floor-frieze {
   flex: 0 0 auto;
+  // The crown strip's pale palette (2026-08-04) — see NavigationBar's
+  // `.nav-floor-frieze`, which this matches tone for tone.
+  --frieze-bar-base: var(--brown-1);
+  --frieze-bar-wave-one: var(--brown-3);
+  --frieze-bar-wave-two: var(--brown-4);
 }
 
 .pins-footer-hairline {

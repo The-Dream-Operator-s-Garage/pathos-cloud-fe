@@ -142,12 +142,14 @@
   // out (they don't set --dock-right) — they stay flush to the right edge and,
   // being split across the top/bottom halves, never collide with a rail.
   right: var(--dock-right, 0px);
-  // The bar's top edge PLUS the frieze footer band standing on it — see
-  // --dock-bottom in _tokens.scss. Anchoring to --nav-footer-h alone would
-  // bury each dock's bottom --frieze-h behind that opaque strip. The pins
-  // widget opts out (it re-states --nav-footer-h) because it is one of the
-  // two things the band is meant to run BEHIND.
-  bottom: var(--dock-bottom);
+  // The bar's top edge (2026-08-04) — a sane default nothing currently reads:
+  // every one of the seven docks overrides `bottom` itself (the five
+  // `.dock-window--creation` docks restate this same value; `.stack-window`
+  // and `.pins-drawer` want `top: 0`/`bottom: 0` instead). Used to read
+  // `--dock-bottom`, one --frieze-h taller, to clear FriezeFooter — the pale
+  // band that used to stand on this edge; that band (and the token) is gone
+  // now that the floor frieze wears its palette instead.
+  bottom: var(--nav-footer-h);
   display: flex;
   flex-direction: column;
   background: var(--surface-glass-strong);
@@ -342,16 +344,13 @@
   left: 50vw;
   right: calc(var(--dock-right, 0px) + var(--dock-gap));
   top: calc(var(--frieze-h) + var(--dock-gap));
-  // Straight off the NAV BAR's top edge, OVER the frieze footer band
-  // (2026-07-27, second pass — it stood on the band's top via --dock-bottom
-  // first). The band is opaque at z 3000 and these docks are 3010+, so the
-  // bottom --frieze-h of the window paints over it instead of being buried —
-  // which is the whole reason --dock-bottom existed. Chat was its last
-  // consumer and joined this rule on 2026-08-03 (user ask: "make the window
-  // start rendering just over the footer bar, overlaying on top of the footer
-  // frieze bar. We do not want to have the chat float on top of the footer
-  // frieze bar"), so no DOCK anchors to that token now — only the stack/pins
-  // widgets' base shell still reads it.
+  // Straight off the NAV BAR's top edge (2026-07-27, second pass — it stood
+  // one --frieze-h higher first, via the now-retired --dock-bottom, to clear
+  // FriezeFooter, the pale band that used to occupy this edge before
+  // 2026-08-04). Chat joined this rule on 2026-08-03 (user ask: "make the
+  // window start rendering just over the footer bar, overlaying on top of the
+  // footer frieze bar. We do not want to have the chat float on top of the
+  // footer frieze bar"), so every dock anchors here now.
   bottom: var(--nav-footer-h);
   width: auto;
   height: auto;

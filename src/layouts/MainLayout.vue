@@ -160,13 +160,15 @@
         <div class="drawer-footer-hairline" />
       </div>
 
-      <!-- The floor band, continued across the drawer's column (2026-08-02).
-           The bar under here carries the same FriezeBar inside its footer, but
-           the drawer runs PAST that footer to the window floor and owns these
-           pixels — so it draws the band itself and the line reads unbroken
-           from screen edge to screen edge. Un-flipped, exactly like the
-           drawer's own section dividers above it; the pinned column at the
-           other end takes `flip`, matching ITS siblings. -->
+      <!-- The floor band, continued across the drawer's column (2026-08-02),
+           in the crown strip's pale palette since 2026-08-04 — see
+           NavigationBar's `.nav-floor-frieze` for why. The bar under here
+           carries the same FriezeBar inside its footer, but the drawer runs
+           PAST that footer to the window floor and owns these pixels — so it
+           draws the band itself and the line reads unbroken from screen edge
+           to screen edge. Un-flipped, exactly like the drawer's own section
+           dividers above it; the pinned column at the other end takes
+           `flip`, matching ITS siblings. -->
       <FriezeBar class="drawer-floor-frieze" />
     </q-drawer>
 
@@ -176,17 +178,6 @@
     <q-page-container :style="{ paddingRight: windows.railWidth ? windows.railWidth + 'px' : null, paddingTop: 'var(--frieze-h)' }">
       <router-view />
     </q-page-container>
-
-    <!-- Frieze footer — the crown strip mirrored vertically and parked on the
-         nav bar's top edge, so the window is closed by a band answering the
-         one that opens it (2026-07-25). MainLayout only: AuthLayout has a
-         strip but no nav bar for this to stand on. It sits at the crown
-         strip's OWN z 3000 — under the drawer (3120, which runs past this
-         line to the window floor and covers the band's LEFT end) and the
-         pinned column (3100, whose bottom edge lands on this line and covers
-         the RIGHT one), and under the feed container (3001), which hovers
-         over it just as it runs up over the strip. -->
-    <FriezeFooter />
 
     <NavigationBar
       :pins-refresh-key="pinsRefreshKey"
@@ -231,7 +222,6 @@ import SkeletonBuilderDock from 'src/components/maker/SkeletonBuilderDock.vue'
 import LabelMakerDock from 'src/components/maker/LabelMakerDock.vue'
 import ChatDock from 'src/components/chat/ChatDock.vue'
 import FriezeHeader from 'src/components/layout/FriezeHeader.vue'
-import FriezeFooter from 'src/components/layout/FriezeFooter.vue'
 import FriezeBar from 'src/components/layout/FriezeBar.vue'
 import NavigationBar from 'src/components/layout/NavigationBar.vue'
 import PinsDrawer from 'src/components/layout/PinsDrawer.vue'
@@ -246,7 +236,7 @@ import { useEventsStore } from 'src/stores/events'
 
 export default defineComponent({
   name: 'MainLayout',
-  components: { MakerDock, UploaderDock, SkeletonBuilderDock, LabelMakerDock, ChatDock, FriezeHeader, FriezeFooter, FriezeBar, NavigationBar, PinsDrawer, StackPanel, EntityAvatar },
+  components: { MakerDock, UploaderDock, SkeletonBuilderDock, LabelMakerDock, ChatDock, FriezeHeader, FriezeBar, NavigationBar, PinsDrawer, StackPanel, EntityAvatar },
   setup () {
     const router = useRouter()
     const navStore = useNavStore()
@@ -451,6 +441,11 @@ aside.q-drawer {
   // above it — the component states a height, not a basis.
   .drawer-floor-frieze {
     flex: 0 0 auto;
+    // The crown strip's pale palette (2026-08-04) — see NavigationBar's
+    // `.nav-floor-frieze`, which this matches tone for tone.
+    --frieze-bar-base: var(--brown-1);
+    --frieze-bar-wave-one: var(--brown-3);
+    --frieze-bar-wave-two: var(--brown-4);
   }
 
   // The rail block — NavigationBar's `.burger-slot` to the pixel: the column's
