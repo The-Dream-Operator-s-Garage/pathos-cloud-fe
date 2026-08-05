@@ -5,9 +5,12 @@
        uploader windows when expanded"), so the five docks are one window on
        every screen — right half of the display, daylight off the crown strip
        and the side column, welded to the nav bar's top edge OVER the footer
-       frieze band. Its own identity is the GREEN COLORWAY
+       frieze band. Its own identity is the LIME COLORWAY
        (`.dock-window--chat`, opaque — the glass shell and its backdrop blur
-       are gone) plus the frieze band under the header.
+       are gone, hue-swapped from green 2026-08-05) plus the slim frieze band
+       under the header. Since 2026-08-05 the window also caps its OWN height
+       at 60% of the screen when open — the maximize (green) traffic light
+       reclaims the full span every other creation dock always has.
 
        Left column: the conversations you're part of + the new-conversation
        entity search. Main area: the open conversation as classic chat —
@@ -34,11 +37,12 @@
         </div>
       </header>
 
-      <!-- The platform's own band, dressed in this window's family (the three
-           `--frieze-bar-*` dials — see the style block). It divides the
-           header from the conversation the way the crown strip divides the
-           chrome from the page. -->
-      <FriezeBar class="chat-dock__frieze" />
+      <!-- The platform's own band, slim (one SVG layer, half height — same
+           recipe the media viewer's header band uses) and dressed in this
+           window's family (the two `--frieze-bar-*` dials — see the style
+           block). It divides the header from the conversation the way the
+           crown strip divides the chrome from the page. -->
+      <FriezeBar class="chat-dock__frieze" slim />
 
       <div class="chat-dock__body">
         <!-- ── Conversations column ──
@@ -694,16 +698,20 @@ export default defineComponent({
   flex-direction: column;
 }
 
-// The band under the header, in this window's family. The recipe (masks, mask
-// fit, carve) is FriezeBar's and untouched; only the three tones move, and they
-// keep the brown band's exact role mapping — base -4, waves -2 then -1 — so the
-// motif reads the same, one hue family over. `flex: 0 0 auto` because the shell
-// is a flex column and a decorative band is the first thing it would squash.
+// The band under the header, SLIM (2026-08-05, was full-height two-wave
+// green — user ask: "scoping it to using only one SVG and compressing its
+// height"): the same half-height, one-layer recipe the media viewer's header
+// band uses (`slim` on FriezeBar). Slim only ever renders layer two, so
+// there is no wave-one dial to set. Base = this family's own darkest tone
+// (`--lime-10`, doing double duty as the colorway's ink elsewhere in this
+// file); pattern = `--brown-1`, the neutral every other frieze band's
+// lightest wave is drawn in, rather than a second lime tone. `flex: 0 0 auto`
+// because the shell is a flex column and a decorative band is the first
+// thing it would squash.
 .chat-dock__frieze {
   flex: 0 0 auto;
-  --frieze-bar-base: var(--green-4);
-  --frieze-bar-wave-one: var(--green-2);
-  --frieze-bar-wave-two: var(--green-1);
+  --frieze-bar-base: var(--lime-10);
+  --frieze-bar-wave-two: var(--brown-1);
 }
 
 .dock-bar__left { display: flex; align-items: center; gap: 7px; min-width: 0; }
@@ -719,14 +727,14 @@ export default defineComponent({
 }
 
 // ── Conversations column ──
-// A WELL (--green-2) set into the window's --green-1 coat, the same figure/
+// A WELL (--lime-2) set into the window's --lime-1 coat, the same figure/
 // ground step the side widgets' scroll wells take out of their brown plaque.
 .chat-dock__list {
   display: flex;
   flex-direction: column;
   min-height: 0;
-  border-right: 1px solid var(--green-3);
-  background: var(--green-2);
+  border-right: 1px solid var(--lime-3);
+  background: var(--lime-2);
 }
 
 .chat-dock__list-head {
@@ -738,9 +746,9 @@ export default defineComponent({
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: var(--green-8);
-  .q-btn { color: var(--green-8); }
-  .q-btn.is-active { color: var(--green-8); background: var(--green-1); }
+  color: var(--lime-10);
+  .q-btn { color: var(--lime-10); }
+  .q-btn.is-active { color: var(--lime-10); background: var(--lime-1); }
 }
 
 .chat-dock__new {
@@ -748,7 +756,7 @@ export default defineComponent({
   flex-direction: column;
   gap: 4px;
   padding: 4px 10px 8px;
-  border-bottom: 1px dashed var(--green-4);
+  border-bottom: 1px dashed var(--lime-4);
 }
 
 .chat-dock__entity {
@@ -756,15 +764,15 @@ export default defineComponent({
   align-items: center;
   gap: 6px;
   padding: 4px 8px;
-  border: 1px solid var(--green-3);
+  border: 1px solid var(--lime-3);
   border-radius: 6px;
   background: var(--paper-card, #ffffff);
   font-family: inherit;
   font-size: 0.78em;
   cursor: pointer;
   text-align: left;
-  &:hover { border-color: var(--green-8); color: var(--green-8); }
-  .q-icon { color: var(--green-4); }
+  &:hover { border-color: var(--lime-10); color: var(--lime-10); }
+  .q-icon { color: var(--lime-4); }
 }
 .chat-dock__entity-hash { margin-left: auto; opacity: 0.45; font-size: 0.85em; }
 
@@ -778,31 +786,31 @@ export default defineComponent({
   gap: 4px;
 
   scrollbar-width: thin;
-  scrollbar-color: var(--green-4) transparent;
+  scrollbar-color: var(--lime-4) transparent;
   &::-webkit-scrollbar       { width: 4px; }
-  &::-webkit-scrollbar-thumb { background: var(--green-4); border-radius: 2px; }
+  &::-webkit-scrollbar-thumb { background: var(--lime-4); border-radius: 2px; }
 }
 
-// A row is a --green-1 card on the column's --green-2 floor; the ACTIVE one
+// A row is a --lime-1 card on the column's --lime-2 floor; the ACTIVE one
 // goes to PAPER, which is the same "current = the lightest thing here" device
-// the dock tab strip uses, with --green-4 (the colorway's heavy line) closing
+// the dock tab strip uses, with --lime-4 (the colorway's heavy line) closing
 // it. Nothing here is translucent: the whole window is opaque now.
 .chat-row {
   display: flex;
   flex-direction: column;
   gap: 3px;
   padding: 6px 8px;
-  border: 1px solid var(--green-3);
+  border: 1px solid var(--lime-3);
   border-radius: 8px;
-  background: var(--green-1);
+  background: var(--lime-1);
   font-family: inherit;
   cursor: pointer;
   text-align: left;
   transition: border-color 0.12s, background 0.12s;
 
-  &:hover { border-color: var(--green-4); }
+  &:hover { border-color: var(--lime-4); }
   &.is-active {
-    border-color: var(--green-4);
+    border-color: var(--lime-4);
     background: var(--paper-card, #ffffff);
   }
 }
@@ -827,7 +835,7 @@ export default defineComponent({
 .chat-row__name {
   font-size: 0.74em;
   font-weight: 700;
-  color: var(--green-8);
+  color: var(--lime-10);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -852,9 +860,9 @@ export default defineComponent({
   flex: 0 0 auto;
   font-size: 0.6em;
   font-weight: 700;
-  color: var(--green-8);
-  background: var(--green-2);
-  border: 1px solid var(--green-3);
+  color: var(--lime-10);
+  background: var(--lime-2);
+  border: 1px solid var(--lime-3);
   border-radius: 7px;
   padding: 0 4px;
 }
@@ -867,8 +875,8 @@ export default defineComponent({
   letter-spacing: 0.05em;
   padding: 0 5px;
   border-radius: 7px;
-  border: 1px solid var(--green-4);
-  color: var(--green-8);
+  border: 1px solid var(--lime-4);
+  color: var(--lime-10);
   flex: 0 0 auto;
   &.is-declined { border-color: rgba(#c10015, 0.45); color: #a5121f; }
 }
@@ -901,15 +909,15 @@ export default defineComponent({
   gap: 8px;
   padding: 8px 14px;
   font-size: 0.82em;
-  border-bottom: 1px solid var(--green-3);
-  color: var(--green-8);
-  .q-icon { color: var(--green-8); }
+  border-bottom: 1px solid var(--lime-3);
+  color: var(--lime-10);
+  .q-icon { color: var(--lime-10); }
 }
 
 .chat-dock__contract-btn {
   margin-left: auto;
-  color: var(--green-4);
-  &.is-active { color: var(--green-8); }
+  color: var(--lime-4);
+  &.is-active { color: var(--lime-10); }
 }
 
 .chat-dock__presence {
@@ -929,7 +937,7 @@ export default defineComponent({
   margin-top: -2px;
 }
 
-// The thread lies on the window's own coat (--green-1, inherited from the
+// The thread lies on the window's own coat (--lime-1, inherited from the
 // shell) — the bubbles carry the tone difference, so the bed stays quiet.
 .chat-dock__msgs {
   flex: 1;
@@ -941,9 +949,9 @@ export default defineComponent({
   gap: 4px;
 
   scrollbar-width: thin;
-  scrollbar-color: var(--green-4) transparent;
+  scrollbar-color: var(--lime-4) transparent;
   &::-webkit-scrollbar       { width: 4px; }
-  &::-webkit-scrollbar-thumb { background: var(--green-4); border-radius: 2px; }
+  &::-webkit-scrollbar-thumb { background: var(--lime-4); border-radius: 2px; }
 }
 
 .chat-dock__composer {
@@ -951,7 +959,7 @@ export default defineComponent({
   align-items: flex-end;
   gap: 8px;
   padding: 10px 14px;
-  border-top: 1px solid var(--green-3);
+  border-top: 1px solid var(--lime-3);
 
   .q-input { flex: 1; }
   .q-btn { flex-shrink: 0; margin-bottom: 2px; }
@@ -963,10 +971,10 @@ export default defineComponent({
   gap: 8px;
   padding: 8px 14px;
   font-size: 0.78em;
-  border-bottom: 1px dashed var(--green-4);
-  background: var(--green-2);
-  color: var(--green-8);
-  .q-icon { color: var(--green-8); }
+  border-bottom: 1px dashed var(--lime-4);
+  background: var(--lime-2);
+  color: var(--lime-10);
+  .q-icon { color: var(--lime-10); }
   span { flex: 1; }
 }
 .chat-dock__gate {

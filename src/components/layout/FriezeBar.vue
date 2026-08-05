@@ -78,8 +78,9 @@ export default defineComponent({
   // platform already HAS a band in a second family — FriezeBarVertical is
   // FriezeHeader's tone mapping (base -1, waves -3/-4) in indigo — so a
   // whole colorway of this band is a thing the design does, not a costume.
-  // The chat window asked for the third (green): base --green-4, waves
-  // --green-2 + --green-1. What must NOT move with the tones is the recipe —
+  // The chat window asked for the third (lime, was green until 2026-08-05):
+  // its band runs `slim` (base --lime-10, one wave --brown-1) — see below.
+  // What must NOT move with the tones is the recipe —
   // the two masks, the `auto 99%` fit and the carve's drop-shadow offsets are
   // the band itself. Dial all THREE together or the motif goes flat: the
   // waves have to sit a step or two ABOVE their base, since the carve lights

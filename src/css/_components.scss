@@ -436,12 +436,15 @@
 }
 
 // ── CHAT COLORWAY (2026-08-03, user ask: "use green-1 as the main color for
-// the chat window, and also remove the transparency from the background").
-// The chat dock joined the creation footprint the same day — same geometry,
+// the chat window, and also remove the transparency from the background";
+// hue-swapped green → lime 2026-08-05, "even clearer tones"). The chat dock
+// joined the creation footprint the same day it went green — same geometry,
 // same maximize, same mobile chrome — so its own identity is exactly this: the
-// five dials above pointed at the green family (see _tokens.scss § GREEN). The
-// interior (conversations column, bubbles, composer) is ChatDock.vue's, drawn
-// in the same tokens.
+// dials below point at the lime family (see _tokens.scss § LIME). The ink dial
+// reads `--lime-10`, not the sibling colorways' Material-700 index (`-8`) —
+// lime's own 700 is too pale to read as text; see the token file for the
+// contrast math. The interior (conversations column, bubbles, composer) is
+// ChatDock.vue's + MessageBubble.vue's, drawn in the same tokens.
 //
 // The transparency went with the footprint change: the old shell was
 // `--surface-glass-strong` over a 12px `backdrop-filter`, the last translucent
@@ -449,12 +452,28 @@
 // worth seeing through the window, and a chat that now covers half the screen
 // (all of it on a phone) is not that.
 .dock-window--chat {
-  --dock-coat: var(--green-1);
-  --dock-well: var(--green-2);
-  --dock-rule: var(--green-3);
-  --dock-rule-strong: var(--green-4);
-  --dock-ink: var(--green-8);
-  --dock-ink-mute: var(--green-4);
+  --dock-coat: var(--lime-1);
+  --dock-well: var(--lime-2);
+  --dock-rule: var(--lime-3);
+  --dock-rule-strong: var(--lime-4);
+  --dock-ink: var(--lime-10);
+  --dock-ink-mute: var(--lime-4);
+}
+
+// ── CHAT VERTICAL CAP (2026-08-05, user ask: "make it extend only up to 60%
+// of the screen height" when open, "extend it as much as possible" on
+// maximize) — the other four creation docks keep the shared top/bottom span
+// (frieze band to nav bar, set above) at both sizes; chat alone now states
+// its own height and pins to the BOTTOM of that span instead — still rising
+// from the bar, just not filling all the way to the crown strip until
+// maximized. The `min()` guards a short viewport where 60% of the screen
+// would overshoot the span the frieze band and nav bar leave available.
+.dock-window--chat {
+  top: auto;
+  height: min(
+    60vh,
+    calc(100vh - var(--frieze-h) - var(--dock-gap) - var(--media-tabs-h, 0px) - var(--nav-footer-h))
+  );
 }
 
 // Maximize fills the whole slot from the screen's left edge to the side
@@ -464,6 +483,17 @@
   left: 0;
   border-left: none;
   border-top-left-radius: 0;
+}
+
+// Chat's maximize additionally reclaims the full frieze-to-navbar span (the
+// height every other creation dock always has) and squares off the corner
+// its own cap left rounded, `border-top-right-radius`. The nav bar's footer
+// is untouched either way — `bottom: var(--nav-footer-h)` never moves, so
+// maximizing the chat window never covers it.
+.dock-window--chat.is-max {
+  top: calc(var(--frieze-h) + var(--dock-gap) + var(--media-tabs-h, 0px));
+  height: auto;
+  border-top-right-radius: 0;
 }
 
 // The 50/50 capture split pre-dates this geometry and keeps its own

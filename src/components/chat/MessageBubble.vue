@@ -44,25 +44,26 @@ export default defineComponent({
   &.is-mine { justify-content: flex-end; }
 }
 
-// The chat window's GREEN colorway (2026-08-03) reaches the bubbles: theirs is
-// paper on a --green-3 rim, MINE is the well tone --green-2 on the heavier
-// --green-4 — so "who said it" is stated by how green the bubble is, on a bed
-// that is the window's own --green-1 coat. Both fills are OPAQUE; the teal
-// `rgba(#00829c, .09)` my side used to wear was the last translucency left in
-// here, and a tint over a coloured coat is not the colour it was drawn as.
+// The chat window's LIME colorway (2026-08-03, hue-swapped from green
+// 2026-08-05) reaches the bubbles: theirs is paper on a --lime-3 rim, MINE is
+// the well tone --lime-2 on the heavier --lime-4 — so "who said it" is stated
+// by how lime the bubble is, on a bed that is the window's own --lime-1 coat.
+// Both fills are OPAQUE; the teal `rgba(#00829c, .09)` my side used to wear
+// was the last translucency left in here, and a tint over a coloured coat is
+// not the colour it was drawn as.
 .msg-bubble {
   max-width: min(72%, 560px);
   padding: 7px 12px 5px;
   border-radius: 12px 12px 12px 4px;
   background: var(--paper-card, #ffffff);
-  border: 1px solid var(--green-3);
+  border: 1px solid var(--lime-3);
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
   overflow-wrap: anywhere;
 
   .is-mine & {
     border-radius: 12px 12px 4px 12px;
-    background: var(--green-2);
-    border-color: var(--green-4);
+    background: var(--lime-2);
+    border-color: var(--lime-4);
   }
 }
 
@@ -71,7 +72,7 @@ export default defineComponent({
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: var(--green-8);
+  color: var(--lime-10);
   margin-bottom: 2px;
 }
 
