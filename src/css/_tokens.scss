@@ -478,7 +478,7 @@ $warning:   #F2C037;
   // The NODE CHIP, in the middle of the foot — a light PILL (fully round side
   // edges) lying on the foot's own coat, ringed in the panel's line tone.
   --grey-8: #{$grey-8};    // Quasar grey-8 — ALL FOUR of the chip's parts (icon, type word, separators, hash), 5.3:1 on the -3 fill, hierarchy left to MicroChip's .85/.7/.35 opacities. The chip is a neutral object, so it is lettered in a neutral: the panel's --teal-10 inks everything EXCEPT this pill. Same hex the pill itself wore when it was a dark --grey-14 slab. It is also the floating media viewer's LINE + BAND tone (`MediaViewerWindow.vue`): the window's border since 2026-08-04 — a quiet rule on the box's first dark coat, a drawn edge on the --grey-4 one it wears since 2026-08-05 — plus, from that second pass, the frieze band's plaque and the share glyph at rest. It KEEPS the band and the glyph and LOST the border the same day (third pass, user ask): a half-step line on the dark coat became the darkest mark on the light one, and the rim went to --grey-6. So the tone still does the divider and the muted glyph — the two things that are meant to read as marks ON the box — and nothing that is meant to read as the box's own edge
-  --grey-6: #{$grey-6};    // Quasar grey-6 — the floating media viewer's OUTER RIM (2026-08-05, user ask) — the window's and, from the same day's tabs pass, its minimize tabs': their 1px border AND the rim carried along each concave flare by two stops of the fillet's own radial gradient, so one line runs band → flare → tab. 1.9:1 on the --grey-4 coat: an edge one shade off the face rather than an outline drawn round it, which is what makes the box read as one piece of metal. It replaced --grey-8 there, which was a half-step line while the window was dark and a black outline once it went light. Also the tone the viewer's download card was already asking for through a fallback-only `var(--grey-6, …)` — its glyph and meta line — which this declaration makes real. NOT for hairlines on the node panel: at 2.3:1 on that fill it came out heavier than a hairline wants, which is how --grey-5 got the pill's ring
+  --grey-6: #{$grey-6};    // Quasar grey-6 — the floating media viewer's OUTER RIM (2026-08-05, user ask) — the window's and, from the same day's tabs pass, its minimize tabs': their 1px border, the BAND's own bottom rim (which the tabs paint over for their own width, so the line breaks where metal meets metal) AND the rim carried along each concave flare by two stops of the fillet's own radial gradient, so one line runs band → flare → tab. 1.9:1 on the --grey-4 coat: an edge one shade off the face rather than an outline drawn round it, which is what makes the box read as one piece of metal. It replaced --grey-8 there, which was a half-step line while the window was dark and a black outline once it went light. Also the tone the viewer's download card was already asking for through a fallback-only `var(--grey-6, …)` — its glyph and meta line — which this declaration makes real. NOT for hairlines on the node panel: at 2.3:1 on that fill it came out heavier than a hairline wants, which is how --grey-5 got the pill's ring
   --grey-5: #{$grey-5};    // Quasar grey-5 — BOTH of the pill's neutral lines (the 1px hairline all round outside it and the seam inside its bottom edge), AND, in the post information flyout since 2026-07-27, the SHADOWED half of its well's bevel (top + left borders, against --brown-1 on the bottom + right and a --grey-4 floor: darker than the fill on the two walls a top-left light cannot reach, lighter on the two it strikes) and that well's scrollbar thumb: the thumb was --grey-4 and quiet at 1.14:1 on a pale well, and when that well took --grey-4 itself the thumb was left drawn in its own track's tone — invisible — so it went a step darker, to 1.34:1 on the sunk floor. Also the tone to reach for if that well ever wants a visible rim, its --grey-4 one now being its own fill. 1.6:1 against the fill and the coat alike; NEUTRAL so neither joins the panel's teal line system, which leaves the --teal-12 base as the only edge that stands apart. (It was the pill's own fill two passes ago.) It drew the whole LINE SYSTEM of the NodeMini quoted into the post information flyout twice on 2026-07-27 and holds neither job now (that is --grey-4). It was the EMPHATIC neutral there — 1.42:1 on the --grey-4 coat of that morning, 1.72:1 on the --grey-2 one of that afternoon, the darkest thing in a box where every other edge is stated lighter than what it sits on — and it is the pass that found the panel's ceiling: thickened to 2px on top of that tone, the panel's own divisions came out ahead of everything they divide, in a box whose plaque, well and frieze band are all single pixels. Both the 2px and the width dial that allowed it were reverted
 
   --grey-2:      #{$grey-2};         // Quasar grey-2 — NO current role. It was the COAT of the NodeMini quoted into the post information flyout for part of 2026-07-27 (through that component's `--node-mini-coat` dial; everywhere else a node preview keeps its --teal-1), one step ABOVE the --grey-3 plaque and well of that afternoon, so the panel was the LIGHTEST thing in the box — raised rather than inset, which is what a viewer's one object should be: not a block quoted from somewhere but the thing the box is showing you. That RELATION is what stands and the tone is not how it is stated any more: the coat is --grey-3 (flush with the plaque) and the WELL sank to --grey-4 instead, so the panel is raised out of its container while remaining the box's own material. (It was --grey-4, a step UNDER the plaque, earlier the same day.) Consequence to know: the pane inside it lost its tonal step against this coat — --grey-1 measured 1.04:1 here against 1.26:1 on the --grey-4 coat of that morning, where it read as paper laid in a frame — which is what eventually moved both reading panes to --teal-1, an inset stated by hue instead. This tone also WAS the source pane for one pass late that day (1.00:1, panel and document one continuous surface drawn apart by the --teal-2 rim alone); it reverted, a document being something the box holds rather than more of the box. This tone also ringed that panel for part of the same day, as a thread of LIGHT (1.06:1 on the well, 1.21:1 on the then-coat), and lost the job to --teal-1 for the lesson worth keeping: where hue does all the work, a neutral is the one thing that cannot state an edge
@@ -635,25 +635,30 @@ $warning:   #F2C037;
   // it carves. Same reason the slim recipe halves them.
   --frieze-h: 2.1vh;
 
-  // ── THE MEDIA TABS BAND (2026-08-05, user ask) — the sliver the parked
-  // media viewers' tabs hang from. Two tokens, because the band's SIZE and
-  // the space it RESERVES are different questions:
+  // ── THE MEDIA TABS BAND (2026-08-05, user ask) — the rail the parked
+  // media viewers' tabs hang from. Two tokens, because the band's FACE and
+  // the space it takes are different numbers:
   //
-  //  --media-tabs-band  its own height, a fifth of the crown strip.
-  //  --media-tabs-h     how far every top-anchored surface moves DOWN for
-  //                     it. 0px by default; `MediaTabsBar` sets it to the
-  //                     band on mount and clears it on unmount, so the
-  //                     space exists only while ≥1 viewer is parked.
+  //  --media-tabs-band  the face, a fifth of the crown strip.
+  //  --media-tabs-h     what every top-anchored surface moves DOWN by:
+  //                     the face plus the 1px rim under it.
   //
-  // It used to reserve nothing and simply lay itself over the crown strip's
-  // top fifth, which cut the frieze motif off mid-carve across the whole
-  // width. The band is ABOVE the strip now, not on it: FriezeHeader, both
-  // page containers, the drawer, the stack widget and the creation docks
-  // all offset by this token, which is the whole list — anything else
-  // pinned to the top of the window has to join it or it will misalign with
-  // the crown strip the moment a viewer is minimized.
+  // PERMANENT (second pass, same day): the band stands at the top of the
+  // window whether or not anything is parked on it. It is chrome, not a
+  // notification — and a constant here is also what keeps the crown strip,
+  // the drawer and the page from stepping down and back up every time a
+  // viewer parks. The first pass had `MediaTabsBar` set this token on mount
+  // and clear it on unmount, which worked and jumped.
+  //
+  // It used to reserve nothing at all and simply lay itself over the crown
+  // strip's top fifth, which cut the frieze motif off mid-carve across the
+  // whole width. The band is ABOVE the strip now, not on it: FriezeHeader,
+  // both page containers, the drawer, the stack widget and the creation
+  // docks all offset by this token, which is the whole list — anything else
+  // pinned to the top of the window has to join it or it will stand out of
+  // line with the crown strip.
   --media-tabs-band: calc(var(--frieze-h) / 5);
-  --media-tabs-h: 0px;
+  --media-tabs-h: calc(var(--media-tabs-band) + 1px);
 
   // Mirrored side widgets (StackPanel drops from the very top over the
   // frieze, PinsDrawer rises from the very bottom over the nav footer), both

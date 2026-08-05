@@ -1,11 +1,11 @@
 <template>
-  <!-- The minimize band — a thin light-grey strip ABOVE the crown strip
-       (not on it: it claims `--media-tabs-h` and the whole top chrome
-       steps down, 2026-08-05), carrying one tab per parked viewer;
-       clicking a tab restores its window
-       (docs/plans/floating-media-viewer.md). Rendered only while ≥1
-       viewer is minimized (the host gates it), which is also what makes
-       the reserved band appear and disappear with the tabs.
+  <!-- The minimize band — a thin light-grey strip with a metal rim,
+       ABOVE the crown strip (not on it: `--media-tabs-h` moves the whole
+       top chrome down for it, 2026-08-05), carrying one tab per parked
+       viewer; clicking a tab restores its window
+       (docs/plans/floating-media-viewer.md). ALWAYS MOUNTED — it is the
+       rail the viewers hang from, so it stands there empty as readily as
+       full, and its space is a constant nothing has to animate.
 
        The row fills from the RIGHT edge leftward and never passes half
        the screen; `parked` is reversed so the newest tab is the leftmost
@@ -28,16 +28,14 @@
 </template>
 
 <script>
-import { defineComponent, computed, onMounted, onBeforeUnmount, nextTick } from 'vue'
+import { defineComponent, computed } from 'vue'
 import { useMediaViewersStore } from 'src/stores/mediaViewers'
-import { useMediaArena } from 'src/composables/useMediaArena'
-import { iconFor } from 'src/utils/mediaKind'
+import { iconFor, titleOf } from 'src/utils/mediaKind'
 
 export default defineComponent({
   name: 'MediaTabsBar',
   setup () {
     const store = useMediaViewersStore()
-    const { measure } = useMediaArena()
 
     // Newest FIRST, so the row grows leftward from the right edge and a
     // tab, once placed, stays where it was put. It also puts the tab you
@@ -45,30 +43,15 @@ export default defineComponent({
     // when the strip overflows into its scroller.
     const tabs = computed(() => [...store.parked].reverse())
 
-    const nameOf = (v) =>
-      v.node.file?.name ||
-      v.node.embed?.title || v.node.embed?.provider ||
-      v.node.title || ('node #' + v.node.id)
+    // The window's own name, verbatim — same seam, so a tab and the
+    // window it restores are never called two different things.
+    const nameOf = (v) => titleOf(v.node)
 
-    // THE BAND IS SPACE, NOT PAINT (2026-08-05, user ask). While this
-    // component is mounted the top chrome — crown strip, both page
-    // containers, drawer, stack widget, creation docks — steps down by
-    // `--media-tabs-h`, so this strip stands ABOVE the frieze instead of
-    // covering its top fifth and cutting the motif off. Set on the root
-    // element because the consumers are spread across layouts and
-    // components; cleared on unmount, which is when the last viewer was
-    // restored. The arena is re-measured after the shift lands so the
-    // NEXT window spawns against the strip's real bottom edge.
-    onMounted(async () => {
-      document.documentElement.style.setProperty('--media-tabs-h', 'var(--media-tabs-band)')
-      await nextTick()
-      measure()
-    })
-    onBeforeUnmount(() => {
-      document.documentElement.style.removeProperty('--media-tabs-h')
-      nextTick().then(measure)
-    })
-
+    // NOTHING to set at runtime: `--media-tabs-h` is a constant in
+    // _tokens.scss and the top chrome is laid out against it from boot.
+    // The first pass had this component claim and release the space as it
+    // mounted, which worked and made the whole page hop 4px whenever a
+    // viewer parked — a band that is permanent has no such moment.
     return { store, tabs, nameOf, iconFor }
   }
 })
@@ -81,13 +64,26 @@ export default defineComponent({
 // the media window's own `--grey-4` coat (2026-08-05, user ask): band, tab
 // and window are one material, which is what lets a tab flare out of the
 // band instead of being stuck onto it.
+//
+// The 1px `--grey-6` rim under it is the tabs' own border continued across
+// the window (user ask, same day: "so it looks smooth and metallic") — the
+// band is a machined edge with tabs cut out of it, and one line has to run
+// the whole way for that to read. `border-box` + the `+ 1px` in
+// `--media-tabs-h` is what keeps the FACE a clean `--media-tabs-band` while
+// the rim adds its own pixel to the space the page gives up. The tabs then
+// hang from `top: 100%` — the padding box, i.e. the face's underside — so
+// each one and its flares PAINT OVER the rim for their own width: the line
+// breaks where metal attaches to metal, which is exactly where a rim should
+// stop.
 .media-tabs {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
-  height: var(--media-tabs-band);
+  box-sizing: border-box;
+  height: calc(var(--media-tabs-band) + 1px);
   background: var(--grey-4, #e0e0e0);
+  border-bottom: 1px solid var(--grey-6, #9e9e9e);
   z-index: 3105;
   pointer-events: none;
 }

@@ -96,6 +96,7 @@ import { useWindowsStore } from 'src/stores/windows'
 import { useMediaArena } from 'src/composables/useMediaArena'
 import { useMediaWindowGestures } from 'src/composables/useMediaWindowGestures'
 import { probeNaturalSize, fitRect, chromeOf, clampRect } from 'src/utils/mediaFit'
+import { titleOf } from 'src/utils/mediaKind'
 
 // Fullscreen rides ABOVE the drawer (3120) — a maximized preview is the
 // one thing meant to cover everything; normal z comes from windows.order.
@@ -159,13 +160,10 @@ export default defineComponent({
     })
     onBeforeUnmount(() => clearTimeout(animT))
 
-    const fileName = computed(() => {
-      const n = viewer.value?.node
-      if (!n) return ''
-      return n.file?.name ||
-        n.embed?.title || n.embed?.provider ||
-        n.title || ('node #' + n.id)
-    })
+    // One naming seam (utils/mediaKind#titleOf) for the header and the
+    // parked tab, so a window and its tab can never be called two things.
+    // Web media reads `PROVIDER :: name` (2026-08-05, user ask).
+    const fileName = computed(() => titleOf(viewer.value?.node))
 
     const styleObj = computed(() => {
       const v = viewer.value
