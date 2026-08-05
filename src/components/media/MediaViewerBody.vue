@@ -172,8 +172,15 @@ export default defineComponent({
   // coat has to answer: it was --grey-4 while the well floor was dark,
   // and it is --grey-9 since the coat went LIGHT (2026-08-05) — grey-4 on
   // grey-4 would have been the same invisibility from the other side.
+  // The window's FOOTER line, in the window's voice: the display face
+  // (Nasalization, 2026-08-05 user ask) to match the header above it. The
+  // address inside it keeps `.mono` — that class sits on the anchor
+  // itself and wins over this inherited family, which is right: a URL is
+  // a machine string and is set as one everywhere on the platform.
   :deep(.embed-frame__cap) {
     color: var(--grey-9, #424242);
+    font-family: var(--font-display);
+    letter-spacing: 0.03em;
   }
 }
 

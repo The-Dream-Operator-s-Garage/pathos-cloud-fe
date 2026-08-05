@@ -50,7 +50,13 @@
         </button>
       </div>
 
-      <span class="dock-bar__title media-window__name" :title="fileName">{{ fileName }}</span>
+      <!-- Kind glyph + name, centred as ONE group: the icon is the tabs'
+           (utils/mediaKind#iconFor), so a window states its kind exactly
+           where its parked tab does. -->
+      <span class="dock-bar__title media-window__name" :title="fileName">
+        <q-icon :name="glyph" size="13px" class="media-window__kind" />
+        <span class="media-window__label">{{ fileName }}</span>
+      </span>
 
       <button
         type="button" class="dock-bar__action media-window__share"
@@ -96,7 +102,7 @@ import { useWindowsStore } from 'src/stores/windows'
 import { useMediaArena } from 'src/composables/useMediaArena'
 import { useMediaWindowGestures } from 'src/composables/useMediaWindowGestures'
 import { probeNaturalSize, fitRect, chromeOf, clampRect } from 'src/utils/mediaFit'
-import { titleOf } from 'src/utils/mediaKind'
+import { titleOf, iconFor } from 'src/utils/mediaKind'
 
 // Fullscreen rides ABOVE the drawer (3120) — a maximized preview is the
 // one thing meant to cover everything; normal z comes from windows.order.
@@ -164,6 +170,7 @@ export default defineComponent({
     // parked tab, so a window and its tab can never be called two things.
     // Web media reads `PROVIDER :: name` (2026-08-05, user ask).
     const fileName = computed(() => titleOf(viewer.value?.node))
+    const glyph = computed(() => iconFor(viewer.value?.node))
 
     const styleObj = computed(() => {
       const v = viewer.value
@@ -214,6 +221,7 @@ export default defineComponent({
       store,
       viewer,
       fileName,
+      glyph,
       styleObj,
       rootEl,
       barEl,
@@ -326,16 +334,37 @@ export default defineComponent({
   }
 }
 
+// Glyph + name as one centred group, set in the platform's DISPLAY face
+// (Nasalization, 2026-08-05 user ask — the same face the parked tabs
+// wear, so a window reads as the tab's full-size self). Nasalization is
+// WIDE: 0.72em with a hair of letter-spacing fits about as much name in
+// the bar as 0.78em of the body face did, and the ellipsis lives on the
+// label rather than this box so the glyph can never be the thing that
+// gets truncated.
 .media-window__name {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  max-width: 100%;
   // Dark on the light coat (7.0:1) — the tone the box itself wore until
   // the grey-4 pass, spent as ink now.
   color: var(--grey-9, #424242);
-  font-size: 0.78em;
-  letter-spacing: 0.02em;
+  font-family: var(--font-display);
+  font-size: 0.72em;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.media-window__kind {
+  flex: 0 0 auto;
+  color: var(--grey-8, #616161); // a step under the ink — glyph, not word
+}
+
+.media-window__label {
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
-  max-width: 100%;
 }
 
 .media-window__share {
