@@ -485,18 +485,21 @@ export default defineComponent({
   &.is-grabbed .media-window__bar { cursor: grabbing; }
 }
 
-// The house dock-bar, centred-title / left-lights (the creation docks'
-// promoted rule restated here — that rule is scoped to
-// .dock-window--creation and this window is not one). The action cluster
-// moved to the foot (user ask, 2026-08-05), so nothing sits opposite the
-// lights now — the side padding stays SYMMETRIC anyway (same trick the
-// docks use), which is what keeps the title centred in the window rather
-// than in whatever space happens to be free.
+// The house dock-bar, left-lights (the creation docks' promoted rule
+// restated here — that rule is scoped to .dock-window--creation and this
+// window is not one). The action cluster moved to the foot (user ask,
+// 2026-08-05), so nothing sits opposite the lights now — the padding used
+// to stay SYMMETRIC anyway to mirror that cluster, but that left the
+// title boxed into `barWidth - 152px` for no reason (it clipped hard at
+// the header's MIN_W floor). Padding is asymmetric now (user ask,
+// 2026-08-05): just enough on the left to clear the traffic-light
+// cluster (3 × 13px dots + 2 × 7px gaps = 53px, inset 8px), a plain small
+// inset on the right — the title gets the rest of the bar to itself.
 .media-window__bar {
   position: relative;
   flex: 0 0 auto;
   justify-content: center;
-  padding: 0 76px;
+  padding: 0 12px 0 70px;
   background: var(--grey-4, #e0e0e0); // the box's own coat — no cap
   border-bottom: none; // the frieze band is the divider
   // The bar is the drag surface: an open hand on its free areas (the
