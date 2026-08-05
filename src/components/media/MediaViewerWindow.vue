@@ -1,9 +1,11 @@
 <template>
   <!-- One floating media viewer — a dark-grey rounded box over the arena
        (docs/plans/floating-media-viewer.md). The header is the house
-       .dock-bar wearing the docks' traffic lights; the band under it is
-       the flyout skeleton viewer's black-brown FriezeBar verbatim
-       (slim + `--frieze-bar-base: var(--grey-9)`); the well holds the
+       .dock-bar wearing the docks' traffic lights, coated in the SAME
+       `--grey-9` as the box; the band under it is the flyout skeleton
+       viewer's black-brown FriezeBar (slim) dropped a step darker still
+       (`--frieze-bar-base: var(--grey-10)`, brown-1 wave), which is what
+       divides the two now that they share a tone; the well holds the
        media behind a very thin padding. Geometry is inline style off the
        store's rect; `is-max` swaps it for the whole viewport. -->
   <section
@@ -224,8 +226,11 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-// The dark-grey box: `--grey-9` coat with a `--grey-10` header cap — the
-// two darkest neutrals, ink flipped light. Floating, so it carries a real
+// The dark-grey box: ONE `--grey-9` coat, header included (2026-08-05,
+// user ask — the cap used to be a step darker at `--grey-10`, and that
+// tone moved down into the frieze band below it, so the box is now a
+// single field with one dark line across it instead of two stacked
+// plates). Ink stays flipped light. Floating, so it carries a real
 // drop shadow (the docks' up-left cast is a bottom-docked device; this box
 // touches no edge). `overflow: hidden` is load-bearing: the frieze band
 // and the media would square the rounded corners otherwise (the flyout
@@ -286,7 +291,7 @@ export default defineComponent({
   flex: 0 0 auto;
   justify-content: center;
   padding: 0 76px;
-  background: var(--grey-10, #212121);
+  background: var(--grey-9, #424242); // the box's own coat — no cap
   border-bottom: none; // the frieze band is the divider
   // The bar is the drag surface: an open hand on its free areas (the
   // buttons keep their own pointer), and no touch scrolling — a finger
@@ -327,11 +332,17 @@ export default defineComponent({
   &:hover { color: var(--grey-1, #fafafa); }
 }
 
-// The flyout skeleton viewer's band, verbatim: slim + grey-9 base, the
-// brown-1 wave kept — black-brown between the header cap and the well.
+// The flyout skeleton viewer's band, one step darker: slim + a
+// `--grey-10` plaque under the `--brown-1` wave (stated, not left to the
+// slim variant's default, since this band is now the box's ONLY line and
+// the tone that draws it should be readable here). It is the divider the
+// header stopped being when it took the coat's grey-9: the darkest thing
+// in the window, cut across a single field, with the warm wave the one
+// bright mark on it.
 .media-window__frieze {
   flex: 0 0 auto;
-  --frieze-bar-base: var(--grey-9, #424242);
+  --frieze-bar-base: var(--grey-10, #212121);
+  --frieze-bar-wave-two: var(--brown-1, #efebe9);
 }
 
 // The media behind a very thin padding; the one flexible track, and a
