@@ -4,7 +4,7 @@
   Geometry: one transparent horizontal scroll track that fills the window slot
   left over by the chrome — from the very TOP of the window (it runs UP OVER
   the frieze crown strip), over the nav bar, right of the drawer, left of the
-  stack/pins column — with a single blue-grey container box LEFT-PACKED in it
+  stack/pins column — with a single indigo container box LEFT-PACKED in it
   at 45% width (2026-08-02 user ask, +5 over the 40% that 2026-07-27's
   three sizing passes settled on: 50% → 30% → 40%),
   full slot height, a sliver of daylight off the drawer's edge.
@@ -24,7 +24,7 @@
     <div ref="trackEl" class="feed-track" @scroll.passive="onTrackScroll">
       <!-- Feed container — left-packed, 45% of the track's width, window top
            to nav bar. Its two side EDGES are vertical
-           frieze bars (the crown strip turned 90° CW, blue-grey colorway),
+           frieze bars (the crown strip turned 90° CW, indigo colorway),
            lips facing inward. They are a MIRRORED PAIR (2026-07-25): variant
            A on the left, variant B — the same bar with its waves flipped
            horizontally — on the right, so the two edges reflect each other
@@ -184,7 +184,8 @@ export default defineComponent({
 // are its EDGES, not extras bolted outside it, so the percentage covers the
 // whole box. The bars replace the plain side borders it used to draw: each
 // bar carries that hairline as its inward-facing lip (lime-3 at first,
-// blue-grey-3 since the bar's colorway moved, 2026-07-25).
+// blue-grey-3 since the bar's colorway moved on 2026-07-25, indigo-3 since
+// the operator's hue-swap ask on 2026-08-05).
 .feed-container {
   flex: 0 0 45%;
   height: 100%;
@@ -208,7 +209,7 @@ export default defineComponent({
   // margin the two percentages share that basis and simply add: 2.5 + 45 =
   // 47.5% of the track, so the box keeps its exact 45% and nothing overflows.
   margin-left: 2.5%;
-  background: var(--blue-grey-1); // Quasar blue-grey-1 — the same plaque coat the frieze bars wear, so box and edges are one material
+  background: var(--indigo-1); // Quasar indigo-1 — the same plaque coat the frieze bars wear, so box and edges are one material
 
   // The container is OPAQUE, so overlapping the crown strip is a paint-order
   // question: FriezeHeader is fixed at z 3000, and only a positioned box above

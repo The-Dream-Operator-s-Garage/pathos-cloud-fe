@@ -453,7 +453,7 @@ export default defineComponent({
 }
 
 // ── …EXCEPT ON /feed, WHERE THE FEED COLUMN STANDS ON IT (2026-08-02) ──
-// The feed's blue-grey column runs to the window's bottom edge on desktop
+// The feed's indigo column runs to the window's bottom edge on desktop
 // and hovers over this bar's plaque (FeedPage.vue's `min-width: 1024px`
 // block). Something has to give way for that, and it is THIS BAR, not the
 // container: raising the container over 3110 instead would put it over every

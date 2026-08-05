@@ -95,7 +95,7 @@
                WHO you are with the same facts the feed card's author section
                states: the face, the display name, the @handle underneath it.
                Adapted to the drawer's brown plaque rather than the feed's
-               blue-grey card.
+               indigo card.
 
                COLLAPSED (the 42px mini rail) Quasar keeps only the avatar
                section, which is exactly the right reduction — the face IS the
@@ -571,7 +571,7 @@ aside.q-drawer {
   // The feed card's author section, re-coated for the drawer: the same
   // face-over-two-lines figure, the same "name over @handle" rhythm, but
   // drawn in brown-8 on the brown-1 plaque instead of the card's plum on
-  // blue-grey. It is a row of DATA that happens to be clickable, so it sits
+  // indigo. It is a row of DATA that happens to be clickable, so it sits
   // a hair taller than the menu rows around it and takes no active-class —
   // there is no route it can be "on".
   .drawer-profile-item {

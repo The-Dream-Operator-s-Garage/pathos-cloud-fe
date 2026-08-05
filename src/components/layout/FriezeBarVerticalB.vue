@@ -7,8 +7,8 @@
        Everything else is A, unchanged and deliberately so:
 
          thickness  width = --frieze-h
-         palette    blue-grey-1 plaque, blue-grey-3 + blue-grey-4 waves,
-                    blue-grey-3 lip — the same colorway, same tokens
+         palette    indigo-1 plaque, indigo-3 + indigo-4 waves,
+                    indigo-3 lip — the same colorway, same tokens
          tiling     repeat-Y at `99% auto`, `center top`
          padding    1px on the sides
          carve      IDENTICAL to A — dark up-RIGHT, light down-LEFT. The
@@ -41,7 +41,7 @@ import { defineComponent } from 'vue'
 export default defineComponent({
   name: 'FriezeBarVerticalB',
   props: {
-    // Which edge carries the 1px blue-grey-3 lip — same contract as variant A.
+    // Which edge carries the 1px indigo-3 lip — same contract as variant A.
     lip: {
       type: String,
       default: 'left',
@@ -58,11 +58,11 @@ export default defineComponent({
   height: 100%;
   padding: 0 1px;
   pointer-events: none;
-  background: var(--blue-grey-1); // same plaque as A
+  background: var(--indigo-1); // same plaque as A
 }
 
-.frieze-bar-v-b--lip-left { border-left: 1px solid var(--blue-grey-3); }
-.frieze-bar-v-b--lip-right { border-right: 1px solid var(--blue-grey-3); }
+.frieze-bar-v-b--lip-left { border-left: 1px solid var(--indigo-3); }
+.frieze-bar-v-b--lip-right { border-right: 1px solid var(--indigo-3); }
 
 .frieze-bar-v-b__inner {
   position: relative;
@@ -88,13 +88,13 @@ export default defineComponent({
 }
 
 .frieze-bar-v-b__layer--one {
-  background-color: var(--blue-grey-3);
+  background-color: var(--indigo-3);
   mask-image: url('../../assets/frieze/mercury-wave-a-rot90-mirror.svg');
   -webkit-mask-image: url('../../assets/frieze/mercury-wave-a-rot90-mirror.svg');
 }
 
 .frieze-bar-v-b__layer--two {
-  background-color: var(--blue-grey-4);
+  background-color: var(--indigo-4);
   mask-image: url('../../assets/frieze/mercury-wave-b-rot90-mirror.svg');
   -webkit-mask-image: url('../../assets/frieze/mercury-wave-b-rot90-mirror.svg');
 }

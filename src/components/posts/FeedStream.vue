@@ -2,7 +2,7 @@
   FEED STREAM — the feed container's content column (2026-07-25).
 
   The post stream that was parked in FeedPageLegacy.vue, refitted for the
-  narrow blue-grey Feed Container on FeedPage. Two things change with the
+  narrow indigo Feed Container on FeedPage. Two things change with the
   move, both forced by the column's width:
 
     · ONE column, not two. The legacy page laid the stream (col-md-7) beside
@@ -117,7 +117,7 @@
 
       <div ref="streamEl" class="feed-stream">
         <template v-for="item in items" :key="item.skeleton_id">
-          <!-- One square per post — bordered blue-grey-1 card, mono head strip,
+          <!-- One square per post — bordered indigo-1 card, mono head strip,
                carved body pit holding the whole post. The card is NOT a
                select-toggle any more (2026-07-25): it used to unfold a
                FeedPostPanel underneath, and that panel obeyed no ceiling —
@@ -243,7 +243,7 @@
                    links). Clicking an open title again closes the flyout.
 
                    It keeps the PLATE it wore in the head strip — `--grey-1`
-                   floor, `--blue-grey-3` rim — which is what marks it as the
+                   floor, `--indigo-3` rim — which is what marks it as the
                    card's subject rather than a fourth item in a run.
 
                    The text is CENTRED IN A FIXED TWO-LINE BOX: the plate is
@@ -287,8 +287,8 @@
                  after the reading.
 
                  The rail is a ROUNDED RECTANGLE that scrolls HORIZONTALLY,
-                 rimmed in `--blue-grey-3` like the pit and the title plate but
-                 floored in `--blue-grey-2` — the bed tone, one step off the
+                 rimmed in `--indigo-3` like the pit and the title plate but
+                 floored in `--indigo-2` — the bed tone, one step off the
                  card, where the pit is the near-white reading surface.
                  Scrolling is what lets it keep its one-line height: chips used
                  to WRAP, so a post with four label paths grew a second and
@@ -732,7 +732,7 @@ export default defineComponent({
 //
 // It is STICKY INSIDE THE WELL (2026-07-25), not a sibling above it — see the
 // template note. That is what lets the post cards travel behind it, which in
-// turn is what makes the translucent coat mean anything: `--blue-grey-3` at
+// turn is what makes the translucent coat mean anything: `--indigo-3` at
 // `0.82` alpha over a light `backdrop-filter: blur(5px)`, so the band reads as
 // GLASS — its own tone, with the stream visibly moving behind it but softened
 // rather than competing with the title. This is the ONE deliberate exception
@@ -775,40 +775,40 @@ export default defineComponent({
   // widget already make where they meet the top edge.
   padding: 8px 12px;
   // The band is a FLAT PLAQUE in the container's own coat (end of
-  // 2026-07-25) — `--blue-grey-1`, the same tone the feed box, its frieze
+  // 2026-07-25) — `--indigo-1`, the same tone the feed box, its frieze
   // bars' base and the post cards wear. It was the surface's one deliberate
-  // exception to the flat-plaque rule: `rgba(--blue-grey-3-rgb, .82)` over
+  // exception to the flat-plaque rule: `rgba(--indigo-3-rgb, .82)` over
   // `backdrop-filter: blur(5px)`, so the cards read as movement behind
   // glass. Opaque, that whole device is moot — a coat at full alpha shows
   // nothing through it, and the blur is dead weight the compositor still
   // pays for — so both went with the alpha. The band is now the container
   // showing through the stream rather than a pane laid over it, and the
-  // `2px --blue-grey-3` edge below is what states where it ends.
+  // `2px --indigo-3` edge below is what states where it ends.
   //
   // It stays STICKY: the point of the sticky is the pinning (the head
   // travels with the scrollport), which an opaque band needs exactly as
   // much — and being opaque is what lets it hide, rather than soften, the
   // cards passing under it.
-  background: var(--blue-grey-1, #eceff1);
-  // Thicker, and in `--blue-grey-3` — the ink every other line on this surface
+  background: var(--indigo-1, #e8eaf6);
+  // Thicker, and in `--indigo-3` — the ink every other line on this surface
   // is drawn in, and the band's own tone at full opacity. So the border reads
   // as the solid edge of the translucent band rather than as a separate rule
   // laid under it (it was a generic `rgba(ink, .14)` hairline, then briefly
-  // `--blue-grey-2`).
-  border-bottom: 2px solid var(--blue-grey-3, #b0bec5);
+  // `--indigo-2`).
+  border-bottom: 2px solid var(--indigo-3, #9fa8da);
 }
 
 .feed-stream__title { min-width: 0; }
 
 // THE TRUST LENS (Thread J) — a small segmented control in the head band,
 // drawn entirely in the surface's own colorway: `--grey-1` plates rimmed
-// `--blue-grey-3` (the title plate's exact recipe), and the ON state is the
-// colorway's dark end as a FLOOR — `--blue-grey-8` under white ink, the one
+// `--indigo-3` (the title plate's exact recipe), and the ON state is the
+// colorway's dark end as a FLOOR — `--indigo-8` under white ink, the one
 // inversion the band allows itself so the active lens reads at a glance.
 .feed-stream__lens {
   display: flex;
   flex: 0 0 auto;
-  border: 1px solid var(--blue-grey-3, #b0bec5);
+  border: 1px solid var(--indigo-3, #9fa8da);
   border-radius: var(--radius-sm, 7px);
   overflow: hidden;
   background: var(--grey-1, #fafafa);
@@ -816,9 +816,9 @@ export default defineComponent({
 
 .feed-stream__lens-btn {
   border: 0;
-  border-right: 1px solid var(--blue-grey-3, #b0bec5);
+  border-right: 1px solid var(--indigo-3, #9fa8da);
   background: transparent;
-  color: var(--blue-grey-8, #455a64);
+  color: var(--indigo-8, #303f9f);
   font-family: inherit;
   font-size: 0.66em;
   font-weight: 700;
@@ -826,9 +826,9 @@ export default defineComponent({
   padding: 3px 8px;
   cursor: pointer;
   &:last-child { border-right: 0; }
-  &:hover { background: var(--blue-grey-1, #eceff1); }
+  &:hover { background: var(--indigo-1, #e8eaf6); }
   &.is-on {
-    background: var(--blue-grey-8, #455a64);
+    background: var(--indigo-8, #303f9f);
     color: #fff;
   }
 }
@@ -836,9 +836,9 @@ export default defineComponent({
 // THE LABEL LENS (2026-08-01) — one control, two faces. The funnel
 // button borrows the lens box's language (same rim, radius, floor); the
 // ACTIVE face is a chip drawn like a lens button locked `is-on`: the
-// dark blue-grey-8 plaque says "the stream you are reading is filtered".
+// dark indigo-8 plaque says "the stream you are reading is filtered".
 .feed-stream__label-open {
-  border: 1px solid var(--blue-grey-3, #b0bec5);
+  border: 1px solid var(--indigo-3, #9fa8da);
   border-radius: var(--radius-sm, 7px);
   background: var(--grey-1, #fafafa);
   flex: 0 0 auto;
@@ -853,16 +853,16 @@ export default defineComponent({
   gap: 4px;
   flex: 0 0 auto;
   max-width: 22ch;
-  border: 1px solid var(--blue-grey-8, #455a64);
+  border: 1px solid var(--indigo-8, #303f9f);
   border-radius: var(--radius-sm, 7px);
-  background: var(--blue-grey-8, #455a64);
+  background: var(--indigo-8, #303f9f);
   color: #fff;
   font-size: 0.66em;
   font-weight: 700;
   letter-spacing: 0.03em;
   padding: 3px 8px;
   cursor: pointer;
-  &:hover { background: var(--blue-grey-7, #546e7a); }
+  &:hover { background: var(--indigo-7, #3949ab); }
 }
 
 .feed-stream__label-chip-name {
@@ -880,14 +880,14 @@ export default defineComponent({
 }
 
 // The band's MAIN TEXT is the colorway's ink (end of 2026-07-25) —
-// `--blue-grey-8`, the same ink the post cards' titles carry on their
+// `--indigo-8`, the same ink the post cards' titles carry on their
 // plates, replacing the platform-wide `text-accent` teal. On a `-1` coat
 // the accent read as a foreign colour dropped onto the container; the
 // colorway's own dark end is what makes the head and the cards below it
 // one surface. The sub-line stays the generic dim ink: it is a caption,
 // and giving it the same ink would flatten the two into one block.
 .feed-stream__heading {
-  color: var(--blue-grey-8, #455a64);
+  color: var(--indigo-8, #303f9f);
 }
 
 .feed-stream__well {
@@ -896,15 +896,15 @@ export default defineComponent({
   min-width: 0;
   overflow-y: auto;
   overflow-x: hidden;
-  // The SCROLL BED (2026-07-25) — `--blue-grey-2`, one step down from the
-  // `--blue-grey-1` the container and the cards wear. It walked in from the
+  // The SCROLL BED (2026-07-25) — `--indigo-2`, one step down from the
+  // `--indigo-1` the container and the cards wear. It walked in from the
   // deep end the same day (-4, then -3, then here), and this is the setting
   // where the surface resolves: the bed only has to be far enough from the
   // card to separate it, and with the card now OUTLINED in -4 the separation
   // is the border's job — a dark field underneath as well was doing it twice.
   // -2 is also the one step NOT in the frieze bars' tone mapping (1/3/4), so
   // the bed reads as its own quiet layer rather than echoing an edge.
-  background: var(--blue-grey-2, #cfd8dc);
+  background: var(--indigo-2, #c5cae9);
   // The bed's REVEAL around the cards (2026-07-25 — the cards were full-bleed,
   // frieze lip to frieze lip, before this). `10px` on the sides is the gap
   // between the frieze bars and the cards. There is NO top padding: the sticky
@@ -951,11 +951,11 @@ export default defineComponent({
 // One post = one square, the same visual grammar as .label-square on the
 // labels page: hairline border, mono uppercase head, and a carved inset pit
 // for the body — but drawn entirely in the FEED CONTAINER's own colorway
-// rather than the platform's white. One step, one job: `--blue-grey-1` coats
-// the card (as it coats the container), `--blue-grey-2` is the scroll bed
-// under it, and `--blue-grey-3` draws EVERY line — the card's 2px outer
+// rather than the platform's white. One step, one job: `--indigo-1` coats
+// the card (as it coats the container), `--indigo-2` is the scroll bed
+// under it, and `--indigo-3` draws EVERY line — the card's 2px outer
 // border, the pit's 1px inner one, and the frieze lips — so only the weight
-// distinguishes them. `--blue-grey-4` is left to the frieze bars' wave layer.
+// distinguishes them. `--indigo-4` is left to the frieze bars' wave layer.
 //
 // GEOMETRY (2026-07-25) — a true square, width-led and content-limited:
 //
@@ -1009,8 +1009,8 @@ export default defineComponent({
   // lip it touched. The well's new 10px side padding removed that constraint,
   // so all four edges are drawn again and the corners are round.
   //
-  // The ink is `--blue-grey-3` (end of 2026-07-25 — it was the deeper
-  // `--blue-grey-4`). Lighter AND thicker was one move, not two opposing ones:
+  // The ink is `--indigo-3` (end of 2026-07-25 — it was the deeper
+  // `--indigo-4`). Lighter AND thicker was one move, not two opposing ones:
   // a hairline needs contrast to register, a wider band does not, so the
   // outline could drop to the colorway's lip tone and still read — as a drawn
   // EDGE rather than a dark line. It also puts the card's outer border on the
@@ -1027,18 +1027,18 @@ export default defineComponent({
   // outline shouting. Set the box at 1px and override the one edge, rather
   // than writing a four-value `border-width` — the intent is "hairline box,
   // heavier foot", and that is what this reads as.
-  border: 1px solid var(--blue-grey-3, #b0bec5);
+  border: 1px solid var(--indigo-3, #9fa8da);
   border-bottom-width: 2px;
   border-radius: var(--radius-md, 0.85em);
-  // The card's coat is the CONTAINER's coat (2026-07-25) — `--blue-grey-1`, the
+  // The card's coat is the CONTAINER's coat (2026-07-25) — `--indigo-1`, the
   // same plaque tone the feed box and its frieze bars' base wear, not the
   // generic white `--paper-card` every other square on the platform uses. A
   // post square is a piece of this container, so it is cut from the container's
   // material.
-  background: var(--blue-grey-1, #eceff1);
+  background: var(--indigo-1, #e8eaf6);
   // NO drop shadow (2026-07-25). The card used to cast `0 1px 3px` to lift
   // itself off the page; it has nothing to lift off now that the well beneath
-  // it is a deliberately darker bed (`--blue-grey-3`) — the tonal step already
+  // it is a deliberately darker bed (`--indigo-3`) — the tonal step already
   // separates card from field, and a cast edge on top of it only muddied the
   // 10px gap between two adjacent cards. Flat plaque on a darker bed.
   overflow: hidden;
@@ -1064,7 +1064,7 @@ export default defineComponent({
 // The bottom border is the EDGE-TO-EDGE hairline the band is divided from the
 // title strip by, and it needs no negative-margin trick to get there: the card
 // has no padding of its own, so this band already spans the full content box,
-// and its border runs from one side border to the other. `--blue-grey-3` is the
+// and its border runs from one side border to the other. `--indigo-3` is the
 // ink every line on this surface is drawn in (the card's outer border, the pit's
 // rim, the frieze lips, the head's vertical rule) — a divider inside the card is
 // the same line as the ones around it, at hairline weight.
@@ -1078,7 +1078,7 @@ export default defineComponent({
   padding: 5px 9px;
   flex: 0 0 auto;
   min-width: 0;
-  border-bottom: 1px solid var(--blue-grey-3, #b0bec5);
+  border-bottom: 1px solid var(--indigo-3, #9fa8da);
 }
 
 // The rule closing the AUTHOR section, full-bleed exactly like the head
@@ -1090,14 +1090,14 @@ export default defineComponent({
 //
 // The two rules and the hairline together are what make this band read as
 // ruled rather than merely spaced: one horizontal line under the whole
-// band, one vertical line inside it, both `--blue-grey-3` at 1px, both
+// band, one vertical line inside it, both `--indigo-3` at 1px, both
 // meeting the box's edges square.
 .post-square__byline-rule {
   align-self: stretch;
   flex: 0 0 1px;
   width: 1px;
   margin: -5px 0;
-  background: var(--blue-grey-3, #b0bec5);
+  background: var(--indigo-3, #9fa8da);
 }
 
 // THE MOMENT CHIP — the post's when over its where (or its date).
@@ -1160,9 +1160,9 @@ export default defineComponent({
 // The title is the card's way into the full post viewer — the card itself
 // stopped being a click target when the unfoldable detail panel went. It sits
 // on its own PLATE (end of 2026-07-25): a rounded `--grey-1` box rimmed in
-// `--blue-grey-3`, i.e. the same floor and the same line as the markdown pit
+// `--indigo-3`, i.e. the same floor and the same line as the markdown pit
 // below it and the label rail above it, so the card reads as one material.
-// The ink is `--blue-grey-8`, the colorway's dark end.
+// The ink is `--indigo-8`, the colorway's dark end.
 //
 // It CLOSES THE RUN OF FACTS in the band (2026-07-25, third pass — it had its
 // own strip under the band until then). `flex: 1 1 auto` is the move that
@@ -1219,9 +1219,9 @@ export default defineComponent({
   letter-spacing: 0.02em;
   text-transform: uppercase;
   text-align: center;
-  color: var(--blue-grey-8, #455a64);
+  color: var(--indigo-8, #303f9f);
   background: var(--grey-1, #fafafa);
-  border: 1px solid var(--blue-grey-3, #b0bec5);
+  border: 1px solid var(--indigo-3, #9fa8da);
   border-radius: var(--radius-sm, 0.5em);
   padding: 2px 6px;
   overflow: hidden;
@@ -1334,12 +1334,12 @@ export default defineComponent({
   padding: 8px 10px;
   border-radius: 7px;
   // The pit's own two tones (2026-07-25): a `--grey-1` floor with the frame's
-  // INNER border drawn around it in `--blue-grey-3`. The floor was a 5% ink
+  // INNER border drawn around it in `--indigo-3`. The floor was a 5% ink
   // tint of whatever the card was, which made the pit a slightly darker patch
   // OF the card; a flat near-white is a different material set INTO it — the
   // one tone on this surface deliberately outside the container's colorway,
   // because everything else here IS the container and the reading area is not.
-  // The line is the opposite move: `--blue-grey-3` is the colorway's own
+  // The line is the opposite move: `--indigo-3` is the colorway's own
   // lip/hairline ink, the same one the frieze bars draw the container's side
   // borders with, so the card's inner edge and the box's outer edges are one
   // line. It is also what states that edge now the card casts no shadow.
@@ -1348,7 +1348,7 @@ export default defineComponent({
   // shallow tray and a lip suits it, while the pit is the READING area and
   // wants a plain frame — a weighted edge above the text reads as a rule the
   // prose hangs from. The heavy-top device stays the rail's alone.
-  border: 1px solid var(--blue-grey-3, #b0bec5);
+  border: 1px solid var(--indigo-3, #9fa8da);
   background: var(--grey-1, #fafafa);
   // NO carve (end of 2026-07-25) — the surface is FLAT. The pit used to wear
   // the `.label-square__pit` recipe, an inset dark shadow at the top edge over
@@ -1357,7 +1357,7 @@ export default defineComponent({
   // went earlier the same day), and depth from two directions at once — a
   // recessed pit inside a flat card on a flat bed — is what made the surface
   // look unresolved. Everything is stated by TONE and LINE now: the grey-1
-  // floor against the blue-grey-1 card, and the blue-grey-3 border around it.
+  // floor against the indigo-1 card, and the indigo-3 border around it.
   // Same thin rail as the stream's own well, so a card reading past its square
   // does not introduce a second scrollbar language.
   scrollbar-width: thin;
@@ -1518,8 +1518,8 @@ export default defineComponent({
 //
 // It is a ROUNDED RECTANGLE THAT SCROLLS SIDEWAYS, and the two go together:
 //
-//   · The BOX is the card's third panel, rimmed 1px `--blue-grey-3` like the
-//     pit below it and the title plate above, but floored in `--blue-grey-2`
+//   · The BOX is the card's third panel, rimmed 1px `--indigo-3` like the
+//     pit below it and the title plate above, but floored in `--indigo-2`
 //     rather than their near-white `--grey-1`. That is the difference between
 //     a surface you READ and a surface you SCAN: the pit is the reading area
 //     and is set apart from the card as its own material, while the rail is a
@@ -1539,14 +1539,14 @@ export default defineComponent({
 // rail's insets and the EDGE-TO-EDGE HAIRLINE that divides classification
 // from content. The line has to live here rather than on the rail: the rail
 // is inset by this padding, so a border on it would stop 7px short of each
-// side. Same reasoning, and the same 1px `--blue-grey-3`, as the byline
+// side. Same reasoning, and the same 1px `--indigo-3`, as the byline
 // band's bottom border — the card is divided by full-bleed lines and
 // panelled by inset boxes, and those are two different devices.
 .post-square__rail-strip {
   flex: 0 0 auto;
   min-width: 0;
   padding: 6px 7px;
-  border-bottom: 1px solid var(--blue-grey-3, #b0bec5);
+  border-bottom: 1px solid var(--indigo-3, #9fa8da);
 }
 
 .post-square__rail {
@@ -1559,11 +1559,11 @@ export default defineComponent({
   // A HEAVIER TOP EDGE (1px box, 2px top), the mirror of the card's own
   // uneven border (1px box, 2px foot). The tray reads as something the band
   // above sits down onto rather than a box floating in the gap.
-  border: 1px solid var(--blue-grey-3, #b0bec5);
+  border: 1px solid var(--indigo-3, #9fa8da);
   border-top-width: 2px;
   border-radius: 7px;
   // The bed tone, not the pit's near-white — see the note above.
-  background: var(--blue-grey-2, #cfd8dc);
+  background: var(--indigo-2, #c5cae9);
   overflow-x: auto;
   overflow-y: hidden;
   // The same thin rail the pit and the well use, so a third scrolling surface
@@ -1603,11 +1603,11 @@ export default defineComponent({
   border-radius: 7px;
   padding: 1px 6px;
   overflow: hidden;
-  // The card's own coat, lying in the `--blue-grey-2` tray (the chips were
+  // The card's own coat, lying in the `--indigo-2` tray (the chips were
   // transparent, so they took the tray's tone and the rail read as one field
   // with outlines drawn on it). -1 chip on a -2 bed is the same figure/ground
   // step as a -1 card on the stream's -2 well, one level down.
-  background: var(--blue-grey-1, #eceff1);
+  background: var(--indigo-1, #e8eaf6);
 
   &:hover {
     color: #00829c;
@@ -1733,7 +1733,7 @@ export default defineComponent({
 // TRUST CHIP (Thread J) — invite-chain distance, part of the author unit
 // like the badge above it (same pulled-in margin, same "belongs to the
 // identity" argument). Drawn as a tiny plate in the card's own recipe:
-// `--grey-1` floor, `--blue-grey-3` rim, the colorway's dark ink. Zero
+// `--grey-1` floor, `--indigo-3` rim, the colorway's dark ink. Zero
 // hops ("you") stays quiet; the tooltip walks the whole vouch path.
 .post-square__trust {
   margin-left: -3px;
@@ -1742,9 +1742,9 @@ export default defineComponent({
   font-weight: 700;
   letter-spacing: 0.02em;
   white-space: nowrap;
-  color: var(--blue-grey-8, #455a64);
+  color: var(--indigo-8, #303f9f);
   background: var(--grey-1, #fafafa);
-  border: 1px solid var(--blue-grey-3, #b0bec5);
+  border: 1px solid var(--indigo-3, #9fa8da);
   border-radius: 9px;
   padding: 1px 6px;
 }

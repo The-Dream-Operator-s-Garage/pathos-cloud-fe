@@ -76,7 +76,7 @@ export default defineComponent({
   // below), which reverses a note that stood here: that re-toning them "would
   // be a different bar, not this one dressed". What settled it is that the
   // platform already HAS a band in a second family — FriezeBarVertical is
-  // FriezeHeader's tone mapping (base -1, waves -3/-4) in blue-grey — so a
+  // FriezeHeader's tone mapping (base -1, waves -3/-4) in indigo — so a
   // whole colorway of this band is a thing the design does, not a costume.
   // The chat window asked for the third (green): base --green-4, waves
   // --green-2 + --green-1. What must NOT move with the tones is the recipe —

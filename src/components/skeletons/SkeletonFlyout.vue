@@ -29,7 +29,7 @@
   The shell is drawn as one of the platform's FLOATING WIDGETS, not as part of
   the feed container: it hovers OVER the page canvas beside that container, the
   same way the stack and pins widgets hover over the right edge, so it is BUILT
-  like them rather than like the blue-grey box it stands next to — a plaque, a
+  like them rather than like the indigo box it stands next to — a plaque, a
   `.dock-bar` info box at the top, a FriezeBar band under it (the pins widget's
   exact arrangement), and the panel inside an inset container.
 

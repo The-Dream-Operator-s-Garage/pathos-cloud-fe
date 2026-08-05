@@ -265,7 +265,7 @@ export default defineComponent({
 // and its body is usually one picture. Every LINE is `--teal-3` —
 // the outer border, the head/body divider, the header's vertical
 // hairlines — so only weight distinguishes them, the way the feed card
-// draws everything in `--blue-grey-3`.
+// draws everything in `--indigo-3`.
 // COAT, LINES and (2026-07-27) the HEADER'S INK are the panel's dials, the
 // same seam FriezeBar exposes as `--frieze-bar-base`: a surface outside the
 // teal colorway sets them on the element it mounts the Mini in and the panel
@@ -488,7 +488,7 @@ export default defineComponent({
 
 // ── SOURCE (`raw`) — the markdown as written ─────────────────────────────
 // A reading pane, so it borrows the feed card's device: the surrounding
-// panel is the colorway (teal here, blue-grey there) and the pane you
+// panel is the colorway (teal here, indigo there) and the pane you
 // actually READ is a near-white floor SET INTO it. Tinting the text field
 // too would make one flat teal block of panel and prose, and markdown
 // source is the densest thing this component ever shows.
