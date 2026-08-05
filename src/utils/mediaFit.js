@@ -14,8 +14,8 @@
 // the window's own 1px borders.
 export const HEADER_H = 30
 export const WELL_PAD = 4
-export const FOOT_H = 18 // the tally ledge (2026-08-05)
-export const MIN_W = 220 // header shrink floor: lights + a name sliver + the actions
+export const FOOT_H = 22 // the action cluster + tally ledge (2026-08-05)
+export const MIN_W = 220 // header shrink floor: lights + a name sliver
 
 // The MEDIA box never goes shorter than this: the native <audio> controls
 // bar needs ~40px to stay tappable, and an 8/1 audio strip under a

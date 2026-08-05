@@ -58,21 +58,22 @@
         <span class="media-window__label">{{ fileName }}</span>
       </span>
 
-      <!-- The action cluster, mirroring the lights: share first, then a
-           hairline, then the three that act on the ELEMENT rather than on
-           this window — open its node page, copy its pathchain path, pin
-           it. The rule is what says those three are a different kind of
-           verb from the one beside them. -->
+    </header>
+
+    <FriezeBar slim class="media-window__frieze" />
+
+    <div class="media-window__well">
+      <MediaViewerBody :viewer="viewer" />
+    </div>
+
+    <!-- The foot — the action cluster (moved down off the header, user ask)
+         at the left, the element's own tally at the right, where NodeMini
+         keeps it: flat glyph + count, no box. Unlike NodeMini's, these
+         ones VOTE (user ask): same endpoints and the same toggle rule as
+         the node page, so a viewer is a place you can answer from, not
+         only look from. -->
+    <footer class="media-window__foot">
       <div class="media-window__actions">
-        <button
-          type="button" class="dock-bar__action media-window__act"
-          :title="shared ? 'Link copied' : 'Copy link'" @click.stop="share"
-        >
-          <q-icon :name="shared ? 'check' : 'ios_share'" size="13px" />
-        </button>
-
-        <span class="media-window__act-rule" aria-hidden="true" />
-
         <button
           type="button" class="dock-bar__action media-window__act"
           title="Open this node's page" @click.stop="goToNode"
@@ -81,6 +82,15 @@
                button that goes to a node page is drawn with the mark the
                platform already uses for nodes. -->
           <q-icon name="adjust" size="13px" />
+        </button>
+
+        <span class="media-window__act-rule" aria-hidden="true" />
+
+        <button
+          type="button" class="dock-bar__action media-window__act"
+          :title="shared ? 'Link copied' : 'Copy link'" @click.stop="share"
+        >
+          <q-icon :name="shared ? 'check' : 'ios_share'" size="13px" />
         </button>
         <button
           type="button" class="dock-bar__action media-window__act"
@@ -96,46 +106,35 @@
           <q-icon name="push_pin" size="13px" />
         </button>
       </div>
-    </header>
 
-    <FriezeBar slim class="media-window__frieze" />
-
-    <div class="media-window__well">
-      <MediaViewerBody :viewer="viewer" />
-    </div>
-
-    <!-- The foot — the element's own tally, where NodeMini keeps it: flat
-         glyph + count, no box, right-aligned. Unlike NodeMini's, these
-         ones VOTE (user ask): same endpoints and the same toggle rule as
-         the node page, so a viewer is a place you can answer from, not
-         only look from. -->
-    <footer class="media-window__foot">
-      <button
-        type="button" class="media-window__vote"
-        :class="{ 'is-up': viewerVote === 'UP' }"
-        :title="viewerVote === 'UP' ? 'Take back your up vote' : 'Vote up'"
-        @click.stop="castVote('UP')"
-      >
-        <q-icon name="thumb_up" size="10px" />{{ votes.up || 0 }}
-      </button>
-      <button
-        type="button" class="media-window__vote"
-        :class="{ 'is-down': viewerVote === 'DOWN' }"
-        :title="viewerVote === 'DOWN' ? 'Take back your down vote' : 'Vote down'"
-        @click.stop="castVote('DOWN')"
-      >
-        <q-icon name="thumb_down" size="10px" />{{ votes.down || 0 }}
-      </button>
+      <div class="media-window__votes">
+        <button
+          type="button" class="media-window__vote"
+          :class="{ 'is-up': viewerVote === 'UP' }"
+          :title="viewerVote === 'UP' ? 'Take back your up vote' : 'Vote up'"
+          @click.stop="castVote('UP')"
+        >
+          <q-icon name="thumb_up" size="10px" />{{ votes.up || 0 }}
+        </button>
+        <button
+          type="button" class="media-window__vote"
+          :class="{ 'is-down': viewerVote === 'DOWN' }"
+          :title="viewerVote === 'DOWN' ? 'Take back your down vote' : 'Vote down'"
+          @click.stop="castVote('DOWN')"
+        >
+          <q-icon name="thumb_down" size="10px" />{{ votes.down || 0 }}
+        </button>
+      </div>
     </footer>
 
     <!-- Resize rims — eight invisible hit strips kept just INSIDE the
          edges (overflow: hidden would eat anything outside the rounded
          box). Edge strips are 6px, corners 13px squares that win the
-         meeting points; the bar's button clusters stand one z-step
-         higher so the top corners never eat the lights' or the share's
-         taps. The thin slice of media edge they do cover is the
-         sanctioned cost of grabbable rims. Gone while maximized —
-         fullscreen has no size to change. -->
+         meeting points; the bar's and foot's button clusters stand one
+         z-step higher so the top corners never eat the lights' taps and
+         the bottom corners never eat the actions'/votes'. The thin slice
+         of media edge they do cover is the sanctioned cost of grabbable
+         rims. Gone while maximized — fullscreen has no size to change. -->
     <template v-if="!viewer.maximized">
       <span
         v-for="h in HANDLES"
@@ -488,9 +487,11 @@ export default defineComponent({
 
 // The house dock-bar, centred-title / left-lights (the creation docks'
 // promoted rule restated here — that rule is scoped to
-// .dock-window--creation and this window is not one). The share action
-// mirrors the lights on the right, so the title's 76px side paddings keep
-// it truly centred between them.
+// .dock-window--creation and this window is not one). The action cluster
+// moved to the foot (user ask, 2026-08-05), so nothing sits opposite the
+// lights now — the side padding stays SYMMETRIC anyway (same trick the
+// docks use), which is what keeps the title centred in the window rather
+// than in whatever space happens to be free.
 .media-window__bar {
   position: relative;
   flex: 0 0 auto;
@@ -548,19 +549,16 @@ export default defineComponent({
   text-overflow: ellipsis;
 }
 
-// The right cluster — share, a hairline, then the three element actions.
-// Absolute like the lights, so the title stays centred in the WINDOW
-// rather than in whatever space the buttons leave; the bar's side padding
-// is what keeps the two from meeting.
+// The action cluster, at the foot's left end: node-page first, then a
+// hairline, then share/copy-path/pin (share and node-page swapped places,
+// user ask 2026-08-05 — the rule no longer marks a "window vs element"
+// split, just a beat between the first button and the rest). A plain flex
+// child now — the foot has no lights to stay clear of, so nothing needs
+// to sit out of flow the way the header cluster once did.
 .media-window__actions {
-  position: absolute;
-  right: 8px;
-  top: 0;
-  bottom: 0;
   display: flex;
   align-items: center;
   gap: 1px;
-  z-index: 6; // above the NE resize corner, same deal as the lights
 }
 
 .media-window__act {
@@ -620,17 +618,19 @@ export default defineComponent({
   container-type: size;
 }
 
-// The foot — a thin ledge under the well carrying the element's tally at
-// its right end (user ask, 2026-08-05). It is chrome, so it wears the
-// coat and the display face like the header; `FOOT_H` in utils/mediaFit
-// is what keeps the fit engine's arithmetic in step with this height.
+// The foot — a ledge under the well carrying the action cluster at its
+// left end and the element's tally at its right (both user asks,
+// 2026-08-05; the actions used to live in the header). It is chrome, so
+// it wears the coat and the display face like the header; `FOOT_H` in
+// utils/mediaFit is what keeps the fit engine's arithmetic in step with
+// this height — grown from 18 to 22px so the 19px action buttons fit
+// without clipping.
 .media-window__foot {
   flex: 0 0 auto;
   display: flex;
   align-items: center;
-  justify-content: flex-end;
-  gap: 8px;
-  height: 18px;
+  justify-content: space-between;
+  height: 22px;
   padding: 0 8px 1px;
   font-family: var(--font-display);
   font-size: 0.58em;
@@ -638,6 +638,12 @@ export default defineComponent({
   // button would grab the pointer for a resize instead of a vote.
   position: relative;
   z-index: 6;
+}
+
+.media-window__votes {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 // FLAT, the way NodeMini writes a tally: bare glyph + count in the muted
