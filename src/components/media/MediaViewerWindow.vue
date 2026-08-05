@@ -58,12 +58,44 @@
         <span class="media-window__label">{{ fileName }}</span>
       </span>
 
-      <button
-        type="button" class="dock-bar__action media-window__share"
-        :title="shared ? 'Link copied' : 'Copy link'" @click.stop="share"
-      >
-        <q-icon :name="shared ? 'check' : 'ios_share'" size="13px" />
-      </button>
+      <!-- The action cluster, mirroring the lights: share first, then a
+           hairline, then the three that act on the ELEMENT rather than on
+           this window — open its node page, copy its pathchain path, pin
+           it. The rule is what says those three are a different kind of
+           verb from the one beside them. -->
+      <div class="media-window__actions">
+        <button
+          type="button" class="dock-bar__action media-window__act"
+          :title="shared ? 'Link copied' : 'Copy link'" @click.stop="share"
+        >
+          <q-icon :name="shared ? 'check' : 'ios_share'" size="13px" />
+        </button>
+
+        <span class="media-window__act-rule" aria-hidden="true" />
+
+        <button
+          type="button" class="dock-bar__action media-window__act"
+          title="Open this node's page" @click.stop="goToNode"
+        >
+          <!-- `adjust` — the drawer's own NODES glyph (user ask), so the
+               button that goes to a node page is drawn with the mark the
+               platform already uses for nodes. -->
+          <q-icon name="adjust" size="13px" />
+        </button>
+        <button
+          type="button" class="dock-bar__action media-window__act"
+          :title="copied ? 'Path copied' : 'Copy the pathchain path'" @click.stop="copyPath"
+        >
+          <q-icon :name="copied ? 'check' : 'content_copy'" size="13px" />
+        </button>
+        <button
+          type="button" class="dock-bar__action media-window__act"
+          :class="{ 'is-on': pinned }"
+          :title="pinned ? 'Unpin' : 'Pin this node'" @click.stop="togglePin"
+        >
+          <q-icon name="push_pin" size="13px" />
+        </button>
+      </div>
     </header>
 
     <FriezeBar slim class="media-window__frieze" />
@@ -71,6 +103,30 @@
     <div class="media-window__well">
       <MediaViewerBody :viewer="viewer" />
     </div>
+
+    <!-- The foot — the element's own tally, where NodeMini keeps it: flat
+         glyph + count, no box, right-aligned. Unlike NodeMini's, these
+         ones VOTE (user ask): same endpoints and the same toggle rule as
+         the node page, so a viewer is a place you can answer from, not
+         only look from. -->
+    <footer class="media-window__foot">
+      <button
+        type="button" class="media-window__vote"
+        :class="{ 'is-up': viewerVote === 'UP' }"
+        :title="viewerVote === 'UP' ? 'Take back your up vote' : 'Vote up'"
+        @click.stop="castVote('UP')"
+      >
+        <q-icon name="thumb_up" size="10px" />{{ votes.up || 0 }}
+      </button>
+      <button
+        type="button" class="media-window__vote"
+        :class="{ 'is-down': viewerVote === 'DOWN' }"
+        :title="viewerVote === 'DOWN' ? 'Take back your down vote' : 'Vote down'"
+        @click.stop="castVote('DOWN')"
+      >
+        <q-icon name="thumb_down" size="10px" />{{ votes.down || 0 }}
+      </button>
+    </footer>
 
     <!-- Resize rims — eight invisible hit strips kept just INSIDE the
          edges (overflow: hidden would eat anything outside the rounded
@@ -95,10 +151,14 @@
 
 <script>
 import { defineComponent, computed, ref, watch, onMounted, onBeforeUnmount } from 'vue'
+import { useRouter } from 'vue-router'
 import FriezeBar from 'src/components/layout/FriezeBar.vue'
 import MediaViewerBody from './MediaViewerBody.vue'
 import { useMediaViewersStore } from 'src/stores/mediaViewers'
 import { useWindowsStore } from 'src/stores/windows'
+import { useNavStore } from 'src/stores/navigation'
+import { pinService } from 'src/services/pin.service'
+import { nodeInteractionService } from 'src/services/nodeInteraction.service'
 import { useMediaArena } from 'src/composables/useMediaArena'
 import { useMediaWindowGestures } from 'src/composables/useMediaWindowGestures'
 import { probeNaturalSize, fitRect, chromeOf, clampRect } from 'src/utils/mediaFit'
@@ -114,9 +174,12 @@ export default defineComponent({
   props: {
     viewerId: { type: String, required: true }
   },
-  setup (props) {
+  emits: ['pins-changed'],
+  setup (props, { emit }) {
     const store = useMediaViewersStore()
     const windows = useWindowsStore()
+    const navStore = useNavStore()
+    const router = useRouter()
     // Two regions, two jobs: `arena` places the window at spawn (the
     // docks' half), `roam` is the whole viewport every gesture and the
     // re-clamp are held to. See useMediaArena.
@@ -125,6 +188,10 @@ export default defineComponent({
     const rootEl = ref(null)
     const barEl = ref(null)
     const shared = ref(false)
+    const copied = ref(false)
+    const pinned = ref(false)
+    const votes = ref({ up: 0, down: 0, viewer_vote: null })
+    const voting = ref(false)
 
     const viewer = computed(() => store.byId(props.viewerId))
 
@@ -195,6 +262,8 @@ export default defineComponent({
     })
 
     onMounted(async () => {
+      refreshPinned()
+      loadVotes()
       const v = viewer.value
       if (!v || v.rect) return
       const natural = v.natural || await probeNaturalSize(v.node)
@@ -205,6 +274,110 @@ export default defineComponent({
         index
       }))
     })
+
+    // ── THE ELEMENT'S OWN ACTIONS ──
+    // Everything below acts on the NODE, not on this window: its page, its
+    // address, its pin, its tally. The window is a place to answer from.
+    const nodeId = computed(() => viewer.value?.node?.id || null)
+    // node_vote stores 'UP'/'DOWN'; tolerate the ±1 form some callers
+    // shape (NodeMini's reader does the same).
+    const viewerVote = computed(() => {
+      const v = votes.value.viewer_vote
+      return v === 1 ? 'UP' : v === -1 ? 'DOWN' : v
+    })
+
+    // The nav-store meta every one of these actions stamps its record
+    // with — the same shape NodeDetailPage uses, so a vote cast here lands
+    // in the pathchain indistinguishable from one cast on the page.
+    const targetMeta = () => ({
+      targetType: 'node',
+      targetId: nodeId.value,
+      targetRoute: '/nodes/' + nodeId.value,
+      targetLabel: 'Node #' + nodeId.value,
+      targetPath: viewer.value?.node?.path || null
+    })
+
+    const goToNode = () => {
+      if (nodeId.value) router.push('/nodes/' + nodeId.value)
+    }
+
+    // The PATHCHAIN PATH, not a browser URL — `nodes/<hash>`, the address
+    // this element answers to anywhere on the platform (the header's chip
+    // shows it; the share button beside this one copies the web link).
+    const copyPath = async () => {
+      const path = viewer.value?.node?.path
+      if (!path) return
+      try {
+        await navigator.clipboard.writeText(path)
+        copied.value = true
+        setTimeout(() => { copied.value = false }, 1600)
+      } catch (e) { /* clipboard denied — the tooltip simply never flips */ }
+    }
+
+    const refreshPinned = async () => {
+      if (!nodeId.value) return
+      try {
+        const r = await pinService.check('node', nodeId.value)
+        pinned.value = !!(r.success && r.pinned)
+      } catch (e) { /* unauthenticated or offline — leave it unpinned */ }
+    }
+
+    const togglePin = async () => {
+      if (!nodeId.value) return
+      const was = pinned.value
+      try {
+        if (was) await pinService.unpin('node', nodeId.value)
+        else await pinService.pin('node', nodeId.value)
+        pinned.value = !was
+        navStore.recordAction(was ? 'UNPIN' : 'PIN', targetMeta())
+        // The pins widget lives in MainLayout — the host re-emits this so
+        // the tack and the list reload, exactly as the nav bar's does.
+        emit('pins-changed')
+      } catch (e) { /* refuse quietly; the state simply does not flip */ }
+    }
+
+    // The card the viewer was spawned from usually carries the tally
+    // already; when it does not (a spawn source that never enriched
+    // votes), one interactions read fills it in.
+    const loadVotes = async () => {
+      const seed = viewer.value?.node?.votes
+      if (seed) { votes.value = { up: 0, down: 0, viewer_vote: null, ...seed }; return }
+      if (!nodeId.value) return
+      try {
+        const r = await nodeInteractionService.getInteractions(nodeId.value)
+        if (r.success && r.votes) votes.value = r.votes
+      } catch (e) { /* the tally stays at zero rather than blocking the view */ }
+    }
+
+    // Same toggle rule as the node page: clicking the vote you already
+    // hold takes it back, and switching sides moves the count across.
+    // Counts move locally first — the request is the truth, but the
+    // button has to answer under the finger.
+    const castVote = async (direction) => {
+      const id = nodeId.value
+      if (!id || voting.value) return
+      voting.value = true
+      const key = direction === 'UP' ? 'up' : 'down'
+      const held = votes.value.viewer_vote
+      try {
+        if (held === direction) {
+          await nodeInteractionService.unvote(id)
+          votes.value[key] = Math.max(0, (votes.value[key] || 0) - 1)
+          votes.value.viewer_vote = null
+          navStore.recordAction('UNVOTE', targetMeta())
+        } else {
+          await nodeInteractionService.vote(id, direction)
+          if (held) {
+            const other = held === 'UP' ? 'up' : 'down'
+            votes.value[other] = Math.max(0, (votes.value[other] || 0) - 1)
+          }
+          votes.value[key] = (votes.value[key] || 0) + 1
+          votes.value.viewer_vote = direction
+          navStore.recordAction(direction === 'UP' ? 'VOTE_UP' : 'VOTE_DOWN', targetMeta())
+        }
+      } catch (e) { /* refused — counts stay as the server last told us */ }
+      voting.value = false
+    }
 
     const share = async () => {
       const n = viewer.value?.node
@@ -227,6 +400,14 @@ export default defineComponent({
       barEl,
       shared,
       share,
+      copied,
+      copyPath,
+      goToNode,
+      pinned,
+      togglePin,
+      votes,
+      viewerVote,
+      castVote,
       HANDLES,
       dragging,
       resizing,
@@ -367,19 +548,45 @@ export default defineComponent({
   text-overflow: ellipsis;
 }
 
-.media-window__share {
+// The right cluster — share, a hairline, then the three element actions.
+// Absolute like the lights, so the title stays centred in the WINDOW
+// rather than in whatever space the buttons leave; the bar's side padding
+// is what keeps the two from meeting.
+.media-window__actions {
   position: absolute;
   right: 8px;
   top: 0;
   bottom: 0;
-  margin: auto 0;
+  display: flex;
+  align-items: center;
+  gap: 1px;
+  z-index: 6; // above the NE resize corner, same deal as the lights
+}
+
+.media-window__act {
   // Muted → full-strength on hover, the same two-step as before, walked
   // down the scale instead of up: --grey-8 rests a step under the name's
   // --grey-9 and --grey-10 is the press.
   color: var(--grey-8, #616161);
-  z-index: 6; // above the NE resize corner, same deal as the lights
+  width: 19px;
+  height: 19px;
 
   &:hover { color: var(--grey-10, #212121); }
+  // A held pin is a STATE, not a hover: it keeps the accent whether or
+  // not the pointer is near it.
+  &.is-on,
+  &.is-on:hover { color: var(--accent); }
+}
+
+// The hairline between "act on this window" and "act on the element" —
+// the same --grey-6 as every other line in the box, inset top and bottom
+// so it reads as a divider rather than a full-height wall.
+.media-window__act-rule {
+  flex: 0 0 auto;
+  width: 1px;
+  height: 12px;
+  margin: 0 4px;
+  background: var(--grey-6, #9e9e9e);
 }
 
 // The flyout skeleton viewer's band, on a `--grey-8` plaque under the
@@ -402,12 +609,56 @@ export default defineComponent({
 
 // The media behind a very thin padding; the one flexible track, and a
 // SIZE CONTAINER so the body can convert the well's real box into the
-// `--media-max-h` budget EmbedFrame understands.
+// `--media-max-h` budget EmbedFrame understands. The rim around the
+// content itself is on `.mv-body` (MediaViewerBody), INSIDE this padding,
+// so the frame has daylight between it and the window's own edge — two
+// lines with nothing between them would read as one thick one.
 .media-window__well {
   flex: 1 1 auto;
   min-height: 0;
   padding: 4px;
   container-type: size;
+}
+
+// The foot — a thin ledge under the well carrying the element's tally at
+// its right end (user ask, 2026-08-05). It is chrome, so it wears the
+// coat and the display face like the header; `FOOT_H` in utils/mediaFit
+// is what keeps the fit engine's arithmetic in step with this height.
+.media-window__foot {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  height: 18px;
+  padding: 0 8px 1px;
+  font-family: var(--font-display);
+  font-size: 0.58em;
+  // Over the S/SE/SW resize rims (z 5), or the bottom 6px of a 14px
+  // button would grab the pointer for a resize instead of a vote.
+  position: relative;
+  z-index: 6;
+}
+
+// FLAT, the way NodeMini writes a tally: bare glyph + count in the muted
+// grey, no box and no rim — until it is YOURS, and then the semantic
+// green/red rides in the INK alone (the one mark here reporting a
+// decision rather than a fact).
+.media-window__vote {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 0 2px;
+  border: none;
+  background: transparent;
+  color: var(--grey-8, #616161);
+  font: inherit;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+
+  &:hover { color: var(--grey-10, #212121); }
+  &.is-up { color: var(--positive); }
+  &.is-down { color: var(--negative); }
 }
 
 // The resize rims: invisible, cursor-only hit areas held INSIDE the box

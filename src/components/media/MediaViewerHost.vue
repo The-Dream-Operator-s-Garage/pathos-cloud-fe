@@ -17,6 +17,7 @@
       v-show="!v.minimized"
       :key="v.id"
       :viewer-id="v.id"
+      @pins-changed="$emit('pins-changed')"
     />
   </div>
 </template>
@@ -30,6 +31,10 @@ import { useMediaViewersStore } from 'src/stores/mediaViewers'
 export default defineComponent({
   name: 'MediaViewerHost',
   components: { MediaViewerWindow, MediaTabsBar },
+  // A viewer's pin button changed the pin set — MainLayout owns the
+  // refresh key the tack and the pins widget both watch, so the signal
+  // travels the same road the nav bar's does.
+  emits: ['pins-changed'],
   setup () {
     const store = useMediaViewersStore()
     return { store }

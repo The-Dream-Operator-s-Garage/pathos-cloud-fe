@@ -146,6 +146,15 @@ export default defineComponent({
 <style lang="scss" scoped>
 // The well is a size container; 100cqh/100cqw are its REAL content box,
 // which is how a fixed-size window turns into the concrete budgets below.
+// The content container, and since 2026-08-05 (user ask) a FRAMED one: a
+// 1px --grey-6 rim with the well's 4px padding as daylight between it and
+// the window's own edge, which wears the same tone. Two lines flush
+// against each other would read as one thick one; separated, and drawn in
+// ONE tone, they read as a frame set inside a case — the media sits
+// INSIDE something. (It went in at --grey-8 for one pass and was too
+// dark: the rim then competed with the frieze band, which is supposed to
+// be the only dark line in the box.) The 2px it costs is declared to the
+// fit engine as `BODY_RIM`.
 .mv-body {
   width: 100%;
   height: 100%;
@@ -153,6 +162,8 @@ export default defineComponent({
   align-items: center;
   justify-content: center;
   overflow: hidden;
+  border: 1px solid var(--grey-6, #9e9e9e);
+  border-radius: 5px;
 }
 
 // ── EMBED ──
@@ -166,7 +177,9 @@ export default defineComponent({
 .mv-body__embed {
   width: 100%;
   --mv-cap-h: 22px;
-  --media-max-h: calc(100cqh - var(--mv-cap-h));
+  // …minus the content frame's own 2px, since `100cqh` is the WELL's box
+  // and the rim was added inside it (2026-08-05).
+  --media-max-h: calc(100cqh - var(--mv-cap-h) - 2px);
 
   // The caption inherits the paper palette's ink, which the window's own
   // coat has to answer: it was --grey-4 while the well floor was dark,

@@ -10,10 +10,13 @@
 
 // Chrome constants (kept in step with MediaViewerWindow's CSS):
 // .dock-bar height (--dock-bar-h) + the slim FriezeBar (≈ --frieze-h/2 +
-// its 2px padding) + the well's thin padding + the 1px borders.
+// its 2px padding) + the well's thin padding + the foot's tally ledge +
+// the 1px borders — the window's own and the content frame's.
 export const HEADER_H = 30
 export const WELL_PAD = 4
-export const MIN_W = 220 // header shrink floor: lights + a name sliver + share
+export const FOOT_H = 18 // the tally ledge (2026-08-05)
+export const BODY_RIM = 1 // .mv-body's rim, one per side on both axes
+export const MIN_W = 220 // header shrink floor: lights + a name sliver + the actions
 
 // The MEDIA box never goes shorter than this: the native <audio> controls
 // bar needs ~40px to stay tappable, and an 8/1 audio strip under a
@@ -36,8 +39,14 @@ const AUDIO_STRIP = { w: 8, h: 1 } // a wide controls bar
 // Total vertical chrome for a given crown-strip height in px (the slim
 // frieze is half of it; `friezePx` comes from useMediaArena's measurement).
 export function chromeOf (friezePx) {
-  return HEADER_H + Math.round((friezePx || 19) / 2 + 2) + WELL_PAD * 2 + 2
+  return HEADER_H + Math.round((friezePx || 19) / 2 + 2) +
+    WELL_PAD * 2 + BODY_RIM * 2 + FOOT_H + 2
 }
+
+// Horizontal chrome: the window's two 1px borders plus the well padding
+// and the content frame's own rim on each side. Stated once so the fit
+// and the shrink floor cannot drift apart.
+const sideChrome = () => WELL_PAD * 2 + BODY_RIM * 2 + 2
 
 // "W / H" — the enrich seam's normalized aspect form — parsed to a box,
 // or null on absent/malformed/zeroed input so the caller picks a default
@@ -167,7 +176,7 @@ export function fitRect (natural, arena, { chrome = chromeOf(), index = 0 } = {}
   const ratio = (natural?.w > 0 && natural?.h > 0) ? natural.w / natural.h : 16 / 9
   // Room the MEDIA has once the shell is subtracted; the floors keep the
   // math alive in degenerate arenas (clampRect trims any excess at the end).
-  const availW = Math.max(120, arena.w - WELL_PAD * 2 - 2)
+  const availW = Math.max(120, arena.w - sideChrome())
   const availH = Math.max(80, arena.h - chrome)
   // Binding dimension wins: try width-bound, fall back to height-bound.
   let mediaW = availW
@@ -180,7 +189,7 @@ export function fitRect (natural, arena, { chrome = chromeOf(), index = 0 } = {}
   // can undercut the controls bar — floor the media height without
   // re-widening (width already maxed what the arena offers).
   mediaH = Math.min(availH, Math.max(mediaH, MEDIA_MIN_H))
-  const w = Math.max(MIN_W, Math.round(mediaW + WELL_PAD * 2 + 2))
+  const w = Math.max(MIN_W, Math.round(mediaW + sideChrome()))
   const h = Math.round(mediaH + chrome)
   // Cascade ~26px down-right per open window (wrapping every 5); since
   // the fit maximizes, the stepped axis often clamps back — the slide in
@@ -208,6 +217,6 @@ export function clampRect (rect, arena) {
 // never shrinks its controls bar out of usability.
 export function minSize (natural, chrome = chromeOf()) {
   const ratio = (natural?.w > 0 && natural?.h > 0) ? natural.w / natural.h : 16 / 9
-  const mediaW = MIN_W - WELL_PAD * 2 - 2
+  const mediaW = MIN_W - sideChrome()
   return { w: MIN_W, h: Math.round(Math.max(mediaW / ratio, MEDIA_MIN_H) + chrome) }
 }

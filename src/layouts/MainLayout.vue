@@ -8,7 +8,7 @@
     <!-- Floating media viewers + their minimize sliver over the crown
          strip (docs/plans/floating-media-viewer.md) — every child is
          fixed-position, so the mount point only has to exist once. -->
-    <MediaViewerHost />
+    <MediaViewerHost @pins-changed="pinsRefreshKey++" />
 
     <!-- mini-width = --dock-rail-w, READ FROM THE TOKEN rather than restated
          (2026-08-02): the collapsed drawer mirrors the stack/pins parked
