@@ -180,7 +180,7 @@
     <!-- Page content gives up the width of the parked stack/pins column on the
          right so they never cover it; EXPANDED windows overlap the page as
          they always did. -->
-    <q-page-container :style="{ paddingRight: windows.railWidth ? windows.railWidth + 'px' : null, paddingTop: 'var(--frieze-h)' }">
+    <q-page-container :style="{ paddingRight: windows.railWidth ? windows.railWidth + 'px' : null, paddingTop: 'calc(var(--frieze-h) + var(--media-tabs-h, 0px))' }">
       <router-view />
     </q-page-container>
 
@@ -378,6 +378,11 @@ aside.q-drawer {
   background: transparent !important;
   z-index: 3120;
   bottom: 0;
+  // Steps down with the crown strip while a media viewer is parked
+  // (2026-08-05) — this column carries its own FriezeBar in the strip's
+  // place, so the two have to start at the same y or the band breaks at
+  // the drawer's edge. 0px otherwise.
+  top: var(--media-tabs-h, 0px);
 }
 
 // MOBILE OVERLAY: below q-drawer's breakpoint the drawer is modal and dims the

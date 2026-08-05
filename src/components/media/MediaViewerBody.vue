@@ -97,15 +97,11 @@ import { defineComponent, computed, ref } from 'vue'
 import EmbedFrame from 'src/components/shared/EmbedFrame.vue'
 import MarkdownBody from 'src/components/shared/MarkdownBody.vue'
 import { bodyOf, formatBytes } from 'src/utils/nodeContent'
-
-// Same glyph language as NodeContentViewer's thumb column.
-const KIND_ICON = {
-  image: 'image',
-  video: 'movie',
-  audio: 'music_note',
-  binary: 'attach_file',
-  text: 'notes'
-}
+// The face ladder and the kind glyphs moved to utils/mediaKind.js on
+// 2026-08-05, when the minimize tabs needed the same classification for
+// their icons — one ladder, two readers (the glyph language is still
+// NodeContentViewer's thumb column).
+import { faceOf, KIND_ICON } from 'src/utils/mediaKind'
 
 export default defineComponent({
   name: 'MediaViewerBody',
@@ -119,22 +115,9 @@ export default defineComponent({
     const embed = computed(() => node.value.embed || null)
     const embedIsPage = computed(() => embed.value?.mode === 'page')
 
-    // ONE branch decision. Enriched media needs a url to load, so a
-    // media kind without one falls to the card; a text file whose body
-    // was not inlined (the API stops at 1MB — `text` absent, not '')
-    // falls there too, since there is nothing to render but the bytes.
-    const face = computed(() => {
-      if (embed.value) return 'embed'
-      const f = node.value.file
-      if (!f) return 'text' // plain NOTE — its content IS the body
-      if (f.kind === 'image' && f.url) return 'image'
-      if (f.kind === 'video' && f.url) return 'video'
-      if (f.kind === 'audio' && f.url) return 'audio'
-      if (f.kind === 'text' && f.text != null) {
-        return f.ext === 'md' ? 'doc' : 'text'
-      }
-      return 'card'
-    })
+    // ONE branch decision, and it lives in utils/mediaKind so the parked
+    // tab's glyph and this renderer can never disagree about what a node is.
+    const face = computed(() => faceOf(node.value))
 
     // md pretty ⇄ raw. Local per-window state — two viewers over the
     // same node keep independent toggles (plan: no persistence in v1).

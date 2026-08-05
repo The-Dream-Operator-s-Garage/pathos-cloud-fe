@@ -343,7 +343,9 @@
   --dock-rule: var(--brown-3);
   left: 50vw;
   right: calc(var(--dock-right, 0px) + var(--dock-gap));
-  top: calc(var(--frieze-h) + var(--dock-gap));
+  // --media-tabs-h is 0px unless a media viewer is parked, in which case the
+  // whole top chrome (crown strip included) has stepped down by that band.
+  top: calc(var(--frieze-h) + var(--dock-gap) + var(--media-tabs-h, 0px));
   // Straight off the NAV BAR's top edge (2026-07-27, second pass — it stood
   // one --frieze-h higher first, via the now-retired --dock-bottom, to clear
   // FriezeFooter, the pale band that used to occupy this edge before

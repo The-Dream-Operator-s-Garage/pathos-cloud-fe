@@ -34,7 +34,11 @@ export default defineComponent({ name: 'FriezeHeader' })
 // windows 2400+ — the frieze outranks them all (visibility priority).
 .frieze-header {
   position: fixed;
-  top: 0;
+  // Normally the very top of the window. `--media-tabs-h` is 0px until a
+  // media viewer is parked, at which point MediaTabsBar claims the band
+  // above this strip and the whole top chrome steps down by it (2026-08-05,
+  // user ask — that band used to lie ON the strip and cut the motif off).
+  top: var(--media-tabs-h, 0px);
   left: 0;
   width: 100vw;
   height: var(--frieze-h);

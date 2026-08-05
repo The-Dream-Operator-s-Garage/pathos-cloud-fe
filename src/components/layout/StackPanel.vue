@@ -292,7 +292,10 @@ export default defineComponent({
 // wear a thin classic 1px brown-4 border; the right sits bare at the screen
 // edge. Rounded bottom-left corner kept.
 .stack-window {
-  top: 0;
+  // Its own frieze band stands in for the crown strip at this corner, so
+  // it steps down with the strip when the media tabs band takes the top
+  // (2026-08-05; 0px whenever no viewer is parked).
+  top: var(--media-tabs-h, 0px);
   bottom: auto;
   right: 0;
   // NO top border: the widget starts at the screen's top-right corner ON TOP

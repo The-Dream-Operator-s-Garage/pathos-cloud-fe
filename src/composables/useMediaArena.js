@@ -24,6 +24,7 @@ import { useWindowsStore } from 'src/stores/windows'
 const vw = ref(typeof window !== 'undefined' ? window.innerWidth : 1280)
 const vh = ref(typeof window !== 'undefined' ? window.innerHeight : 800)
 const friezeH = ref(0)
+const crownBottom = ref(0)
 const footerH = ref(0)
 let armed = false
 
@@ -35,8 +36,14 @@ const measure = () => {
   // offsetHeight tracks both through any future token change. The
   // fallbacks restate the current formulas (2.1vh crown, 32px bar + crown)
   // for calls that land before the layout mounts.
-  friezeH.value = document.querySelector('.frieze-header')?.offsetHeight ||
-    Math.round(window.innerHeight * 0.021)
+  const crown = document.querySelector('.frieze-header')
+  friezeH.value = crown?.offsetHeight || Math.round(window.innerHeight * 0.021)
+  // Where the crown strip ENDS, which is not its height any more: while a
+  // media viewer is parked the strip has stepped down by the tabs band
+  // (`--media-tabs-h`), and the arena's ceiling is the strip's BOTTOM edge
+  // (2026-08-05). Height and bottom are separate numbers now — friezeH
+  // still feeds `chromeOf`, which is about the band drawn INSIDE a viewer.
+  crownBottom.value = crown?.getBoundingClientRect().bottom || friezeH.value
   footerH.value = document.querySelector('.nav-footer')?.offsetHeight ||
     (32 + friezeH.value)
 }
@@ -58,7 +65,7 @@ export function useMediaArena () {
     const mobile = windows.isMobile
     const shortViewport = vh.value <= 500
     const pad = (mobile || shortViewport) ? 8 : 14
-    const top = friezeH.value + pad
+    const top = crownBottom.value + pad
     const floor = vh.value - footerH.value - pad
     if (mobile || shortViewport) {
       // Portrait: the top half (blocking the content's top is accepted).
@@ -89,5 +96,5 @@ export function useMediaArena () {
   // `measure` is exported for interactions that must re-sample mid-gesture
   // (a drag across an orientation flip); the resize listener covers the
   // normal path.
-  return { arena, roam, measure, friezeH, footerH }
+  return { arena, roam, measure, friezeH, crownBottom, footerH }
 }
