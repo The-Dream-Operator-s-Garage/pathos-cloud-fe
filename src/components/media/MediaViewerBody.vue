@@ -162,7 +162,22 @@ export default defineComponent({
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  border: 1px solid var(--grey-6, #9e9e9e);
+  // ONE --grey-5 PLATE, floor and rim alike (2026-08-05, user ask): a
+  // single step under the window's --grey-4 coat, edgeless within itself,
+  // so the media lies on a plate set into a case and nothing between them
+  // is drawn as a line. That is the "smooth metallic plates" this box is
+  // after — depth stated by tone steps, never by outlines, which is also
+  // why the window's own rim sits one step off ITS face (--grey-6 on
+  // grey-4) instead of contrasting with it. The frame walked --grey-8 →
+  // --grey-6 → grey-4 → here, lighter and smoother every pass.
+  background: var(--grey-5, #bdbdbd);
+  border: 1px solid var(--grey-5, #bdbdbd);
+  // …except along the TOP (2026-08-05, user ask): the plate meets the
+  // frieze band's side of the window with nothing of its own between
+  // them, so the eye runs from the band straight onto the media. Three
+  // sides is what a plate slid in from above has. The 1px it gives back
+  // is `BODY_RIM` in utils/mediaFit — vertical chrome counts it once now.
+  border-top: none;
   border-radius: 5px;
 }
 
@@ -177,9 +192,10 @@ export default defineComponent({
 .mv-body__embed {
   width: 100%;
   --mv-cap-h: 22px;
-  // …minus the content frame's own 2px, since `100cqh` is the WELL's box
-  // and the rim was added inside it (2026-08-05).
-  --media-max-h: calc(100cqh - var(--mv-cap-h) - 2px);
+  // …minus the content plate's own 1px, since `100cqh` is the WELL's box
+  // and the rim lives inside it (2026-08-05 — one pixel, not two: the
+  // plate has no top border).
+  --media-max-h: calc(100cqh - var(--mv-cap-h) - 1px);
 
   // The caption inherits the paper palette's ink, which the window's own
   // coat has to answer: it was --grey-4 while the well floor was dark,
@@ -191,6 +207,10 @@ export default defineComponent({
   // itself and wins over this inherited family, which is right: a URL is
   // a machine string and is set as one everywhere on the platform.
   :deep(.embed-frame__cap) {
+    // Back to --grey-9 with the mat at --grey-4 (7.0:1): the caption is
+    // the one line of text lying directly on it, and it should read in
+    // the same ink as the header above it. It spent one pass at
+    // --grey-10, which the darker mat needed.
     color: var(--grey-9, #424242);
     font-family: var(--font-display);
     letter-spacing: 0.03em;

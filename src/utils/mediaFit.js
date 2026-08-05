@@ -15,7 +15,7 @@
 export const HEADER_H = 30
 export const WELL_PAD = 4
 export const FOOT_H = 18 // the tally ledge (2026-08-05)
-export const BODY_RIM = 1 // .mv-body's rim, one per side on both axes
+export const BODY_RIM = 1 // .mv-body's rim: both sides + the bottom, no top
 export const MIN_W = 220 // header shrink floor: lights + a name sliver + the actions
 
 // The MEDIA box never goes shorter than this: the native <audio> controls
@@ -39,8 +39,9 @@ const AUDIO_STRIP = { w: 8, h: 1 } // a wide controls bar
 // Total vertical chrome for a given crown-strip height in px (the slim
 // frieze is half of it; `friezePx` comes from useMediaArena's measurement).
 export function chromeOf (friezePx) {
+  // BODY_RIM counts ONCE vertically — the content plate has no top border.
   return HEADER_H + Math.round((friezePx || 19) / 2 + 2) +
-    WELL_PAD * 2 + BODY_RIM * 2 + FOOT_H + 2
+    WELL_PAD * 2 + BODY_RIM + FOOT_H + 2
 }
 
 // Horizontal chrome: the window's two 1px borders plus the well padding
