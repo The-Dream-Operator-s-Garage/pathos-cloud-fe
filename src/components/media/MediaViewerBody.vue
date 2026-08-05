@@ -146,15 +146,16 @@ export default defineComponent({
 <style lang="scss" scoped>
 // The well is a size container; 100cqh/100cqw are its REAL content box,
 // which is how a fixed-size window turns into the concrete budgets below.
-// The content container, and since 2026-08-05 (user ask) a FRAMED one: a
-// 1px --grey-6 rim with the well's 4px padding as daylight between it and
-// the window's own edge, which wears the same tone. Two lines flush
-// against each other would read as one thick one; separated, and drawn in
-// ONE tone, they read as a frame set inside a case — the media sits
-// INSIDE something. (It went in at --grey-8 for one pass and was too
-// dark: the rim then competed with the frieze band, which is supposed to
-// be the only dark line in the box.) The 2px it costs is declared to the
-// fit engine as `BODY_RIM`.
+// The content container, and — after a whole afternoon of trying to make
+// it a distinct object — deliberately NOTHING: no rim, no floor of its
+// own, the window's --grey-4 coat straight through (2026-08-05, the last
+// of five user asks on this box). The walk was --grey-8 rim → --grey-6
+// rim → --grey-4 floor + --grey-5 rim → a solid --grey-5 plate, topless
+// → uniform. Each step was smoother than the last and the end of that
+// line is no step at all: the MEDIA is the only thing in the window that
+// isn't the coat, and the only edges left are the window's own rim and
+// the frieze band. Nothing here is paid for in the fit engine any more,
+// which is why `BODY_RIM` is gone from utils/mediaFit.
 .mv-body {
   width: 100%;
   height: 100%;
@@ -162,23 +163,6 @@ export default defineComponent({
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  // ONE --grey-5 PLATE, floor and rim alike (2026-08-05, user ask): a
-  // single step under the window's --grey-4 coat, edgeless within itself,
-  // so the media lies on a plate set into a case and nothing between them
-  // is drawn as a line. That is the "smooth metallic plates" this box is
-  // after — depth stated by tone steps, never by outlines, which is also
-  // why the window's own rim sits one step off ITS face (--grey-6 on
-  // grey-4) instead of contrasting with it. The frame walked --grey-8 →
-  // --grey-6 → grey-4 → here, lighter and smoother every pass.
-  background: var(--grey-5, #bdbdbd);
-  border: 1px solid var(--grey-5, #bdbdbd);
-  // …except along the TOP (2026-08-05, user ask): the plate meets the
-  // frieze band's side of the window with nothing of its own between
-  // them, so the eye runs from the band straight onto the media. Three
-  // sides is what a plate slid in from above has. The 1px it gives back
-  // is `BODY_RIM` in utils/mediaFit — vertical chrome counts it once now.
-  border-top: none;
-  border-radius: 5px;
 }
 
 // ── EMBED ──
@@ -192,10 +176,7 @@ export default defineComponent({
 .mv-body__embed {
   width: 100%;
   --mv-cap-h: 22px;
-  // …minus the content plate's own 1px, since `100cqh` is the WELL's box
-  // and the rim lives inside it (2026-08-05 — one pixel, not two: the
-  // plate has no top border).
-  --media-max-h: calc(100cqh - var(--mv-cap-h) - 1px);
+  --media-max-h: calc(100cqh - var(--mv-cap-h));
 
   // The caption inherits the paper palette's ink, which the window's own
   // coat has to answer: it was --grey-4 while the well floor was dark,

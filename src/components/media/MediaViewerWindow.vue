@@ -609,10 +609,10 @@ export default defineComponent({
 
 // The media behind a very thin padding; the one flexible track, and a
 // SIZE CONTAINER so the body can convert the well's real box into the
-// `--media-max-h` budget EmbedFrame understands. The rim around the
-// content itself is on `.mv-body` (MediaViewerBody), INSIDE this padding,
-// so the frame has daylight between it and the window's own edge — two
-// lines with nothing between them would read as one thick one.
+// `--media-max-h` budget EmbedFrame understands. The content container
+// inside it draws NOTHING of its own (2026-08-05, after five passes at
+// framing it): this padding is the only separation between the media and
+// the window's rim, and the coat runs uninterrupted behind both.
 .media-window__well {
   flex: 1 1 auto;
   min-height: 0;
