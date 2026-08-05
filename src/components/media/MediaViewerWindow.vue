@@ -240,9 +240,15 @@ export default defineComponent({
 // the LIGHT half of the scale and every light-on-dark decision in it had
 // to inverse — the name, the share glyph and the embed caption in the
 // body are all dark neutrals now (grey-9/-8 on grey-4 rather than
-// grey-3/-5/-4 on grey-9). The one thing that did NOT flip is the
-// `--grey-8` border, which was a quiet line on the dark coat and is a
-// drawn EDGE on this one. Floating, so it carries a real
+// grey-3/-5/-4 on grey-9). The border flipped one pass later (user ask,
+// same day): `--grey-8` was a half-step line while the coat was dark and
+// a 3.2:1 black outline on the light one — the darkest mark on the whole
+// window, drawn round the outside, where the frieze band is meant to be
+// the one dark thing in the box. `--grey-6` sits 1.9:1 off the coat, so
+// the rim reads as the EDGE of the material rather than a line painted
+// on it (brushed metal has no outline). It can be this quiet because the
+// drop shadow is what separates the box from the page — the rim only has
+// to say where the metal stops. Floating, so it carries a real
 // drop shadow (the docks' up-left cast is a bottom-docked device; this box
 // touches no edge). `overflow: hidden` is load-bearing: the frieze band
 // and the media would square the rounded corners otherwise (the flyout
@@ -252,7 +258,7 @@ export default defineComponent({
   display: flex;
   flex-direction: column;
   background: var(--grey-4, #e0e0e0);
-  border: 1px solid var(--grey-8, #616161);
+  border: 1px solid var(--grey-6, #9e9e9e);
   border-radius: 10px;
   overflow: hidden;
   box-shadow: 0 12px 34px rgba(0, 0, 0, 0.45);
