@@ -110,7 +110,10 @@ export default defineComponent({
   setup (props) {
     const store = useMediaViewersStore()
     const windows = useWindowsStore()
-    const { arena, measure, friezeH } = useMediaArena()
+    // Two regions, two jobs: `arena` places the window at spawn (the
+    // docks' half), `roam` is the whole viewport every gesture and the
+    // re-clamp are held to. See useMediaArena.
+    const { arena, roam, measure, friezeH } = useMediaArena()
 
     const rootEl = ref(null)
     const barEl = ref(null)
@@ -122,13 +125,17 @@ export default defineComponent({
     // arena clamping and the shrink floor all live in the composable;
     // the shell only lends its classes and the two pointerdown seams.
     const { HANDLES, dragging, resizing, onBarPointerDown, onHandlePointerDown } =
-      useMediaWindowGestures({ viewer, store, arena, measure, friezeH })
+      useMediaWindowGestures({ viewer, store, roam, measure, friezeH })
 
-    // The arena moved (viewport resize, phone rotate, rail change) — slide
-    // a stale rect back inside so no window strands off-screen. Gestures
-    // already clamp at their own starts; this covers windows nobody is
-    // touching. Maximized windows have no rect geometry to protect.
-    watch(arena, (a) => {
+    // The VIEWPORT moved (resize, phone rotate) — slide a stale rect back
+    // inside so no window strands off-screen. Gestures already clamp at
+    // their own starts; this covers windows nobody is touching. It
+    // watches `roam` and not the arena on purpose: re-clamping to the
+    // arena would haul a window the user parked on the left back into the
+    // right half every time the rail or the orientation changed, undoing
+    // a placement nobody asked to undo. Maximized windows have no rect
+    // geometry to protect.
+    watch(roam, (a) => {
       const v = viewer.value
       if (!v || !v.rect || v.maximized) return
       const c = clampRect(v.rect, a)
@@ -226,11 +233,16 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-// The dark-grey box: ONE `--grey-9` coat, header included (2026-08-05,
-// user ask — the cap used to be a step darker at `--grey-10`, and that
-// tone moved down into the frieze band below it, so the box is now a
-// single field with one dark line across it instead of two stacked
-// plates). Ink stays flipped light. Floating, so it carries a real
+// The box: ONE `--grey-4` coat, header included — and the SECOND tone
+// move of 2026-08-05 (user ask). The window was dark all day: a
+// `--grey-9` field (a `--grey-10` cap over it until that morning) with
+// its ink flipped light. `--grey-4` is #e0e0e0, so the box crossed to
+// the LIGHT half of the scale and every light-on-dark decision in it had
+// to inverse — the name, the share glyph and the embed caption in the
+// body are all dark neutrals now (grey-9/-8 on grey-4 rather than
+// grey-3/-5/-4 on grey-9). The one thing that did NOT flip is the
+// `--grey-8` border, which was a quiet line on the dark coat and is a
+// drawn EDGE on this one. Floating, so it carries a real
 // drop shadow (the docks' up-left cast is a bottom-docked device; this box
 // touches no edge). `overflow: hidden` is load-bearing: the frieze band
 // and the media would square the rounded corners otherwise (the flyout
@@ -239,7 +251,7 @@ export default defineComponent({
   position: fixed;
   display: flex;
   flex-direction: column;
-  background: var(--grey-9, #424242);
+  background: var(--grey-4, #e0e0e0);
   border: 1px solid var(--grey-8, #616161);
   border-radius: 10px;
   overflow: hidden;
@@ -291,7 +303,7 @@ export default defineComponent({
   flex: 0 0 auto;
   justify-content: center;
   padding: 0 76px;
-  background: var(--grey-9, #424242); // the box's own coat — no cap
+  background: var(--grey-4, #e0e0e0); // the box's own coat — no cap
   border-bottom: none; // the frieze band is the divider
   // The bar is the drag surface: an open hand on its free areas (the
   // buttons keep their own pointer), and no touch scrolling — a finger
@@ -311,7 +323,9 @@ export default defineComponent({
 }
 
 .media-window__name {
-  color: var(--grey-3, #eeeeee);
+  // Dark on the light coat (7.0:1) — the tone the box itself wore until
+  // the grey-4 pass, spent as ink now.
+  color: var(--grey-9, #424242);
   font-size: 0.78em;
   letter-spacing: 0.02em;
   overflow: hidden;
@@ -326,22 +340,30 @@ export default defineComponent({
   top: 0;
   bottom: 0;
   margin: auto 0;
-  color: var(--grey-5, #bdbdbd);
+  // Muted → full-strength on hover, the same two-step as before, walked
+  // down the scale instead of up: --grey-8 rests a step under the name's
+  // --grey-9 and --grey-10 is the press.
+  color: var(--grey-8, #616161);
   z-index: 6; // above the NE resize corner, same deal as the lights
 
-  &:hover { color: var(--grey-1, #fafafa); }
+  &:hover { color: var(--grey-10, #212121); }
 }
 
-// The flyout skeleton viewer's band, one step darker: slim + a
-// `--grey-10` plaque under the `--brown-1` wave (stated, not left to the
-// slim variant's default, since this band is now the box's ONLY line and
-// the tone that draws it should be readable here). It is the divider the
-// header stopped being when it took the coat's grey-9: the darkest thing
-// in the window, cut across a single field, with the warm wave the one
-// bright mark on it.
+// The flyout skeleton viewer's band, on a `--grey-8` plaque under the
+// `--brown-1` wave (both stated, not left to the slim variant's default,
+// since this band is the box's ONLY line and the tones that draw it
+// should be readable here). It is the divider the header stopped being
+// when it took the coat: a dark strip across a light field. The plaque
+// walked grey-9 → grey-10 → grey-8 on 2026-08-05 as the coat went dark →
+// darker-under-light → light; what holds through all three is the
+// RELATION the FriezeBar recipe needs — the brown-1 wave sits well above
+// its base, so the carve reads as a groove lit from the top left. On the
+// light grey-4 coat the band is now the darkest thing in the window and
+// the wave the palest, which is what keeps one line doing the work of a
+// tone change.
 .media-window__frieze {
   flex: 0 0 auto;
-  --frieze-bar-base: var(--grey-10, #212121);
+  --frieze-bar-base: var(--grey-8, #616161);
   --frieze-bar-wave-two: var(--brown-1, #efebe9);
 }
 

@@ -185,10 +185,12 @@ export default defineComponent({
   --mv-cap-h: 22px;
   --media-max-h: calc(100cqh - var(--mv-cap-h));
 
-  // The caption inherits the paper palette's dark ink — invisible on
-  // this dark floor; flip it to the window's light greys.
+  // The caption inherits the paper palette's ink, which the window's own
+  // coat has to answer: it was --grey-4 while the well floor was dark,
+  // and it is --grey-9 since the coat went LIGHT (2026-08-05) — grey-4 on
+  // grey-4 would have been the same invisibility from the other side.
   :deep(.embed-frame__cap) {
-    color: var(--grey-4, #e0e0e0);
+    color: var(--grey-9, #424242);
   }
 }
 

@@ -1,10 +1,20 @@
-// The ARENA — the one function that answers "where may a media window
-// be" (docs/plans/floating-media-viewer.md). Desktop: the right half of
+// The ARENA — the one function that answers "where is a media window
+// BORN" (docs/plans/floating-media-viewer.md). Desktop: the right half of
 // the viewport (the docks' half), below the crown strip, above the nav
 // footer, left of the permanent stack/pins column. Mobile portrait: the
 // TOP half, over the content by design. Mobile landscape: the whole
-// viewport between the fixed bands. Spawn placement, drag clamps, resize
-// maxima and the fit math all ask this; nothing else knows about halves.
+// viewport between the fixed bands. Spawn placement and the fit math ask
+// this; nothing else knows about halves.
+//
+// TWO REGIONS since 2026-08-05 (user ask): the arena above is where a
+// window APPEARS, `roam` below is where it may GO. They were one region
+// until then, which meant the right half was also a fence — a viewer
+// could not be pulled over the page it came from, and any viewport
+// change dragged an escaped window back. Birth stays composed (a new
+// window lands in the docks' half, clear of the feed, cascaded); once
+// the pointer is on the bar the whole screen is fair game. Keeping the
+// pair separate is what buys both: one region can be opinionated
+// precisely because the other is not.
 import { ref, computed } from 'vue'
 import { useWindowsStore } from 'src/stores/windows'
 
@@ -64,8 +74,20 @@ export function useMediaArena () {
     return { x, y: top, w: Math.max(200, right - x), h: Math.max(160, floor - top) }
   })
 
+  // ROAM — the whole viewport, and deliberately the WHOLE one: no inset,
+  // no band subtraction. Drag clamps, resize maxima and the stale-rect
+  // re-clamp all ask this, so a window may be parked anywhere on screen,
+  // edge included. The two fixed bands are not carved out because neither
+  // hides the thing that matters: the crown strip is z 3000 and PAINTS
+  // UNDER a media window (3010+), and the nav footer, which outranks it,
+  // can only ever cover the window's BOTTOM — the header stays visible
+  // and grabbable, which is the property that has to survive. clampRect
+  // keeps the whole rect inside, so no window can be dragged off-screen
+  // or lose its bar.
+  const roam = computed(() => ({ x: 0, y: 0, w: vw.value, h: vh.value }))
+
   // `measure` is exported for interactions that must re-sample mid-gesture
   // (a drag across an orientation flip); the resize listener covers the
   // normal path.
-  return { arena, measure, friezeH, footerH }
+  return { arena, roam, measure, friezeH, footerH }
 }

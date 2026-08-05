@@ -32,7 +32,11 @@ const CURSORS = {
   sw: 'nesw-resize'
 }
 
-export function useMediaWindowGestures ({ viewer, store, arena, measure, friezeH }) {
+// The region every gesture is clamped to is `roam` — the WHOLE viewport
+// (useMediaArena), not the spawn arena. A window is composed into the
+// docks' half when it is born and free to be dragged anywhere after,
+// which is why this composable never sees the arena at all.
+export function useMediaWindowGestures ({ viewer, store, roam, measure, friezeH }) {
   const dragging = ref(false) // bar drag in progress
   const resizing = ref(null) // the active handle letter while a resize runs
 
@@ -61,10 +65,10 @@ export function useMediaWindowGestures ({ viewer, store, arena, measure, friezeH
     if (!v || !v.rect || v.maximized) return false
     if (e.button != null && e.button !== 0) return false // primary only
     // Re-measure the bands and pull a stale rect back inside BEFORE any
-    // anchor is read off it — the arena may have shrunk since spawn
-    // (rail, orientation flip, a plain viewport resize).
+    // anchor is read off it — the viewport may have shrunk since the last
+    // gesture (orientation flip, a plain window resize).
     measure()
-    base = clampRect(v.rect, arena.value)
+    base = clampRect(v.rect, roam.value)
     if (base.x !== v.rect.x || base.y !== v.rect.y ||
       base.w !== v.rect.w || base.h !== v.rect.h) store.setRect(v.id, base)
     ratio = (v.natural?.w > 0 && v.natural?.h > 0)
@@ -89,10 +93,13 @@ export function useMediaWindowGestures ({ viewer, store, arena, measure, friezeH
   // (it stays put), the pointer drives one axis — the edge's own axis,
   // or whichever delta dominates on a corner — and the other axis
   // follows the media ratio. Ceilings are anchor-relative: each axis may
-  // only grow until its moving edge meets the arena, so a drag past the
+  // only grow until its moving edge meets the region, so a drag past the
   // boundary pins at the farthest legal size; the floor is minSize (the
   // header-shrink limit). clampRect stays the final gate for the ±1px
-  // the rounding can leak.
+  // the rounding can leak. The region is `roam` for the same reason drag
+  // uses it — and not only for symmetry: an arena-clamped resize of a
+  // window parked OUTSIDE the arena would compute a negative ceiling and
+  // clampRect would then teleport the window back into the right half.
   const resized = (dx, dy, a) => {
     const north = mode.includes('n')
     const south = mode.includes('s')
@@ -126,7 +133,7 @@ export function useMediaWindowGestures ({ viewer, store, arena, measure, friezeH
     // The green light can flip mid-gesture (a second pointer): a
     // maximized window has no rect to drag, so the gesture aborts.
     if (!v || v.maximized) { end(e); return }
-    const a = arena.value
+    const a = roam.value
     const dx = e.clientX - origin.x
     const dy = e.clientY - origin.y
     if (mode === 'move') {
