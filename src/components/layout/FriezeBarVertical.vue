@@ -45,8 +45,12 @@
        The lip is worth one note: it draws the feed container's SIDE
        BORDERS, which were specified lime-3 when the box was built. The bar
        took those edges over, so they follow its colorway — and the
-       container's background has since joined it on `--indigo-1`, the
-       bar's own plaque tone, so box and edges are one continuous material.
+       container's background joined it on `--indigo-1`, the bar's plaque
+       tone at the time, so box and edges read as one material. THE PLAQUE
+       HAS SINCE LEFT (2026-08-05, user ask): it is `--grey-4` now, the
+       floating media windows' coat, so the band stands one neutral step
+       off the indigo box it edges while its waves and its lip stay in the
+       feed's own colorway.
 
        Flows as a normal block like FriezeBar: no fixed positioning, no
        z-index, full height of its parent. Decorative only. -->
@@ -85,7 +89,13 @@ export default defineComponent({
   height: 100%;
   padding: 0 1px; // the header's `1px 0`, turned
   pointer-events: none;
-  background: var(--indigo-1); // flat Quasar indigo-1 plaque (⇔ the header's brown-1)
+  // PLAQUE --grey-4 since 2026-08-05 (user ask: the same tone the floating
+  // media windows are coated in). The waves and the lip stay indigo, so the
+  // band is the feed's colorway drawn on a NEUTRAL plate — the motif still
+  // reads (indigo-3/-4 sit above grey-4 exactly as they sat above indigo-1,
+  // and the carve needs only that step), while the plate itself now belongs
+  // to the platform's window material rather than to the container it edges.
+  background: var(--grey-4);
 }
 
 // The header's `border-bottom` under a 90° CW turn. Both variants exist so a

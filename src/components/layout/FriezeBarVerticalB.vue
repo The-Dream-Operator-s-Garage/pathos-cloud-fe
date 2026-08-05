@@ -58,7 +58,7 @@ export default defineComponent({
   height: 100%;
   padding: 0 1px;
   pointer-events: none;
-  background: var(--indigo-1); // same plaque as A
+  background: var(--grey-4); // same plaque as A (--grey-4 since 2026-08-05)
 }
 
 .frieze-bar-v-b--lip-left { border-left: 1px solid var(--indigo-3); }
