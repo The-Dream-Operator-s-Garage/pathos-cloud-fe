@@ -42,12 +42,20 @@
         />
       </span>
 
-      <!-- Decorative, not a link: the whole panel already routes to the
-           node, and an <a> inside the panel's own router-link would be
-           invalid markup for the same destination. -->
-      <span class="node-mini__zone node-mini__zone--open" title="open this node">
-        <q-icon name="open_in_new" size="13px" />
-      </span>
+      <!-- The MEDIA VIEWER trigger (2026-08-04) — the corner that was a
+           decorative glyph is the header's one real button now: it spawns
+           the floating dark-grey viewer for this node
+           (docs/plans/floating-media-viewer.md). `.stop.prevent` because
+           the whole panel is a router-link; navigation stays the panel's
+           job, the corner's is the preview. -->
+      <button
+        type="button"
+        class="node-mini__zone node-mini__zone--open"
+        title="open media viewer"
+        @click.stop.prevent="openViewer"
+      >
+        <q-icon name="open_in_full" size="13px" />
+      </button>
     </template>
 
     <template #body>
@@ -124,6 +132,7 @@ import EmbedFrame from 'src/components/shared/EmbedFrame.vue'
 import NodeMicro from './NodeMicro.vue'
 import { kindFor, hashOf, shortHash } from 'src/utils/kinds'
 import { bodyOf, excerptOf } from 'src/utils/nodeContent'
+import { useMediaViewersStore } from 'src/stores/mediaViewers'
 
 export default defineComponent({
   name: 'NodeMini',
@@ -140,6 +149,11 @@ export default defineComponent({
   },
   setup (props) {
     const targetRoute = computed(() => props.to || `/nodes/${props.node.id}`)
+
+    // The header corner's job: hand THIS enriched node card to the
+    // floating viewer family (one per node; re-triggering fronts it).
+    const mediaViewers = useMediaViewersStore()
+    const openViewer = () => { mediaViewers.spawn(props.node) }
 
     const nodeKind = kindFor('nodes')
 
@@ -214,6 +228,7 @@ export default defineComponent({
 
     return {
       targetRoute,
+      openViewer,
       nodeKind,
       effectiveTitle,
       excerpt,
@@ -448,8 +463,18 @@ export default defineComponent({
   min-width: 0;
 }
 
+// A real <button> since 2026-08-04 (the media-viewer trigger) — reset to
+// the zone's own face, so the chrome stays the zone's and the cursor is
+// the one tell it does something the panel-as-link doesn't. `border: 0`
+// kills the UA button box; the zone hairline survives it (the `& + &`
+// rule above outranks this one for border-left).
 .node-mini__zone--open {
   flex: 0 0 auto;
+  appearance: none;
+  background: none;
+  border: 0;
+  font: inherit;
+  cursor: pointer;
   :deep(.mini-panel--hover):hover & { color: var(--coral-deep, #d35f5f); }
 }
 

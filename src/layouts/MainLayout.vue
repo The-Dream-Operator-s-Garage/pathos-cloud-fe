@@ -5,6 +5,11 @@
          the corner); the page container pads down by --frieze-h below. -->
     <FriezeHeader />
 
+    <!-- Floating media viewers + their minimize sliver over the crown
+         strip (docs/plans/floating-media-viewer.md) — every child is
+         fixed-position, so the mount point only has to exist once. -->
+    <MediaViewerHost />
+
     <!-- mini-width = --dock-rail-w, READ FROM THE TOKEN rather than restated
          (2026-08-02): the collapsed drawer mirrors the stack/pins parked
          column on the opposite edge, AND its own footer block (plus the nav
@@ -221,6 +226,7 @@ import UploaderDock from 'src/components/maker/UploaderDock.vue'
 import SkeletonBuilderDock from 'src/components/maker/SkeletonBuilderDock.vue'
 import LabelMakerDock from 'src/components/maker/LabelMakerDock.vue'
 import ChatDock from 'src/components/chat/ChatDock.vue'
+import MediaViewerHost from 'src/components/media/MediaViewerHost.vue'
 import FriezeHeader from 'src/components/layout/FriezeHeader.vue'
 import FriezeBar from 'src/components/layout/FriezeBar.vue'
 import NavigationBar from 'src/components/layout/NavigationBar.vue'
@@ -236,7 +242,7 @@ import { useEventsStore } from 'src/stores/events'
 
 export default defineComponent({
   name: 'MainLayout',
-  components: { MakerDock, UploaderDock, SkeletonBuilderDock, LabelMakerDock, ChatDock, FriezeHeader, FriezeBar, NavigationBar, PinsDrawer, StackPanel, EntityAvatar },
+  components: { MakerDock, UploaderDock, SkeletonBuilderDock, LabelMakerDock, ChatDock, MediaViewerHost, FriezeHeader, FriezeBar, NavigationBar, PinsDrawer, StackPanel, EntityAvatar },
   setup () {
     const router = useRouter()
     const navStore = useNavStore()

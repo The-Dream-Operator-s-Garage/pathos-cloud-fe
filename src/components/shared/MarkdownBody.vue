@@ -15,6 +15,8 @@
                    into its NodeMini panel, everything else stays micro
        The AUTHOR's sigil always beats the surface tier: ![[…]] is the
        full Mini and -[[…]] is the micro chip, on every surface.
+       `plain-refs` turns the whole chip stage OFF — refs stay literal
+       text (the media viewer's document mode).
        See src/utils/pathosRefs.js for the reference format. -->
   <div>
     <div ref="root" class="markdown-body" :class="{ 'has-mini-refs': refDisplay === 'mini' }" v-html="html" />
@@ -92,7 +94,15 @@ export default defineComponent({
     // Treat a single newline as a hard <br>. True platform-wide (chat and
     // comments are written that way); pass false for hard-wrapped prose so
     // paragraphs REFLOW to the container's width. See the marked defaults.
-    breaks: { type: Boolean, default: true }
+    breaks: { type: Boolean, default: true },
+    // Render [[pathos:…]] refs (and their ![[…]] / -[[…]] sigils) as the
+    // literal text the author typed — no chips, no placeholder spans. For
+    // surfaces that show a markdown FILE as a document rather than as
+    // platform hypertext (the media viewer): the file's refs are QUOTED
+    // content, not this surface's links, and live chips would both
+    // mislead and fire a probe request per ref on every open. Marked,
+    // DOMPurify and the breaks handling stay exactly as they are.
+    plainRefs: { type: Boolean, default: false }
   },
   setup (props) {
     const root = ref(null)
@@ -100,7 +110,12 @@ export default defineComponent({
     // Bumped per render so teleport keys never collide across re-renders.
     let renderTick = 0
 
-    const parsed = computed(() => extractPathosRefs(props.text || ''))
+    // plainRefs skips the extraction stage entirely: no placeholders land
+    // in the HTML and the refs list is empty, so mountChips (below) finds
+    // nothing to seat — the rest of the pipeline never knows.
+    const parsed = computed(() => props.plainRefs
+      ? { text: props.text || '', refs: [] }
+      : extractPathosRefs(props.text || ''))
 
     const html = computed(() => {
       if (!parsed.value.text) return ''
