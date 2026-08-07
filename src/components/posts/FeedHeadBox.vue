@@ -168,9 +168,39 @@
            being filtered on stand. Empty is its normal state and it keeps its
            height anyway; a lane that appeared with the first chip would
            resize the box — and move the stream's reserved home slot — every
-           time someone picked or cleared a label. -->
+           time someone picked or cleared a label.
+
+           SPLIT 70/30 WITH A TRASH (2026-08-07, user ask): the active
+           scroller keeps ~70%, and the right 30% is the TRASHED section —
+           labels the user discarded, held in a disabled aesthetic so they
+           can be re-applied later, and STANDING VETOES meanwhile (a new
+           verdict never re-applies a trashed label; the stream owns that
+           rule). The BROOM at the lane's far left sweeps BOTH sections
+           clean in one press — active labels leave the live filter (the
+           reload is the stream's job, via the `sweep` emit) and the trash
+           empties, so nothing is suppressed afterward. -->
       <div class="feed-head__lane">
-        <slot name="labels" />
+        <button
+          type="button"
+          class="feed-head__lane-broom"
+          title="Sweep both lanes — clear the active labels and empty the trash"
+          aria-label="Sweep active and trashed label filters clean"
+          @click="$emit('sweep')"
+        >
+          <q-icon name="cleaning_services" size="12px" />
+        </button>
+        <div class="feed-head__lane-active">
+          <slot name="labels" />
+        </div>
+        <div class="feed-head__lane-trash">
+          <q-icon
+            name="delete_outline"
+            size="11px"
+            class="feed-head__lane-trash-mark"
+            aria-hidden="true"
+          />
+          <slot name="trash" />
+        </div>
       </div>
     </div>
   </section>
@@ -222,7 +252,7 @@ export default defineComponent({
     live: { type: Boolean, default: false },
     line: { type: Object, default: null }
   },
-  emits: ['update:offset', 'update:height', 'ask', 'open-chat'],
+  emits: ['update:offset', 'update:height', 'ask', 'open-chat', 'sweep'],
   setup (props, { emit }) {
     const rootEl = ref(null)
     const y = ref(props.offset == null ? HOME : props.offset)
@@ -834,20 +864,72 @@ export default defineComponent({
 // which moves the well's reserved home slot — every time someone picked or
 // cleared a label.
 //
-// It SCROLLS sideways rather than wrapping or ellipsing: label names are
-// long, the box is half a feed column wide, and a filter you cannot read the
-// name of is not a filter you can trust. Hidden scrollbar, the same call
-// `MediaTabsBar` makes — a scrollbar under a 19px strip is all noise.
+// SPLIT 70/30 since 2026-08-07 (user ask): broom · active · trash. The LANE
+// itself no longer scrolls — each half is its own sideways scroller (label
+// names are long, and a filter you cannot read the name of is not a filter
+// you can trust; hidden scrollbars, the `MediaTabsBar` call — a scrollbar
+// under a 19px strip is all noise).
 .feed-head__lane {
+  display: flex;
+  align-items: stretch;
+  height: 19px;
+  border-top: 1px solid var(--fhead-rule);
+  overflow: hidden;
+}
+
+// THE BROOM — one press, both sections. It sits INSIDE the lane at its far
+// left (the "inner icon" of the ask), ruled off like a key at the end of a
+// row; the sweep itself is the stream's (`sweep` emit), since the filter
+// change has to actually reload the feed.
+.feed-head__lane-broom {
+  flex: 0 0 auto;
+  width: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-right: 1px solid var(--fhead-rule);
+  background: transparent;
+  color: var(--fhead-ink);
+  opacity: 0.7;
+  cursor: pointer;
+  &:hover { opacity: 1; background: var(--grey-3, #eeeeee); }
+}
+
+.feed-head__lane-active {
+  flex: 1 1 auto;
+  min-width: 0;
   display: flex;
   align-items: center;
   gap: 4px;
-  height: 19px;
   padding: 0 6px;
-  border-top: 1px solid var(--fhead-rule);
   overflow-x: auto;
   overflow-y: hidden;
   scrollbar-width: none;
   &::-webkit-scrollbar { display: none; }
+}
+
+// THE TRASH — a fixed 30% of the lane, ruled off, where discarded labels
+// stand in their disabled aesthetic until restored or swept. The faint
+// bin glyph is the section's name; it stays when the section is empty, so
+// the split reads as a place rather than a leftover gap.
+.feed-head__lane-trash {
+  flex: 0 0 30%;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 6px;
+  border-left: 1px solid var(--fhead-rule);
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  &::-webkit-scrollbar { display: none; }
+}
+
+.feed-head__lane-trash-mark {
+  flex: 0 0 auto;
+  color: var(--fhead-ink);
+  opacity: 0.35;
 }
 </style>

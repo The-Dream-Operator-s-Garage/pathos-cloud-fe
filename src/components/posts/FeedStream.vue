@@ -65,6 +65,7 @@
       @update:height="(h) => (headH = h)"
       @ask="onAsk"
       @open-chat="openLensChat"
+      @sweep="sweepLane"
     >
       <template #controls>
         <div class="feed-stream__controls">
@@ -172,12 +173,30 @@
           v-else-if="labelFilter"
           type="button"
           class="feed-stream__label-chip mono"
-          :title="'Filtering by ' + labelFilter.name + ' — click to clear'"
-          @click="setLabelFilter(null)"
+          :title="'Filtering by ' + labelFilter.name + ' — click to trash it'"
+          @click="dropUrlLabel"
         >
           <q-icon name="filter_alt" size="11px" />
           <span class="feed-stream__label-chip-name">{{ labelFilter.name }}</span>
           <q-icon name="close" size="11px" />
+        </button>
+      </template>
+
+      <!-- THE TRASH (2026-08-07, user ask) — labels the user discarded, in
+           a disabled aesthetic. Each is a STANDING VETO: a later verdict
+           never re-applies it (applySpec strips trashed ids first). Click
+           to re-apply; the broom empties the whole section. -->
+      <template #trash>
+        <button
+          v-for="t in trashedLabels" :key="'trash:' + t.id"
+          type="button"
+          class="feed-stream__label-chip feed-stream__label-chip--trashed mono"
+          :title="t.name + ' — trashed: new asks won\'t re-apply it. Click to re-apply now.'"
+          @click="restoreLabel(t.id)"
+        >
+          <q-icon name="label_off" size="11px" />
+          <span class="feed-stream__label-chip-name">{{ t.name }}</span>
+          <q-icon name="restart_alt" size="11px" />
         </button>
       </template>
     </FeedHeadBox>
@@ -716,6 +735,12 @@ export default defineComponent({
     const lensChatId = ref(null)
     const lensSpec = ref(null) // the validated spec, or null
     const laneLabels = ref([]) // [{ id, name, weight, subtree }]
+    // THE TRASH (2026-08-07, user ask) — labels the user discarded, held
+    // (not deleted) in the lane's 30% section: visible in a disabled
+    // aesthetic, re-appliable by click, and STANDING VETOES until then —
+    // applySpec strips them from every later verdict. Session-local like
+    // the rest of the lens; only the broom empties it.
+    const trashedLabels = ref([]) // [{ id, name, weight, subtree }]
     const sortOrder = ref(null) // null = newest (the server default)
     const thinking = ref(false)
     const live = ref(false)
@@ -783,8 +808,10 @@ export default defineComponent({
       live.value = true
       eventsStore.ack([ev.id])
       if (meta.mode === 'filtered') {
-        applySpec(meta.spec || {}, meta.lane_labels || [], meta.receipt)
-        if (meta.say) showLine('say', meta.say)
+        const stripped = applySpec(meta.spec || {}, meta.lane_labels || [], meta.receipt)
+        // The say line stays honest when the trash vetoed part of the
+        // verdict — the seat's words promised a label the lane won't wear.
+        if (meta.say) showLine('say', meta.say + (stripped ? ' · trash kept out' : ''))
       } else if (meta.mode === 'song') {
         showLine('song', '♪ ' + String(meta.verse || '').replace(/\n/g, ' · '), 9000)
       } else {
@@ -792,15 +819,38 @@ export default defineComponent({
       }
     })
 
+    // Returns whether the TRASH vetoed anything — the caller folds that
+    // into the say line, so the seat's words and the lane never disagree
+    // silently.
     const applySpec = (spec, lane, receipt) => {
+      // THE TRASH IS A STANDING VETO (2026-08-07, user ask): a label the
+      // user discarded is stripped from every LATER verdict before it
+      // applies — restored only by hand (its chip) or by the broom. The
+      // strip runs FIRST so every branch below (reset, ?label= handover,
+      // the lens itself) sees the vetoed spec.
+      let stripped = false
+      if (trashedLabels.value.length && Array.isArray(spec.labels) && spec.labels.length) {
+        const veto = new Set(trashedLabels.value.map((t) => t.id))
+        const kept = spec.labels.filter((l) => !veto.has(l.id))
+        if (kept.length !== spec.labels.length) {
+          stripped = true
+          if (kept.length) spec.labels = kept
+          else {
+            delete spec.labels
+            if (spec.order === 'heat') spec.order = 'newest'
+          }
+          lane = (lane || []).filter((id) => !veto.has(id))
+        }
+      }
       const clauseKeys = Object.keys(spec || {}).filter((k) => k !== 'v')
       if (!clauseKeys.length) {
         // `{}` = reset — "show everything" clears EVERY lens, the old
-        // single-label one included.
+        // single-label one included. The trash SURVIVES a spoken reset:
+        // only its own broom empties it.
         clearLens({ reload: false })
         if (labelFilter.value) { labelFilter.value = null; syncLabelQuery() }
         load()
-        return
+        return stripped
       }
       // `?label=` interop: a lens that is EXACTLY one unweighted subtree
       // label is the old lens — hand it over, so the URL stays shareable.
@@ -811,7 +861,7 @@ export default defineComponent({
         labelFilter.value = { id: only[0].id, name: digestName(only[0].id) }
         syncLabelQuery()
         load()
-        return
+        return stripped
       }
       if (labelFilter.value) { labelFilter.value = null; syncLabelQuery() }
       lensSpec.value = spec
@@ -821,6 +871,7 @@ export default defineComponent({
         id: l.id, name: digestName(l.id), weight: l.weight, subtree: l.subtree
       }))
       load()
+      return stripped
     }
 
     const clearLens = ({ reload = true } = {}) => {
@@ -862,9 +913,61 @@ export default defineComponent({
     }
 
     const dropClause = (key) => { delete lensSpec.value[key]; afterMutation() }
+    // Removing an active label DOESN'T delete it (user ask): it moves to
+    // the trash, where it stands vetoed until restored or swept.
+    const _trash = (l) => {
+      if (!trashedLabels.value.some((t) => t.id === l.id)) {
+        trashedLabels.value.push({
+          id: l.id,
+          name: l.name || digestName(l.id),
+          weight: l.weight || 1,
+          subtree: !!l.subtree
+        })
+      }
+    }
     const dropLabel = (id) => {
-      lensSpec.value.labels = (lensSpec.value.labels || []).filter((l) => l.id !== id)
+      const l = (lensSpec.value.labels || []).find((x) => x.id === id)
+      if (l) _trash(l)
+      lensSpec.value.labels = (lensSpec.value.labels || []).filter((x) => x.id !== id)
       afterMutation()
+    }
+    // The `?label=` chip is an active label filter too — closing it takes
+    // the same door to the trash.
+    const dropUrlLabel = () => {
+      if (labelFilter.value) _trash({ id: labelFilter.value.id, name: labelFilter.value.name, weight: 1, subtree: true })
+      setLabelFilter(null)
+    }
+    // A trashed chip clicked = re-applied NOW (the veto lifts). With no
+    // live lens it starts one; a live `?label=` filter folds in as a spec
+    // label first, so both keep filtering side by side.
+    const restoreLabel = (id) => {
+      const i = trashedLabels.value.findIndex((t) => t.id === id)
+      if (i < 0) return
+      const [l] = trashedLabels.value.splice(i, 1)
+      if (!lensSpec.value) {
+        const base = []
+        if (labelFilter.value) {
+          base.push({ id: labelFilter.value.id, weight: 1, subtree: true })
+          labelFilter.value = null
+          syncLabelQuery()
+        }
+        lensSpec.value = { v: 1, labels: base }
+      }
+      lensSpec.value.labels = [...(lensSpec.value.labels || []), { id: l.id, weight: l.weight, subtree: l.subtree }]
+      afterMutation()
+    }
+    // THE BROOM — one press, both sections: active labels leave the live
+    // filter (reloading the feed), the trash empties (nothing suppressed
+    // afterward). Other clause chips (when/authors/kinds/…) are not its
+    // business.
+    const sweepLane = () => {
+      trashedLabels.value = []
+      if (lensSpec.value?.labels?.length) {
+        lensSpec.value.labels = []
+        afterMutation()
+      } else if (labelFilter.value) {
+        setLabelFilter(null)
+      }
     }
     const dropKind = (k) => {
       lensSpec.value.kinds = (lensSpec.value.kinds || []).filter((x) => x !== k)
@@ -1151,6 +1254,10 @@ export default defineComponent({
       sortOrder,
       setOrder,
       hasWeightedLabels,
+      trashedLabels,
+      restoreLabel,
+      dropUrlLabel,
+      sweepLane,
       // `absoluteTime` is no longer exposed — the head strip's time-ago chip
       // it fed is gone, and `momentTitle` calls it directly for the one
       // tooltip that still needs an absolute form.
@@ -1349,6 +1456,18 @@ export default defineComponent({
   background: transparent;
   color: var(--fhead-ink, var(--indigo-8, #303f9f));
   &:hover { background: var(--grey-3, #eeeeee); }
+}
+
+// A TRASHED label (2026-08-07, user ask) — the same chip in its disabled
+// aesthetic: hollow, dashed, faded. Still a button, because the trash is a
+// holding place, not a grave — clicking re-applies the label; hover
+// firms it up to say so.
+.feed-stream__label-chip--trashed {
+  background: transparent;
+  border-style: dashed;
+  color: var(--fhead-ink, var(--indigo-8, #303f9f));
+  opacity: 0.5;
+  &:hover { opacity: 0.9; background: var(--grey-3, #eeeeee); }
 }
 
 // The SORT BY menu — dense rows in the box's own ink; the current order
