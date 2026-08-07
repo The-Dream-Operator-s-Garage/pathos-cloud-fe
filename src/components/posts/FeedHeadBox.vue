@@ -21,7 +21,7 @@
     · ITS CORNERS FLARE INTO THE BARS. All four, through the concave fillets
       the parked-media tabs are cut with (`MediaTabsBar.vue`) — 9px radial
       gradients carrying the rim's own tone along the arc, so one continuous
-      `--indigo-4` line runs bar → flare → box edge → flare → bar and the plate
+      `--indigo-7` line runs bar → flare → box edge → flare → bar and the plate
       reads as a piece of the frieze pulled out of it rather than a rectangle
       dropped between the two bars.
 
@@ -66,7 +66,7 @@
          a post, and the box reads as a framed span rather than a slab wedged
          between two bars.
          They are the media viewer's THIN bar turned 90° (`slim`) and painted
-         `--indigo-9` plaque under a `--brown-1` motif, a MIRRORED PAIR like the
+         `--indigo-8` plaque under a `--brown-1` motif, a MIRRORED PAIR like the
          container's own: variant A on the left, B — the same waves flipped
          horizontally — on the right, so the two edges reflect each other
          across the box instead of repeating. Absolute, so they can span the
@@ -95,14 +95,18 @@
       </header>
 
       <div class="feed-head__body">
-        <!-- FIRST HALF — ONE LINE (user ask): the face, the name, the input
-             and its button, all in a row. The seat was a row of its own over
-             a second row holding the input; stacking them was the last thing
-             making this box two lines tall. -->
+        <!-- FIRST HALF — ONE LINE (user ask): the face, its org badge, the
+             input and its button, all in a row. The seat was a row of its own
+             over a second row holding the input; stacking them was the last
+             thing making this box two lines tall.
+             THE NAME IS GONE (later ask) and the face grew 20 → 24px to carry
+             the seat on its own; the badge stays, because it is the only
+             visible thing left saying WHICH org this seat belongs to, which
+             was the point of putting a seat here. Both wear the same
+             `seatTitle` tooltip, so the name is a hover away. -->
         <div class="feed-head__half feed-head__half--talk">
-          <EntityAvatar :entity="seatEntity" :size="20" :title="seatTitle" />
-          <span class="feed-head__seat-name" :title="seatTitle">{{ seat.name }}</span>
-          <OrgLogoChip v-if="seat.org" :org="seat.org" :size="14" :link="false" />
+          <EntityAvatar :entity="seatEntity" :size="24" :title="seatTitle" />
+          <OrgLogoChip v-if="seat.org" :org="seat.org" :size="15" :link="false" />
           <!-- The chat box: an input and its one button. The message log is
                GONE (user ask) — a summary of a conversation that does not
                exist yet was the one part of this box making a claim. Still
@@ -408,8 +412,20 @@ export default defineComponent({
 // — an arc drawn for a 1px line does not fit a 2px one.
 .feed-head {
   --fhead-face: var(--grey-4, #e0e0e0);
-  --fhead-rim: var(--indigo-4, #7986cb);
+  --fhead-rim: var(--indigo-7, #3949ab);
+  // TOP THINNER THAN BOTTOM (user ask). Not by taking the top back down — the
+  // 2px is the thickening asked for two passes ago — but by giving the BOTTOM
+  // the extra pixel, which is where the weight belongs anyway: the box's cast
+  // falls downward and the bottom edge is the one the stream runs up against,
+  // so a heavier base reads as the box standing ON the plate. (The post cards
+  // wore exactly this asymmetry — a hairline box on a 2px foot — until the bed
+  // went lighter than the card and a weighted base had nothing to sit on.)
+  //
+  // Both are DIALS because the corner sweeps are derived from them: each
+  // fillet's height, offset and gradient centre are functions of its own
+  // edge's width, so the top pair and the bottom pair no longer share numbers.
   --fhead-rim-w: 2px;
+  --fhead-rim-w-b: 3px;
   // EVERYTHING INSIDE THE BOX IS ONE TONE (2026-08-06, user ask: "the text and
   // inner borders of the whole sliding bar"): `--indigo-9`, the same step its
   // two inner frieze posts are plated in, for every mark and every rule the
@@ -417,11 +433,18 @@ export default defineComponent({
   // name, the field and its button, the row of lenses handed in through the
   // slot, the count, and the three rules that divide the bands.
   //
-  // What it deliberately does NOT touch is the box's OUTER edge, which stays
-  // `--fhead-rim` at `--indigo-4`: that line and its four corner sweeps are
-  // what joins the box to the container's frieze bars, and they answer to the
-  // surface outside the box, not to its contents. So the box reads as one
-  // ink drawn inside one lighter edge.
+  // What it does NOT touch is the box's OUTER edge — `--fhead-rim` — which
+  // walked `--indigo-4` (the frieze motif's lit wave, from the day the box was
+  // built) → -8 → **-7** across two later asks. That line and its four corner
+  // sweeps join the box to the container's frieze bars, so they answer to the
+  // surface outside the box rather than to its contents.
+  //
+  // The box therefore reads in THREE CONSECUTIVE STEPS, one job each:
+  //   -7  the frame (outer border + the sweeps that continue it)
+  //   -8  the two inner frieze posts it stands between
+  //   -9  everything written in the field they enclose
+  // Lightest at the outside, deepest at the marks — so the eye lands on what
+  // the box SAYS, and the structure holding it stays structure.
   --fhead-ink: var(--indigo-9, #283593);
   --fhead-rule: var(--indigo-9, #283593);
   // The fillets' sweep radius (`FLARE` in the script) and the width a slim
@@ -439,7 +462,7 @@ export default defineComponent({
   z-index: 2;
   background: var(--fhead-face);
   border-top: var(--fhead-rim-w) solid var(--fhead-rim);
-  border-bottom: var(--fhead-rim-w) solid var(--fhead-rim);
+  border-bottom: var(--fhead-rim-w-b) solid var(--fhead-rim);
   // THE CAST (user ask: "a little discrete shadow over the content"). Mostly
   // DOWN, the direction this platform's light comes from, with a hint upward
   // because the stream passes on both sides of a box that can be parked in the
@@ -528,20 +551,28 @@ export default defineComponent({
     var(--fhead-rim) 11.8px, var(--fhead-face) 12.4px);
 }
 
+// The BOTTOM pair carries a 3px edge, so every number in the derivation moves
+// with it: height `R + T` = 14, offset `-(R + T)`, centre at `height − T/2`
+// = 12.5, ring `R ± T/2` = 9.5 → 12.5. Same 0.6px ramps. This is exactly why
+// the derivation is written out above rather than the numbers being copied —
+// one edge changing thickness re-solves its own two corners and leaves the
+// other two alone.
 .feed-head__flare--bl {
   left: 0;
-  bottom: -13px;
-  background: radial-gradient(circle at 11px 12px,
-    transparent 9.6px, var(--fhead-rim) 10.2px,
-    var(--fhead-rim) 11.8px, var(--fhead-face) 12.4px);
+  bottom: -14px;
+  height: 14px;
+  background: radial-gradient(circle at 11px 12.5px,
+    transparent 9.2px, var(--fhead-rim) 9.8px,
+    var(--fhead-rim) 12.2px, var(--fhead-face) 12.8px);
 }
 
 .feed-head__flare--br {
   right: 0;
-  bottom: -13px;
-  background: radial-gradient(circle at 0 12px,
-    transparent 9.6px, var(--fhead-rim) 10.2px,
-    var(--fhead-rim) 11.8px, var(--fhead-face) 12.4px);
+  bottom: -14px;
+  height: 14px;
+  background: radial-gradient(circle at 0 12.5px,
+    transparent 9.2px, var(--fhead-rim) 9.8px,
+    var(--fhead-rim) 12.2px, var(--fhead-face) 12.8px);
 }
 
 // ── THE INNER FRIEZE BARS ───────────────────────────────────────────
@@ -559,12 +590,12 @@ export default defineComponent({
 // same day, mirroring `FriezeBar`'s): a DARK plaque with a LIGHT motif above
 // it, the inverse of every other frieze on the platform, which is what lets
 // these read at all inside a light box standing on a light plate. The pair is
-// `--indigo-9` under `--brown-1` — the FEED colorway's deep end carrying the
-// CROWN STRIP's own plaque tone as its wave, so these edges are the platform's
-// two frieze families stacked rather than a third palette invented for them.
-// (It walked there in one sitting: a teal pair, then -10 under brown-4, then
-// this. -9 rather than -10 leaves the family a step under the plaque for the
-// marks written on it — which the box then took for ALL of them.) The spread
+// `--indigo-8` under `--brown-1` — the FEED colorway's ink carrying the CROWN
+// STRIP's own plaque tone as its wave, so these edges are the platform's two
+// frieze families stacked rather than a third palette invented for them. (It
+// walked there in one sitting: a teal pair, then -10/brown-4, then -9, then
+// here — one step inside the frame at -7 and one step outside the marks at
+// -9, which is the arrangement the box settled into.) The spread
 // is enormous by frieze standards, Material 800 under a 50, and it has to
 // be: the bar is ~9px wide with no lip and no rolled edge, so the motif is
 // the only thing separating plate from wave. The lip is dialled to the plaque
@@ -574,10 +605,10 @@ export default defineComponent({
   position: absolute;
   top: 0;
   bottom: 0;
-  --frieze-bar-v-base: var(--indigo-9, #283593);
+  --frieze-bar-v-base: var(--indigo-8, #303f9f);
   --frieze-bar-v-wave-one: var(--brown-1, #efebe9);
   --frieze-bar-v-wave-two: var(--brown-1, #efebe9);
-  --frieze-bar-v-lip: var(--indigo-9, #283593);
+  --frieze-bar-v-lip: var(--indigo-8, #303f9f);
 }
 
 .feed-head__post--l { left: var(--fhead-flare); }
@@ -672,24 +703,12 @@ export default defineComponent({
 }
 
 // ── THE SEAT ────────────────────────────────────────────────────────
-// The feed card's identity block at chip scale, laid INTO the line rather
-// than above it: face, name, org badge, then the input takes the rest. The
-// role sub-line went with the compression (user ask: "the profile picture box
-// with the name") — the badge's tooltip still carries it.
-//
-// The name is the one item allowed to give way: `1 1 auto` with a min-width
-// of 0 and an ellipsis, so a narrow container spends its pixels on the input
-// (which has a job) before the name (which the face already states).
-.feed-head__seat-name {
-  flex: 1 1 auto;
-  min-width: 0;
-  font-size: 0.74em;
-  font-weight: 700;
-  color: var(--fhead-ink);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
+// Down to a FACE AND A BADGE (user ask), both fixed-width, both carrying the
+// same tooltip. `.feed-head__seat-name` is gone with the last two passes'
+// worth of text — the role sub-line went to the compression, the name to
+// this — which is the whole reason the input can now be the line: everything
+// left of it is a known width, so `1 1 auto` on the field means it takes all
+// the space the half has and no arithmetic states how much that is.
 
 // ── THE CHAT BOX ────────────────────────────────────────────────────
 // An input and its one button, standing in the seat's own line rather than in

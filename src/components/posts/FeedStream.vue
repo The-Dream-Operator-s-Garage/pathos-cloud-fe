@@ -833,7 +833,6 @@ export default defineComponent({
 .feed-stream__controls {
   display: flex;
   align-items: center;
-  justify-content: flex-end;
   gap: 5px;
   min-width: 0;
   width: 100%;
@@ -841,6 +840,17 @@ export default defineComponent({
   overflow-y: hidden;
   scrollbar-width: none;
   &::-webkit-scrollbar { display: none; }
+
+  // CENTRED (user ask) — by AUTO MARGINS on the two ends, not by
+  // `justify-content: center`. On a scroll container the justify properties
+  // put overflowing content past BOTH edges, and the start of it can never be
+  // scrolled back to (`scrollLeft` cannot go negative) — measured here at
+  // 390px, where the count sat 15px outside the box and out of reach. Auto
+  // margins centre exactly the same way while there is room and collapse to 0
+  // the moment the row is full, so it degrades into a plain scroller. Same
+  // call `MediaTabsBar` makes for its right-pinned tab row; see gotchas.
+  > :first-child { margin-left: auto; }
+  > :last-child { margin-right: auto; }
 }
 
 // THE TRUST LENS (Thread J) — a small segmented control in the head band,
