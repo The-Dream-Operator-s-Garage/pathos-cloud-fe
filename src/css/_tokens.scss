@@ -242,6 +242,28 @@ $teal-2: #b2dfdb;
 $teal-3: #80cbc4;
 $teal-10: #004d40;
 
+// ── THE TEAL FAMILY'S DEEP END, ADDED 2026-08-06 (user ask) for the two INNER
+// VERTICAL FRIEZE BARS inside the feed's sliding head box: `$teal-9` the
+// plaque, `$teal-6` the motif carved on it. The pair is the first thing on this
+// platform to run the frieze recipe DARK — every other bar is a light plate
+// with waves a step or two above it, and this one is a dark plate with its pure
+// hue on top. That inversion is the point: the bars stand INSIDE a `--grey-4`
+// box that is itself inside a `--grey-4` container, where one more light plate
+// would have disappeared, and the frieze family's carve (a near-black shadow up
+// one side, white down the other) reads on a dark plaque exactly as well as on
+// a light one — it is a groove either way.
+//
+// The SPREAD is three levels where the outer bars run two (`--indigo-4`/`-6`),
+// and it has to be: the motif is the only thing separating plate from wave
+// here, there being no lip and no rolled edge on a slim inner bar, and at
+// 9.5px wide a two-level spread on a dark plate reads as texture. -6 is the
+// family's Material 500 — its pure hue, the same index `--indigo-6` holds as
+// the outer bars' DARK wave, which is the tie worth keeping: one family's lit
+// wave is another's shadow, and what stays constant across colorways is the
+// MAPPING (plaque / wave / lip), never the numbers ──
+$teal-6: #009688;
+$teal-9: #00695c;
+
 // The CHIP'S OWN INK, and the one place on the panel that is not written in the
 // colorway (2026-07-26). The chip is a NEUTRAL object — a `$grey-3` pill drawn
 // in `$grey-5` — so it is lettered in a neutral too: ONE tone for all four
@@ -547,6 +569,8 @@ $warning:   #F2C037;
   --teal-1: #{$teal-1};  // Quasar teal-1 — the node panel's coat, head to foot (one uniform tone; the head/body/foot tone-split every other Mini uses is off here). On the post information flyout, where that coat is dialled to the host's --grey-3, this tone instead draws the TWO READING PANES inside it (2026-07-27): the raw title's box and the source pane, both --grey-1 near-white before, and both neutral for two passes in between (--grey-3 flush, then --grey-4 inset) before coming back here. The teal had been pushed out to a single ring by then, and the panes are where a reader's eye actually is, so the arrangement became the plainer one — a NEUTRAL panel with the document tinted inside it rather than a tinted panel with a near-white document set in. It also gives the pane its edge back: --grey-1 on this coat measured 1.04:1 and was drawn by its rim alone, where -1 sits at 1.08:1 AND carries a hue the coat has none of. (The source pane spent one pass flush with the coat, at 1.00:1 — legible, since the rim is tinted where both surfaces are neutral, but it flattens panel and document into one plane — and one pass a step UNDER it at --grey-4, correct as depth and wrong as material: a document drawn in the box's own line-and-floor tone belongs to the box rather than to the node.) It also RANG that panel for part of the same day, as a 1px `outline` — the coat the panel gave up when it took the box's tones, restated once on the outermost line, separating by HUE where no neutral could (1.00:1 against the --grey-3 well, hue doing all of it). The ring went out with the panes coming in: the colorway is INSIDE the panel now, and the extra edge is a 2px --teal-13 base on its bottom border
   --teal-2: #{$teal-2};  // Quasar teal-2 — the LINE SYSTEM of the node panel quoted into the post information flyout (NodeMini's `--node-mini-rule` dial): its outer border AND every inner hairline in one value — head/body/foot dividers, header zone splits, foot section rules, both pane rims. A step lighter than the -3 those lines take by default, since -3 is drawn for a -1 coat and this panel's coat is the host's --grey-2. It holds the job for the SECOND time (2026-07-27, and the walk in between is the record: -3 → --grey-5 → here → --grey-3 → --grey-5 at 2px → --grey-4 → here again). What it does is state the divisions QUIETLY and by HUE, and that is inaudible on a panel where teal is only the ink and one ring — which is why it went out — and exactly right once the two reading panes are --teal-1 too: the panel is the node's material again, so its lines belong to the node
   --teal-3: #{$teal-3};  // Quasar teal-3 — EVERY line on the node panel: its outer border (1px, with a 2px bottom, the feed card's uneven-border device at Mini scale), the head/body/foot dividers, the vertical hairlines that split its header into icon | title | open and its foot into votes | chip | tallies, NOT the foot's chip, whose three edges are all its own: a --grey-5 hairline and seam and a --teal-12 base
+  --teal-6: #{$teal-6};  // Quasar teal-6 (Material 500, the family's pure hue) — the MOTIF of the two inner vertical frieze bars in the feed's sliding head box (2026-08-06, user ask), carved on a --teal-9 plaque. Slim vertical bars draw ONE wave layer (the same call `FriezeBar slim` makes: two interlocking meanders in 9.5px read as texture, not as a pattern), so this is the whole frieze there — wave one is dialled to it as well, for the day one of these bars is asked to run full width
+  --teal-9: #{$teal-9};  // Quasar teal-9 — the PLAQUE of those same two bars: the first DARK frieze plate on the platform, and the reason it works is that a carve is a groove on any tone. It doubles as their LIP dial, which is how the lip draws nothing there (the same trick the outer bars play with --grey-4)
   --teal-10: #{$teal-10}; // Quasar teal-10 — NodeMini's colorway INK: the header zones' own ink (mostly the open glyph since 2026-07-27 — the round pill and address chip are neutral objects) and the source pane's text. The foot it also lettered (pills, tallies, counts) went with the foot that day; the flat caption thumbs that replaced the pills are --grey-8. On the post information flyout the header goes --brown-10 through `--node-mini-head-ink` and the source pane's text with it — that box letters the node in its OWN ink and gives it the colorway as MATERIAL instead (--teal-1 panes, --teal-2 lines)
   // The NODE CHIP, in the middle of the foot — a light PILL (fully round side
   // edges) lying on the foot's own coat, ringed in the panel's line tone.

@@ -80,9 +80,9 @@
 
        Flows as a normal block like FriezeBar: no fixed positioning, no
        z-index, full height of its parent. Decorative only. -->
-  <div class="frieze-bar-v" :class="'frieze-bar-v--lip-' + lip" aria-hidden="true">
+  <div class="frieze-bar-v" :class="['frieze-bar-v--lip-' + lip, { 'frieze-bar-v--slim': slim }]" aria-hidden="true">
     <div class="frieze-bar-v__inner">
-      <div class="frieze-bar-v__layer frieze-bar-v__layer--one" />
+      <div v-if="!slim" class="frieze-bar-v__layer frieze-bar-v__layer--one" />
       <div class="frieze-bar-v__layer frieze-bar-v__layer--two" />
     </div>
   </div>
@@ -103,7 +103,11 @@ export default defineComponent({
       type: String,
       default: 'left',
       validator: v => ['left', 'right'].includes(v)
-    }
+    },
+    // Half thickness, one wave, no rolled edge — the vertical reading of
+    // FriezeBar's `slim` (the media viewer's divider band). See the
+    // stylesheet for what the four changes buy.
+    slim: { type: Boolean, default: false }
   }
 })
 </script>
@@ -112,8 +116,8 @@ export default defineComponent({
 .frieze-bar-v {
   // Thickness is the header's height, unchanged — the same token, now
   // measured across instead of down.
-  width: var(--frieze-h);
-  flex: 0 0 var(--frieze-h);
+  width: var(--frieze-bar-v-w, var(--frieze-h));
+  flex: 0 0 var(--frieze-bar-v-w, var(--frieze-h));
   height: 100%;
   padding: 0 1px; // the header's `1px 0`, turned
   pointer-events: none;
@@ -129,7 +133,7 @@ export default defineComponent({
   // to the platform's window material rather than to the container it edges.
   // The FEED BOX joined it here the same day (second ask), so plate and field
   // are one material again — see the lip note in the template.
-  background: var(--grey-4);
+  background: var(--frieze-bar-v-base, var(--grey-4));
 }
 
 // The header's `border-bottom` under a 90° CW turn. Both variants exist so a
@@ -176,8 +180,8 @@ export default defineComponent({
 // the INNER one is this line in the colorway (it faces the content).
 // (It still draws the feed container's side borders — that job has never
 // changed, only its tone.)
-.frieze-bar-v--lip-left { border-left: 1px solid var(--grey-4); }
-.frieze-bar-v--lip-right { border-right: 1px solid var(--grey-4); }
+.frieze-bar-v--lip-left { border-left: 1px solid var(--frieze-bar-v-lip, var(--grey-4)); }
+.frieze-bar-v--lip-right { border-right: 1px solid var(--frieze-bar-v-lip, var(--grey-4)); }
 
 // ── THE OUTER EDGE — A ROLLED PLAQUE, SEEN STRAIGHT FROM ABOVE ──
 // (2026-08-05, user ask: "playing with the color, tone and gradient to
@@ -336,14 +340,57 @@ export default defineComponent({
 // three of those four have now left the browns' indices anyway (two neutrals
 // and this pair). Keep the MAPPING in step, not the numbers.
 .frieze-bar-v__layer--one {
-  background-color: var(--indigo-4); // Quasar indigo-4 — the LIGHT wave (see the spread note)
+  background-color: var(--frieze-bar-v-wave-one, var(--indigo-4)); // Quasar indigo-4 — the LIGHT wave (see the spread note)
   mask-image: url('../../assets/frieze/mercury-wave-a-rot90.svg');
   -webkit-mask-image: url('../../assets/frieze/mercury-wave-a-rot90.svg');
 }
 
 .frieze-bar-v__layer--two {
-  background-color: var(--indigo-6); // Quasar indigo-6 — the DARK wave, the family's pure hue
+  background-color: var(--frieze-bar-v-wave-two, var(--indigo-6)); // Quasar indigo-6 — the DARK wave, the family's pure hue
   mask-image: url('../../assets/frieze/mercury-wave-b-rot90.svg');
   -webkit-mask-image: url('../../assets/frieze/mercury-wave-b-rot90.svg');
+}
+
+// ── SLIM (2026-08-06) — the half-thickness variant, the vertical reading of
+// `FriezeBar`'s own `slim` (which is what the floating media viewer's divider
+// band runs). Four things change together, and three of them are that file's
+// reasoning turned 90°:
+//
+//  1. THICKNESS halves — `--frieze-h / 2`, published through the same
+//     `--frieze-bar-v-w` dial the full bar resolves, so nothing else has to
+//     know which variant it is holding.
+//  2. ONE WAVE. Layer one is `v-if`'d out: `b` alone still tiles as a frieze
+//     (it carries the full-width centre rule, the one mark that survives at
+//     any size) and two interlocking meanders in ~9.5px read as a texture
+//     rather than a pattern. A host that dials only `--frieze-bar-v-wave-one`
+//     is dressing a layer that is not drawn.
+//  3. MASK FIT. `117% auto` — the rotated form of the flat bar's `auto 117%`.
+//     Both masks are a 13-row grid whose first and last rows are EMPTY; at
+//     full thickness that margin is breathing room, at half it is a sixth of
+//     the band spent on nothing, so the motif is scaled PAST the box and the
+//     blank rows fall outside it. Nothing is clipped.
+//  4. CARVE. The drop-shadow offsets halve with the box (1.05/0.5 → 0.5/0.3),
+//     keeping the rotated signs: dark up-RIGHT, light down-LEFT. Left alone, a
+//     groove wider than the stroke it carves turns the band into a smear.
+//
+// And one thing that is NOT in the flat bar's list: THE ROLLED OUTER EDGE IS
+// DROPPED. That profile is 8px of a 19px bar, tuned for an edge facing the
+// page canvas; at half thickness it would eat the motif, and a slim bar's job
+// so far is to stand INSIDE a box where neither of its long edges faces the
+// page at all. Same reason the flat bar has never had one.
+.frieze-bar-v--slim {
+  --frieze-bar-v-w: calc(var(--frieze-h) / 2);
+
+  &::after { content: none; }
+
+  .frieze-bar-v__layer {
+    mask-size: 117% auto;
+    -webkit-mask-size: 117% auto;
+    filter:
+      drop-shadow(0.5px -0.5px 0 #0b0c10)
+      drop-shadow(0.3px -0.3px 0 #0b0c10)
+      drop-shadow(-0.5px 0.5px 0 #ffffff)
+      drop-shadow(-0.3px 0.3px 0 #ffffff);
+  }
 }
 </style>

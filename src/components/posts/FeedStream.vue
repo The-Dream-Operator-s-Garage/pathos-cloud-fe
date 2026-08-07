@@ -61,7 +61,6 @@
       @update:height="(h) => (headH = h)"
     >
       <template #controls>
-        <div class="feed-stream__sub text-dim">Every POST instance, newest first.</div>
         <div class="feed-stream__controls">
           <!-- THE TRUST LENS (Thread J, 2026-07-29) — filter the stream by
                invite-chain distance: "all" is the open feed, "≤N" keeps only
@@ -78,27 +77,35 @@
               @click="setLens(opt.v)"
             >{{ opt.label }}</button>
           </div>
+          <!-- SORT BY (2026-08-06, user ask) — the third control in the row,
+               beside the two lenses, and the only one that is a PLACEHOLDER:
+               ordering the feed is a server concern (`GET /feed` answers
+               newest-first and pages against that order, so a client-side
+               re-sort would only shuffle the thirty rows already in hand and
+               lie about the rest), and no ordering parameter has been asked
+               for yet. Drawn in the lens box's own language and `disabled`,
+               the same way the chat box states itself. -->
+          <button
+            type="button"
+            class="feed-stream__lens-btn feed-stream__label-open feed-stream__sort"
+            disabled
+            title="Sort by — not wired up yet"
+            aria-label="Sort by (not wired up yet)"
+          >
+            <q-icon name="sort" size="13px" />
+          </button>
           <!-- THE LABEL LENS (open-source dev flow, 2026-08-01) — filter the
                stream by one label AND its whole subtree (rides
                `GET /feed?label=`, resolved server-side like the trust lens so
                the count stays honest). Unlike the trust lens it IS in the URL
                (`/#/feed?label=<id>`): "everything labeled DEVELOPMENT" is a
-               place you send someone, where a trust radius is a way you look. -->
+               place you send someone, where a trust radius is a way you look.
+               The FUNNEL stays here (picking is a control); the active
+               filter's chip moved to the head box's label lane below. -->
           <button
-            v-if="labelFilter"
-            type="button"
-            class="feed-stream__label-chip mono"
-            :title="'Filtering by ' + labelFilter.name + ' — click to clear'"
-            @click="setLabelFilter(null)"
-          >
-            <q-icon name="filter_alt" size="12px" />
-            <span class="feed-stream__label-chip-name">{{ labelFilter.name }}</span>
-            <q-icon name="close" size="12px" />
-          </button>
-          <button
-            v-else
             type="button"
             class="feed-stream__lens-btn feed-stream__label-open"
+            :class="{ 'is-on': !!labelFilter }"
             title="Filter the feed by a label"
           >
             <q-icon name="filter_alt" size="13px" />
@@ -108,8 +115,28 @@
               </div>
             </q-menu>
           </button>
-          <q-badge v-if="total > 0" color="primary" outline>{{ total }}</q-badge>
+          <!-- The count, in the colorway (user ask: "paint the post counter
+               indigo"). It was `<q-badge color="primary" outline>` — the last
+               teal thing left in this box, from before the surface had one. -->
+          <span v-if="total > 0" class="feed-stream__count">{{ total }}</span>
         </div>
+      </template>
+
+      <!-- The lane's contents: the label(s) the stream is filtered on. One
+           today — `?label=` takes a single id — but the lane scrolls, so the
+           markup is a list from the start. -->
+      <template #labels>
+        <button
+          v-if="labelFilter"
+          type="button"
+          class="feed-stream__label-chip mono"
+          :title="'Filtering by ' + labelFilter.name + ' — click to clear'"
+          @click="setLabelFilter(null)"
+        >
+          <q-icon name="filter_alt" size="11px" />
+          <span class="feed-stream__label-chip-name">{{ labelFilter.name }}</span>
+          <q-icon name="close" size="11px" />
+        </button>
       </template>
     </FeedHeadBox>
 
@@ -788,20 +815,32 @@ export default defineComponent({
 // still styled here, since they are the stream's controls and not the box's
 // chrome. They stack now instead of running in one row — the slot is half a
 // box wide, not a whole band.
-// The sub-line — the band's caption, unchanged in ink (the generic dim one:
-// giving it the heading's colour would flatten the pair into one block) and
-// unchanged in size, only no longer sitting beside a heading. `.feed-stream__title`,
-// the two-line stack it shared with that heading, went with the heading.
-.feed-stream__sub {
-  min-width: 0;
-  font-size: 0.74em;
-}
-
+// `.feed-stream__sub` — "Every POST instance, newest first." — is GONE
+// (2026-08-06, user ask), and with it the last of the head's prose. It was
+// the band's caption, and it survived the heading by one pass; what retired
+// it is the one-line rule: the box is three thin bands now, and a caption is
+// the kind of thing that only fits when there is a second row to put it on.
+// (It also had a shelf life. With a SORT BY control on the same line,
+// "newest first" is a claim the box would have to keep in step.)
+//
+// The controls no longer wrap either: they are one row inside half a box, so
+// a wrap here would silently make the whole head taller. What they do instead
+// when the half runs out is SCROLL — the lane's answer and the media tabs',
+// hidden scrollbar included. Every child is `flex: 0 0 auto`, so the row
+// overflows rather than crushing a lens button into illegibility, and the
+// box's height is a constant whatever the window does to its width. (They
+// fit at 390px today: 138px of controls in a 150px half.)
 .feed-stream__controls {
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
-  gap: 6px;
+  justify-content: flex-end;
+  gap: 5px;
+  min-width: 0;
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  &::-webkit-scrollbar { display: none; }
 }
 
 // THE TRUST LENS (Thread J) — a small segmented control in the head band,
@@ -837,10 +876,13 @@ export default defineComponent({
   }
 }
 
-// THE LABEL LENS (2026-08-01) — one control, two faces. The funnel
-// button borrows the lens box's language (same rim, radius, floor); the
-// ACTIVE face is a chip drawn like a lens button locked `is-on`: the
-// dark indigo-8 plaque says "the stream you are reading is filtered".
+// THE LABEL LENS (2026-08-01) — the funnel borrows the lens box's language
+// (same rim, radius, floor). It used to have TWO faces, the second being the
+// active filter drawn as a dark chip in its place; since 2026-08-06 the chip
+// lives in the head box's label lane and the funnel stays put, taking the
+// lens buttons' own `is-on` plaque so the control still says the stream is
+// filtered without having to also say what by. SORT BY shares the rule and
+// adds only the disabled state — it is a placeholder (see the template).
 .feed-stream__label-open {
   border: 1px solid var(--indigo-3, #9fa8da);
   border-radius: var(--radius-sm, 7px);
@@ -849,30 +891,59 @@ export default defineComponent({
   padding: 3px 7px;
   display: flex;
   align-items: center;
+  &.is-on {
+    background: var(--indigo-8, #303f9f);
+    border-color: var(--indigo-8, #303f9f);
+    color: #fff;
+  }
 }
 
+.feed-stream__sort:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+// THE ACTIVE FILTER, in the lane (2026-08-06). Same dark `--indigo-8` plaque
+// it always was — "the stream you are reading is filtered" — one step smaller
+// to sit in a 19px strip, and it no longer ELLIPSES: the lane scrolls, so a
+// long label name is reachable rather than trimmed. `flex: 0 0 auto` is what
+// lets it overflow the lane instead of being squeezed into it.
 .feed-stream__label-chip {
   display: flex;
   align-items: center;
   gap: 4px;
   flex: 0 0 auto;
-  max-width: 22ch;
   border: 1px solid var(--indigo-8, #303f9f);
   border-radius: var(--radius-sm, 7px);
   background: var(--indigo-8, #303f9f);
   color: #fff;
-  font-size: 0.66em;
+  font-size: 0.6em;
   font-weight: 700;
   letter-spacing: 0.03em;
-  padding: 3px 8px;
+  padding: 1px 7px;
   cursor: pointer;
   &:hover { background: var(--indigo-7, #3949ab); }
 }
 
 .feed-stream__label-chip-name {
-  overflow: hidden;
-  text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+// THE COUNT (2026-08-06, user ask: "paint the post counter indigo"). It was
+// `<q-badge color="primary" outline>` — the platform teal, and the last thing
+// in this box still wearing it after the surface took a colorway of its own.
+// Drawn as the lens buttons at REST rather than as one locked on: the total
+// is a fact the box states, not a filter you can be inside of.
+.feed-stream__count {
+  flex: 0 0 auto;
+  border: 1px solid var(--indigo-4, #7986cb);
+  border-radius: var(--radius-sm, 7px);
+  background: var(--grey-1, #fafafa);
+  color: var(--indigo-8, #303f9f);
+  font-size: 0.64em;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  padding: 2px 7px;
 }
 
 // The picker floats in a q-menu — a small light plaque, wide enough for

@@ -50,64 +50,90 @@
     <span class="feed-head__flare feed-head__flare--bl" aria-hidden="true" />
     <span class="feed-head__flare feed-head__flare--br" aria-hidden="true" />
 
-    <!-- THE INNER HEADER — the handle. `tabindex` + the arrow keys are not
-         decoration: a box that can only be placed by dragging it cannot be
-         placed without a pointer, and the whole affordance would be missing
-         on a keyboard. -->
-    <header
-      class="feed-head__bar"
-      tabindex="0"
-      role="toolbar"
-      aria-label="Feed head — drag, or use the arrow keys, to move it"
-      title="Drag me up or down"
-      @pointerdown="onBarPointerDown"
-      @keydown="onBarKeydown"
-    >
-      <q-icon name="drag_indicator" size="14px" class="feed-head__grip" />
-      <span class="feed-head__title nasalization">Public Feed</span>
-    </header>
+    <!-- THE INNER FRIEZE BARS (user ask) — the box's own vertical edges,
+         standing where each corner sweep FLATTENS OUT: their outer face is at
+         `FLARE` from the box's side, which is exactly the x where the fillet's
+         tangent turns horizontal and the top and bottom borders become
+         straight. So the sweep comes off the container's big bar and lands on
+         a post, and the box reads as a framed span rather than a slab wedged
+         between two bars.
+         They are the media viewer's THIN bar turned 90° (`slim`) and painted
+         `--teal-9` plaque under a `--teal-6` motif, a MIRRORED PAIR like the
+         container's own: variant A on the left, B — the same waves flipped
+         horizontally — on the right, so the two edges reflect each other
+         across the box instead of repeating. Absolute, so they can span the
+         whole inner height (handle, body and lane alike) while the three rows
+         inset past them; `pointer-events: none` rides along from the
+         component, so neither one takes a press off the drag bar. -->
+    <FriezeBarVertical slim lip="right" class="feed-head__post feed-head__post--l" />
+    <FriezeBarVerticalB slim lip="left" class="feed-head__post feed-head__post--r" />
 
-    <div class="feed-head__body">
-      <!-- FIRST HALF — the seat and the chat box. -->
-      <div class="feed-head__half feed-head__half--talk">
-        <div class="feed-head__seat" :title="seatTitle">
-          <EntityAvatar :entity="seatEntity" :size="24" />
-          <div class="feed-head__seat-lines">
-            <span class="feed-head__seat-name">{{ seat.name }}</span>
-            <span class="feed-head__seat-sub">{{ seat.sub }}</span>
-          </div>
-          <OrgLogoChip v-if="seat.org" :org="seat.org" :size="16" :link="false" />
+    <div class="feed-head__inner">
+      <!-- THE INNER HEADER — the handle. `tabindex` + the arrow keys are not
+           decoration: a box that can only be placed by dragging it cannot be
+           placed without a pointer, and the whole affordance would be missing
+           on a keyboard. -->
+      <header
+        class="feed-head__bar"
+        tabindex="0"
+        role="toolbar"
+        aria-label="Feed head — drag, or use the arrow keys, to move it"
+        title="Drag me up or down"
+        @pointerdown="onBarPointerDown"
+        @keydown="onBarKeydown"
+      >
+        <q-icon name="drag_indicator" size="14px" class="feed-head__grip" />
+        <span class="feed-head__title nasalization">Public Feed</span>
+      </header>
+
+      <div class="feed-head__body">
+        <!-- FIRST HALF — ONE LINE (user ask): the face, the name, the input
+             and its button, all in a row. The seat was a row of its own over
+             a second row holding the input; stacking them was the last thing
+             making this box two lines tall. -->
+        <div class="feed-head__half feed-head__half--talk">
+          <EntityAvatar :entity="seatEntity" :size="20" :title="seatTitle" />
+          <span class="feed-head__seat-name" :title="seatTitle">{{ seat.name }}</span>
+          <OrgLogoChip v-if="seat.org" :org="seat.org" :size="14" :link="false" />
+          <!-- The chat box: an input and its one button. The message log is
+               GONE (user ask) — a summary of a conversation that does not
+               exist yet was the one part of this box making a claim. Still
+               inert, still `disabled`, and the button wears a FILTER glyph
+               rather than a send arrow (user ask), which is what the field
+               will do before it ever says anything. -->
+          <input
+            class="feed-head__chat-input"
+            type="text"
+            disabled
+            placeholder="Say something…"
+            aria-label="Message (not wired up yet)"
+          >
+          <button
+            type="button"
+            class="feed-head__chat-send"
+            disabled
+            title="Not wired up yet"
+            aria-label="Filter (not wired up yet)"
+          >
+            <q-icon name="filter_alt" size="17px" />
+          </button>
         </div>
 
-        <!-- The chat box — a surface with nothing behind it yet. Both
-             controls are `disabled`, which is the honest way to say so:
-             the shape is here, the conversation is not. -->
-        <div class="feed-head__chat">
-          <div class="feed-head__chat-log">No messages yet.</div>
-          <div class="feed-head__chat-compose">
-            <input
-              class="feed-head__chat-input"
-              type="text"
-              disabled
-              placeholder="Say something…"
-              aria-label="Message (not wired up yet)"
-            >
-            <button
-              type="button"
-              class="feed-head__chat-send"
-              disabled
-              title="Not wired up yet"
-              aria-label="Send (not wired up yet)"
-            >
-              <q-icon name="send" size="12px" />
-            </button>
-          </div>
+        <!-- SECOND HALF — whatever the stream puts there (its lenses), also
+             one line now that the caption under them is gone. -->
+        <div class="feed-head__half feed-head__half--lens">
+          <slot name="controls" />
         </div>
       </div>
 
-      <!-- SECOND HALF — whatever the stream puts there (its lenses). -->
-      <div class="feed-head__half feed-head__half--lens">
-        <slot name="controls" />
+      <!-- THE LABEL LANE (user ask) — the one strip the compression pass was
+           told to LEAVE: a scroller across the box's foot where the labels
+           being filtered on stand. Empty is its normal state and it keeps its
+           height anyway; a lane that appeared with the first chip would
+           resize the box — and move the stream's reserved home slot — every
+           time someone picked or cleared a label. -->
+      <div class="feed-head__lane">
+        <slot name="labels" />
       </div>
     </div>
   </section>
@@ -118,6 +144,8 @@ import { defineComponent, ref, computed, watch, onMounted, onBeforeUnmount } fro
 import { refService } from 'src/services/ref.service'
 import EntityAvatar from 'src/components/entities/EntityAvatar.vue'
 import OrgLogoChip from 'src/components/organizations/OrgLogoChip.vue'
+import FriezeBarVertical from 'src/components/layout/FriezeBarVertical.vue'
+import FriezeBarVerticalB from 'src/components/layout/FriezeBarVerticalB.vue'
 
 // ── Geometry ────────────────────────────────────────────────────────
 // FLARE is how far a corner sweep reaches beyond the box — the fillets' R,
@@ -188,7 +216,7 @@ const loadSeat = () => {
 
 export default defineComponent({
   name: 'FeedHeadBox',
-  components: { EntityAvatar, OrgLogoChip },
+  components: { EntityAvatar, OrgLogoChip, FriezeBarVertical, FriezeBarVerticalB },
   props: {
     // Where the box stands, in px from the container's top edge. `null` is
     // "nobody has moved it" — the box resolves that to HOME itself, so the
@@ -374,6 +402,12 @@ export default defineComponent({
   --fhead-face: var(--grey-4, #e0e0e0);
   --fhead-rim: var(--indigo-4, #7986cb);
   --fhead-rim-w: 2px;
+  // The fillets' sweep radius (`FLARE` in the script) and the width a slim
+  // vertical frieze bar resolves to. Both are read by the inner posts below —
+  // the first for where they stand, the second for how far the content insets
+  // past them — so they are named once here instead of being restated.
+  --fhead-flare: 11px;
+  --fhead-post-w: calc(var(--frieze-h) / 2);
 
   position: absolute;
   left: 0;
@@ -488,6 +522,43 @@ export default defineComponent({
     var(--fhead-rim) 11.8px, var(--fhead-face) 12.4px);
 }
 
+// ── THE INNER FRIEZE BARS ───────────────────────────────────────────
+// Two slim vertical bars, absolute so they can span the WHOLE inner height —
+// handle, body and lane — while the rows themselves inset past them. `top`
+// and `bottom: 0` land on the padding box, i.e. just inside the box's own two
+// borders, which is exactly where the frame should stop.
+//
+// The offset is `FLARE`: the corner sweep's tangent turns horizontal at that
+// x, so the bar's outer face stands precisely where the curved border ends
+// and the flat one begins. Keep the two numbers in step — this is the one
+// place the fillet radius is read by something other than the fillets.
+//
+// The colorway is dialled through the bar's own custom properties (added the
+// same day, mirroring `FriezeBar`'s): a DARK plaque with its motif above it,
+// which is the inverse of every other frieze on the platform and is what lets
+// these read at all inside a light box on a light plate. The lip is dialled to
+// the plaque so it draws nothing — these bars have content on both sides and
+// nothing to state an inward edge against.
+.feed-head__post {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  --frieze-bar-v-base: var(--teal-9, #00695c);
+  --frieze-bar-v-wave-one: var(--teal-6, #009688);
+  --frieze-bar-v-wave-two: var(--teal-6, #009688);
+  --frieze-bar-v-lip: var(--teal-9, #00695c);
+}
+
+.feed-head__post--l { left: var(--fhead-flare); }
+.feed-head__post--r { right: var(--fhead-flare); }
+
+// The three rows live inside the frame: each side gives up the sweep's reach
+// plus a bar's width, so nothing can run under a post. Stated once here
+// rather than added to all three rows' own padding.
+.feed-head__inner {
+  padding: 0 calc(var(--fhead-flare) + var(--fhead-post-w));
+}
+
 // ── THE HANDLE ──────────────────────────────────────────────────────
 // The house window bar, in the feed's colorway: grip at the left, title
 // centred, one rule under it. `touch-action: none` is load-bearing on a
@@ -498,7 +569,10 @@ export default defineComponent({
   display: flex;
   align-items: center;
   gap: 6px;
-  height: 22px;
+  // 18px (was 22) — the compression pass took every band in this box down to
+  // what its contents actually need, and a 14px grip in an 18px bar still
+  // leaves the 44px-wide grab target a drag handle wants.
+  height: 18px;
   padding: 0 8px;
   border-bottom: 1px solid var(--fhead-rim);
   cursor: grab;
@@ -545,13 +619,17 @@ export default defineComponent({
   min-width: 0;
 }
 
+// ONE LINE EACH (user ask). Both halves are a single row of items now — the
+// left one stopped stacking a seat row over an input row, the right one lost
+// the caption above its controls — so the body is exactly one 20px row tall
+// and the box is three thin bands: handle, this, lane.
 .feed-head__half {
   flex: 1 1 50%;
   min-width: 0;
   display: flex;
-  flex-direction: column;
+  align-items: center;
   gap: 5px;
-  padding: 6px 8px;
+  padding: 4px 6px;
 }
 
 .feed-head__half--talk {
@@ -559,27 +637,21 @@ export default defineComponent({
 }
 
 .feed-head__half--lens {
-  justify-content: space-between;
+  gap: 4px;
 }
 
 // ── THE SEAT ────────────────────────────────────────────────────────
-// The feed card's identity block at chip scale: face, name over its second
-// line, org badge at the end.
-.feed-head__seat {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  min-width: 0;
-}
-
-.feed-head__seat-lines {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-  line-height: 1.15;
-}
-
+// The feed card's identity block at chip scale, laid INTO the line rather
+// than above it: face, name, org badge, then the input takes the rest. The
+// role sub-line went with the compression (user ask: "the profile picture box
+// with the name") — the badge's tooltip still carries it.
+//
+// The name is the one item allowed to give way: `1 1 auto` with a min-width
+// of 0 and an ellipsis, so a narrow container spends its pixels on the input
+// (which has a job) before the name (which the face already states).
 .feed-head__seat-name {
+  flex: 1 1 auto;
+  min-width: 0;
   font-size: 0.74em;
   font-weight: 700;
   color: var(--indigo-8, #303f9f);
@@ -588,53 +660,21 @@ export default defineComponent({
   white-space: nowrap;
 }
 
-.feed-head__seat-sub {
-  font-size: 0.62em;
-  color: rgba(var(--ink-rgb), 0.55);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
 // ── THE CHAT BOX ────────────────────────────────────────────────────
-// A sunk well with a composer under it. Inert: no store, no service, no
-// events — the two controls are `disabled`, which greys them by construction
-// and states the fact without a label saying so.
-.feed-head__chat {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  min-width: 0;
-}
-
-// The log's floor followed the box's face off `--grey-3`: it was `--grey-4`,
-// which IS the face now, so the well would have drawn nothing. It takes the
-// composer's `--grey-1` instead — log and input are one pale surface in two
-// parts, read from and written to, told apart by their rims rather than by a
-// tone. (`--grey-3` would collide with the held state.)
-.feed-head__chat-log {
-  min-height: 26px;
-  display: flex;
-  align-items: center;
-  padding: 0 6px;
-  border: 1px solid var(--fhead-rim);
-  border-radius: 4px;
-  background: var(--grey-1, #fafafa);
-  font-size: 0.62em;
-  color: rgba(var(--ink-rgb), 0.45);
-}
-
-.feed-head__chat-compose {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  min-width: 0;
-}
-
+// An input and its one button, standing in the seat's own line rather than in
+// a row of their own (user ask). The message log is gone (also a user ask) —
+// it was a summary of a conversation that does not exist, the one part of
+// this box making a claim rather than holding a place. Still inert: no store,
+// no service, no events, and `disabled` on both controls, which greys them by
+// construction and states the fact without a label saying so.
+//
+// The input is the line's SPRING (`1 1 auto`, min-width 0, no basis): the
+// face, the badge and the button are all fixed, the name yields first, and
+// whatever the half has left over is the field.
 .feed-head__chat-input {
   flex: 1 1 auto;
   min-width: 0;
-  height: 22px;
+  height: 20px;
   padding: 0 6px;
   border: 1px solid var(--fhead-rim);
   border-radius: 4px;
@@ -646,17 +686,47 @@ export default defineComponent({
   &::placeholder { color: rgba(var(--ink-rgb), 0.4); }
 }
 
+// The FILTER glyph, deliberately oversized for its box (user ask: "a big
+// filter icon"): 17px in a 20px button, so the mark reaches the button's rim
+// on both axes and the control reads as one solid glyph rather than an icon
+// sitting in a frame. It is the same `filter_alt` the label lens wears —
+// which is the point, the two are the same gesture at two scales.
 .feed-head__chat-send {
   flex: 0 0 auto;
   display: flex;
   align-items: center;
   justify-content: center;
   width: 22px;
-  height: 22px;
+  height: 20px;
   border: 1px solid var(--fhead-rim);
   border-radius: 4px;
   background: var(--grey-1, #fafafa);
   color: var(--indigo-8, #303f9f);
   &:disabled { cursor: not-allowed; opacity: 0.55; }
+}
+
+// ── THE LABEL LANE ──────────────────────────────────────────────────
+// A full-width strip across the box's foot, under both halves, holding the
+// labels the stream is being filtered on. It is ALWAYS THERE at a constant
+// 19px: it is the one thing the compression pass was told to leave, and a
+// lane that appeared with its first chip would change the box's height —
+// which moves the well's reserved home slot — every time someone picked or
+// cleared a label.
+//
+// It SCROLLS sideways rather than wrapping or ellipsing: label names are
+// long, the box is half a feed column wide, and a filter you cannot read the
+// name of is not a filter you can trust. Hidden scrollbar, the same call
+// `MediaTabsBar` makes — a scrollbar under a 19px strip is all noise.
+.feed-head__lane {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 19px;
+  padding: 0 6px;
+  border-top: 1px solid var(--fhead-rim);
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  &::-webkit-scrollbar { display: none; }
 }
 </style>
