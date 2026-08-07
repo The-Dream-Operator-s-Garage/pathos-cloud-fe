@@ -25,17 +25,25 @@
       reads as a piece of the frieze pulled out of it rather than a rectangle
       dropped between the two bars.
 
-  The FIRST HALF of its body is new (same ask): a seat card + a chat box.
-  Neither talks to anything yet — the composer is inert on purpose, this is
-  the surface being placed before the wiring behind it exists. The seat
-  CURRENTLY references claude in the Dream Operator's Garage; "currently" is
-  the whole point, so the reference is one constant pair at the top of the
-  script rather than a hardcoded entity id (ids differ per install), resolved
-  through the platform's own entity search.
+  WHAT IT HOLDS, after the same day's compression asks — three thin bands,
+  71px all in (it was 119):
 
-  The SECOND HALF is the feed's own controls, handed down through the
-  `controls` slot: the stream still owns its trust lens, its label lens and
-  its count, exactly as it did when they lived in the band.
+    · the HANDLE, 18px;
+    · one BODY LINE, split in half by a rule. Left: the seat (face, name, org
+      badge) and an inert filter field — an input and one button wearing an
+      oversized `filter_alt`. Neither talks to anything yet; this is the
+      surface placed before the wiring, and `disabled` is how it says so. The
+      seat CURRENTLY references claude in the Dream Operator's Garage;
+      "currently" is the whole point, so it is a name and an org pattern at
+      the top of the script rather than a hardcoded entity id (ids differ per
+      install), resolved through the platform's own entity search. Right: the
+      stream's controls through the `controls` slot — the stream still owns
+      its trust lens, its label funnel, its sort placeholder and its count.
+    · the LABEL LANE, 19px, a constant-height scroller for the labels being
+      filtered on (`labels` slot).
+
+  And two INNER FRIEZE POSTS standing where the corner sweeps flatten out,
+  which is what makes the box a framed span rather than a slab between bars.
 -->
 <template>
   <section
@@ -58,7 +66,7 @@
          a post, and the box reads as a framed span rather than a slab wedged
          between two bars.
          They are the media viewer's THIN bar turned 90° (`slim`) and painted
-         `--teal-9` plaque under a `--teal-6` motif, a MIRRORED PAIR like the
+         `--indigo-9` plaque under a `--brown-1` motif, a MIRRORED PAIR like the
          container's own: variant A on the left, B — the same waves flipped
          horizontally — on the right, so the two edges reflect each other
          across the box instead of repeating. Absolute, so they can span the
@@ -105,8 +113,8 @@
             class="feed-head__chat-input"
             type="text"
             disabled
-            placeholder="Say something…"
-            aria-label="Message (not wired up yet)"
+            placeholder="Filter by…"
+            aria-label="Filter by (not wired up yet)"
           >
           <button
             type="button"
@@ -402,6 +410,20 @@ export default defineComponent({
   --fhead-face: var(--grey-4, #e0e0e0);
   --fhead-rim: var(--indigo-4, #7986cb);
   --fhead-rim-w: 2px;
+  // EVERYTHING INSIDE THE BOX IS ONE TONE (2026-08-06, user ask: "the text and
+  // inner borders of the whole sliding bar"): `--indigo-9`, the same step its
+  // two inner frieze posts are plated in, for every mark and every rule the
+  // box draws in its own field — the handle's glyph and title, the seat's
+  // name, the field and its button, the row of lenses handed in through the
+  // slot, the count, and the three rules that divide the bands.
+  //
+  // What it deliberately does NOT touch is the box's OUTER edge, which stays
+  // `--fhead-rim` at `--indigo-4`: that line and its four corner sweeps are
+  // what joins the box to the container's frieze bars, and they answer to the
+  // surface outside the box, not to its contents. So the box reads as one
+  // ink drawn inside one lighter edge.
+  --fhead-ink: var(--indigo-9, #283593);
+  --fhead-rule: var(--indigo-9, #283593);
   // The fillets' sweep radius (`FLARE` in the script) and the width a slim
   // vertical frieze bar resolves to. Both are read by the inner posts below —
   // the first for where they stand, the second for how far the content insets
@@ -534,19 +556,28 @@ export default defineComponent({
 // place the fillet radius is read by something other than the fillets.
 //
 // The colorway is dialled through the bar's own custom properties (added the
-// same day, mirroring `FriezeBar`'s): a DARK plaque with its motif above it,
-// which is the inverse of every other frieze on the platform and is what lets
-// these read at all inside a light box on a light plate. The lip is dialled to
-// the plaque so it draws nothing — these bars have content on both sides and
-// nothing to state an inward edge against.
+// same day, mirroring `FriezeBar`'s): a DARK plaque with a LIGHT motif above
+// it, the inverse of every other frieze on the platform, which is what lets
+// these read at all inside a light box standing on a light plate. The pair is
+// `--indigo-9` under `--brown-1` — the FEED colorway's deep end carrying the
+// CROWN STRIP's own plaque tone as its wave, so these edges are the platform's
+// two frieze families stacked rather than a third palette invented for them.
+// (It walked there in one sitting: a teal pair, then -10 under brown-4, then
+// this. -9 rather than -10 leaves the family a step under the plaque for the
+// marks written on it — which the box then took for ALL of them.) The spread
+// is enormous by frieze standards, Material 800 under a 50, and it has to
+// be: the bar is ~9px wide with no lip and no rolled edge, so the motif is
+// the only thing separating plate from wave. The lip is dialled to the plaque
+// so it draws nothing — these bars have content on both sides and nothing to
+// state an inward edge against.
 .feed-head__post {
   position: absolute;
   top: 0;
   bottom: 0;
-  --frieze-bar-v-base: var(--teal-9, #00695c);
-  --frieze-bar-v-wave-one: var(--teal-6, #009688);
-  --frieze-bar-v-wave-two: var(--teal-6, #009688);
-  --frieze-bar-v-lip: var(--teal-9, #00695c);
+  --frieze-bar-v-base: var(--indigo-9, #283593);
+  --frieze-bar-v-wave-one: var(--brown-1, #efebe9);
+  --frieze-bar-v-wave-two: var(--brown-1, #efebe9);
+  --frieze-bar-v-lip: var(--indigo-9, #283593);
 }
 
 .feed-head__post--l { left: var(--fhead-flare); }
@@ -574,7 +605,7 @@ export default defineComponent({
   // leaves the 44px-wide grab target a drag handle wants.
   height: 18px;
   padding: 0 8px;
-  border-bottom: 1px solid var(--fhead-rim);
+  border-bottom: 1px solid var(--fhead-rule);
   cursor: grab;
   user-select: none;
   touch-action: none;
@@ -584,14 +615,14 @@ export default defineComponent({
   // The keyboard's way in has to be visible, and the platform's default
   // focus ring is drawn for dark chrome.
   &:focus-visible {
-    outline: 2px solid var(--indigo-8, #303f9f);
+    outline: 2px solid var(--fhead-ink);
     outline-offset: -2px;
   }
 }
 
 .feed-head__grip {
   flex: 0 0 auto;
-  color: var(--indigo-10, #1a237e);
+  color: var(--fhead-ink);
   opacity: 0.75;
 }
 
@@ -606,7 +637,7 @@ export default defineComponent({
   pointer-events: none;
   font-size: 0.68em;
   letter-spacing: 0.06em;
-  color: var(--indigo-10, #1a237e);
+  color: var(--fhead-ink);
 }
 
 // ── THE BODY, IN TWO HALVES ─────────────────────────────────────────
@@ -633,7 +664,7 @@ export default defineComponent({
 }
 
 .feed-head__half--talk {
-  border-right: 1px solid var(--fhead-rim);
+  border-right: 1px solid var(--fhead-rule);
 }
 
 .feed-head__half--lens {
@@ -654,7 +685,7 @@ export default defineComponent({
   min-width: 0;
   font-size: 0.74em;
   font-weight: 700;
-  color: var(--indigo-8, #303f9f);
+  color: var(--fhead-ink);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -676,10 +707,10 @@ export default defineComponent({
   min-width: 0;
   height: 20px;
   padding: 0 6px;
-  border: 1px solid var(--fhead-rim);
+  border: 1px solid var(--fhead-rule);
   border-radius: 4px;
   background: var(--grey-1, #fafafa);
-  color: var(--indigo-8, #303f9f);
+  color: var(--fhead-ink);
   font-family: inherit;
   font-size: 0.64em;
   &:disabled { cursor: not-allowed; }
@@ -698,10 +729,10 @@ export default defineComponent({
   justify-content: center;
   width: 22px;
   height: 20px;
-  border: 1px solid var(--fhead-rim);
+  border: 1px solid var(--fhead-rule);
   border-radius: 4px;
   background: var(--grey-1, #fafafa);
-  color: var(--indigo-8, #303f9f);
+  color: var(--fhead-ink);
   &:disabled { cursor: not-allowed; opacity: 0.55; }
 }
 
@@ -723,7 +754,7 @@ export default defineComponent({
   gap: 4px;
   height: 19px;
   padding: 0 6px;
-  border-top: 1px solid var(--fhead-rim);
+  border-top: 1px solid var(--fhead-rule);
   overflow-x: auto;
   overflow-y: hidden;
   scrollbar-width: none;

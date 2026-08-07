@@ -848,10 +848,16 @@ export default defineComponent({
 // `--indigo-3` (the title plate's exact recipe), and the ON state is the
 // colorway's dark end as a FLOOR — `--indigo-8` under white ink, the one
 // inversion the band allows itself so the active lens reads at a glance.
+// ONE INK FOR THE WHOLE BOX (2026-08-06, user ask): every rim and every mark
+// on these controls is `--fhead-ink` / `--fhead-rule`, the dials the head box
+// publishes — `--indigo-9`, the same step its two inner frieze posts are
+// plated in. The fallbacks are what these rules said before (`--indigo-3`
+// rims, `--indigo-8` ink), so the cluster still draws correctly if it is ever
+// slotted anywhere but into the head.
 .feed-stream__lens {
   display: flex;
   flex: 0 0 auto;
-  border: 1px solid var(--indigo-3, #9fa8da);
+  border: 1px solid var(--fhead-rule, var(--indigo-3, #9fa8da));
   border-radius: var(--radius-sm, 7px);
   overflow: hidden;
   background: var(--grey-1, #fafafa);
@@ -859,9 +865,9 @@ export default defineComponent({
 
 .feed-stream__lens-btn {
   border: 0;
-  border-right: 1px solid var(--indigo-3, #9fa8da);
+  border-right: 1px solid var(--fhead-rule, var(--indigo-3, #9fa8da));
   background: transparent;
-  color: var(--indigo-8, #303f9f);
+  color: var(--fhead-ink, var(--indigo-8, #303f9f));
   font-family: inherit;
   font-size: 0.66em;
   font-weight: 700;
@@ -870,8 +876,10 @@ export default defineComponent({
   cursor: pointer;
   &:last-child { border-right: 0; }
   &:hover { background: var(--indigo-1, #e8eaf6); }
+  // The ON plaque takes the box's ink as its FILL — one indigo in the box,
+  // whether a control is drawing a line, a word or a field.
   &.is-on {
-    background: var(--indigo-8, #303f9f);
+    background: var(--fhead-ink, var(--indigo-8, #303f9f));
     color: #fff;
   }
 }
@@ -884,7 +892,7 @@ export default defineComponent({
 // filtered without having to also say what by. SORT BY shares the rule and
 // adds only the disabled state — it is a placeholder (see the template).
 .feed-stream__label-open {
-  border: 1px solid var(--indigo-3, #9fa8da);
+  border: 1px solid var(--fhead-rule, var(--indigo-3, #9fa8da));
   border-radius: var(--radius-sm, 7px);
   background: var(--grey-1, #fafafa);
   flex: 0 0 auto;
@@ -892,8 +900,8 @@ export default defineComponent({
   display: flex;
   align-items: center;
   &.is-on {
-    background: var(--indigo-8, #303f9f);
-    border-color: var(--indigo-8, #303f9f);
+    background: var(--fhead-ink, var(--indigo-8, #303f9f));
+    border-color: var(--fhead-ink, var(--indigo-8, #303f9f));
     color: #fff;
   }
 }
@@ -913,16 +921,16 @@ export default defineComponent({
   align-items: center;
   gap: 4px;
   flex: 0 0 auto;
-  border: 1px solid var(--indigo-8, #303f9f);
+  border: 1px solid var(--fhead-ink, var(--indigo-8, #303f9f));
   border-radius: var(--radius-sm, 7px);
-  background: var(--indigo-8, #303f9f);
+  background: var(--fhead-ink, var(--indigo-8, #303f9f));
   color: #fff;
   font-size: 0.6em;
   font-weight: 700;
   letter-spacing: 0.03em;
   padding: 1px 7px;
   cursor: pointer;
-  &:hover { background: var(--indigo-7, #3949ab); }
+  &:hover { background: var(--indigo-8, #303f9f); } // one step off the box's ink
 }
 
 .feed-stream__label-chip-name {
@@ -936,10 +944,10 @@ export default defineComponent({
 // is a fact the box states, not a filter you can be inside of.
 .feed-stream__count {
   flex: 0 0 auto;
-  border: 1px solid var(--indigo-4, #7986cb);
+  border: 1px solid var(--fhead-rule, var(--indigo-4, #7986cb));
   border-radius: var(--radius-sm, 7px);
   background: var(--grey-1, #fafafa);
-  color: var(--indigo-8, #303f9f);
+  color: var(--fhead-ink, var(--indigo-8, #303f9f));
   font-size: 0.64em;
   font-weight: 700;
   letter-spacing: 0.03em;
