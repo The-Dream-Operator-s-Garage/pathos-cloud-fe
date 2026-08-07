@@ -957,8 +957,10 @@ export default defineComponent({
   // The TOP padding came back with the same change, and it is the box's HOME
   // SLOT: `--fhead-h` is the box's measured height (published down from
   // `setup()` — a px value, for the same reason `--post-square-max` is one),
-  // `10px` is the box's resting offset and another `10px` the gap to the first
-  // card, so at rest the stream begins exactly where it began under the band.
+  // `12px` is the box's resting offset (`HOME` in FeedHeadBox — it clears the
+  // corner sweeps, so it moved with them when the edge was thickened) and
+  // another `10px` the gap to the first card, so at rest the stream begins
+  // where it began under the band.
   // It does NOT follow the box down: the slot is the head's place, and a
   // stream that reflowed while you dragged would make the drag a resize. Drag
   // the head away and the reveal it leaves behind is where it came from.
@@ -969,7 +971,7 @@ export default defineComponent({
   // NOTE the side padding narrows `.feed-stream`, which is the element the
   // square ceiling is measured from — the ResizeObserver picks the new width
   // up on its own, so `--post-square-max` follows automatically.
-  padding: calc(var(--fhead-h, 118px) + 20px) 3px calc(var(--frieze-h) + 12px);
+  padding: calc(var(--fhead-h, 120px) + 22px) 3px calc(var(--frieze-h) + 12px);
   scrollbar-width: thin;
   scrollbar-color: rgba(var(--ink-rgb), 0.3) transparent;
 

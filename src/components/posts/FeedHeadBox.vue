@@ -120,16 +120,19 @@ import EntityAvatar from 'src/components/entities/EntityAvatar.vue'
 import OrgLogoChip from 'src/components/organizations/OrgLogoChip.vue'
 
 // ── Geometry ────────────────────────────────────────────────────────
-// FLARE is the fillets' reach in px and must match `_FLARE` in the
-// stylesheet; EDGE is the daylight the box keeps off each end of the
-// container, which has to be at least FLARE or a corner sweep would be
-// clipped by `.feed-container__body`'s `overflow: hidden`. HOME is where
-// the box rests before anyone has moved it — the old band sat flush on the
-// container's top edge, which is exactly the one position a filleted corner
-// cannot have. STEP is the keyboard nudge.
-const FLARE = 9
+// FLARE is how far a corner sweep reaches beyond the box — the fillets' R,
+// which must match the radius the stylesheet derives its gradients from (it
+// went 9 → 11 when the edge was thickened to 2px: a heavier line wants a
+// longer arc, or the sweep reads as a blunt notch). EDGE is the daylight the
+// box keeps off each end of the container, and has to CLEAR that reach or the
+// sweep is cut off by `.feed-container__body`'s `overflow: hidden`. HOME is
+// where the box rests before anyone has moved it — the old band sat flush on
+// the container's top edge, which is exactly the one position a filleted
+// corner cannot have — and the well's `padding-top` restates it, so the two
+// move together. STEP is the keyboard nudge.
+const FLARE = 11
 const EDGE = FLARE + 1
-const HOME = 10
+const HOME = EDGE
 const STEP = 12
 
 // ── The seat this box currently references ──────────────────────────
@@ -350,19 +353,27 @@ export default defineComponent({
 // what the old band's `margin: 0 -3px` had to buy by hand, the well's side
 // padding being no longer in the way now that the box is out of the well.
 //
-// Its material is the surface's own: `--grey-3` face, `--indigo-4` rim — the
-// post card's exact recipe, one step above the `--grey-4` plate the container,
-// its bars and its bed all wear. The band it replaces wore the plate ITSELF
-// and drew a single `--indigo-3` line under it, which is right for something
-// that IS the container showing through the stream and wrong for something you
-// can pick up and put elsewhere: an object that moves has to be a different
-// object from the plate it moves over.
+// ITS FACE IS THE PLATE'S — `--grey-4` (2026-08-06, second ask of the day; it
+// spent the first ask on the post card's `--grey-3`). Which puts the box back
+// on the tone the band wore, and the reasoning that took it off — *a thing you
+// can pick up cannot be the same material as the plate it moves over* — is
+// answered a better way here: the box is separated by DEPTH now, not by tone.
+// A heavier edge and a shadow say "this is above the plate"; a lighter coat
+// only said "this is a different plate". The gain is at the CORNERS, which is
+// what the fillets are for: face and plate being one tone, the carved quarter
+// and the filled quarter are indistinguishable and only the swept LINE states
+// the shape — the box does not so much sit between the frieze bars as flow out
+// of them, which a `--grey-3` patch could never do.
 //
 // TWO edges, not four. The box touches a frieze bar on either side, so its
-// sides have no line to draw — the fillets carry the line around instead.
+// sides have no line to draw — the fillets carry the line around instead. They
+// are `--fhead-rim-w` THICK (2px, user ask: "thicker and smoother"), and the
+// thickness is a variable because the fillet geometry below is derived from it
+// — an arc drawn for a 1px line does not fit a 2px one.
 .feed-head {
-  --fhead-face: var(--grey-3, #eeeeee);
+  --fhead-face: var(--grey-4, #e0e0e0);
   --fhead-rim: var(--indigo-4, #7986cb);
+  --fhead-rim-w: 2px;
 
   position: absolute;
   left: 0;
@@ -371,71 +382,110 @@ export default defineComponent({
   // in other stacking contexts and unaffected.
   z-index: 2;
   background: var(--fhead-face);
-  border-top: 1px solid var(--fhead-rim);
-  border-bottom: 1px solid var(--fhead-rim);
+  border-top: var(--fhead-rim-w) solid var(--fhead-rim);
+  border-bottom: var(--fhead-rim-w) solid var(--fhead-rim);
+  // THE CAST (user ask: "a little discrete shadow over the content"). Mostly
+  // DOWN, the direction this platform's light comes from, with a hint upward
+  // because the stream passes on both sides of a box that can be parked in the
+  // middle of it. Both spreads are negative by exactly half the blur, which is
+  // what buys ZERO LATERAL reach (`S + B/2` = 0): the box's two side edges ARE
+  // the frieze bars, and a shadow with any sideways travel would smear onto
+  // their motif instead of falling on the cards. Reach is 7px down, 3px up —
+  // enough to lift the box off a plate it now shares a tone with, not enough
+  // to read as a drop shadow on a surface that has none anywhere else.
+  box-shadow:
+    0 7px 14px -7px rgba(0, 0, 0, 0.45),
+    0 -5px 12px -8px rgba(0, 0, 0, 0.28);
   // NO `overflow: hidden` — the four fillets live outside this box.
   transition: box-shadow 0.12s, background 0.12s;
 }
 
-// Held: the plate lifts off the bed a little (and lights a step, which the
-// fillets follow through `--fhead-face`), so the box says it is loose.
+// Held: the plate lifts further off the bed and lights ONE step (which the
+// fillets follow through `--fhead-face`), so the box says it is loose. One
+// step, not three: `--grey-1` was the right lift off a `--grey-3` face and
+// reads as a different object off this one.
 .feed-head.is-grabbed {
-  --fhead-face: var(--grey-1, #fafafa);
-  box-shadow: 0 8px 22px -10px rgba(0, 0, 0, 0.6);
+  --fhead-face: var(--grey-3, #eeeeee);
+  box-shadow:
+    0 12px 24px -10px rgba(0, 0, 0, 0.55),
+    0 -8px 18px -10px rgba(0, 0, 0, 0.35);
 }
 
 // ── THE FILLETS ─────────────────────────────────────────────────────
-// One at each corner: a 9px square (`_FLARE`, plus 1px of overlap INTO the
-// box, which covers the stub of top/bottom border that would otherwise cross
-// the sweep) filled with the box's face except a quarter-disc carved out of
-// the corner DIAGONALLY OPPOSITE the joint. Two extra stops draw the rim
-// along that arc in the rim's own tone, so the fillet is not a shape beside
-// the line but a piece OF it: the arc leaves the frieze bar with a vertical
-// tangent and meets the box's own border where its tangent turns horizontal,
-// and one continuous `--indigo-4` runs the whole way round.
-//
+// One at each corner: the box's face sweeping into the frieze bar through a
+// concave quarter-round, with the box's own edge line carried along the sweep,
+// so one continuous 2px `--indigo-4` runs bar → flare → edge → flare → bar.
 // Radial gradients rather than borders, for the reason `MediaTabsBar` gives:
-// an INVERTED radius has no border-radius spelling. `top`/`bottom: -10px`
-// (not -9) because an absolutely positioned child is placed against the
-// PADDING box — the extra pixel is the border this box has and a tab does
-// not, and without it every arc lands a pixel off its own line.
+// an INVERTED radius has no border-radius spelling.
+//
+// THE GEOMETRY IS DERIVED, NOT COPIED (2026-08-06, "thicker and smoother").
+// `MediaTabsBar`'s numbers are for a 1px line on a borderless edge and they do
+// not survive being thickened — the arc lands beside its own line instead of
+// continuing it. Take the box's top-left corner, with the top border's OUTER
+// edge at y=0 and the box's left edge at x=0, R = the sweep radius (11) and
+// T = `--fhead-rim-w` (2):
+//
+//   · the drawn line is a STROKE of width T centred on a circle of radius R,
+//     so the gradient's ring runs R−T/2 → R+T/2 (10 → 12);
+//   · that circle's centre is (R, T/2 − R) = (11, −10). Both coordinates are
+//     forced: its BOTTOM-most point must land on the border's centre line
+//     (y = T/2) for the arc to continue the border rather than touch it, and
+//     its LEFT-most point must land on x = 0 so the line dies at the bar's
+//     face — half the stroke falls on the bar and is clipped, which is what a
+//     line disappearing behind an edge looks like;
+//   · so the element spans x ∈ [0, R] and y ∈ [−R, T]: `width: R`,
+//     `height: R + T`, and `top: -(R + T)` — an absolutely positioned child is
+//     placed against the PADDING box, so the offset has to name the border it
+//     is reaching over (see gotchas.md; this is why 1px→2px moved it by two).
+//   · the centre in the element's own coordinates is therefore (R, T/2) at the
+//     top corners and (R, height − T/2) at the bottom ones.
+//
+// Verify by measuring, not by eye: at x = R the ring must cover exactly
+// y ∈ [0, T] — the box's border — and at x = 0 exactly half the stroke.
+//
+// SMOOTHNESS is the stop RAMPS. The tabs step from transparent to rim in
+// 0.2px, which on any display is a hard edge: the arc stair-steps, and at the
+// ends — where it runs nearly parallel to the pixel grid — it breaks up into
+// dashes. The ramps here are 0.6px, wide enough that the compositor has a real
+// gradient to resolve and the curve antialiases, narrow enough that the line
+// keeps its ~2px weight (mid-ramp to mid-ramp = 9.9 → 12.1).
 .feed-head__flare {
   position: absolute;
-  width: 9px;
-  height: 10px;
+  width: 11px;
+  height: 13px; // R + T
   pointer-events: none;
 }
 
 .feed-head__flare--tl {
   left: 0;
-  top: -10px;
-  background: radial-gradient(circle at 100% 0,
-    transparent 7.9px, var(--fhead-rim) 8.1px,
-    var(--fhead-rim) 8.9px, var(--fhead-face) 9.1px);
+  top: -13px; // -(R + T)
+  background: radial-gradient(circle at 11px 1px,
+    transparent 9.6px, var(--fhead-rim) 10.2px,
+    var(--fhead-rim) 11.8px, var(--fhead-face) 12.4px);
 }
 
 .feed-head__flare--tr {
   right: 0;
-  top: -10px;
-  background: radial-gradient(circle at 0 0,
-    transparent 7.9px, var(--fhead-rim) 8.1px,
-    var(--fhead-rim) 8.9px, var(--fhead-face) 9.1px);
+  top: -13px;
+  background: radial-gradient(circle at 0 1px,
+    transparent 9.6px, var(--fhead-rim) 10.2px,
+    var(--fhead-rim) 11.8px, var(--fhead-face) 12.4px);
 }
 
 .feed-head__flare--bl {
   left: 0;
-  bottom: -10px;
-  background: radial-gradient(circle at 100% 100%,
-    transparent 7.9px, var(--fhead-rim) 8.1px,
-    var(--fhead-rim) 8.9px, var(--fhead-face) 9.1px);
+  bottom: -13px;
+  background: radial-gradient(circle at 11px 12px,
+    transparent 9.6px, var(--fhead-rim) 10.2px,
+    var(--fhead-rim) 11.8px, var(--fhead-face) 12.4px);
 }
 
 .feed-head__flare--br {
   right: 0;
-  bottom: -10px;
-  background: radial-gradient(circle at 0 100%,
-    transparent 7.9px, var(--fhead-rim) 8.1px,
-    var(--fhead-rim) 8.9px, var(--fhead-face) 9.1px);
+  bottom: -13px;
+  background: radial-gradient(circle at 0 12px,
+    transparent 9.6px, var(--fhead-rim) 10.2px,
+    var(--fhead-rim) 11.8px, var(--fhead-face) 12.4px);
 }
 
 // ── THE HANDLE ──────────────────────────────────────────────────────
@@ -557,6 +607,11 @@ export default defineComponent({
   min-width: 0;
 }
 
+// The log's floor followed the box's face off `--grey-3`: it was `--grey-4`,
+// which IS the face now, so the well would have drawn nothing. It takes the
+// composer's `--grey-1` instead — log and input are one pale surface in two
+// parts, read from and written to, told apart by their rims rather than by a
+// tone. (`--grey-3` would collide with the held state.)
 .feed-head__chat-log {
   min-height: 26px;
   display: flex;
@@ -564,7 +619,7 @@ export default defineComponent({
   padding: 0 6px;
   border: 1px solid var(--fhead-rim);
   border-radius: 4px;
-  background: var(--grey-4, #e0e0e0);
+  background: var(--grey-1, #fafafa);
   font-size: 0.62em;
   color: rgba(var(--ink-rgb), 0.45);
 }
