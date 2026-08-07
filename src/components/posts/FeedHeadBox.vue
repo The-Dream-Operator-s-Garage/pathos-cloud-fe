@@ -103,32 +103,57 @@
              the seat on its own; the badge stays, because it is the only
              visible thing left saying WHICH org this seat belongs to, which
              was the point of putting a seat here. Both wear the same
-             `seatTitle` tooltip, so the name is a hover away. -->
+             `seatTitle` tooltip, so the name is a hover away.
+
+             THE WIRING LANDED (2026-08-07, the Talavero seat): the seat is a
+             PROP now — Talavero's identity card from `GET /feed/lens-context`
+             — and the field speaks. Typing + Enter (or the filter button)
+             emits `ask(text)`; the stream above owns the chat round-trip and
+             hands back `thinking` (ring on the face), `live` (the session-
+             local liveness dot — lit by any successful lens/♪ round-trip,
+             cleared by a timeout: honest wiring, no fake presence) and
+             `line` (the transient say/♪/failure line that takes the field's
+             place for a few seconds; clicking it opens the chat transcript).
+             A NULL seat is the stub install: field stays disabled, tooltip
+             says why — the surface still states its shape. -->
         <div class="feed-head__half feed-head__half--talk">
-          <EntityAvatar :entity="seatEntity" :size="24" :title="seatTitle" />
-          <OrgLogoChip v-if="seat.org" :org="seat.org" :size="15" :link="false" />
-          <!-- The chat box: an input and its one button. The message log is
-               GONE (user ask) — a summary of a conversation that does not
-               exist yet was the one part of this box making a claim. Still
-               inert, still `disabled`, and the button wears a FILTER glyph
-               rather than a send arrow (user ask), which is what the field
-               will do before it ever says anything. -->
-          <input
-            class="feed-head__chat-input"
-            type="text"
-            disabled
-            placeholder="Filter by…"
-            aria-label="Filter by (not wired up yet)"
-          >
+          <span class="feed-head__seat" :class="{ 'is-thinking': thinking }">
+            <EntityAvatar :entity="seatEntity" :size="24" :title="seatTitle" />
+            <span v-if="live" class="feed-head__seat-live" aria-hidden="true" />
+          </span>
+          <OrgLogoChip v-if="seatCard.org" :org="seatCard.org" :size="15" :link="false" />
+          <!-- The transient reply line — the field's slot, borrowed. -->
           <button
+            v-if="line"
             type="button"
-            class="feed-head__chat-send"
-            disabled
-            title="Not wired up yet"
-            aria-label="Filter (not wired up yet)"
-          >
-            <q-icon name="filter_alt" size="17px" />
-          </button>
+            class="feed-head__chat-line"
+            :class="'is-' + line.kind"
+            :title="line.text + ' — open the chat for the transcript'"
+            @click="$emit('open-chat')"
+          >{{ line.text }}</button>
+          <template v-else>
+            <input
+              ref="askInput"
+              v-model="draft"
+              class="feed-head__chat-input"
+              type="text"
+              :disabled="!enabled || thinking"
+              :placeholder="thinking ? 'Talavero is thinking…' : 'Filter by…'"
+              :title="enabled ? 'Ask for a lens in plain words' : 'The seat isn\'t seeded here'"
+              :aria-label="enabled ? 'Ask Talavero to filter the feed' : 'Filter (the seat isn\'t seeded here)'"
+              @keydown.enter.prevent="doAsk"
+            >
+            <button
+              type="button"
+              class="feed-head__chat-send"
+              :disabled="!enabled || thinking"
+              :title="enabled ? 'Ask' : 'The seat isn\'t seeded here'"
+              :aria-label="enabled ? 'Ask Talavero to filter the feed' : 'Filter (the seat isn\'t seeded here)'"
+              @click="doAsk"
+            >
+              <q-icon name="filter_alt" size="17px" />
+            </button>
+          </template>
         </div>
 
         <!-- SECOND HALF — whatever the stream puts there (its lenses), also
@@ -153,7 +178,6 @@
 
 <script>
 import { defineComponent, ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
-import { refService } from 'src/services/ref.service'
 import EntityAvatar from 'src/components/entities/EntityAvatar.vue'
 import OrgLogoChip from 'src/components/organizations/OrgLogoChip.vue'
 import FriezeBarVertical from 'src/components/layout/FriezeBarVertical.vue'
@@ -175,56 +199,11 @@ const EDGE = FLARE + 1
 const HOME = EDGE
 const STEP = 12
 
-// ── The seat this box currently references ──────────────────────────
-// One person, in one organization, named the way a reader would name them
-// rather than by id: entity ids are per-install (claude's garage mask is 23
-// here and something else on the server), and this box is a placeholder for
-// "a user" — so it looks its user up the way the pickers do.
-const SEAT_NAME = 'claude'
-const SEAT_ORG = /garage|dream operator/i
-
-// The stub the card falls back to, so the box always states WHO it is for
-// even with the API unreachable or the seat not seeded.
-const SEAT_STUB = { id: null, route: null, name: SEAT_NAME, sub: 'Dream Operator\'s Garage', photo: null, org: null }
-
-// Resolved once per page load: the box is remounted on every visit to /feed
-// and the answer cannot change between them. The PROMISE is cached, not the
-// value, so two mounts in the same tick share one request.
-let seatPromise = null
-
-// A MASK's display name is "<person> @ <org>" — the one string the identity
-// card seam exists to take apart. The badge beside it already says the org,
-// so the name says the person.
-const personOf = (row) => String(row?.primary || '').split(' @ ')[0].trim()
-
-const loadSeat = () => {
-  if (seatPromise) return seatPromise
-  seatPromise = (async () => {
-    try {
-      const r = await refService.search('entities', SEAT_NAME, 8)
-      const rows = (r && r.results) || []
-      // The seat is the MASK — the identity that carries the org. The
-      // ROOT person (no org) is what the face and the @handle come from,
-      // since a mask has neither: it is the same recomposition
-      // `entityProfileService.getIdentityCards` does for the feed.
-      const mask = rows.find((x) => x.org && SEAT_ORG.test(`${x.org.name || ''} ${x.org.handle || ''}`))
-      const person = rows.find((x) => !x.org) || null
-      if (!mask && !person) return SEAT_STUB
-      const org = mask ? mask.org : null
-      return {
-        id: (person || mask).id,
-        route: (mask || person).route,
-        name: personOf(person || mask) || SEAT_NAME,
-        sub: (org && (org.role_title || `@${org.handle}`)) || (person && person.secondary) || '',
-        photo: (person && person.photo) || (mask && mask.photo) || null,
-        org
-      }
-    } catch (_) {
-      return SEAT_STUB
-    }
-  })()
-  return seatPromise
-}
+// The stub the box falls back to when the install has no seeded seat (or
+// lens-context hasn't answered yet): a faceless Talavero, so the surface
+// still states WHO it is for — with the field disabled, which is how the
+// box says "not here".
+const SEAT_STUB = { id: null, display_name: 'Talavero', username: null, photo: null, org: null }
 
 export default defineComponent({
   name: 'FeedHeadBox',
@@ -233,14 +212,21 @@ export default defineComponent({
     // Where the box stands, in px from the container's top edge. `null` is
     // "nobody has moved it" — the box resolves that to HOME itself, so the
     // holder above never has to know the resting geometry.
-    offset: { type: Number, default: null }
+    offset: { type: Number, default: null },
+    // The seat's identity card (`GET /feed/lens-context` → `seat`): id,
+    // display_name, photo, org. Null = stub install — field stays disabled.
+    seat: { type: Object, default: null },
+    // The stream's round-trip state: thinking ring, session-local liveness
+    // dot, and the transient reply line { kind: 'say'|'song'|'fail', text }.
+    thinking: { type: Boolean, default: false },
+    live: { type: Boolean, default: false },
+    line: { type: Object, default: null }
   },
-  emits: ['update:offset', 'update:height'],
+  emits: ['update:offset', 'update:height', 'ask', 'open-chat'],
   setup (props, { emit }) {
     const rootEl = ref(null)
     const y = ref(props.offset == null ? HOME : props.offset)
     const dragging = ref(false)
-    const seat = ref(SEAT_STUB)
 
     // The travel limits, measured rather than assumed: the container is a
     // percentage of a scroll track and the box's own height follows its
@@ -348,7 +334,6 @@ export default defineComponent({
 
     onMounted(() => {
       remeasure()
-      loadSeat().then((s) => { seat.value = s })
       if (typeof ResizeObserver === 'undefined') return
       ro = new ResizeObserver(remeasure)
       ro.observe(rootEl.value)
@@ -361,24 +346,45 @@ export default defineComponent({
       teardown()
     })
 
+    // ── The ask. The box owns only the draft text; everything that talks
+    // to the platform (chat bootstrap, consent gates, events) is the
+    // stream's — the box is a face and a field.
+    const seatCard = computed(() => props.seat || SEAT_STUB)
+    const enabled = computed(() => !!seatCard.value.id)
+    const draft = ref('')
+    const askInput = ref(null)
+
+    const doAsk = () => {
+      const text = draft.value.trim()
+      if (!text || !enabled.value || props.thinking) return
+      emit('ask', text)
+      draft.value = ''
+    }
+
     // EntityAvatar takes whatever the caller already resolved, so the face
     // costs no second request.
     const seatEntity = computed(() => ({
-      id: seat.value.id,
-      display_name: seat.value.name,
-      photo: seat.value.photo
+      id: seatCard.value.id,
+      display_name: seatCard.value.display_name || 'Talavero',
+      photo: seatCard.value.photo
     }))
 
-    const seatTitle = computed(() =>
-      seat.value.org ? `${seat.value.name} · ${seat.value.org.name}` : seat.value.name)
+    const seatTitle = computed(() => {
+      const name = seatCard.value.display_name || 'Talavero'
+      return seatCard.value.org ? `${name} · ${seatCard.value.org.name}` : name
+    })
 
     return {
       rootEl,
       y,
       dragging,
-      seat,
+      seatCard,
       seatEntity,
       seatTitle,
+      enabled,
+      draft,
+      askInput,
+      doAsk,
       onBarPointerDown,
       onBarKeydown
     }
@@ -709,6 +715,71 @@ export default defineComponent({
 // this — which is the whole reason the input can now be the line: everything
 // left of it is a known width, so `1 1 auto` on the field means it takes all
 // the space the half has and no arithmetic states how much that is.
+//
+// The wrap exists for the two live signals (2026-08-07): the THINKING RING —
+// a conic sweep spinning just outside the face while an ask is out — and the
+// LIVENESS DOT, a small green mark lit only after a real round-trip this
+// session (cleared by a timeout; presence is never claimed, only witnessed).
+.feed-head__seat {
+  position: relative;
+  flex: 0 0 auto;
+  display: flex;
+  border-radius: 50%;
+
+  &.is-thinking::after {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border-radius: 50%;
+    background: conic-gradient(var(--fhead-ink) 0 70deg, transparent 70deg 360deg);
+    // Only the ring's rim survives — the mask carves the middle out.
+    -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 2.5px), #000 calc(100% - 2px));
+    mask: radial-gradient(farthest-side, transparent calc(100% - 2.5px), #000 calc(100% - 2px));
+    animation: fhead-think 0.9s linear infinite;
+    pointer-events: none;
+  }
+}
+
+@keyframes fhead-think {
+  to { transform: rotate(360deg); }
+}
+
+.feed-head__seat-live {
+  position: absolute;
+  right: -1px;
+  bottom: -1px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--positive, #21ba45);
+  border: 1px solid var(--fhead-face);
+  pointer-events: none;
+}
+
+// ── THE REPLY LINE ──────────────────────────────────────────────────
+// The field's slot, borrowed for ~6 seconds: the seat's `say`, a ♪ verse, or
+// the one failure string, each in its own tone. A BUTTON, because the line is
+// a door — the transcript behind it lives in the chat dock.
+.feed-head__chat-line {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 20px;
+  padding: 0 6px;
+  border: 1px solid var(--fhead-rule);
+  border-radius: 4px;
+  background: var(--grey-2, #f5f5f5);
+  color: var(--fhead-ink);
+  font-family: inherit;
+  font-size: 0.64em;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+
+  &.is-song { font-style: italic; }
+  &.is-fail { opacity: 0.75; }
+}
 
 // ── THE CHAT BOX ────────────────────────────────────────────────────
 // An input and its one button, standing in the seat's own line rather than in

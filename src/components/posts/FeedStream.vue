@@ -57,8 +57,14 @@
          when you come back from a post. -->
     <FeedHeadBox
       :offset="headY"
+      :seat="seat"
+      :thinking="thinking"
+      :live="live"
+      :line="line"
       @update:offset="setHeadY"
       @update:height="(h) => (headH = h)"
+      @ask="onAsk"
+      @open-chat="openLensChat"
     >
       <template #controls>
         <div class="feed-stream__controls">
@@ -77,22 +83,33 @@
               @click="setLens(opt.v)"
             >{{ opt.label }}</button>
           </div>
-          <!-- SORT BY (2026-08-06, user ask) — the third control in the row,
-               beside the two lenses, and the only one that is a PLACEHOLDER:
-               ordering the feed is a server concern (`GET /feed` answers
-               newest-first and pages against that order, so a client-side
-               re-sort would only shuffle the thirty rows already in hand and
-               lie about the rest), and no ordering parameter has been asked
-               for yet. Drawn in the lens box's own language and `disabled`,
-               the same way the chat box states itself. -->
+          <!-- SORT BY (2026-08-06; ALIVE 2026-08-07) — the placeholder got
+               its server parameter with the Talavero lens engine:
+               `GET /feed?order=newest|oldest|heat`. Heat needs weighted
+               labels to score against, so that entry stays disabled until a
+               lens carries some — exactly the honesty the placeholder had,
+               one item narrower. -->
           <button
             type="button"
             class="feed-stream__lens-btn feed-stream__label-open feed-stream__sort"
-            disabled
-            title="Sort by — not wired up yet"
-            aria-label="Sort by (not wired up yet)"
+            :class="{ 'is-on': !!sortOrder }"
+            :title="'Sort by — ' + (sortOrder || 'newest')"
+            aria-label="Sort the feed"
           >
             <q-icon name="sort" size="13px" />
+            <q-menu auto-close anchor="bottom right" self="top right">
+              <q-list dense class="feed-stream__sort-menu">
+                <q-item
+                  v-for="opt in SORT_OPTS" :key="String(opt.v)"
+                  clickable
+                  :disable="opt.v === 'heat' && !hasWeightedLabels"
+                  :class="{ 'is-current': sortOrder === opt.v }"
+                  @click="setOrder(opt.v)"
+                >
+                  <q-item-section>{{ opt.label }}</q-item-section>
+                </q-item>
+              </q-list>
+            </q-menu>
           </button>
           <!-- THE LABEL LENS (open-source dev flow, 2026-08-01) — filter the
                stream by one label AND its whole subtree (rides
@@ -122,12 +139,37 @@
         </div>
       </template>
 
-      <!-- The lane's contents: the label(s) the stream is filtered on. One
-           today — `?label=` takes a single id — but the lane scrolls, so the
-           markup is a list from the start. -->
+      <!-- The lane's contents. Two regimes share it: the OLD single-label
+           lens chip (`?label=`, shareable URL) when no spoken lens is live,
+           and the SPOKEN LENS's clause chips when one is — one chip per
+           lane label plus one per synthesized clause (yesterday / from
+           allegue / pictures / "coffee"), each with a close that removes
+           JUST that clause client-side (no model round-trip), and a
+           trailing × that clears the whole lens. -->
       <template #labels>
+        <template v-if="lensSpec">
+          <button
+            v-for="chip in lensChips" :key="chip.key"
+            type="button"
+            class="feed-stream__label-chip mono"
+            :title="chip.title || (chip.text + ' — click to remove this clause')"
+            @click="chip.close()"
+          >
+            <q-icon :name="chip.icon" size="11px" />
+            <span class="feed-stream__label-chip-name">{{ chip.text }}</span>
+            <q-icon name="close" size="11px" />
+          </button>
+          <button
+            type="button"
+            class="feed-stream__label-chip feed-stream__label-chip--clear mono"
+            title="Clear the whole lens"
+            @click="clearLens"
+          >
+            <q-icon name="close" size="11px" />
+          </button>
+        </template>
         <button
-          v-if="labelFilter"
+          v-else-if="labelFilter"
           type="button"
           class="feed-stream__label-chip mono"
           :title="'Filtering by ' + labelFilter.name + ' — click to clear'"
@@ -238,6 +280,19 @@
                 class="post-square__trust mono"
                 :title="trustTitle(item.author.trust)"
               >{{ trustLabel(item.author.trust) }}</span>
+
+              <!-- HEAT CHIP (2026-08-07) — under `order=heat` every card
+                   states its own score, so the ordering can be READ as the
+                   heat map it is: Σ of the lens's label weights, each
+                   selection counted once. Only in heat order — in any other
+                   the number would claim an ordering the stream isn't in. -->
+              <span
+                v-if="sortOrder === 'heat' && item.heat != null"
+                class="post-square__heat mono"
+                :title="'Heat ' + item.heat + ' — the sum of this lens\'s label weights this post matches'"
+              >
+                <q-icon name="local_fire_department" size="10px" />{{ item.heat }}
+              </span>
 
               <!-- Full-bleed vertical hairline closing the AUTHOR section,
                    the same device as the head strip's `__head-rule`: it runs
@@ -446,6 +501,9 @@ import { defineComponent, ref, computed, watch, onMounted, onBeforeUnmount } fro
 import { useRoute, useRouter } from 'vue-router'
 import { feedService } from 'src/services/feed.service'
 import { labelService } from 'src/services/label.service'
+import { chatService } from 'src/services/chat.service'
+import { useEventsStore } from 'src/stores/events'
+import { useChatStore } from 'src/stores/chat'
 import LabelPicker from 'src/components/maker/LabelPicker.vue'
 import FeedHeadBox from 'src/components/posts/FeedHeadBox.vue'
 import { useStateHolder } from 'src/composables/useStateHolder'
@@ -454,6 +512,61 @@ import EntityAvatar from 'src/components/entities/EntityAvatar.vue'
 import OrgLogoChip from 'src/components/organizations/OrgLogoChip.vue'
 import PostMicro from 'src/components/posts/PostMicro.vue'
 import MarkdownBody from 'src/components/shared/MarkdownBody.vue'
+
+// FilterSpec symbols → a concrete window, in the VIEWER's OWN timezone —
+// the deterministic half of "yesterday" the model never touches (P4: LLM
+// calendar arithmetic is exactly the blind spot the seam cuts off). The
+// server keeps a UTC twin for `?request=` replays; THIS one runs at
+// execution, here, because "yesterday" means the viewer's yesterday.
+const resolveWhenLocal = (when) => {
+  if (!when || typeof when !== 'object') return null
+  const now = new Date()
+  const day = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate())
+  const addDays = (d, n) => { const x = new Date(d); x.setDate(x.getDate() + n); return x }
+  const parseDay = (s) => {
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(s || '').trim())
+    if (m) return new Date(+m[1], +m[2] - 1, +m[3])
+    const d = new Date(s)
+    return Number.isNaN(d.getTime()) ? null : d
+  }
+  const today = day(now)
+  if (when.preset === 'today') return { from: today, to: addDays(today, 1) }
+  if (when.preset === 'yesterday') return { from: addDays(today, -1), to: today }
+  if (when.preset === 'this_morning') return { from: today, to: new Date(today.getTime() + 12 * 3600000) }
+  if (when.preset === 'this_week') {
+    const monday = addDays(today, -((today.getDay() + 6) % 7))
+    return { from: monday, to: addDays(monday, 7) }
+  }
+  const lastDays = parseInt(when.last_days)
+  if (lastDays > 0) return { from: addDays(today, -(lastDays - 1)), to: addDays(today, 1) }
+  if (typeof when.month === 'string' && /^\d{4}-\d{2}$/.test(when.month)) {
+    const [y, mo] = when.month.split('-').map(Number)
+    return { from: new Date(y, mo - 1, 1), to: new Date(y, mo, 1) }
+  }
+  const from = when.from ? parseDay(when.from) : null
+  const to = when.to ? parseDay(when.to) : null
+  return (from || to) ? { from, to } : null
+}
+
+// The clause chips' one-line reading of a `when` object.
+const whenText = (w) => {
+  if (!w) return ''
+  if (w.preset) return w.preset.replace(/_/g, ' ')
+  if (w.last_days) return `last ${w.last_days} days`
+  if (w.month) return w.month
+  if (w.from && w.to) return `${w.from} → ${w.to}`
+  if (w.from) return `since ${w.from}`
+  if (w.to) return `before ${w.to}`
+  return ''
+}
+
+const KIND_ICONS = {
+  image: 'image',
+  file: 'attach_file',
+  video: 'smart_display',
+  link: 'link',
+  embed: 'public'
+}
 
 export default defineComponent({
   name: 'FeedStream',
@@ -518,7 +631,12 @@ export default defineComponent({
       ro.observe(streamEl.value)
       publishCeiling(streamEl.value)
     })
-    onBeforeUnmount(() => { if (ro) ro.disconnect(); ro = null })
+    onBeforeUnmount(() => {
+      if (ro) ro.disconnect()
+      ro = null
+      clearTimeout(thinkTimer)
+      clearTimeout(lineTimer)
+    })
 
     // THE TRUST LENS state — null is the open feed. Options are few and
     // fixed because hop counts on this platform are small integers: 1 is
@@ -583,6 +701,252 @@ export default defineComponent({
       } catch (_) { /* dead id — stay on the open feed */ }
     })
 
+    // ── THE SPOKEN LENS (2026-08-07, the Talavero seat) ───────────────
+    // The head box's field talks to a per-user pair chat with the seat;
+    // the answer comes back as a SILENT `feed.lens` event carrying the
+    // validated FilterSpec, and THIS component executes it — with the
+    // viewer's own JWT, through the same `GET /feed` as everything else
+    // (seat-strict: a lens computed under anyone else's footprint would
+    // lie). Session-local like the trust lens: reload = clean feed, the
+    // history lives in the chat.
+    const eventsStore = useEventsStore()
+    const chatStore = useChatStore()
+    const seat = ref(null) // lens-context seat card (null = stub install)
+    const digestNames = ref(new Map()) // label id → name (lane chip text)
+    const lensChatId = ref(null)
+    const lensSpec = ref(null) // the validated spec, or null
+    const laneLabels = ref([]) // [{ id, name, weight, subtree }]
+    const sortOrder = ref(null) // null = newest (the server default)
+    const thinking = ref(false)
+    const live = ref(false)
+    const line = ref(null) // { kind: 'say'|'song'|'fail', text }
+    const pendingReceipt = ref(null)
+    let thinkTimer = null
+    let lineTimer = null
+
+    const SORT_OPTS = [
+      { v: null, label: 'newest' },
+      { v: 'oldest', label: 'oldest' },
+      { v: 'heat', label: 'heat' }
+    ]
+    const hasWeightedLabels = computed(() => !!lensSpec.value?.labels?.length)
+
+    const showLine = (kind, text, ms = 6000) => {
+      line.value = { kind, text }
+      clearTimeout(lineTimer)
+      if (ms) lineTimer = setTimeout(() => { line.value = null }, ms)
+    }
+
+    const digestName = (id) => digestNames.value.get(id) || `label #${id}`
+
+    // The ask: find-or-create the pair chat, send, and wait for the event.
+    // The consent-gate refusals are CAUGHT and read back as lines — 40311
+    // is "your opener is still waiting", 40312 "you declined the chat".
+    const onAsk = async (text) => {
+      if (!seat.value?.id) return
+      try {
+        if (!lensChatId.value) {
+          const r = await chatService.open([seat.value.id])
+          lensChatId.value = r.chat.id
+        }
+        await chatService.send(lensChatId.value, text)
+        thinking.value = true
+        clearTimeout(thinkTimer)
+        thinkTimer = setTimeout(() => {
+          thinking.value = false
+          live.value = false
+          showLine('fail', 'Talavero is resting — see the chat', 9000)
+        }, 30000)
+      } catch (e) {
+        const code = e?.response?.data?.error?.code
+        if (code === 40311) showLine('fail', "your first ask is still waiting for Talavero — it's in the chat", 9000)
+        else if (code === 40312) showLine('fail', "you declined Talavero's chat — accept it in ChatDock to ask again", 9000)
+        else showLine('fail', 'could not reach the seat — try again', 8000)
+      }
+    }
+
+    const openLensChat = () => {
+      if (lensChatId.value) chatStore.setActive(lensChatId.value)
+      chatStore.open()
+    }
+
+    // The stream is the SECOND events reactor (ChatDock was the first):
+    // feed.lens arrives silent (no badge — the chat message badges), and
+    // the targeted ack is belt-and-braces beside that.
+    watch(() => eventsStore.lastEvent, (ev) => {
+      if (!ev || ev.kind !== 'feed.lens') return
+      const meta = ev.meta || {}
+      if (lensChatId.value && meta.chat_id && meta.chat_id !== lensChatId.value) return
+      if (!lensChatId.value && meta.chat_id) lensChatId.value = meta.chat_id
+      thinking.value = false
+      clearTimeout(thinkTimer)
+      live.value = true
+      eventsStore.ack([ev.id])
+      if (meta.mode === 'filtered') {
+        applySpec(meta.spec || {}, meta.lane_labels || [], meta.receipt)
+        if (meta.say) showLine('say', meta.say)
+      } else if (meta.mode === 'song') {
+        showLine('song', '♪ ' + String(meta.verse || '').replace(/\n/g, ' · '), 9000)
+      } else {
+        showLine('fail', meta.say || "Talavero couldn't hear that one — try again.", 8000)
+      }
+    })
+
+    const applySpec = (spec, lane, receipt) => {
+      const clauseKeys = Object.keys(spec || {}).filter((k) => k !== 'v')
+      if (!clauseKeys.length) {
+        // `{}` = reset — "show everything" clears EVERY lens, the old
+        // single-label one included.
+        clearLens({ reload: false })
+        if (labelFilter.value) { labelFilter.value = null; syncLabelQuery() }
+        load()
+        return
+      }
+      // `?label=` interop: a lens that is EXACTLY one unweighted subtree
+      // label is the old lens — hand it over, so the URL stays shareable.
+      const only = spec.labels || []
+      if (clauseKeys.every((k) => k === 'labels' || k === 'order') &&
+          only.length === 1 && only[0].weight === 1 && only[0].subtree) {
+        clearLens({ reload: false })
+        labelFilter.value = { id: only[0].id, name: digestName(only[0].id) }
+        syncLabelQuery()
+        load()
+        return
+      }
+      if (labelFilter.value) { labelFilter.value = null; syncLabelQuery() }
+      lensSpec.value = spec
+      sortOrder.value = spec.order && spec.order !== 'newest' ? spec.order : null
+      pendingReceipt.value = receipt?.id || null
+      laneLabels.value = (spec.labels || []).map((l) => ({
+        id: l.id, name: digestName(l.id), weight: l.weight, subtree: l.subtree
+      }))
+      load()
+    }
+
+    const clearLens = ({ reload = true } = {}) => {
+      lensSpec.value = null
+      laneLabels.value = []
+      sortOrder.value = null
+      pendingReceipt.value = null
+      if (reload) load()
+    }
+
+    // ── clause removal, client-side (no model round-trip) ─────────────
+    // The validated spec carries per-source resolution maps exactly so a
+    // chip-close can recompute the executable unions here.
+    const recomputeAuthorIds = (a) => {
+      const ids = new Set([
+        ...Object.values(a.resolved || {}).flat(),
+        ...(a.org ? (a.org_ids || []) : []),
+        ...(a.me ? (a.me_ids || []) : [])
+      ])
+      a.ids = [...ids]
+      const ex = new Set(Object.values(a.exclude_resolved || {}).flat())
+      if (ex.size) a.exclude_ids = [...ex]
+      else delete a.exclude_ids
+    }
+
+    const afterMutation = () => {
+      const s = lensSpec.value
+      if (s.authors && !s.authors.names?.length && !s.authors.exclude_names?.length && !s.authors.org && !s.authors.me) delete s.authors
+      if (s.labels && !s.labels.length) {
+        delete s.labels
+        if (s.order === 'heat') { s.order = 'newest'; sortOrder.value = null }
+      }
+      if (s.kinds && !s.kinds.length) { delete s.kinds; delete s.embed_rule }
+      laneLabels.value = (s.labels || []).map((l) => ({
+        id: l.id, name: digestName(l.id), weight: l.weight, subtree: l.subtree
+      }))
+      if (!Object.keys(s).filter((k) => k !== 'v').length) clearLens()
+      else load()
+    }
+
+    const dropClause = (key) => { delete lensSpec.value[key]; afterMutation() }
+    const dropLabel = (id) => {
+      lensSpec.value.labels = (lensSpec.value.labels || []).filter((l) => l.id !== id)
+      afterMutation()
+    }
+    const dropKind = (k) => {
+      lensSpec.value.kinds = (lensSpec.value.kinds || []).filter((x) => x !== k)
+      afterMutation()
+    }
+    const dropAuthorName = (listKey, mapKey, name) => {
+      const a = lensSpec.value.authors
+      a[listKey] = (a[listKey] || []).filter((n) => n !== name)
+      if (a[mapKey]) delete a[mapKey][name]
+      if (!a[listKey].length) { delete a[listKey]; delete a[mapKey] }
+      recomputeAuthorIds(a)
+      afterMutation()
+    }
+    const dropAuthorKey = (key, idsKey) => {
+      const a = lensSpec.value.authors
+      delete a[key]
+      delete a[idsKey]
+      recomputeAuthorIds(a)
+      afterMutation()
+    }
+
+    const lensChips = computed(() => {
+      const s = lensSpec.value
+      if (!s) return []
+      const chips = []
+      for (const l of laneLabels.value) {
+        chips.push({
+          key: 'label:' + l.id,
+          icon: 'label',
+          text: l.name + (l.weight > 1 ? ' ×' + l.weight : ''),
+          title: `${l.name}${l.subtree ? ' (and everything under it)' : ''} · weight ${l.weight} — click to remove`,
+          close: () => dropLabel(l.id)
+        })
+      }
+      if (s.when) chips.push({ key: 'when', icon: 'schedule', text: whenText(s.when), close: () => dropClause('when') })
+      const a = s.authors || {}
+      for (const n of a.names || []) chips.push({ key: 'a:' + n, icon: 'person', text: 'from ' + n, close: () => dropAuthorName('names', 'resolved', n) })
+      for (const n of a.exclude_names || []) chips.push({ key: 'x:' + n, icon: 'person_off', text: 'not ' + n, close: () => dropAuthorName('exclude_names', 'exclude_resolved', n) })
+      if (a.org) chips.push({ key: 'org', icon: 'group', text: a.org, close: () => dropAuthorKey('org', 'org_ids') })
+      if (a.me) chips.push({ key: 'me', icon: 'person', text: 'mine', close: () => dropAuthorKey('me', 'me_ids') })
+      for (const k of s.kinds || []) {
+        chips.push({
+          key: 'k:' + k,
+          icon: KIND_ICONS[k] || 'category',
+          text: k + (k === 'embed' && s.embed_rule ? ' · ' + s.embed_rule : ''),
+          close: () => dropKind(k)
+        })
+      }
+      if (s.text) chips.push({ key: 'q', icon: 'search', text: '"' + s.text + '"', close: () => dropClause('text') })
+      if (s.geo?.place) chips.push({ key: 'place', icon: 'place', text: s.geo.place, close: () => dropClause('geo') })
+      if (s.limit) chips.push({ key: 'limit', icon: 'tag', text: 'first ' + s.limit, close: () => dropClause('limit') })
+      return chips
+    })
+
+    const setOrder = (v) => {
+      if (sortOrder.value === v) return
+      if (v === 'heat' && !hasWeightedLabels.value) return
+      sortOrder.value = v
+      if (lensSpec.value) lensSpec.value.order = v || 'newest'
+      load()
+    }
+
+    // The spec → `GET /feed` params — symbols resolved HERE, in the
+    // viewer's timezone, at execution.
+    const lensParams = (spec) => {
+      const p = {}
+      const win = resolveWhenLocal(spec.when)
+      if (win?.from) p.from = win.from.toISOString()
+      if (win?.to) p.to = win.to.toISOString()
+      if (spec.authors?.ids?.length) p.authors = spec.authors.ids.join(',')
+      if (spec.authors?.exclude_ids?.length) p.excludeAuthors = spec.authors.exclude_ids.join(',')
+      if (spec.labels?.length) {
+        p.labels = spec.labels.map((l) => `${l.id}:${l.weight || 1}${l.subtree ? 's' : ''}`).join(',')
+      }
+      if (spec.text) p.q = spec.text
+      if (spec.kinds?.length) p.kinds = spec.kinds.join(',')
+      if (spec.embed_rule) p.embedRule = spec.embed_rule
+      if (spec.geo?.place) p.place = spec.geo.place
+      if (spec.limit) p.limit = spec.limit
+      return p
+    }
+
     const load = async () => {
       loading.value = true
       try {
@@ -590,7 +954,17 @@ export default defineComponent({
         // its whole markdown body instead of the 280-char preview slice.
         const params = { limit: 30, body: 'full' }
         if (maxHops.value != null) params.maxHops = maxHops.value
-        if (labelFilter.value) params.label = labelFilter.value.id
+        if (lensSpec.value) {
+          Object.assign(params, lensParams(lensSpec.value))
+          // First execution binds the receipt's RESULT snapshot — once.
+          if (pendingReceipt.value) {
+            params.receipt = pendingReceipt.value
+            pendingReceipt.value = null
+          }
+        } else if (labelFilter.value) {
+          params.label = labelFilter.value.id
+        }
+        if (sortOrder.value) params.order = sortOrder.value
         const r = await feedService.getPublic(params)
         if (r.success) {
           items.value = r.items
@@ -612,6 +986,13 @@ export default defineComponent({
         } catch (_) { /* open feed */ }
       }
       await load()
+      // The seat + the digest (lane chip names), one read. A failure just
+      // leaves the box on its stub — the feed owes nothing to the lens.
+      try {
+        const ctx = await feedService.getLensContext()
+        seat.value = ctx.seat || null
+        digestNames.value = new Map((ctx.labels || []).map((l) => [l.id, l.name]))
+      } catch (_) { /* stub box */ }
     })
 
     // The trust chip's two lines. Label states the DISTANCE; the tooltip
@@ -756,6 +1137,20 @@ export default defineComponent({
       onLabelPicked,
       trustLabel,
       trustTitle,
+      // the spoken lens (the Talavero seat, 2026-08-07)
+      seat,
+      lensSpec,
+      lensChips,
+      clearLens,
+      thinking,
+      live,
+      line,
+      onAsk,
+      openLensChat,
+      SORT_OPTS,
+      sortOrder,
+      setOrder,
+      hasWeightedLabels,
       // `absoluteTime` is no longer exposed — the head strip's time-ago chip
       // it fed is gone, and `momentTitle` calls it directly for the one
       // tooltip that still needs an absolute form.
@@ -945,6 +1340,24 @@ export default defineComponent({
 
 .feed-stream__label-chip-name {
   white-space: nowrap;
+}
+
+// The lens's trailing CLEAR chip — the same plaque, hollowed: an outline
+// with the ×, so "remove one clause" and "drop the whole lens" read as the
+// same family at two weights.
+.feed-stream__label-chip--clear {
+  background: transparent;
+  color: var(--fhead-ink, var(--indigo-8, #303f9f));
+  &:hover { background: var(--grey-3, #eeeeee); }
+}
+
+// The SORT BY menu — dense rows in the box's own ink; the current order
+// carries a filled left edge rather than a check glyph (one more icon in a
+// 3-row menu is noise).
+.feed-stream__sort-menu {
+  min-width: 92px;
+  .q-item { font-size: 0.72em; color: var(--indigo-9, #283593); min-height: 26px; }
+  .q-item.is-current { box-shadow: inset 3px 0 0 var(--indigo-7, #3949ab); font-weight: 700; }
 }
 
 // THE COUNT (2026-08-06, user ask: "paint the post counter indigo"). It was
@@ -1936,6 +2349,25 @@ export default defineComponent({
   color: var(--indigo-8, #303f9f);
   background: var(--grey-1, #fafafa);
   border: 1px solid var(--indigo-4, #7986cb);
+  border-radius: 9px;
+  padding: 1px 6px;
+}
+
+// HEAT CHIP (2026-08-07) — the trust chip's recipe with the tones flipped
+// warm: under `order=heat` the card states its own score, so the ordering
+// reads as the heat map it is.
+.post-square__heat {
+  margin-left: -3px;
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 0.58em;
+  font-weight: 700;
+  white-space: nowrap;
+  color: var(--deep-orange-9, #bf360c);
+  background: var(--grey-1, #fafafa);
+  border: 1px solid var(--deep-orange-4, #ff8a65);
   border-radius: 9px;
   padding: 1px 6px;
 }
