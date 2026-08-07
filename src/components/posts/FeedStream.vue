@@ -43,69 +43,77 @@
   step so the square holds as much of the post as it can.
 -->
 <template>
-  <div class="feed-stream-pane">
-    <div ref="wellEl" class="feed-stream__well">
-      <!-- Head band — INSIDE the scroller and `position: sticky` (2026-07-25),
-           which is the whole reason the cards can pass behind it. As a sibling
-           ABOVE the well it was a separate box: the well clipped its own
-           content, so nothing could ever travel under the band and a
-           translucent coat would have shown only the container's flat plaque.
-           Sticky keeps it pinned to the scrollport's top edge while the stream
-           runs underneath. -->
-      <header class="feed-stream__head">
-        <div class="feed-stream__title">
-          <div class="feed-stream__heading nasalization" style="font-size:1.05em;">Public Feed</div>
-          <div class="text-dim" style="font-size:0.74em;">Every POST instance, newest first.</div>
-        </div>
-        <q-space />
-        <!-- THE TRUST LENS (Thread J, 2026-07-29) — filter the stream by
-             invite-chain distance: "all" is the open feed, "≤N" keeps only
-             posts whose OWNER sits within N hops of you on the web of trust
-             the invite chain already is (rides `GET /feed?maxHops=`).
-             Session-local on purpose: a lens is something you look through,
-             not a setting that silently follows you to tomorrow. -->
-        <div class="feed-stream__lens" title="Trust lens — only authors within N invite-chain hops of you">
+  <div class="feed-stream-pane" :style="{ '--fhead-h': headH + 'px' }">
+    <!-- THE HEAD BOX (2026-08-06) — what used to be `.feed-stream__head`, a
+         sticky band inside the well. It is a DRAGGABLE PLATE now, grabbed by
+         its own inner header and slid up and down between the frieze bars,
+         with its four corners filleted into them; the cards still pass
+         BEHIND it, which was the sticky's whole purpose, but they do it
+         because the box is placed over the scroller rather than inside it.
+         `FeedHeadBox.vue` owns the geometry, the chrome and its own first
+         half (seat + chat box); the stream keeps its lenses and hands them
+         down through the `controls` slot, unchanged. Its position is
+         persisted through the StateHolder, so the box is where you left it
+         when you come back from a post. -->
+    <FeedHeadBox
+      :offset="headY"
+      @update:offset="setHeadY"
+      @update:height="(h) => (headH = h)"
+    >
+      <template #controls>
+        <div class="feed-stream__sub text-dim">Every POST instance, newest first.</div>
+        <div class="feed-stream__controls">
+          <!-- THE TRUST LENS (Thread J, 2026-07-29) — filter the stream by
+               invite-chain distance: "all" is the open feed, "≤N" keeps only
+               posts whose OWNER sits within N hops of you on the web of trust
+               the invite chain already is (rides `GET /feed?maxHops=`).
+               Session-local on purpose: a lens is something you look through,
+               not a setting that silently follows you to tomorrow. -->
+          <div class="feed-stream__lens" title="Trust lens — only authors within N invite-chain hops of you">
+            <button
+              v-for="opt in LENS_OPTS" :key="String(opt.v)"
+              type="button"
+              class="feed-stream__lens-btn"
+              :class="{ 'is-on': maxHops === opt.v }"
+              @click="setLens(opt.v)"
+            >{{ opt.label }}</button>
+          </div>
+          <!-- THE LABEL LENS (open-source dev flow, 2026-08-01) — filter the
+               stream by one label AND its whole subtree (rides
+               `GET /feed?label=`, resolved server-side like the trust lens so
+               the count stays honest). Unlike the trust lens it IS in the URL
+               (`/#/feed?label=<id>`): "everything labeled DEVELOPMENT" is a
+               place you send someone, where a trust radius is a way you look. -->
           <button
-            v-for="opt in LENS_OPTS" :key="String(opt.v)"
+            v-if="labelFilter"
             type="button"
-            class="feed-stream__lens-btn"
-            :class="{ 'is-on': maxHops === opt.v }"
-            @click="setLens(opt.v)"
-          >{{ opt.label }}</button>
+            class="feed-stream__label-chip mono"
+            :title="'Filtering by ' + labelFilter.name + ' — click to clear'"
+            @click="setLabelFilter(null)"
+          >
+            <q-icon name="filter_alt" size="12px" />
+            <span class="feed-stream__label-chip-name">{{ labelFilter.name }}</span>
+            <q-icon name="close" size="12px" />
+          </button>
+          <button
+            v-else
+            type="button"
+            class="feed-stream__lens-btn feed-stream__label-open"
+            title="Filter the feed by a label"
+          >
+            <q-icon name="filter_alt" size="13px" />
+            <q-menu v-model="labelMenuOpen" anchor="bottom right" self="top right">
+              <div class="feed-stream__label-menu">
+                <LabelPicker compact @picked="onLabelPicked" />
+              </div>
+            </q-menu>
+          </button>
+          <q-badge v-if="total > 0" color="primary" outline>{{ total }}</q-badge>
         </div>
-        <!-- THE LABEL LENS (open-source dev flow, 2026-08-01) — filter the
-             stream by one label AND its whole subtree (rides
-             `GET /feed?label=`, resolved server-side like the trust lens so
-             the count stays honest). Unlike the trust lens it IS in the URL
-             (`/#/feed?label=<id>`): "everything labeled DEVELOPMENT" is a
-             place you send someone, where a trust radius is a way you look. -->
-        <button
-          v-if="labelFilter"
-          type="button"
-          class="feed-stream__label-chip mono"
-          :title="'Filtering by ' + labelFilter.name + ' — click to clear'"
-          @click="setLabelFilter(null)"
-        >
-          <q-icon name="filter_alt" size="12px" />
-          <span class="feed-stream__label-chip-name">{{ labelFilter.name }}</span>
-          <q-icon name="close" size="12px" />
-        </button>
-        <button
-          v-else
-          type="button"
-          class="feed-stream__lens-btn feed-stream__label-open"
-          title="Filter the feed by a label"
-        >
-          <q-icon name="filter_alt" size="13px" />
-          <q-menu v-model="labelMenuOpen" anchor="bottom right" self="top right">
-            <div class="feed-stream__label-menu">
-              <LabelPicker compact @picked="onLabelPicked" />
-            </div>
-          </q-menu>
-        </button>
-        <q-badge v-if="total > 0" color="primary" outline>{{ total }}</q-badge>
-      </header>
+      </template>
+    </FeedHeadBox>
 
+    <div ref="wellEl" class="feed-stream__well">
       <div v-if="loading" class="text-center q-py-lg">
         <q-spinner color="primary" size="32px" />
       </div>
@@ -407,11 +415,12 @@
 </template>
 
 <script>
-import { defineComponent, ref, watch, onMounted, onBeforeUnmount } from 'vue'
+import { defineComponent, ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { feedService } from 'src/services/feed.service'
 import { labelService } from 'src/services/label.service'
 import LabelPicker from 'src/components/maker/LabelPicker.vue'
+import FeedHeadBox from 'src/components/posts/FeedHeadBox.vue'
 import { useStateHolder } from 'src/composables/useStateHolder'
 import { timeAgo, absoluteTime } from 'src/utils/time'
 import EntityAvatar from 'src/components/entities/EntityAvatar.vue'
@@ -421,7 +430,7 @@ import MarkdownBody from 'src/components/shared/MarkdownBody.vue'
 
 export default defineComponent({
   name: 'FeedStream',
-  components: { EntityAvatar, OrgLogoChip, PostMicro, MarkdownBody, LabelPicker },
+  components: { EntityAvatar, OrgLogoChip, PostMicro, MarkdownBody, LabelPicker, FeedHeadBox },
   props: {
     // The post whose information flyout is open, if any. The stream does not
     // own that state: the flyout is placed OUTSIDE the feed container (it
@@ -443,6 +452,24 @@ export default defineComponent({
     // instead.
     const holder = useStateHolder({}, { trackScroll: false })
     holder.trackContainer(wellEl, 'feed')
+
+    // THE HEAD BOX's position (2026-08-06) — px from the container's top
+    // edge, `null` until someone drags it (the box resolves that to its own
+    // resting offset, so the geometry stays in one file). It rides the
+    // StateHolder rather than a plain ref because moving the head is an
+    // ARRANGEMENT of this surface, not a lens you look through: coming back
+    // from a post to find the box back at the top would read as the drag
+    // having been undone. The box reports on RELEASE, not per frame, so this
+    // writes one nav_state row per gesture.
+    const headY = computed(() => (typeof holder.state.headY === 'number' ? holder.state.headY : null))
+    const setHeadY = (v) => { holder.state.headY = v }
+
+    // …and its measured height, published back down as `--fhead-h`: the well
+    // reserves the box's HOME slot so the first card is not born underneath
+    // it (what the band's own place in the flow used to buy). Lifted out of
+    // that slot, the box floats and the slot stays — the reveal at the top of
+    // the stream is where the head came from.
+    const headH = ref(0)
 
     // THE SQUARE CEILING, measured rather than inferred. A card may be no
     // taller than it is wide, and since the cards are full-bleed that width is
@@ -682,6 +709,9 @@ export default defineComponent({
       loading,
       wellEl,
       streamEl,
+      headY,
+      setHeadY,
+      headH,
       authorName,
       authorHandle,
       momentDetail,
@@ -725,88 +755,54 @@ export default defineComponent({
   flex-direction: column;
   min-height: 0;
   min-width: 0;
+  // THE HEAD BOX'S CONTAINING BLOCK (2026-08-06). The box is absolute against
+  // this element, which is exactly the field between the two frieze bars, so
+  // "inside the frieze bars" needs no measuring: `left/right: 0` spans it and
+  // the pane's own height is the box's travel. No z-index — the pane must not
+  // become a stacking context, or the flyout's 3002 would start ranking
+  // against this pane as a unit (the same trap `.feed-page` documents).
+  position: relative;
 }
 
-// The band clears the crown strip the container runs up over, so the title
-// does not sit on the window's very top edge.
+// ── THE HEAD, AFTER IT BECAME A BOX (2026-08-06) ────────────────────
+// `.feed-stream__head` is GONE and with it every rule that made it a band:
+// `position: sticky; top: 0` (the cards travelled behind it because it was
+// pinned inside the scroller), the `margin: 0 -3px 10px` that cancelled the
+// well's side padding to keep it full-bleed lip to lip, the `--grey-4` coat
+// it wore because it WAS the container showing through the stream, and the
+// `2px --indigo-3` edge that stated where it ended. All four were answers to
+// "a plate that lives at the top of a padded scroller", and the head does not
+// live there any more: `FeedHeadBox.vue` places it over the well instead, out
+// of the flow entirely, so it spans the field by construction, hides the
+// cards by being opaque rather than by being pinned, and draws its own two
+// edges because it is an object on the plate and no longer the plate itself.
 //
-// It is STICKY INSIDE THE WELL (2026-07-25), not a sibling above it — see the
-// template note. That is what lets the post cards travel behind it, which in
-// turn is what makes the translucent coat mean anything: `--indigo-3` at
-// `0.82` alpha over a light `backdrop-filter: blur(5px)`, so the band reads as
-// GLASS — its own tone, with the stream visibly moving behind it but softened
-// rather than competing with the title. This is the ONE deliberate exception
-// to the surface's flat-plaque rule (which bans sheen and glass everywhere
-// else); it is also why the alpha sits at .82 rather than the .72 it launched
-// at — a blur alone still let the moving text read as text under the title.
+// The sticky trap that block documented is still worth carrying: a sticky
+// element is constrained by its MARGIN box, so a negative `margin-top` there
+// is undone by `top: 0` and simply pushes the element down. It cost a pass to
+// find and it is in [gotchas.md](../../../specs/gotchas.md) — nothing here
+// depends on it any more, but the next sticky band on this surface will.
 //
-// Two rules keep it seated once it is inside a padded scroller:
-//   `margin: 0 -3px 10px` — the side negatives cancel the well's side padding
-//     so the band stays FULL-BLEED, frieze lip to frieze lip, while the CARDS
-//     inside it keep the sliver. Always exactly `-1 x` that padding: `-10px`,
-//     `-5px`, `0` while the padding was 0 (a negative margin with nothing to
-//     cancel pushes the band OUT over the bars), and `-3px` since. The bottom
-//     margin is the 10px gap to the first card, which the well's top padding
-//     used to provide before the band moved in — that one is unchanged.
-//   `top: 0` + `z-index: 1` — pins it to the scrollport and keeps it over the
-//     cards. Anything higher is unnecessary; the card is not positioned.
-//
-// The margin-TOP is deliberately `0`, and the WELL's `padding-top` went to `0`
-// with it, rather than the band cancelling that padding the way it cancels the
-// side padding. A negative `margin-top` does NOT work here: sticky constrains
-// the element's MARGIN box, so a `-10px` top margin (which puts the margin box
-// 10px above the border box) is cancelled by `top: 0` and the band is pushed
-// DOWN by exactly that 10px — it comes to rest 10px below the container's top
-// edge and its bottom margin lands under the first card instead of above it.
-// See gotchas.md.
-.feed-stream__head {
-  position: sticky;
-  top: 0;
-  z-index: 1;
+// What the stream kept is the CONTENTS of the band's right end: the sub-line
+// and the lens cluster, handed to the box through its `controls` slot and
+// still styled here, since they are the stream's controls and not the box's
+// chrome. They stack now instead of running in one row — the slot is half a
+// box wide, not a whole band.
+// The sub-line — the band's caption, unchanged in ink (the generic dim one:
+// giving it the heading's colour would flatten the pair into one block) and
+// unchanged in size, only no longer sitting beside a heading. `.feed-stream__title`,
+// the two-line stack it shared with that heading, went with the heading.
+.feed-stream__sub {
+  min-width: 0;
+  font-size: 0.74em;
+}
+
+.feed-stream__controls {
   display: flex;
   align-items: center;
-  gap: 8px;
-  flex: 0 0 auto;
-  margin: 0 -3px 10px;
-  // Symmetric 8px — the top padding used to be `calc(var(--frieze-h) + 8px)`,
-  // clearing the crown strip the container runs up over so the title did not
-  // sit on the window's very top edge. That clearance is gone (2026-07-25):
-  // the band is deliberately SHORT now, and since it is opaque enough to be
-  // its own surface it stands in for the strip across the container's width
-  // rather than sitting below it — the same move the drawer and the stack
-  // widget already make where they meet the top edge.
-  padding: 8px 12px;
-  // The band is a FLAT PLAQUE in the container's own coat (end of
-  // 2026-07-25) — `--indigo-1`, the same tone the feed box, its frieze
-  // bars' base and the post cards wear. It was the surface's one deliberate
-  // exception to the flat-plaque rule: `rgba(--indigo-3-rgb, .82)` over
-  // `backdrop-filter: blur(5px)`, so the cards read as movement behind
-  // glass. Opaque, that whole device is moot — a coat at full alpha shows
-  // nothing through it, and the blur is dead weight the compositor still
-  // pays for — so both went with the alpha. The band is now the container
-  // showing through the stream rather than a pane laid over it, and the
-  // `2px --indigo-3` edge below is what states where it ends.
-  //
-  // It stays STICKY: the point of the sticky is the pinning (the head
-  // travels with the scrollport), which an opaque band needs exactly as
-  // much — and being opaque is what lets it hide, rather than soften, the
-  // cards passing under it.
-  // …and since 2026-08-05 (user ask) that coat is `--grey-4`, the frieze
-  // bars' plaque. The band's whole definition is "the container showing
-  // through the stream", so it follows the container's tone by construction
-  // — the tone is not the band's to choose. Its `--indigo-3` edge below is
-  // untouched: that line states where the band ends, and it belongs to the
-  // colorway, not to the plate.
-  background: var(--grey-4, #e0e0e0);
-  // Thicker, and in `--indigo-3` — the ink every other line on this surface
-  // is drawn in, and the band's own tone at full opacity. So the border reads
-  // as the solid edge of the translucent band rather than as a separate rule
-  // laid under it (it was a generic `rgba(ink, .14)` hairline, then briefly
-  // `--indigo-2`).
-  border-bottom: 2px solid var(--indigo-3, #9fa8da);
+  flex-wrap: wrap;
+  gap: 6px;
 }
-
-.feed-stream__title { min-width: 0; }
 
 // THE TRUST LENS (Thread J) — a small segmented control in the head band,
 // drawn entirely in the surface's own colorway: `--grey-1` plates rimmed
@@ -887,16 +883,15 @@ export default defineComponent({
   background: var(--grey-1, #fafafa);
 }
 
-// The band's MAIN TEXT is the colorway's ink (end of 2026-07-25) —
-// `--indigo-8`, the same ink the post cards' titles carry on their
-// plates, replacing the platform-wide `text-accent` teal. On a `-1` coat
-// the accent read as a foreign colour dropped onto the container; the
-// colorway's own dark end is what makes the head and the cards below it
-// one surface. The sub-line stays the generic dim ink: it is a caption,
-// and giving it the same ink would flatten the two into one block.
-.feed-stream__heading {
-  color: var(--indigo-8, #303f9f);
-}
+// `.feed-stream__heading` — the band's "Public Feed" in `--indigo-8` (end of
+// 2026-07-25, replacing the platform-wide `text-accent` teal: on the
+// container's own coat the accent read as a foreign colour dropped onto it) —
+// is GONE with the band (2026-08-06). The name is the head BOX's bar title
+// now (`.feed-head__title`), one step deeper at `--indigo-10`, which is the
+// tone the parked-media tabs took for writing laid on a neutral face; the
+// box's chrome follows the tabs it borrows its corners from, not the cards.
+// The SUB-LINE stayed exactly as it was — the generic dim ink, since it is a
+// caption and one ink for both would flatten the pair into a block.
 
 .feed-stream__well {
   flex: 1 1 auto;
@@ -950,24 +945,31 @@ export default defineComponent({
   // draws nothing) precisely because of that pass, and it stays that way — the
   // sliver is doing the separating now, not a lip.
   //
-  // The vertical rhythm is untouched at 10px (the band's bottom margin above
-  // the first card, the stream's flex `gap` between the rest), so the reveal is
+  // The vertical rhythm is untouched at 10px (the gap under the head, the
+  // stream's flex `gap` between the rest), so the reveal is
   // deliberately UNEVEN: wide between cards, a hairline at the lips. The head
-  // band's negative side margins are exactly `-1 x` this number
-  // (`.feed-stream__head`) — they cancel it so the band stays full-bleed lip to
-  // lip, and they were `-10px`, `-5px`, `0` and now `-3px` in step with it.
-  // There is NO top padding: the sticky head band is the well's first child and
-  // has to sit flush on the container's top edge, and the 10px gap to the first
-  // card — which this padding used to provide — is the band's own
-  // `margin-bottom` now. (Keeping the padding and cancelling it with a negative
-  // margin on the band does not work; see the sticky note on
-  // `.feed-stream__head`.)
+  // band's negative side margins used to be exactly `-1 x` this number so the
+  // band stayed full-bleed lip to lip while the cards kept the sliver
+  // (`-10px`, `-5px`, `0`, `-3px`, in step with it); the head is a BOX outside
+  // this scroller since 2026-08-06 and spans the field on its own, so that
+  // pairing is retired and this padding is the cards' alone.
+  //
+  // The TOP padding came back with the same change, and it is the box's HOME
+  // SLOT: `--fhead-h` is the box's measured height (published down from
+  // `setup()` — a px value, for the same reason `--post-square-max` is one),
+  // `10px` is the box's resting offset and another `10px` the gap to the first
+  // card, so at rest the stream begins exactly where it began under the band.
+  // It does NOT follow the box down: the slot is the head's place, and a
+  // stream that reflowed while you dragged would make the drag a resize. Drag
+  // the head away and the reveal it leaves behind is where it came from.
+  // (The band-era `0` is in the history for the sticky trap that forced it —
+  // see the retired `.feed-stream__head` note above.)
   // The bottom padding is the exception and has a job of its own: clearing the
   // frieze footer band the container hovers over.
   // NOTE the side padding narrows `.feed-stream`, which is the element the
   // square ceiling is measured from — the ResizeObserver picks the new width
   // up on its own, so `--post-square-max` follows automatically.
-  padding: 0 3px calc(var(--frieze-h) + 12px);
+  padding: calc(var(--fhead-h, 118px) + 20px) 3px calc(var(--frieze-h) + 12px);
   scrollbar-width: thin;
   scrollbar-color: rgba(var(--ink-rgb), 0.3) transparent;
 
