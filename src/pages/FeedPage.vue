@@ -183,9 +183,13 @@ export default defineComponent({
 // 40%, having grown to 50% from 40% on 2026-07-25) — the two vertical frieze bars
 // are its EDGES, not extras bolted outside it, so the percentage covers the
 // whole box. The bars replace the plain side borders it used to draw: each
-// bar carries that hairline as its inward-facing lip (lime-3 at first,
-// blue-grey-3 since the bar's colorway moved on 2026-07-25, indigo-3 since
-// the operator's hue-swap ask on 2026-08-05).
+// bar carried that hairline as its inward-facing lip (lime-3 at first,
+// blue-grey-3 since the bar's colorway moved on 2026-07-25, indigo-3 from the
+// operator's hue-swap ask on 2026-08-05, then -6, -5 and -4 across that day and
+// the next) — and since 2026-08-06 it carries NO line: the lip is `--grey-4`,
+// the plaque's own tone, because the same ask took the well's side padding to 0
+// and the post cards now run lip to lip with their own border. The box's side
+// edges are the CARDS' edges now; the bars simply end where the cards begin.
 .feed-container {
   flex: 0 0 45%;
   height: 100%;
@@ -209,7 +213,17 @@ export default defineComponent({
   // margin the two percentages share that basis and simply add: 2.5 + 45 =
   // 47.5% of the track, so the box keeps its exact 45% and nothing overflows.
   margin-left: 2.5%;
-  background: var(--indigo-1); // Quasar indigo-1 — the same plaque coat the frieze bars wear, so box and edges are one material
+  // The BOX FOLLOWS ITS EDGES (2026-08-05, second user ask of the day). The
+  // rule here has never changed — the container wears the frieze bars' own
+  // plaque tone, so box and edges are one continuous material — but the bars
+  // moved to `--grey-4` that morning and the box stayed on `--indigo-1`, which
+  // left the rule stated in the comments and broken on screen for one pass.
+  // This is the box catching up. The feed's whole field is the neutral now
+  // (here, plus FeedStream's head band and scroll bed); what stays indigo is
+  // everything that was never the plaque — the bars' waves, their inward lip,
+  // and the post cards, which now read as pale objects LYING ON a grey plate
+  // instead of as slightly-lighter patches of one indigo surface.
+  background: var(--grey-4);
 
   // The container is OPAQUE, so overlapping the crown strip is a paint-order
   // question: FriezeHeader is fixed at z 3000, and only a positioned box above

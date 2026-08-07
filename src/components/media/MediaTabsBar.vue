@@ -1,5 +1,6 @@
 <template>
-  <!-- The minimize band — a thin light-grey strip with a metal rim,
+  <!-- The minimize band — a thin light-grey strip rimmed and lettered in
+       indigo (`--indigo-4` edges, `--indigo-10` marks, 2026-08-06),
        ABOVE the crown strip (not on it: `--media-tabs-h` moves the whole
        top chrome down for it, 2026-08-05), carrying one tab per parked
        viewer; clicking a tab restores its window
@@ -65,10 +66,22 @@ export default defineComponent({
 // and window are one material, which is what lets a tab flare out of the
 // band instead of being stuck onto it.
 //
-// The 1px `--grey-6` rim under it is the tabs' own border continued across
+// The 1px `--indigo-4` rim under it is the tabs' own border continued across
 // the window (user ask, same day: "so it looks smooth and metallic") — the
 // band is a machined edge with tabs cut out of it, and one line has to run
-// the whole way for that to read. `border-box` + the `+ 1px` in
+// the whole way for that to read. That line was `--grey-6` until 2026-08-06,
+// when the user moved every EDGE on this strip into the feed colorway and
+// every MARK on it to `--indigo-10`: the face stays the window's own neutral
+// coat, so the strip reads as grey metal with the platform's indigo scribed
+// into it. The edge WALKED UP in one sitting — asked for at `--indigo-6`
+// (the feed container's lip), then -5, then here — and the walk is the note
+// worth keeping: this is 1px of hue laid the full width of a light band at
+// the very top of the screen, where the lip is a short edge read against the
+// feed's own coat. At -6 that line RULES the page; at -4, the motif's LIT
+// wave, it states the colorway and lets the strip stay a light thing. Depth
+// on this edge went the opposite way from the ink beside it, which took the
+// family's deepest step — the contrast between the two IS the strip.
+// `border-box` + the `+ 1px` in
 // `--media-tabs-h` is what keeps the FACE a clean `--media-tabs-band` while
 // the rim adds its own pixel to the space the page gives up. The tabs then
 // hang from `top: 100%` — the padding box, i.e. the face's underside — so
@@ -83,7 +96,7 @@ export default defineComponent({
   box-sizing: border-box;
   height: calc(var(--media-tabs-band) + 1px);
   background: var(--grey-4, #e0e0e0);
-  border-bottom: 1px solid var(--grey-6, #9e9e9e);
+  border-bottom: 1px solid var(--indigo-4, #7986cb);
   z-index: 3105;
   pointer-events: none;
 }
@@ -123,11 +136,13 @@ export default defineComponent({
 }
 
 // A tab is a piece of the band pulled downward: same `--grey-4` face, a
-// thin `--grey-6` rim (the media window's own rim tone — this is the
-// window's handle, so it is drawn in the window's line), dark `--grey-9`
-// ink in the display face. `--mtab-face` exists so the flares can follow
-// the face through hover and press — they are painted by a gradient and
-// cannot inherit `background`.
+// thin `--indigo-4` rim — the band's own line, so the two are still one
+// continuous edge; it was the media window's `--grey-6` rim tone until
+// 2026-08-06 (user ask), which is the day the handle stopped matching the
+// window it opens and started matching the STRIP it hangs from — and
+// `--indigo-10` ink in the display face. `--mtab-face` exists so the flares
+// can follow the face through hover and press — they are painted by a
+// gradient and cannot inherit `background`.
 .media-tabs__tab {
   --mtab-face: var(--grey-4, #e0e0e0);
   pointer-events: auto; // the one clickable thing on a click-through band
@@ -140,11 +155,11 @@ export default defineComponent({
   min-width: 46px; // the shrink floor: glyph + a sliver of name
   max-width: 180px;
   padding: 0 10px;
-  border: 1px solid var(--grey-6, #9e9e9e);
+  border: 1px solid var(--indigo-4, #7986cb);
   border-top: none; // it flows out of the band, so it has no top edge
   border-radius: 0 0 9px 9px;
   background: var(--mtab-face);
-  color: var(--grey-9, #424242);
+  color: var(--indigo-10, #1a237e);
   font-size: 0.62em;
   cursor: pointer;
   transition: background 0.12s, height 0.12s, transform 0.12s;
@@ -163,7 +178,10 @@ export default defineComponent({
   // 9px square (plus 1px of overlap INTO the tab, which covers the stub of
   // side border that would otherwise cross the sweep) filled with the tab's
   // face except a quarter-disc carved out of the corner nearest the tab.
-  // The two extra colour stops draw the rim along that arc, and the arc
+  // The two extra colour stops draw the rim along that arc IN THE RIM'S OWN
+  // TONE — they are the fillet's half of the one continuous line, so they
+  // move whenever the border does (grey-6 → indigo-4, 2026-08-06) or the
+  // edge changes colour halfway through its sweep — and the arc
   // meets the tab's own border exactly where its tangent turns vertical, so
   // one continuous line runs band → flare → tab.
   //
@@ -183,21 +201,26 @@ export default defineComponent({
   &::before {
     left: -9px;
     background: radial-gradient(circle at 0 100%,
-      transparent 7.9px, var(--grey-6, #9e9e9e) 8.1px,
-      var(--grey-6, #9e9e9e) 8.9px, var(--mtab-face) 9.1px);
+      transparent 7.9px, var(--indigo-4, #7986cb) 8.1px,
+      var(--indigo-4, #7986cb) 8.9px, var(--mtab-face) 9.1px);
   }
 
   &::after {
     right: -9px;
     background: radial-gradient(circle at 100% 100%,
-      transparent 7.9px, var(--grey-6, #9e9e9e) 8.1px,
-      var(--grey-6, #9e9e9e) 8.9px, var(--mtab-face) 9.1px);
+      transparent 7.9px, var(--indigo-4, #7986cb) 8.1px,
+      var(--indigo-4, #7986cb) 8.9px, var(--mtab-face) 9.1px);
   }
 }
 
 .media-tabs__glyph {
   flex: 0 0 auto;
-  color: var(--grey-8, #616161); // a step under the ink — glyph, not word
+  // The SAME tone as the name (2026-08-06, user ask: "text and icons to
+  // indigo-10"), where it used to sit a step under it at `--grey-8` —
+  // glyph, not word. At 12px on a light face the step was reading as a
+  // faded mark rather than a quieter one, and one ink for both makes the
+  // tab a single written thing.
+  color: var(--indigo-10, #1a237e);
 }
 
 .media-tabs__name {

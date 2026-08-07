@@ -741,11 +741,13 @@ export default defineComponent({
 // at — a blur alone still let the moving text read as text under the title.
 //
 // Two rules keep it seated once it is inside a padded scroller:
-//   `margin: 0 -10px 10px` — the side negatives cancel the well's side padding
-//     so the band is FULL-BLEED, frieze lip to frieze lip, exactly as it was
-//     when it sat outside the well. The bottom margin is the 10px gap to the
-//     first card, which the well's top padding used to provide before the band
-//     moved in. Keep the negatives in step with the well's side padding.
+//   `margin: 0 -3px 10px` — the side negatives cancel the well's side padding
+//     so the band stays FULL-BLEED, frieze lip to frieze lip, while the CARDS
+//     inside it keep the sliver. Always exactly `-1 x` that padding: `-10px`,
+//     `-5px`, `0` while the padding was 0 (a negative margin with nothing to
+//     cancel pushes the band OUT over the bars), and `-3px` since. The bottom
+//     margin is the 10px gap to the first card, which the well's top padding
+//     used to provide before the band moved in — that one is unchanged.
 //   `top: 0` + `z-index: 1` — pins it to the scrollport and keeps it over the
 //     cards. Anything higher is unnecessary; the card is not positioned.
 //
@@ -765,7 +767,7 @@ export default defineComponent({
   align-items: center;
   gap: 8px;
   flex: 0 0 auto;
-  margin: 0 -10px 10px;
+  margin: 0 -3px 10px;
   // Symmetric 8px — the top padding used to be `calc(var(--frieze-h) + 8px)`,
   // clearing the crown strip the container runs up over so the title did not
   // sit on the window's very top edge. That clearance is gone (2026-07-25):
@@ -789,7 +791,13 @@ export default defineComponent({
   // travels with the scrollport), which an opaque band needs exactly as
   // much — and being opaque is what lets it hide, rather than soften, the
   // cards passing under it.
-  background: var(--indigo-1, #e8eaf6);
+  // …and since 2026-08-05 (user ask) that coat is `--grey-4`, the frieze
+  // bars' plaque. The band's whole definition is "the container showing
+  // through the stream", so it follows the container's tone by construction
+  // — the tone is not the band's to choose. Its `--indigo-3` edge below is
+  // untouched: that line states where the band ends, and it belongs to the
+  // colorway, not to the plate.
+  background: var(--grey-4, #e0e0e0);
   // Thicker, and in `--indigo-3` — the ink every other line on this surface
   // is drawn in, and the band's own tone at full opacity. So the border reads
   // as the solid edge of the translucent band rather than as a separate rule
@@ -902,24 +910,64 @@ export default defineComponent({
   // where the surface resolves: the bed only has to be far enough from the
   // card to separate it, and with the card now OUTLINED in -4 the separation
   // is the border's job — a dark field underneath as well was doing it twice.
-  // -2 is also the one step NOT in the frieze bars' tone mapping (1/3/4), so
-  // the bed reads as its own quiet layer rather than echoing an edge.
-  background: var(--indigo-2, #c5cae9);
-  // The bed's REVEAL around the cards (2026-07-25 — the cards were full-bleed,
-  // frieze lip to frieze lip, before this). `10px` on the sides is the gap
-  // between the frieze bars and the cards. There is NO top padding: the sticky
-  // head band is the well's first child and has to sit flush on the container's
-  // top edge, and the 10px gap to the first card — which this padding used to
-  // provide — is the band's own `margin-bottom` now. (Keeping the padding and
-  // cancelling it with a negative margin on the band does not work; see the
-  // sticky note on `.feed-stream__head`.) Both gaps still match the stream's
-  // flex `gap`, so the bed reads as ONE uniform margin around every card.
+  // -2 was also the one step NOT in the frieze bars' tone mapping of the day
+  // (1/3/4), so the bed read as its own quiet layer rather than echoing an
+  // edge — an argument that has since expired twice: the bars keep no indigo
+  // but their waves, and those settled at -4/-6 on 2026-08-05.
+  //
+  // It went FLUSH WITH THE CONTAINER on 2026-08-05 (user ask) — `--grey-4`,
+  // the same plaque the box and its two frieze edges wear. The bed is the only
+  // part of the field a reader ever actually SEES (it covers the container
+  // edge to edge), so leaving it indigo while the box went neutral would have
+  // made the change true in the stylesheet and invisible on screen. The step
+  // it used to hold under the cards is not lost, it changed sign: the cards
+  // are `--indigo-1` on a neutral now, so they separate by HUE and by their
+  // own outline rather than by sitting a shade above their bed —
+  // which is the same move the node panel made when its reading panes went
+  // teal on a grey box (see `$teal-1` in _tokens.scss).
+  //
+  // BACK ON THE PLAQUE, and this time the whole BOX is: 2026-08-06 walked this
+  // floor `--grey-5` (a sunk tray), then `--grey-3` (a lit page), then back to
+  // `--grey-4` on the ask that also removed the side padding and took the
+  // frieze lips to the same tone. Those three go together and are one idea:
+  // bars, container, head band and bed are a single material with no edge
+  // anywhere between them, so the box is one continuous plate from lip to lip.
+  //
+  // The step did not disappear, it MOVED — the last ask of the day put the
+  // CARD at `--grey-3`, one above this. Which is the better arrangement of the
+  // same two tones: the bed is the box (and the box is one material with its
+  // frieze edges, the rule that has held since 2026-07-25), and the pale thing
+  // is the object lying on it. Nothing here separates by hue any more; a card
+  // is stated by one step of lightness and its own `--grey-6` outline.
+  background: var(--grey-4, #e0e0e0);
+  // The bed's REVEAL around the cards. The sides walked the whole way down and
+  // a little back up on 2026-08-06: `10px` (from the day the well took padding
+  // back) → `5px` → `0` ("remove completely") → **`3px`** ("just a little
+  // little"). Three pixels is not a gap you read as space — it is the smallest
+  // reveal that keeps the card's own border from LANDING ON the frieze bar, and
+  // that is the whole job. At `0` the card ran flush into the bar and its edge
+  // and the bar's became one line at the seam; the bar's lip is `--grey-4` (it
+  // draws nothing) precisely because of that pass, and it stays that way — the
+  // sliver is doing the separating now, not a lip.
+  //
+  // The vertical rhythm is untouched at 10px (the band's bottom margin above
+  // the first card, the stream's flex `gap` between the rest), so the reveal is
+  // deliberately UNEVEN: wide between cards, a hairline at the lips. The head
+  // band's negative side margins are exactly `-1 x` this number
+  // (`.feed-stream__head`) — they cancel it so the band stays full-bleed lip to
+  // lip, and they were `-10px`, `-5px`, `0` and now `-3px` in step with it.
+  // There is NO top padding: the sticky head band is the well's first child and
+  // has to sit flush on the container's top edge, and the 10px gap to the first
+  // card — which this padding used to provide — is the band's own
+  // `margin-bottom` now. (Keeping the padding and cancelling it with a negative
+  // margin on the band does not work; see the sticky note on
+  // `.feed-stream__head`.)
   // The bottom padding is the exception and has a job of its own: clearing the
   // frieze footer band the container hovers over.
   // NOTE the side padding narrows `.feed-stream`, which is the element the
   // square ceiling is measured from — the ResizeObserver picks the new width
   // up on its own, so `--post-square-max` follows automatically.
-  padding: 0 10px calc(var(--frieze-h) + 12px);
+  padding: 0 3px calc(var(--frieze-h) + 12px);
   scrollbar-width: thin;
   scrollbar-color: rgba(var(--ink-rgb), 0.3) transparent;
 
@@ -951,11 +999,16 @@ export default defineComponent({
 // One post = one square, the same visual grammar as .label-square on the
 // labels page: hairline border, mono uppercase head, and a carved inset pit
 // for the body — but drawn entirely in the FEED CONTAINER's own colorway
-// rather than the platform's white. One step, one job: `--indigo-1` coats
-// the card (as it coats the container), `--indigo-2` is the scroll bed
-// under it, and `--indigo-3` draws EVERY line — the card's 2px outer
-// border, the pit's 1px inner one, and the frieze lips — so only the weight
-// distinguishes them. `--indigo-4` is left to the frieze bars' wave layer.
+// rather than the platform's white — which since 2026-08-06 means the
+// container's NEUTRAL. One step, one job, as of that day: `--grey-4` coats the
+// card (as it coats the container, the rule that has never moved), `--grey-3`
+// is the scroll bed under it, and `--indigo-4` draws EVERY line — the card's
+// 2px outer border, its byline hairline and vertical rule, the title plate's
+// rim, the label rail, the trust chip, the pit's 1px inner one, and the frieze
+// lips — so only the weight distinguishes them. The colorway's earlier reading
+// was `--indigo-1` card, `--indigo-2` bed, `--indigo-3` lines, with -4 left to
+// the frieze waves; each of those three moved on its own ask, and the SHAPE of
+// the rule survived all of them: coat, bed, one line ink.
 //
 // GEOMETRY (2026-07-25) — a true square, width-led and content-limited:
 //
@@ -1009,38 +1062,72 @@ export default defineComponent({
   // lip it touched. The well's new 10px side padding removed that constraint,
   // so all four edges are drawn again and the corners are round.
   //
-  // The ink is `--indigo-3` (end of 2026-07-25 — it was the deeper
-  // `--indigo-4`). Lighter AND thicker was one move, not two opposing ones:
-  // a hairline needs contrast to register, a wider band does not, so the
-  // outline could drop to the colorway's lip tone and still read — as a drawn
-  // EDGE rather than a dark line. It also puts the card's outer border on the
-  // same ink as its inner one (the pit's) and as the frieze lips, so every
-  // line on the surface is -3 and only the weight distinguishes them: -1 coats
-  // container and card, -2 is the bed, -3 draws every line, -4 is left to the
-  // frieze bars' wave layer.
+  // ONE INK, `--indigo-4`, on all seven inner lines AND all four outer edges —
+  // the card's oldest rule, that its lines share an ink and differ only in
+  // WEIGHT, held after all. It very nearly did not: the last passes of
+  // 2026-08-06 split the box into a bevel (bottom + left in the colorway, top +
+  // right neutral, reading as a light source at the top right) before the user
+  // brought the other two edges across as well. The bevel is worth remembering
+  // as a REAL option — the card lost its drop shadow at the end of 2026-07-25
+  // and two coloured edges restate that lift as line, at no cost — but the
+  // reunited box is the simpler statement, and simpler is what this surface has
+  // been converging on all along.
   //
-  // The weight is UNEVEN by design (end of 2026-07-25): 1px on top and the
-  // sides, 2px along the bottom. All four were 2px for a moment and the box
-  // read heavy — the border is the only line the card has, so it carries at
-  // full strength everywhere. Thinning three of the four edges keeps a single
-  // weighted BASE, which is enough to seat the card on the bed without the
-  // outline shouting. Set the box at 1px and override the one edge, rather
-  // than writing a four-value `border-width` — the intent is "hairline box,
-  // heavier foot", and that is what this reads as.
-  border: 1px solid var(--indigo-3, #9fa8da);
-  border-bottom-width: 2px;
-  border-radius: var(--radius-md, 0.85em);
-  // The card's coat is the CONTAINER's coat (2026-07-25) — `--indigo-1`, the
-  // same plaque tone the feed box and its frieze bars' base wear, not the
-  // generic white `--paper-card` every other square on the platform uses. A
-  // post square is a piece of this container, so it is cut from the container's
-  // material.
-  background: var(--indigo-1, #e8eaf6);
+  // The full walk that day: `--indigo-3` (from 2026-07-25) → `--indigo-4` →
+  // `--grey-5` → `--grey-6` → the split (asked at `--indigo-6`, tried at -5,
+  // settled at -4) → back to one ink here. The trip out to the greys and all
+  // the way back is worth keeping for what it settled. The -3 → -4 step was
+  // about the surfaces going neutral underneath: a line's job on a grey plate
+  // is not the job it had on an indigo one, and with a `--grey-3` card on a
+  // `--grey-4` bed the line is the only thing stating the card's shape. The
+  // greys then proved how much DEPTH that edge needs — `--grey-5` read as a
+  // soft suggestion of a card at the frieze seam, `--grey-6` held — before the
+  // hue came back to carry it at the same depth. And -4 is the level the rest
+  // of this screen already draws lines in: the media tabs strip's edges, and
+  // the bars' lip whenever it has a job (it does not now — `--grey-4`).
+  //
+  // So: grep `.post-square` for the tone before touching ANY of these eight
+  // lines, and move them together.
+  //
+  // EVEN on all four edges since 2026-08-06 (user ask). The weight was UNEVEN
+  // from the end of 2026-07-25 — 1px on top and the sides, a 2px
+  // `border-bottom-width` under them, a hairline box on a heavier FOOT that
+  // seated the card on its bed (all four were 2px before that and the box read
+  // heavy). What retired the foot is that the bed stopped being something to
+  // sit ON: it is `--grey-3` now, a step LIGHTER than the card, so a weighted
+  // base under a box resting on nothing darker read as a shadow with nothing
+  // casting it.
+  border: 1px solid var(--indigo-4, #7986cb);
+  // LESS ROUNDED, twice on 2026-08-06 (two user asks) — `--radius-md` (0.85em)
+  // to `--radius-sm` (0.5em, the step the card's own inner boxes turn) and then
+  // to a flat `4px`. Flat px and not a token on purpose: there is no platform
+  // step below -sm, and minting `--radius-xs` for one box would state a
+  // platform-wide rhythm that does not exist. It read as a rounded tile at -md
+  // and as a sheet with the corners taken off at -sm; at 4px the corner says
+  // only that the box is not a raw rectangle — the right register for a card
+  // whose LINES do the separating and whose bed is a step lighter than it.
+  border-radius: 4px;
+  // `--grey-3` — ONE STEP ABOVE the bed it lies on (2026-08-06, the last of
+  // that day's asks). The card left the colorway earlier the same day
+  // (`--indigo-1` → `--grey-4`, the container's own coat, since a post square
+  // is a piece of the container and never wore the platform's generic white
+  // `--paper-card`), and this moves it off the plaque by one step in the
+  // LIGHT direction. So the tonal step under a card is back, and pointing up:
+  // a card is a pale sheet on a grey plate.
+  //
+  // That step and the bed's are the same dial read twice — the bed spent the
+  // afternoon at `--grey-5`, then `--grey-3`, before going back to the plaque
+  // so the CARD could take the lighter tone instead. The difference is which
+  // one moves: a lighter BED makes the box a page with darker sheets on it, a
+  // lighter CARD makes the box a plate with pale sheets lying on it, and only
+  // the second keeps the container reading as one material with its edges.
+  background: var(--grey-3, #eeeeee);
   // NO drop shadow (2026-07-25). The card used to cast `0 1px 3px` to lift
-  // itself off the page; it has nothing to lift off now that the well beneath
-  // it is a deliberately darker bed (`--indigo-3`) — the tonal step already
-  // separates card from field, and a cast edge on top of it only muddied the
-  // 10px gap between two adjacent cards. Flat plaque on a darker bed.
+  // itself off the page; it has nothing to lift off — the tonal step against
+  // the bed already separates card from field (the bed was the darker of the
+  // two until 2026-08-06 and is the lighter now; either way it is a step), and
+  // a cast edge on top of it only muddied the 10px gap between two adjacent
+  // cards. Flat plaque on a bed one step off it.
   overflow: hidden;
   transition: border-color 0.12s;
 
@@ -1064,10 +1151,12 @@ export default defineComponent({
 // The bottom border is the EDGE-TO-EDGE hairline the band is divided from the
 // title strip by, and it needs no negative-margin trick to get there: the card
 // has no padding of its own, so this band already spans the full content box,
-// and its border runs from one side border to the other. `--indigo-3` is the
+// and its border runs from one side border to the other. `--indigo-4` is the
 // ink every line on this surface is drawn in (the card's outer border, the pit's
-// rim, the frieze lips, the head's vertical rule) — a divider inside the card is
-// the same line as the ones around it, at hairline weight.
+// rim, the head's vertical rule — and the frieze lips again since 2026-08-06,
+// when both this card's lines and the bars' lip landed on that level) — a
+// divider inside the card is the same line as the ones around it, at hairline
+// weight.
 .post-square__byline {
   display: flex;
   align-items: center;
@@ -1078,7 +1167,7 @@ export default defineComponent({
   padding: 5px 9px;
   flex: 0 0 auto;
   min-width: 0;
-  border-bottom: 1px solid var(--indigo-3, #9fa8da);
+  border-bottom: 1px solid var(--indigo-4, #7986cb);
 }
 
 // The rule closing the AUTHOR section, full-bleed exactly like the head
@@ -1090,14 +1179,14 @@ export default defineComponent({
 //
 // The two rules and the hairline together are what make this band read as
 // ruled rather than merely spaced: one horizontal line under the whole
-// band, one vertical line inside it, both `--indigo-3` at 1px, both
-// meeting the box's edges square.
+// band, one vertical line inside it, both `--indigo-4` at 1px (the card's one
+// line ink — see `.post-square`), both meeting the box's edges square.
 .post-square__byline-rule {
   align-self: stretch;
   flex: 0 0 1px;
   width: 1px;
   margin: -5px 0;
-  background: var(--indigo-3, #9fa8da);
+  background: var(--indigo-4, #7986cb);
 }
 
 // THE MOMENT CHIP — the post's when over its where (or its date).
@@ -1221,7 +1310,7 @@ export default defineComponent({
   text-align: center;
   color: var(--indigo-8, #303f9f);
   background: var(--grey-1, #fafafa);
-  border: 1px solid var(--indigo-3, #9fa8da);
+  border: 1px solid var(--indigo-4, #7986cb);
   border-radius: var(--radius-sm, 0.5em);
   padding: 2px 6px;
   overflow: hidden;
@@ -1339,16 +1428,25 @@ export default defineComponent({
   // OF the card; a flat near-white is a different material set INTO it — the
   // one tone on this surface deliberately outside the container's colorway,
   // because everything else here IS the container and the reading area is not.
-  // The line is the opposite move: `--indigo-3` is the colorway's own
-  // lip/hairline ink, the same one the frieze bars draw the container's side
-  // borders with, so the card's inner edge and the box's outer edges are one
-  // line. It is also what states that edge now the card casts no shadow.
+  // The line is the opposite move: it is the card's ONE line ink, the same the
+  // OUTER border is drawn in, because every line on this card is one ink and
+  // only the weight tells them apart — a rule that survived 2026-08-06 by a
+  // hair, the box having spent part of that day split into a two-tone bevel.
+  // The tone walked `--indigo-3` → `--indigo-4` → `--grey-5` → `--grey-6` →
+  // back to `--indigo-4` across the same day; see `.post-square` for what each
+  // step settled, and move all eight lines together or none of them. The frieze bars drew
+  // the container's side borders in that same -3 until 2026-08-05, so card edge
+  // and box edge were literally one line; the bars' lip has since gone neutral
+  // to the point of invisibility (`--grey-4`, the plaque), so the card's edges
+  // are now the only lines on this surface at all. The floor stays near-white
+  // through all of it: it is the READING area, and the one tone here that was
+  // never the container's.
   // EVEN on all four sides. It wore a heavier 2px top for one pass, matching
   // the rail's, and that reading does not carry down here: the rail is a
   // shallow tray and a lip suits it, while the pit is the READING area and
   // wants a plain frame — a weighted edge above the text reads as a rule the
   // prose hangs from. The heavy-top device stays the rail's alone.
-  border: 1px solid var(--indigo-3, #9fa8da);
+  border: 1px solid var(--indigo-4, #7986cb);
   background: var(--grey-1, #fafafa);
   // NO carve (end of 2026-07-25) — the surface is FLAT. The pit used to wear
   // the `.label-square__pit` recipe, an inset dark shadow at the top edge over
@@ -1357,7 +1455,7 @@ export default defineComponent({
   // went earlier the same day), and depth from two directions at once — a
   // recessed pit inside a flat card on a flat bed — is what made the surface
   // look unresolved. Everything is stated by TONE and LINE now: the grey-1
-  // floor against the indigo-1 card, and the indigo-3 border around it.
+  // floor against the card's own coat, and the colorway line around it.
   // Same thin rail as the stream's own well, so a card reading past its square
   // does not introduce a second scrollbar language.
   scrollbar-width: thin;
@@ -1546,7 +1644,7 @@ export default defineComponent({
   flex: 0 0 auto;
   min-width: 0;
   padding: 6px 7px;
-  border-bottom: 1px solid var(--indigo-3, #9fa8da);
+  border-bottom: 1px solid var(--indigo-4, #7986cb);
 }
 
 .post-square__rail {
@@ -1559,7 +1657,7 @@ export default defineComponent({
   // A HEAVIER TOP EDGE (1px box, 2px top), the mirror of the card's own
   // uneven border (1px box, 2px foot). The tray reads as something the band
   // above sits down onto rather than a box floating in the gap.
-  border: 1px solid var(--indigo-3, #9fa8da);
+  border: 1px solid var(--indigo-4, #7986cb);
   border-top-width: 2px;
   border-radius: 7px;
   // The bed tone, not the pit's near-white — see the note above.
@@ -1744,7 +1842,7 @@ export default defineComponent({
   white-space: nowrap;
   color: var(--indigo-8, #303f9f);
   background: var(--grey-1, #fafafa);
-  border: 1px solid var(--indigo-3, #9fa8da);
+  border: 1px solid var(--indigo-4, #7986cb);
   border-radius: 9px;
   padding: 1px 6px;
 }

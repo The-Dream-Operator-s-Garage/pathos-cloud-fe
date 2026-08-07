@@ -7,8 +7,13 @@
        Everything else is A, unchanged and deliberately so:
 
          thickness  width = --frieze-h
-         palette    indigo-1 plaque, indigo-3 + indigo-4 waves,
-                    indigo-3 lip — the same colorway, same tokens
+         palette    grey-4 plaque, indigo-4 + indigo-6 waves, grey-4 lip
+                    — the same colorway, same tokens (most of it landed on
+                    2026-08-05: the plate went neutral, the wave pair walked
+                    down and settled TWO levels apart, and the lip came back
+                    into the colorway on the dark wave — then walked -6 → -5
+                    → -4 → OUT of it on 2026-08-06, the lip taking the
+                    plaque's own tone, i.e. no inward line at all; see A)
          tiling     repeat-Y at `99% auto`, `center top`
          padding    1px on the sides
          carve      IDENTICAL to A — dark up-RIGHT, light down-LEFT. The
@@ -20,6 +25,14 @@
          lip        same `lip` prop as A, so the two are drop-in siblings.
                     B's placement wants `lip="left"` (facing inward from the
                     right edge).
+         roll       A's outer-edge bevel verbatim, keyed off the same
+                    `--lip-*` class — so on B it lands on the RIGHT, which
+                    is B's free side. The two rolls therefore face outward
+                    from the box in opposite directions and the pair reads
+                    as one plaque turning over at both of its long edges.
+                    Unlike the motif this is NOT mirrored art: the gradient
+                    direction flips because the EDGE flips, while the light
+                    stays where the carve puts it (see A's note).
 
        The mirror is baked into the ASSETS, not applied as a CSS transform —
        `mercury-wave-{a,b}-rot90-mirror.svg`, the rot90 exports wrapped in one
@@ -41,7 +54,9 @@ import { defineComponent } from 'vue'
 export default defineComponent({
   name: 'FriezeBarVerticalB',
   props: {
-    // Which edge carries the 1px indigo-3 lip — same contract as variant A.
+    // Which edge carries the lip — same contract as variant A. (The lip is
+    // `--grey-4` since 2026-08-06, i.e. invisible by design; the prop still
+    // decides which edge would carry it.)
     lip: {
       type: String,
       default: 'left',
@@ -58,11 +73,51 @@ export default defineComponent({
   height: 100%;
   padding: 0 1px;
   pointer-events: none;
+  position: relative; // containing block for the roll; no z-index, as in A
   background: var(--grey-4); // same plaque as A (--grey-4 since 2026-08-05)
 }
 
-.frieze-bar-v-b--lip-left { border-left: 1px solid var(--indigo-3); }
-.frieze-bar-v-b--lip-right { border-right: 1px solid var(--indigo-3); }
+// `--grey-4` since 2026-08-06 (user ask), in step with A — the PLAQUE's own
+// tone, so this bar draws no inward line either: its inner edge is where the
+// plate continues into the box. See A's note for the day's four settings and
+// for why the lip lost its job rather than its argument (the cards now run lip
+// to lip with their own border, and a second line there would double it).
+.frieze-bar-v-b--lip-left { border-left: 1px solid var(--grey-4); }
+.frieze-bar-v-b--lip-right { border-right: 1px solid var(--grey-4); }
+
+// A's OUTER-EDGE ROLL, verbatim — read its note for what the two washes are
+// and why neither is opaque. Same rule for placing it: opposite the lip, so
+// on B's usual `lip="left"` the roll lands on the box's right-hand outside.
+.frieze-bar-v-b::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 8px;
+  pointer-events: none;
+  // A's stops verbatim — keep the two in step; A carries the tuning note.
+  background-image:
+    linear-gradient(to right,
+      rgba(255, 255, 255, 0) 2.6px,
+      rgba(255, 255, 255, 0.68) 4.6px,
+      rgba(255, 255, 255, 0.24) 6.2px,
+      rgba(255, 255, 255, 0) 8px),
+    linear-gradient(to right,
+      rgba(11, 12, 16, 0.9) 0,
+      rgba(11, 12, 16, 0.78) 0.9px,
+      rgba(11, 12, 16, 0.42) 2px,
+      rgba(11, 12, 16, 0.16) 3.2px,
+      rgba(11, 12, 16, 0) 4.6px);
+}
+
+.frieze-bar-v-b--lip-right::after { left: 0; }
+
+// B's usual placement. `scaleX(-1)` is safe here for the reason A's note
+// gives: no drop-shadow on this element, so nothing but the gradients flips.
+.frieze-bar-v-b--lip-left::after {
+  right: 0;
+  transform: scaleX(-1);
+}
 
 .frieze-bar-v-b__inner {
   position: relative;
@@ -87,14 +142,17 @@ export default defineComponent({
     drop-shadow(-0.5px 0.5px 0 #ffffff);
 }
 
+// In step with A through 2026-08-05's whole walk (-3/-4 → -4/-5 → -5/-6 →
+// -4/-6). Read A before changing either: the pair is TWO levels apart on
+// purpose now, and that spread is what the carve reads as.
 .frieze-bar-v-b__layer--one {
-  background-color: var(--indigo-3);
+  background-color: var(--indigo-4);
   mask-image: url('../../assets/frieze/mercury-wave-a-rot90-mirror.svg');
   -webkit-mask-image: url('../../assets/frieze/mercury-wave-a-rot90-mirror.svg');
 }
 
 .frieze-bar-v-b__layer--two {
-  background-color: var(--indigo-4);
+  background-color: var(--indigo-6);
   mask-image: url('../../assets/frieze/mercury-wave-b-rot90-mirror.svg');
   -webkit-mask-image: url('../../assets/frieze/mercury-wave-b-rot90-mirror.svg');
 }
