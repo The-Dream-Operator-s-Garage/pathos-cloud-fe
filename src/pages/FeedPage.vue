@@ -31,13 +31,25 @@
            across the box instead of repeating. The box wears the bars' own
            plaque tone, so frame and field are one continuous material, and
            casts a soft shadow off each side so it reads as standing above
-           the page. -->
+           the page. They are THINNER than the crown strip since 2026-08-07
+           (user ask) — see `.feed-container__edge`. -->
       <div class="feed-container">
-        <FriezeBarVertical lip="right" />
+        <FriezeBarVertical lip="right" class="feed-container__edge" />
         <div class="feed-container__body">
-          <FeedStream :selected-id="selected?.skeleton_id || null" @select="onSelect" />
+          <!-- `pins-changed` is a PASS-THROUGH, not this page's business: a
+               card's cap can pin a post, and the pins widget that has to
+               reload lives in MainLayout. The page re-emits so the layout's
+               `pinsRefreshKey` hears it through the router-view, which is the
+               same route MediaViewerHost's tack takes. -->
+          <FeedStream
+            :selected-id="selected?.skeleton_id || null"
+            :flyout-id="flyoutRef"
+            @select="onSelect"
+            @open-skeleton="onOpenSkeleton"
+            @pins-changed="$emit('pins-changed')"
+          />
         </div>
-        <FriezeBarVerticalB lip="left" />
+        <FriezeBarVerticalB lip="left" class="feed-container__edge" />
       </div>
     </div>
 
@@ -80,6 +92,9 @@ import SkeletonFlyout from 'src/components/skeletons/SkeletonFlyout.vue'
 export default defineComponent({
   name: 'FeedPage',
   components: { FriezeBarVertical, FriezeBarVerticalB, FeedStream, SkeletonFlyout },
+  // Declared so it does NOT fall through to the root element as a DOM
+  // listener — MainLayout binds it on the router-view.
+  emits: ['pins-changed'],
   setup () {
     // Quasar's default style-fn stamps an inline `min-height` on the page
     // derived from the layout height — which would make the page taller than
@@ -115,6 +130,19 @@ export default defineComponent({
         selected.value && selected.value.skeleton_id === item.skeleton_id ? null : item
     }
 
+    // The cap's `open_in_new` (2026-08-07): the same box, pointed at the post
+    // AS A SKELETON rather than at its post face. It reuses the `skeletonRef`
+    // door the query param opened — a bare id is one of the two forms
+    // SkeletonFlyout accepts — so nothing new had to be taught to the flyout.
+    //
+    // A TOGGLE, like `onSelect`, and mutually exclusive with it: the box shows
+    // one thing, so opening either face closes the other.
+    const onOpenSkeleton = (item) => {
+      selected.value = null
+      const ref = String(item.skeleton_id)
+      flyoutRef.value = flyoutRef.value === ref ? null : ref
+    }
+
     const clearSelection = () => { selected.value = null; flyoutRef.value = null }
 
     // Horizontal scroll-follow (G8 limit closed 2026-07-31): mirror the
@@ -131,7 +159,7 @@ export default defineComponent({
     onMounted(() => window.addEventListener('keydown', onKeydown))
     onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
 
-    return { pageStyleFn, selected, flyoutRef, onSelect, clearSelection, trackEl, trackScroll, onTrackScroll }
+    return { pageStyleFn, selected, flyoutRef, onSelect, onOpenSkeleton, clearSelection, trackEl, trackScroll, onTrackScroll }
   }
 })
 </script>
@@ -190,6 +218,31 @@ export default defineComponent({
 // the plaque's own tone, because the same ask took the well's side padding to 0
 // and the post cards now run lip to lip with their own border. The box's side
 // edges are the CARDS' edges now; the bars simply end where the cards begin.
+// THE CONTAINER'S TWO EDGES, thinner than the bar's own default since
+// 2026-08-07 (user ask, "a little thinner") — `0.8 × --frieze-h`, ~15.1px
+// against 18.9px at a 900px viewport. `--frieze-bar-v-w` is the vertical bar's
+// published thickness dial and it drives BOTH the `width` and the `flex-basis`
+// inside the component, so nothing here has to restate the geometry; the body
+// simply takes the ~7.5px the pair gives back, the container's own 45% of the
+// track being untouched.
+//
+// It is dialled on the BARS, not on `.feed-container`, and deliberately: the
+// dial inherits, and the head box's two inner posts live inside this box. They
+// would survive it (`slim` sets the same property ON the element, which beats
+// an inherited value) — but that is a cascade fact to re-derive every time
+// rather than a rule to read, and the same nesting already has a gotcha of its
+// own about selectors matching four bars where you meant two.
+//
+// The floor is the motif, as everywhere in this family: the masks are a 13-row
+// grid read ACROSS the thickness here, so this lands at ~1.16px a row where the
+// full bar gives ~1.45px. Both are above the sub-pixel range that turns the
+// meander into a texture (see gotchas.md); `slim` — half the full bar — is
+// where these bars stop being a pattern, and it exists for the head box's 9px
+// posts, which carry a motif chosen to survive it.
+.feed-container__edge {
+  --frieze-bar-v-w: calc(var(--frieze-h) * 0.8);
+}
+
 .feed-container {
   flex: 0 0 45%;
   height: 100%;
@@ -213,17 +266,55 @@ export default defineComponent({
   // margin the two percentages share that basis and simply add: 2.5 + 45 =
   // 47.5% of the track, so the box keeps its exact 45% and nothing overflows.
   margin-left: 2.5%;
-  // The BOX FOLLOWS ITS EDGES (2026-08-05, second user ask of the day). The
-  // rule here has never changed — the container wears the frieze bars' own
-  // plaque tone, so box and edges are one continuous material — but the bars
-  // moved to `--grey-4` that morning and the box stayed on `--indigo-1`, which
-  // left the rule stated in the comments and broken on screen for one pass.
-  // This is the box catching up. The feed's whole field is the neutral now
-  // (here, plus FeedStream's head band and scroll bed); what stays indigo is
-  // everything that was never the plaque — the bars' waves, their inward lip,
-  // and the post cards, which now read as pale objects LYING ON a grey plate
-  // instead of as slightly-lighter patches of one indigo surface.
-  background: var(--grey-4);
+  // `--grey-2` since 2026-08-07 (user ask, one setting after `--grey-5`). Two
+  // things to know before touching this line:
+  //
+  //  1. IT IS NOT VISIBLE ON ITS OWN. FeedStream's scroll bed covers this box
+  //     edge to edge — measured, both are `95,5,571,900`, and the only part of
+  //     the container outside that is behind the two opaque frieze bars — so
+  //     the container's coat and the bed's must be set TOGETHER or the change
+  //     is true here and invisible on screen. That trap cost a pass on
+  //     2026-08-05 and again on the first setting of this ask. `.feed-stream__well`
+  //     in FeedStream.vue is the other half; it carries the reasoning.
+  //  2. THE BOX NO LONGER FOLLOWS ITS EDGES. From 2026-07-25 the container wore
+  //     the frieze bars' own plaque tone so box and edges read as one material
+  //     (`--indigo-1`, then `--grey-4` from 2026-08-05). That ended on
+  //     2026-08-07 when the bars inverted to an `--indigo-8` plaque and the box
+  //     did not follow: the bars are a DARK FRAME standing on this field now,
+  //     which is the relation the head box's own inner posts have had since
+  //     2026-08-06. So this tone is free to move on its own, and does.
+  //
+  // `--grey-4` again since 2026-08-07 (user ask), after one setting at
+  // `--grey-2`. That tone had the field LIGHTER than the post cards (rgb
+  // 245,245,245 against their veiled rgb 242,239,234), inverting the
+  // figure/ground the surface has used since 2026-08-06: the box read as a
+  // PAGE with slightly darker sheets on it rather than a plate with pale sheets
+  // lying on it. This tone puts the card back above its bed — the reading its
+  // whole tone stack was built for — and takes the step between them from three
+  // levels to thirteen. See the scroll bed's note for the walk.
+  background: var(--grey-4, #e0e0e0);
+
+  // ── THE BOX'S SIDE BORDERS (2026-08-07, user ask) — 1px `--indigo-4` down
+  // each side and NOTHING on the ends, which is the same shape as the bars'
+  // own new edges and a different job.
+  //
+  // The bars' side borders are the PLAQUE's tone and draw no line; they reserve
+  // a margin. This one is the opposite: it is the only line on the surface
+  // OUTSIDE the dark frame, laid between the `--indigo-9` plate and the page's
+  // near-black canvas, and `--indigo-4` (#7986cb) is five levels up from the
+  // plate — a lit rim on the outside of the metal.
+  //
+  // Note where it lands. `.feed-container` is the flex PARENT of the two bars,
+  // so its border sits OUTSIDE both — the box is framed on its outer
+  // silhouette, not between bar and content. Two consequences worth carrying:
+  //  · The border is inside the `box-shadow` cast below (a shadow is thrown
+  //    from the border box), so the line sits in the shadow's brightest part
+  //    rather than being softened by it.
+  //  · `box-sizing: border-box` means it comes out of the 45% rather than
+  //    widening the box, so the track's arithmetic (2.5 + 45 = 47.5%) is
+  //    untouched.
+  border-left: 1px solid var(--indigo-4, #7986cb);
+  border-right: 1px solid var(--indigo-4, #7986cb);
 
   // The container is OPAQUE, so overlapping the crown strip is a paint-order
   // question: FriezeHeader is fixed at z 3000, and only a positioned box above

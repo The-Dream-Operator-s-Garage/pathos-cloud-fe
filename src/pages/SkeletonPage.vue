@@ -71,7 +71,17 @@
         <main class="subject-panel">
           <header class="subject-panel__ident">
             <div class="subject-panel__title row items-center no-wrap nasalization" style="gap:10px;">
-              <q-icon name="schema" size="18px" />
+              <!-- THE SKELETON VIEWER'S MARK (2026-08-07, user ask) — Material
+                   Symbols' `orthopedics`, the same glyph the feed card's cap
+                   uses for its way in here, so the door and the room wear one
+                   sign. It replaced `schema` in this branch and
+                   `iconForSkeleton` in the read-only one: that helper answers
+                   with the per-KIND icon (a POST reads `article`), which
+                   states what the instance is ABOUT where this line is the
+                   viewer's own title. The helper still dresses the row lists
+                   below, where per-kind is exactly what tells the rows
+                   apart. -->
+              <q-icon name="sym_o_orthopedics" size="20px" />
               <span>{{ identifier.title || skeleton.name || '(unnamed)' }}</span>
               <q-space />
               <q-btn
@@ -183,7 +193,9 @@
 
           <header class="subject-panel__ident">
             <div class="subject-panel__title row items-center no-wrap nasalization" style="gap:10px;">
-              <q-icon :name="iconForSkeleton(skeleton)" size="18px" />
+              <!-- The read-only branch wears the same mark as the editor's —
+                   see the note in that header. -->
+              <q-icon name="sym_o_orthopedics" size="20px" />
               <span>{{ identifier.title || skeleton.name || '(unnamed)' }}</span>
               <q-space />
               <q-btn

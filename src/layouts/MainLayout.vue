@@ -181,7 +181,14 @@
          right so they never cover it; EXPANDED windows overlap the page as
          they always did. -->
     <q-page-container :style="{ paddingRight: windows.railWidth ? windows.railWidth + 'px' : null, paddingTop: 'calc(var(--frieze-h) + var(--media-tabs-h, 0px))' }">
-      <router-view />
+      <!-- `pins-changed` is bound on the ROUTER-VIEW because a page can pin
+           too (the feed card's cap, 2026-08-07) and the pins widget it has to
+           reload is a sibling of this container, not of the page. Vue Router
+           forwards attrs — listeners included — to the matched component, so
+           any page that declares the emit is heard here; the ones that do not
+           are unaffected. Same destination as MediaViewerHost's tack and the
+           nav bar's. -->
+      <router-view @pins-changed="pinsRefreshKey++" />
     </q-page-container>
 
     <NavigationBar

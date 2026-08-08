@@ -69,75 +69,435 @@
     >
       <template #controls>
         <div class="feed-stream__controls">
-          <!-- THE TRUST LENS (Thread J, 2026-07-29) — filter the stream by
-               invite-chain distance: "all" is the open feed, "≤N" keeps only
-               posts whose OWNER sits within N hops of you on the web of trust
-               the invite chain already is (rides `GET /feed?maxHops=`).
-               Session-local on purpose: a lens is something you look through,
-               not a setting that silently follows you to tomorrow. -->
-          <div class="feed-stream__lens" title="Trust lens — only authors within N invite-chain hops of you">
-            <button
-              v-for="opt in LENS_OPTS" :key="String(opt.v)"
-              type="button"
-              class="feed-stream__lens-btn"
-              :class="{ 'is-on': maxHops === opt.v }"
-              @click="setLens(opt.v)"
-            >{{ opt.label }}</button>
-          </div>
-          <!-- SORT BY (2026-08-06; ALIVE 2026-08-07) — the placeholder got
-               its server parameter with the Talavero lens engine:
-               `GET /feed?order=newest|oldest|heat`. Heat needs weighted
-               labels to score against, so that entry stays disabled until a
-               lens carries some — exactly the honesty the placeholder had,
-               one item narrower. -->
-          <button
-            type="button"
-            class="feed-stream__lens-btn feed-stream__label-open feed-stream__sort"
-            :class="{ 'is-on': !!sortOrder }"
-            :title="'Sort by — ' + (sortOrder || 'newest')"
-            aria-label="Sort the feed"
-          >
-            <q-icon name="sort" size="13px" />
-            <q-menu auto-close anchor="bottom right" self="top right">
-              <q-list dense class="feed-stream__sort-menu">
-                <q-item
-                  v-for="opt in SORT_OPTS" :key="String(opt.v)"
-                  clickable
-                  :disable="opt.v === 'heat' && !hasWeightedLabels"
-                  :class="{ 'is-current': sortOrder === opt.v }"
-                  @click="setOrder(opt.v)"
-                >
-                  <q-item-section>{{ opt.label }}</q-item-section>
-                </q-item>
-              </q-list>
-            </q-menu>
-          </button>
+          <!-- ⚠ THE LABEL BAR COMES FIRST (2026-08-08, user ask: swap the
+               section's two rows). Reading order, not just paint: the field
+               you TYPE a filter into sits above the bundle of ready-made
+               lenses, which is the order the section is used in — you either
+               name the label you want or reach for one of the three. Moved in
+               the MARKUP rather than with `column-reverse` or `order`, so the
+               tab order follows the eye. ⚠ Which means the PHONE flips too
+               (there the section is one row, so "first" is left): label field
+               left, bundle right, where it was bundle-left before. That is the
+               same decision read sideways, and the alternative — an `order`
+               override in the media query — would have put DOM and visual
+               order back out of step on the one layout where a caret and a
+               thumb are working together.
+
+               ⚠ AND THE VERB IS BACK INSIDE THE BAR (a later ask the same
+               day), where it began. It spent a few asks OUTSIDE, standing on
+               the section's `--indigo-9` beside the bubble the way the lane's
+               two keys stand beside their trays — and what that cost is why it
+               came back: out there its `--indigo-9` plate was drawn on an
+               `--indigo-9` floor and vanished, leaving a bare funnel glyph. In
+               here the plate lands on the bar's own `--brown-1` and reads as
+               what it is, the one PRESSABLE thing in a bar you otherwise type
+               into. The `.feed-stream__label-line` wrapper went with it: with
+               the button back inside, the bar is the row again. -->
           <!-- THE LABEL LENS (open-source dev flow, 2026-08-01) — filter the
                stream by one label AND its whole subtree (rides
                `GET /feed?label=`, resolved server-side like the trust lens so
                the count stays honest). Unlike the trust lens it IS in the URL
                (`/#/feed?label=<id>`): "everything labeled DEVELOPMENT" is a
                place you send someone, where a trust radius is a way you look.
-               The FUNNEL stays here (picking is a control); the active
-               filter's chip moved to the head box's label lane below. -->
-          <button
-            type="button"
-            class="feed-stream__lens-btn feed-stream__label-open"
-            :class="{ 'is-on': !!labelFilter }"
-            title="Filter the feed by a label"
+               The active filter's chip lives in the head box's label lane.
+
+               ITS OWN ROW SINCE 2026-08-07 (user ask) — and no longer a
+               funnel in the bundle. The other four lenses each state their
+               whole answer in a glyph and a mark; this one names a LABEL out
+               of a tree of hundreds, which a 21px plate can only do by
+               opening a picker over the feed. So it stops pretending to be
+               the same kind of control: a NAMED FIELD on a line of its own,
+               `label` glyph at the left saying what the line is for, the
+               `filter_alt` button at the right performing the filtering — the
+               same funnel, moved from "the control" to "the verb".
+
+               It types against the label list the box ALREADY has: the head's
+               `GET /feed/lens-context` returns every label with its chain, so
+               the match runs in memory with no request per keystroke, and the
+               menu is a plain list of what the query hits. `no-focus` on it is
+               load-bearing — a `q-menu` takes focus when it opens, and a
+               type-ahead whose menu steals the caret after one character is a
+               field you cannot type a second character into. -->
+          <!-- THE VERB STANDS OUTSIDE THE FIELD (2026-08-08, user ask), the
+               way the lane's two keys stand outside their trays: this LINE is
+               the flex row, the `--brown-1` bubble is the thing you type in,
+               and the funnel is a sibling beside it. It was the bubble's last
+               child, ruled off by a border — which made the button part of the
+               field's own box, and on a rounded warm panel a dark tile jammed
+               into the right end read as a chip stuck to the input rather than
+               as the thing that acts on it. -->
+          <div class="feed-stream__label-row">
+            <q-icon name="label" size="13px" class="feed-stream__label-row-mark" aria-hidden="true" />
+            <input
+              v-model="labelQuery"
+              type="text"
+              class="feed-stream__label-input"
+              placeholder="Label…"
+              :title="labelFilter ? 'Filtering by ' + labelFilter.name : 'Type a label name, then filter'"
+              aria-label="Filter the feed by a label"
+              @input="labelMenuOpen = true"
+              @keydown.enter.prevent="applyLabelQuery"
+              @keydown.esc="labelMenuOpen = false"
+            >
+            <q-menu
+              v-model="labelMenuOpen"
+              no-focus
+              no-parent-event
+              fit
+              anchor="bottom left"
+              self="top left"
+            >
+              <q-list v-if="labelMatches.length" dense class="feed-stream__sort-menu feed-stream__label-hits">
+                <q-item
+                  v-for="l in labelMatches" :key="'lq:' + l.id"
+                  clickable
+                  :class="{ 'is-current': labelFilter && labelFilter.id === l.id }"
+                  @click="pickLabelHit(l)"
+                >
+                  <q-item-section>
+                    <span class="feed-stream__label-hit-name">{{ l.name }}</span>
+                    <span v-if="l.chain" class="feed-stream__label-hit-chain">{{ l.chain }}</span>
+                  </q-item-section>
+                </q-item>
+              </q-list>
+              <div v-else class="feed-stream__label-hit-empty">no label by that name</div>
+            </q-menu>
+            <button
+              type="button"
+              class="feed-stream__label-go"
+              :class="{ 'is-on': !!labelFilter }"
+              :title="labelFilter ? 'Filtering by ' + labelFilter.name + ' — press to clear' : 'Filter the feed by this label'"
+              aria-label="Apply the label filter"
+              @click="applyLabelQuery"
+            >
+              <q-icon name="filter_alt" size="13px" />
+            </button>
+          </div>
+          <!-- THE LENSES ARE ONE BUNDLE since 2026-08-07 (user ask: "bundle
+               them using a quasar button bundle component") — `QBtnGroup`,
+               the platform's own, wrapping four `QBtn`s. They were four
+               separate plates with four rims and four radii, reading as four
+               objects that happened to be near each other; they are one
+               object with four keys now, which is what a row of lenses over
+               ONE stream actually is.
+
+               `flat` on the group AND on every child, deliberately: Quasar's
+               `--outline` variant carries `background: transparent !important`
+               (QBtn.sass), and the `is-on` plaque is a FILL — the one state
+               this cluster has to be able to draw. So the group keeps
+               Quasar's geometry (radius inherited, the corners squared off on
+               everything but the two ends) and this file keeps the paint.
+               See the stylesheet for the rim and the dividers. -->
+          <q-btn-group flat class="feed-stream__lens-group">
+          <!-- THE TRUST LENS (Thread J, 2026-07-29) — filter the stream by
+               invite-chain distance: "all" is the open feed, "≤N" keeps only
+               posts whose OWNER sits within N hops of you on the web of trust
+               the invite chain already is (rides `GET /feed?maxHops=`).
+               Session-local on purpose: a lens is something you look through,
+               not a setting that silently follows you to tomorrow.
+
+               A DROPDOWN since 2026-08-07 (user ask). It was a four-plate
+               segmented control — all/≤1/≤2/≤3 — which spent ~100px of a
+               ~150px half saying three things you are NOT looking through to
+               say the one you are. Folded into one tiny plate it states the
+               radius and nothing else: the `connect_without_contact` glyph
+               (two figures reaching across a gap — the invite chain in one
+               mark) and THE NUMBER beside it, `∞` when the feed is open,
+               because "no limit" is a radius too and the button should never
+               go blank. The four options moved into the menu, where they read
+               as words ("≤2 hops") instead of as symbols in a strip. -->
+          <q-btn
+            flat
+            dense
+            no-caps
+            class="feed-stream__lens-btn feed-stream__hops"
+            :class="{ 'is-on': maxHops != null }"
+            :title="hopsTitle"
+            aria-label="Trust lens — filter by invite-chain distance"
           >
-            <q-icon name="filter_alt" size="13px" />
-            <q-menu v-model="labelMenuOpen" anchor="bottom right" self="top right">
-              <div class="feed-stream__label-menu">
-                <LabelPicker compact @picked="onLabelPicked" />
+            <q-icon name="connect_without_contact" size="13px" />
+            <span class="feed-stream__lens-n nasalization">{{ hopsMark }}</span>
+            <q-menu auto-close anchor="bottom right" self="top right">
+              <q-list dense class="feed-stream__sort-menu">
+                <q-item
+                  v-for="opt in LENS_OPTS" :key="String(opt.v)"
+                  clickable
+                  :class="{ 'is-current': maxHops === opt.v }"
+                  @click="setLens(opt.v)"
+                >
+                  <q-item-section>{{ opt.label }}</q-item-section>
+                </q-item>
+              </q-list>
+            </q-menu>
+          </q-btn>
+          <!-- THE DATE LENS (2026-08-07 as the "time lens"; SPLIT IN TWO on
+               2026-08-08, user ask) — WHICH DAYS the stream is read through:
+               six presets and a CUSTOM range of two dates. It rides
+               `GET /feed?from=&to=`, the same pair the spoken lens's `when`
+               clause does, and builds the very same `when` object, so one
+               resolver (`resolveWhenLocal`) turns both into a concrete window
+               IN THE VIEWER'S OWN TIMEZONE — "today" means the reader's today,
+               here, at execution.
+
+               It USED to own the clock as well: its custom range took a date
+               AND a time at each end, which made one control answer two
+               questions and neither of them fully — you could say "since
+               Tuesday 09:00" but never "mornings". The clock moved next door
+               (see the TIME lens) and this drawer went to plain `date` fields.
+               ⚠ What that trades away is an instant-precise window from THIS
+               drawer; `?from=`/`?to=` still take full ISO datetimes and the
+               spoken lens still resolves them, so the capability is in the
+               platform, just not in this two-field tray.
+
+               One window at a time: picking here drops a spoken `when` (and
+               its lane chip), and an arriving spoken `when` clears this — two
+               controls fighting over one pair of parameters would leave the
+               box stating a filter the stream is not under. -->
+          <q-btn
+            flat
+            dense
+            no-caps
+            class="feed-stream__lens-btn feed-stream__when"
+            :class="{ 'is-on': !!dateWin }"
+            :title="dateTitle"
+            aria-label="Date lens — filter the feed by which days"
+          >
+            <q-icon name="calendar_month" size="13px" />
+            <span v-if="dateMark" class="feed-stream__lens-n nasalization">{{ dateMark }}</span>
+            <q-menu v-model="dateMenuOpen" anchor="bottom right" self="top right">
+              <div class="feed-stream__when-menu">
+                <q-list dense class="feed-stream__sort-menu">
+                  <q-item
+                    v-for="opt in DATE_OPTS" :key="opt.key"
+                    clickable
+                    :class="{ 'is-current': dateKey === opt.key }"
+                    @click="setDateWin(opt.v)"
+                  >
+                    <q-item-section>{{ opt.label }}</q-item-section>
+                  </q-item>
+                </q-list>
+                <!-- THE CUSTOM RANGE. Native `date` fields (they were
+                     `datetime-local` until the split — the clock half of them
+                     is the next button's job now), with the platform's own
+                     calendar behind them, coated here in the box's light
+                     plaque so they read as this surface's fields
+                     (`color-scheme: light` is what keeps the browser's own
+                     picker chrome from arriving in the app's dark). Either end
+                     may be left empty — one end alone is an open-ended window
+                     ("since Tuesday", "before the 14th"). -->
+                <div class="feed-stream__when-custom">
+                  <label class="feed-stream__when-row">
+                    <span class="feed-stream__when-tag nasalization">from</span>
+                    <input v-model="customFrom" type="date" class="feed-stream__when-field">
+                  </label>
+                  <label class="feed-stream__when-row">
+                    <span class="feed-stream__when-tag nasalization">to</span>
+                    <input v-model="customTo" type="date" class="feed-stream__when-field">
+                  </label>
+                  <button
+                    type="button"
+                    class="feed-stream__when-apply nasalization"
+                    :disabled="!customFrom && !customTo"
+                    @click="applyCustom"
+                  >apply</button>
+                </div>
               </div>
             </q-menu>
-          </button>
-          <!-- The count, in the colorway (user ask: "paint the post counter
-               indigo"). It was `<q-badge color="primary" outline>` — the last
-               teal thing left in this box, from before the surface had one. -->
-          <span v-if="total > 0" class="feed-stream__count">{{ total }}</span>
+          </q-btn>
+          <!-- THE TIME LENS (2026-08-08, user ask: split the old date+time
+               control into two) — WHAT HOURS, on whatever days the calendar
+               beside it admits. It is the question a window cannot ask: a
+               window is two instants on the line, and "mornings" is a pair of
+               clock hands that repeats on every day inside it. The two compose
+               — last week's calendar plus 06:00→12:00 here is "last week's
+               mornings" — and neither can express the other, which is the
+               whole reason the split was worth making.
+
+               It rides `GET /feed?timeFrom=&timeTo=&tzOffset=`, new with this
+               ask. `tzOffset` is `getTimezoneOffset()` verbatim, so the server
+               shifts UTC into the READER'S clock before comparing: morning
+               means the reader's morning, the same promise `resolveWhenLocal`
+               makes for "today". ⚠ ONE offset for the whole query, so posts
+               from the other side of a DST change read an hour off — the API
+               note says why that is the honest approximation.
+
+               A WRAPPING range is normal here and not an error: 22:00 → 06:00
+               is "nights", and the server writes it as two ranges because a
+               single BETWEEN would match nothing. -->
+          <q-btn
+            flat
+            dense
+            no-caps
+            class="feed-stream__lens-btn feed-stream__clock"
+            :class="{ 'is-on': !!todWin }"
+            :title="todTitle"
+            aria-label="Time lens — filter the feed by time of day"
+          >
+            <q-icon name="schedule" size="13px" />
+            <span v-if="todMark" class="feed-stream__lens-n nasalization">{{ todMark }}</span>
+            <q-menu v-model="todMenuOpen" anchor="bottom right" self="top right">
+              <div class="feed-stream__when-menu">
+                <q-list dense class="feed-stream__sort-menu">
+                  <q-item
+                    v-for="opt in TOD_OPTS" :key="opt.key"
+                    clickable
+                    :class="{ 'is-current': todKey === opt.key }"
+                    @click="setTodWin(opt.v)"
+                  >
+                    <q-item-section>{{ opt.label }}</q-item-section>
+                  </q-item>
+                </q-list>
+                <!-- The custom pair — plain `time` fields, the clock half of
+                     what the calendar's drawer used to hold. Either end alone
+                     is open-ended ("after 18:00", "before noon"), and from >
+                     to is a night that crosses midnight rather than a
+                     mistake. -->
+                <div class="feed-stream__when-custom">
+                  <label class="feed-stream__when-row">
+                    <span class="feed-stream__when-tag nasalization">from</span>
+                    <input v-model="todFrom" type="time" class="feed-stream__when-field">
+                  </label>
+                  <label class="feed-stream__when-row">
+                    <span class="feed-stream__when-tag nasalization">to</span>
+                    <input v-model="todTo" type="time" class="feed-stream__when-field">
+                  </label>
+                  <button
+                    type="button"
+                    class="feed-stream__when-apply nasalization"
+                    :disabled="!todFrom && !todTo"
+                    @click="applyTodCustom"
+                  >apply</button>
+                </div>
+              </div>
+            </q-menu>
+          </q-btn>
+          <!-- THE IDENTITY LENS (2026-08-07, user ask) — search for a person
+               and read only what they posted. Rides `GET /feed?authors=<csv>`,
+               the same parameter the spoken lens's "from allegue" resolves
+               to, and it takes MORE THAN ONE: picked identities union, so
+               "these three" is one lens rather than three passes.
+
+               An EXACT-SEAT filter, by doctrine (2026-08-04): you pick the
+               entity you picked, not the person behind it — a root and its
+               masks are separate identities on this platform, and a control
+               that quietly swept in someone's alter-egos would be filtering
+               by an identity nobody chose. (The SPOKEN lens does expand
+               footprints — it resolves a NAME, which is a different question
+               from a seat.) -->
+          <q-btn
+            flat
+            dense
+            no-caps
+            class="feed-stream__lens-btn feed-stream__who"
+            :class="{ 'is-on': !!pickedEntities.length }"
+            :title="whoTitle"
+            aria-label="Identity lens — filter the feed by author"
+          >
+            <q-icon name="person_search" size="13px" />
+            <span v-if="pickedEntities.length" class="feed-stream__lens-n nasalization">{{ pickedEntities.length }}</span>
+            <q-menu v-model="whoMenuOpen" anchor="bottom right" self="top right" @show="focusWho">
+              <div class="feed-stream__who-menu">
+                <input
+                  ref="whoInput"
+                  v-model="whoQuery"
+                  type="text"
+                  class="feed-stream__who-input"
+                  placeholder="Search an identity…"
+                  aria-label="Search an identity to filter by"
+                  @input="searchEntities"
+                >
+                <!-- What the lens is currently under, removable one by one. -->
+                <div v-if="pickedEntities.length" class="feed-stream__who-picked">
+                  <button
+                    v-for="e in pickedEntities" :key="'who:' + e.id"
+                    type="button"
+                    class="feed-stream__who-chip nasalization"
+                    :title="'Stop filtering by ' + e.name"
+                    @click="dropEntity(e.id)"
+                  >
+                    <EntityAvatar :entity="e.card" :size="14" />
+                    <span class="feed-stream__who-chip-name">{{ e.name }}</span>
+                    <q-icon name="close" size="10px" />
+                  </button>
+                </div>
+                <ul class="feed-stream__who-list">
+                  <li v-for="r in whoResults" :key="'r:' + r.id">
+                    <button type="button" class="feed-stream__who-row" @click="pickEntity(r)">
+                      <EntityAvatar :entity="entityCard(r)" :size="18" />
+                      <span class="feed-stream__who-name">{{ r.primary }}</span>
+                      <span v-if="r.secondary" class="feed-stream__who-handle nasalization">{{ r.secondary }}</span>
+                    </button>
+                  </li>
+                  <li v-if="whoQuery && !whoResults.length" class="feed-stream__who-empty">
+                    nobody by that name
+                  </li>
+                </ul>
+              </div>
+            </q-menu>
+          </q-btn>
+          </q-btn-group>
+
         </div>
+      </template>
+
+      <!-- SORT BY, IN THE BOARD'S HEADER (2026-08-06; ALIVE 2026-08-07;
+           MOVED HERE 2026-08-07, user ask: "put the 'order by' one at the top,
+           before the post count"). It rides `GET /feed?order=newest|oldest|
+           heat`; heat needs weighted labels to score against, so that entry
+           stays disabled until a lens carries some — exactly the honesty the
+           placeholder had, one item narrower.
+
+           It left the lens bundle because it is not a lens: the other four
+           narrow WHICH posts the board shows, and the count states how many
+           are left. This one orders what is left, so it belongs beside that
+           number rather than inside a row of filters.
+
+           `sym_o_flex_direction` (user ask) — Material SYMBOLS, not the
+           classic set: the name is not in the material-icons font at all and
+           renders there as the 336px literal word (measured). The `sym_o_`
+           prefix is what routes it to `material-symbols-outlined`, which
+           `quasar.config.js` already loads.
+
+           ⚠ `@pointerdown.stop` — this button sits on the head box's DRAG
+           BAR. Without it a press here starts a drag, and the menu opens
+           under a box that is following the pointer. -->
+      <template #sort>
+        <button
+          type="button"
+          class="feed-stream__sort"
+          :class="{ 'is-on': !!sortOrder }"
+          :title="'Sort by — ' + (sortOrder || 'newest')"
+          aria-label="Sort the feed"
+          @pointerdown.stop
+        >
+          <q-icon name="sym_o_flex_direction" size="13px" />
+          <q-menu auto-close anchor="bottom right" self="top right">
+            <q-list dense class="feed-stream__sort-menu">
+              <q-item
+                v-for="opt in SORT_OPTS" :key="String(opt.v)"
+                clickable
+                :disable="opt.v === 'heat' && !hasWeightedLabels"
+                :class="{ 'is-current': sortOrder === opt.v }"
+                @click="setOrder(opt.v)"
+              >
+                <q-item-section>{{ opt.label }}</q-item-section>
+              </q-item>
+            </q-list>
+          </q-menu>
+        </button>
+      </template>
+
+      <!-- THE COUNT, IN THE BOARD'S HEADER (2026-08-07, user ask: "move the
+           number of filtered posts to the board header, on the right"). It
+           spent a day at the end of the lens row, which is where it was born
+           as a `<q-badge>`; it never belonged there. `total` is what the
+           stream is CURRENTLY UNDER — every lens the box states is already in
+           the query behind it — so it is the one number describing the whole
+           board rather than another control in a row of controls, and the
+           header is the board's own line. The box owns the slot and its
+           placement; the stream owns the number. -->
+      <template #count>
+        <span v-if="total > 0" class="feed-stream__count">{{ total }}</span>
       </template>
 
       <!-- The lane's contents. Two regimes share it: the OLD single-label
@@ -152,7 +512,7 @@
           <button
             v-for="chip in lensChips" :key="chip.key"
             type="button"
-            class="feed-stream__label-chip mono"
+            class="feed-stream__label-chip nasalization"
             :title="chip.title || (chip.text + ' — click to remove this clause')"
             @click="chip.close()"
           >
@@ -162,7 +522,7 @@
           </button>
           <button
             type="button"
-            class="feed-stream__label-chip feed-stream__label-chip--clear mono"
+            class="feed-stream__label-chip feed-stream__label-chip--clear nasalization"
             title="Clear the whole lens"
             @click="clearLens"
           >
@@ -172,7 +532,7 @@
         <button
           v-else-if="labelFilter"
           type="button"
-          class="feed-stream__label-chip mono"
+          class="feed-stream__label-chip nasalization"
           :title="'Filtering by ' + labelFilter.name + ' — click to trash it'"
           @click="dropUrlLabel"
         >
@@ -190,7 +550,7 @@
         <button
           v-for="t in trashedLabels" :key="'trash:' + t.id"
           type="button"
-          class="feed-stream__label-chip feed-stream__label-chip--trashed mono"
+          class="feed-stream__label-chip feed-stream__label-chip--trashed nasalization"
           :title="t.name + ' — trashed: new asks won\'t re-apply it. Click to re-apply now.'"
           @click="restoreLabel(t.id)"
         >
@@ -223,6 +583,154 @@
                the card itself (whole body, author, label paths, tallies); the
                rest is one click away in the post viewer, via the title. -->
           <article class="post-square" :class="{ 'is-open': isOpen(item) }">
+            <!-- THE CAP (2026-08-07, user ask) — a thin header ABOVE the
+                 byline band, and now the card's first strip. It answers the
+                 one question the card could not: WHAT IS THIS POST, and
+                 WHAT DID IT COME OUT OF.
+
+                 Split 70/30 by a vertical rule, the same device the byline
+                 uses. The wide side reads left to right:
+
+                   [icons] Comment on <chip> :: <title or post #id>
+
+                 · The ICONS state the post's KIND — `post` for an original,
+                   `comment` for a comment, and for a fork BOTH (a fork is a
+                   post that came out of a post, so it wears the two marks
+                   together). Material Symbols throughout, so the three sit
+                   in one family.
+                 · The ORIGIN CLAUSE is drawn only when the post HAS an
+                   origin, and it carries the parent as a MICRO CHIP rather
+                   than as a "#41" — the parent is an element with an
+                   address, and the chip is how this platform states one
+                   (it also links straight into the parent's viewer). Both
+                   pointers are answered, so a post that is somehow comment
+                   AND fork names both parents in the order they are read.
+                 · The NAME closes the run: the post's own title, or
+                   `post #<id>` when it has none. A titleless post is not
+                   nameless — it has an id, and an id is a name you can say.
+
+                 The 30% side is the card's CONTROL lane, divided from the
+                 facts by a hairline (the same 1px the byline divides its own
+                 sections with) — a pin and a way into the skeleton viewer.
+                 They are the two things you do TO a post rather than read
+                 off it, which is why they sit on the other side of a rule
+                 instead of joining the run.
+
+                 The whole strip is set in `--font-display` (Nasalization) —
+                 the platform's display face, which until now the card did
+                 not wear anywhere. -->
+            <div class="post-square__cap">
+              <div class="post-square__cap-main">
+                <span class="post-square__cap-icons" :title="capKindTitle(item)">
+                  <q-icon
+                    v-for="ic in capIcons(item)"
+                    :key="ic"
+                    :name="ic"
+                    size="13px"
+                  />
+                </span>
+
+                <!-- The origin clause(s): "Comment on <chip> ::"
+
+                     The chip NAMES the parent (2026-08-07, second ask). It
+                     printed a hash slice, which made the one line that says
+                     which post is being answered the one line a reader had to
+                     parse an address to follow — while the card's own name,
+                     one span to the right, was in plain words. It now wears
+                     the parent's title under exactly the cap's own naming
+                     rule (`capTitle` → `originName`: the title, else `post
+                     #<id>`), and the post GLYPH the card wears for itself, so
+                     a post referring to a post shows the same mark twice and
+                     the relation reads at a glance. The address it used to
+                     print is still one hover away, on the chip's tooltip. -->
+                <span
+                  v-for="clause in originClauses(item)"
+                  :key="clause.word"
+                  class="post-square__cap-origin"
+                >
+                  <span class="post-square__cap-word">{{ clause.word }}</span>
+                  <MicroChip
+                    class="post-square__cap-chip"
+                    :class="{ 'is-named': !!originName(clause.target) }"
+                    :kind="clause.target.kind"
+                    :id="clause.target.id"
+                    :path="clause.target.path"
+                    :icon="originIcon(clause.target)"
+                    :display="originName(clause.target)"
+                    :show-type="false"
+                    icon-size="9px"
+                    @click.stop
+                  />
+                  <span class="post-square__cap-sep">::</span>
+                </span>
+
+                <span class="post-square__cap-title" :title="capTitle(item)">{{ capTitle(item) }}</span>
+              </div>
+              <span class="post-square__cap-rule" aria-hidden="true" />
+
+              <!-- THE CONTROL LANE. Every control here acts on the POST
+                   ITSELF, so each addresses it as the skeleton it is:
+                     · the PIN goes into the same PINS skeleton the pins
+                       widget reads (`pinService`, target type `skeleton`) —
+                       there is one pin section on this platform and this is
+                       it. `pins-changed` bubbles up to MainLayout's
+                       `pinsRefreshKey` exactly as the media viewer's tack
+                       and the nav bar's do, so the widget reloads on the
+                       same press.
+                     · the ORTHOPEDICS glyph opens `/skeletons/:id` — the
+                       post read as its SKELETON (slots, spine, surround)
+                       instead of as a post. It is a link, not a button: it
+                       navigates, and it should offer what every link does.
+                     · `open_in_new` is that SAME destination WITHOUT the
+                       navigation (2026-08-07, user ask): it points the
+                       right-hand flyout — the box literally named the
+                       skeleton viewer — at this post's skeleton, so the
+                       slots open BESIDE the feed and the reader keeps their
+                       place in the column. A button, not a link, for the
+                       same reason the title plate is one: it opens a panel
+                       on this page rather than going anywhere, and it
+                       TOGGLES (a second press closes what it opened).
+                       FeedPage owns that state, hence the emit + the
+                       `flyoutId` prop coming back down for the lit mark. -->
+              <div class="post-square__cap-side">
+                <button
+                  type="button"
+                  class="post-square__cap-act"
+                  :class="{ 'is-on': pinnedIds.has(item.skeleton_id) }"
+                  :title="pinnedIds.has(item.skeleton_id) ? 'Unpin this post' : 'Pin this post'"
+                  @click.stop="togglePin(item)"
+                >
+                  <q-icon name="push_pin" size="13px" />
+                </button>
+                <router-link
+                  class="post-square__cap-act"
+                  :to="'/skeletons/' + item.skeleton_id"
+                  title="Open the skeleton viewer — this post as its slots and spine"
+                  @click.stop
+                >
+                  <q-icon name="sym_o_orthopedics" size="14px" />
+                </router-link>
+                <button
+                  type="button"
+                  class="post-square__cap-act"
+                  :class="{ 'is-on': isSkeletonOpen(item) }"
+                  title="Open the skeleton viewer beside the feed"
+                  @click.stop="$emit('open-skeleton', item)"
+                >
+                  <q-icon name="open_in_new" size="13px" />
+                </button>
+              </div>
+            </div>
+
+            <!-- THE CAP'S CLOSING EDGE — the `RgbHairline` that used to close
+                 the label rail (2026-08-07, second user ask the same day). It
+                 divides the cap from EVERYTHING ELSE, which is why it is
+                 unconditional here where it was `v-if`'d on the rail: the cap
+                 is on every card, so its rule is too. The rail now runs into
+                 the pit's own margin instead — the card's remaining dividers
+                 are the two frieze bands. -->
+            <RgbHairline class="post-square__hairline" />
+
             <!-- BYLINE band — the author's IDENTITY BLOCK, at the card's top
                  edge (2026-07-25). It used to open the foot, in the same run
                  as the post's hash chip and the tallies; a post is read
@@ -352,8 +860,8 @@
                    links). Clicking an open title again closes the flyout.
 
                    It keeps the PLATE it wore in the head strip — `--grey-1`
-                   floor, `--indigo-3` rim — which is what marks it as the
-                   card's subject rather than a fourth item in a run.
+                   floor, the card's line ink as its rim — which is what marks
+                   it as the card's subject rather than a fourth item in a run.
 
                    The text is CENTRED IN A FIXED TWO-LINE BOX: the plate is
                    stretched by the band (it takes all the leftover width), so
@@ -388,6 +896,24 @@
               </router-link>
             </div>
 
+            <!-- THE CARD'S FRIEZE PAIR (2026-08-07, user ask) — the platform's
+                 crown motif at the size the floating media viewer runs it
+                 (`slim`), trimmed a further fifth, standing where the card's two
+                 inner hairlines used to: one under the byline, one under the
+                 label rail, the second `vflip`ped so the two are a REFLECTION
+                 about the label lane rather than the same band drawn twice.
+
+                 They REPLACE those hairlines, they do not join them (both
+                 `border-bottom`s are gone — see the style block): the band's
+                 plaque is dialled one step under the card's line ink, so each
+                 bar reads as that line given height and a motif carved into it.
+
+                 The wave is the one thing here that is not the card's own
+                 material — a `--teal-11` → `--indigo-11` gradient running down
+                 the band, reversed on the mirrored one so indigo faces the lane
+                 from both sides and mint faces the card. -->
+            <FriezeBar slim class="post-square__frieze" />
+
             <!-- LABEL RAIL — the element's OWN classification, as the label
                  paths it holds, root to leaf. It sat BELOW the body until
                  2026-07-25 (fourth pass) and now occupies the strip the title
@@ -396,9 +922,9 @@
                  after the reading.
 
                  The rail is a ROUNDED RECTANGLE that scrolls HORIZONTALLY,
-                 rimmed in `--indigo-3` like the pit and the title plate but
-                 floored in `--indigo-2` — the bed tone, one step off the
-                 card, where the pit is the near-white reading surface.
+                 rimmed in the card's line ink like the pit and the title plate
+                 but floored in the BED TONE — one step off the card, where the
+                 pit is the near-white reading surface.
                  Scrolling is what lets it keep its one-line height: chips used
                  to WRAP, so a post with four label paths grew a second and
                  third row and pushed the body down. A row that scrolls states
@@ -441,6 +967,14 @@
                 </template>
               </div>
             </div>
+
+            <!-- The rail used to be closed by an `RgbHairline` (and, for a few
+                 hours before that, by the frieze pair's `vflip`ped half). That
+                 rule moved UP to the cap the same day — it is the divider
+                 between the header and everything under it now — and nothing
+                 replaced it here: the rail's own strip padding and the pit's
+                 6px top margin are the lane between classification and
+                 content. -->
 
             <!-- Body pit — the carved inset that echoes the dug-open label
                  squares. It holds the WHOLE post, not a preview: the feed is
@@ -523,14 +1057,21 @@ import { labelService } from 'src/services/label.service'
 import { chatService } from 'src/services/chat.service'
 import { useEventsStore } from 'src/stores/events'
 import { useChatStore } from 'src/stores/chat'
-import LabelPicker from 'src/components/maker/LabelPicker.vue'
+import { useNavStore } from 'src/stores/navigation'
+import { pinService } from 'src/services/pin.service'
+import { refService } from 'src/services/ref.service'
 import FeedHeadBox from 'src/components/posts/FeedHeadBox.vue'
 import { useStateHolder } from 'src/composables/useStateHolder'
 import { timeAgo, absoluteTime } from 'src/utils/time'
 import EntityAvatar from 'src/components/entities/EntityAvatar.vue'
 import OrgLogoChip from 'src/components/organizations/OrgLogoChip.vue'
 import PostMicro from 'src/components/posts/PostMicro.vue'
+// The cap chips a post's PARENT, which may be a post, a node or some other
+// element — so it reaches for the generic chip rather than PostMicro.
+import MicroChip from 'src/components/shared/MicroChip.vue'
 import MarkdownBody from 'src/components/shared/MarkdownBody.vue'
+import FriezeBar from 'src/components/layout/FriezeBar.vue'
+import RgbHairline from 'src/components/layout/RgbHairline.vue'
 
 // FilterSpec symbols → a concrete window, in the VIEWER's OWN timezone —
 // the deterministic half of "yesterday" the model never touches (P4: LLM
@@ -589,16 +1130,21 @@ const KIND_ICONS = {
 
 export default defineComponent({
   name: 'FeedStream',
-  components: { EntityAvatar, OrgLogoChip, PostMicro, MarkdownBody, LabelPicker, FeedHeadBox },
+  components: { EntityAvatar, OrgLogoChip, PostMicro, MicroChip, MarkdownBody, FeedHeadBox, FriezeBar, RgbHairline },
   props: {
     // The post whose information flyout is open, if any. The stream does not
     // own that state: the flyout is placed OUTSIDE the feed container (it
     // floats in the free right half of the window slot), so FeedPage holds
     // the selection and hands the id back down for the cards' open marking.
-    selectedId: { type: [Number, String], default: null }
+    selectedId: { type: [Number, String], default: null },
+    // The skeleton the flyout is reading out AS A SKELETON, if any — the
+    // cap's `open_in_new` half of the same arrangement (2026-08-07). Held by
+    // FeedPage for the reason above, and handed back only so the button can
+    // light up: the stream never decides what the flyout shows.
+    flyoutId: { type: [Number, String], default: null }
   },
-  emits: ['select'],
-  setup (props) {
+  emits: ['select', 'open-skeleton', 'pins-changed'],
+  setup (props, { emit }) {
     const items = ref([])
     const total = ref(0)
     const loading = ref(false)
@@ -611,6 +1157,10 @@ export default defineComponent({
     // instead.
     const holder = useStateHolder({}, { trackScroll: false })
     holder.trackContainer(wellEl, 'feed')
+
+    // The cap's pin tack records its press like every other pin on the
+    // platform (see `togglePin` below).
+    const navStore = useNavStore()
 
     // THE HEAD BOX's position (2026-08-06) — px from the container's top
     // edge, `null` until someone drags it (the box resolves that to its own
@@ -660,12 +1210,13 @@ export default defineComponent({
     // THE TRUST LENS state — null is the open feed. Options are few and
     // fixed because hop counts on this platform are small integers: 1 is
     // "people I (or my inviter) directly vouched for", 3 reaches the org
-    // masks two rings out.
+    // masks two rings out. `mark` is what the folded button prints beside
+    // its glyph; the labels are the menu's words.
     const LENS_OPTS = [
-      { v: null, label: 'all' },
-      { v: 1, label: '≤1' },
-      { v: 2, label: '≤2' },
-      { v: 3, label: '≤3' }
+      { v: null, label: 'all authors', mark: '∞' },
+      { v: 1, label: '≤1 hop', mark: '1' },
+      { v: 2, label: '≤2 hops', mark: '2' },
+      { v: 3, label: '≤3 hops', mark: '3' }
     ]
     const maxHops = ref(null)
     const setLens = (v) => {
@@ -673,6 +1224,211 @@ export default defineComponent({
       maxHops.value = v
       load()
     }
+    const hopsMark = computed(() =>
+      LENS_OPTS.find((o) => o.v === maxHops.value)?.mark || '∞')
+    const hopsTitle = computed(() => maxHops.value == null
+      ? 'Trust lens — every author (no distance limit)'
+      : `Trust lens — only authors within ${maxHops.value} invite-chain hop${maxHops.value === 1 ? '' : 's'} of you`)
+
+    // ── THE TIME LENS (2026-08-07) ────────────────────────────────────
+    // A hand-picked `when` object — the SAME shape the spoken lens's clause
+    // uses, so `resolveWhenLocal` / `whenText` serve both and there is one
+    // definition of "yesterday" on this surface. null = no window.
+    const DATE_OPTS = [
+      { key: 'any', v: null, label: 'any time', mark: '' },
+      { key: 'today', v: { preset: 'today' }, label: 'today', mark: 'today' },
+      { key: 'yesterday', v: { preset: 'yesterday' }, label: 'yesterday', mark: 'yest' },
+      { key: 'this_morning', v: { preset: 'this_morning' }, label: 'this morning', mark: 'a.m.' },
+      { key: 'this_week', v: { preset: 'this_week' }, label: 'this week', mark: 'week' },
+      { key: 'd7', v: { last_days: 7 }, label: 'last 7 days', mark: '7d' },
+      { key: 'd30', v: { last_days: 30 }, label: 'last 30 days', mark: '30d' }
+    ]
+    const dateWin = ref(null)
+    const dateMenuOpen = ref(false)
+    const customFrom = ref('')
+    const customTo = ref('')
+
+    // Which row the menu ticks — presets by name, anything hand-typed as
+    // the one 'custom' identity.
+    const winKey = (w) => {
+      if (!w) return 'any'
+      if (w.preset) return w.preset
+      if (w.last_days) return 'd' + w.last_days
+      return 'custom'
+    }
+    const dateKey = computed(() => winKey(dateWin.value))
+    const dateMark = computed(() => {
+      const w = dateWin.value
+      if (!w) return ''
+      const opt = DATE_OPTS.find((o) => o.key === dateKey.value)
+      if (opt) return opt.mark
+      if (w.from && w.to) return 'range'
+      return w.from ? 'since' : 'until'
+    })
+    // The tooltip prints the RESOLVED window: a lens that says "this week"
+    // should also be able to say which days that is. A hand-typed range is
+    // ALREADY its own two datetimes, so it prints the resolved reading
+    // alone — `whenText` would only say the same thing again in ISO.
+    const dateTitle = computed(() => {
+      const w = dateWin.value
+      if (!w) return 'Time lens — every moment (no window)'
+      const win = resolveWhenLocal(w)
+      const fmt = (d) => d
+        ? d.toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+        : '…'
+      const range = win ? `${fmt(win.from)} → ${fmt(win.to)}` : ''
+      if (dateKey.value === 'custom') return `Time lens — ${range || 'a window'}`
+      return `Time lens — ${whenText(w)}${range ? ' (' + range + ')' : ''}`
+    })
+
+    const setDateWin = (w) => {
+      dateMenuOpen.value = false
+      dateWin.value = w
+      // A spoken `when` and a picked window are the same filter said twice.
+      // The pick wins and the stale clause leaves the lane with it —
+      // `afterMutation` reloads (and may retire an emptied spec).
+      if (lensSpec.value?.when) { delete lensSpec.value.when; afterMutation() } else load()
+    }
+
+    // `datetime-local` gives `YYYY-MM-DDTHH:mm` — local wall time, which is
+    // exactly what `resolveWhenLocal`'s parser reads back as local.
+    const applyCustom = () => {
+      const w = {}
+      if (customFrom.value) w.from = customFrom.value
+      if (customTo.value) w.to = customTo.value
+      if (!Object.keys(w).length) return
+      setDateWin(w)
+    }
+
+    // ── THE TIME-OF-DAY LENS (2026-08-08) ─────────────────────────────
+    // `{ from: 'HH:MM'|null, to: 'HH:MM'|null }` — a pair of CLOCK HANDS, not
+    // a window. The date lens above picks which days; this picks which hours
+    // of them, and the two ride different parameters (`from`/`to` vs
+    // `timeFrom`/`timeTo`) precisely because neither can say the other.
+    //
+    // ⚠ NOT PART OF THE SPOKEN SPEC. Talavero's `FilterSpec` has a `when`
+    // clause and no clock, so nothing arrives here from a lens reply and
+    // nothing here needs to yield to one — which is why this lens has no twin
+    // to drop, unlike the date and identity buttons. If the seat is ever
+    // taught to speak hours, THIS is the state it would write and the
+    // yield-and-drop dance in `applySpec`/`setDateWin` is the pattern.
+    const TOD_OPTS = [
+      { key: 'any', v: null, label: 'any hour', mark: '' },
+      { key: 'morning', v: { from: '06:00', to: '12:00' }, label: 'morning', mark: 'a.m.' },
+      { key: 'afternoon', v: { from: '12:00', to: '18:00' }, label: 'afternoon', mark: 'p.m.' },
+      { key: 'evening', v: { from: '18:00', to: '23:59' }, label: 'evening', mark: 'eve' },
+      { key: 'night', v: { from: '22:00', to: '06:00' }, label: 'night', mark: 'night' },
+      { key: 'work', v: { from: '09:00', to: '17:00' }, label: 'working hours', mark: '9–5' }
+    ]
+    const todWin = ref(null)
+    const todMenuOpen = ref(false)
+    const todFrom = ref('')
+    const todTo = ref('')
+
+    // Presets are matched by VALUE, not by identity: a hand-typed 06:00→12:00
+    // is the morning preset and the menu should tick it, exactly as the date
+    // lens ticks a preset it can recognise.
+    const todKey = computed(() => {
+      const w = todWin.value
+      if (!w) return 'any'
+      const hit = TOD_OPTS.find((o) => o.v && o.v.from === w.from && o.v.to === w.to)
+      return hit ? hit.key : 'custom'
+    })
+    const todMark = computed(() => {
+      const w = todWin.value
+      if (!w) return ''
+      const opt = TOD_OPTS.find((o) => o.key === todKey.value)
+      if (opt) return opt.mark
+      // A hand-typed pair prints ITSELF — the hours are already the shortest
+      // true thing that can be said about them, where a date range has to be
+      // abbreviated to fit.
+      if (w.from && w.to) return `${w.from}–${w.to}`
+      return w.from ? `${w.from}→` : `→${w.to}`
+    })
+    const todTitle = computed(() => {
+      const w = todWin.value
+      if (!w) return 'Time lens — every hour (no time-of-day window)'
+      const wraps = w.from && w.to && w.from > w.to
+      const span = w.from && w.to ? `${w.from} → ${w.to}` : w.from ? `from ${w.from}` : `before ${w.to}`
+      return `Time lens — ${span}${wraps ? ' (across midnight)' : ''}, in your own clock`
+    })
+
+    const setTodWin = (w) => {
+      todMenuOpen.value = false
+      todWin.value = w
+      // Nothing to drop: no spoken clause writes these parameters (see above).
+      load()
+    }
+
+    const applyTodCustom = () => {
+      const w = {}
+      if (todFrom.value) w.from = todFrom.value
+      if (todTo.value) w.to = todTo.value
+      if (!Object.keys(w).length) return
+      setTodWin(w)
+    }
+
+    // ── THE IDENTITY LENS (2026-08-07) ────────────────────────────────
+    // Picked seats → `?authors=<csv>`. `card` is the shape EntityAvatar
+    // wants, kept beside the name so the chips wear faces without a
+    // second lookup.
+    const pickedEntities = ref([]) // [{ id, name, handle, card }]
+    const whoMenuOpen = ref(false)
+    const whoQuery = ref('')
+    const whoResults = ref([])
+    const whoInput = ref(null)
+    let whoTimer = null
+
+    const entityCard = (r) => ({
+      id: r.id,
+      display_name: r.primary,
+      username: (r.secondary || '').replace(/^@/, '') || null,
+      photo: r.photo ?? null
+    })
+
+    const searchEntities = () => {
+      clearTimeout(whoTimer)
+      whoTimer = setTimeout(async () => {
+        const q = whoQuery.value.trim()
+        if (!q) { whoResults.value = []; return }
+        try {
+          const r = await refService.search('entities', q, 8)
+          whoResults.value = r.results || []
+        } catch (_) { whoResults.value = [] }
+      }, 250)
+    }
+
+    const focusWho = () => {
+      requestAnimationFrame(() => whoInput.value?.focus())
+    }
+
+    // Picking supersedes a spoken `authors` clause for the same reason the
+    // window does — one set of ids, one place it comes from.
+    const afterPick = () => {
+      if (lensSpec.value?.authors) { delete lensSpec.value.authors; afterMutation() } else load()
+    }
+
+    const pickEntity = (r) => {
+      if (pickedEntities.value.some((e) => e.id === r.id)) return
+      pickedEntities.value.push({
+        id: r.id,
+        name: r.primary,
+        handle: r.secondary || null,
+        card: entityCard(r)
+      })
+      whoQuery.value = ''
+      whoResults.value = []
+      afterPick()
+    }
+
+    const dropEntity = (id) => {
+      pickedEntities.value = pickedEntities.value.filter((e) => e.id !== id)
+      afterPick()
+    }
+
+    const whoTitle = computed(() => pickedEntities.value.length
+      ? 'Identity lens — only posts by ' + pickedEntities.value.map((e) => e.name).join(', ')
+      : 'Identity lens — search someone and read only their posts')
 
     // THE LABEL LENS state — `{ id, name }` or null. Shareable on purpose:
     // the id rides `/#/feed?label=` so a filtered feed is a link you can
@@ -696,14 +1452,66 @@ export default defineComponent({
       load()
     }
 
-    const onLabelPicked = (leaf) => {
+    // ── THE LABEL FIELD (2026-08-07, user ask) ──────────────────────────
+    // A type-ahead over `allLabels` — the whole label list, chain and all,
+    // which `GET /feed/lens-context` already hands the box for the lane's
+    // chip names. Matching in memory is the point: there is no request per
+    // keystroke, and the list is the same one the seat filters against, so
+    // the field can never offer a label the lens engine does not know.
+    //
+    // The CHAIN is searched as well as the name, which is what makes
+    // "PATHCHAIN > NODE > FILE" reachable by typing "file" OR "node" — label
+    // names on this platform are leaves of a tree and only the path
+    // disambiguates two leaves with the same word in them.
+    const labelQuery = ref('')
+    const allLabels = ref([])
+
+    const labelMatches = computed(() => {
+      const q = labelQuery.value.trim().toLowerCase()
+      if (!q) return []
+      const hit = (l) => l.name.toLowerCase().includes(q) || (l.chain || '').toLowerCase().includes(q)
+      // Name matches first — a leaf you typed the name of beats one that only
+      // matched through an ancestor's word.
+      const named = []
+      const chained = []
+      for (const l of allLabels.value) {
+        if (!hit(l)) continue
+        ;(l.name.toLowerCase().includes(q) ? named : chained).push(l)
+      }
+      return named.concat(chained).slice(0, 8)
+    })
+
+    const pickLabelHit = (l) => {
+      labelQuery.value = l.name
       labelMenuOpen.value = false
-      setLabelFilter(leaf ? { id: leaf.id, name: leaf.name } : null)
+      setLabelFilter({ id: l.id, name: l.name })
+    }
+
+    // THE VERB. Empty field = clear the lens (a filter you have deleted the
+    // name of is not one you are still under), a live filter re-pressed with
+    // its own name still in the field = clear it too, otherwise take the best
+    // match. Enter and the button are the same call.
+    const applyLabelQuery = () => {
+      const q = labelQuery.value.trim()
+      labelMenuOpen.value = false
+      if (!q) { setLabelFilter(null); return }
+      if (labelFilter.value && labelFilter.value.name === q) {
+        labelQuery.value = ''
+        setLabelFilter(null)
+        return
+      }
+      const m = labelMatches.value[0]
+      if (m) pickLabelHit(m)
     }
 
     // Arriving on `?label=` while the stream is ALREADY mounted (hash-router
     // gotos reuse the component — the flyout param learned this first): the
     // query is the source of truth, so follow it both ways.
+    // The field mirrors the live filter whatever set it — a `?label=` link, a
+    // spoken lens, the broom. A box that states a filter it is not under is
+    // the one thing this surface refuses to do.
+    watch(labelFilter, (l) => { labelQuery.value = l ? l.name : '' })
+
     watch(() => route.query.label, async (v) => {
       const qid = parseInt(v)
       if (!qid) {
@@ -864,6 +1672,13 @@ export default defineComponent({
         return stripped
       }
       if (labelFilter.value) { labelFilter.value = null; syncLabelQuery() }
+      // THE HAND-PICKED TWINS YIELD (2026-08-07). A spoken `when` /
+      // `authors` writes the same `GET /feed` parameters the time and
+      // identity buttons do, so the spoken clause takes the seat and the
+      // button goes quiet — the lane's chip is then the only thing
+      // claiming that filter, and it is the one running.
+      if (spec.when) dateWin.value = null
+      if (spec.authors) pickedEntities.value = []
       lensSpec.value = spec
       sortOrder.value = spec.order && spec.order !== 'newest' ? spec.order : null
       pendingReceipt.value = receipt?.id || null
@@ -1067,6 +1882,23 @@ export default defineComponent({
         } else if (labelFilter.value) {
           params.label = labelFilter.value.id
         }
+        // THE HAND-PICKED LENSES, written AFTER the spoken one's params —
+        // the two never hold the same clause at once (each control drops
+        // the spoken twin when it is used), and last-write-wins is the
+        // belt that keeps that promise true even if one ever slipped
+        // through: what the box SAYS it is filtering by is what runs.
+        const win = resolveWhenLocal(dateWin.value)
+        if (win?.from) params.from = win.from.toISOString()
+        if (win?.to) params.to = win.to.toISOString()
+        // The clock hands ride beside the window, never instead of it. The
+        // OFFSET goes with them or the server compares against UTC hours and
+        // "morning" stops meaning the reader's morning.
+        if (todWin.value?.from) params.timeFrom = todWin.value.from
+        if (todWin.value?.to) params.timeTo = todWin.value.to
+        if (todWin.value) params.tzOffset = new Date().getTimezoneOffset()
+        if (pickedEntities.value.length) {
+          params.authors = pickedEntities.value.map((e) => e.id).join(',')
+        }
         if (sortOrder.value) params.order = sortOrder.value
         const r = await feedService.getPublic(params)
         if (r.success) {
@@ -1089,12 +1921,15 @@ export default defineComponent({
         } catch (_) { /* open feed */ }
       }
       await load()
+      // Which of these posts are already pinned — one read for the page.
+      loadPinned()
       // The seat + the digest (lane chip names), one read. A failure just
       // leaves the box on its stub — the feed owes nothing to the lens.
       try {
         const ctx = await feedService.getLensContext()
         seat.value = ctx.seat || null
-        digestNames.value = new Map((ctx.labels || []).map((l) => [l.id, l.name]))
+        allLabels.value = ctx.labels || []
+        digestNames.value = new Map(allLabels.value.map((l) => [l.id, l.name]))
       } catch (_) { /* stub box */ }
     })
 
@@ -1158,6 +1993,12 @@ export default defineComponent({
     const isOpen = (item) =>
       props.selectedId != null && String(props.selectedId) === String(item.skeleton_id)
 
+    // Its sibling for the cap's `open_in_new`: is the flyout currently
+    // showing THIS post as a skeleton? Compared the same loose way, and for
+    // the same reason — FeedPage holds the ref as a string.
+    const isSkeletonOpen = (item) =>
+      props.flyoutId != null && String(props.flyoutId) === String(item.skeleton_id)
+
     // A card is named by what the post CALLS itself — its TITLE — and by
     // nothing else it merely happens to carry. The CONTENT node's source
     // path (`concepts/embeds.md`) used to sit between title and fallback,
@@ -1168,6 +2009,128 @@ export default defineComponent({
       if (item.parent_skeleton_id) return `comment on #${item.parent_skeleton_id}`
       return '(untitled)'
     }
+
+    // ── THE CAP (2026-08-07) ────────────────────────────────────────────
+    // What the card's top strip says about the post: its kind, what it came
+    // out of, and what it is called.
+    //
+    // All three read the `origin` card the feed now answers with — a post's
+    // PARENT (a comment's target: a post OR a node) and its `forked_from`
+    // (a fork's source), each RESOLVED into `{ kind, id, path }` so the cap
+    // can chip it. The old `parent_skeleton_id` could only name a parent;
+    // the chip needs an address, and half the parents on this platform are
+    // not skeletons at all.
+
+    // The KIND MARKS. A post wears `post`, a comment wears `comment`, and a
+    // fork wears BOTH — it is a post that came out of a post, and the two
+    // glyphs together say that in the space one of them would take. A post
+    // that is somehow comment AND fork stacks all three, in the order the
+    // clauses below name them.
+    const capIcons = (item) => {
+      const rel = item.origin?.relation || ''
+      const icons = []
+      if (rel.includes('comment')) icons.push('sym_o_comment')
+      if (rel.includes('fork')) icons.push('sym_o_post', 'sym_o_alt_route')
+      if (!icons.length) icons.push('sym_o_post')
+      return icons
+    }
+
+    const capKindTitle = (item) => {
+      const rel = item.origin?.relation || ''
+      if (rel === 'comment') return 'A comment on another element'
+      if (rel === 'fork') return 'A fork of another post'
+      if (rel) return 'A comment and a fork'
+      return 'An original post'
+    }
+
+    // The ORIGIN CLAUSES — one per pointer the post carries, each a word and
+    // the element it points at. Comment before fork, which is the order the
+    // relation itself is built in. An original post has none and the cap
+    // opens straight onto its name.
+    const originClauses = (item) => {
+      const o = item.origin
+      if (!o) return []
+      const out = []
+      if (o.parent) out.push({ word: 'Comment on', target: o.parent })
+      if (o.forked_from) out.push({ word: 'Fork of', target: o.forked_from })
+      return out
+    }
+
+    // WHAT THE ORIGIN CHIP SAYS (2026-08-07, second ask). A post referred to
+    // by another post is named by the SAME rule the referring card names
+    // itself — `capTitle`, restated over the origin card because it reads
+    // someone else's title and id. So both ends of the clause are stated the
+    // same way and neither is a hash.
+    //
+    // A chip pointing at anything that is NOT a post gets nothing back and
+    // falls through to MicroChip's own hash face: a NODE has no title, and
+    // inventing one would say less than its address does.
+    const originName = (target) => {
+      if (!target || target.kind !== 'posts') return ''
+      return target.title || `post #${target.id}`
+    }
+
+    // And the MARK it wears: the card's own post glyph, so the clause and
+    // the kind icons at the head of the same line are one family. MicroChip
+    // defaults to `KINDS.posts.icon` (`edit_note`), which is the platform's
+    // POST-AS-DOCUMENT glyph and a different drawing from the one this cap
+    // has been stating a post with two spans to the left. Everything else
+    // keeps the kind's own icon — a node chip should look like a node.
+    const originIcon = (target) => (target?.kind === 'posts' ? 'sym_o_post' : null)
+
+    // ── THE CAP'S PIN (2026-08-07) ──────────────────────────────────────
+    // Which of this page's posts are already in the caller's PINS skeleton.
+    // ONE `/pins` read per stream load rather than a `pins/check` per card:
+    // the pins widget makes the same call, the list is short by
+    // construction, and a per-card probe would be thirty requests to draw
+    // thirty tacks. Skeleton-targeted pins only — a pin on a node or a label
+    // can never be one of these cards.
+    const pinnedIds = ref(new Set())
+
+    const loadPinned = async () => {
+      try {
+        const r = await pinService.list()
+        if (!r?.success) return
+        pinnedIds.value = new Set(
+          (r.pins || [])
+            .filter(p => p.target_type === 'skeleton' && p.target_id)
+            .map(p => Number(p.target_id))
+        )
+      } catch (e) { /* unauthenticated or offline — nothing reads as pinned */ }
+    }
+
+    // Optimistic on the SET (the tack flips on the press) and authoritative
+    // on the server (a refused call reloads the truth back over it). The
+    // event is what keeps the pins widget in step — it lives in MainLayout,
+    // so this rides up through FeedPage the way the media host's does.
+    const togglePin = async (item) => {
+      const id = item.skeleton_id
+      const was = pinnedIds.value.has(id)
+      const next = new Set(pinnedIds.value)
+      if (was) next.delete(id); else next.add(id)
+      pinnedIds.value = next
+      try {
+        if (was) await pinService.unpin('skeleton', id)
+        else await pinService.pin('skeleton', id)
+        navStore.recordAction(was ? 'UNPIN' : 'PIN', {
+          targetType: 'skeleton',
+          targetId: id,
+          targetRoute: '/posts/' + id,
+          targetLabel: item.title || 'Post #' + id,
+          targetPath: item.skeleton_path || null
+        })
+        emit('pins-changed')
+      } catch (e) {
+        await loadPinned()
+      }
+    }
+
+    // The post's own name in the cap. Unlike `cardName` (the title plate,
+    // which falls back through the parent because that band has no room to
+    // state a relation), this one falls back to the ADDRESS: the relation is
+    // already stated to its left, so what is missing here is only the name,
+    // and a post with no title still has an id.
+    const capTitle = (item) => item.title || `post #${item.skeleton_id}`
 
     // The card's classification, taken from the element itself: every label it
     // holds, as its full root→leaf PATH. This replaced the header's kind
@@ -1228,16 +2191,63 @@ export default defineComponent({
       momentDetail,
       momentTitle,
       isOpen,
+      isSkeletonOpen,
       cardName,
+      capIcons,
+      capKindTitle,
+      originClauses,
+      originName,
+      originIcon,
+      capTitle,
+      pinnedIds,
+      togglePin,
       labelPaths,
       postBody,
       LENS_OPTS,
       maxHops,
       setLens,
+      hopsMark,
+      hopsTitle,
+      // the time lens (2026-08-07)
+      DATE_OPTS,
+      dateWin,
+      TOD_OPTS,
+      todWin,
+      todKey,
+      todMark,
+      todTitle,
+      todMenuOpen,
+      todFrom,
+      todTo,
+      setTodWin,
+      applyTodCustom,
+      dateKey,
+      dateMark,
+      dateTitle,
+      dateMenuOpen,
+      setDateWin,
+      customFrom,
+      customTo,
+      applyCustom,
+      // the identity lens (2026-08-07)
+      pickedEntities,
+      whoMenuOpen,
+      whoQuery,
+      whoResults,
+      whoInput,
+      whoTitle,
+      searchEntities,
+      focusWho,
+      pickEntity,
+      dropEntity,
+      entityCard,
       labelFilter,
       labelMenuOpen,
       setLabelFilter,
-      onLabelPicked,
+      labelQuery,
+      labelMatches,
+      pickLabelHit,
+      applyLabelQuery,
       trustLabel,
       trustTitle,
       // the spoken lens (the Talavero seat, 2026-08-07)
@@ -1332,27 +2342,106 @@ export default defineComponent({
 // overflows rather than crushing a lens button into illegibility, and the
 // box's height is a constant whatever the window does to its width. (They
 // fit at 390px today: 138px of controls in a 150px half.)
+// THE WHOLE FILTERING SECTION IS SET IN THE DISPLAY FACE (2026-08-07, user
+// ask: "for the filtering section with the actual filters … use nasalization
+// onto everything"). Stated HERE, on the row, and once on each menu root
+// below, rather than as a class on twenty elements: almost every control in
+// this cluster already reads `font-family: inherit`, so the row is the one
+// place that decides — and a scoped rule with `inherit` in it BEATS the
+// `.nasalization` utility on specificity, which is why the class alone would
+// have missed exactly the elements that look like they carry it.
+//
+// The MONO utility is gone from every mark in the section — the lens marks,
+// the range tags and its apply, the picked-seat chips, the handles, and the
+// lane's chips (active, clear and trashed alike). Those wore `mono` from the
+// days the head band was a mono-headed strip; the face they are in now is the
+// one the box's own title is set in, so the filters read as part of the board
+// rather than as data printed on it. Each rule keeps its OWN letter-spacing —
+// the utility's `0.05em` is meant for headings with room, and these are 10px
+// marks in a 20px plate (the same call the post card's head strip documents).
+// TWO ROWS since 2026-08-07 (user ask): the lens BUNDLE on top, the label
+// FIELD under it. The section stopped being one row when the label lens
+// stopped being a plate — a field needs a line of its own, and stacking is
+// what buys it one without taking width from the composer beside it. The
+// column is `stretch`, so the field runs the bundle's full width and the two
+// rows read as one block rather than two controls that happen to be near
+// each other.
+//
+// The scroller is GONE with the row: a column cannot scroll sideways, and the
+// half hugs this block now, so there was nothing left for `overflow-x` or the
+// auto-margin centring to do. (The gotcha they were written for — justify
+// properties putting overflowing content past a scroll container's start,
+// unreachable because `scrollLeft` cannot go negative — is still in
+// specs/gotchas.md, and still true for `MediaTabsBar`.)
 .feed-stream__controls {
+  // ── THE SECTION'S OWN LINE (2026-08-07, user ask: "make the borders and
+  // hairlines of both the button bundle and the label filter bubble slightly
+  // thicker and paint them indigo-8") ─────────────────────────────────────
+  // FOUR lines read this pair: the bundle's rim, the dividers between its
+  // three lenses, the bubble's rim, and the rule the verb button stands
+  // behind. They were the box's own `--fhead-rule` at 1px — which made the
+  // controls draw in the same ink and the same weight as the WALLS the box is
+  // divided by, so at a glance the section had six equal lines in it and no
+  // way to tell a control's edge from a room's.
+  //
+  // The TONE walked `--indigo-8` → -7 → -6 → **`--indigo-9`** across four asks.
+  // It is now the SECTION'S OWN FLOOR and the lens buttons' own plate, which
+  // is the point of the last setting: the block is one dark material, and a
+  // line drawn on it in its own tone only appears where that material meets
+  // something else.
+  //
+  // ⚠ SO THE LENS DIVIDERS STOP DRAWING. They sit between two `--indigo-9`
+  // button plates and are `--indigo-9` themselves, so three lenses in a row
+  // read as ONE dark bar carrying three glyphs rather than three plates with
+  // rules between them. That is what "all indigo-9" means here, and it is
+  // worth knowing before hunting for a missing border: if the divisions should
+  // come back, the dial to turn is the PLATE or this rule — not both.
+  //
+  // Where it still draws: against the `--grey-3` faces — the label field's rim
+  // and the rule the verb stands behind — because there it has something to be
+  // different from.
+  //
+  // ⚠ This dial and `--fhead-chat-rim` in `FeedHeadBox.vue` were ONE decision
+  // in two files for four asks running; this one moved the section alone, so
+  // the composer's rim is still `--indigo-8` and they are now two levels
+  // apart. Check the other before assuming they still travel together.
+  --lens-rim: var(--indigo-9, #283593);
+  --lens-rim-w: 2px;
+  // THE SECTION IS PAINTED `--indigo-9` (2026-08-08, user ask), in the same
+  // pass that took the half's padding to zero. The two go together: with no
+  // padding the bars run wall to wall, so the only place this floor shows is
+  // the SEAM between them — a 3px dark line the two control bars sit either
+  // side of, which is what the gap was always doing and now says so.
+  //
+  // It is the deepest step the box uses, the one its two inner posts and its
+  // five lane-and-room keys are plated in — so the seam reads as more of the
+  // box's structure showing between two objects lying on it, rather than as a
+  // third colour introduced to fill a space.
+  background: var(--indigo-9, #283593);
+  font-family: var(--font-display);
   display: flex;
-  align-items: center;
-  gap: 5px;
+  flex-direction: column;
+  align-items: stretch;
+  // CENTRED in the height the half hands it, so whatever the two bars do not
+  // use splits evenly above and below them instead of pooling at one end —
+  // the dark field then reads as a thin border around the pair rather than as
+  // a gap under them.
+  justify-content: center;
+  // NO GAP (2026-08-08, user ask) — the two bars touch. It was 3px, set
+  // against the half's padding back when the half had some; the padding went
+  // to zero an ask earlier and this is the same decision finishing. The
+  // `--indigo-9` floor now shows only where `justify-content` leaves it, above
+  // and below the pair.
+  //
+  // ⚠ Touching bars DOUBLE their rims — 2px meeting 2px is a 4px line between
+  // them, heavier than the 2px anywhere else on the block. So the second bar
+  // drops the edge that meets the first (see `.feed-stream__label-row`: no
+  // `border-top` stacked, no `border-left` in the phone's single row). That is
+  // a consequence of closing the gap, not a separate design choice — undo both
+  // together if the seam ever comes back.
+  gap: 0;
   min-width: 0;
-  width: 100%;
-  overflow-x: auto;
-  overflow-y: hidden;
-  scrollbar-width: none;
-  &::-webkit-scrollbar { display: none; }
 
-  // CENTRED (user ask) — by AUTO MARGINS on the two ends, not by
-  // `justify-content: center`. On a scroll container the justify properties
-  // put overflowing content past BOTH edges, and the start of it can never be
-  // scrolled back to (`scrollLeft` cannot go negative) — measured here at
-  // 390px, where the count sat 15px outside the box and out of reach. Auto
-  // margins centre exactly the same way while there is room and collapse to 0
-  // the moment the row is full, so it degrades into a plain scroller. Same
-  // call `MediaTabsBar` makes for its right-pinned tab row; see gotchas.
-  > :first-child { margin-left: auto; }
-  > :last-child { margin-right: auto; }
 }
 
 // THE TRUST LENS (Thread J) — a small segmented control in the head band,
@@ -1366,61 +2455,357 @@ export default defineComponent({
 // plated in. The fallbacks are what these rules said before (`--indigo-3`
 // rims, `--indigo-8` ink), so the cluster still draws correctly if it is ever
 // slotted anywhere but into the head.
-.feed-stream__lens {
+// (The `.feed-stream__lens` box that held the four segmented plates went with
+// the 2026-08-07 fold, and `.feed-stream__label-open` — the light plate every
+// folded lens then wore — went with the BUNDLE later that day: the group
+// draws the rim and the floor once for all three. The button rule below
+// stayed, because it is the TYPE, and every lens in the cluster still sets
+// its lettering from it. ⚠ Its `--fhead-*` fallbacks are now the only thing
+// this cluster still takes from the box's dials: the section's LINES read
+// `--lens-rim` instead, so a control's edge and a room's wall can be told
+// apart.)
+// THE BUNDLE (2026-08-07, user ask) — `QBtnGroup` draws the GEOMETRY (radius
+// inherited by the children, squared off on everything but the two ends) and
+// this rule draws the PAINT: one rim, one radius, one floor for the four
+// lenses, with the dividers between them stated on the buttons.
+//
+// `overflow: hidden` is what makes the `is-on` FILL respect the bundle's
+// corners — without it the first or last lens paints a square plaque into a
+// rounded end.
+//
+// FULL WIDTH OF ITS CONTAINER since 2026-08-07 (user ask). Two changes make
+// that real, and only together: `display: flex` (QBtnGroup ships
+// `inline-flex`, which shrink-wraps whatever width it is given) and
+// `flex: 1 1 0` on the buttons below, so the three lenses SHARE the width
+// instead of the group holding a stretch of empty floor at its right end.
+// The `align-self: center` that used to hold it at its natural width is gone
+// with it — the column is `stretch`, so the group now spans exactly what the
+// label row under it spans, and the two rows read as one block.
+//
+// Note what still sets the section's WIDTH: the label field's natural size.
+// A percentage width is indefinite during intrinsic sizing, so the group
+// stretches to the column rather than driving it.
+.feed-stream__lens-group {
   display: flex;
-  flex: 0 0 auto;
-  border: 1px solid var(--fhead-rule, var(--indigo-3, #9fa8da));
-  border-radius: var(--radius-sm, 7px);
+  width: 100%;
+  border: var(--lens-rim-w) solid var(--lens-rim);
+  // SQUARE (2026-08-08, user ask), from `--radius-sm`. It follows the pass
+  // that took this section's padding to zero and painted it `--indigo-9`: the
+  // bars run wall to wall now, and a rounded box against a straight wall shows
+  // the floor in four little corners. Square, the pair reads as two bands
+  // filling the room with one dark seam between them.
+  //
+  // The children's `border-radius: 0` below is now trivially in agreement
+  // rather than load-bearing — but it stays, because it is the rule that keeps
+  // the corners matched at ANY radius, and this one has been changed four
+  // times.
+  border-radius: 0;
+  background: var(--grey-3, #eeeeee);
   overflow: hidden;
-  background: var(--grey-1, #fafafa);
 }
 
+// DENSE, AND THE OUTER PADDING CUT HARD (user ask: "make the bundle dense and
+// reducing the outer padding a lot"). `dense` on the QBtn is not enough on its
+// own — Quasar's dense still writes `padding: 4px 8px` and a `min-height` from
+// its size scale — so the box is restated here: 2px/5px and no floor. The
+// glyph is 13px, which makes the plate 17px tall against the 21px it was.
+//
+// `:deep(.q-btn__content)` — the icon and the lens mark live inside QBtn's own
+// content wrapper, which the scope attribute never reaches. Its `gap` is what
+// used to be the flex row's on the plain button.
 .feed-stream__lens-btn {
-  border: 0;
-  border-right: 1px solid var(--fhead-rule, var(--indigo-3, #9fa8da));
-  background: transparent;
-  color: var(--fhead-ink, var(--indigo-8, #303f9f));
+  // EQUAL THIRDS of the bundle (2026-08-07, user ask — the group spans its
+  // container now, and a bundle with a gap at one end is not a bundle). A
+  // ZERO basis, not `auto`: with `auto` the three would divide the SLACK in
+  // proportion to their content, and the trust lens is wider than the other
+  // two by the mark it prints, so the row would come out visibly uneven.
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: 0;
+  border-right: var(--lens-rim-w) solid var(--lens-rim);
+  background: var(--indigo-9, #283593);
+  color: var(--brown-1, #efebe9);
   font-family: inherit;
   font-size: 0.66em;
   font-weight: 700;
   letter-spacing: 0.03em;
-  padding: 3px 8px;
-  cursor: pointer;
+  padding: 2px 5px;
+  // PLATED (2026-08-08, user ask) — `--indigo-9` under a `--brown-1` mark,
+  // after one ask at -8. It is now EXACTLY the lane keys' recipe rather than
+  // a step off it: the broom, the bin, these three lenses and the label row's
+  // verb are one object drawn five times, so every pressable thing in this box
+  // that is not a field reads the same way — a deep plaque with a warm mark on
+  // it. The lenses were light plates with dark glyphs, which made them look
+  // like the FIELDS they sit beside; they are buttons, and now they say so.
   &:last-child { border-right: 0; }
-  &:hover { background: var(--indigo-1, #e8eaf6); }
-  // The ON plaque takes the box's ink as its FILL — one indigo in the box,
-  // whether a control is drawing a line, a word or a field.
+  &:hover { background: var(--indigo-8, #303f9f); }
+  // ── THE CORNERS MATCH BY CONSTRUCTION (2026-08-08, user ask: "the corners
+  // look mismatched") ────────────────────────────────────────────────────
+  // They were, and this is why. Quasar gives every `.q-btn-item` in a group
+  // `border-radius: inherit` — the GROUP's radius, `--radius-sm`. But the
+  // group carries a 2px border, and an `overflow: hidden` box clips its
+  // content to the PADDING-box curve, which is `radius − border-width`. So the
+  // button was drawing a 7px corner inside a 5px clip: two curves of different
+  // radii on the same corner, with the group's floor showing in the sliver
+  // between them.
+  //
+  // Zeroing the button's own radius hands the rounding entirely to the clip,
+  // which is the only way the two CANNOT disagree — the visible corner IS the
+  // group's inner curve, whatever the rim's width or the radius is set to
+  // later. It also fixes the `is-on` FILL for free: a plaque that used to be
+  // rounded-then-clipped is now simply clipped.
+  border-radius: 0;
+  // THE ON STATE IS AN INVERSION since the plates went dark (2026-08-08). It
+  // used to be the dark fill on a light button; with the button itself `-8`
+  // under `--brown-1`, "on" swaps the two — the bundle's own `--grey-3` floor
+  // as the plate, the plate's tone as the mark. Nothing new enters the
+  // palette, and the lens you ARE looking through is the one plate in the
+  // bundle reading light-on-dark's opposite.
   &.is-on {
-    background: var(--fhead-ink, var(--indigo-8, #303f9f));
-    color: #fff;
+    background: var(--grey-3, #eeeeee);
+    color: var(--indigo-9, #283593);
+  }
+  :deep(.q-btn__content) {
+    gap: 3px;
+    flex-wrap: nowrap;
   }
 }
 
-// THE LABEL LENS (2026-08-01) — the funnel borrows the lens box's language
-// (same rim, radius, floor). It used to have TWO faces, the second being the
-// active filter drawn as a dark chip in its place; since 2026-08-06 the chip
-// lives in the head box's label lane and the funnel stays put, taking the
-// lens buttons' own `is-on` plaque so the control still says the stream is
-// filtered without having to also say what by. SORT BY shares the rule and
-// adds only the disabled state — it is a placeholder (see the template).
-.feed-stream__label-open {
-  border: 1px solid var(--fhead-rule, var(--indigo-3, #9fa8da));
-  border-radius: var(--radius-sm, 7px);
-  background: var(--grey-1, #fafafa);
-  flex: 0 0 auto;
-  padding: 3px 7px;
+// ── THE LABEL ROW ───────────────────────────────────────────────────
+// Glyph · field · verb, in one plate the width of the bundle above it. The
+// plate is the bundle's own recipe (same rim, radius and floor) so the two
+// rows are one block; what tells them apart is that this one has a FIELD in
+// it, which is the whole reason the label lens left the bundle.
+// IT MATCHES THE BUNDLE EXACTLY (2026-08-07, user ask). It spent one ask
+// centred and inset 6px a side, on the argument that a hierarchy reads better
+// than two bars of identical length; the ask after settled it the other way,
+// and the other way is right — these are two halves of ONE control block, not
+// a field nested inside a toolbar, and at this size a 12px inset reads as a
+// misalignment rather than as a nesting. So no `align-self` and no width of
+// its own: the column is `stretch`, and both rows take the section's measure.
+// ⚠ NO `.feed-stream__label-line` ANY MORE. The funnel spent a few asks
+// OUTSIDE this bar — a wrapper held the two side by side, the verb standing on
+// the section's `--indigo-9` the way the lane's keys stand beside their trays
+// — and it came back IN on the next ask (user). The reason is worth keeping:
+// out there the verb's `--indigo-9` plate was drawn on an `--indigo-9` floor
+// and drew nothing, so the control was a bare glyph floating beside the field;
+// in here the same plate lands on this bar's `--brown-1` and states itself.
+// The wrapper had nothing left to wrap and went with the move.
+.feed-stream__label-row {
+  position: relative;
   display: flex;
   align-items: center;
+  gap: 4px;
+  min-width: 0;
+  // ── THE ROOM RIM (2026-08-08, user ask: thin `--indigo-7` borders on the
+  // board's brown-1 rounded containers) ────────────────────────────────────
+  // 1px `--indigo-7`, off the 2px `--lens-rim` (-9) this bar shared with the
+  // bundle above it. It is the head box's `--fhead-room-rim` by another route
+  // — the same ink the talk room and the two lane trays took in the same ask,
+  // and the ink the BOX'S OWN FRAME is drawn in — so the four warm containers
+  // are outlined as one family across the two files. A -9 rim would have made
+  // each of them read as another wall.
+  border: 1px solid var(--indigo-7, #3949ab);
+  // ROUNDED — `--radius-sm`, with the head box's talk room and its two lane
+  // trays, one curve across both files (2026-08-08, the SECOND attempt; the
+  // first was reverted on sight because those three were curving against the
+  // box's pale `--grey-4` face and each corner opened a notch). This bar is
+  // the one that always could: its backdrop is `.feed-stream__controls`,
+  // painted `--indigo-9` by the SOLID BLOCK pass, so the curve opens onto the
+  // board's structural ink — the same rule the other three now follow.
+  //
+  // ⚠ Its TOP corners curve away from the bundle above it, which draws none of
+  // its own (the bundle is square and this bar carries `border-top: 0` so the
+  // touching rims do not double). What shows in that seam is `--indigo-9`,
+  // between two `--indigo-9` rims — invisible, and only invisible because the
+  // section, both rims and the plates are one ink. If the section's floor ever
+  // lightens, this radius is the first thing to check.
+  // A LITTLE ROUNDER (2026-08-08, user ask) — 10px, off `--radius-sm`'s 7. It
+  // lands on the head box's `--fhead-talk-r`, and the tie is worth stating:
+  // the two containers on the board you TYPE INTO are the two with the bigger
+  // corner, and the two that hold CHIPS (the lane's trays) keep the small one.
+  // Not a shared dial, since they are in different files — grep both if the
+  // board's corner is ever re-scaled.
+  border-radius: 10px;
+  // ⚠ ITS TOP EDGE IS BACK (2026-08-08, with the rim above). It was 0 because
+  // two touching 2px rims in ONE ink double to a 4px line and the bundle owned
+  // that edge — true while this bar was the second half of a flush block in
+  // the same rim. It is not that any more: it is a rounded, outlined warm
+  // panel in a different ink at half the weight, so an open top read as a box
+  // missing an edge, with the curve running up to nothing at both corners.
+  // What stacks at the seam now is the bundle's 2px -9 over this 1px -7 — a
+  // lighter hairline under a dark rule, which reads as the panel's own edge.
+  // `--brown-1` SINCE 2026-08-08 (user ask), off the `--grey-3` it shared with
+  // the bundle above it. The field joins the board's WARM family — the talk
+  // room's floor, the header's writing, the lane's two chip trays, all painted
+  // in this one tone in the same sitting — which is a fair reading of what
+  // this bar is: the other place on the board you TYPE, the label lens's
+  // answer to Talavero's composer across the wall.
+  //
+  // ⚠ IT NO LONGER MATCHES THE BUNDLE ABOVE IT — but measured, that is a
+  // change of LEAN and not of tone: `--grey-3` is 238 neutral and this is
+  // rgb(239,235,233), 1.02:1, the same lightness warmed. So the "two bars, ONE
+  // block" argument survives on every count that built it (one rim, one width,
+  // one seam, one shape, one value) and what the warmth adds is which half you
+  // can write in. Bring the bundle's `--grey-3` here if they should ever be
+  // one surface again — and expect the difference to be barely visible either
+  // way, which is the point.
+  background: var(--brown-1, #efebe9);
+  padding: 0 0 0 5px;
+  overflow: hidden;
+}
+
+// The glyph NAMES the line — it is not a button and never was. `label` is the
+// same mark the platform's label chips wear.
+.feed-stream__label-row-mark {
+  flex: 0 0 auto;
+  color: var(--fhead-ink, var(--indigo-8, #303f9f));
+  opacity: 0.75;
+}
+
+.feed-stream__label-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  color: var(--fhead-ink, var(--indigo-8, #303f9f));
+  font-family: inherit;
+  font-size: 0.64em;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  padding: 3px 0;
+  &:focus { outline: none; }
+  &::placeholder { font-weight: 400; opacity: 0.5; }
+}
+
+// THE VERB — the funnel, the bar's last child again and the one PRESSABLE
+// thing in a bar you otherwise type into. It left the lens bundle for the end
+// of this line in 2026-08-07, spent a few asks OUTSIDE the bar in 2026-08-08,
+// and is back inside (user ask, the same day).
+//
+// ⚠ AND ITS PLATE DRAWS AGAIN, which is the whole point of the return: an
+// `--indigo-9` tile on this bar's `--brown-1` floor is the box's deepest mark
+// on its warmest one. Outside, that same plate sat on the section's own -9 and
+// vanished, leaving a bare `--brown-1` funnel — correct for the lane's keys,
+// which ARE bare glyphs on a dark band, and wrong for the one control standing
+// in a light field. Hover steps to -7 and `is-on` inverts to a `--grey-3`
+// tile.
+.feed-stream__label-go {
+  flex: 0 0 auto;
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  // ⚠ NO BORDER AT ALL. The button carried a `border-left` in `--lens-rim` as
+  // the wall between the field and the verb, from when the two stood on one
+  // floor and needed a line to be told apart. They do not: the button is an
+  // `--indigo-9` tile on a `--brown-1` bar, so its own EDGE is the division —
+  // and a -9 line on a -9 plate is a border that cannot be seen anyway.
+  border: 0;
+  // THE SAME PLATE AS THE BUNDLE'S BUTTONS (2026-08-08, user ask) — it was a
+  // transparent glyph on the field's own floor, which read as part of the
+  // input rather than as the thing that acts on it. Plated, the row states
+  // its two halves plainly: a light field you type into, a dark button you
+  // press. Its ON state inverts exactly as the lenses' does.
+  background: var(--indigo-9, #283593);
+  color: var(--brown-1, #efebe9);
+  cursor: pointer;
+  &:hover { background: var(--indigo-7, #3949ab); }
   &.is-on {
-    background: var(--fhead-ink, var(--indigo-8, #303f9f));
-    border-color: var(--fhead-ink, var(--indigo-8, #303f9f));
-    color: #fff;
+    background: var(--grey-3, #eeeeee);
+    color: var(--indigo-9, #283593);
   }
 }
 
-.feed-stream__sort:disabled {
-  cursor: not-allowed;
-  opacity: 0.55;
+// The hits: name over its chain, the chain quieter and smaller — the same
+// two-line reading the label chips use, since a leaf name only means
+// something with its path under it.
+.feed-stream__label-hits {
+  max-height: 210px;
+  overflow-y: auto;
+}
+
+.feed-stream__label-hit-name {
+  font-weight: 700;
+}
+
+.feed-stream__label-hit-chain {
+  font-size: 0.82em;
+  opacity: 0.6;
+}
+
+.feed-stream__label-hit-empty {
+  font-family: var(--font-display);
+  font-size: 0.72em;
+  color: var(--indigo-8, #303f9f);
+  opacity: 0.6;
+  padding: 6px 10px;
+  background: var(--grey-1, #fafafa);
+}
+
+// SORT BY, ON THE BOARD'S HEADER PLATE (2026-08-07, user ask). It wore
+// `.feed-stream__label-open` — the lens plates' light recipe — until it left
+// the row; on an `--indigo-8` band that plate is a white tile stuck to a dark
+// bar. So it is drawn as the COUNT beside it is: hollow, in the header's own
+// `--grey-3` writing, rim at 55% of it. The two are the header's pair — a
+// control and a reading, one language.
+//
+// It reads `--fhead-bar-ink` through the slot (it is inside the header, so the
+// dial resolves) and keeps a `--grey-3` fallback for anywhere else. That dial
+// went `--brown-1` on an `--indigo-9` plate (2026-08-08, user ask — after one
+// pass at -2 on -10) and this button followed it for free, being drawn in it
+// end to end: the glyph now wears the same warm tone as the lens buttons'
+// marks two rows below it, which is the whole board's mark ink.
+//
+// NO OUTLINE since 2026-08-08 (user ask) — the rim at 55% is gone, which
+// finishes the walk the count started when it lost its own an ask earlier. The
+// pair at the bar's right end is now two BARE marks in the header's writing:
+// a number and a glyph, told apart by what they are rather than by a box drawn
+// round one of them. What still says the glyph is pressable is that it ANSWERS
+// — the hover wash and the `is-on` inversion below, both kept.
+//
+// ⚠ The `is-on` plaque is now the ONLY box this control ever draws, which
+// makes it read as a state rather than as a rim that happens to fill. If the
+// button ever needs a resting edge again, take it from the WRITING at 55% as
+// before — not from the plate: at `--indigo-9` the band is the same tone as
+// every wall in the box, so a plate-derived edge would draw nothing here and
+// would be a fourth thing claiming that one ink everywhere else.
+.feed-stream__sort {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 15px;
+  border: 0;
+  border-radius: var(--radius-sm, 7px);
+  background: transparent;
+  color: var(--fhead-bar-ink, var(--grey-3, #eeeeee));
+  cursor: pointer;
+  &:hover { background: rgba(255, 255, 255, 0.14); }
+  // ON = an ORDER that is not the default. Filled with the writing's own tone
+  // and knocked back to the plate, the one inversion available on a band this
+  // dark — the light-plate `is-on` (dark fill, white mark) would be invisible.
+  &.is-on {
+    background: var(--fhead-bar-ink, var(--grey-3, #eeeeee));
+    color: var(--fhead-bar-face, var(--indigo-8, #303f9f));
+  }
+}
+
+// THE MARK a folded lens prints beside its glyph (2026-08-07) — the hop
+// radius, the window's short word, the count of picked identities. It is
+// the STATE, not a label, so it is set tighter and smaller than the button's
+// own lettering and takes whatever ink the plate is wearing (dark on the
+// light plate, white once the lens is on). `line-height: 1` keeps it on the
+// glyph's centreline: a 13px icon beside text with normal leading is the
+// classic way a 20px control silently becomes 22px and moves the row.
+.feed-stream__lens-n {
+  font-size: 0.62em;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  color: inherit;
 }
 
 // THE ACTIVE FILTER, in the lane (2026-08-06). Same dark `--indigo-8` plaque
@@ -1472,11 +2857,200 @@ export default defineComponent({
 
 // The SORT BY menu — dense rows in the box's own ink; the current order
 // carries a filled left edge rather than a check glyph (one more icon in a
-// 3-row menu is noise).
+// 3-row menu is noise). The TRUST and TIME menus wear the same rule: three
+// dropdowns in one cluster, one list face.
+//
+// NOTE the raw `--indigo-*` tokens here and in every menu below. A `q-menu`
+// TELEPORTS its content to `<body>`, so it stands outside the head box and
+// never sees the `--fhead-ink` / `--fhead-rule` dials the box publishes on
+// its own element — a menu written in those would fall back silently and
+// drift the day the fallbacks change.
 .feed-stream__sort-menu {
+  // The display face has to be restated on every menu ROOT for the same reason
+  // the tokens are: a teleported menu inherits from `<body>`, not from the row
+  // that opened it, so `.feed-stream__controls`' setting never reaches here.
+  font-family: var(--font-display);
   min-width: 92px;
   .q-item { font-size: 0.72em; color: var(--indigo-9, #283593); min-height: 26px; }
   .q-item.is-current { box-shadow: inset 3px 0 0 var(--indigo-7, #3949ab); font-weight: 700; }
+}
+
+// THE TIME MENU (2026-08-07) — the preset list over a custom range panel,
+// divided by a hairline. The panel is the only place in this cluster with
+// FIELDS in it, so it is the only one with a floor of its own: `--grey-2`
+// under the list's `--grey-1`, which reads as a drawer at the bottom of the
+// plaque rather than as two menus stacked.
+.feed-stream__when-menu {
+  font-family: var(--font-display);
+  min-width: 168px;
+  background: var(--grey-1, #fafafa);
+}
+
+.feed-stream__when-custom {
+  border-top: 1px solid var(--indigo-3, #9fa8da);
+  background: var(--grey-2, #f5f5f5);
+  padding: 6px 8px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.feed-stream__when-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.feed-stream__when-tag {
+  flex: 0 0 30px;
+  font-size: 0.62em;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--indigo-8, #303f9f);
+}
+
+// `color-scheme: light` is load-bearing, not cosmetic: the app runs in
+// Quasar's dark mode, and a native datetime field inherits the page's scheme
+// for its OWN chrome — the spinner, the calendar popup, the AM/PM caret.
+// Left unstated, a dark browser picker drops out of a light plaque.
+.feed-stream__when-field {
+  color-scheme: light;
+  flex: 1 1 auto;
+  min-width: 0;
+  border: 1px solid var(--indigo-3, #9fa8da);
+  border-radius: var(--radius-sm, 7px);
+  background: var(--grey-1, #fafafa);
+  color: var(--indigo-9, #283593);
+  font-family: inherit;
+  font-size: 0.68em;
+  padding: 2px 5px;
+  &:focus { outline: none; border-color: var(--indigo-6, #3f51b5); }
+}
+
+// APPLY — the one dark plaque in the drawer, because it is the one thing
+// here that changes what the stream is showing. Disabled while both ends
+// are empty: an empty range is not a window, it is the absence of one, and
+// that is what the list's "any time" row is for.
+.feed-stream__when-apply {
+  align-self: flex-end;
+  border: 1px solid var(--indigo-8, #303f9f);
+  border-radius: var(--radius-sm, 7px);
+  background: var(--indigo-8, #303f9f);
+  color: #fff;
+  font-family: inherit;
+  font-size: 0.62em;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 2px 10px;
+  cursor: pointer;
+  &:hover { background: var(--indigo-7, #3949ab); }
+  &:disabled { opacity: 0.4; cursor: not-allowed; }
+}
+
+// THE IDENTITY MENU (2026-08-07) — a search field over the picked seats
+// over the results. In that order on purpose: you type, you see what the
+// lens already holds, and the results land under both instead of pushing
+// the picks around as they stream in.
+.feed-stream__who-menu {
+  font-family: var(--font-display);
+  width: 232px;
+  padding: 8px;
+  background: var(--grey-1, #fafafa);
+}
+
+.feed-stream__who-input {
+  width: 100%;
+  border: 1px solid var(--indigo-3, #9fa8da);
+  border-radius: var(--radius-sm, 7px);
+  background: #fff;
+  color: var(--indigo-9, #283593);
+  font-family: inherit;
+  font-size: 0.72em;
+  padding: 3px 7px;
+  &::placeholder { color: var(--indigo-4, #7986cb); }
+  &:focus { outline: none; border-color: var(--indigo-6, #3f51b5); }
+}
+
+.feed-stream__who-picked {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 6px;
+}
+
+// A picked seat = the lane chip's plaque at menu scale, wearing the FACE:
+// this platform states an identity with its picture, and a filter naming a
+// person should look like the person.
+.feed-stream__who-chip {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  border: 1px solid var(--indigo-8, #303f9f);
+  border-radius: var(--radius-sm, 7px);
+  background: var(--indigo-8, #303f9f);
+  color: #fff;
+  font-size: 0.6em;
+  font-weight: 700;
+  padding: 1px 5px 1px 2px;
+  cursor: pointer;
+  max-width: 100%;
+  &:hover { background: var(--indigo-7, #3949ab); }
+}
+
+.feed-stream__who-chip-name {
+  max-width: 90px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.feed-stream__who-list {
+  list-style: none;
+  margin: 6px 0 0;
+  padding: 0;
+  max-height: 190px;
+  overflow-y: auto;
+}
+
+.feed-stream__who-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: var(--indigo-9, #283593);
+  font-family: inherit;
+  font-size: 0.72em;
+  text-align: left;
+  padding: 3px 4px;
+  border-radius: var(--radius-sm, 7px);
+  cursor: pointer;
+  &:hover { background: var(--indigo-1, #e8eaf6); }
+}
+
+.feed-stream__who-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 700;
+}
+
+.feed-stream__who-handle {
+  flex: 0 0 auto;
+  font-size: 0.86em;
+  opacity: 0.65;
+}
+
+.feed-stream__who-empty {
+  color: var(--indigo-8, #303f9f);
+  opacity: 0.6;
+  font-size: 0.7em;
+  padding: 5px 4px;
 }
 
 // THE COUNT (2026-08-06, user ask: "paint the post counter indigo"). It was
@@ -1484,21 +3058,41 @@ export default defineComponent({
 // in this box still wearing it after the surface took a colorway of its own.
 // Drawn as the lens buttons at REST rather than as one locked on: the total
 // is a fact the box states, not a filter you can be inside of.
+//
+// IT MOVED TO THE HEADER (2026-08-07, user ask) — out of the lens row, into
+// the box's plated bar through the `count` slot — and it had to change coat
+// with the wall: the light `--grey-1` plate under `--fhead-ink` it wore on the
+// body line is invisible logic on an `--indigo-8` band. It is HOLLOW now,
+// drawn in the bar's own `--grey-3` writing at 55% on the rim, which keeps it
+// a reading on the plate rather than a second plaque laid on one. The dials it
+// reads are the BAR's (`--fhead-bar-ink`), not the box's — it lives inside the
+// header, so they resolve; a fallback is kept for anywhere else it is slotted.
+//
+// It is set in the DISPLAY FACE like the title beside it: on this line it is
+// one of the bar's two words, not one of the row's controls.
+//
+// NO RIM since 2026-08-08 (user ask), and that is the same argument finished:
+// the hollow chip was already saying "a reading, not a plaque", and a rim is
+// the one thing left on it that a control would wear. Bare, the cluster at the
+// bar's right end reads correctly at a glance — a NUMBER beside a rimmed
+// BUTTON, the only one of the two you can press.
 .feed-stream__count {
   flex: 0 0 auto;
-  border: 1px solid var(--fhead-rule, var(--indigo-4, #7986cb));
-  border-radius: var(--radius-sm, 7px);
-  background: var(--grey-1, #fafafa);
-  color: var(--fhead-ink, var(--indigo-8, #303f9f));
-  font-size: 0.64em;
+  border: 0;
+  background: transparent;
+  color: var(--fhead-bar-ink, var(--grey-3, #eeeeee));
+  font-family: var(--font-display);
+  font-size: 0.6em;
   font-weight: 700;
   letter-spacing: 0.03em;
-  padding: 2px 7px;
+  line-height: 1;
+  padding: 2px 6px;
 }
 
 // The picker floats in a q-menu — a small light plaque, wide enough for
 // the leaf names the dropdown states as `[PARENT] > NAME`.
 .feed-stream__label-menu {
+  font-family: var(--font-display);
   width: 260px;
   padding: 8px;
   background: var(--grey-1, #fafafa);
@@ -1555,22 +3149,63 @@ export default defineComponent({
   // frieze edges, the rule that has held since 2026-07-25), and the pale thing
   // is the object lying on it. Nothing here separates by hue any more; a card
   // is stated by one step of lightness and its own `--grey-6` outline.
+  // `--grey-2` since 2026-08-07 (user ask, one setting after `--grey-5`: "make
+  // the background color of the feed container grey-2"). The ask names the
+  // CONTAINER and this is the bed, and they move together for a reason that is
+  // easy to forget and has bitten this surface before: **the bed covers the
+  // container edge to edge**, so the container's own coat is not visible
+  // anywhere at all — measured, both boxes are `95,5,571,900`, and the only
+  // part of the container outside that is behind the two opaque frieze bars.
+  // Setting the container alone is a change that is true in the stylesheet and
+  // invisible on screen. (The same trap cost a pass on 2026-08-05, when the box
+  // went neutral and the bed was left behind.)
+  //
+  // ⚠ THE FIGURE/GROUND WAS INVERTED AT `--grey-2` (2026-08-07) and this ask
+  // TURNS IT BACK. That tone (rgb 245,245,245) is LIGHTER than the veiled card
+  // (rgb 242,239,234), so the card was the darker, warmer object on a
+  // near-white field — a PAGE with darker sheets on it. `--grey-4`
+  // (rgb 224,224,224) puts the card back ABOVE its bed, which is the reading
+  // the card's whole tone stack was built for: a pale sheet lying on a grey
+  // plate. Both are legitimate registers; they are different objects, and only
+  // one of them is the one everything else here was tuned against.
+  //
+  // AND IT WIDENS THE STEP FROM THREE LEVELS TO THIRTEEN. At grey-2 the pair
+  // ran the thinnest margin it ever has — the card was barely tonally stated
+  // and leaned on its `--grey-6` outline and `--grey-1` hairline to be seen at
+  // all. The bed's walk is the whole argument in one line: `--grey-4` →
+  // `--grey-5` (53 levels BELOW the card) → `--grey-2` (3 above) → back here.
+  // **The FIELD is the dial**; every step it moves down gives the card's wash
+  // somewhere to be. What survives all of it: **card and bed need a step, and
+  // its DIRECTION is a choice — its absence never is.**
+  //
+  // ⚠ AND THIS LINE IS HALF OF ONE CHANGE. `.feed-container` in FeedPage.vue is
+  // the other half and must carry the same tone: this bed covers the container
+  // edge to edge (both measured `95,5,571,900`), so a coat set on only one of
+  // them is either invisible or a seam. The trap has cost three passes now.
   background: var(--grey-4, #e0e0e0);
   // The bed's REVEAL around the cards. The sides walked the whole way down and
-  // a little back up on 2026-08-06: `10px` (from the day the well took padding
-  // back) → `5px` → `0` ("remove completely") → **`3px`** ("just a little
-  // little"). Three pixels is not a gap you read as space — it is the smallest
-  // reveal that keeps the card's own border from LANDING ON the frieze bar, and
-  // that is the whole job. At `0` the card ran flush into the bar and its edge
-  // and the bar's became one line at the seam; the bar's lip is `--grey-4` (it
-  // draws nothing) precisely because of that pass, and it stays that way — the
-  // sliver is doing the separating now, not a lip.
+  // then back up: `10px` (from the day the well took padding back) → `5px` →
+  // `0` ("remove completely") → `3px` ("just a little little", all four on
+  // 2026-08-06) → **`8px`** (2026-08-07, "a little more padding on the sides
+  // from the frieze bars").
   //
-  // The vertical rhythm is untouched at 10px (the gap under the head, the
-  // stream's flex `gap` between the rest), so the reveal is
-  // deliberately UNEVEN: wide between cards, a hairline at the lips. The head
-  // band's negative side margins used to be exactly `-1 x` this number so the
-  // band stayed full-bleed lip to lip while the cards kept the sliver
+  // The 3px setting was a SLIVER, not a gap: the smallest reveal that keeps the
+  // card's own border from LANDING ON the frieze bar, which was the whole job
+  // while the bar was `--grey-4` and the card's edge was the only line at the
+  // seam. What changed the job is the same day's other ask — the bars went
+  // `--indigo-8`, a deep plate against a pale card, and two objects that far
+  // apart in tone need SPACE between them rather than a hairline of daylight:
+  // at 3px the pale card looked stuck to the dark bar. At 8px the grey bed runs
+  // between them and each reads as its own object standing on it.
+  //
+  // The vertical rhythm is 10px (the gap under the head, the stream's flex
+  // `gap` between the rest), so the reveal is now NEARLY EVEN where it used to
+  // be deliberately uneven — 8 against 10, close enough that the eye reads one
+  // margin. Going the last 2px to a true 10 is not obviously better: the sides
+  // are read against a hard vertical edge and the top/bottom against another
+  // card, and equal numbers do not look equal across that difference.
+  // The head band's negative side margins used to be exactly `-1 x` this number
+  // so the band stayed full-bleed lip to lip while the cards kept the sliver
   // (`-10px`, `-5px`, `0`, `-3px`, in step with it); the head is a BOX outside
   // this scroller since 2026-08-06 and spans the field on its own, so that
   // pairing is retired and this padding is the cards' alone.
@@ -1592,7 +3227,35 @@ export default defineComponent({
   // NOTE the side padding narrows `.feed-stream`, which is the element the
   // square ceiling is measured from — the ResizeObserver picks the new width
   // up on its own, so `--post-square-max` follows automatically.
-  padding: calc(var(--fhead-h, 120px) + 22px) 3px calc(var(--frieze-h) + 12px);
+  padding: calc(var(--fhead-h, 120px) + 22px) 8px calc(var(--frieze-h) + 12px);
+
+  // ── THE BED'S SIDE BORDERS (2026-08-07, user ask) — 1px `--indigo-6` down
+  // each side, nothing on the ends. This box IS what holds the post cards, and
+  // it covers the container edge to edge, so its two side edges are the line
+  // the cards actually run against.
+  //
+  // It completes a GRADED FRAME the same day built from the outside in, each
+  // step a different job and a different level of one family:
+  //
+  //   --indigo-4   the container's outer rim, on the near-black canvas
+  //   --indigo-9   the two frieze plates (and their own plaque-toned edges,
+  //                which reserve a margin rather than draw a line)
+  //   --indigo-6   THIS — the inner edge, between the plates and the cards
+  //
+  // -6 is the family's Material 500, its pure hue: read against a `--grey-2`
+  // bed and the cards' cream it is unmistakably a line, where the -4 outside
+  // is read against black and can afford to be lighter. The two never meet —
+  // the plates stand between them — so the frame reads as three marks, not as
+  // a gradient someone tried to draw.
+  //
+  // On a SCROLLER the border is part of the border box, so it stays put while
+  // the cards pass under it — the edge is the box's, not the content's. It
+  // comes out of the width (`border-box`), which narrows `.feed-stream` by
+  // 2px; the ResizeObserver picks that up and `--post-square-max` follows, as
+  // the padding note above says.
+  border-left: 1px solid var(--indigo-6, #3f51b5);
+  border-right: 1px solid var(--indigo-6, #3f51b5);
+
   scrollbar-width: thin;
   scrollbar-color: rgba(var(--ink-rgb), 0.3) transparent;
 
@@ -1623,17 +3286,48 @@ export default defineComponent({
 
 // One post = one square, the same visual grammar as .label-square on the
 // labels page: hairline border, mono uppercase head, and a carved inset pit
-// for the body — but drawn entirely in the FEED CONTAINER's own colorway
-// rather than the platform's white — which since 2026-08-06 means the
-// container's NEUTRAL. One step, one job, as of that day: `--grey-4` coats the
-// card (as it coats the container, the rule that has never moved), `--grey-3`
-// is the scroll bed under it, and `--indigo-4` draws EVERY line — the card's
-// 2px outer border, its byline hairline and vertical rule, the title plate's
-// rim, the label rail, the trust chip, the pit's 1px inner one, and the frieze
-// lips — so only the weight distinguishes them. The colorway's earlier reading
-// was `--indigo-1` card, `--indigo-2` bed, `--indigo-3` lines, with -4 left to
-// the frieze waves; each of those three moved on its own ask, and the SHAPE of
-// the rule survived all of them: coat, bed, one line ink.
+// for the body — but drawn entirely in the FEED CONTAINER's own material
+// rather than the platform's white.
+//
+// **FULLY NEUTRAL SINCE 2026-08-07** (user ask: the cards "from indigo to
+// grey"). The coat went neutral on 2026-08-06 and the LINES followed a day
+// later, so there is no indigo left anywhere on a post card. The mapping is
+// the colorway's own, read across into the greys:
+//
+//   coat        --light-cream  #FCF3E0, a token minted for it (2026-08-07, two
+//                          asks after the lines went grey: "just the
+//                          background", then a family of its own). A WARM sheet
+//                          on a cool plate — still one step above its bed, now
+//                          separating by hue too. It was --brown-1 for the hour
+//                          between those asks, --grey-3 for a day, --indigo-1
+//                          before that.
+//   bed         --grey-4   (unchanged — the container's plaque)
+//   ONE INK     --grey-6   every line: the card's outer border, the byline
+//                          hairline and vertical rule, the title plate's rim,
+//                          the label rail and its strip hairline, the trust
+//                          chip, the pit's inner one. Eight lines, one tone,
+//                          differing only in WEIGHT — the card's oldest rule,
+//                          carried over intact.
+//   dark ink    --grey-9   the title plate's and trust chip's lettering
+//                          (was --indigo-8, the colorway's dark end)
+//   tray floor  --grey-4   the label rail (was --indigo-2, "the bed tone" —
+//                          which is still exactly what it is)
+//   chip coat   --grey-3   the labels in that tray (was --indigo-1, "the
+//                          card's own coat" — likewise)
+//
+// Every one of those roles is the rule it always was; only the family moved.
+// `--grey-6` is not a fresh guess either: it is the level that HELD when these
+// same eight lines went grey for part of 2026-08-06 (-5 was tried first and
+// read as a soft suggestion of a card). The earlier readings, for the record:
+// `--indigo-1` card / `--indigo-2` bed / `--indigo-3` lines at the start, then
+// -4 lines, then the neutral coat. The SHAPE of the rule survived all of it:
+// coat, bed, one line ink.
+//
+// What this leaves indigo on the surface is exactly the CHROME around the
+// cards — the head box's cluster and the four frieze plaques — so the feed now
+// reads as neutral objects inside an indigo frame, where it used to be one
+// blended field. The accent (#00829c hover / open) is untouched: it was never
+// part of the colorway.
 //
 // GEOMETRY (2026-07-25) — a true square, width-led and content-limited:
 //
@@ -1658,6 +3352,21 @@ export default defineComponent({
 .post-square {
   display: flex;
   flex-direction: column;
+  // THE CARD IS THREE LAYERS SINCE 2026-08-07 (user ask) — see the `::before`
+  // note below the block for what the middle one is. These two lines are what
+  // make the sandwich possible and nothing else:
+  //   · `relative` so the veil has this box to fill. Safe to add: the card has
+  //     no absolutely positioned descendants to newly contain (its four direct
+  //     children are the byline, the rail strip, the pit and the foot, all in
+  //     flow), so nothing moves.
+  //   · `isolate` so the layering STAYS INSIDE the card. Without a stacking
+  //     context here the veil's `z-index: 0` and the children's `1` would
+  //     compete in the feed's own context alongside the container (3001), the
+  //     head box and the flyout — harmless today, since cards never overlap,
+  //     but it would make a card's foot a participant in page-level paint
+  //     order for no reason. A card's inside is the card's business.
+  position: relative;
+  isolation: isolate;
   // The ceiling — the LOWER of two limits, so whichever bites first wins:
   //
   //   width  — `--post-square-max` is the column's measured width, published by
@@ -1687,29 +3396,35 @@ export default defineComponent({
   // lip it touched. The well's new 10px side padding removed that constraint,
   // so all four edges are drawn again and the corners are round.
   //
-  // ONE INK, `--indigo-4`, on all seven inner lines AND all four outer edges —
-  // the card's oldest rule, that its lines share an ink and differ only in
-  // WEIGHT, held after all. It very nearly did not: the last passes of
-  // 2026-08-06 split the box into a bevel (bottom + left in the colorway, top +
-  // right neutral, reading as a light source at the top right) before the user
-  // brought the other two edges across as well. The bevel is worth remembering
-  // as a REAL option — the card lost its drop shadow at the end of 2026-07-25
-  // and two coloured edges restate that lift as line, at no cost — but the
-  // reunited box is the simpler statement, and simpler is what this surface has
-  // been converging on all along.
+  // ONE INK, `--grey-6`, on all seven inner lines AND all four outer edges —
+  // the card's oldest rule. The edge spent an hour of 2026-08-07 out of it
+  // (`--grey-7`, then `--grey-8`) and came back on the third ask; see the
+  // `border` declaration below for the walk and what it settled. The rest of it stands: the
+  // card's oldest rule, that its lines share an ink and differ only in
+  // WEIGHT. It very nearly went: the last passes of 2026-08-06 split the box
+  // into a bevel (bottom + left in the colorway, top + right neutral, reading
+  // as a light source at the top right) before the user brought the other two
+  // edges across as well. The bevel is worth remembering as a REAL option —
+  // the card lost its drop shadow at the end of 2026-07-25 and two coloured
+  // edges restate that lift as line, at no cost — but the reunited box is the
+  // simpler statement, and simpler is what this surface has converged on.
   //
-  // The full walk that day: `--indigo-3` (from 2026-07-25) → `--indigo-4` →
-  // `--grey-5` → `--grey-6` → the split (asked at `--indigo-6`, tried at -5,
-  // settled at -4) → back to one ink here. The trip out to the greys and all
-  // the way back is worth keeping for what it settled. The -3 → -4 step was
-  // about the surfaces going neutral underneath: a line's job on a grey plate
-  // is not the job it had on an indigo one, and with a `--grey-3` card on a
-  // `--grey-4` bed the line is the only thing stating the card's shape. The
-  // greys then proved how much DEPTH that edge needs — `--grey-5` read as a
-  // soft suggestion of a card at the frieze seam, `--grey-6` held — before the
-  // hue came back to carry it at the same depth. And -4 is the level the rest
-  // of this screen already draws lines in: the media tabs strip's edges, and
-  // the bars' lip whenever it has a job (it does not now — `--grey-4`).
+  // The full walk: `--indigo-3` (from 2026-07-25) → `--indigo-4` → `--grey-5`
+  // → `--grey-6` → the split (asked at `--indigo-6`, tried at -5, settled at
+  // -4) → back to one ink at `--indigo-4`, ALL ON 2026-08-06 → and out of the
+  // colorway for good on 2026-08-07 (user ask: the cards go grey), which
+  // returned the lines to the `--grey-6` this walk had already tested.
+  //
+  // What each step settled, since the destination was reached twice: -3 → -4
+  // was about the surfaces going neutral underneath — a line's job on a grey
+  // plate is not the job it had on an indigo one, and with a `--grey-3` card on
+  // a `--grey-4` bed the line is the only thing stating the card's shape. The
+  // greys then proved how much DEPTH that edge needs: `--grey-5` read as a soft
+  // suggestion of a card at the frieze seam, `--grey-6` held. That is why the
+  // second trip out could land immediately — the level was already known, and
+  // what had kept the hue was an argument about the FRAME (indigo lines tying
+  // the card to indigo bars) that the frame itself has since answered by going
+  // deep indigo, where a pale card has nothing to tie itself to.
   //
   // So: grep `.post-square` for the tone before touching ANY of these eight
   // lines, and move them together.
@@ -1722,37 +3437,146 @@ export default defineComponent({
   // sit ON: it is `--grey-3` now, a step LIGHTER than the card, so a weighted
   // base under a box resting on nothing darker read as a shadow with nothing
   // casting it.
-  border: 1px solid var(--indigo-4, #7986cb);
-  // LESS ROUNDED, twice on 2026-08-06 (two user asks) — `--radius-md` (0.85em)
-  // to `--radius-sm` (0.5em, the step the card's own inner boxes turn) and then
-  // to a flat `4px`. Flat px and not a token on purpose: there is no platform
-  // step below -sm, and minting `--radius-xs` for one box would state a
-  // platform-wide rhythm that does not exist. It read as a rounded tile at -md
-  // and as a sheet with the corners taken off at -sm; at 4px the corner says
-  // only that the box is not a raw rectangle — the right register for a card
-  // whose LINES do the separating and whose bed is a step lighter than it.
-  border-radius: 4px;
-  // `--grey-3` — ONE STEP ABOVE the bed it lies on (2026-08-06, the last of
-  // that day's asks). The card left the colorway earlier the same day
-  // (`--indigo-1` → `--grey-4`, the container's own coat, since a post square
-  // is a piece of the container and never wore the platform's generic white
-  // `--paper-card`), and this moves it off the plaque by one step in the
-  // LIGHT direction. So the tonal step under a card is back, and pointing up:
-  // a card is a pale sheet on a grey plate.
   //
-  // That step and the bed's are the same dial read twice — the bed spent the
-  // afternoon at `--grey-5`, then `--grey-3`, before going back to the plaque
-  // so the CARD could take the lighter tone instead. The difference is which
-  // one moves: a lighter BED makes the box a page with darker sheets on it, a
-  // lighter CARD makes the box a plate with pale sheets lying on it, and only
-  // the second keeps the container reading as one material with its edges.
-  background: var(--grey-3, #eeeeee);
-  // NO drop shadow (2026-07-25). The card used to cast `0 1px 3px` to lift
-  // itself off the page; it has nothing to lift off — the tonal step against
-  // the bed already separates card from field (the bed was the darker of the
-  // two until 2026-08-06 and is the lighter now; either way it is a step), and
-  // a cast edge on top of it only muddied the 10px gap between two adjacent
-  // cards. Flat plaque on a bed one step off it.
+  // 1.5px SINCE 2026-08-07 — still even on all four edges, and the HALF STEP
+  // is the point. It went 1px → 2px that day ("slightly
+  // thicker": a hairline outline round a box divided by 12px plates read as the
+  // thinnest line on its own surface) and back down a half on the next ask
+  // ("a little thinner"), which is a real position and not a compromise: the
+  // card's INNER lines (pit rim, rail tray, title plate, the hairline's own
+  // bread) are 1px, so the outline has to outweigh them to read as the card's
+  // edge, and 2px against 1px was the whole card's heaviest line by double
+  // once the dividers inside it thinned. A fractional border is fine here —
+  // it is one flat colour on all four edges, so a device-pixel rounding
+  // difference between two sides cannot show up as a mismatch of tone.
+  //
+  // WHAT A HALF PIXEL ACTUALLY RENDERS AS, measured: on a **2× display** (the
+  // desktop this is designed on) it is exact — 3 device pixels, a true half
+  // step between the card's 1px inner lines and the 2px it wore for an hour. At
+  // **1×** the browser floors it to 1px (verified in the headless driver, which
+  // runs at DPR 1 and reports `borderTopWidth: 1px`), so the ask degrades to
+  // the full step down rather than to something wrong — thinner either way, and
+  // identical on all four edges either way. The pit's `--media-max-h` counts 3
+  // total px of card border, which is 1px optimistic at 1× and immaterial
+  // against a ~270px constant.
+  //
+  // THE INK CAME BACK ON 2026-08-07, after three asks that walked it out and
+  // home again: `--grey-6` → `--grey-7` (following the two dividers there) →
+  // `--grey-8` (a "one tone down" read as DARKER) → `--grey-6`, the ask being
+  // "clearer". So the card's oldest rule — one ink, only the weight tells its
+  // lines apart — is intact on every LINE the card draws, and what the day
+  // actually added is a second, darker group that is not lines at all: the two
+  // DIVIDERS' plates (`--grey-7` the rgb hairline's rules, `--grey-8` the
+  // frieze band's plaque). The card is drawn in one ink and divided by two
+  // plates, which is a cleaner statement than the three-greys frame this line
+  // spent an hour inside — an edge a step or two under its own inner lines was
+  // reading as a box around a box. Grep `.post-square` and move the LINES
+  // together; the plates move on their own.
+  // **1px SINCE 2026-08-07** (user ask, "a little thinner"), after the walk
+  // above ran 1px → 2px → 1.5px. The half-step existed to keep the outline
+  // OUTWEIGHING the card's 1px inner lines, so it would read as the box's edge
+  // rather than as another rule inside it — and the ask that thins it is the
+  // same ask that rounds the corners, in the same pass as the contact shadow
+  // below. That is what makes it safe now: the card stopped being a flat plaque
+  // told apart by line weight and became a SHEET, and a sheet is stated by its
+  // cast and its silhouette. The outline is one of three devices now instead of
+  // the only one, so it can sit level with the inner lines without the box
+  // losing its edge. If the shadow is ever removed, this wants 1.5px back.
+  border: 1px solid var(--grey-6, #9e9e9e);
+  // ROUNDER, twice on 2026-08-07 (two user asks: "a little more roundness",
+  // then "a little bit more round") — `4px` → `6px` → **`8px`**, reversing both
+  // of the 2026-08-06 steps that had taken it down. That walk was `--radius-md`
+  // (0.85em) → `--radius-sm` (0.5em, the step the card's own inner boxes turn)
+  // → a flat `4px`, on the reading that a card whose LINES do the separating
+  // wants a corner saying only "not a raw rectangle". The card is a sheet with
+  // a cast now, not a plaque held by its outline, and a sheet's corner can
+  // afford to be a corner.
+  //
+  // **`7px` IS THE ONE VALUE TO SKIP**, which is why this went 6 → 8 rather
+  // than 6 → 7: the pit, the title plate and the label rail all turn at exactly
+  // `--radius-sm` (7px), and a container that turns at the same radius as the
+  // boxes INSIDE it reads as a tray moulded around them rather than as a sheet
+  // they are laid on. At 6 the outer corner was a pixel tighter than its
+  // contents, at 8 a pixel looser — and LOOSER is the better of the two
+  // readings, because a box holding other boxes should turn more than they do,
+  // not less. So this step both answers the ask and lands on the right side of
+  // that line.
+  //
+  // Flat px stays right for the same reason it was before: there is no platform
+  // step here, and minting one for a single box would state a rhythm the
+  // platform does not have.
+  border-radius: 8px;
+  // `--light-cream` (#FCF3E0) since 2026-08-07 — THE COAT ALONE LEAVES THE
+  // NEUTRALS, hours after the card's lines went grey, and it took two asks to
+  // land: `--brown-1` first ("just the background"), then a TOKEN MINTED FOR IT
+  // ("add this color to a new color family"). It is still a pale sheet one step
+  // above its bed, the relation that has held since 2026-08-06; what changes is
+  // that the sheet is now WARM against a cool-neutral plate, so the card
+  // separates by HUE as well as by lightness — the device the cards used before
+  // the whole surface went grey (an `--indigo-1` card on a `--grey-4` bed),
+  // read the other way round: the field keeps the neutral and the OBJECT
+  // carries the hue.
+  //
+  // Why a new token rather than the brown that already fit: `--brown-1` is the
+  // CROWN STRIP's plaque tone and stands on this very surface as the head box's
+  // inner frieze posts' motif, so a card wearing it read as that plaque
+  // BORROWED rather than as a card with a coat of its own. `--light-cream` is
+  // yellower and lighter — a paper cream where brown-1 is a greyed one — and it
+  // opens a family (`--<modifier>-cream`, named not indexed; see _tokens.scss)
+  // that belongs to no other surface. So the feed is now four materials, one
+  // job each: the grey plate (container, bed), the indigo plaques (four frieze
+  // edges, the head box's cluster), the near-white pit floor, and this sheet.
+  //
+  // The coat's walk: `--indigo-1` (2026-07-25) → `--grey-4` (08-06, the
+  // container's own coat, since a post square is a piece of the container and
+  // never wore the platform's generic white `--paper-card`) → `--grey-3` (one
+  // step above the bed, that day's last ask) → `--brown-1` → here. That step
+  // and the bed's are the same dial read twice — the bed spent 08-06's
+  // afternoon at `--grey-5`, then `--grey-3`, before going back to the plaque so
+  // the CARD could take the lighter tone instead. The difference is which one
+  // moves: a lighter BED makes the box a page with darker sheets on it, a
+  // lighter CARD makes the box a plate with pale sheets lying on it.
+  //
+  // JUST THE BACKGROUND, as asked: the eight lines stay `--grey-6`, the
+  // inks stay `--grey-9`, the pit keeps its near-white `--grey-1` floor and the
+  // label chips keep `--grey-3`. That last one is worth flagging, because the
+  // chips' rule reads "the card's own coat" and they are no longer wearing it —
+  // they are a neutral chip in a neutral tray lying on a warm sheet, which is a
+  // defensible reading (the tray is a piece of the BED set into the card) but
+  // is a rule stated in one place and broken in another until someone decides.
+  // THIS IS THE BOTTOM LAYER as of 2026-08-07's last ask — a `--grey-3` veil is
+  // washed over it and the content sits above both. See the `::before` note.
+  background: var(--light-cream, #FCF3E0);
+  // ── A CONTACT SHADOW, VERY QUIET (2026-08-07, user ask) ──────────────────
+  // The card cast NOTHING from 2026-07-25 until now, and the argument for that
+  // is still on the record and still half true: it has nothing to lift off, the
+  // tonal step against the bed already separates card from field, and a cast
+  // edge muddied the 10px gap between two adjacent cards. What changed is the
+  // step's DIRECTION. The bed went back to `--grey-4` in the ask before this
+  // one, so the card is the LIGHTER object again — a pale sheet lying on a grey
+  // plate — and a sheet on a plate is exactly the object that has a contact
+  // shadow. Casting nothing was right while the card was the darker thing.
+  //
+  // TWO LAYERS, and both are doing one job rather than two:
+  //   · `0 1px 2px / .045` — the CONTACT. Barely offset, barely blurred: this
+  //     is the dark line where sheet meets plate, and it is what makes the edge
+  //     read as an edge of something rather than a border drawn on the bed.
+  //   · `0 2px 5px -2px / .05` — the AMBIENT. The negative spread is what keeps
+  //     it a contact shadow instead of a float: reach is blur/2 − spread + y =
+  //     2.5 − 2 + 2 = 2.5px down and 0.5px sideways, so it dies well inside the
+  //     10px gap to the next card and the 8px bed reveal at the sides. That
+  //     bound is the whole reason the old shadow muddied the stack and this one
+  //     does not — the constraint was never "no shadow", it was "nothing that
+  //     reaches the neighbour".
+  //
+  // The alphas are chosen against the FIELD, not in the abstract: on `--grey-4`
+  // (rgb 224) a .045 black bottoms out around rgb 214, ten levels — visible as
+  // weight, unreadable as a shade. On a near-white bed it would vanish; if the
+  // field is ever taken lighter again, this wants raising or removing, and the
+  // honest answer at `--grey-2` was removing.
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.045),
+    0 2px 5px -2px rgba(0, 0, 0, 0.05);
   overflow: hidden;
   transition: border-color 0.12s;
 
@@ -1767,21 +3591,444 @@ export default defineComponent({
   &.is-open { border-color: #00829c; }
 }
 
+// ── THE VEIL (2026-08-07, user ask) — the card's MIDDLE LAYER ──
+//
+// The card is now a sandwich, bottom to top:
+//
+//   1. the `--light-cream` coat + the `--grey-6` border, on `.post-square`
+//   2. THIS — a `--grey-3` wash at 70% with a very subtle blur
+//   3. the content, lifted over it by the `> *` rule below
+//
+// It fills the PADDING box (`inset: 0` on an absolutely positioned child
+// resolves there), so it stops exactly inside the border and the card's outer
+// line keeps its own tone undimmed — which is what "with the outer border
+// colors it already has" asks for. The card's `overflow: hidden` clips it to
+// the 4px radius for free, so the veil has no corners of its own to state.
+//
+// WHAT IT ACTUALLY CHANGES: 0.7 × `--grey-3` (#eeeeee) over #FCF3E0 measures
+// **rgb(242,239,234)** — the coat paler and cooler, the warmth pulled back
+// without the card leaving the cream. It walked eight settings in one sitting,
+// and the two dials are worth keeping apart because they do different jobs:
+//   · OPACITY — 30% (a wash you had to know about to see) → 50% → **70%**,
+//     where the cream is a clear TINT of the neutral field rather than its own
+//     material. Linear, and the far end is known: at 100% the card is simply
+//     the wash tone and the cream is gone. 70% is most of the way there, which
+//     is why the card reads as a neutral with warmth IN it rather than as a
+//     cream sheet: the coat is doing hue and the veil is doing value.
+//   · THE WASH TONE — `--grey-3` (#eeeeee) ⇄ `--grey-2` ⇄ `--grey-4`, five
+//     times over, ending **here**. At 70% this choice outweighs the other one,
+//     because most of what you see IS the wash.
+//
+// THE ONE THING THAT WALK SETTLED, and it survives whichever tone is current:
+// **a wash is only as good as the BED it is read against, so the rule is the
+// relation and never the token.** `--grey-4` was tried, rejected and taken back
+// on the same day without changing value — the first time the bed was
+// `--grey-4` too and the card's coat converged on the field it lies on
+// (rgb(232,229,224) against rgb(224,224,224): eight levels of red, NONE of
+// blue), the step vanished, and the card's shape fell entirely to its outline;
+// the second time the FIELD had moved to `--grey-2` and the identical wash read
+// thirteen levels darker — a clear object again. Neither reading was about -4.
+//
+// That `--grey-2` pairing lasted one ask and was the quietest the surface has
+// been: the card sat rgb(242,239,234) against rgb(245,245,245), only THREE
+// levels and the card the DARKER of the two, stated by its outline and hairline
+// rather than by tone. The field came back to `--grey-4` and the card is the
+// pale sheet on a grey plate again — which is what that note's closing line
+// predicted, and it is worth keeping as the rule: **if the card should carry
+// itself, the dial is the FIELD**, because every step the bed moves down gives
+// this wash somewhere to be.
+//
+// ── THE WASH ITSELF: `--grey-3` at 60% → `--grey-2` AT 65% ────────────────
+// Four settings on 2026-08-07, and the walk is the documentation, because
+// SWAPPING THE TONE CHANGED WHAT THE ALPHA DIAL DOES. Measured card, each time:
+//
+//   grey-3 @ 70%   rgb(242,239,234)   luma 240   R−B  8
+//   grey-3 @ 60%   rgb(243,239,232)   luma 239   R−B 11   ("15% less strong")
+//   grey-2 @ 80%   rgb(245,244,240)   luma 244   R−B  5
+//   grey-2 @ 65%   rgb(246,243,236)   luma 243   R−B 10   ← here
+//
+// Read the last two rows: fifteen points of alpha moved luma by ONE level and
+// DOUBLED the warmth. That is not a coincidence, it is arithmetic — `--grey-2`
+// (#f5f5f5, luma 245) and `--light-cream` (#FCF3E0, luma 243) are the same
+// brightness within two levels, so mixing them can only change HUE. Under
+// `--grey-3` (luma 238, five levels below the cream) the same dial moved both
+// at once, which is why the 70 → 60 step read as a tone change and this one
+// reads as a temperature change.
+//
+// So the honest statement of this layer, and the thing to know before turning
+// either knob: **the TONE decides what the alpha is a dial FOR.** At the
+// current pairing the alpha is very nearly a pure WARMTH control — take the
+// wash back to `--grey-3` (or lower) if the card should get darker rather than
+// cooler. The FIELD is the third dial and belongs to neither: it sets how far
+// the card stands off its bed (see the `--grey-4` note above), and at this
+// setting that step is a comfortable ~19 levels on the 224 bed.
+//
+// (Predictions from the alpha alone run about a level over the measured value,
+// because `backdrop-filter: blur(2px)` pulls the bed's own pixels into the
+// composite at the edges. Sample the MIDDLE of a card if this is re-measured —
+// and note that a sample taken just ABOVE a card lands inside the contact
+// shadow, which reads ~7 levels dark and is easy to misread as the bed.)
+//
+// So the two dials on this pair are cleanly separated, and neither substitutes
+// for the other: the FIELD sets how far the card stands off its bed, and THIS
+// sets how much of the coat's own hue survives. Reach for the right one.
+// The veil only covers the card's OWN coat,
+// every inner panel is content and sits above it: the pit keeps its flat
+// `--grey-1`, the title plate its `--grey-1`, the rail its `--grey-4` tray.
+// So the veil reads in the margins and gutters between those panels, which is
+// exactly where a card's coat is visible at all.
+//
+// ON THE BLUR, honestly: `backdrop-filter` blurs what is painted BEHIND an
+// element, and behind this one is a flat fill, so there is nothing to smear.
+// The one place it does show is the perimeter, where the sample pulls the
+// border's `--grey-6` a pixel or two inward and leaves a faint haze inside the
+// line. That is a real effect and a small one — appropriate to "very subtle",
+// and it is the whole of it at 2px. Two things worth knowing before re-tuning:
+// raising the radius will NOT make the middle of the card hazier (a flat
+// backdrop stays flat however hard it is blurred), it only widens that
+// perimeter haze; and the property becomes properly load-bearing the moment
+// anything textured sits behind the veil — an image coat, a gradient, or the
+// content itself if the `> *` lift below is ever dropped so the veil frosts
+// the card's own text. `filter: blur()` here would be the WRONG tool: it blurs
+// the veil's own pixels, and a flat rectangle's only pixels worth blurring are
+// its edges, which `overflow: hidden` is already cutting square.
+//
+// `pointer-events: none` because a sheet over the whole card would otherwise
+// eat every click in it — the title button, the label chips, the foot's links.
+.post-square::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: rgba(245, 245, 245, 0.65); // --grey-2 at 65% (see the tone note above)
+  // THE VEIL'S OWN BORDER — a 1px `--grey-1` line at 80% (2026-08-07, fourth
+  // setting: it arrived as a 6px `--light-cream` band at 50%, "thick
+  // transparent borders", was taken "waay thinner" to 1px `--grey-2` at 80%,
+  // and ended one step paler still). What it draws is not a frame but a
+  // HIGHLIGHT: a near-white hairline lying just inside the card's dark
+  // `--grey-6` edge, so the card's outline reads as two lines — a dark one and
+  // a lit one — where the 6px version read as a margin of un-veiled coat.
+  //
+  // It still composites the way the thick version did, and that is still the
+  // only reason a semi-transparent border shows anything at all here:
+  // `background-clip` is `border-box`, so the grey wash paints UNDER this
+  // border and the border tone lands on top of its own washed self.
+  //
+  // MEASURED off the rendered card, left edge inward: **x=1 rgb(158,158,158)**
+  // the card's own `--grey-6` line, **x=2 rgb(248,247,246)** this hairline,
+  // **x=3 onward rgb(242,239,234)** the veiled field. Six levels of red and
+  // twelve of blue against that field, in one pixel — where the 6px cream
+  // version could only manage ten levels of red across six of them. It also
+  // sits three levels ABOVE the bed outside the card (rgb 245,245,245), so on
+  // the present pairing this hairline is the brightest thing on the surface:
+  // with card and field only three levels apart, it is carrying more of the
+  // card's edge than a 1px line normally would.
+  //
+  // That contrast is the lesson to keep, and it is a tone lesson, not a width
+  // one: a border in the COAT's own tone is capped by how far the wash has
+  // moved the coat (it can only give some of it back), while a border off the
+  // card's axis states whatever value it likes. Six pixels of a capped tone
+  // said less than one pixel of a free one.
+  //
+  // The two lines stack deliberately — dark outside, light inside — which is a
+  // bevel. It was carrying the card's whole shape during the `--grey-4` pass,
+  // when the coat sat eight levels off the bed; back on `--grey-3` the tonal
+  // step does that job again and this line is the finish on top of it rather
+  // than the structure.
+  //
+  // The tone change is what makes this setting a different DEVICE and not just
+  // a narrower one. `--light-cream` was the coat's own tone, so the band could
+  // only ever be "some of the coat coming back" and its ceiling was however far
+  // the wash had moved the coat (single digits). `--grey-1` is off the card's
+  // axis entirely and the palest step on the platform, so at 80% it states its
+  // own value instead of recovering someone else's, and one pixel is enough.
+  // (It is also the PIT's floor and the title plate's — so the brightest thing
+  // on the card is now one tone doing two jobs: the reading surfaces, and the
+  // line that lights the card's own edge.)
+  //
+  // `border-box` sizing (Quasar's reset) keeps the box pinned to `inset: 0` and
+  // eats the width inward, so the card's own `--grey-6` line is untouched — it
+  // sits outside this element entirely, and the two lines stack rather than
+  // fight.
+  // 2px AND FULL STRENGTH since 2026-08-07 (two user asks, back to back:
+  // "make the borders of the veil grey-1", then "a little thicker"). The
+  // width had gone 6px → 1px earlier the same day ("waay thinner") and this
+  // is the step back up — one pixel of a free tone had proved the DEVICE, and
+  // at two it reads as a lit inner edge rather than as an artefact of the
+  // card's outline. It stays well under the 6px it started at, which was a
+  // margin of un-veiled coat rather than a line.
+  //
+  // On the tone: it was `rgba(250, 250, 250, 0.8)` — the token, hand-composited —
+  // and is the token now. The 80% was inherited from the 6px cream band, where
+  // transparency was the whole device (a wide band of the coat's own tone
+  // giving some of the coat back); off the card's axis and one pixel wide there
+  // is nothing left for it to do but dim the line by two levels. Measured, the
+  // line goes rgb(248,247,246) → rgb(250,250,250), so it now states the
+  // palest step on the platform exactly, and the note above about a
+  // semi-transparent border compositing over its own washed self is HISTORY
+  // rather than mechanism.
+  border: 2px solid var(--grey-1, #fafafa);
+  // ── THE VEIL TURNS ITS OWN CORNER (2026-08-07) ──────────────────────────
+  // `7px` = the card's `8px` outer radius MINUS its `1px` border, which is the
+  // radius of the padding box this element is pinned to (`inset: 0`). It was
+  // `5px` for the hour the card sat at 6.
+  //
+  // It had none until now and got away with it: the card's `overflow: hidden`
+  // clips to that same padding box, so the veil's SQUARE corners were being cut
+  // to the card's round ones for free. What the clip cannot do is bend the
+  // veil's own 2px light BORDER — a square corner clipped by an arc leaves the
+  // line thickening into the bend instead of following it. At the old 4px that
+  // was a pixel nobody could see; the corner is half again as deep now, so the
+  // veil has to turn the corner itself.
+  //
+  // KEEP THE THREE NUMBERS IN STEP: card radius − card border = this. Both of
+  // the card's move together in the same ask more often than not.
+  border-radius: 7px;
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+  pointer-events: none;
+}
+
+// THE CONTENT, ABOVE BOTH LAYERS. Stated on the direct children as a set rather
+// than on each panel, because the rule is about the card's LAYERING and not
+// about any one panel: whatever the card grows next is above the veil too.
+//
+// It is needed at all because of paint order — an absolutely positioned
+// `::before` with `z-index: auto` paints ABOVE in-flow siblings' backgrounds
+// AND their text, so without this the veil would be a film over the whole
+// card, byline included. `z-index: 1` puts the four panels back on top. (The
+// card's `isolation: isolate` is what keeps this pair of z-indexes from meaning
+// anything outside the card — see `.post-square`.)
+.post-square > * {
+  position: relative;
+  z-index: 1;
+}
+
+// ── THE CAP (2026-08-07, user ask) ────────────────────────────────────────
+// The card's FIRST strip now, standing over the byline: what the post is,
+// what it came out of, what it is called.
+//
+// It is set in `--font-display` (NASALIZATION) — the first thing on this card
+// to wear it. The face is the platform's display voice (the crown, the media
+// windows' titles, the media tabs), and putting it on the strip that NAMES a
+// post is what separates the name from the run of facts below it, where every
+// line is either the body face or `mono`. It is a WIDE face, so everything
+// here is dialled tight for it: `0.62em` with only `0.02em` of tracking (the
+// `.nasalization` utility's own `0.05em` is meant for headings with room),
+// and the strip stays one line at any width.
+//
+// GEOMETRY: the FACTS take everything the CONTROLS do not (2026-08-07, user
+// ask). It was a 70/30 split, and 30% of a feed card is far more than three
+// 20px glyphs need — the lane held its share whatever was in it, which was
+// the point of stating it as a proportion, and the cost was a third of the
+// strip standing empty beside a title that was ellipsizing. So the lane is
+// `flex: 0 0 auto` (it measures its own buttons, and grows by exactly one
+// button the day it gains one) and the fact cell is `flex: 1 1 auto` (it
+// takes the remainder). The rule between them now stands where the controls
+// begin rather than at a fixed fraction, which is the honest place for it:
+// it divides what you READ from what you PRESS, and that boundary is wherever
+// the pressing starts.
+//
+// `min-width: 0` stays on the fact cell — without it the long title inside
+// would refuse to let the cell shrink and push the lane off the card (the
+// flex-basis is a REQUEST, and content is what overrules it — see gotchas.md
+// on the same failure in the byline).
+//
+// Rigid (`flex: 0 0 auto`), like every other strip on this card: the square
+// ceiling takes its slack out of the pit alone.
+.post-square__cap {
+  display: flex;
+  align-items: stretch;
+  flex: 0 0 auto;
+  min-width: 0;
+  font-family: var(--font-display);
+  font-size: 0.62em;
+  letter-spacing: 0.02em;
+  // The card's deepest ink, the same the title plate and the trust chip are
+  // lettered in — this strip is the post's NAME and belongs at that weight,
+  // not at the byline's.
+  color: var(--grey-9, #212121);
+}
+
+.post-square__cap-main {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 9px;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+// The CONTROL lane, sized to exactly what it holds — its buttons' width plus
+// its own padding, and not a pixel of the card beyond that. `0 0 auto` on
+// both counts: it may not grow into the title's room, and it may not be
+// squeezed by a long one either (the fact cell is the one that gives, which
+// is why it carries the `min-width: 0` and this does not).
+.post-square__cap-side {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px 9px;
+}
+
+// The two controls. Chromeless by default — a glyph at the icons' own tone,
+// with the box appearing only under the cursor: this strip is read far more
+// often than it is pressed, and two outlined buttons at the top of every card
+// would out-weigh the name beside them. The PIN adds a third state, `is-on`,
+// which is the platform's own accent (the same one the media viewer's tack
+// takes when a node is pinned) — a pin either is or is not, and that is worth
+// a colour rather than a fill.
+.post-square__cap-act {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--grey-8, #424242);
+  cursor: pointer;
+  text-decoration: none;
+  transition: background 0.12s, color 0.12s;
+
+  &:hover {
+    background: rgba(var(--ink-rgb), 0.08);
+    color: var(--grey-9, #212121);
+  }
+
+  &.is-on {
+    color: var(--accent, #c79a00);
+  }
+}
+
+// The split, drawn exactly like the byline's section rules — 1px of the
+// card's one line ink, meeting the strip's edges square. No negative margin
+// is needed (unlike `__byline-rule`): the cells carry the padding here, not
+// the flex parent, so `align-self: stretch` already reaches both edges.
+.post-square__cap-rule {
+  flex: 0 0 1px;
+  width: 1px;
+  background: var(--grey-6, #9e9e9e);
+}
+
+// The kind marks. One step under the ink — they classify, they do not name.
+.post-square__cap-icons {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 1px;
+  color: var(--grey-8, #424242);
+}
+
+// The origin clause — "Comment on <chip> ::". It shrinks BEFORE the title
+// does (`flex: 0 1 auto` against the title's `1 1`), because a squeezed chip
+// still states an address while a squeezed title stops being readable.
+//
+// ITS CEILING IS THE CHIP'S ROOM (2026-08-07). The chip states a NAME now,
+// and a name is as long as someone made it, so the cap that used to sit on
+// the chip in CHARACTERS sits on the clause as a FRACTION of the strip: the
+// parent may take up to half of it, the card's own name keeps the rest, and
+// which half wins never depends on how wide the card happens to be. (Two
+// clauses would ask for 100% between them — flex shrink settles that, and in
+// practice exactly one ever arrives: a comment carries no `forked_from_id`
+// and a fork carries no PARENT.)
+.post-square__cap-origin {
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 50%;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  overflow: hidden;
+}
+
+.post-square__cap-word {
+  flex: 0 0 auto;
+  opacity: 0.72;
+}
+
+// The chip sits at the strip's own scale rather than at MicroChip's default
+// (which is sized against body text): `em` all the way down, so it tracks the
+// cap's `0.62em` and not the card's.
+//
+// THE `max-width` WAS LOAD-BEARING WHILE THE CHIP PRINTED A HASH. MicroChip
+// is built to be container-adaptive: given room it grows to the WHOLE hash,
+// which is right in a foot with one chip in it and was wrong here — 64 mono
+// characters swallowed the lane and left the post's own name as "post #…".
+// So the cap held it to a 13ch slice.
+//
+// The chip states a NAME now (`is-named`, 2026-08-07), and that whole
+// argument was about an ADDRESS: a truncated hash is still an address, and a
+// truncated title is a truncated title. So the named chip is uncapped HERE
+// and bounded one level up instead, by the clause's 50% (above) — it spreads
+// to whatever the title needs and ellipsizes only when the strip runs out,
+// which is the "let the chip spread" the ask names. The unnamed chip — a
+// NODE parent, which has no title to show — keeps the slice it always had.
+.post-square__cap-chip {
+  flex: 0 1 auto;
+  min-width: 7ch;
+  max-width: 13ch;
+  font-size: 0.92em;
+
+  &.is-named {
+    max-width: 100%;
+    // A NAME, so it wears the strip's face and not the address one. The
+    // `mono` on MicroChip's text span is right for a string read character
+    // by character and wrong for the one word the clause is now saying —
+    // and reaching in is safe here: this selector carries two classes and
+    // the scope attribute against the component's own single class, so it
+    // wins on specificity without `!important` (see NodeMini's chip block
+    // for the case where that is not true).
+    font-family: var(--font-display);
+    letter-spacing: 0.02em;
+
+    :deep(.micro-chip__hash) {
+      font-family: var(--font-display);
+      // Free to shrink past MicroChip's 6-character floor, which exists to
+      // keep a hash slice legible. A title ellipsizes instead.
+      min-width: 0;
+      font-weight: 500;
+    }
+  }
+}
+
+.post-square__cap-sep {
+  flex: 0 0 auto;
+  opacity: 0.45;
+}
+
+// The post's name, taking all the slack and ellipsizing alone.
+.post-square__cap-title {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 // THE BYLINE BAND — the card's first strip, holding the author (2026-07-25).
 //
 // Rigid like the head and the foot: who published a post is not something the
 // square ceiling may trim, so it stays out of the flex give-and-take and only
 // the pit gives way.
 //
-// The bottom border is the EDGE-TO-EDGE hairline the band is divided from the
-// title strip by, and it needs no negative-margin trick to get there: the card
-// has no padding of its own, so this band already spans the full content box,
-// and its border runs from one side border to the other. `--indigo-4` is the
-// ink every line on this surface is drawn in (the card's outer border, the pit's
-// rim, the head's vertical rule — and the frieze lips again since 2026-08-06,
-// when both this card's lines and the bars' lip landed on that level) — a
-// divider inside the card is the same line as the ones around it, at hairline
-// weight.
+// ITS BOTTOM BORDER IS A FRIEZE BAND NOW (2026-08-07, user ask). Until then it
+// was an EDGE-TO-EDGE 1px hairline in `--grey-6`, the ink every line on this
+// CARD is drawn in (its outer border, the pit's rim, the head's vertical rule)
+// — a divider inside the card being the same line as the ones around it, at
+// hairline weight. The band that replaced it is dialled to that exact tone, so
+// nothing about that rule changed: the line simply gained height and a motif
+// carved into it (see `.post-square__frieze`). Two `border-bottom`s went with
+// the move, this one and the rail strip's, and the card's remaining lines are
+// unaffected. The frieze lips shared the `--grey-6` level for one
+// day in 2026-08-06's indigo; they are the plaque's own tone now and the card's
+// lines are grey, so the two systems no longer meet anywhere.
 .post-square__byline {
   display: flex;
   align-items: center;
@@ -1792,7 +4039,6 @@ export default defineComponent({
   padding: 5px 9px;
   flex: 0 0 auto;
   min-width: 0;
-  border-bottom: 1px solid var(--indigo-4, #7986cb);
 }
 
 // The rule closing the AUTHOR section, full-bleed exactly like the head
@@ -1804,14 +4050,119 @@ export default defineComponent({
 //
 // The two rules and the hairline together are what make this band read as
 // ruled rather than merely spaced: one horizontal line under the whole
-// band, one vertical line inside it, both `--indigo-4` at 1px (the card's one
+// band, one vertical line inside it, both `--grey-6` at 1px (the card's one
 // line ink — see `.post-square`), both meeting the box's edges square.
 .post-square__byline-rule {
   align-self: stretch;
   flex: 0 0 1px;
   width: 1px;
   margin: -5px 0;
-  background: var(--indigo-4, #7986cb);
+  background: var(--grey-6, #9e9e9e);
+}
+
+// ── THE CARD'S TWO FRIEZE BANDS (2026-08-07, user ask) ────────────────────
+// The crown motif at the scale the floating media viewer runs it (`slim`,
+// `--frieze-h / 2` ≈ 9.5px), standing where the byline's and the rail strip's
+// hairlines used to: one under the byline, one under the rail, the second
+// `vflip`ped so the pair reflects about the label lane instead of repeating.
+//
+// THE PLAQUE WALKED DOWN THE GREYS, one user ask a step: `--grey-6` (the card's
+// line ink, which is what let the byline's hairline simply go — the band was
+// that same line with height and a carve), then `--grey-7` ("one tone of grey
+// darker"), then `--grey-8` here. Each step buys the same thing, and it is the
+// carve rather than the tone: the waves are two very light accents, and a
+// groove only reads as a groove when the plate is well under what is cut into
+// it — 1.7:1 on -6, 2.2:1 on -7, 3.5:1 here.
+//
+// What the walk cost is the "the band IS the card's line, thickened" reading
+// that justified deleting the hairline; two steps under that ink the band is
+// its own object, a dark plate laid across the card. That is a fair trade at
+// this size and it is why the plate reads as CHROME now — the same relation
+// the feed container has with its own `--indigo-8` frieze edges, one family
+// over. The card's own lines did not follow it down: they are `--grey-6`
+// `--grey-6`, inner lines and outer edge alike — this plate is two steps under
+// the card's own line ink and belongs to a different group (see
+// `.post-square`).
+//
+// THE WAVE IS THE ONE THING HERE THAT IS NOT THE CARD'S OWN MATERIAL — a
+// gradient down the motif from `--teal-11` to `--indigo-11`, the two families'
+// A100 accents, through the `--frieze-bar-wave-two-paint` dial the bar grew the
+// same day. Three notes on it:
+//
+//  · It is a PAINT, not a plaque: the mask means the ramp reaches the meander
+//    and nothing else, so the plate stays flat `--grey-6` under it (which was
+//    the ask — gradient on the pattern, background untouched).
+//  · It spans the BAND, not the tile. Gradients have no intrinsic size, so one
+//    ramp fills the whole strip however many times the 231px mask repeats
+//    across it. Give the layer a `background-size` and you get one ramp per
+//    tile, which reads as banding rather than as a run of colour.
+//  · The mirrored bar REVERSES it, so indigo faces the lane from both sides and
+//    mint faces out. That is what makes the pair read as one figure with the
+//    rail inside it: the two ends that meet are the same colour.
+//
+// Accents at 1.5–2:1 on this plaque, deliberately: at `slim` size a wave the
+// full contrast of a written line reads as a stripe, and these are decoration
+// bracketing a tray of chips, not another rule the eye has to account for.
+// `flex: 0 0 auto` is load-bearing (the bar states a height, but in this flex
+// column an item that may shrink WILL — the pit is the only part that gives).
+.post-square__frieze {
+  flex: 0 0 auto;
+  --frieze-bar-base: var(--grey-8, #616161);
+  // `× 0.55` — ~10.4px at a 900px viewport, a shade over `slim`'s half.
+  //
+  // THIS DIAL WAS WALKED FOUR TIMES IN ONE DAY and the walk is the
+  // documentation: `slim` (0.5) → `0.4` ("slightly thinner") → "too thin, I
+  // cannot see the friezes well" → `0.65` → "thinner, but not so thin the
+  // friezes get deformed" → here. The number that decides it is not the band's
+  // height but the height of ONE MOTIF ROW: the masks are a 13-row grid, so
+  // `0.4` put a row at ~0.54px, `slim` at ~0.67px, `0.65` at ~0.87px and this
+  // at ~0.80px. Under ~0.7px the meander stops being a pattern and becomes a
+  // texture — that is what "deformed" means in numbers, and it is the floor any
+  // future ask on this line has to clear. The mask follows the box for free
+  // (its fit is a percentage of it); the carve does not, its offsets being
+  // absolute px, so trimming coarsens the groove relative to the strokes.
+  //
+  // `slim` stays on at this height: it is what drops layer one, and two
+  // interlocking waves in 10px would go straight back to texture. KEEP THE
+  // PIT'S MEDIA BUDGET IN STEP — it subtracts this band as `0.55 × --frieze-h`.
+  --frieze-bar-h: calc(var(--frieze-h) * 0.55);
+  // The flat tone under the paint — never seen while the gradient is drawn, and
+  // stated anyway so a fallback lands in the same family rather than on the
+  // component's default brown.
+  --frieze-bar-wave-two: var(--teal-11, #a7ffeb);
+  --frieze-bar-wave-two-paint: linear-gradient(
+    to bottom,
+    var(--teal-11, #a7ffeb) 0%,
+    var(--indigo-11, #8c9eff) 100%
+  );
+}
+
+// ── THE CAP'S CLOSING EDGE (2026-08-07, user ask) ─────────────────────────
+// THREE PLACES IN ONE DAY, and the walk is the documentation. It started as
+// the frieze pair's `vflip`ped half closing the label RAIL — same motif,
+// gradient reversed, the two bands reflecting about the label lane. It became
+// an `RgbHairline` in the same spot hours later: a `--grey-7` rule, a
+// cyan→indigo band, a `--grey-7` rule — the same plate tone the frieze band
+// above it stands on (that ask moved the bread there from `--grey-6`), so the
+// card's two very different dividers are at least made of one grey. What the
+// swap settled is that the card's full-bleed dividers stopped being the same
+// device twice: a frieze band is a MOTIF and needs height to read (~0.8px a
+// row is the floor, see the note above), while three flat lines read at any
+// size — so the divider nearest the reading area can be the thin one.
+//
+// THEN IT MOVED UP. With the CAP added at the top of the card, this rule was
+// asked for "between the new header and everything else", which is where it
+// stands now — and being the cap's edge it is UNCONDITIONAL, where on the
+// rail it was `v-if`'d on the post having labels. The rail is closed by
+// nothing; its strip padding and the pit's top margin are that lane.
+//
+// The component ships this card's exact defaults — 2px bread, a 2px filling —
+// so nothing is dialled here and the class exists for the note above it.
+//
+// KEEP THE PIT'S MEDIA BUDGET IN STEP: it counts this at a flat 6px, and no
+// longer as a worst case — every card draws it.
+.post-square__hairline {
+  min-width: 0;
 }
 
 // THE MOMENT CHIP — the post's when over its where (or its date).
@@ -1873,10 +4224,12 @@ export default defineComponent({
 
 // The title is the card's way into the full post viewer — the card itself
 // stopped being a click target when the unfoldable detail panel went. It sits
-// on its own PLATE (end of 2026-07-25): a rounded `--grey-1` box rimmed in
-// `--indigo-3`, i.e. the same floor and the same line as the markdown pit
-// below it and the label rail above it, so the card reads as one material.
-// The ink is `--indigo-8`, the colorway's dark end.
+// on its own PLATE (end of 2026-07-25): a rounded `--grey-1` box rimmed in the
+// card's ONE LINE INK (`--grey-6` since 2026-08-07, `--indigo-3` then -4
+// before it), i.e. the same floor and the same line as the markdown pit below
+// it and the label rail above it, so the card reads as one material. The
+// lettering is `--grey-9`, the deepest ink on the card (it was `--indigo-8`,
+// the colorway's dark end, and holds the same weight against the -1 floor).
 //
 // It CLOSES THE RUN OF FACTS in the band (2026-07-25, third pass — it had its
 // own strip under the band until then). `flex: 1 1 auto` is the move that
@@ -1933,9 +4286,9 @@ export default defineComponent({
   letter-spacing: 0.02em;
   text-transform: uppercase;
   text-align: center;
-  color: var(--indigo-8, #303f9f);
+  color: var(--grey-9, #424242);
   background: var(--grey-1, #fafafa);
-  border: 1px solid var(--indigo-4, #7986cb);
+  border: 1px solid var(--grey-6, #9e9e9e);
   border-radius: var(--radius-sm, 0.5em);
   padding: 2px 6px;
   overflow: hidden;
@@ -2021,18 +4374,32 @@ export default defineComponent({
   // `30vh`, because that ceiling is `min(width, 60vh)` — a narrow column
   // makes a short card, and a fixed viewport fraction would overflow it. The
   // constant is everything in the card that is NOT the medium, measured at
-  // 1440×900 / 595px column: 130px of card chrome (byline 42 + rail strip 42
-  // + foot 30 + margins 13 + borders 3), then inside the pit 16px of padding,
+  // 1440×900 / 595px column: 161px of card chrome (the CAP 24 — measured, and
+  // it is a one-line strip by construction, so it is a constant like the rest
+  // — + byline 42 + rail strip 42
+  // + foot 30 + margins 13 + borders 4 — 3 of the card's own 1.5px pair since
+  // 2026-08-07, 1 of the pit's — + the rgb hairline's 6, which is
+  // UNCONDITIONAL since it moved up to close the cap), then inside the pit
+  // 16px of padding,
   // ~70px of the Mini's own header and foot, ~21px of embed caption and
   // ~20px of block margin. Budget + all of that = the ceiling, which is the
   // point: a card holding one medium comes out exactly full, with nothing to
   // scroll for.
   //
+  // THE FRIEZE BAND IS THE ONE PART OF THAT CHROME NOT IN THE CONSTANT
+  // (2026-08-07): it stands at `0.55 × --frieze-h` (see `.post-square__frieze`),
+  // a viewport-relative value, which cannot be folded into a px total and is
+  // subtracted as itself — move that dial and move this factor with it. Its
+  // former mirrored twin is an `RgbHairline` now, in the constant at a flat
+  // 6px (2px + 2px + 2px), and unlike the band it is drawn on EVERY card:
+  // it closes the cap, not the rail. Worst case on purpose: a card with no
+  // labels draws no rail strip and is ~43px to the good.
+  //
   // Keep it in step with the 60vh ceiling and with the Mini's chrome — grow
   // one without the other and you get either a player that needs a scroll or
   // a small player in a half-empty card. The 120px floor is for the narrowest
   // columns, where the subtraction would otherwise go negative.
-  --media-max-h: max(120px, calc(min(var(--post-square-max, 100cqw), 60vh) - 264px));
+  --media-max-h: max(120px, calc(min(var(--post-square-max, 100cqw), 60vh) - 295px - var(--frieze-h) * 0.55));
 
   flex: 1 1 auto;
   min-height: 0;
@@ -2042,13 +4409,14 @@ export default defineComponent({
   color: var(--ink, #2C3D4E);
   word-break: break-word;
   line-height: 1.6;
-  // The top margin is the gap to whatever line precedes it — the rail strip's
-  // hairline when the post carries labels, the byline band's when it does not.
+  // The top margin is the gap to whatever line precedes it — since 2026-08-07
+  // a FRIEZE BAND either way: the mirrored one closing the rail when the post
+  // carries labels, the byline's own when it does not.
   margin: 6px 7px 7px;
   padding: 8px 10px;
   border-radius: 7px;
   // The pit's own two tones (2026-07-25): a `--grey-1` floor with the frame's
-  // INNER border drawn around it in `--indigo-3`. The floor was a 5% ink
+  // INNER border drawn around it in the card's line ink. The floor was a 5% ink
   // tint of whatever the card was, which made the pit a slightly darker patch
   // OF the card; a flat near-white is a different material set INTO it — the
   // one tone on this surface deliberately outside the container's colorway,
@@ -2058,20 +4426,24 @@ export default defineComponent({
   // only the weight tells them apart — a rule that survived 2026-08-06 by a
   // hair, the box having spent part of that day split into a two-tone bevel.
   // The tone walked `--indigo-3` → `--indigo-4` → `--grey-5` → `--grey-6` →
-  // back to `--indigo-4` across the same day; see `.post-square` for what each
-  // step settled, and move all eight lines together or none of them. The frieze bars drew
+  // back to `--indigo-4` across that day, and out of the colorway to `--grey-6`
+  // for good on 2026-08-07; see `.post-square` for what each step settled, and
+  // move all eight lines together or none of them (the outer edge left this ink
+  // for an hour on 2026-08-07 and came back; the card's two DIVIDER PLATES,
+  // -7 and -8, are a separate group and move on their own). The frieze bars drew
   // the container's side borders in that same -3 until 2026-08-05, so card edge
-  // and box edge were literally one line; the bars' lip has since gone neutral
-  // to the point of invisibility (`--grey-4`, the plaque), so the card's edges
-  // are now the only lines on this surface at all. The floor stays near-white
-  // through all of it: it is the READING area, and the one tone here that was
-  // never the container's.
+  // and box edge were literally one line; the bars' lip went neutral to the
+  // point of invisibility the next day and now simply wears the plaque
+  // (`--indigo-8`), so the card's edges are the only LINES on this surface at
+  // all — what states the container's own edge is the bars' dark plate, not a
+  // line. The floor stays near-white through all of it: it is the READING area,
+  // and the one tone here that was never the container's.
   // EVEN on all four sides. It wore a heavier 2px top for one pass, matching
   // the rail's, and that reading does not carry down here: the rail is a
   // shallow tray and a lip suits it, while the pit is the READING area and
   // wants a plain frame — a weighted edge above the text reads as a rule the
   // prose hangs from. The heavy-top device stays the rail's alone.
-  border: 1px solid var(--indigo-4, #7986cb);
+  border: 1px solid var(--grey-6, #9e9e9e);
   background: var(--grey-1, #fafafa);
   // NO carve (end of 2026-07-25) — the surface is FLAT. The pit used to wear
   // the `.label-square__pit` recipe, an inset dark shadow at the top edge over
@@ -2241,8 +4613,9 @@ export default defineComponent({
 //
 // It is a ROUNDED RECTANGLE THAT SCROLLS SIDEWAYS, and the two go together:
 //
-//   · The BOX is the card's third panel, rimmed 1px `--indigo-3` like the
-//     pit below it and the title plate above, but floored in `--indigo-2`
+//   · The BOX is the card's third panel, rimmed 1px in the card's line ink
+//     (`--grey-6`) like the pit below it and the title plate above, but floored
+//     in the BED TONE (`--grey-4`, `--indigo-2` before 2026-08-07)
 //     rather than their near-white `--grey-1`. That is the difference between
 //     a surface you READ and a surface you SCAN: the pit is the reading area
 //     and is set apart from the card as its own material, while the rail is a
@@ -2258,18 +4631,22 @@ export default defineComponent({
 //
 // Rigid (`flex: 0 0 auto`), like the foot: the square ceiling trims the body,
 // never a card's classification.
-// The STRIP the rail sits in — a full-width band whose only jobs are the
-// rail's insets and the EDGE-TO-EDGE HAIRLINE that divides classification
-// from content. The line has to live here rather than on the rail: the rail
-// is inset by this padding, so a border on it would stop 7px short of each
-// side. Same reasoning, and the same 1px `--indigo-3`, as the byline
-// band's bottom border — the card is divided by full-bleed lines and
-// panelled by inset boxes, and those are two different devices.
+// The STRIP the rail sits in — a full-width band whose only job is the rail's
+// insets since 2026-08-07. Its EDGE-TO-EDGE HAIRLINE became a divider drawn
+// after it that day (a mirrored frieze band for a few hours, then an
+// `RgbHairline`), and by the end of it that rule had moved AGAIN, up to the
+// cap, where it divides the header from everything under it. So the rail is
+// closed by nothing now: its own padding and the pit's 6px top margin are the
+// lane between classification and content. The rule that put the line on the
+// STRIP rather than on the rail is still the one to know if a divider ever
+// comes back here — the rail is inset by this padding, so an edge drawn ON it
+// would stop 7px short of each side, and a divider has to run lip to lip. The
+// card is divided by full-bleed lines and panelled by inset boxes, and those
+// are two different devices.
 .post-square__rail-strip {
   flex: 0 0 auto;
   min-width: 0;
   padding: 6px 7px;
-  border-bottom: 1px solid var(--indigo-4, #7986cb);
 }
 
 .post-square__rail {
@@ -2282,11 +4659,13 @@ export default defineComponent({
   // A HEAVIER TOP EDGE (1px box, 2px top), the mirror of the card's own
   // uneven border (1px box, 2px foot). The tray reads as something the band
   // above sits down onto rather than a box floating in the gap.
-  border: 1px solid var(--indigo-4, #7986cb);
+  border: 1px solid var(--grey-6, #9e9e9e);
   border-top-width: 2px;
   border-radius: 7px;
-  // The bed tone, not the pit's near-white — see the note above.
-  background: var(--indigo-2, #c5cae9);
+  // The bed tone, not the pit's near-white — see the note above. It has been
+  // "the bed tone" through both families: `--indigo-2` under the indigo bed,
+  // `--grey-4` since 2026-08-07 under the neutral one. Same rule, same step.
+  background: var(--grey-4, #e0e0e0);
   overflow-x: auto;
   overflow-y: hidden;
   // The same thin rail the pit and the well use, so a third scrolling surface
@@ -2326,11 +4705,13 @@ export default defineComponent({
   border-radius: 7px;
   padding: 1px 6px;
   overflow: hidden;
-  // The card's own coat, lying in the `--indigo-2` tray (the chips were
-  // transparent, so they took the tray's tone and the rail read as one field
-  // with outlines drawn on it). -1 chip on a -2 bed is the same figure/ground
-  // step as a -1 card on the stream's -2 well, one level down.
-  background: var(--indigo-1, #e8eaf6);
+  // The card's own coat, lying in the tray (the chips were transparent, so
+  // they took the tray's tone and the rail read as one field with outlines
+  // drawn on it). Chip-on-tray restates card-on-bed one level down, and that
+  // held through the move to the greys on 2026-08-07: it was `--indigo-1` on
+  // `--indigo-2` when the card was -1 on the well's -2, and it is `--grey-3` on
+  // `--grey-4` now that the card is -3 on the bed's -4.
+  background: var(--grey-3, #eeeeee);
 
   &:hover {
     color: #00829c;
@@ -2456,7 +4837,8 @@ export default defineComponent({
 // TRUST CHIP (Thread J) — invite-chain distance, part of the author unit
 // like the badge above it (same pulled-in margin, same "belongs to the
 // identity" argument). Drawn as a tiny plate in the card's own recipe:
-// `--grey-1` floor, `--indigo-3` rim, the colorway's dark ink. Zero
+// `--grey-1` floor, the line ink as its rim, the card's darkest ink for the
+// lettering — all three following the card into the greys on 2026-08-07. Zero
 // hops ("you") stays quiet; the tooltip walks the whole vouch path.
 .post-square__trust {
   margin-left: -3px;
@@ -2465,9 +4847,9 @@ export default defineComponent({
   font-weight: 700;
   letter-spacing: 0.02em;
   white-space: nowrap;
-  color: var(--indigo-8, #303f9f);
+  color: var(--grey-9, #424242);
   background: var(--grey-1, #fafafa);
-  border: 1px solid var(--indigo-4, #7986cb);
+  border: 1px solid var(--grey-6, #9e9e9e);
   border-radius: 9px;
   padding: 1px 6px;
 }
@@ -2534,5 +4916,74 @@ export default defineComponent({
   font-size: 0.7em;
   color: rgba(var(--ink-rgb), 0.55);
   flex-shrink: 0;
+}
+
+// ── THE MOBILE FILTER SECTION (2026-08-07, user ask) ────────────────
+// The two rows become ONE at the same 600px the head box stacks its body at:
+// the BUNDLE on the left at its natural width, the LABEL FIELD taking every
+// pixel to its right.
+//
+// Which is the opposite trade from the desktop layout, and correct for the
+// same reason. Stacked in a half-width column, the field had the bundle's
+// width and no more; stretched across a board that is now the whole screen,
+// one row has room for both — and the vertical is what a phone is short of,
+// so the section spends width instead of height. Two rows here would cost
+// ~25px of a box that already stands over the stream.
+@media (max-width: 600px) {
+  .feed-stream__controls {
+    flex-direction: row;
+    // STRETCH, not `center` (2026-08-08, user ask: the bundle and the label
+    // section should be the same height). Side by side they came out 21 and
+    // 23 — the bundle is its buttons' 17px plus two rims, the field is its own
+    // leading plus padding plus two rims, and nothing was making the two
+    // agree. Stretching hands the height to the taller of them and the shorter
+    // grows into it, which is the only version of "the same height" that stays
+    // true when either one's contents change. (Quasar already gives every
+    // `.q-btn-item` `align-self: stretch`, so the lenses fill the bundle when
+    // the bundle grows.)
+    align-items: stretch;
+    gap: 0;
+    // FILL THE HALF (2026-08-08, user ask: "there is a huge gap on the right
+    // inside this section"). The section is a flex ITEM of the lens half, and
+    // with no flex of its own it was sized by its content — bundle 86 + gap 5
+    // + the label field's natural 176 = 267 in a 293px half, leaving 20px of
+    // floor at the right end. `1 1 auto` makes the section take the half, and
+    // the label row's own `1 1 auto` below hands that width straight to the
+    // field, which is where it was wanted.
+    //
+    // Mobile only. Stacked, the half HUGS this section by design — that is
+    // what makes the buttons take the width they need and the composer take
+    // the rest — so growing it there would undo the layout it was built for.
+    flex: 1 1 auto;
+    width: auto;
+  }
+
+  // The single row puts them side by side, so the desktop arrangement inverts:
+  // the bundle takes only what its three lenses need, and the field — which
+  // spans the section when the two are stacked — takes everything left.
+  .feed-stream__lens-group {
+    flex: 0 0 auto;
+    width: auto;
+  }
+
+  .feed-stream__lens-btn {
+    flex: 0 0 auto;
+  }
+
+  // The BAR takes the width here (it is what stands beside the bundle), the
+  // way it did before the verb's brief spell outside it.
+  .feed-stream__label-row {
+    flex: 1 1 auto;
+    align-self: auto;
+    width: auto;
+    min-width: 0;
+  }
+
+  // ⚠ NOTHING TO UNDO HERE ANY MORE. This block used to restore the row's top
+  // edge and drop its left one — the doubled-rim rule turned 90° for the
+  // side-by-side layout — and both halves went when the bar took its own 1px
+  // `--indigo-7` rim on all four edges (2026-08-08). The rule that made them
+  // necessary was two touching 2px rims in ONE ink; the bar shares neither
+  // with the bundle now.
 }
 </style>

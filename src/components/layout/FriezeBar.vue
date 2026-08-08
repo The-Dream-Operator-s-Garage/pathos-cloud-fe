@@ -11,12 +11,24 @@
        tones are DIALS a host box may set on the element it mounts this
        on — `--frieze-bar-base` + `--frieze-bar-wave-{one,two}` — which
        is how the chat window wears the band in green (see the style
-       block; the recipe underneath them never moves).
+       block; the recipe underneath them never moves). Since 2026-08-07
+       each wave dial also has an IMAGE form —
+       `--frieze-bar-wave-{one,two}-paint` — for a motif that is not one
+       flat tone (the post card's pair runs a teal→indigo gradient down
+       the wave while the plaque stays flat).
        Decorative only — pointer-events none.
 
        `slim` (2026-07-26) is the HALF-HEIGHT variant — see the style
        block; it drops the brown-2 layer, so only the brown-1 wave is
        drawn and layer one is not even rendered.
+
+       `flip` (2026-08-02) turns the meander round the VERTICAL axis and
+       `vflip` (2026-08-07) round the HORIZONTAL one — both by swapping
+       masks, never by a transform (see the props). `vflip` is NOT the
+       `mirrored` variant described below, which was a different idea
+       with a similar name: that one cut ONE band in half about its
+       centre, this one turns a WHOLE band upside down so two of them
+       can bracket something as a reflected pair.
 
        ONE TILING, always (2026-07-27): the layers span the box and the
        masks anchor at its LEFT edge, so the motif runs one way across
@@ -28,7 +40,11 @@
        absolutely-positioned halves, the left wearing the UN-mirrored
        `mercury-wave-{a,b}.svg` at `mask-position: right`, and never
        `scaleX(-1)` (it mirrors the drop-shadow carve with the motif). -->
-  <div class="frieze-bar" :class="{ 'frieze-bar--slim': slim, 'frieze-bar--flip': flip }" aria-hidden="true">
+  <div
+    class="frieze-bar"
+    :class="{ 'frieze-bar--slim': slim, 'frieze-bar--flip': flip, 'frieze-bar--vflip': vflip }"
+    aria-hidden="true"
+  >
     <div class="frieze-bar__inner">
       <div v-if="!slim" class="frieze-bar__layer frieze-bar__layer--one" />
       <div class="frieze-bar__layer frieze-bar__layer--two" />
@@ -55,7 +71,21 @@ export default defineComponent({
     // mirror the drop-shadow carve along with the motif and light the band
     // from the other side. The carve stays exactly where it is; only the wave
     // turns around.
-    flip: { type: Boolean, default: false }
+    flip: { type: Boolean, default: false },
+    // Turn the meander UPSIDE DOWN (2026-08-07, user ask, for the post card's
+    // pair of bars: one under the byline, one under the label rail, "vertically
+    // mirrored" so the two bracket the lane between them as a reflection).
+    //
+    // Masks only, exactly like `flip` and for the same reason: a
+    // `transform: scaleY(-1)` would take the CARVE with it and light this band
+    // from below while every other frieze on the page is lit from the top left.
+    // A mirrored PAIR is two reflections of a motif under ONE light, not two
+    // light sources. So the flip is an asset swap — the `-mirror-vmirror` files
+    // are the default masks (`-mirror`) reflected about the horizontal axis,
+    // which on the same canvas is the original turned 180°
+    // (`translate(231 143) scale(-1 -1)`), and `flip` + `vflip` together land
+    // on the plain `-vmirror` pair, the fourth corner of that square.
+    vflip: { type: Boolean, default: false }
   }
 })
 </script>
@@ -63,7 +93,25 @@ export default defineComponent({
 <style scoped lang="scss">
 .frieze-bar {
   width: 100%;
-  height: var(--frieze-h);
+  // THE HEIGHT IS A DIAL since 2026-08-07 (`--frieze-bar-h`, user ask: the post
+  // card's pair "slightly thinner" than `slim`) — a TRIM, not a third variant.
+  // What follows the box for free is the mask: `auto 99%` (and slim's `117%`)
+  // are fractions OF IT, so the motif scales with whatever height is set. What
+  // does NOT follow is the carve, whose drop-shadow offsets are absolute px —
+  // and that is deliberate, a groove being a fixed physical width rather than a
+  // proportion of the plate it is cut into. It is also the limit on this dial
+  // DOWNWARD: trim far enough and the 0.5px groove is wider than the strokes it
+  // carves, which is the mush `slim` exists to avoid. Upward it only helps.
+  //
+  // The number to think in is ONE MOTIF ROW, not the band: both masks are a
+  // 13-row grid, so a `slim` bar at a 900px viewport gives each row ~0.67px and
+  // is already sub-pixel. The post card's pair walked this dial in both
+  // directions on the day it was born and settled ABOVE slim at `0.65 ×
+  // --frieze-h` (~0.87px a row) — thinner reads as a texture, which is what
+  // "I cannot see the friezes" means in numbers. Going far the other way is a
+  // different question: past `--frieze-h` the band wants the full recipe (two
+  // waves, the wider carve) rather than a stretched slim one.
+  height: var(--frieze-bar-h, var(--frieze-h));
   padding: 1px 0;
   pointer-events: none;
   // flat Quasar brown-4 plaque — darker inversion of the header's brown-1.
@@ -112,14 +160,35 @@ export default defineComponent({
     drop-shadow(0.5px 0.5px 0 #ffffff);
 }
 
+// ── THE WAVES' PAINT (2026-08-07) — each wave dial has a second form, an
+// IMAGE laid over its flat tone: `--frieze-bar-wave-{one,two}-paint`. Unset it
+// is `none` and the layer is the flat plate it has always been; set, the host
+// hands the motif a gradient (the post card's pair runs `--teal-11` →
+// `--indigo-11` down the band, reversed on the mirrored one).
+//
+// It is one declaration and no new machinery because of what these layers
+// already are: a MASK over a painted box. The mask decides the SHAPE, the
+// background decides what fills it, and a gradient fills it exactly as a colour
+// does — so the paint reaches the motif and nothing else. The plaque underneath
+// is a different element's background and is untouched, which is the whole
+// point: gradient on the wave, flat tone on the plate.
+//
+// Two properties of the fill worth stating, since both are the default and both
+// are load-bearing. It spans the WHOLE BAR, once: a gradient has no intrinsic
+// size, so it fills the background positioning area — the box, not the mask's
+// tile — and the mask repeating every 231px does not repeat the ramp with it.
+// And the `filter` carve reads the layer's ALPHA, which the paint does not
+// touch, so a gradient-filled wave is grooved identically to a flat one.
 .frieze-bar__layer--one {
   background-color: var(--frieze-bar-wave-one, var(--brown-2)); // Quasar brown-2
+  background-image: var(--frieze-bar-wave-one-paint, none);
   mask-image: url('../../assets/frieze/mercury-wave-a-mirror.svg');
   -webkit-mask-image: url('../../assets/frieze/mercury-wave-a-mirror.svg');
 }
 
 .frieze-bar__layer--two {
   background-color: var(--frieze-bar-wave-two, var(--brown-1)); // Quasar brown-1
+  background-image: var(--frieze-bar-wave-two-paint, none);
   mask-image: url('../../assets/frieze/mercury-wave-b-mirror.svg');
   -webkit-mask-image: url('../../assets/frieze/mercury-wave-b-mirror.svg');
 }
@@ -139,6 +208,42 @@ export default defineComponent({
   .frieze-bar__layer--two {
     mask-image: url('../../assets/frieze/mercury-wave-b.svg');
     -webkit-mask-image: url('../../assets/frieze/mercury-wave-b.svg');
+  }
+}
+
+// ── VFLIP (2026-08-07) — the same band UPSIDE DOWN, for a PAIR of bars that
+// bracket something between them (the post card's byline│rail│pit sandwich).
+// Same mechanism as `flip` one axis over — an asset swap, never a transform, so
+// the carve keeps lighting every band on the page from the top left and the two
+// bars read as one motif reflected rather than as two differently-lit strips.
+//
+// The four masks are the four corners of one square: plain (`flip`), `-mirror`
+// (the default, plain reflected horizontally), `-vmirror` (plain reflected
+// vertically) and `-mirror-vmirror` (both, i.e. plain turned 180°). This rule
+// takes the DEFAULT's vertical reflection; the compound rule under it takes
+// `flip`'s, and it must stay more specific than this one or the cascade would
+// answer a `flip vflip` bar with whichever of the two rules was written last.
+.frieze-bar--vflip {
+  .frieze-bar__layer--one {
+    mask-image: url('../../assets/frieze/mercury-wave-a-mirror-vmirror.svg');
+    -webkit-mask-image: url('../../assets/frieze/mercury-wave-a-mirror-vmirror.svg');
+  }
+
+  .frieze-bar__layer--two {
+    mask-image: url('../../assets/frieze/mercury-wave-b-mirror-vmirror.svg');
+    -webkit-mask-image: url('../../assets/frieze/mercury-wave-b-mirror-vmirror.svg');
+  }
+}
+
+.frieze-bar--flip.frieze-bar--vflip {
+  .frieze-bar__layer--one {
+    mask-image: url('../../assets/frieze/mercury-wave-a-vmirror.svg');
+    -webkit-mask-image: url('../../assets/frieze/mercury-wave-a-vmirror.svg');
+  }
+
+  .frieze-bar__layer--two {
+    mask-image: url('../../assets/frieze/mercury-wave-b-vmirror.svg');
+    -webkit-mask-image: url('../../assets/frieze/mercury-wave-b-vmirror.svg');
   }
 }
 
@@ -188,7 +293,7 @@ export default defineComponent({
 // know: slim drops layer one, so a host that dials only `--frieze-bar-wave-one`
 // dresses a band that isn't drawn.)
 .frieze-bar--slim {
-  height: calc(var(--frieze-h) / 2);
+  height: var(--frieze-bar-h, calc(var(--frieze-h) / 2));
 
   .frieze-bar__layer {
     mask-size: auto 117%;

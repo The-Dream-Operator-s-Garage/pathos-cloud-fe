@@ -7,13 +7,23 @@
        Everything else is A, unchanged and deliberately so:
 
          thickness  width = --frieze-h
-         palette    grey-4 plaque, indigo-4 + indigo-6 waves, grey-4 lip
-                    — the same colorway, same tokens (most of it landed on
-                    2026-08-05: the plate went neutral, the wave pair walked
-                    down and settled TWO levels apart, and the lip came back
-                    into the colorway on the dark wave — then walked -6 → -5
-                    → -4 → OUT of it on 2026-08-06, the lip taking the
-                    plaque's own tone, i.e. no inward line at all; see A)
+         palette    indigo-8 plaque, grey-5 + brown-1 waves, indigo-8 OUTER
+                    side edge and an indigo-5 LIP — the inner-facing one, a
+                    real line again since the last ask of 2026-08-07. It was
+                    put here to match the head box's bottom rim; ⚠ that rim has
+                    since walked to --indigo-9 and this lip did not follow, so
+                    the two no longer rhyme (A carries the note). Same tokens
+                    as A, always.
+                    The plate went -9 and came back the same day; A carries
+                    the note on why -8 is the level that matches.
+                    The colorway's own hue now survives only in the PLATE:
+                    both waves left it on 2026-08-07 (A carries the note).
+                    INVERTED earlier on 2026-08-07
+                    (user ask): a deep plate under pale waves, the reverse of
+                    everything from 2026-07-25 on (grey-4 plate, indigo-4/-6
+                    waves, the lip taking the plaque's own tone on 08-06 and
+                    following it here). The spread stayed two levels through
+                    the flip — see A, which carries the whole walk.
          tiling     repeat-Y at `99% auto`, `center top`
          padding    1px on the sides
          carve      IDENTICAL to A — dark up-RIGHT, light down-LEFT. The
@@ -25,14 +35,12 @@
          lip        same `lip` prop as A, so the two are drop-in siblings.
                     B's placement wants `lip="left"` (facing inward from the
                     right edge).
-         roll       A's outer-edge bevel verbatim, keyed off the same
-                    `--lip-*` class — so on B it lands on the RIGHT, which
-                    is B's free side. The two rolls therefore face outward
-                    from the box in opposite directions and the pair reads
-                    as one plaque turning over at both of its long edges.
-                    Unlike the motif this is NOT mirrored art: the gradient
-                    direction flips because the EDGE flips, while the light
-                    stays where the carve puts it (see A's note).
+         roll       GONE with A's, 2026-08-07 (user ask). It was A's
+                    outer-edge bevel verbatim, keyed off the same `--lip-*`
+                    class so it landed on B's free side — and the pair of
+                    them, one turning over on each side of the box, is
+                    precisely what made the bars read as CYLINDERS. Both
+                    edges are flat now. A carries the note.
 
        The mirror is baked into the ASSETS, not applied as a CSS transform —
        `mercury-wave-{a,b}-rot90-mirror.svg`, the rot90 exports wrapped in one
@@ -54,9 +62,11 @@ import { defineComponent } from 'vue'
 export default defineComponent({
   name: 'FriezeBarVerticalB',
   props: {
-    // Which edge carries the lip — same contract as variant A. (The lip is
-    // `--grey-4` since 2026-08-06, i.e. invisible by design; the prop still
-    // decides which edge would carry it.)
+    // Which edge carries the lip — same contract as variant A. (The lip takes
+    // `--indigo-5` since the last ask of 2026-08-07, after a day and a half at
+    // the plaque's own tone drawing nothing. It picks the INNER-FACING edge —
+    // B's placement wants `lip="left"` — which is the only asymmetry on the
+    // bar: outer edge `--indigo-8`, inner `--indigo-5`. A carries the note.)
     lip: {
       type: String,
       default: 'left',
@@ -77,51 +87,39 @@ export default defineComponent({
   height: 100%;
   padding: 0 1px;
   pointer-events: none;
-  position: relative; // containing block for the roll; no z-index, as in A
-  background: var(--frieze-bar-v-base, var(--grey-4)); // same plaque as A (--grey-4 since 2026-08-05), same dial
+  position: relative; // no z-index, as in A (it held the roll until 2026-08-07)
+  // Same plaque as A, same dial — INVERTED to `--indigo-8` on 2026-08-07, taken
+  // a level deeper to `--indigo-9` later that day and brought BACK here, this
+  // being the tone the feed head box's inner posts actually wear. A carries the
+  // note on what the round trip settled.
+  background: var(--frieze-bar-v-base, var(--indigo-8));
+  // A's SIDE BORDERS, verbatim: 1px of the plaque's own tone down each long
+  // edge, drawing no line and reserving a dark margin the `99%` mask cannot
+  // reach — which is what keeps the now-pale motif off the silhouette. They come
+  // out of the width (`box-sizing: border-box`), not on top of it.
+  border-left: var(--frieze-bar-v-edge-w, 1px) solid var(--frieze-bar-v-edge, var(--indigo-8));
+  border-right: var(--frieze-bar-v-edge-w, 1px) solid var(--frieze-bar-v-edge, var(--indigo-8));
 }
 
-// `--grey-4` since 2026-08-06 (user ask), in step with A — the PLAQUE's own
-// tone, so this bar draws no inward line either: its inner edge is where the
-// plate continues into the box. See A's note for the day's four settings and
-// for why the lip lost its job rather than its argument (the cards now run lip
-// to lip with their own border, and a second line there would double it).
-.frieze-bar-v-b--lip-left { border-left: 1px solid var(--frieze-bar-v-lip, var(--grey-4)); }
-.frieze-bar-v-b--lip-right { border-right: 1px solid var(--frieze-bar-v-lip, var(--grey-4)); }
+// THE LIP HAS ITS JOB BACK (2026-08-07, last ask that day) — `--indigo-5`, in
+// step with A. It had followed the plaque since 2026-08-06 (`--grey-4`, then
+// `--indigo-8`) and drawn no inward line at all; it draws one now, and what
+// brought it back is the feed head box taking an `--indigo-5` bottom rim in the
+// ask before, which gave this surface a stated tone for "the inner line of the
+// chrome" — ⚠ a relation that no longer holds: that rim is `--indigo-9` now
+// and this lip stayed at -5 (A carries the whole note; do not "restore" either
+// to match the other without an ask). These rules restate ONE side after the base rule drew both, so the
+// bar comes out asymmetrical: outer `--indigo-8`, inner `--indigo-5`. Source
+// order is what lets them win — equal specificity — and it mattered for nothing
+// while the two tones were the same. A carries the whole note.
+.frieze-bar-v-b--lip-left { border-left: var(--frieze-bar-v-edge-w, 1px) solid var(--frieze-bar-v-lip, var(--indigo-5)); }
+.frieze-bar-v-b--lip-right { border-right: var(--frieze-bar-v-edge-w, 1px) solid var(--frieze-bar-v-lip, var(--indigo-5)); }
 
-// A's OUTER-EDGE ROLL, verbatim — read its note for what the two washes are
-// and why neither is opaque. Same rule for placing it: opposite the lip, so
-// on B's usual `lip="left"` the roll lands on the box's right-hand outside.
-.frieze-bar-v-b::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 8px;
-  pointer-events: none;
-  // A's stops verbatim — keep the two in step; A carries the tuning note.
-  background-image:
-    linear-gradient(to right,
-      rgba(255, 255, 255, 0) 2.6px,
-      rgba(255, 255, 255, 0.68) 4.6px,
-      rgba(255, 255, 255, 0.24) 6.2px,
-      rgba(255, 255, 255, 0) 8px),
-    linear-gradient(to right,
-      rgba(11, 12, 16, 0.9) 0,
-      rgba(11, 12, 16, 0.78) 0.9px,
-      rgba(11, 12, 16, 0.42) 2px,
-      rgba(11, 12, 16, 0.16) 3.2px,
-      rgba(11, 12, 16, 0) 4.6px);
-}
-
-.frieze-bar-v-b--lip-right::after { left: 0; }
-
-// B's usual placement. `scaleX(-1)` is safe here for the reason A's note
-// gives: no drop-shadow on this element, so nothing but the gradients flips.
-.frieze-bar-v-b--lip-left::after {
-  right: 0;
-  transform: scaleX(-1);
-}
+// A's OUTER-EDGE ROLL used to be repeated here verbatim, placed opposite the
+// lip so that on B's usual `lip="left"` it landed on the box's right-hand
+// outside. Both are gone (2026-08-07, user ask) — A carries the note, and the
+// short version is that a bar turning over at BOTH long edges reads as a rod,
+// not as a plaque. B's half of that reading was this block.
 
 .frieze-bar-v-b__inner {
   position: relative;
@@ -147,16 +145,29 @@ export default defineComponent({
 }
 
 // In step with A through 2026-08-05's whole walk (-3/-4 → -4/-5 → -5/-6 →
-// -4/-6). Read A before changing either: the pair is TWO levels apart on
-// purpose now, and that spread is what the carve reads as.
+// -4/-6), through 2026-08-07's INVERSION about the plaque (→ -1/-3, pale waves
+// on a deep plate) and through the same day's second move, which took the LIT
+// wave out of the family altogether (`--grey-4` over `--indigo-3`). Read A
+// before changing either: the pair is TWO levels apart on purpose, that spread
+// is what the carve reads as, and the headroom is now UPWARD-bound — to open
+// the pair, take wave two down.
 .frieze-bar-v-b__layer--one {
-  background-color: var(--frieze-bar-v-wave-one, var(--indigo-4));
+  // `--grey-5` since the mapping TURNED OVER (2026-08-07, last ask that day):
+  // brown-1 is lighter than grey-4, so wave two became the lit face and this
+  // one the shadow. A step down restores the spread and matches the names to
+  // the facts — A carries the note.
+  background-color: var(--frieze-bar-v-wave-one, var(--grey-5));
   mask-image: url('../../assets/frieze/mercury-wave-a-rot90-mirror.svg');
   -webkit-mask-image: url('../../assets/frieze/mercury-wave-a-rot90-mirror.svg');
 }
 
+// …and out of the family altogether the same evening: `--brown-1`, the last
+// indigo thing on the bar. An indigo plate carrying a warm motif — the head
+// box's inner posts' arrangement. A carries the note on what that costs (the
+// two waves are ~1.1:1 apart and told apart by hue, not value) and on which
+// dial to reach for if the interleave ever has to read as two waves again.
 .frieze-bar-v-b__layer--two {
-  background-color: var(--frieze-bar-v-wave-two, var(--indigo-6));
+  background-color: var(--frieze-bar-v-wave-two, var(--brown-1));
   mask-image: url('../../assets/frieze/mercury-wave-b-rot90-mirror.svg');
   -webkit-mask-image: url('../../assets/frieze/mercury-wave-b-rot90-mirror.svg');
 }
@@ -183,15 +194,19 @@ export default defineComponent({
 //     keeping the rotated signs: dark up-RIGHT, light down-LEFT. Left alone, a
 //     groove wider than the stroke it carves turns the band into a smear.
 //
-// And one thing that is NOT in the flat bar's list: THE ROLLED OUTER EDGE IS
-// DROPPED. That profile is 8px of a 19px bar, tuned for an edge facing the
-// page canvas; at half thickness it would eat the motif, and a slim bar's job
-// so far is to stand INSIDE a box where neither of its long edges faces the
-// page at all. Same reason the flat bar has never had one.
+// There used to be a fifth: the rolled outer edge was DROPPED here, because
+// that profile was 8px of a 19px bar and at half thickness it ate the motif.
+// The slim variant outlived it — the roll came off the full bar too on
+// 2026-08-07 — so this block no longer has to cancel anything, and the
+// `&::after { content: none; }` that did went with it.
 .frieze-bar-v-b--slim {
-  --frieze-bar-v-w: calc(var(--frieze-h) / 2);
-
-  &::after { content: none; }
+  // Diallable half thickness + the side borders CANCELLED, both in step with A
+  // (2026-08-07): a 1px rim each side is 21% of a slim bar's motif field and
+  // took the head box's posts under the ~0.7px-per-row floor. A carries the
+  // arithmetic; the short version is that slim keeps the paint and drops every
+  // device that costs width.
+  --frieze-bar-v-w: var(--frieze-bar-v-slim-w, calc(var(--frieze-h) / 2));
+  --frieze-bar-v-edge-w: 0;
 
   .frieze-bar-v-b__layer {
     mask-size: 117% auto;

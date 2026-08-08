@@ -66,7 +66,9 @@
          a post, and the box reads as a framed span rather than a slab wedged
          between two bars.
          They are the media viewer's THIN bar turned 90° (`slim`) and painted
-         `--indigo-8` plaque under a `--brown-1` motif, a MIRRORED PAIR like the
+         `--indigo-9` plaque under a `--brown-1` motif — the same tone as the
+         box's inner walls since 2026-08-07, so post and rule are one mark — a
+         MIRRORED PAIR like the
          container's own: variant A on the left, B — the same waves flipped
          horizontally — on the right, so the two edges reflect each other
          across the box instead of repeating. Absolute, so they can span the
@@ -92,6 +94,38 @@
       >
         <q-icon name="drag_indicator" size="14px" class="feed-head__grip" />
         <span class="feed-head__title nasalization">Public Feed</span>
+        <!-- THE COUNT SLOT (2026-08-07, user ask) — the right end of the
+             header line. The stream hands in the number of posts it is
+             currently under; the box only says where it goes. It is the third
+             thing this bar carries and the only one that changes, which is
+             why it sits opposite the grip: a handle at one end, a reading at
+             the other, the name centred between them.
+             It stays part of the DRAG SURFACE (no `.stop` on the press): it
+             is a reading, not a control, and a bar you can only grab in its
+             left third is a worse handle than one with a number written on
+             it. Nothing here takes a tap, so nothing is being stolen.
+
+             IT IS A CLUSTER OF TWO since the ask after: SORT BY left the lens
+             bundle and stands here too. It is the one control on the header
+             line, and it earns the place — every other lens narrows WHICH
+             posts the board is showing, and this one orders what is left, so
+             it belongs beside the number it reorders rather than in a row of
+             filters. ⚠ The sort button DOES take its tap: `.stop` on its press
+             is `FeedStream`'s to state, since the button is its markup — see
+             the note there.
+
+             THE COUNT READS FIRST (2026-08-08, user ask: "put the post count
+             on the left of the ordering button"). The pair went in the other
+             order for a day, on "before the post count" — which put the VERB
+             ahead of the thing it acts on. This way the line reads left to
+             right as a sentence: how many posts, then how they are ordered.
+             The count also lost its outline in the same ask, so the cluster is
+             now a bare number beside a rimmed control — which is the right
+             asymmetry, since only one of the two can be pressed. -->
+        <span class="feed-head__bar-end">
+          <span class="feed-head__count"><slot name="count" /></span>
+          <slot name="sort" />
+        </span>
       </header>
 
       <div class="feed-head__body">
@@ -117,32 +151,88 @@
              A NULL seat is the stub install: field stays disabled, tooltip
              says why — the surface still states its shape. -->
         <div class="feed-head__half feed-head__half--talk">
-          <span class="feed-head__seat" :class="{ 'is-thinking': thinking }">
-            <EntityAvatar :entity="seatEntity" :size="24" :title="seatTitle" />
-            <span v-if="live" class="feed-head__seat-live" aria-hidden="true" />
+          <!-- THE SEAT COLUMN — pinned to the section's TOP LEFT (2026-08-07,
+               user ask). It was centred in a one-line row; the field is two
+               lines tall now, and a face floating at the vertical middle of a
+               composer reads as an avatar dropped INTO the field rather than
+               as the seat the field belongs to. Face and badge stay side by
+               side rather than stacking: stacked they are 41px, which would
+               make the box taller than the two lines of text need. -->
+          <span class="feed-head__seat-col">
+            <span class="feed-head__seat-face">
+              <span class="feed-head__seat" :class="{ 'is-thinking': thinking }">
+                <EntityAvatar :entity="seatEntity" :size="isMobile ? 20 : 28" :title="seatTitle" />
+                <span v-if="live" class="feed-head__seat-live" aria-hidden="true" />
+              </span>
+              <OrgLogoChip v-if="seatCard.org" :org="seatCard.org" :size="15" :link="false" />
+            </span>
+            <!-- THE HANDLE, UNDER THE FACE (2026-08-08, user ask) — the seat's
+                 way back to its own profile. The face has carried the seat
+                 alone since the name was trimmed out of this line, with the
+                 name only a tooltip away; the handle puts the one piece of it
+                 that is also an ADDRESS back on the surface, and makes the
+                 seat a place you can go rather than only a face that answers.
+                 A `router-link`, not a click handler: it is a destination, so
+                 it should middle-click, copy and open in a tab like one.
+                 `@tala` is the fallback, not the value — the real username is
+                 used the moment the seat has one (locally it is an unrostered
+                 alter-ego, so `username` comes back null and the fallback is
+                 what shows). On a STUB install there is no id to route to, so
+                 the same text renders as a plain span: a legend that reads
+                 like a link and goes nowhere is worse than one that does not
+                 pretend. And it is NOT RENDERED AT ALL on the phone (user
+                 ask): there the seat and its composer share one dense row, and
+                 a caption under a 22px face is a second line the row exists to
+                 avoid. `v-if`, not `display: none` — a hidden element still
+                 holds its line in the column. -->
+            <router-link
+              v-if="enabled && !isMobile"
+              :to="'/entities/' + seatCard.id"
+              class="feed-head__seat-handle"
+              :title="seatTitle + ' — open the profile'"
+            >{{ seatHandle }}</router-link>
+            <span v-else-if="!isMobile" class="feed-head__seat-handle is-stub">{{ seatHandle }}</span>
           </span>
-          <OrgLogoChip v-if="seatCard.org" :org="seatCard.org" :size="15" :link="false" />
-          <!-- The transient reply line — the field's slot, borrowed. -->
-          <button
-            v-if="line"
-            type="button"
-            class="feed-head__chat-line"
-            :class="'is-' + line.kind"
-            :title="line.text + ' — open the chat for the transcript'"
-            @click="$emit('open-chat')"
-          >{{ line.text }}</button>
-          <template v-else>
-            <input
+
+          <!-- THE COMPOSER. The field and its button are ONE object now: the
+               button is placed at the composer's BOTTOM RIGHT (user ask), over
+               the field's own corner, with the field reserving that corner in
+               its padding so text never runs under the glyph — the composer
+               shape every chat surface on this platform uses. It sits outside
+               the `line` / field switch on purpose: the reply line borrows the
+               field's slot for ~6s, and a button that vanished with it would
+               leave the corner empty and move nothing else. -->
+          <div class="feed-head__chat">
+            <!-- The transient reply line — the field's slot, borrowed. -->
+            <button
+              v-if="line"
+              type="button"
+              class="feed-head__chat-line"
+              :class="'is-' + line.kind"
+              :title="line.text + ' — open the chat for the transcript'"
+              @click="$emit('open-chat')"
+            >{{ line.text }}</button>
+            <!-- A TEXTAREA since 2026-08-07 (user ask: "the input section to
+                 hold 2 lines of written stuff"). `rows` is not what sizes it —
+                 the height is stated in the stylesheet so the band's geometry
+                 is one number in one place — but it is still the right value
+                 to declare for anything reading the DOM. ENTER SENDS and
+                 SHIFT+ENTER breaks the line: `.exact` is what makes the pair
+                 possible, since a plain `.enter` swallows the modified press
+                 too and a two-line field you cannot put a second line in is a
+                 tall single-line input. -->
+            <textarea
+              v-else
               ref="askInput"
               v-model="draft"
               class="feed-head__chat-input"
-              type="text"
+              rows="2"
               :disabled="!enabled || thinking"
               :placeholder="thinking ? 'Talavero is thinking…' : 'Filter by…'"
-              :title="enabled ? 'Ask for a lens in plain words' : 'The seat isn\'t seeded here'"
+              :title="enabled ? 'Ask for a lens in plain words — Enter sends, Shift+Enter breaks the line' : 'The seat isn\'t seeded here'"
               :aria-label="enabled ? 'Ask Talavero to filter the feed' : 'Filter (the seat isn\'t seeded here)'"
-              @keydown.enter.prevent="doAsk"
-            >
+              @keydown.enter.exact.prevent="doAsk"
+            />
             <button
               type="button"
               class="feed-head__chat-send"
@@ -151,13 +241,16 @@
               :aria-label="enabled ? 'Ask Talavero to filter the feed' : 'Filter (the seat isn\'t seeded here)'"
               @click="doAsk"
             >
-              <q-icon name="filter_alt" size="17px" />
+              <q-icon name="filter_alt" size="15px" />
             </button>
-          </template>
+          </div>
         </div>
 
-        <!-- SECOND HALF — whatever the stream puts there (its lenses), also
-             one line now that the caption under them is gone. -->
+        <!-- SECOND HALF — whatever the stream puts there (its lenses). It is
+             no longer HALF of anything (2026-08-07, user ask): it takes the
+             width its controls actually need and the chat section takes
+             everything left over. See the stylesheet for why that is the
+             right way round. -->
         <div class="feed-head__half feed-head__half--lens">
           <slot name="controls" />
         </div>
@@ -180,6 +273,9 @@
            reload is the stream's job, via the `sweep` emit) and the trash
            empties, so nothing is suppressed afterward. -->
       <div class="feed-head__lane">
+        <div class="feed-head__lane-active">
+          <slot name="labels" />
+        </div>
         <button
           type="button"
           class="feed-head__lane-broom"
@@ -187,20 +283,33 @@
           aria-label="Sweep active and trashed label filters clean"
           @click="$emit('sweep')"
         >
-          <q-icon name="cleaning_services" size="12px" />
+          <q-icon name="cleaning_services" size="11px" />
         </button>
-        <div class="feed-head__lane-active">
-          <slot name="labels" />
-        </div>
+        <!-- THE KEYS STAND OUTSIDE THEIR TRAYS, AND AFTER THEM (2026-08-08,
+             two user asks in a row). First the bin left `.feed-head__lane-trash`
+             for the lane itself — a key sitting IN a rounded `--brown-1` panel
+             read as a chip rather than as the room's name — and then both keys
+             moved from the LEFT of their trays to the RIGHT. So each room is
+             now "the labels, then the thing you do to them", which is the
+             order the sentence is read in; the two keys had been openers, and
+             a broom that opens a lane of chips names them where a broom that
+             follows them acts on them. Each tray holds nothing but labels. -->
         <div class="feed-head__lane-trash">
-          <q-icon
-            name="delete_outline"
-            size="11px"
-            class="feed-head__lane-trash-mark"
-            aria-hidden="true"
-          />
           <slot name="trash" />
         </div>
+        <!-- 13px since 2026-08-08 (user ask: a little bigger). It had been 11
+             to match the broom when that key was shrunk, and 11 is small for
+             an OUTLINE glyph — `delete_outline` spends its size on a lid and a
+             body drawn in hairlines, where `cleaning_services` is a solid
+             shape that survives the same box. So the pair is 13 and 11 now,
+             which reads as the same weight even though the numbers differ:
+             matching the numbers is what made them look uneven. -->
+        <q-icon
+          name="delete_outline"
+          size="13px"
+          class="feed-head__lane-trash-mark"
+          aria-hidden="true"
+        />
       </div>
     </div>
   </section>
@@ -212,6 +321,12 @@ import EntityAvatar from 'src/components/entities/EntityAvatar.vue'
 import OrgLogoChip from 'src/components/organizations/OrgLogoChip.vue'
 import FriezeBarVertical from 'src/components/layout/FriezeBarVertical.vue'
 import FriezeBarVerticalB from 'src/components/layout/FriezeBarVerticalB.vue'
+
+// The phone breakpoint, stated ONCE and read by both the script and the
+// stylesheet's `@media` block at the foot of this file. Two places that must
+// agree about which layout is running; a literal in each is a bug waiting for
+// the day one of them is edited.
+const MOBILE_Q = '(max-width: 600px)'
 
 // ── Geometry ────────────────────────────────────────────────────────
 // FLARE is how far a corner sweep reaches beyond the box — the fillets' R,
@@ -362,7 +477,28 @@ export default defineComponent({
       if (c !== y.value) y.value = c
     }
 
+    // ── THE PHONE LAYOUT, IN JS (2026-08-08, user ask) ──────────────────
+    // Two of the mobile board's changes cannot be made in CSS: the seat's
+    // avatar takes its size as a PROP (EntityAvatar writes inline width and
+    // height, which no stylesheet can outrank without `!important`), and the
+    // handle has to leave the DOM rather than be hidden, or it keeps its line
+    // in the column's layout.
+    //
+    // ⚠ `MOBILE_Q` is the same STRING the stylesheet's `@media` uses, on
+    // purpose. Quasar's `$q.screen.lt.sm` was the obvious tool and is off by
+    // one here — it fires under 600px where the block below is `max-width:
+    // 600px`, i.e. 600 inclusive — so at exactly 600px the JS and the CSS
+    // would disagree about which layout is running. One string, one answer.
+    const isMobile = ref(false)
+    let mq = null
+    const syncMq = (e) => { isMobile.value = e.matches }
+
     onMounted(() => {
+      if (typeof window !== 'undefined' && window.matchMedia) {
+        mq = window.matchMedia(MOBILE_Q)
+        isMobile.value = mq.matches
+        mq.addEventListener('change', syncMq)
+      }
       remeasure()
       if (typeof ResizeObserver === 'undefined') return
       ro = new ResizeObserver(remeasure)
@@ -371,6 +507,8 @@ export default defineComponent({
     })
 
     onBeforeUnmount(() => {
+      if (mq) mq.removeEventListener('change', syncMq)
+      mq = null
       if (ro) ro.disconnect()
       ro = null
       teardown()
@@ -399,6 +537,11 @@ export default defineComponent({
       photo: seatCard.value.photo
     }))
 
+    // `@tala` is the FALLBACK. The seat is an unrostered alter-ego on this
+    // install, so `username` comes back null; anywhere it is seeded with one,
+    // the handle under the face is the real address rather than a guess.
+    const seatHandle = computed(() => '@' + (seatCard.value.username || 'tala'))
+
     const seatTitle = computed(() => {
       const name = seatCard.value.display_name || 'Talavero'
       return seatCard.value.org ? `${name} · ${seatCard.value.org.name}` : name
@@ -409,6 +552,8 @@ export default defineComponent({
       y,
       dragging,
       seatCard,
+      seatHandle,
+      isMobile,
       seatEntity,
       seatTitle,
       enabled,
@@ -449,6 +594,44 @@ export default defineComponent({
 .feed-head {
   --fhead-face: var(--grey-4, #e0e0e0);
   --fhead-rim: var(--indigo-7, #3949ab);
+  // THE BOTTOM EDGE HAS ITS OWN TONE since 2026-08-07 (user ask): the box's two
+  // edges were one line in two thicknesses until then; they are two lines.
+  //
+  // It splits the same way the WIDTH already did, and for a related reason. The
+  // bottom is the heavier edge because the box stands ON the stream — and a
+  // heavier edge in the SAME ink reads as more of the same line, where a lighter
+  // ink at more weight reads as a base the box rests on.
+  //
+  // IT WALKED -5 → -6 → **-9** across three asks the same day, and the walk is
+  // the argument. -5 was one step ABOVE the pure hue, which made the base the
+  // box's brightest edge; -6 was the hue itself, the first setting where the
+  // base read as the DEEPER of the two edges rather than the more lit one; and
+  // -9 is where the box's own inside lives — its five walls, its two posts,
+  // every mark. So the frame is no longer one line in two weights, nor two
+  // tones a step apart: it is the -7 LID and the -9 FOOT, and the foot is made
+  // of the same ink as everything the box is built out of.
+  //
+  // Which is the reading the weight was always after. The box stands ON the
+  // stream; a base in the frame's own tone said "the underside of a frame",
+  // and a base in the interior's tone says "the floor this thing rests on".
+  // It is also the deepest step the colorway has short of -10 (the media tabs'
+  // ink), so this is the end of that road — further weight is
+  // `--fhead-rim-w-b`, not another level.
+  //
+  // ⚠ THE BOTTOM EDGE IS DRAWN IN THREE PLACES — this border and BOTH bottom
+  // fillet gradients (`--bl`, `--br`), whose colour stops carry the line around
+  // the corner. They all read this dial, and that is the only reason the sweep
+  // does not change colour halfway through (see specs/gotchas.md, the same trap
+  // the media tabs strip documents). The TOP pair keeps `--fhead-rim`.
+  //
+  // ⚠ IT NO LONGER MATCHES THE CONTAINER'S FRIEZE-BAR LIPS. Those took -5 the
+  // day this edge was split off, deliberately as ONE MARK with it — the
+  // surface's stated tone for the inner line of its chrome. The asks after
+  // moved this edge twice and left the lips where they were, so the pairing is
+  // BROKEN on purpose and three levels wide now: the lips are still -5
+  // (`FriezeBarVertical.vue` / `…B.vue`). Move them here if the two are ever
+  // meant to read as one line again.
+  --fhead-rim-b: var(--indigo-9, #283593);
   // TOP THINNER THAN BOTTOM (user ask). Not by taking the top back down — the
   // 2px is the thickening asked for two passes ago — but by giving the BOTTOM
   // the extra pixel, which is where the weight belongs anyway: the box's cast
@@ -475,20 +658,267 @@ export default defineComponent({
   // sweeps join the box to the container's frieze bars, so they answer to the
   // surface outside the box rather than to its contents.
   //
-  // The box therefore reads in THREE CONSECUTIVE STEPS, one job each:
-  //   -7  the frame (outer border + the sweeps that continue it)
-  //   -8  the two inner frieze posts it stands between
-  //   -9  everything written in the field they enclose
-  // Lightest at the outside, deepest at the marks — so the eye lands on what
-  // the box SAYS, and the structure holding it stays structure.
+  // The box read in THREE CONSECUTIVE STEPS for a day, one job each: -7 the
+  // frame, -8 the two inner posts, -9 the marks. IT IS TWO SINCE 2026-08-07
+  // (user ask — the posts were repainted -9 in the pass that thickened the
+  // inner rules):
+  //   -7  the FRAME — the outer border and the four sweeps that continue it
+  //   -9  EVERYTHING INSIDE — the two posts, the five walls between the rooms,
+  //       and every mark written in them
+  // Same reading, one distinction fewer: light at the outside, deep within.
+  // What the middle step was buying was a difference between the posts and the
+  // walls they run into, and the ask decided that is a difference the box does
+  // not want — a wall and its post are one structure.
+  //
+  // The HANDLE stands outside both (`--fhead-bar-face`, below): it is the one
+  // plated band, and -8 is now spent entirely on it.
   --fhead-ink: var(--indigo-9, #283593);
+  // THE WALLS WALKED -9 → -8 → `--indigo-6` across three asks, each time
+  // following the BODY's floor rather than leading it. On the `--indigo-9`
+  // floor they were invisible; on `--indigo-7` they came up a step to keep one
+  // step of contrast; and now that the floor is LIGHT again (`--grey-4`) they
+  // are down at the colorway's pure hue, which is the deepest a line can be on
+  // a pale plate before it stops reading as a line and starts reading as a
+  // gap. Same rule read three times: a wall is one step off its floor, and
+  // which direction "off" means depends on which side of the floor it is.
+  //
+  // ── AND BACK TO `--indigo-9` (2026-08-08, user ask: the board's inner
+  // borders) ────────────────────────────────────────────────────────────────
+  // The fourth setting, and the walk closes where it started. What makes it
+  // hold this time is that the FLOORS moved out from under it in the same
+  // sitting: the two rooms state their own tones now (`--brown-1` talk,
+  // `--indigo-9` lens) and the lane keeps `--grey-4`, so a -9 wall has three
+  // pale surfaces to draw on instead of the dark body that made it invisible
+  // on the first pass. The rule the walk was testing survives — a wall is one
+  // step off its floor — it is just that "off" is now a long way DOWN from
+  // three light floors rather than a hair up from one dark one.
+  //
+  // ⚠ AND THE THREE DIALS ARE ONE AGAIN: `--lens-rim` went -9 on its own an
+  // ask earlier and `--fhead-chat-rim` follows this one, so every line inside
+  // the board — the five walls AND the three control rims — is a single mark
+  // at two gauges (2px walls, 2px control rims, 1px on the smaller slotted
+  // chrome). Nothing tells a control from a wall by INK any more; what does
+  // it is the face each is drawn on, islands vs floor.
+  //
+  // ⚠ WHERE IT STOPS DRAWING, by design and worth knowing before hunting for
+  // a missing border: against the LENS section (its floor is this tone) and
+  // against the lane's two KEYS (their plates are). Those two walls state
+  // their division by the meeting of two materials instead of by a line. The
+  // handle's FOOT is the third — the header plate landed on this same tone in
+  // the same sitting. So three of the five walls state their division by the
+  // meeting of two materials instead of by a line. The two that draw outright
+  // are the ones with a pale room on at least one side: the talk/lens rule
+  // against `--brown-1`, and the lane's top edge against `--grey-4`.
   --fhead-rule: var(--indigo-9, #283593);
-  // The fillets' sweep radius (`FLARE` in the script) and the width a slim
-  // vertical frieze bar resolves to. Both are read by the inner posts below —
-  // the first for where they stand, the second for how far the content insets
-  // past them — so they are named once here instead of being restated.
+  // THE INNER HAIRLINES ARE 2px SINCE 2026-08-07 (user ask: "make the inner
+  // hairlines … slightly thicker and color them indigo-9" — the tone was
+  // already -9 and is restated here as the settled answer, not a change).
+  //
+  // This dial draws the FIVE lines that divide the board into its rooms: the
+  // handle's foot, the rule between the composer and the lens row, the lane's
+  // top edge, and the two inside the lane (the broom's key and the trash's
+  // left edge). It does NOT draw the control RIMS — the field, the reply line,
+  // the send button and the slotted lens plates all keep their 1px, and that
+  // is the point of the split: at one weight the box was a grid of equal
+  // lines, and you could not tell the walls from the furniture. Two weights
+  // and one ink says which is which.
+  //
+  // 2px is also the box's OUTER top edge's weight. That is deliberate — the
+  // frame and the walls are the same gauge in two tones (-7 outside, -9
+  // inside), which is the reading the three-step scale below already states.
+  --fhead-rule-w: 2px;
+  // ── THE BOARD'S ROOM RADIUS (2026-08-08) ────────────────────────────────
+  // ONE dial for the box's three `--brown-1` containers — the talk room and
+  // the lane's two chip trays — with `FeedStream.vue`'s label bar taking the
+  // same `--radius-sm` from the platform scale, so the four curve as one
+  // decision across two files.
+  //
+  // ⚠ THIS IS THE SECOND ATTEMPT, and the first is why it works. Round one
+  // (three containers, then the talk room's right corners) was REVERTED on
+  // sight: the containers were curving against `--grey-4` — the box's own
+  // face, showing through in every corner — so each curve opened a pale notch
+  // and the board read as a tray of loose tiles. The user's own rule fixed it:
+  // whatever lies BEHIND a rounded container is painted `--indigo-9`, so the
+  // corner opens onto the board's structural ink and the curve reads as the
+  // container ending rather than as a gap. That took the BODY and the LANE to
+  // -9 (below) — the label bar already had the lens section's -9 behind it.
+  //
+  // It is the platform's SMALL radius, deliberately not the composer's 12px:
+  // the bubble is the one object on this surface that is a BUBBLE, and a room
+  // curving as hard as the thing standing in it would take that reading away.
+  --fhead-room-r: var(--radius-sm, 7px);
+  // THE TALK ROOM TAKES A LITTLE MORE (2026-08-08, two user asks a few apart)
+  // — `+ 6px`, so 13px against the trays' and the label bar's 7; it spent the
+  // asks between them at `+ 3` / 10px. 13 is also where the CONCENTRIC answer
+  // lives, which is why it settles well: the bubble inside is 12px and the
+  // room holds it off by 2px top and bottom, 3px left and right, so a room
+  // curving at 14/15 would be exactly parallel to it — 13 is a hair inside
+  // that and reads as parallel, where 10 read as the room cutting across the
+  // bubble's own corner. Stated off the same dial
+  // rather than as its own number: the four containers are one decision and
+  // this is a modifier on it, so a change to the board's corner still moves
+  // all four together. The room is the biggest of them by an order of size
+  // and the only one holding an object with a corner of its own — the
+  // composer's 12px bubble — so a 7px room around a 12px bubble read as the
+  // room being the tighter shape, which is backwards.
+  --fhead-talk-r: calc(var(--fhead-room-r) + 6px);
+  // ── THE ROOM RIM (2026-08-08, user ask: thin `--indigo-7` borders on the
+  // brown-1 rounded containers) ─────────────────────────────────────────────
+  // One line for all four — the talk room, the lane's two trays and (through
+  // the platform token, in `FeedStream.vue`) the label bar. `--indigo-7` is
+  // the box's OWN FRAME (`--fhead-rim`), so the containers are outlined in
+  // exactly the ink the board's outer edge is drawn in: the same object at two
+  // scales, which is why this level and not the -9 everything structural wears.
+  // A -9 rim would have made each container read as another wall.
+  //
+  // 1px, the thinnest the surface draws, because these are OUTLINES on panels
+  // that already separate by tone — the rim states the shape's edge and the
+  // rounded corner does the rest. ⚠ The composer inside the talk room keeps
+  // its own `--indigo-5` 1px rim: container deeper, object lighter, which is
+  // the order the box reads in everywhere else.
+  --fhead-room-rim: var(--indigo-7, #3949ab);
+  --fhead-room-rim-w: 1px;
+  // ── THE POST GUTTER (2026-08-08, user ask: "a little `--indigo-9` padding
+  // between the frieze bars and the content") ──────────────────────────────
+  // `.feed-head__inner` already gives each side the sweep's reach plus a
+  // post's width, so nothing can run UNDER a post; that inset is clearance,
+  // and it shows the box's `--grey-4` face. This is the gap the ask asks for
+  // on top of it — 3px of the board's own structural ink between each post
+  // and the rooms, so the content stops short of the frieze instead of
+  // arriving flush against it.
+  //
+  // ⚠ WHERE IT IS APPLIED, and why not on `.feed-head__inner`: that element's
+  // box spans the FULL width — its padding IS the clearance — so painting it
+  // would paint the flare and post area too, over the box's face. The two
+  // bands that are already `--indigo-9` take it instead (`__body`, `__lane`),
+  // where extra padding simply widens ink that is already there. The HEADER
+  // needs none: it is a -9 plate spanning the same width, and its own
+  // `0 8px` already holds its grip and count off the ends.
+  --fhead-gutter: 3px;
+  // ── THE LANE'S OWN TOP RULE — and it DRAWS now (2026-08-08, user ask: a
+  // thin `--indigo-7` hairline between the lane and the filter section) ─────
+  // It left `--fhead-rule-w` (2px, the box's walls) for 4px when it was asked
+  // to be thicker, and comes back to **1px in `--indigo-7`** now that it has
+  // been asked to be a LINE. Those two asks are one story: at 4px it was still
+  // `--indigo-9` between an `--indigo-9` body and an `--indigo-9` lane, so
+  // thickness was the only thing it could spend — what you saw was a wider
+  // dark band, never a rule. Given an ink that contrasts, a hairline says the
+  // same division in a quarter of the space, which is why the width goes back
+  // down in the same move.
+  //
+  // It joins the board's other visible lines exactly: the header's foot rule
+  // and the four container rims are `--indigo-7` at 1px too, so every line on
+  // this board that can be seen is one ink at one weight, and the `--indigo-9`
+  // walls are the ones that state a division by a plate ending instead.
+  --fhead-lane-rule-w: 1px;
+  --fhead-lane-rule: var(--indigo-7, #3949ab);
+  // The header's foot — see `.feed-head__bar`. It left `--fhead-rule` when it
+  // was asked to be painted, since the box's other three walls had no reason
+  // to become visible with it.
+  --fhead-bar-rule: var(--indigo-7, #3949ab);
+  // 1px, the CONTAINER RIMS' gauge and not the walls' 2px — see the note on
+  // `.feed-head__bar`. A visible line in the rims' ink should be at the rims'
+  // weight; it is `--fhead-room-rim-w`'s twin in every way but the name (they
+  // are kept apart because one is a rule between sections and the other is an
+  // outline around a panel, and either could be asked for alone).
+  --fhead-bar-rule-w: 1px;
+  // ── THE HANDLE IS THE ONE EXCEPTION (2026-08-07, user ask: "the inner header
+  // … background indigo-8 and its text grey-3"). Everything else in the box is
+  // ink on the plate's own face; the handle is a PLATED band — `--indigo-8`
+  // under `--grey-3` writing, which INVERTS the three-step reading above for
+  // this one row.
+  //
+  // -8 was not a new tone when it was asked for: it was exactly what the two
+  // inner frieze posts were plated in, and the handle runs BETWEEN them (it
+  // sits inside `.feed-head__inner`'s inset, not edge to edge), so the band
+  // landed post to post and the three read as one dark cap. The posts went -9
+  // in the ask after, which leaves this level to the handle ALONE — the band
+  // now sits one step lighter than the posts it lands on and one step deeper
+  // than the -7 frame above it, so the cap is a band between two lines rather
+  // than a continuation of either.
+  //
+  // The writing has to leave the colorway for it: -9 marks on an -8 plate are
+  // one step apart and would go dark-on-dark. `--grey-3` is the same pale step
+  // the box lifts to when it is HELD, so the handle is written in the tone of
+  // the box's own lit state — and the grip keeps its 0.75 opacity, which on
+  // this plate is what separates a control at the edge from the title.
+  //
+  // Knock-on kept in step: the FOCUS RING follows the writing (it was
+  // `--fhead-ink`, and a -9 ring on an -8 plate is an invisible one — the
+  // keyboard's way in has to be visible, which is the whole reason that rule
+  // exists). The band's own bottom RULE stays `--fhead-rule`: it draws almost
+  // nothing against -8 now, but the plate change states the division on its
+  // own, and the rule is one of the three that move together as a set.
+  //
+  // ── THE PLATE IS `--indigo-9` AND THE WRITING IS `--brown-1` SINCE
+  // 2026-08-08 (user ask; one pass at -10 under `--brown-2` came first and
+  // the pair moved up together) ────────────────────────────────────────────
+  // THE BOX IS DOWN TO TWO MATERIALS. `--indigo-9` is now the header plate,
+  // the five walls, the three control rims, the two inner posts, the lens
+  // room and the box's own bottom edge — every structural mark on the board
+  // is one ink — and `--brown-1` is the warm pale answer to it: this writing,
+  // the lens buttons' marks, the lane keys' glyphs, AND the talk room's own
+  // floor. Header writing and chat room are the same tone, which is the tie
+  // the -10/-2 pass could not make: there the cap was a lid the rest of the
+  // box lived under, and here it is the same plate as everything else, laid
+  // across the top. Deep indigo plates, warm pale marks, and the neutrals
+  // (`--grey-4` lane, `--grey-3` control floors) left to do the rooms.
+  //
+  // `--grey-3` was chosen as the pale step the box lifts to when HELD — a
+  // true argument that this ask retires, since the warm family is now the
+  // one thing every mark in the box belongs to.
+  //
+  // MEASURED 8.8:1, the highest contrast on the surface, and higher than both
+  // the -8/-3 band it replaces and the -10/-2 pass between them.
+  //
+  // ⚠ KNOCK-ON: the handle's own foot rule is `--fhead-rule`, now the same -9
+  // as this plate, so it stops drawing entirely. The division under the cap is
+  // stated by the plate ending, not by a line — which is what the -8 era's
+  // note predicted would happen if the two ever met, and they have.
+  //
+  // ⚠ ONE DIAL, FOUR PLACES, TWO FILES: the title and grip here, and through
+  // the slot the COUNT and the SORT button in `FeedStream.vue` (which keep
+  // `--grey-3` fallbacks for anywhere else they might be slotted). The focus
+  // ring follows it by reading the same dial, so it stays visible for free.
+  --fhead-bar-face: var(--indigo-9, #283593);
+  --fhead-bar-ink: var(--brown-1, #efebe9);
+  // The fillets' sweep radius (`FLARE` in the script) and the width of the two
+  // inner posts. Both are read by them below — the first for where they stand,
+  // the second for how far the content insets past them — so they are named
+  // once here instead of being restated.
+  //
+  // THE POST WIDTH IS `0.6 × --frieze-h` SINCE 2026-08-07 (user ask: "thinned
+  // horribly … the pattern looks distorted"), where it had been the slim
+  // variant's own `/ 2` since the box was built. Two things happened at once
+  // and the fix answers both:
+  //
+  //  · The bar took 1px SIDE BORDERS that day, which come out of its width. At
+  //    9.5px that left 5.5px of motif under 2px of padding — the posts really
+  //    were thinner than they had ever been, by a fifth, without this file
+  //    changing. `FriezeBarVertical`'s slim block cancels those borders now,
+  //    which is the actual regression fix and gives 7.5px back.
+  //  · 7.5px was ALREADY marginal. The masks are a 13-row grid scaled to 117%
+  //    of the padded box, so it put a row at ~0.68px — just under the ~0.7px
+  //    floor the frieze family documents as where a meander stops being a
+  //    pattern. That is why the distortion was visible at all rather than
+  //    merely measurable.
+  //
+  // `0.6` lands the padded field at ~9.4px and a row at ~0.85px, clear of the
+  // floor with room to spare, for +20% of width. It is stated as its own dial
+  // (`--frieze-bar-v-slim-w` on the posts below) rather than as
+  // `--frieze-bar-v-w`, which the component's own slim rule also sets on the
+  // same element — two scoped rules of equal specificity, decided by bundle
+  // order, which is not a contract.
+  //
+  // `+ 2px` SINCE 2026-08-07 (the ask that gave the posts side borders): the
+  // rims are `box-sizing: border-box` and come OUT of this width, so at a flat
+  // `0.6` they would take the padded field back from ~9.4px to ~7.4px and a
+  // mask row from ~0.85px to ~0.66px — under the ~0.7px floor, which is the
+  // exact regression the `0.6` was minted to fix. The width now carries the
+  // borders' cost explicitly, so the motif is the same size it was before them
+  // and the two dials cannot drift apart silently.
   --fhead-flare: 11px;
-  --fhead-post-w: calc(var(--frieze-h) / 2);
+  --fhead-post-w: calc(var(--frieze-h) * 0.6 + 2px);
 
   position: absolute;
   left: 0;
@@ -498,7 +928,7 @@ export default defineComponent({
   z-index: 2;
   background: var(--fhead-face);
   border-top: var(--fhead-rim-w) solid var(--fhead-rim);
-  border-bottom: var(--fhead-rim-w-b) solid var(--fhead-rim);
+  border-bottom: var(--fhead-rim-w-b) solid var(--fhead-rim-b);
   // THE CAST (user ask: "a little discrete shadow over the content"). Mostly
   // DOWN, the direction this platform's light comes from, with a hint upward
   // because the stream passes on both sides of a box that can be parked in the
@@ -598,8 +1028,8 @@ export default defineComponent({
   bottom: -14px;
   height: 14px;
   background: radial-gradient(circle at 11px 12.5px,
-    transparent 9.2px, var(--fhead-rim) 9.8px,
-    var(--fhead-rim) 12.2px, var(--fhead-face) 12.8px);
+    transparent 9.2px, var(--fhead-rim-b) 9.8px,
+    var(--fhead-rim-b) 12.2px, var(--fhead-face) 12.8px);
 }
 
 .feed-head__flare--br {
@@ -607,8 +1037,8 @@ export default defineComponent({
   bottom: -14px;
   height: 14px;
   background: radial-gradient(circle at 0 12.5px,
-    transparent 9.2px, var(--fhead-rim) 9.8px,
-    var(--fhead-rim) 12.2px, var(--fhead-face) 12.8px);
+    transparent 9.2px, var(--fhead-rim-b) 9.8px,
+    var(--fhead-rim-b) 12.2px, var(--fhead-face) 12.8px);
 }
 
 // ── THE INNER FRIEZE BARS ───────────────────────────────────────────
@@ -641,9 +1071,70 @@ export default defineComponent({
   position: absolute;
   top: 0;
   bottom: 0;
-  --frieze-bar-v-base: var(--indigo-8, #303f9f);
-  --frieze-bar-v-wave-one: var(--brown-1, #efebe9);
-  --frieze-bar-v-wave-two: var(--brown-1, #efebe9);
+  // The slim variant's width, dialled — ONE number with the inset math above,
+  // which is why it reads `--fhead-post-w` rather than restating the calc.
+  --frieze-bar-v-slim-w: var(--fhead-post-w);
+  // `--indigo-9` SINCE 2026-08-07 (user ask, the same pass that thickened the
+  // inner rules and stated their ink). The two posts and the five hairlines
+  // are now ONE TONE: everything the box draws INSIDE itself is -9, and the
+  // frame around it is -7. The three-step scale below collapses to two, on
+  // purpose — the posts were the middle step, and a wall and the post it runs
+  // into reading as one mark is what makes the inside of the box a single
+  // structure rather than a frame within a frame.
+  // (The plaque walked -10 → -9 → -8 → here on the way. The lip travels with
+  // it by rule — a slim inner bar has content on both sides and nothing to
+  // state an edge against, so the lip is dialled to the plaque and draws
+  // nothing; leaving it at -8 would have left a line the device exists not to
+  // draw.)
+  // ── AND `--indigo-10` UNDER `--brown-2` SINCE 2026-08-08 (user ask) ─────
+  // The posts leave the box's one structural ink and take the step BELOW it,
+  // which makes them the deepest thing on the board — deeper than the header
+  // plate, the walls, the lens room and the bottom edge, all -9. That is a
+  // real change of role: for one day the posts and the walls were ONE mark
+  // (the note above is that argument), and the pair now reads as the FRAME'S
+  // material rather than as more of the interior's — which is what they
+  // physically are, two columns holding the box's sides.
+  //
+  // The motif steps with the plaque, `--brown-1` -> `--brown-2`, so the carve
+  // keeps its footing: -2 is the warm family's next step down and measures
+  // 8.3:1 on this plaque, deep enough to read at 11px. ⚠ BOTH WAVE LAYERS
+  // take the same tone, as they have since these posts were built — the motif
+  // here is one flat colour and the relief comes from the carve, not from a
+  // lit/dark pair. Set only one and the bar grows a second colour it has
+  // never had.
+  //
+  // ⚠ KNOCK-ON, left standing on purpose: the side rims below are `--indigo-8`
+  // and were argued as "one step lighter than what it rims". Against -10 they
+  // are TWO steps lighter, so they read more strongly than they did — which
+  // suits a post that is now the darkest object in the box, and -8 is still
+  // the one indigo the interior does not otherwise use. Moving them to -9
+  // would put the rim on the body's own tone and it would vanish where the
+  // two meet.
+  --frieze-bar-v-base: var(--indigo-10, #1a237e);
+  --frieze-bar-v-wave-one: var(--brown-2, #d7ccc8);
+  --frieze-bar-v-wave-two: var(--brown-2, #d7ccc8);
+  // ── BOTH SIDE EDGES, 1px `--indigo-8` (2026-08-07, user ask) ─────────────
+  // `slim` cancels the full bar's side rims by default (`--frieze-bar-v-edge-w:
+  // 0`) because at 9px every pixel of chrome comes out of the motif; the
+  // component names this dial as the way back, and this is the host taking it.
+  // The width above pays for it so the pattern does not.
+  //
+  // BOTH edges means BOTH DIALS. The component draws the two long edges from
+  // `--frieze-bar-v-edge`, then overrides the INWARD one from
+  // `--frieze-bar-v-lip` — which has been dialled to the plaque here since the
+  // posts were built, precisely so it draws nothing. Setting only the first
+  // would have given each post one visible edge and one invisible one, and the
+  // pair would have read as two bars leaning outward. So the lip leaves the
+  // plaque and takes the rim's tone: it is a real line again, for the first
+  // time on these two posts.
+  //
+  // -8 is the one indigo the box's interior does not already use: the plaque
+  // under it is -9 and so are the five walls, so a rim in either of those
+  // would be a border you cannot see. One step lighter than what it rims is
+  // the smallest mark that still reads — a highlight on a dark post, not a
+  // line drawn around it.
+  --frieze-bar-v-edge-w: 1px;
+  --frieze-bar-v-edge: var(--indigo-8, #303f9f);
   --frieze-bar-v-lip: var(--indigo-8, #303f9f);
 }
 
@@ -662,34 +1153,73 @@ export default defineComponent({
 // centred, one rule under it. `touch-action: none` is load-bearing on a
 // phone — without it the browser claims the vertical gesture for a scroll
 // and the pointer stream dies mid-drag.
+//
+// PLATED since 2026-08-07 (user ask) — see `--fhead-bar-face`/`-ink` above for
+// the tones and why the writing leaves the colorway. Note the plate does NOT
+// follow `.is-grabbed`: the box's face lights one step while held, the handle
+// stays put, so the lift reads across the BODY with the cap holding still.
 .feed-head__bar {
   position: relative;
   display: flex;
   align-items: center;
   gap: 6px;
+  background: var(--fhead-bar-face);
   // 18px (was 22) — the compression pass took every band in this box down to
   // what its contents actually need, and a 14px grip in an 18px bar still
   // leaves the 44px-wide grab target a drag handle wants.
   height: 18px;
-  padding: 0 8px;
-  border-bottom: 1px solid var(--fhead-rule);
+  // ── FLUSH TO THE POSTS (2026-08-08, user ask) ────────────────────────────
+  // 0, from `0 8px`. MEASURED before: the left post ends at x=120 and the bar
+  // begins there, but the GRIP began at 128 and the sort button ended at 712
+  // against a right post starting at 720 — 8px of ghost space at each end,
+  // reading as a misalignment rather than as breathing room, since the bar's
+  // own plate runs right up to the frieze on both sides and only its contents
+  // stopped short.
+  //
+  // ⚠ This band is deliberately NOT on `--fhead-gutter` like the body and the
+  // lane. Those two hold outlined CONTAINERS, which need a field of daylight
+  // around them; this one holds two bare marks on a plate that is itself the
+  // full width, and a mark that starts where its plate starts is aligned —
+  // the gutter would put the ghost space back under a better name.
+  padding: 0;
+  // ── THE LINE UNDER THE HEADER IS `--indigo-7` (2026-08-08, user ask) ─────
+  // The one wall in the box that now DRAWS. It was `--fhead-rule`
+  // (`--indigo-9`) between an `--indigo-9` plate and an `--indigo-9` body, so
+  // it drew nothing and the division was stated by the header's plate simply
+  // ending — which was true but silent. In `--indigo-7` it is a real rule, and
+  // in the same ink as the four container rims below it, so the board's one
+  // visible horizontal line belongs to the same hand as its outlines rather
+  // than introducing a fifth tone.
+  //
+  // ⚠ AND 1px SINCE THE ASK AFTER (user: thinner) — it left the walls' 2px
+  // gauge the moment it stopped being an invisible wall. Painting it made it
+  // the only horizontal rule you can see in the box, and at the walls' weight
+  // a visible line reads as heavier than the four container rims it shares its
+  // ink with. At 1px it IS one of them: same tone, same weight, one hand for
+  // every line drawn against the board's `--indigo-9` field. The width is its
+  // own dial now, since it follows the RIMS and not the walls.
+  // ⚠ The lane's rule, the other line between two sections, is 4px and still
+  // -9 — not a pair, and the note on `.feed-head__lane` says what its ink
+  // would have to become to draw at all.
+  border-bottom: var(--fhead-bar-rule-w) solid var(--fhead-bar-rule);
   cursor: grab;
   user-select: none;
   touch-action: none;
 
   .feed-head.is-grabbed & { cursor: grabbing; }
 
-  // The keyboard's way in has to be visible, and the platform's default
-  // focus ring is drawn for dark chrome.
+  // The keyboard's way in has to be visible — which is why this ring reads the
+  // BAR's ink and not the box's: the band is plated now, and the box's -9 mark
+  // on an -8 plate would be a ring you cannot see.
   &:focus-visible {
-    outline: 2px solid var(--fhead-ink);
+    outline: 2px solid var(--fhead-bar-ink);
     outline-offset: -2px;
   }
 }
 
 .feed-head__grip {
   flex: 0 0 auto;
-  color: var(--fhead-ink);
+  color: var(--fhead-bar-ink);
   opacity: 0.75;
 }
 
@@ -704,7 +1234,63 @@ export default defineComponent({
   pointer-events: none;
   font-size: 0.68em;
   letter-spacing: 0.06em;
-  color: var(--fhead-ink);
+  color: var(--fhead-bar-ink);
+}
+
+// THE BAR'S RIGHT END (2026-08-07, user asks) — the sort control and the count,
+// pinned there by an auto margin, which is the only way to pin anything against
+// an absolutely centred title: the title is out of the flow, so the flex row is
+// grip + this, and `margin-left: auto` eats everything between them.
+//
+// `position: relative` is NOT tidiness. The title is absolutely positioned and
+// therefore paints above every static sibling regardless of order; a cluster
+// that ran long would slide UNDER the centred word. Positioned and later in the
+// DOM, it paints on top instead. (It cannot be given `z-index` without the same
+// change, which is the trap: `z-index` does nothing on a static element.)
+//
+// The BAR's ink is published from here, so everything slotted in — the sort
+// button and the count alike — is written in `--grey-3` against the plate
+// without either having to name it.
+.feed-head__bar-end {
+  position: relative;
+  margin-left: auto;
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  // 7px, from 5: the pair is divided by a LINE now (see below), and a rule
+  // needs the same air on both sides of it that the two marks used to share
+  // between them.
+  gap: 7px;
+  color: var(--fhead-bar-ink);
+}
+
+// ── THE HAIRLINE BETWEEN THE COUNT AND THE SORT (2026-08-08, user ask) ────
+// `--indigo-7` at 1px — the board's line ink and its line weight, the same
+// mark the four container rims and the rule under this header are drawn in.
+// It divides a READING from a CONTROL: the number on the left says how many
+// posts the box is under, the glyph on the right orders them, and until now
+// the only thing separating them was 5px of plate.
+//
+// It is declared HERE and not on `.feed-stream__sort`, even though that
+// button is the element it lands on, for the reason the rest of this bar is
+// the box's: the sort control is SLOTTED IN by FeedStream, so which side of
+// it carries a divider is a fact about this HEADER's arrangement, not about
+// the button — swap the slot's contents and the line still belongs between
+// the two things in the cluster. ⚠ It is a `:deep()` reach into a slotted
+// child, which is exactly what that selector is for; `.feed-stream__sort`
+// itself states `border: 0` (it lost its outline in an earlier ask) and this
+// rule only re-adds the ONE edge that is a divider rather than an outline.
+.feed-head__bar-end :deep(.feed-stream__sort) {
+  border-left: 1px solid var(--indigo-7, #3949ab);
+  // The glyph would sit 0.5px left of centre inside a box whose left edge is
+  // now a border; the padding hands that pixel back so the mark stays on the
+  // button's own centreline.
+  padding-left: 1px;
+}
+
+.feed-head__count {
+  display: flex;
+  align-items: center;
 }
 
 // ── THE BODY, IN TWO HALVES ─────────────────────────────────────────
@@ -712,30 +1298,242 @@ export default defineComponent({
 // weight as the byline's vertical rule on a post card, since this is the same
 // division: two things standing side by side inside one object.
 .feed-head__body {
+  // ── THE BODY IS PLATED `--indigo-9` (2026-08-07, user ask: "make the chat
+  // and filter button section's background color indigo-9") ───────────────
+  // Both halves at once — at the time neither half declared a floor of its
+  // own, so this one declaration was the whole section (BOTH state one now;
+  // see the ⚠ at the foot of this comment) — and the box then read as three
+  // BANDS rather than one plate with a plated cap: `--indigo-8` handle,
+  // `--indigo-9` body, `--grey-4` lane, deepest in the middle. The controls
+  // are the only light things left in it, which is the point of a dark body:
+  // the field and the two lens bars keep their `--grey-1` faces, so what the
+  // eye lands on is the things you can type into and press.
+  //
+  // Two knock-ons, both wanted:
+  //  · the body's OWN walls stop drawing. `--fhead-rule` is `--indigo-9`, so
+  //    the rule between the halves and the one under the handle are now the
+  //    floor's own tone. Nothing is lost — the division is stated by the gap
+  //    between two 2px `--indigo-8` control blocks, which is a stronger mark
+  //    than the hairline was. (They are LEFT in place rather than deleted:
+  //    they are the same set of five the lane's keys belong to, and a wall
+  //    that draws nothing against its floor is this surface's normal way of
+  //    saying "no line here" — the frieze bars' lips do exactly that.)
+  //  · the seat's LIVENESS DOT is ringed in `--fhead-face`, the box's grey.
+  //    On this floor that ring is now a light halo around a green dot rather
+  //    than a cut-out of the plate — which reads correctly, so it stays.
+  //
+  // `--grey-4` since the last ask — the PLATE'S OWN TONE, which is where this
+  // section started before the two dark settings (-9, then -7) that stood for
+  // one ask each. So the box is a light plate with ONE plated band across its
+  // top: `--indigo-8` handle, `--grey-4` body, `--grey-4` lane. The colorway
+  // is spent entirely on lines and marks again, and the controls read as light
+  // objects on a light plate separated by their rims — which is the same
+  // argument the box's own face makes against the container.
+  //
+  // ⚠ STATED, not `var(--fhead-face)`, even though they are the same tone
+  // today. The face LIFTS one step to `--grey-3` while the box is held, and
+  // `--grey-3` is exactly what the composer and the two lens bars are floored
+  // in — so a body reading the face would rise to meet its own controls on
+  // every drag and flatten them into the plate for as long as the grab lasts.
+  // The step between floor and control is worth more here than the lift is.
+  //
+  // ⚠ AND IT IS `--indigo-9` NOW, WHICH IS A DIFFERENT JOB. Both halves state
+  // a floor of their own (`--indigo-9` lens, `--brown-1` talk) and both
+  // stretch to the body's full height, so this declaration stopped being the
+  // section's floor the moment they landed — it is the BACKDROP the two rooms
+  // lie on. What made it matter again is the ROUNDING: the talk room's corners
+  // open onto this tone, and at `--grey-4` each corner was a pale notch, which
+  // is what made the first rounding pass read as loose tiles. At -9 the
+  // corners open onto the board's own structural ink and the curve reads as
+  // the room ending.
+  //
+  // So the reasoning below is HISTORY — it was written when this line was the
+  // floor you actually saw, and it is kept because the floor-versus-control
+  // argument still governs anything laid on this box. `--grey-4` is what to
+  // come back to if the rooms are ever unpainted and the body reads as one
+  // plate again; at that point the rounding has to go with it.
+  background: var(--indigo-9, #283593);
+  // The post gutter — see `--fhead-gutter`. It is this band's own ink widened,
+  // not a new mark: the two rooms simply stop 3px short of each post.
+  //
+  // ── AND ON THE TOP EDGE (2026-08-08, user ask) ───────────────────────────
+  // The same 3px above both rooms, so the pair sitting in this row has daylight
+  // between it and the HEADER. It is one declaration because it is one
+  // relation: the chat container and the manual-filter containers share this
+  // band, so they should meet the header at the same line — a `padding-top` on
+  // either half alone would have made the two rooms start at different heights
+  // and turned a gutter into a misalignment.
+  //
+  // ⚠ AND ON THE BOTTOM SINCE THE LANE'S RULE BECAME A HAIRLINE (2026-08-08,
+  // user ask: `--indigo-9` padding up and down the new line). It was TOP ONLY
+  // while that rule was a 4px `--indigo-9` band — a gutter beside a gutter
+  // would have been two ways of saying the same nothing — but a 1px
+  // `--indigo-7` line IS a line, and a line wants daylight on both sides or it
+  // reads as an edge of whatever it touches. This is the upper half of that
+  // daylight; the lane's own `padding-top` is the lower half.
+  // ⚠ The box pays for both — unlike the header and the lane, this band has no
+  // stated height to absorb it.
+  //
+  // ⚠ On the PHONE it composes rather than doubles: this puts the talk room
+  // off the header, and `.feed-head__half--lens`'s own `padding-top` (the
+  // desktop's left gutter, turned 90°) puts the filter block off the talk room.
+  padding: var(--fhead-gutter);
   display: flex;
   align-items: stretch;
   min-width: 0;
 }
 
-// ONE LINE EACH (user ask). Both halves are a single row of items now — the
-// left one stopped stacking a seat row over an input row, the right one lost
-// the caption above its controls — so the body is exactly one 20px row tall
-// and the box is three thin bands: handle, this, lane.
+// THEY ARE NOT HALVES ANY MORE (2026-08-07, user ask: "make the buttons
+// section occupy the space they need horizontally, and then let's make the
+// chat section occupy the available remaining space"). The class name is kept
+// — it is what every rule and the docs call these two — but the split is no
+// longer 50/50.
+//
+// The right side is a row of FIXED objects: five plates and a count, each as
+// wide as its glyph and its mark. It has a natural width, and half a box was
+// never it — at 45% of the track that row sat in ~150px of space needing ~138,
+// scrolling sideways when a lens printed a longer word while the composer next
+// to it had the same 150px for a sentence. So the LENS side hugs (`0 1 auto` —
+// max-content, no growing) and the TALK side springs (`1 1 0` — a zero basis,
+// so it takes every pixel left rather than starting from its content and
+// negotiating). The two flex rules are one decision.
+//
+// MEASURED at 45% of a 1440px track: body 532 = talk 347 + lens 185, and the
+// controls row (173 + 12 of padding) no longer scrolls at all. What that costs
+// is the narrow end: the talk side is the only flexible one AND it is
+// `min-width: 0`, so it absorbs every pixel of shrink and the lens row holds
+// its 185 all the way down (at a 900px window: talk 123, lens 185). That is
+// the priority the ask states — the buttons get what they need, the chat gets
+// what is left — and it is a change from the old 50/50, where a narrow box
+// squeezed the controls into their scroller and left the field alone. If it
+// ever needs a floor, the dial is a `min-width` on `--talk`, not a flex basis.
+//
+// TWO LINES TALL, since the composer became a textarea: the half's height is
+// its content's now, not a stated row, so the band grows with the field and
+// the box's measured height carries that up to the stream on its own.
 .feed-head__half {
-  flex: 1 1 50%;
   min-width: 0;
   display: flex;
-  align-items: center;
   gap: 5px;
   padding: 4px 6px;
 }
 
+// TOP-ALIGNED (user ask: the face "well aligned to the top left side of the
+// section"). Everything in this half hangs from the top edge — the seat, and
+// the composer that fills the rest of the width.
 .feed-head__half--talk {
-  border-right: 1px solid var(--fhead-rule);
+  flex: 1 1 0;
+  align-items: flex-start;
+  // ── THE CHAT SECTION IS PAINTED `--brown-1` (2026-08-08, user ask) ──────
+  // The half states its OWN floor now, the way the lens half beside it has
+  // since it went `--indigo-9` — the body's declaration is no longer the whole
+  // section, it is the base the two rooms are laid on. And the pair it makes
+  // with that neighbour is not a new pairing at all: `--indigo-9` plaque under
+  // a `--brown-1` motif is EXACTLY what the box's two inner frieze posts wear,
+  // and what its lane keys wear, and what the lens buttons three pixels away
+  // are plated and marked in. The body's two rooms now state that same mapping
+  // at ROOM scale — deep plaque one side, warm motif the other — so the box is
+  // built of its own frieze material rather than of two floors picked apart.
+  //
+  // It is a WARM PALE bay, one step ABOVE the plate rather than below it:
+  // measured 1.11:1 on the `--grey-4` body and lane, differing in HUE as much
+  // as in value (R−B 6 against the neutrals' 0). The talk half is the one warm
+  // thing in a box otherwise spent entirely on indigo and greys, which is what
+  // separates it from the lens block beside it now that neither half needs the
+  // wall between them to say where one room ends.
+  //
+  // ⚠ WHAT IT COSTS, measured: the composer and its reply line are floored in
+  // `--grey-3` (#eeeeee) and this room is #efebe9 — 1.02:1, the same lightness
+  // in two hues. The bubble no longer reads as an ISLAND on its floor; it is
+  // stated by its 2px `--indigo-8` rim and by being cool against warm. That is
+  // a real change of language in this half (the lens half is the opposite bet:
+  // pale bars on the deepest floor in the box). If the bubble should stand up
+  // by TONE again, the dial is `.feed-head__chat`'s own floor — go paler than
+  // the room, not darker, since this room is already above the plate.
+  //  · the seat's LIVENESS DOT, ringed in `--fhead-face`, is a faint 1.11:1
+  //    halo here — better than the nothing it drew on the body's own tone.
+  //
+  // ⚠ STATED, not `var(--fhead-face)`, for the reason the body states its own:
+  // the face LIFTS to `--grey-3` while the box is held, and a room that
+  // followed it would go neutral for the length of every drag — the one thing
+  // this floor is here to not be.
+  background: var(--brown-1, #efebe9);
+  // ROUNDED, all four corners (2026-08-08, second attempt — see
+  // `--fhead-room-r`). The room is a warm panel LYING ON the body's
+  // `--indigo-9` rather than a half of a split plate, and its `border-right`
+  // wall curves with it: the division between the halves is now where the warm
+  // panel ends, drawn in the same ink as everything behind it.
+  // A LITTLE MORE than its three siblings (10px vs 7px, later ask the same
+  // day): see `--fhead-talk-r` for why the biggest container takes the bigger
+  // corner.
+  border-radius: var(--fhead-talk-r);
+  // ⚠ ITS RIM REPLACES THE WALL (2026-08-08, user ask). This half carried
+  // `border-right: var(--fhead-rule-w) solid var(--fhead-rule)` — one of the
+  // box's five walls, the rule between the two rooms — and that line had
+  // already stopped drawing when the body went `--indigo-9` under it: a -9
+  // wall on a -9 backdrop. So the room's own 1px `--indigo-7` rim takes that
+  // edge over, and the division between the halves is stated by where the
+  // outlined warm panel ends. Four walls left in the box, not five.
+  border: var(--fhead-room-rim-w) solid var(--fhead-room-rim);
+  // 2px/3px, in step with the lens half (2026-08-08): the composer draws its
+  // own 2px rim, so the half's 4px/6px was a second margin outside it. Kept
+  // when the ask it came in with turned out to be about HEIGHT, because the
+  // vertical half of it is exactly what the stretch below needs — 2px top and
+  // bottom is the daylight the bubble keeps off the walls once it fills the
+  // band. It is now also the only place this floor SHOWS as a border rather
+  // than as a bed: 2px of room around the bubble on three sides, and the seat
+  // column standing on it.
+  padding: 2px 3px;
+  // TIGHTER THAN ITS SIBLING (2026-08-08, user ask: less space between the
+  // face and the bubble) — 2px against `.feed-head__half`'s 5. The gap was
+  // set when the seat was a 36px face with a name beside it and the row
+  // needed air to read as three things; it is a 28px face and a handle now,
+  // one object, and the composer is the only thing it stands next to. The
+  // room's own 3px of side padding is what keeps the pair off the walls, so
+  // this number only has to say how close the seat and the field are.
+  gap: 2px;
 }
 
+// The lens row stays CENTRED on its own line: it is a row of controls, not a
+// column of content, and its band is as tall as the composer beside it.
+//
+// NO PADDING AT ALL (2026-08-08, user ask), after one pass at 2px/3px and the
+// `.feed-head__half` default of 4px/6px before that. The walk is the argument:
+// the two halves do not share a frame, and they should not. The composer is
+// ONE object that wants air around it; this half is a BLOCK of two full-width
+// control bars that already draw their own rims, so every pixel of padding
+// here was a second margin outside those rims, saying nothing they were not
+// already saying and taking width straight out of the label field.
+//
+// At zero the bars run wall to wall — the rule between the halves on one side,
+// the box's inner frieze post on the other — and the only thing left inside
+// the room is the SEAM between the two bars, which is what the `--indigo-9`
+// the section is now painted in exists to show. This half is a container with
+// nothing to contain but its own contents.
 .feed-head__half--lens {
+  flex: 0 1 auto;
+  // STRETCH, so the section fills the room it is in. The half is as tall as
+  // the COMPOSER beside it (the body stretches both), and the two control bars
+  // add up to a few pixels less — centred, that left a sliver of the body's
+  // `--grey-4` at the top and bottom of a section the ask asked to be painted
+  // `--indigo-9`. Stretched, the paint reaches the walls and the leftover
+  // becomes part of the same dark field the seam between the bars is.
+  align-items: stretch;
   gap: 4px;
+  // ── NOT QUITE ZERO ANY MORE (2026-08-08, user ask: `--indigo-9` padding
+  // between the label filter box and the chat section) ─────────────────────
+  // MEASURED before: the talk room's right edge and the label bar's left edge
+  // were both at x=547 — the two containers were touching, with the room's
+  // 1px rim and the bar's 1px rim making a 2px seam and no field between them.
+  // A gutter here is the body's own `--indigo-9` showing through, exactly as
+  // the post gutter is, so the two outlined panels sit in the same dark field
+  // on every side.
+  //
+  // The half's padding is still 0 on the three other edges, and the argument
+  // for that stands: the bars draw their own rims and any padding around them
+  // is a second margin. This edge is different — it is not the half's frame,
+  // it is the space between two objects that belong to different rooms.
+  padding: 0 0 0 var(--fhead-gutter);
 }
 
 // ── THE SEAT ────────────────────────────────────────────────────────
@@ -750,6 +1548,70 @@ export default defineComponent({
 // a conic sweep spinning just outside the face while an ask is out — and the
 // LIVENESS DOT, a small green mark lit only after a real round-trip this
 // session (cleared by a timeout; presence is never claimed, only witnessed).
+// THE COLUMN THE SEAT STANDS IN (2026-08-07) — face and badge in a row, both
+// hanging from the section's top edge. It is `align-items: flex-start` twice
+// over: the half pins this column to its top, and this rule pins the 15px
+// badge to the 24px face's top rather than letting it centre against it, so
+// the two read as one mark starting at the same line.
+// A COLUMN since 2026-08-08 (user ask): the face row over the handle. It was
+// the face row itself — hence the extra element below, which is the row the
+// badge still stands in. Centred, because the two things it stacks are
+// different widths and a handle ragged-left under a round face reads as a
+// caption that slipped.
+.feed-head__seat-col {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.feed-head__seat-face {
+  display: flex;
+  align-items: flex-start;
+  gap: 5px;
+}
+
+// THE HANDLE — `--indigo-8` (user ask), which on this `--grey-4` floor is the
+// deepest mark in the body and the tone the box's own header band is plated
+// in. It is the only WRITING left in the section that is not inside a control,
+// so it takes the strongest ink rather than the ink of the field beside it.
+//
+// `max-width: 100%` + ellipsis: a seeded username can be any length, and the
+// seat column is a fixed 36px of face — without it, one long handle would
+// widen the column and take the width straight out of the composer.
+.feed-head__seat-handle {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--font-display);
+  font-size: 0.56em;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  color: var(--indigo-8, #303f9f);
+  text-decoration: none;
+  &:hover { text-decoration: underline; }
+  // The stub install's legend: same mark, no destination, and saying so.
+  &.is-stub { opacity: 0.5; cursor: default; }
+}
+
+// ROUNDER, HERE ONLY (2026-08-08, user ask). `EntityAvatar` draws every face
+// on the platform as a 26% rounded square — the tile the profile-photo pass
+// settled on — and that number is the component's, so this board overrides it
+// through `:deep()` rather than moving it: the seat is one face in one box,
+// and the feed's cards, the chips and every other avatar have no part in this
+// ask. 40% is most of the way to a circle without being one; a true 50% would
+// make the seat the only round thing in a box built entirely of rounded
+// rectangles, and it would fight the `is-thinking` ring, which IS a circle.
+// ⚠ The ring and the liveness dot below are positioned against this element,
+// not the image, so they need no adjustment — the wrap's own 50% is what the
+// ring already follows.
+.feed-head__seat :deep(.entity-avatar) {
+  border-radius: 40%;
+}
+
 .feed-head__seat {
   position: relative;
   flex: 0 0 auto;
@@ -786,25 +1648,186 @@ export default defineComponent({
   pointer-events: none;
 }
 
+// ── THE COMPOSER ────────────────────────────────────────────────────
+// The field, the reply line that borrows its slot, and the send button, as ONE
+// object (2026-08-07, user ask). It is the positioning context the button is
+// placed in — the button is absolute at the BOTTOM RIGHT, over the field's own
+// corner, and the field reserves that corner in its right padding so a typed
+// line never runs under the glyph. The height is stated ONCE here and the two
+// faces below both read it, which is what stops the band from jumping by a
+// pixel when the reply line takes the field's place.
+//
+// `--fhead-send` is the button's box, and the field's padding is derived from
+// it — one dial, two rules, no arithmetic restated in either.
+.feed-head__chat {
+  // ── 33px SINCE 2026-08-08 (user ask: shorter, still two lines) ──────────
+  // MEASURED, not guessed, and this is the arithmetic to redo if any part of
+  // it moves: one line of this field is **12.096px** (font 8.96px, leading
+  // `normal`), so two are 24.19; the padding adds 3 + 3; the rim adds 1.5 +
+  // 1.5. 33.19 → **34**, the smallest this box can be and still hold the
+  // second line, with 0.8px of slack. (It was 33 for the one ask the rim spent
+  // at 1px — the rim and this number move together, always.)
+  //
+  // It was 36 — itself 34 plus the 2px the thicker rim took out of the text
+  // box — and the same rule is what gives 3px back here: a textarea's lines
+  // are measured INSIDE its border, so the rim going 2px → 1px pays for part
+  // of this on its own. The height carries the rim's cost, exactly as
+  // `--fhead-post-w` carries the posts'.
+  //
+  // ⚠ It is a `min-height`, not the height: the bubble STRETCHES to the band,
+  // so what you measure on screen is the band's height and this number only
+  // sets the floor. Shortening the band is the SEAT's job (its column is what
+  // the half is as tall as) — and below ~45px the LENS block takes over as the
+  // floor, being two 21px bars and a 3px gap.
+  --fhead-chat-h: 34px;
+  // 19px SINCE 2026-08-08 (user ask: a little tinier), from 22, with the glyph
+  // 17px → 15px in the template. It is the bubble's own corner furniture and
+  // it had grown into the object it sits in: at 22 in a 34px box the button
+  // was two thirds of the field's height, which reads as a button with a field
+  // beside it. ⚠ The field's right padding is derived from this dial, so the
+  // text's stopping point follows for free — that is the whole reason the
+  // number lives here and not in two places.
+  --fhead-send: 19px;
+  // ITS OWN LINE (user ask: "add to it thicker indigo-8 borders"), moved to
+  // `--indigo-7` in a later one. It tracks `--lens-rim` in FeedStream — the
+  // two lens bars and this field are the body's three control blocks and have
+  // been asked for as a set every time, so the two dials are ONE decision in
+  // two files. ⚠ Change either and change the other, or the composer and the
+  // bars beside it stop being the same kind of object.
+  //
+  // The level walked -8 → -7 → -6 → -9 → -6 → **`--indigo-5`** across six
+  // asks: it tracked `--fhead-rule` up to -9 with the board's inner-borders
+  // pass and came back down over the two asks that gave the bubble a FACE of
+  // its own (below), settling one step lighter than the pure hue.
+  //
+  // ⚠ SO THE THREE DIALS ARE APART, AND ON PURPOSE — `--fhead-rule` (the five
+  // walls) and `--lens-rim` (the two lens bars) hold `--indigo-9`; this one is
+  // four steps lighter. The bubble is the box's PALE object: an `--indigo-1`
+  // face with an edge just dark enough to close it (4.1:1 measured, against
+  // 5.7:1 at -6 and a line that read as a second box inside the room at -9).
+  // Check this dial and `--lens-rim` together anyway — they have been asked
+  // for as a set more often than not.
+  //
+  // It is also the tone the feed CONTAINER's frieze-bar lips wear, the inward
+  // edge the reader's side faces — worth knowing but not a pairing: nothing
+  // was moved to match, and the two answer different questions.
+  --fhead-chat-rim: var(--indigo-5, #5c6bc0);
+  // ── 1px SINCE 2026-08-08 (user ask: thinner) ────────────────────────────
+  // It had been 2px since the day the composer was told to read in the same
+  // language as the lens bars — but those bars are `--indigo-9` on a deep
+  // floor and this rim is `--indigo-5` on a pale one, so it was carrying two
+  // steps more contrast at the same weight. At 1px the bubble is drawn rather
+  // than framed, which is what a field wants, and the 2px it gives back go
+  // straight into the height above.
+  // ⚠ Every px here comes out of the TEXT BOX (see `--fhead-chat-h`): thicken
+  // it again and the second line stops fitting unless the height follows.
+  //
+  // 1.5px SINCE 2026-08-08 (user ask: the same `--indigo-5`, "a little little
+  // thicker"). A HALF step, because the whole scale either side of it is
+  // spoken for — 1px is what the board's four container rims wear and 2px is
+  // what its walls and lens bars wear, so a bubble at either would have joined
+  // a family it is not part of. At 1.5 it is the one line on the board that is
+  // its own weight, which is the right answer for the one object on the board
+  // that is its own shape. The height above followed it, per the ⚠: 33 → 34,
+  // since the extra pixel comes straight out of the two lines' room.
+  // ⚠ AND IT IS DPR-DEPENDENT, which is the price of a half step: Chrome USES
+  // 1px for it on a 1× display (measured in the headless driver) and the full
+  // 1.5 on a 2× one, where it is three device pixels. On the retina screens
+  // this board is designed against it is a real half-step thicker than the
+  // container rims; on a 1× monitor it collapses back onto them. There is no
+  // integer between 1 and 2, so the alternatives were "no change" and "back to
+  // the walls' weight" — this is the one that states the intent.
+  --fhead-chat-rim-w: 1.5px;
+  // ── THE BUBBLE'S OWN FACE (2026-08-08, user ask) ────────────────────────
+  // `--indigo-1`, after one pass at `--indigo-2` — the composer LEAVES THE
+  // NEUTRALS. It was `--grey-3`, the tone the two lens bars are still floored
+  // in, which was the right answer while the body was one grey plate: an
+  // island a step above its floor. The talk room went `--brown-1` an ask
+  // earlier and that reading stopped working — measured 1.02:1, a neutral on
+  // a warm tone at the same lightness, so the bubble read as a rim drawn on a
+  // continuous surface rather than as an object lying on one.
+  //
+  // ⚠ THE FIX IS HUE, NOT TONE, and the measurement says so plainly: this is
+  // 1.01:1 against the room — the SAME lightness again — but the two tints now
+  // lean opposite ways (the bubble B−R 14 cool, the room R−B 6 warm) where
+  // before one of them was neutral and had no lean at all. So the field is a
+  // COOL PANE in a WARM room, stated by hue and by its `--indigo-6` rim, and
+  // if it is ever asked to stand up by TONE the dial is here and the direction
+  // is down (-2 measured 1.36:1 on the room and is the step already tried).
+  //
+  // It is the colorway's palest step, so the field reads as the same material
+  // as the box's chrome, lightened — the one place on the board where the
+  // indigo goes PALE instead of deep. Measured: `--fhead-ink` text at 8.7:1
+  // on it, the rim at 5.7:1.
+  //
+  // ⚠ ONE DIAL, TWO FACES: the field and the reply line that borrows its slot
+  // for ~6s both read it, for the same reason they both read `--fhead-chat-h`
+  // — the bubble must not change colour when its content is swapped for a
+  // sentence from the seat.
+  --fhead-chat-face: var(--indigo-1, #e8eaf6);
+  // ROUNDER AGAIN (2026-08-08, user ask) — 4px → `--radius-sm` → 12px, stated
+  // as a dial so the field and the reply line that stands in for it can never
+  // disagree about the shape of the same box. It is off the platform's radius
+  // scale on purpose: this is the one control on the surface that is a BUBBLE
+  // — the thing you say something into — and at 36px tall a 12px corner reads
+  // as a soft box where -sm read as a slightly eased rectangle. On mobile the
+  // box is 22px, so the same 12 clamps to a pill, which is the right shape for
+  // a one-line composer and costs nothing to state twice.
+  --fhead-chat-r: 12px;
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  // ALL AVAILABLE HEIGHT (2026-08-08, user ask). The body's two halves are
+  // `stretch`, so the talk half is as tall as the LENS half beside it — two
+  // bars and a gap, ~47px — while the composer sat at its own 36px and left
+  // ~11px of empty floor under it. `align-self: stretch` overrides the half's
+  // `flex-start` (which is there to pin the SEAT to the top corner, and still
+  // does) so the bubble fills the band it is in.
+  //
+  // `--fhead-chat-h` becomes the FLOOR rather than the height: two lines is
+  // what the field must never be smaller than, and on mobile — where the
+  // halves stack and the band is only as tall as its own content — that floor
+  // is the whole story again.
+  align-self: stretch;
+}
+
 // ── THE REPLY LINE ──────────────────────────────────────────────────
 // The field's slot, borrowed for ~6 seconds: the seat's `say`, a ♪ verse, or
 // the one failure string, each in its own tone. A BUTTON, because the line is
 // a door — the transcript behind it lives in the chat dock.
+//
+// It wears the composer's full height now, with the text at the TOP of the box
+// rather than centred in it: the field it stands in for writes from the top
+// line down, and a reply centred in a two-line box would sit half a line lower
+// than the sentence it replaced. Two lines of it are readable before the
+// ellipsis (`-webkit-line-clamp`, the one place on this surface a clamp beats
+// `text-overflow` — that only ever trims ONE line).
 .feed-head__chat-line {
-  flex: 1 1 auto;
+  width: 100%;
   min-width: 0;
-  height: 20px;
-  padding: 0 6px;
-  border: 1px solid var(--fhead-rule);
-  border-radius: 4px;
-  background: var(--grey-2, #f5f5f5);
+  height: 100%;
+  min-height: var(--fhead-chat-h);
+  padding: 3px calc(var(--fhead-send) + 6px) 3px 6px;
+  border: var(--fhead-chat-rim-w) solid var(--fhead-chat-rim);
+  border-radius: var(--fhead-chat-r);
+  background: var(--fhead-chat-face);
   color: var(--fhead-ink);
-  font-family: inherit;
+  // NASALIZATION (2026-08-08, user ask) — stated, not `inherit`. The whole
+  // filtering section beside it went to the display face a day earlier, and
+  // this is the surface's other field; `inherit` here resolved to the body
+  // face through `.feed-head`, so the two halves of one line were set in two
+  // typefaces. It is `--font-display` and not the `.nasalization` class for
+  // the reason that file documents: the utility carries a `0.05em` meant for
+  // headings with room, and this is a 9px field.
+  font-family: var(--font-display);
   font-size: 0.64em;
+  line-height: 1.35;
   text-align: left;
-  white-space: nowrap;
   overflow: hidden;
-  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
   cursor: pointer;
 
   &.is-song { font-style: italic; }
@@ -819,40 +1842,76 @@ export default defineComponent({
 // no service, no events, and `disabled` on both controls, which greys them by
 // construction and states the fact without a label saying so.
 //
-// The input is the line's SPRING (`1 1 auto`, min-width 0, no basis): the
-// face, the badge and the button are all fixed, the name yields first, and
-// whatever the half has left over is the field.
+// A TEXTAREA HOLDING TWO LINES (2026-08-07, user ask). The height is stated,
+// not left to `rows`: `rows` counts lines in the browser's default leading and
+// this field is set at 0.64em with a 1.35 line-height, so the two numbers
+// disagree by a few pixels and the band's geometry would be whatever the
+// browser decided. 34px = 2 × ~12px of leading + 6px of padding + the rim.
+//
+// `resize: none` because the box's height is the box's business — a corner
+// grip here would let a drag change the head's height and move the well's
+// reserved home slot underneath it. The right padding is the send button's
+// own width plus a gap, so the second line stops before the glyph instead of
+// running under it.
 .feed-head__chat-input {
-  flex: 1 1 auto;
+  width: 100%;
   min-width: 0;
-  height: 20px;
-  padding: 0 6px;
-  border: 1px solid var(--fhead-rule);
-  border-radius: 4px;
-  background: var(--grey-1, #fafafa);
+  height: 100%;
+  min-height: var(--fhead-chat-h);
+  padding: 3px calc(var(--fhead-send) + 6px) 3px 6px;
+  border: var(--fhead-chat-rim-w) solid var(--fhead-chat-rim);
+  border-radius: var(--fhead-chat-r);
+  background: var(--fhead-chat-face);
   color: var(--fhead-ink);
-  font-family: inherit;
+  // NASALIZATION (2026-08-08, user ask) — stated, not `inherit`. The whole
+  // filtering section beside it went to the display face a day earlier, and
+  // this is the surface's other field; `inherit` here resolved to the body
+  // face through `.feed-head`, so the two halves of one line were set in two
+  // typefaces. It is `--font-display` and not the `.nasalization` class for
+  // the reason that file documents: the utility carries a `0.05em` meant for
+  // headings with room, and this is a 9px field.
+  font-family: var(--font-display);
   font-size: 0.64em;
+  line-height: 1.35;
+  resize: none;
   &:disabled { cursor: not-allowed; }
   &::placeholder { color: rgba(var(--ink-rgb), 0.4); }
 }
 
 // The FILTER glyph, deliberately oversized for its box (user ask: "a big
-// filter icon"): 17px in a 20px button, so the mark reaches the button's rim
+// filter icon"): 17px in a 22px button, so the mark reaches the button's rim
 // on both axes and the control reads as one solid glyph rather than an icon
 // sitting in a frame. It is the same `filter_alt` the label lens wears —
 // which is the point, the two are the same gesture at two scales.
+//
+// AT THE COMPOSER'S BOTTOM RIGHT since 2026-08-07 (user ask). It was a plate
+// standing beside the field; it is now placed IN the field's corner, which is
+// the shape of every composer on this platform — and the one place a control
+// can sit in a two-line box without either stretching to 34px (a very tall
+// button for one glyph) or floating at a height that belongs to neither line.
+// It keeps its own rim and floor so it stays a button on the field rather than
+// a glyph printed inside it; `3px` off each edge is the field's own rim plus
+// two, so the two corners nest.
 .feed-head__chat-send {
-  flex: 0 0 auto;
+  position: absolute;
+  right: 3px;
+  bottom: 3px;
+  z-index: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 22px;
+  width: var(--fhead-send);
   height: 20px;
-  border: 1px solid var(--fhead-rule);
-  border-radius: 4px;
-  background: var(--grey-1, #fafafa);
+  // NO OUTLINE since 2026-08-07 (user ask). It kept a rim and a floor of its
+  // own while the field's line was a hairline — a button ON the field rather
+  // than a glyph printed inside it. At the field's new 2px `--indigo-8` that
+  // reading inverts: a second rim 3px inside the first is two boxes nested in
+  // 22px, and the corner reads as busy rather than as a control. Bare, the
+  // MARK is the button — which is what the oversized glyph was always for.
+  border: 0;
+  background: transparent;
   color: var(--fhead-ink);
+  cursor: pointer;
   &:disabled { cursor: not-allowed; opacity: 0.55; }
 }
 
@@ -869,33 +1928,159 @@ export default defineComponent({
 // names are long, and a filter you cannot read the name of is not a filter
 // you can trust; hidden scrollbars, the `MediaTabsBar` call — a scrollbar
 // under a 19px strip is all noise).
+// PAINTED `--indigo-9` (2026-08-08, user rule: whatever lies behind a rounded
+// container is the board's structural ink, so the corners open onto something
+// rather than onto a pale notch). The lane was transparent — the box's own
+// `--grey-4` face showing through — and its two chip trays are `--brown-1`
+// panels with curves at every corner, so this strip is now the dark band they
+// lie on. It is the same relation the body has with the talk room one row up.
+//
+// ⚠ TWO THINGS STOP DRAWING, and both are wanted: the lane's own TOP RULE
+// (`--fhead-rule`, this exact tone) and the two KEY PLATES (also -9, with
+// their -9 closing walls). What is left of the keys is their `--brown-1`
+// glyphs standing directly on the band — 8.8:1, the board's own mapping — and
+// the broom's `--indigo-8` hover plate now appears only when pointed at,
+// which is a better statement of "this one is a control" than a plate that
+// was always there. The BOX'S BOTTOM EDGE is -9 too, so the lane and the foot
+// it stands on are one band.
 .feed-head__lane {
   display: flex;
   align-items: stretch;
-  height: 19px;
-  border-top: 1px solid var(--fhead-rule);
+  // 20px SINCE 2026-08-08 — 23 for the hour the top rule was 4px thick, 19
+  // before the trays were rimmed. ⚠ THE HEIGHT PAYS FOR EVERY LINE ADDED
+  // INSIDE IT, because the lane is a STATED height with `box-sizing:
+  // border-box`: anything drawn on the strip or its trays comes straight out
+  // of the room the CHIPS have, silently, since the trays hide their vertical
+  // overflow.
+  //
+  // MEASURED, and this is the chain that governs — redo it after ANY change
+  // to the rule, the tray rims or the chip's own padding: a lane chip is
+  // **16.6px** tall → a tray needs 17 of inside → with its 1px rims a tray
+  // needs 19 → with the top rule the lane needs 19 + rule. At a 4px rule that
+  // was 23; at the 1px hairline it was 20; and with the 3px of `--indigo-9`
+  // daylight that hairline was then given BELOW it, this band needs
+  // 19 + 1 + 3 = **23** again. At 19 and at 21 the chips were clipping by
+  // 1.6px. Board 95.8 with both halves of that daylight, 89.8 without.
+  height: 23px;
+  background: var(--indigo-9, #283593);
+  // The post gutter, in step with the body — see `--fhead-gutter` — plus the
+  // TOP gutter (2026-08-08, user ask), the LOWER half of the daylight around
+  // the hairline above. The body's `padding-bottom` is the upper half: the
+  // line then sits between two runs of `--indigo-9` and reads as a rule
+  // BETWEEN two sections rather than as the edge of one of them.
+  padding: var(--fhead-gutter) var(--fhead-gutter) 0;
+  // ── THE LINE BETWEEN THE FILTER SECTION AND THIS ONE (2026-08-08, user ask:
+  // thicker) ────────────────────────────────────────────────────────────────
+  // 4px, off the 2px it shared with the box's other walls, and stated on its
+  // own dial because the two are no longer the same decision.
+  //
+  // ⚠ IT DRAWS NOW, and it did not before: this rule was `--fhead-rule`
+  // (`--indigo-9`) between an `--indigo-9` body and an `--indigo-9` lane, so
+  // no thickness could make a mark appear — the 4px it spent one ask at bought
+  // a wider dark BAND and nothing else. `--fhead-lane-rule` is `--indigo-7`
+  // now (user ask), which is the ink the header's foot rule and the four
+  // container rims already use, so the board's visible lines are one hand.
+  border-top: var(--fhead-lane-rule-w) solid var(--fhead-lane-rule);
   overflow: hidden;
 }
 
-// THE BROOM — one press, both sections. It sits INSIDE the lane at its far
-// left (the "inner icon" of the ask), ruled off like a key at the end of a
-// row; the sweep itself is the stream's (`sweep` emit), since the filter
-// change has to actually reload the feed.
-.feed-head__lane-broom {
-  flex: 0 0 auto;
-  width: 24px;
+// ── THE LANE'S TWO KEYS ─────────────────────────────────────────────
+// The BROOM (one press, both sections — the sweep itself is the stream's,
+// via the `sweep` emit, since the filter change has to actually reload the
+// feed) and the TRASH's BIN GLYPH, which is that section's name.
+//
+// ONE AESTHETIC SINCE 2026-08-07 (user ask: "make the broom and trashcan
+// icons look consistent … background indigo-9 and icon color brown-1"). They
+// had drifted into two different things — a `--fhead-ink` glyph at 0.7 that
+// lit on hover, and a fainter one at 0.35 that did nothing — which read as one
+// control and one smudge. They are the same object now: a 24px PLATE at its
+// section's left edge, full lane height, `--indigo-9` under `--brown-1`.
+//
+// That pair is not a new colorway: it is exactly the two INNER FRIEZE POSTS'
+// mapping (deep plaque, warm motif), so the lane's two keys are the box's own
+// frieze material cut into 24px squares. The lane's rooms are named in the
+// same material its walls are built from.
+//
+// OPACITY IS GONE from both. It was doing the work of a tone — and on a plate
+// it does not: a faded warm glyph on a deep plaque loses the contrast that
+// makes the mark legible at 11px, and the two ended up at different fades
+// anyway, which is the drift the ask names. The BROOM stays the one that
+// answers a press (`cursor: pointer`, and its plate lifts a step on hover);
+// the bin has no state because it is a label, not a control.
+// THE KEY RULE IS ON BOTH (2026-08-07, the ask right after: "the broom icon
+// will have an extra border. make both icons have that border"). It was the
+// broom's alone — the wall that ruled it off from the lane's chips, the same
+// `--fhead-rule` gauge as the box's other four walls. Now each key is closed
+// on its right by one, which is what makes them read as a PAIR rather than as
+// a control at one end and a label at the other: same plate, same glyph tone,
+// same wall between the key and the things it applies to.
+// ⚠ `height: 100%` and not `align-self: stretch` alone. Stretch only applies to
+// an item whose cross size is `auto`, and Quasar gives every `.q-icon` a
+// definite `width/height: 1em` — so the bin came out an 11px tile in a 17px
+// lane while the broom, a plain button, stretched correctly. One rule that
+// works for both beats two that agree by accident.
+.feed-head__lane-broom,
+.feed-head__lane-trash-mark {
+  flex: 0 0 24px;
+  align-self: stretch;
+  height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
   border: 0;
-  border-right: 1px solid var(--fhead-rule);
-  background: transparent;
-  color: var(--fhead-ink);
-  opacity: 0.7;
-  cursor: pointer;
-  &:hover { opacity: 1; background: var(--grey-3, #eeeeee); }
+  // ⚠ ZEROED, or the stated width is a lie: a `<button>` carries the UA's
+  // `1px 6px`, and with `box-sizing: border-box` that padding plus the glyph
+  // exceeds the flex basis, so the key comes out at its min-content width
+  // instead (measured 25px against a stated 22). The bin, a `q-icon`, never
+  // had the problem — which is exactly how the pair drifted apart in size
+  // while both were declared 24.
+  padding: 0;
+  background: var(--indigo-9, #283593);
+  color: var(--brown-1, #efebe9);
 }
 
+// ⚠ THE ROOM DIVIDER IS THE BROOM'S RIGHT EDGE (2026-08-08, the ask that moved
+// both keys to the RIGHT of their trays). It used to be on the shared block —
+// each key closed on its own right, back when each key OPENED its room — and
+// both of those lines are wrong now: the bin's would fall at the lane's outer
+// end where there is nothing to divide, and the broom's happens to land
+// exactly on the boundary between the two rooms. So the wall is declared once,
+// here, and the bin carries none. It draws nothing against the `--indigo-9`
+// lane, as the box's other walls do against their own floors; it is the mark
+// that says where the trash begins the moment that band is ever paler.
+.feed-head__lane-broom {
+  border-right: var(--fhead-rule-w) solid var(--fhead-rule);
+  // A LITTLE SMALLER (2026-08-08, user ask) — 24px → 22px, and the glyph 12px
+  // → 11px. MEASURED after: 22 total, of which 2 is the wall below, so 20 of
+  // plate against the bin's 24 — the broom is now the smaller key by 2px and
+  // their marks are 11px each. It had been the LARGER of the two in both
+  // dimensions (26 measured, since the wall sat outside a 24px basis, and a
+  // 12px glyph), which is how the pair the docs call "one object" drifted
+  // apart. If they should be exactly equal again, this is the dial and 24 is
+  // the number — the ask was for smaller, and smaller is what this is.
+  flex: 0 0 22px;
+  cursor: pointer;
+  // A step LIGHTER on hover, the same -8 the posts are rimmed in — a plate
+  // cannot brighten by losing opacity without showing the lane through it.
+  &:hover { background: var(--indigo-8, #303f9f); }
+}
+
+// ── IT IS A REAL TRAY NOW (2026-08-08, user ask) ────────────────────────
+// `--brown-1`, the board's warm mark ink and the talk room's own floor, so the
+// lane's chip strip is a FACE rather than the leftover width between the
+// broom's plate and the trash's wall. It had been transparent, showing the
+// box's `--grey-4` through — which is why the radius this container was given
+// an ask earlier drew nothing at all and came back off (see gotchas.md: a
+// curve on a transparent box shapes the clip, not a box).
+//
+// It reads with the room above it: warm tray, `--indigo-9` key at its left,
+// `--indigo-9` chips standing in it — the same three-part sentence the talk
+// room makes with its seat and its bubble, one band lower.
+//
+// ROUNDED, all four corners (2026-08-08, the second attempt): it has a FACE
+// now, and a lane painted `--indigo-9` behind it, which is the pair the first
+// attempt was missing on both counts — that curve was drawn on a transparent
+// box over the `--grey-4` face and had nothing to shape and nowhere to open.
 .feed-head__lane-active {
   flex: 1 1 auto;
   min-width: 0;
@@ -903,6 +2088,13 @@ export default defineComponent({
   align-items: center;
   gap: 4px;
   padding: 0 6px;
+  background: var(--brown-1, #efebe9);
+  // Rounded with its twin, same dial, same reasoning.
+  border-radius: var(--fhead-room-r);
+  // The room rim, 1px `--indigo-7` — see `--fhead-room-rim`. ⚠ On a 17px tray
+  // it costs 2px of the strip's height, so the chips inside are worth
+  // re-measuring after anything that touches this or the lane's own height.
+  border: var(--fhead-room-rim-w) solid var(--fhead-room-rim);
   overflow-x: auto;
   overflow-y: hidden;
   scrollbar-width: none;
@@ -910,26 +2102,189 @@ export default defineComponent({
 }
 
 // THE TRASH — a fixed 30% of the lane, ruled off, where discarded labels
-// stand in their disabled aesthetic until restored or swept. The faint
-// bin glyph is the section's name; it stays when the section is empty, so
-// the split reads as a place rather than a leftover gap.
+// stand in their disabled aesthetic until restored or swept. The bin glyph is
+// the section's name; it stays when the section is empty, so the split reads
+// as a place rather than a leftover gap.
+//
+// THE BIN LEFT THE TRAY (2026-08-08, user ask) and stands beside it in the
+// lane, the way the broom stands beside the active tray — so this rule is now
+// a TRAY ONLY, holding labels and nothing else. Three consequences, all of
+// them the mirror of the broom's side:
+//  · SYMMETRIC 6px padding, where it used to have none on the left. The
+//    reason for the flush edge left with the bin: the tray's own left edge is
+//    a rounded `--brown-1` corner now, and a chip pressed into it would sit
+//    inside the curve.
+//  · the SECTION WALL moved to the bin (`.feed-head__lane-trash-mark`), since
+//    the trash room starts where its key does — the tray is the second thing
+//    in that room, not the first.
+//  · the 30% is measured on the ROOM, so the tray gives back what the key and
+//    its wall take (`calc()` below). Without it the trash side would grow by
+//    26px and the active tray, the lane's only flexible item, would pay it.
 .feed-head__lane-trash {
-  flex: 0 0 30%;
+  // The ROOM is **40% since 2026-08-08** (user ask, from 30) — this tray plus
+  // its key, so the key's 24px comes off here and the split the lane reads as
+  // is 60/40. Its old `- var(--fhead-rule-w)` term went when the divider moved
+  // to the broom (the trash room draws no wall of its own any more).
+  // ⚠ The percentage is of the lane's CONTENT box, which is 6px narrower than
+  // the lane since the post gutter, so the rooms are 60/40 of what is left
+  // between the frieze posts — not of the box.
+  flex: 0 0 calc(40% - 24px);
   min-width: 0;
   display: flex;
   align-items: center;
   gap: 4px;
   padding: 0 6px;
-  border-left: 1px solid var(--fhead-rule);
+  // The room rim, with its twin — see `--fhead-room-rim`.
+  border: var(--fhead-room-rim-w) solid var(--fhead-room-rim);
+  // THE SAME FACE AS ITS TWIN (2026-08-08, user ask) — `--brown-1`. The two
+  // trays are one strip in two rooms, so a floor on one and daylight on the
+  // other would have made the lane read as a tray beside a gap. What tells
+  // them apart stays what it was: the `--indigo-9` wall between them, the
+  // glyph each room is keyed with, and the disabled aesthetic the trashed
+  // chips wear.
+  background: var(--brown-1, #efebe9);
+  // Rounded with its twin, same dial, same reasoning.
+  border-radius: var(--fhead-room-r);
   overflow-x: auto;
   overflow-y: hidden;
   scrollbar-width: none;
   &::-webkit-scrollbar { display: none; }
 }
 
+// Everything this glyph used to say for itself — its own flex, its ink and its
+// 0.35 — is in the shared block above now. It keeps ONE rule of its own: a
+// `q-icon` is inline by default and the shared block turns it into a flex
+// plate, so the glyph inside it needs its line box zeroed or the 11px mark
+// sits a pixel below the 24px plate's centre.
 .feed-head__lane-trash-mark {
-  flex: 0 0 auto;
-  color: var(--fhead-ink);
-  opacity: 0.35;
+  line-height: 1;
+  // ⚠ NO WALL. It held the trash room's opening wall for one ask — a room
+  // begins at its key, the argument went — and the ask after moved it to the
+  // END of its room, where an opening wall would be a line at the lane's outer
+  // edge. The divider lives on the broom now (see above).
+}
+
+// ── THE MOBILE BOARD (2026-08-07, user ask) ─────────────────────────
+// `max-width: 600px` — the same breakpoint `FeedPage` takes the container to
+// 95% of the track at, which is the point where this box stops being a wide
+// plate with two columns in it and becomes a narrow one with two bands.
+//
+// THE BODY STACKS. Side by side, at ~330px of usable width, the composer and
+// the lens block were splitting a line neither could hold: the bundle needs
+// ~150px whatever the window does, and what was left could not carry a
+// sentence. Stacked, each gets the WHOLE width — which is the ask, and also
+// the only arrangement where the field is worth typing into on a phone.
+//
+// THE COMPOSER GOES BACK TO ONE LINE. `--fhead-chat-h` is the one dial, so
+// the field, the reply line and the button's corner all follow it — and 20px
+// is the height it wore before the two-line ask, not a new number. Two lines
+// of a field that now spans the board is a lot of vertical for a surface
+// where the box already eats a third of the screen; one line across the full
+// width holds MORE text than two lines across half of it did.
+//
+// A rule the stacked body has to restate: the vertical divider between the
+// two halves becomes a HORIZONTAL one. `--talk` carried a `border-right`
+// because the lens block stood to its right; here it stands underneath, so
+// the same wall moves to the bottom edge. Left unmoved it would draw a line
+// down the right of a full-width band, which is a wall with nothing on the
+// other side of it.
+@media (max-width: 600px) {
+  .feed-head__body {
+    flex-direction: column;
+  }
+
+  .feed-head__half {
+    flex: 0 0 auto;
+    width: 100%;
+  }
+
+  // ⚠ NOTHING TO MOVE HERE ANY MORE. This block used to swap the talk half's
+  // `border-right` wall for a `border-bottom` — the divider between the two
+  // rooms, turned 90° for the stacked layout — and both halves of that went
+  // when the room took its own 1px `--indigo-7` rim on all four edges
+  // (2026-08-08). Left in place they were actively wrong: `border-right: 0`
+  // knocked the RIGHT EDGE off an outlined panel on the phone, and the
+  // `border-bottom` redrew its bottom in the walls' 2px `--indigo-9`. What
+  // separates the two rooms here is the same thing that separates them on the
+  // desktop — where each outlined panel ends — plus the gutter below.
+
+  // THE GUTTER TURNS 90° WITH THE LAYOUT. Stacked, the label bar is BELOW the
+  // chat room, not beside it, so the desktop's left padding would put its
+  // `--indigo-9` field on the wrong axis — an inset from the post, where what
+  // is needed is daylight between the two panels.
+  .feed-head__half--lens {
+    padding: var(--fhead-gutter) 0 0;
+  }
+
+  .feed-head__chat {
+    // 20px SINCE 2026-08-08 (the rim went 2px → 1px): one line of 18px leading
+    // needs 18px of inside, and the rim now costs 1 + 1 instead of 2 + 2. It
+    // was 22 for exactly that arithmetic, so it follows the rim down rather
+    // than standing as a number of its own.
+    // ⚠ The SEAT's size follows this, not the other way round — on this layout
+    // the face and the field are the same object tall (the script's mobile
+    // branch is 20 now); change one and the row's whole reason goes.
+    --fhead-chat-h: 20px;
+    // ⚠ NO STRETCH HERE, and the height goes back to DEFINITE. On the desktop
+    // board the composer fills the band because the lens section beside it is
+    // taller; stacked, the band's tallest item is the 36px SEAT, so stretching
+    // would blow a one-line field up to the face's height. And `height: 100%`
+    // against an auto-height parent resolves to `auto`, which for a textarea
+    // means its `rows="2"` intrinsic size — measured 40px, i.e. exactly the
+    // two lines this layout exists to avoid. Both halves of that have to be
+    // undone, not one.
+    align-self: flex-start;
+  }
+
+  .feed-head__chat-input,
+  .feed-head__chat-line {
+    height: var(--fhead-chat-h);
+  }
+
+  // ONE DENSE ROW (user ask). The face drops 36 → 22px in the script above,
+  // which is exactly the one-line composer's height, so the seat and the field
+  // are the same object tall and the band is 22px of content instead of 36 —
+  // the face was setting the row's height, and it was setting it to something
+  // no other item in the row needed. CENTRED rather than top-aligned, because
+  // with every item the same height there is no top to align to, and the org
+  // badge is 15px and would otherwise hang off the line.
+  .feed-head__half--talk {
+    align-items: center;
+  }
+
+  // Nothing left to stack: the handle is gone from the DOM here, so the column
+  // is the face row and only that.
+  .feed-head__seat-col {
+    gap: 0;
+  }
+
+  // One line means one line: the textarea keeps its `rows="2"` in the DOM (it
+  // is still a textarea, and Shift+Enter still breaks a line — the text simply
+  // scrolls) but the BOX is a single line's worth, so the padding has to come
+  // off the top and bottom or the leading has nowhere to sit.
+  .feed-head__chat-input,
+  .feed-head__chat-line {
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+
+  .feed-head__chat-input {
+    // A one-line field whose text starts on the second line reads as broken.
+    line-height: 18px;
+  }
+
+  .feed-head__chat-line {
+    -webkit-line-clamp: 1;
+    line-height: 18px;
+  }
+
+  // The button fills the line rather than tucking into a corner there is no
+  // longer room for: at 20px tall the composer IS the button's height.
+  .feed-head__chat-send {
+    top: 0;
+    right: 0;
+    bottom: 0;
+    height: auto;
+  }
 }
 </style>
