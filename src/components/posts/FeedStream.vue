@@ -508,7 +508,12 @@
            JUST that clause client-side (no model round-trip), and a
            trailing × that clears the whole lens. -->
       <template #labels>
-        <template v-if="lensSpec">
+        <!-- The LOCAL hash lens (the card's expand lead) joins the spoken
+             one here (2026-08-09): its chip rides the same loop, so the
+             lane states it like any clause — the whole-lens × stays the
+             SPOKEN lens's own control (clearLens does not reach the local
+             expand; its chip and the lit lead are its two doors out). -->
+        <template v-if="lensSpec || hashFilter">
           <button
             v-for="chip in lensChips" :key="chip.key"
             type="button"
@@ -521,6 +526,7 @@
             <q-icon name="close" size="11px" />
           </button>
           <button
+            v-if="lensSpec"
             type="button"
             class="feed-stream__label-chip feed-stream__label-chip--clear nasalization"
             title="Clear the whole lens"
@@ -582,7 +588,7 @@
                square rule forbids. Everything the panel showed now lives on
                the card itself (whole body, author, label paths, tallies); the
                rest is one click away in the post viewer, via the title. -->
-          <article class="post-square" :class="{ 'is-open': isOpen(item) }">
+          <article class="post-square" :class="{ 'is-open': isOpen(item), 'is-expanded': isExpanded(item) }">
             <!-- THE CAP (2026-08-07, user ask) — a thin header ABOVE the
                  byline band, and now the card's first strip. It answers the
                  one question the card could not: WHAT IS THIS POST, and
@@ -609,17 +615,46 @@
                    `post #<id>` when it has none. A titleless post is not
                    nameless — it has an id, and an id is a name you can say.
 
-                 The 30% side is the card's CONTROL lane, divided from the
+                 The other side is the card's CONTROL lane, divided from the
                  facts by a hairline (the same 1px the byline divides its own
-                 sections with) — a pin and a way into the skeleton viewer.
-                 They are the two things you do TO a post rather than read
-                 off it, which is why they sit on the other side of a rule
-                 instead of joining the run.
+                 sections with) — the things you do TO a post rather than
+                 read off it, which is why they sit on the other side of a
+                 rule instead of joining the run. Since 2026-08-09 (user ask)
+                 that rule runs BETWEEN the controls too — pin │ skeleton │
+                 flyout — and a matching EXPAND cell opens the strip at the
+                 far LEFT edge, so the cap reads control │ facts │ controls
+                 with a hairline at every seam.
 
                  The whole strip is set in `--font-display` (Nasalization) —
                  the platform's display face, which until now the card did
                  not wear anywhere. -->
             <div class="post-square__cap">
+              <!-- THE EXPAND LEAD (2026-08-09, user ask) — a third cell, at
+                   the card's LEFT edge, holding one control: `expand`. It IS
+                   the hash lens: pressing it filters the feed by this post's
+                   own chain address — the same `?hash=` clause Talavero
+                   issues when an ask contains an address — so the stream
+                   answers with this ONE card, drawn full-height between the
+                   board's home slot and the container's floor. The board
+                   slides back to its top berth on the same press (an
+                   expanded card is read under it, not around it), and a
+                   second press releases the lens. A hairline divides the
+                   cell from the facts, the cap's own device: this is a
+                   thing you PRESS, and everything past the rule is a thing
+                   you READ. -->
+              <div class="post-square__cap-lead">
+                <button
+                  type="button"
+                  class="post-square__cap-act"
+                  :class="{ 'is-on': isExpanded(item) }"
+                  :title="isExpanded(item) ? 'Release this post — back to the stream' : 'Expand this post — the feed shows it alone'"
+                  @click.stop="toggleExpand(item)"
+                >
+                  <q-icon name="expand" size="14px" />
+                </button>
+              </div>
+              <span class="post-square__cap-rule" aria-hidden="true" />
+
               <div class="post-square__cap-main">
                 <span class="post-square__cap-icons" :title="capKindTitle(item)">
                   <q-icon
@@ -702,6 +737,11 @@
                 >
                   <q-icon name="push_pin" size="13px" />
                 </button>
+                <!-- Hairlines between the lane's three controls (2026-08-09,
+                     user ask) — the cap's rule run all the way in: each
+                     control stands in a ruled cell of its own, the way the
+                     facts and the lane already stood apart. -->
+                <span class="post-square__cap-rule" aria-hidden="true" />
                 <router-link
                   class="post-square__cap-act"
                   :to="'/skeletons/' + item.skeleton_id"
@@ -710,6 +750,7 @@
                 >
                   <q-icon name="sym_o_orthopedics" size="14px" />
                 </router-link>
+                <span class="post-square__cap-rule" aria-hidden="true" />
                 <button
                   type="button"
                   class="post-square__cap-act"
@@ -722,178 +763,156 @@
               </div>
             </div>
 
-            <!-- THE CAP'S CLOSING EDGE — the `RgbHairline` that used to close
-                 the label rail (2026-08-07, second user ask the same day). It
-                 divides the cap from EVERYTHING ELSE, which is why it is
-                 unconditional here where it was `v-if`'d on the rail: the cap
-                 is on every card, so its rule is too. The rail now runs into
-                 the pit's own margin instead — the card's remaining dividers
-                 are the two frieze bands. -->
-            <RgbHairline class="post-square__hairline" />
+            <!-- THE CAP'S CLOSING EDGE — the `RgbHairline`, BACK (2026-08-09,
+                 last ask of the divider walk; it stood here from 08-07 until
+                 earlier today, went down to open the foot, and now BOTH ends
+                 of the reading area wear the band). The `--cap` modifier
+                 flips the filling upside down — indigo at the top, cyan
+                 facing the content — so the pair BRACKETS the card the way
+                 the frieze pair once reflected about the label lane: the two
+                 cyan ends face each other, and neither band is the other
+                 drawn twice. The cap's own plain border-bottom went with
+                 this; its divider is the band again. -->
+            <RgbHairline class="post-square__hairline post-square__hairline--cap" />
 
             <!-- BYLINE band — the author's IDENTITY BLOCK, at the card's top
-                 edge (2026-07-25). It used to open the foot, in the same run
-                 as the post's hash chip and the tallies; a post is read
-                 "who, then what", so the person now comes BEFORE the title
-                 and the foot is left as a pure activity row.
+                 edge (2026-07-25; TWO RULED SIDES since 2026-08-09's last
+                 byline ask). A post is read "who, then what", so the person
+                 comes before everything and the foot stays a pure activity
+                 row.
 
-                 The identity is CONDENSED into one unit: the profile photo on
-                 the left, and stacked beside it the author's name over their
-                 @handle — one link to the profile, one glance. The entity's
-                 hash chip that used to sit beside it is gone: the avatar links
-                 to the same place, and the card already carries one address
-                 (the post's, down in the foot).
+                 The band held four ruled sections for a day —
+                 [author] │ [when/where] │ [title] │ [open] — and the last
+                 two are GONE: the title already names the card in the CAP
+                 one strip up (stating it twice was the old two-strips
+                 problem the 07-25 merge fixed, reborn sideways), and the
+                 open-post door lives on in the flyout's own links. What
+                 remains is provenance, two dense sides of one band (the
+                 one-line desktop fold lived a few hours between the
+                 arrangements):
 
-                 A post published through an org MASK adds that organization's
-                 LOGO badge right after the block. A mask's own display name is
-                 "<person> @ <org>" — one string doing the work of two facts;
-                 the API answers with the PERSON (their face, name and handle)
-                 and hands the organization over as a card, so the string
-                 becomes a mark you recognise instead of text you read.
+                   [face] name @handle [badge] [trust] [heat] │ [⌚ Sun, 9 Aug 2026 · 7:07 AM]
+                          3h ago                              │    [⌖ Mexico City, Mexico]
 
-                 The band ABSORBED THE HEAD STRIP (2026-07-25, third pass):
-                 the title and the open-post button used to sit in a second
-                 strip below it, which said the same kind of thing twice —
-                 two ruled rows of metadata stacked over the body. Everything
-                 that IDENTIFIES a post now shares one band, read left to
-                 right and divided by vertical hairlines:
+                 LEFT: the author line with the bare relative age tucked
+                 under it — the "xxx ago" legend extracted from the moment
+                 run, no icon, the light second line of the identity stamp.
+                 RIGHT: the moment as TWO DENSE MICRO CHIPS stacked at the
+                 band's end — the detailed date on top, the city under it
+                 (only when the author shared one) — each a real MicroChip
+                 addressing moments/<id>, because that is how this platform
+                 states an element you can visit.
 
-                   [author] │ [when/where] │ [title] │ [open]
-
-                 The three FACTS come first, in the order a post is read, and
-                 the one CONTROL closes the run at the far end — mixed in
-                 among them it read as another fact. The title takes whatever
-                 width the facts leave. The strip's `article` icon did not
-                 survive the move: it was already uniform (every row here is
-                 a POST instance), so in a band this dense it stated nothing
-                 the card does not.
-
-                 The band's bottom border is the EDGE-TO-EDGE hairline that
-                 divides it from the label rail below — see the style note. -->
+                 EVERY FACT HERE IS A DOOR (same day): the face and the
+                 name/handle link to the author's profile, the badge to the
+                 organization (its own link, as ever — a link inside a link
+                 is invalid, and they go to different places), and BOTH
+                 MOMENT CHIPS to the MOMENT VIEWER, where the tiny world
+                 map lives. A full-band seam rule divides the two sections,
+                 riding the chips' left edge. -->
             <div class="post-square__byline">
               <router-link
                 v-if="item.author"
                 :to="'/entities/' + item.author.id"
-                class="post-square__identity"
-                :title="authorName(item.author)"
+                class="post-square__face"
+                :title="authorName(item.author) + ' — open profile'"
                 @click.stop
               >
-                <EntityAvatar :entity="item.author" :size="28" />
-                <span class="post-square__identity-text">
-                  <span class="post-square__identity-name">{{ authorName(item.author) }}</span>
-                  <span class="post-square__identity-handle mono">{{ authorHandle(item.author) }}</span>
-                </span>
+                <EntityAvatar :entity="item.author" :size="24" />
               </router-link>
-              <!-- The badge, OUTSIDE the identity link (a link inside a link
-                   is invalid, and these two go to different places: the
-                   person, and the organization they published under). Drawn
-                   only for a MASK — an org publishing as itself already has
-                   its name in the block, so `org.self` suppresses it. -->
-              <OrgLogoChip
-                v-if="item.author?.org && !item.author.org.self"
-                :org="item.author.org"
-                :size="16"
-              />
 
-              <!-- TRUST CHIP (Thread J) — the author's invite-chain distance
-                   from YOU, stated as recorded fact: "2 hops", tooltip
-                   carrying the whole vouch path ("you › allegue › garage").
-                   Part of the author unit, so it sits with the identity
-                   block before the section's closing rule. Your own posts
-                   read "you"; no chip when the API had no viewer to measure
-                   from. -->
-              <span
-                v-if="item.author?.trust"
-                class="post-square__trust mono"
-                :title="trustTitle(item.author.trust)"
-              >{{ trustLabel(item.author.trust) }}</span>
-
-              <!-- HEAT CHIP (2026-08-07) — under `order=heat` every card
-                   states its own score, so the ordering can be READ as the
-                   heat map it is: Σ of the lens's label weights, each
-                   selection counted once. Only in heat order — in any other
-                   the number would claim an ordering the stream isn't in. -->
-              <span
-                v-if="sortOrder === 'heat' && item.heat != null"
-                class="post-square__heat mono"
-                :title="'Heat ' + item.heat + ' — the sum of this lens\'s label weights this post matches'"
-              >
-                <q-icon name="local_fire_department" size="10px" />{{ item.heat }}
-              </span>
-
-              <!-- Full-bleed vertical hairline closing the AUTHOR section,
-                   the same device as the head strip's `__head-rule`: it runs
-                   the band's whole height by cancelling the band's own
-                   vertical padding with a negative margin. Decorative, so
-                   aria-hidden. -->
-              <span class="post-square__byline-rule" aria-hidden="true" />
-
-              <!-- THE MOMENT, as time AND space. It replaced the bare
-                   "1h ago" that used to sit at the head strip's right end:
-                   a post is minted at a moment, and a moment is a WHEN and a
-                   WHERE — one fact, so one chip, stacked on the identity
-                   block's own two-line rhythm.
-
-                   Top line is always the relative time (what you actually
-                   read a feed by). The line under it is the moment's other
-                   half: the PLACE when the author shared one, in the
-                   platform's "City, Country" form, and the formatted date
-                   when they did not — location is opt-in, so most posts
-                   take the date branch. The icon says which of the two you
-                   are looking at, and the tooltip carries both in full. -->
-              <span class="post-square__moment" :title="momentTitle(item)">
-                <span class="post-square__moment-ago">{{ timeAgo(item.created_at, item.moment) }}</span>
-                <span class="post-square__moment-detail mono">
-                  <q-icon :name="item.moment?.place ? 'place' : 'event'" size="10px" />
-                  {{ momentDetail(item) }}
+              <div class="post-square__byline-lines">
+                <span class="post-square__byline-who">
+                  <router-link
+                    v-if="item.author"
+                    :to="'/entities/' + item.author.id"
+                    class="post-square__identity"
+                    :title="authorName(item.author) + ' — open profile'"
+                    @click.stop
+                  >
+                    <span class="post-square__identity-name">{{ authorName(item.author) }}</span>
+                    <!-- No `mono` here (2026-08-09, Nasalization ask): the
+                         whole band letters in the display face, and a class
+                         on the span would beat the inheritance. -->
+                    <span class="post-square__identity-handle">{{ authorHandle(item.author) }}</span>
+                  </router-link>
+                  <!-- The badge — its own link to the organization. Drawn
+                       only for a MASK: an org publishing as itself already
+                       has its name in the block (`org.self`). -->
+                  <OrgLogoChip
+                    v-if="item.author?.org && !item.author.org.self"
+                    :org="item.author.org"
+                    :size="14"
+                  />
+                  <!-- TRUST CHIP (Thread J) — invite-chain distance, part of
+                       the author unit; tooltip walks the vouch path. -->
+                  <span
+                    v-if="item.author?.trust"
+                    class="post-square__trust"
+                    :title="trustTitle(item.author.trust)"
+                  >{{ trustLabel(item.author.trust) }}</span>
+                  <!-- HEAT CHIP (2026-08-07) — only under `order=heat`,
+                       where the number IS the ordering being read. -->
+                  <span
+                    v-if="sortOrder === 'heat' && item.heat != null"
+                    class="post-square__heat"
+                    :title="'Heat ' + item.heat + ' — the sum of this lens\'s label weights this post matches'"
+                  >
+                    <q-icon name="local_fire_department" size="10px" />{{ item.heat }}
+                  </span>
                 </span>
-              </span>
+
+                <!-- The AGO line — the relative age alone, no icon, no
+                     link: it is the identity stamp's second line now
+                     (2026-08-09, the arrangement's ask), the fact you scan
+                     the stream by sitting right under who did it. The
+                     precise datetime lives in the chip across the rule. -->
+                <span class="post-square__byline-ago">{{ timeAgo(item.created_at, item.moment) }}</span>
+              </div>
+
+              <!-- The SEAM RULE — the full-band vertical hairline between
+                   the author side and the moment side, riding the chips'
+                   left edge (it carries the `auto` margin that packs them
+                   right). Stretch + negative margins against the band's
+                   4px padding — keep in step. -->
               <span class="post-square__byline-rule" aria-hidden="true" />
 
-              <!-- The title, closing the run of facts. It is the card's one
-                   INFORMATION trigger (2026-07-26): clicking it opens the
-                   post information flyout beside the container — the box the
-                   feed lost when the FeedPostPanel unfold was deleted the day
-                   before. So it is a `<button>` and not a link: it no longer
-                   navigates, and the way INTO the post viewer is the open
-                   control closing this band (plus the flyout's own two
-                   links). Clicking an open title again closes the flyout.
-
-                   It keeps the PLATE it wore in the head strip — `--grey-1`
-                   floor, the card's line ink as its rim — which is what marks
-                   it as the card's subject rather than a fourth item in a run.
-
-                   The text is CENTRED IN A FIXED TWO-LINE BOX: the plate is
-                   stretched by the band (it takes all the leftover width), so
-                   a short title left-aligned in it sits against a wide empty
-                   field. The inner span is the clamp — up to two lines, then
-                   an ellipsis — and the plate flex-centres it both ways, so a
-                   one-line title sits in the middle of the same box a
-                   two-line one fills. The box's height is what keeps the band
-                   uniform down the column: sized to two lines always, it does
-                   not grow or shrink with the title. -->
-              <button
-                type="button"
-                class="post-square__name"
-                :class="{ 'is-open': isOpen(item) }"
-                :title="item.title"
-                @click.stop="$emit('select', item)"
-              >
-                <span class="post-square__name-text">{{ cardName(item) }}</span>
-              </button>
-
-              <span class="post-square__byline-rule" aria-hidden="true" />
-              <!-- The way INTO the post, closing the band at its right end.
-                   It is the one CONTROL here, so it stands apart from the
-                   facts rather than leading them. -->
-              <router-link
-                :to="'/posts/' + item.skeleton_id"
-                class="post-square__go"
-                title="Open post"
-                @click.stop
-              >
-                <q-icon name="open_in_new" size="13px" />
-              </router-link>
+              <!-- THE MOMENT, as TWO DENSE MICRO CHIPS (2026-08-09, the
+                   arrangement's ask) — the detailed date on top, the city
+                   under it when the author shared one. Real MicroChips,
+                   not styled spans: a moment is an element with an address
+                   and a viewer (the tiny world map lives there), and the
+                   chip is how this platform states one — both route to
+                   moments/<id>, and a moment-less legacy item degrades to
+                   MicroChip's own span face (no id, no route). `display`
+                   puts the resolved strings on them; the address tooltip
+                   is overridden with the human one, since the feed's
+                   moment card carries no hash to show. -->
+              <div class="post-square__byline-when">
+                <MicroChip
+                  class="post-square__moment-chip"
+                  kind="moments"
+                  :id="item.moment?.id"
+                  icon="event"
+                  icon-size="9px"
+                  :show-type="false"
+                  :display="momentWhen(item)"
+                  :full-address="momentTitle(item) + (item.moment?.id ? ' — open moment' : '')"
+                  @click.stop
+                />
+                <MicroChip
+                  v-if="item.moment?.place"
+                  class="post-square__moment-chip"
+                  kind="moments"
+                  :id="item.moment.id"
+                  icon="place"
+                  icon-size="9px"
+                  :show-type="false"
+                  :display="item.moment.place"
+                  :full-address="momentTitle(item) + ' — open moment'"
+                  @click.stop
+                />
+              </div>
             </div>
 
             <!-- THE CARD'S FRIEZE PAIR (2026-08-07, user ask) — the platform's
@@ -1006,6 +1025,17 @@
                 ref-display="auto"
               />
             </div>
+
+            <!-- THE FOOT'S OPENING EDGE — the `RgbHairline` (2026-08-09,
+                 user ask; it closed the CAP from 2026-08-07 until this
+                 pass, and the label rail for hours before that). The cap's
+                 divider is a plain hairline now — its own border-bottom,
+                 the card's one line ink — and the three-row band moved DOWN
+                 to divide the reading area from the foot: the card opens on
+                 quiet rules and closes on its one drawn motif. Same
+                 unconditional standing as before — every card has a foot,
+                 so its rule is on every card. -->
+            <RgbHairline class="post-square__hairline" />
 
             <!-- Foot — the post's own chip and its activity tallies. The
                  author left this row for the byline band at the card's top
@@ -1194,11 +1224,26 @@ export default defineComponent({
     const publishCeiling = (el) => {
       if (el) el.style.setProperty('--post-square-max', `${el.clientWidth}px`)
     }
+    // The well's HEIGHT, published the same way for the same reason
+    // (2026-08-09): the EXPANDED card fills the visible well, and
+    // `--feed-well-h` is the one term of that height CSS cannot state as a
+    // live value on its own (the container is a percentage of a track that
+    // is itself viewport-cropped). The card subtracts the well's own
+    // paddings from it — see `.post-square.is-expanded`, and keep the two
+    // in step. clientHeight, so the horizontal scrollbar (if any) is out.
+    const publishWellH = (el) => {
+      if (el) el.style.setProperty('--feed-well-h', `${el.clientHeight}px`)
+    }
     onMounted(() => {
       if (!streamEl.value || typeof ResizeObserver === 'undefined') return
-      ro = new ResizeObserver(() => publishCeiling(streamEl.value))
+      ro = new ResizeObserver(() => {
+        publishCeiling(streamEl.value)
+        publishWellH(wellEl.value)
+      })
       ro.observe(streamEl.value)
+      if (wellEl.value) ro.observe(wellEl.value)
       publishCeiling(streamEl.value)
+      publishWellH(wellEl.value)
     })
     onBeforeUnmount(() => {
       if (ro) ro.disconnect()
@@ -1653,10 +1698,12 @@ export default defineComponent({
       const clauseKeys = Object.keys(spec || {}).filter((k) => k !== 'v')
       if (!clauseKeys.length) {
         // `{}` = reset — "show everything" clears EVERY lens, the old
-        // single-label one included. The trash SURVIVES a spoken reset:
-        // only its own broom empties it.
+        // single-label one included and the card's local hash expand with
+        // it. The trash SURVIVES a spoken reset: only its own broom
+        // empties it.
         clearLens({ reload: false })
         if (labelFilter.value) { labelFilter.value = null; syncLabelQuery() }
+        hashFilter.value = null
         load()
         return stripped
       }
@@ -1679,7 +1726,14 @@ export default defineComponent({
       // claiming that filter, and it is the one running.
       if (spec.when) dateWin.value = null
       if (spec.authors) pickedEntities.value = []
+      // A spoken lens is the newest intent — the card's local expand yields
+      // to it (its twin rule: the spoken hash IS the expand, via activeHash).
+      hashFilter.value = null
       lensSpec.value = spec
+      // A spoken address means "show me THIS one": the board takes its top
+      // berth so the expanded card gets the whole space under it, exactly
+      // as the card's own expand lead does it.
+      if (spec.hash) setHeadY(0)
       sortOrder.value = spec.order && spec.order !== 'newest' ? spec.order : null
       pendingReceipt.value = receipt?.id || null
       laneLabels.value = (spec.labels || []).map((l) => ({
@@ -1805,9 +1859,21 @@ export default defineComponent({
     }
 
     const lensChips = computed(() => {
-      const s = lensSpec.value
-      if (!s) return []
       const chips = []
+      // The LOCAL hash lens wears a chip too (2026-08-09): the lit expand
+      // lead on the card is one door out, this is the other — the lane
+      // should never run a filter it does not state.
+      if (hashFilter.value) {
+        chips.push({
+          key: 'hash:local',
+          icon: 'expand',
+          text: 'post ' + hashFilter.value.hash.slice(0, 10) + '…',
+          title: 'One post, expanded, by its address — click to release',
+          close: () => { hashFilter.value = null; load() }
+        })
+      }
+      const s = lensSpec.value
+      if (!s) return chips
       for (const l of laneLabels.value) {
         chips.push({
           key: 'label:' + l.id,
@@ -1832,6 +1898,16 @@ export default defineComponent({
         })
       }
       if (s.text) chips.push({ key: 'q', icon: 'search', text: '"' + s.text + '"', close: () => dropClause('text') })
+      if (s.hash) {
+        chips.push({
+          key: 'hash',
+          icon: 'expand',
+          text: 'post ' + s.hash.slice(0, 10) + '…',
+          title: 'One post, expanded, by its address — click to release',
+          close: () => dropClause('hash')
+        })
+      }
+      if (s.title) chips.push({ key: 'title', icon: 'title', text: 'titled "' + s.title + '"', close: () => dropClause('title') })
       if (s.geo?.place) chips.push({ key: 'place', icon: 'place', text: s.geo.place, close: () => dropClause('geo') })
       if (s.limit) chips.push({ key: 'limit', icon: 'tag', text: 'first ' + s.limit, close: () => dropClause('limit') })
       return chips
@@ -1861,6 +1937,8 @@ export default defineComponent({
       if (spec.kinds?.length) p.kinds = spec.kinds.join(',')
       if (spec.embed_rule) p.embedRule = spec.embed_rule
       if (spec.geo?.place) p.place = spec.geo.place
+      if (spec.hash) p.hash = spec.hash
+      if (spec.title) p.title = spec.title
       if (spec.limit) p.limit = spec.limit
       return p
     }
@@ -1882,6 +1960,12 @@ export default defineComponent({
         } else if (labelFilter.value) {
           params.label = labelFilter.value.id
         }
+        // The LOCAL hash lens (the card's expand lead) — written after the
+        // spoken params on the same last-write-wins belt as the hand-picked
+        // lenses below: pressing expand on a card composes with whatever
+        // else is running (every filter that admitted the card still admits
+        // it; the address then narrows to exactly it).
+        if (hashFilter.value) params.hash = hashFilter.value.hash
         // THE HAND-PICKED LENSES, written AFTER the spoken one's params —
         // the two never hold the same clause at once (each control drops
         // the spoken twin when it is used), and last-write-wins is the
@@ -1956,22 +2040,20 @@ export default defineComponent({
     const authorHandle = (author) =>
       author?.username ? `@${author.username}` : `entity #${author?.id}`
 
-    // THE MOMENT CHIP's second line — the other half of a moment.
-    //
-    // Space wins when there is any: a post carries a PLACE only when its
-    // author chose to share one (location is opt-in, and the platform rounds
-    // what it stores to city precision), so when the string is there it is
-    // the more particular of the two facts and the one worth the line. The
-    // date is the fallback, not the loser — most posts have no coordinates
-    // and take this branch.
+    // THE MOMENT LINE's time segment. The WHEN is on every card since
+    // 2026-08-09 (user ask) — a placed post used to swap its date out for
+    // the city ("space wins when there is any"), and the two are separate
+    // segments of the line now, so this helper answers TIME ONLY and the
+    // place is read straight off `item.moment.place` beside it (a place
+    // still only exists when the author chose to share one — location is
+    // opt-in, city-rounded).
     //
     // Both come RESOLVED from the API (`moment.place`, `moment.datetime`):
     // "City, Country" is `geo.resolvePlace`'s single seam, and the date is
     // `momentService.formatHumanDatetime` — formatted from `time_utc` in UTC
     // server-side precisely so every chip and viewer states a moment
     // identically. Only an item with no moment at all formats locally.
-    const momentDetail = (item) => {
-      if (item.moment?.place) return item.moment.place
+    const momentWhen = (item) => {
       if (item.moment?.datetime) return item.moment.datetime
       const ms = new Date(item.created_at).getTime()
       if (!Number.isFinite(ms)) return ''
@@ -1980,8 +2062,8 @@ export default defineComponent({
       })
     }
 
-    // The tooltip carries BOTH halves — the chip can only show one at a time,
-    // and a located post would otherwise have no way to tell you its date.
+    // The tooltip still carries both halves in full — the line's spans
+    // ellipsize under pressure, and hover is where the whole strings live.
     const momentTitle = (item) => {
       const when = item.moment?.datetime || absoluteTime(item.created_at, item.moment)
       return item.moment?.place ? `${when} · ${item.moment.place}` : when
@@ -1999,16 +2081,45 @@ export default defineComponent({
     const isSkeletonOpen = (item) =>
       props.flyoutId != null && String(props.flyoutId) === String(item.skeleton_id)
 
-    // A card is named by what the post CALLS itself — its TITLE — and by
-    // nothing else it merely happens to carry. The CONTENT node's source
-    // path (`concepts/embeds.md`) used to sit between title and fallback,
-    // so every doc card was named after a repo file that has no existence
-    // on this platform; classification belongs to the label rail below.
-    const cardName = (item) => {
-      if (item.title) return item.title
-      if (item.parent_skeleton_id) return `comment on #${item.parent_skeleton_id}`
-      return '(untitled)'
+    // ── THE HASH LENS (2026-08-09, user ask) — expand = filter by address ──
+    // A post's chain address is its one unique reference, so "expand this
+    // card" and "filter the feed to this post" are the same operation read
+    // from two ends. The cap's expand lead applies it locally; Talavero
+    // applies the same clause when an ask contains an address (`spec.hash`).
+    // Either way the ACTIVE hash is what the expanded rendering keys off —
+    // the card that matches it draws full-height (see `.is-expanded`),
+    // whoever set the filter.
+    const hashFilter = ref(null) // { hash, id } | null — the local lens
+    const postHash = (item) => String(item.skeleton_path || '').split('/').pop()
+    const activeHash = computed(() => hashFilter.value?.hash || lensSpec.value?.hash || null)
+    // Prefix match, both ways the platform abbreviates an address: the local
+    // lens always holds the full hash, but a Talavero-relayed one may be the
+    // chip's ≥8-char slice — the server filters by the same prefix rule.
+    const isExpanded = (item) => {
+      const h = activeHash.value
+      return !!h && postHash(item).startsWith(h)
     }
+    const toggleExpand = (item) => {
+      if (isExpanded(item)) {
+        hashFilter.value = null
+        // A Talavero-issued hash releases through the clause machinery, so
+        // the lane chip and the rest of the spec settle exactly as a
+        // chip-close would settle them.
+        if (lensSpec.value?.hash) { dropClause('hash'); return }
+        load()
+        return
+      }
+      hashFilter.value = { hash: postHash(item), id: item.skeleton_id }
+      // The board returns to its top berth: an expanded card fills the space
+      // UNDER the home slot, and a board parked mid-container would stand on
+      // top of the one thing being read. 0 clamps to HOME inside the box.
+      setHeadY(0)
+      load()
+    }
+
+    // `cardName` — the title plate's naming rule (title, else `comment on
+    // #<id>`, else `(untitled)`) — left with the plate on 2026-08-09; the
+    // card's one name is the cap's (`capTitle`, below).
 
     // ── THE CAP (2026-08-07) ────────────────────────────────────────────
     // What the card's top strip says about the post: its kind, what it came
@@ -2125,9 +2236,10 @@ export default defineComponent({
       }
     }
 
-    // The post's own name in the cap. Unlike `cardName` (the title plate,
-    // which falls back through the parent because that band has no room to
-    // state a relation), this one falls back to the ADDRESS: the relation is
+    // The post's own name in the cap — THE card's one name since the title
+    // plate left the byline (2026-08-09; its `cardName` rule fell back
+    // through the parent because that band had no room to state a
+    // relation). This one falls back to the ADDRESS: the relation is
     // already stated to its left, so what is missing here is only the name,
     // and a post with no title still has an id.
     const capTitle = (item) => item.title || `post #${item.skeleton_id}`
@@ -2188,11 +2300,13 @@ export default defineComponent({
       headH,
       authorName,
       authorHandle,
-      momentDetail,
+      momentWhen,
       momentTitle,
       isOpen,
       isSkeletonOpen,
-      cardName,
+      isExpanded,
+      toggleExpand,
+      hashFilter,
       capIcons,
       capKindTitle,
       originClauses,
@@ -3578,17 +3692,77 @@ export default defineComponent({
     0 1px 2px rgba(0, 0, 0, 0.045),
     0 2px 5px -2px rgba(0, 0, 0, 0.05);
   overflow: hidden;
-  transition: border-color 0.12s;
+  transition: border-color 0.12s, box-shadow 0.12s;
 
-  &:hover { border-color: rgba(0, 130, 156, 0.45); }
+  // THE POINTER'S ANSWER IS A GLOW NOW (2026-08-09, user ask) — border and
+  // halo together in `--indigo-11` (#8c9eff), replacing the teal pair that
+  // stood here since 2026-07-26. The A100 is the hue the card's own frieze
+  // motif already runs to, so a lit card answers in this surface's family
+  // instead of the platform accent. Two steps survive from the old pair
+  // (hover at half strength, open at full), and the halo rides ON TOP of the
+  // contact shadow rather than replacing it — the lit sheet keeps its cast,
+  // it does not start floating. The halo's reach (blur/2 + spread, ~5.5px
+  // hovered / ~8.5px open) dies inside the 10px gap to the next card, the
+  // same law the ambient obeys: a glow that touches the neighbour reads as
+  // two lit cards.
+  &:hover {
+    border-color: rgba(140, 158, 255, 0.55);
+    box-shadow:
+      0 0 0 1px rgba(140, 158, 255, 0.3),
+      0 0 9px 1px rgba(140, 158, 255, 0.4),
+      0 1px 2px rgba(0, 0, 0, 0.045),
+      0 2px 5px -2px rgba(0, 0, 0, 0.05);
+  }
 
-  // The card the flyout is currently reading out (2026-07-26). The box floats
-  // clear of the container, so nothing but this says which card it belongs
-  // to: the outline goes to the accent at full strength — one step past the
-  // hover, which is the same ink at 0.45 — and it must not go anywhere else,
-  // since the card is height-capped and any added weight would come out of
-  // the pit.
-  &.is-open { border-color: #00829c; }
+  // The card the flyout is currently reading out (2026-07-26) — and, since
+  // 2026-08-09, the EXPANDED card too: both are the surface's "this one"
+  // states, and one glow saying it keeps the vocabulary at a single mark.
+  // The box floats clear of the container, so nothing but this says which
+  // card it belongs to: the glow goes to full strength — one step past the
+  // hover — and it must not add weight anywhere else, since the card is
+  // height-capped and anything taller would come out of the pit (the halo
+  // is free where a heavier border was not: a box-shadow paints outside
+  // the box).
+  &.is-open,
+  &.is-expanded {
+    border-color: var(--indigo-11, #8c9eff);
+    box-shadow:
+      0 0 0 1px rgba(140, 158, 255, 0.45),
+      0 0 13px 2px rgba(140, 158, 255, 0.55),
+      0 1px 2px rgba(0, 0, 0, 0.045),
+      0 2px 5px -2px rgba(0, 0, 0, 0.05);
+  }
+
+  // ── THE EXPANDED CARD (2026-08-09, user ask) — the hash lens's face ────
+  // When the active filter is one post's ADDRESS the stream holds exactly
+  // one card, and that card stops being a window onto the post and becomes
+  // the reading surface itself: full height, from the board's home slot
+  // down to the container's floor. The height is stated rather than grown —
+  // `--feed-well-h` is the well's measured visible height (published by the
+  // same ResizeObserver that measures the width, for the same reason: a px
+  // value cannot fail) minus the well's OWN paddings, which is what leaves
+  // the little daylight above and below the card the well already reserves
+  // for every card. ⚠ KEEP THE SUBTRACTION IN STEP with the well's
+  // `padding` line: top = --fhead-h + 22px, bottom = --frieze-h + 12px.
+  // The square ceiling lifts (`max-height: none`) and the PIT — the one
+  // flexible track — takes every pixel the rigid strips leave, scrolling in
+  // place exactly as it does at card scale.
+  &.is-expanded {
+    height: calc(var(--feed-well-h, 100vh) - var(--fhead-h, 120px) - 22px - var(--frieze-h) - 12px);
+    max-height: none;
+  }
+}
+
+// The expanded pit re-derives the MEDIA BUDGET from the expanded height
+// (2026-08-09): the resting formula is written against the SQUARE ceiling,
+// and a medium sized for a ≤60vh card standing in a full-height one would
+// leave the pit half empty. Same shape as the resting formula below — the
+// card's height term swapped for the expanded height, the well's paddings
+// (22 + 12 = 34px, plus its 1× --frieze-h) folded in beside the card's own
+// 300px chrome and 0.55× band. Keep all three lines in step: the well's
+// `padding`, `.is-expanded`'s height, and this.
+.post-square.is-expanded .post-square__pit {
+  --media-max-h: max(120px, calc(var(--feed-well-h, 60vh) - var(--fhead-h, 120px) - 334px - var(--frieze-h) * 1.55));
 }
 
 // ── THE VEIL (2026-08-07, user ask) — the card's MIDDLE LAYER ──
@@ -3844,10 +4018,14 @@ export default defineComponent({
   font-family: var(--font-display);
   font-size: 0.62em;
   letter-spacing: 0.02em;
-  // The card's deepest ink, the same the title plate and the trust chip are
-  // lettered in — this strip is the post's NAME and belongs at that weight,
-  // not at the byline's.
+  // The card's deepest ink, the same the trust chip is lettered in — this
+  // strip is the post's NAME and belongs at that weight, not at the
+  // byline's.
   color: var(--grey-9, #212121);
+  // The cap draws NO closing line of its own — its edge is the flipped
+  // `RgbHairline` element after it (2026-08-09, last ask of the divider
+  // walk; a plain `--grey-6` border-bottom held the seam for the hours
+  // between the band leaving for the foot and coming back mirrored).
 }
 
 .post-square__cap-main {
@@ -3871,6 +4049,29 @@ export default defineComponent({
   display: flex;
   align-items: center;
   gap: 2px;
+  padding: 2px 9px;
+
+  // The lane's INNER rules (2026-08-09, user ask) — each control in a ruled
+  // cell of its own. Same trick as `__byline-rule`: the lane centres its
+  // children, so a rule must stretch and then win back the lane's own 2px
+  // vertical padding to meet the strip's edges square. Keep the margin in
+  // step with that padding.
+  > .post-square__cap-rule {
+    align-self: stretch;
+    margin: -2px 0;
+  }
+}
+
+// THE EXPAND LEAD (2026-08-09, user ask) — the cell at the card's far LEFT
+// edge, holding the one control that acts on the STREAM around the card:
+// the hash lens toggle (filter to this post's address, draw it full-height).
+// The lane's own sizing rule and padding, mirrored at the other end: rigid
+// both ways, one button wide, and the fact cell between the two stays the
+// only thing that gives.
+.post-square__cap-lead {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
   padding: 2px 9px;
 }
 
@@ -3909,8 +4110,11 @@ export default defineComponent({
 
 // The split, drawn exactly like the byline's section rules — 1px of the
 // card's one line ink, meeting the strip's edges square. No negative margin
-// is needed (unlike `__byline-rule`): the cells carry the padding here, not
-// the flex parent, so `align-self: stretch` already reaches both edges.
+// is needed (unlike `__byline-rule`) for the CAP-LEVEL rules: the cells carry
+// the padding here, not the flex parent, so `align-self: stretch` already
+// reaches both edges. The copies INSIDE the control lane (2026-08-09) are the
+// exception — they live in a padded cell and take the stretch + negative
+// margin override in `__cap-side` above.
 .post-square__cap-rule {
   flex: 0 0 1px;
   width: 1px;
@@ -4029,35 +4233,74 @@ export default defineComponent({
 // unaffected. The frieze lips shared the `--grey-6` level for one
 // day in 2026-08-06's indigo; they are the plaque's own tone now and the card's
 // lines are grey, so the two systems no longer meet anywhere.
+// TWO RULED SIDES SINCE 2026-08-09's last byline ask — the band walked
+// four arrangements in one day (ruled columns with title+open → two
+// stacked dense lines → a one-line desktop fold → here) and settled as a
+// SPLIT STAMP: the face and a two-line author block on the left (who over
+// the bare relative age), a full-band seam rule, and the moment as two
+// stacked MICRO CHIPS at the right end (date over city). The title plate
+// and open-post control never came back (the CAP names the card; the
+// flyout's links are the viewer door).
 .post-square__byline {
   display: flex;
   align-items: center;
-  // Tighter than the foot's 8px rhythm: this band is a single statement of
-  // provenance (who, then when/where), not a run of independent items, so
-  // its parts sit close and the vertical rule does the dividing.
   gap: 6px;
-  padding: 5px 9px;
+  padding: 4px 9px;
   flex: 0 0 auto;
   min-width: 0;
+  // NASALIZATION across the whole section (2026-08-09, user ask) — the
+  // cap's own face and tracking, one strip down: the band inherits it to
+  // the name, the ago line, the trust/heat plates and (through the deep
+  // rule on the chips) the moment strings. The `mono` utility came OFF the
+  // handle and the two little plates in the template for exactly this —
+  // a class on the element would beat inheritance.
+  font-family: var(--font-display);
+  letter-spacing: 0.02em;
 }
 
-// The rule closing the AUTHOR section, full-bleed exactly like the head
-// strip's `__head-rule` and by the same mechanism: `align-self: stretch`
-// stops at the band's padding edge, so the negative vertical margin cancels
-// that `5px` on both sides and the line touches the card's top border above
-// and the byline's own hairline below. KEEP THAT MARGIN IN STEP with
-// `.post-square__byline`'s padding, or the line stops short of one edge.
-//
-// The two rules and the hairline together are what make this band read as
-// ruled rather than merely spaced: one horizontal line under the whole
-// band, one vertical line inside it, both `--grey-6` at 1px (the card's one
-// line ink — see `.post-square`), both meeting the box's edges square.
-.post-square__byline-rule {
-  align-self: stretch;
-  flex: 0 0 1px;
-  width: 1px;
-  margin: -5px 0;
-  background: var(--grey-6, #9e9e9e);
+// The face, hanging beside both lines — its own link to the profile (the
+// name beside it is the other; same destination, two honest targets).
+.post-square__face {
+  flex: 0 0 auto;
+  display: inline-flex;
+  border-radius: var(--radius-sm, 0.5em);
+
+  &:hover { outline: 1px solid rgba(0, 130, 156, 0.45); }
+}
+
+// The author block's two-line column. 1.15 leading and a 1px gap: at these
+// sizes the pair has to read as ONE stamp — any more air and it breaks
+// into two facts. `0 1 auto` and NOT a grower (2026-08-09, last
+// arrangement): the seam rule to its right carries the `auto` margin that
+// packs the chips at the band's end, and a flex-grow here would eat the
+// free space before an auto margin sees any of it.
+.post-square__byline-lines {
+  flex: 0 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  line-height: 1.15;
+}
+
+// The bare relative age under the author line — the stream's scan fact,
+// extracted from the moment run with its icon left behind (the arrangement
+// ask): under the name it reads as the stamp's quiet second line, and the
+// PRECISE datetime is the chip across the rule.
+.post-square__byline-ago {
+  font-size: 0.62em;
+  font-weight: 700;
+  color: rgba(var(--ink-rgb), 0.55);
+  white-space: nowrap;
+}
+
+// Line one: the author and everything that qualifies them (badge, trust,
+// heat). A flex row of rigid chips after one shrinkable link.
+.post-square__byline-who {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
 }
 
 // ── THE CARD'S TWO FRIEZE BANDS (2026-08-07, user ask) ────────────────────
@@ -4137,32 +4380,41 @@ export default defineComponent({
   );
 }
 
-// ── THE CAP'S CLOSING EDGE (2026-08-07, user ask) ─────────────────────────
-// THREE PLACES IN ONE DAY, and the walk is the documentation. It started as
-// the frieze pair's `vflip`ped half closing the label RAIL — same motif,
-// gradient reversed, the two bands reflecting about the label lane. It became
-// an `RgbHairline` in the same spot hours later: a `--grey-7` rule, a
-// cyan→indigo band, a `--grey-7` rule — the same plate tone the frieze band
-// above it stands on (that ask moved the bread there from `--grey-6`), so the
-// card's two very different dividers are at least made of one grey. What the
-// swap settled is that the card's full-bleed dividers stopped being the same
-// device twice: a frieze band is a MOTIF and needs height to read (~0.8px a
-// row is the floor, see the note above), while three flat lines read at any
-// size — so the divider nearest the reading area can be the thin one.
-//
-// THEN IT MOVED UP. With the CAP added at the top of the card, this rule was
-// asked for "between the new header and everything else", which is where it
-// stands now — and being the cap's edge it is UNCONDITIONAL, where on the
-// rail it was `v-if`'d on the post having labels. The rail is closed by
-// nothing; its strip padding and the pit's top margin are that lane.
+// ── THE CARD'S RGB PAIR (2026-08-09, last ask of the divider walk) ────────
+// The band's history is the documentation. It started as the frieze pair's
+// `vflip`ped half closing the label RAIL — same motif, gradient reversed,
+// the two bands reflecting about the label lane. It became an `RgbHairline`
+// in the same spot hours later: a `--grey-7` rule, a cyan→indigo band, a
+// `--grey-7` rule — the same plate tone the frieze band stands on, so the
+// card's two very different dividers are at least made of one grey. What
+// that swap settled is that the card's full-bleed dividers stopped being
+// the same device twice: a frieze band is a MOTIF and needs height to read
+// (~0.8px a row is the floor, see the note above), while three flat lines
+// read at any size. THEN it closed the new CAP (2026-08-07), went DOWN to
+// open the FOOT (2026-08-09, a plain border holding the cap for hours) —
+// and the same day's last ask put a band at BOTH ends: one under the cap,
+// one over the foot, the cap's FILLING FLIPPED (indigo up, cyan down) so
+// the two cyan ends face the content and the pair reads as a BRACKET, not
+// a repeat — the exact reflection argument the frieze pair retired with.
+// Unconditional: every card has a cap and a foot.
 //
 // The component ships this card's exact defaults — 2px bread, a 2px filling —
-// so nothing is dialled here and the class exists for the note above it.
+// so only the cap's flip is dialled (`--rgb-hairline-fill` restated
+// reversed; the component's own note says why: CSS cannot read a gradient
+// backwards, so a mirrored pair states two gradients).
 //
-// KEEP THE PIT'S MEDIA BUDGET IN STEP: it counts this at a flat 6px, and no
-// longer as a worst case — every card draws it.
+// KEEP THE PIT'S MEDIA BUDGET IN STEP: it counts the PAIR at a flat 12px,
+// and not as a worst case — every card draws both.
 .post-square__hairline {
   min-width: 0;
+}
+
+.post-square__hairline--cap {
+  --rgb-hairline-fill: linear-gradient(
+    to bottom,
+    var(--indigo-11, #8c9eff),
+    var(--cyan-11, #84ffff)
+  );
 }
 
 // THE MOMENT CHIP — the post's when over its where (or its date).
@@ -4181,156 +4433,56 @@ export default defineComponent({
 // the left run of the band is identical on every card. The chip bounds
 // ITSELF instead, in `ch` on its detail line — a cap it reaches only for
 // place names far longer than the "City, Country" form produces.
-.post-square__moment {
+// THE MOMENT'S CHIP STACK (2026-08-09, the last byline arrangement) — the
+// band's right side: the detailed date on top, the city under it when the
+// author shared one, each a real `MicroChip` addressing `moments/<id>`.
+// Right-aligned (`flex-end`) so the two chips share the band's end edge
+// and each hugs its own words; `flex: 0 0 auto` — the LEFT side is the one
+// that gives, its 16ch caps doing the yielding.
+.post-square__byline-when {
+  flex: 0 0 auto;
   display: flex;
   flex-direction: column;
-  line-height: 1.15;
-  flex: 0 0 auto;
-}
-
-// The relative time — the line you actually scan a feed by, so it carries the
-// weight here, the way the author's NAME does in the block opposite.
-.post-square__moment-ago {
-  font-size: 0.72em;
-  font-weight: 700;
-  color: rgba(var(--ink-rgb), 0.62);
-  white-space: nowrap;
-}
-
-// Place or date, quieter and mono — the same relationship the handle has to
-// the name across the rule. The icon rides the line's own baseline gap
-// rather than a wrapper, which is what keeps the two lines the same height
-// whichever branch renders.
-.post-square__moment-detail {
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  font-size: 0.6em;
-  color: rgba(var(--ink-rgb), 0.45);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  // The chip's OWN bound, now that flex pressure no longer trims it. It has
-  // to clear the WIDER branch whole — the date, "Sat, 25 Jul 2026 · 11:26 PM"
-  // at 27 characters, against a place's 19 — plus the icon and its gap, which
-  // sit inside this same box and so count against the cap. `32ch` covers that
-  // with room to spare and still stops a pathological place name from taking
-  // the band. Measure after changing it: at `24ch` the date branch clipped on
-  // 19 of 30 cards while the text still read whole in the DOM.
-  max-width: 32ch;
-
-  .q-icon { flex-shrink: 0; opacity: 0.75; }
-}
-
-// The title is the card's way into the full post viewer — the card itself
-// stopped being a click target when the unfoldable detail panel went. It sits
-// on its own PLATE (end of 2026-07-25): a rounded `--grey-1` box rimmed in the
-// card's ONE LINE INK (`--grey-6` since 2026-08-07, `--indigo-3` then -4
-// before it), i.e. the same floor and the same line as the markdown pit below
-// it and the label rail above it, so the card reads as one material. The
-// lettering is `--grey-9`, the deepest ink on the card (it was `--indigo-8`,
-// the colorway's dark end, and holds the same weight against the -1 floor).
-//
-// It CLOSES THE RUN OF FACTS in the band (2026-07-25, third pass — it had its
-// own strip under the band until then). `flex: 1 1 auto` is the move that
-// makes that work: the title takes every pixel the facts to its left leave, so
-// the band is exactly as wide as the card whatever the title's length.
-// `min-width: 0` is what lets it give way rather than push — a title is the
-// widest min-content in the column and, unfloored, it reaches all the way up
-// and widens the feed container itself.
-//
-// TWO LINES, CENTRED, IN A FIXED BOX (2026-07-25, fifth pass). Three things
-// that only work together:
-//
-//   · The plate is a FLEX box centring its inner span on both axes. It is
-//     stretched to the leftover width, so a short title aligned left sat
-//     against a wide empty field; centred, the plate reads as a plate whatever
-//     it holds.
-//   · The inner `__name-text` is the CLAMP — two lines, then an ellipsis. A
-//     title too long for one line now wraps instead of being cut at the first
-//     line's end, which is a real gain at this width: two lines of a mono
-//     uppercase title is most of a sentence, one line is a fragment.
-//   · `min-height` sizes the box to TWO LINES ALWAYS. Without it the plate
-//     would be one line tall on some cards and two on others — the same
-//     card-to-card raggedness the moment chip was just fixed for, and more
-//     visible here because the plate is a drawn box. Fixed, it also gives the
-//     single-line case a middle to sit in. The figure is `2 × line-height`
-//     plus the padding and border the border-box includes; keep all three in
-//     step. It costs the band almost nothing: at this type size the two-line
-//     plate measures 31px against the 28px avatar beside it, so the band went
-//     41px → 42px and every card still reports the same height.
-//
-// DENSER in the same pass — `0.74em` → `0.7em`, letter-spacing `0.03` →
-// `0.02em`, padding `2px 7px` → `2px 6px`: the plate is one of four items in
-// a 41px band now, not the sole occupant of its own strip.
-// A `<button>` since 2026-07-26 (it was a router-link to the post viewer):
-// the title TRIGGERS the information flyout now, and a control that does not
-// navigate must not be an anchor. Everything below already stated the type
-// explicitly, so the only additions are the button reset — a UA button
-// inherits neither font nor colour, and brings a default padding of its own
-// that would fight the plate's `2px 6px`.
-.post-square__name {
-  flex: 1 1 auto;
+  align-items: flex-end;
+  gap: 2px;
   min-width: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: calc(2.6em + 6px);
-  text-decoration: none;
-  appearance: none;
-  cursor: pointer;
-  font-family: 'Space Mono', monospace;
-  font-size: 0.7em;
-  line-height: 1.3;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
-  text-align: center;
-  color: var(--grey-9, #424242);
-  background: var(--grey-1, #fafafa);
-  border: 1px solid var(--grey-6, #9e9e9e);
-  border-radius: var(--radius-sm, 0.5em);
-  padding: 2px 6px;
-  overflow: hidden;
+}
 
-  &:hover { color: #00829c; border-color: rgba(0, 130, 156, 0.45); }
+// The chips at BAND density. MicroChip is sized against body text; these
+// sit in a 40px band stating one resolved string each, so they compress:
+// the cap's named-chip treatment (same two-class + scope specificity — no
+// `!important`), one register smaller. `min-width: 0` on the hash span
+// frees MicroChip's 6-character hash floor (these show STRINGS, not
+// addresses — a date ellipsizing is a date, where a hash slice under 6 is
+// noise); the caps clear the wider branch whole (27-char date / 19-char
+// place) and stop a pathological place name from taking the band.
+.post-square__moment-chip {
+  font-size: 0.58em;
+  max-width: 30ch;
 
-  // The plate while its flyout is open — the accent held rather than hovered,
-  // so the card and the box beside it read as one thing. It is the same ink
-  // the hover uses; a second colour here would suggest a second state.
-  &.is-open {
-    color: #00829c;
-    border-color: #00829c;
-    background: rgba(0, 130, 156, 0.10);
+  // These show resolved STRINGS, not addresses, so they letter in the
+  // band's display face (2026-08-09, Nasalization ask) — the deep rule's
+  // two classes + scope attribute beat the hash span's own `.mono`, the
+  // cap's named-chip precedent exactly.
+  :deep(.micro-chip__hash) {
+    min-width: 0;
+    font-weight: 500;
+    font-family: var(--font-display);
+    letter-spacing: 0.02em;
   }
 }
 
-// The clamp itself. `-webkit-line-clamp` is the right tool HERE and the wrong
-// one in the pit (see gotchas.md): it counts LINE BOXES inside one
-// `-webkit-box`, which is exactly what this is — a single text node — where
-// the pit holds a run of block elements it cannot measure.
-//
-// `overflow-wrap: anywhere` is the guard for titles that are one long
-// unbroken token (a file path stands in as a title when a post has none):
-// without it such a word cannot break, so it overflows the plate rather than
-// wrapping into the second line.
-.post-square__name-text {
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  overflow-wrap: anywhere;
-}
+// The byline's DESKTOP FOLD lives at the bottom of the byline family —
+// after `.post-square__identity-handle` — because a media query adds no
+// specificity: an override written ABOVE the base it overrides loses to
+// source order, silently (measured: the identity bumps stayed 0.72em from
+// this spot).
 
-.post-square__go {
-  display: inline-flex;
-  align-items: center;
-  color: rgba(var(--ink-rgb), 0.45);
-  flex-shrink: 0;
-  padding: 2px;
-  border-radius: 4px;
-  &:hover { color: #00829c; background: rgba(0, 130, 156, 0.08); }
-}
+// THE TITLE PLATE AND THE OPEN-POST CONTROL ARE GONE (2026-08-09, user ask
+// — `.post-square__name`, `__name-text`, `__go`, and the min-height ⇄
+// line-clamp law the fsck static witness kept for the plate, retired with
+// it in the same task). The title states itself in the CAP; the flyout's
+// links are the viewer door; the flyout TOGGLE is the foot's chip.
 
 // The carved pit — same inset shadow recipe as .label-square__pit so the
 // feed reads as a sibling of the label explorer.
@@ -4374,13 +4526,15 @@ export default defineComponent({
   // `30vh`, because that ceiling is `min(width, 60vh)` — a narrow column
   // makes a short card, and a fixed viewport fraction would overflow it. The
   // constant is everything in the card that is NOT the medium, measured at
-  // 1440×900 / 595px column: 161px of card chrome (the CAP 24 — measured, and
-  // it is a one-line strip by construction, so it is a constant like the rest
-  // — + byline 42 + rail strip 42
+  // 1440×900 / 595px column: 166px of card chrome (the CAP 24 — measured; a
+  // one-line strip by construction, so a constant like the rest — + byline
+  // 41 — measured on the SPLIT-STAMP arrangement, 2026-08-09's last: author
+  // over ago │ two stacked moment chips; the day walked it 42 → 33 → 32 →
+  // here — + rail strip 42
   // + foot 30 + margins 13 + borders 4 — 3 of the card's own 1.5px pair since
-  // 2026-08-07, 1 of the pit's — + the rgb hairline's 6, which is
-  // UNCONDITIONAL since it moved up to close the cap), then inside the pit
-  // 16px of padding,
+  // 2026-08-07, 1 of the pit's — + the rgb PAIR's 12, UNCONDITIONAL: one
+  // band under the cap, one over the foot since 2026-08-09's last ask), then
+  // inside the pit 16px of padding,
   // ~70px of the Mini's own header and foot, ~21px of embed caption and
   // ~20px of block margin. Budget + all of that = the ceiling, which is the
   // point: a card holding one medium comes out exactly full, with nothing to
@@ -4399,7 +4553,7 @@ export default defineComponent({
   // one without the other and you get either a player that needs a scroll or
   // a small player in a half-empty card. The 120px floor is for the narrowest
   // columns, where the subtraction would otherwise go negative.
-  --media-max-h: max(120px, calc(min(var(--post-square-max, 100cqw), 60vh) - 295px - var(--frieze-h) * 0.55));
+  --media-max-h: max(120px, calc(min(var(--post-square-max, 100cqw), 60vh) - 300px - var(--frieze-h) * 0.55));
 
   flex: 1 1 auto;
   min-height: 0;
@@ -4805,24 +4959,27 @@ export default defineComponent({
 // block is `flex: 0 0 auto`, but it is the exact property that collapsed this
 // block to `cla…` / `@cla…` once, and leaving it written invites the next edit
 // to make it bite again.
+// The name + handle, INLINE on the who-line since 2026-08-09 (they stacked
+// as the block's own two lines while the band ran in columns; the STACK is
+// the whole band now, and this pair is its first line). One link to the
+// profile — the face beside it is the other, same destination.
 .post-square__identity {
   display: inline-flex;
-  align-items: center;
-  // DENSER (2026-07-25, second byline pass): 7px → 5px between the face and
-  // its two lines, and the face itself 34px → 28px. The block is a
-  // provenance stamp, not a profile header — it only has to be recognisable
-  // at a glance, and pulling it in gives the band's own height back to the
-  // pit, which is the card's one flexible track.
-  gap: 5px;
-  flex: 0 0 auto;
+  align-items: baseline;
+  gap: 4px;
+  flex: 0 1 auto;
+  min-width: 0;
   text-decoration: none;
   color: inherit;
-  border-radius: var(--radius-sm, 0.5em);
-  padding: 1px 3px 1px 1px;
-  transition: background 0.12s;
 
-  &:hover { background: rgba(0, 130, 156, 0.08); }
-  &:hover .post-square__identity-name { color: #00829c; }
+  // BOTH LINES LIGHT AS ONE (2026-08-09, user ask) — `--cyan-14`, the
+  // cyan family's A700, on the name AND the handle together. They are one
+  // link to one place, and lighting only the name (the old `#00829c` +
+  // 70%-alpha pair) made the hover look like two targets in a row. The
+  // resting name is `--cyan-9`, four steps deeper in the same family, so
+  // this reads as a LIFT along one hue rather than a swap between two.
+  &:hover .post-square__identity-name,
+  &:hover .post-square__identity-handle { color: var(--cyan-14, #00b8d4); }
 }
 
 // The org badge belongs to the identity beside it, not to the band — pulled
@@ -4873,39 +5030,75 @@ export default defineComponent({
   padding: 1px 6px;
 }
 
-.post-square__identity-text {
-  display: flex;
-  flex-direction: column;
-  // 1.15 rather than the app's default — two stacked lines at this size sit
-  // as one block, and any more leading breaks them apart into two facts. The
-  // moment chip across the rule states the same figure for the same reason.
-  line-height: 1.15;
-  min-width: 0;
-}
-
-// Both lines came in a step in the dense pass (0.78 → 0.74, 0.66 → 0.62) and
-// their `18ch` cap with them: at 16ch the two lines are near enough the same
-// length that the block reads as one stamp, and a name long enough to be cut
-// there was already being cut at 18.
+// The `16ch` caps survive the inline move: side by side the pair can no
+// longer lean on "never wider than the name above", so each bounds itself
+// and the line's flex does the rest.
 .post-square__identity-name {
-  font-size: 0.74em;
+  font-size: 0.72em;
   font-weight: 700;
-  color: #4f3e98;
+  // CYAN since 2026-08-09 (user ask) — `--cyan-9`, Material 800, minted
+  // for this. It replaces a hard-coded `#4f3e98` purple that belonged to
+  // no family on this platform, and it makes the byline the card's ONE
+  // coloured voice: cap, rail, pit and foot are all neutral now, so the
+  // author's name is the only thing on a post square stating a hue in
+  // TEXT. Deep end of the family on purpose — the pointer takes it up to
+  // `--cyan-14`, and a resting tone must be the one you can read.
+  color: var(--cyan-9, #00838f);
   max-width: 16ch;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-// The handle is the address you can type back — mono, quieter, and never
-// wider than the name it sits under.
+// The handle is the address you can type back — quieter, riding the
+// name's baseline (in the band's display face since the Nasalization ask;
+// its `mono` went with it).
 .post-square__identity-handle {
-  font-size: 0.62em;
+  font-size: 0.6em;
   color: rgba(var(--ink-rgb), 0.5);
   max-width: 16ch;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+// ── ONE LINE ON DESKTOP (2026-08-09, user ask) ────────────────────────────
+// The byline's two dense lines fold into a SINGLE row when the window is
+// wide enough to hold them side by side: author at the left, the moment
+// run at the right end of the same line, the face hanging beside one line
+// instead of two. `min-width: 1024px` is FeedPage's own desktop gate (the
+// full-height container ask) — the byline follows the page's word for
+// desktop, not a number of its own; under it the stack stands.
+//
+// The type steps UP with the fold (name 0.72→0.8em, handle 0.6→0.66,
+// ago 0.66→0.72, details 0.6→0.66): two lines' worth of facts on one line
+// has width to spend, and the band it sits in got SHORTER — 33px stacked
+// → 32px folded (the 24px face + the band's 8px padding is the height
+// now; the media budget's byline term is measured on THIS branch, desktop
+// being where the 1440×900 measurement lives).
+//
+// Squeeze order on the shared line, stated in shrink factors: the PLACE
+// gives first (factor 4, floor 0), the WHEN may then ellipsize (factor 1
+// — it was rigid in the stack, but on a shared line "never trims" would
+// push the author off instead; an ellipsized time is still a time, and
+// the tooltip carries it whole), and the author's own 16ch caps hold the
+// left end.
+//
+// The SEAM RULE between the author side and the moment chips —
+// unconditional since the split-stamp arrangement (2026-08-09, last byline
+// ask; it was born hours earlier as a fold-only member). Full band height
+// by the house device — stretch + negative margins cancelling the band's
+// own 4px padding (keep in step) — and it CARRIES the `auto` left margin
+// that packs the chip stack at the band's end, so the rule stands exactly
+// at the seam it divides. (The one-line desktop fold and its
+// `display: contents` machinery died with the arrangement; the band is
+// one layout at every width now.)
+.post-square__byline-rule {
+  flex: 0 0 1px;
+  width: 1px;
+  align-self: stretch;
+  margin: -4px 0 -4px auto;
+  background: var(--grey-6, #9e9e9e);
 }
 
 .post-square__stat {
