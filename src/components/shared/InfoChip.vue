@@ -31,6 +31,17 @@
       :class="'status-' + claimStatus"
       :title="'claim · ' + claimStatus"
     >{{ claimStatus }}</span>
+    <!-- The integrity traffic light (integrity-debt plan): green = proof
+         verified, red = a check contradicted (click → Talavero's report);
+         lawful-unproven draws nothing. Same grammar as MicroChip's dot. -->
+    <span
+      v-if="integrityState"
+      class="info-chip__integrity"
+      :class="'integrity-' + integrityState"
+      :title="integrityTitle"
+      role="button"
+      @click.stop.prevent="onIntegrityClick"
+    />
     <!-- Locked chips open the request-permission panel instead of routing. -->
     <q-menu v-if="isLocked" anchor="bottom left" self="top left" :offset="[0, 4]">
       <RequestAccessPanel :address="lockedAddress" />
@@ -40,6 +51,7 @@
 
 <script>
 import { defineComponent, computed, ref, onMounted, watch } from 'vue'
+import { useRouter } from 'vue-router'
 import { kindFor, prefixFor, hashOf, shortHash } from 'src/utils/kinds'
 import { refService } from 'src/services/ref.service'
 import RequestAccessPanel from './RequestAccessPanel.vue'
@@ -72,6 +84,7 @@ export default defineComponent({
     pioneer: { type: Boolean, default: false }
   },
   setup (props) {
+    const router = useRouter()
     const meta = computed(() => kindFor(props.kind))
 
     const loading = ref(false)
@@ -145,8 +158,32 @@ export default defineComponent({
 
     const claimStatus = computed(() => resolved.value?.claim?.status || null)
 
+    // The integrity verdict rides the summary (integrity-debt plan):
+    // 'ok' → green, 'violated' → red + click routes to Talavero's report.
+    const integrityState = computed(() => {
+      const s = resolved.value?.integrity?.status
+      return s === 'ok' || s === 'violated' ? s : null
+    })
+    const integrityTitle = computed(() => {
+      if (integrityState.value === 'ok') return 'proof verified'
+      if (integrityState.value !== 'violated') return null
+      const check = resolved.value?.integrity?.check || 'integrity'
+      return resolved.value?.integrity?.report
+        ? `integrity violated: ${check} — click for Talavero's report`
+        : `integrity violated: ${check} — report unavailable`
+    })
+    const onIntegrityClick = () => {
+      const report = resolved.value?.integrity?.report
+      if (integrityState.value === 'violated' && report) {
+        router.push({ path: '/feed', query: { flyout: report } })
+      }
+    }
+
     return {
       claimStatus,
+      integrityState,
+      integrityTitle,
+      onIntegrityClick,
       meta,
       loading,
       primaryLine,
@@ -236,6 +273,21 @@ export default defineComponent({
   &.status-supported { background: #2e6a3a; }
   &.status-disputed  { background: #a03d3d; }
   &.status-retracted { background: #8995a8; text-decoration: line-through; }
+}
+
+// The integrity traffic light — MicroChip's dot at Info scale. Red is the
+// only interactive state (routes to Talavero's report).
+.info-chip__integrity {
+  flex-shrink: 0;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  &.integrity-ok       { background: #2e6a3a; }
+  &.integrity-violated {
+    background: #a03d3d;
+    cursor: pointer;
+    box-shadow: 0 0 0 2px rgba(160, 61, 61, 0.25);
+  }
 }
 
 .info-chip__lines {

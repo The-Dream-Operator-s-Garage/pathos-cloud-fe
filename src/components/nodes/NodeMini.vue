@@ -42,6 +42,19 @@
         />
       </span>
 
+      <!-- The integrity traffic light (integrity-debt plan): the panel
+           wears its node's verdict in the header — green proof-verified,
+           red violated (click → Talavero's report). Same grammar as the
+           chips'; lawful-unproven draws nothing. -->
+      <span
+        v-if="integrityState"
+        class="node-mini__integrity"
+        :class="'integrity-' + integrityState"
+        :title="integrityTitle"
+        role="button"
+        @click.stop.prevent="openIntegrityReport"
+      />
+
       <!-- The MEDIA VIEWER trigger (2026-08-04) — the corner that was a
            decorative glyph is the header's one real button now: it spawns
            the floating dark-grey viewer for this node
@@ -114,6 +127,13 @@
            `pre-wrap` — and the panel is the one that scrolls. -->
       <div v-else-if="showsSource" class="node-mini__source mono">{{ sourceText }}</div>
       <div v-else-if="excerpt" class="node-mini__excerpt">{{ excerpt }}</div>
+      <!-- Integrity withholding (integrity-debt plan): a violated node's
+           body never renders — the API already withheld it; this face says
+           so instead of pretending emptiness, and routes to the report. -->
+      <div v-else-if="isWithheld" class="node-mini__withheld" @click.stop.prevent="openIntegrityReport">
+        <q-icon name="report" size="13px" />
+        <span>body withheld — integrity check failed{{ integrityReport ? ' · open Talavero\'s report' : '' }}</span>
+      </div>
       <div v-else class="node-mini__empty">(no content)</div>
     </template>
 
@@ -127,6 +147,7 @@
 
 <script>
 import { defineComponent, computed } from 'vue'
+import { useRouter } from 'vue-router'
 import MiniPanel from 'src/components/shared/MiniPanel.vue'
 import EmbedFrame from 'src/components/shared/EmbedFrame.vue'
 import NodeMicro from './NodeMicro.vue'
@@ -148,6 +169,7 @@ export default defineComponent({
     raw: { type: Boolean, default: false }
   },
   setup (props) {
+    const router = useRouter()
     const targetRoute = computed(() => props.to || `/nodes/${props.node.id}`)
 
     // The header corner's job: hand THIS enriched node card to the
@@ -226,9 +248,37 @@ export default defineComponent({
       return null
     })
 
+    // The integrity verdict rides the enriched node (integrity-debt plan):
+    // green proof-verified / red violated (click → Talavero's report in
+    // the flyout); lawful-unproven states draw nothing.
+    const integrityState = computed(() => {
+      const s = props.node.integrity?.status
+      return s === 'ok' || s === 'violated' ? s : null
+    })
+    const integrityReport = computed(() => props.node.integrity?.report || null)
+    const isWithheld = computed(() => props.node.content_withheld === true)
+    const integrityTitle = computed(() => {
+      if (integrityState.value === 'ok') return 'proof verified'
+      if (integrityState.value !== 'violated') return null
+      const check = props.node.integrity?.check || 'integrity'
+      return integrityReport.value
+        ? `integrity violated: ${check} — click for Talavero's report`
+        : `integrity violated: ${check} — report unavailable`
+    })
+    const openIntegrityReport = () => {
+      if (integrityReport.value) {
+        router.push({ path: '/feed', query: { flyout: integrityReport.value } })
+      }
+    }
+
     return {
       targetRoute,
       openViewer,
+      integrityState,
+      integrityTitle,
+      integrityReport,
+      isWithheld,
+      openIntegrityReport,
       nodeKind,
       effectiveTitle,
       excerpt,
@@ -578,6 +628,33 @@ export default defineComponent({
   font-size: 0.78em;
   color: #8995a8;
   font-style: italic;
+}
+
+// ── The integrity traffic light + withheld face (integrity-debt plan) ────
+// Header dot: the chips' grammar at panel scale. Red is the only
+// interactive state — it routes to Talavero's report.
+.node-mini__integrity {
+  flex-shrink: 0;
+  align-self: center;
+  width: 8px;
+  height: 8px;
+  margin: 0 4px;
+  border-radius: 50%;
+  &.integrity-ok       { background: #2e6a3a; }
+  &.integrity-violated {
+    background: #a03d3d;
+    cursor: pointer;
+    box-shadow: 0 0 0 2px rgba(160, 61, 61, 0.25);
+  }
+}
+
+.node-mini__withheld {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78em;
+  color: #a03d3d;
+  cursor: pointer;
 }
 
 // ── The THUMBS, flat on the caption line (2026-07-27) ────────────────────

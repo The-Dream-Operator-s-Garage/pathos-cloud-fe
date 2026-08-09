@@ -14,6 +14,7 @@
     :display="label || undefined"
     :pioneer="isPioneer"
     :claim-status="claimStatus"
+    :integrity="integrityCard"
     :full-address="address"
   />
 </template>
@@ -58,11 +59,13 @@ export default defineComponent({
     const isPioneer = computed(() => resolved.value?.pioneer === true)
     // Claim refs carry STATUS down to the chip (Thread D reader surface).
     const claimStatus = computed(() => resolved.value?.claim?.status || null)
+    // The integrity verdict rides the same summary (integrity-debt plan).
+    const integrityCard = computed(() => resolved.value?.integrity || null)
     // Access doctrine: the summary's locked stub means the viewer cannot
     // read this element — the chip must say so, not sit inert.
     const isLocked = computed(() => resolved.value?.locked === true)
 
-    return { prefix: computed(() => parts.value.prefix), hash: computed(() => parts.value.hash), route, isPioneer, claimStatus, isLocked }
+    return { prefix: computed(() => parts.value.prefix), hash: computed(() => parts.value.hash), route, isPioneer, claimStatus, integrityCard, isLocked }
   }
 })
 </script>

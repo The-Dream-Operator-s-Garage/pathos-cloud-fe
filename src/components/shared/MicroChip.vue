@@ -28,11 +28,25 @@
       class="micro-chip__status"
       :class="'status-' + claimStatus"
     />
+    <!-- The integrity traffic light (integrity-debt plan, 2026-08-08):
+         green = this element's chain proof verified on the last read; red =
+         a check CONTRADICTED — the body is withheld and clicking the dot
+         opens Talavero's report in the flyout. Lawful-unproven states
+         (drafts, pre-epoch) draw NOTHING: green must mean verified. -->
+    <span
+      v-if="integrityState"
+      class="micro-chip__integrity"
+      :class="'integrity-' + integrityState"
+      :title="integrityTitle"
+      role="button"
+      @click.stop.prevent="onIntegrityClick"
+    />
   </component>
 </template>
 
 <script>
 import { defineComponent, computed } from 'vue'
+import { useRouter } from 'vue-router'
 import { kindFor, hashOf } from 'src/utils/kinds'
 
 export default defineComponent({
@@ -65,9 +79,14 @@ export default defineComponent({
     pioneer: { type: Boolean, default: false },
     // Claim refs: 'open' | 'supported' | 'disputed' | 'retracted' renders
     // a status dot; null (every non-claim) renders nothing.
-    claimStatus: { type: String, default: null }
+    claimStatus: { type: String, default: null },
+    // The element's integrity verdict from the API ({ status, check,
+    // report }). 'ok' → green, 'violated' → red (click opens the report
+    // flyout), 'exempt'/null → no dot.
+    integrity: { type: Object, default: null }
   },
   setup (props) {
+    const router = useRouter()
     const meta = computed(() => {
       const base = kindFor(props.kind)
       const withIcon = props.icon ? { ...base, icon: props.icon } : base
@@ -92,7 +111,28 @@ export default defineComponent({
 
     const rootTag = computed(() => route.value ? 'router-link' : 'span')
 
-    return { meta, hash, route, rootTag, tooltip }
+    const integrityState = computed(() => {
+      const s = props.integrity?.status
+      return s === 'ok' || s === 'violated' ? s : null
+    })
+    const integrityTitle = computed(() => {
+      if (integrityState.value === 'ok') return 'proof verified'
+      if (integrityState.value === 'violated') {
+        const check = props.integrity?.check || 'integrity'
+        return props.integrity?.report
+          ? `integrity violated: ${check} — click for Talavero's report`
+          : `integrity violated: ${check} — report unavailable`
+      }
+      return null
+    })
+    const onIntegrityClick = () => {
+      const report = props.integrity?.report
+      if (integrityState.value === 'violated' && report) {
+        router.push({ path: '/feed', query: { flyout: report } })
+      }
+    }
+
+    return { meta, hash, route, rootTag, tooltip, integrityState, integrityTitle, onIntegrityClick }
   }
 })
 </script>
@@ -156,6 +196,20 @@ export default defineComponent({
   &.status-supported { background: #2e6a3a; }
   &.status-disputed  { background: #a03d3d; }
   &.status-retracted { background: #8995a8; }
+}
+// The integrity traffic light — same footprint as the claim dot. Red is
+// the only interactive state (it routes to the report); the halo says so.
+.micro-chip__integrity {
+  flex-shrink: 0;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  &.integrity-ok       { background: #2e6a3a; }
+  &.integrity-violated {
+    background: #a03d3d;
+    cursor: pointer;
+    box-shadow: 0 0 0 2px rgba(160, 61, 61, 0.25);
+  }
 }
 .micro-chip__sep  { flex-shrink: 0; opacity: 0.35; }
 .micro-chip__type {
