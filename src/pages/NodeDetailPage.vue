@@ -8,6 +8,15 @@
 
       <AccessDeniedBanner v-else-if="locked" :address="locked.address" />
 
+      <!-- Integrity withholding (integrity-debt plan): the API refused to
+           serve an unproven body — Talavero's third face says so instead
+           of a page around a hole. -->
+      <IntegrityBanner
+        v-else-if="node && node.content_withheld"
+        :check="node.integrity && node.integrity.check"
+        :report="node.integrity && node.integrity.report"
+      />
+
       <div v-else-if="!node" class="text-center q-py-xl text-dim">
         <q-icon name="error_outline" size="40px" style="opacity:.3;" />
         <div class="q-mt-sm" style="font-size:0.85em;">Node not found.</div>
@@ -364,6 +373,7 @@ import BottomSplitter from 'src/components/shared/BottomSplitter.vue'
 import FileContractBadge from 'src/components/files/FileContractBadge.vue'
 import ProvenanceBadge from 'src/components/shared/ProvenanceBadge.vue'
 import AccessDeniedBanner from 'src/components/shared/AccessDeniedBanner.vue'
+import IntegrityBanner from 'src/components/shared/IntegrityBanner.vue'
 import { lockedInfoFromError } from 'src/utils/access'
 
 const TYPE_ICONS = { NOTE: 'article', FILE: 'attachment', URL: 'link', REFERENCE: 'call_split' }
@@ -371,7 +381,7 @@ const TYPE_COLORS = { NOTE: 'primary', FILE: 'teal', URL: 'secondary', REFERENCE
 
 export default defineComponent({
   name: 'NodeDetailPage',
-  components: { LabelSlider, MomentInfo, CommentItem, PostCommentItem, ElementActions, NodeContentViewer, PostMakerSurface, NodeForkItem, ForkConfirmPanel, BottomSplitter, FileContractBadge, ProvenanceBadge, AccessDeniedBanner, AccessContractPanel },
+  components: { LabelSlider, MomentInfo, CommentItem, PostCommentItem, ElementActions, NodeContentViewer, PostMakerSurface, NodeForkItem, ForkConfirmPanel, BottomSplitter, FileContractBadge, ProvenanceBadge, AccessDeniedBanner, IntegrityBanner, AccessContractPanel },
   setup () {
     const route = useRoute()
     const router = useRouter()
