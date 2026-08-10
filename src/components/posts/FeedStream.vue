@@ -5718,7 +5718,8 @@ export default defineComponent({
 //
 // So the image is drawn at 28px and pulled back to an 11px LAYOUT box with
 // `margin: -8.5px 0`. Nothing around it moves at any step: the plate stays
-// 20.03px and the rail 24px, so the pit's `--media-max-h` constant is
+// 20.03px and the rail band 26px (34 with the strip's padding and rim since
+// 2026-08-10's last rail ask), so the pit's `--media-max-h` constant is
 // untouched by this dial.
 //
 // ⚠ THE CEILING IS ~38px, AND IT IS ARITHMETIC — recompute it if the plate's
