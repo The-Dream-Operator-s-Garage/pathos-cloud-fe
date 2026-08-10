@@ -15,9 +15,19 @@
   >
     <q-icon :name="meta.icon" :size="iconSize" class="micro-chip__icon" />
     <template v-if="showType">
-      <span class="micro-chip__sep">/</span>
-      <span class="micro-chip__type mono">{{ meta.kind }}</span>
-      <span class="micro-chip__sep">/</span>
+      <span class="micro-chip__sep">{{ sep }}</span>
+      <!-- The type slot says the same thing two ways: a WORD by default, or
+           a GLYPH when the caller hands one — for a chip standing in a strip
+           that already states that kind as an icon, where the word would be
+           the only spelt-out thing in a run of marks. -->
+      <q-icon
+        v-if="typeIcon"
+        :name="typeIcon"
+        :size="iconSize"
+        class="micro-chip__type-icon"
+      />
+      <span v-else class="micro-chip__type mono">{{ typeLabel || meta.kind }}</span>
+      <span class="micro-chip__sep">{{ sep }}</span>
     </template>
     <span class="micro-chip__hash mono">{{ display || hash }}</span>
     <!-- Claim STATUS dot — a chip this small states the standing as a
@@ -61,6 +71,22 @@ export default defineComponent({
     // Show the `icon / type / hash` triplet (default). Set false for a
     // hash-only minimal chip.
     showType: { type: Boolean, default: true },
+    // The WORD between the two separators. Defaults to the kind's own slug
+    // ('post', 'node', …) — what the element IS. A chip that stands for a
+    // different READING of the same element says so here: the feed card's
+    // foot chip is set to `skeleton`, because a post's address is what the
+    // skeleton viewer is a read-out of, and the chip is that viewer's door.
+    typeLabel: { type: String, default: '' },
+    // …or that word DRAWN. Wins over `typeLabel` when both are given: the
+    // feed card's foot chip sends the cap's own `sym_o_orthopedics`, so the
+    // chip reads `[post] :: [skeleton] :: <hash>` — three marks and an
+    // address, matching a strip whose every other control is a glyph.
+    typeIcon: { type: String, default: '' },
+    // The glyph drawn on both sides of that word. `/` is the address dialect
+    // every inline chip speaks (`node / a1b2c3…`); a chip standing inside a
+    // strip with its own punctuation passes that strip's — the feed foot
+    // sends `::`, the separator the cap one card-length up already uses.
+    sep: { type: String, default: '/' },
     icon: { type: String, default: null },
     iconSize: { type: String, default: '10px' },
     to: { type: String, default: null },
@@ -212,6 +238,9 @@ export default defineComponent({
   }
 }
 .micro-chip__sep  { flex-shrink: 0; opacity: 0.35; }
+// The drawn type. One step under the leading icon's 0.85, the way the type
+// WORD sits one step under the hash — it classifies, it does not name.
+.micro-chip__type-icon { flex-shrink: 0; opacity: 0.7; }
 .micro-chip__type {
   flex-shrink: 0;
   opacity: 0.7;

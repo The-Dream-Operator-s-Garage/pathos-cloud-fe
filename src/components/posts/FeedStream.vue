@@ -763,17 +763,24 @@
               </div>
             </div>
 
-            <!-- THE CAP'S CLOSING EDGE — the `RgbHairline`, BACK (2026-08-09,
-                 last ask of the divider walk; it stood here from 08-07 until
-                 earlier today, went down to open the foot, and now BOTH ends
-                 of the reading area wear the band). The `--cap` modifier
-                 flips the filling upside down — indigo at the top, cyan
-                 facing the content — so the pair BRACKETS the card the way
-                 the frieze pair once reflected about the label lane: the two
-                 cyan ends face each other, and neither band is the other
-                 drawn twice. The cap's own plain border-bottom went with
-                 this; its divider is the band again. -->
-            <RgbHairline class="post-square__hairline post-square__hairline--cap" />
+            <!-- THE CAP'S CLOSING EDGE — THE FRIEZE BAND (2026-08-10, user
+                 ask). This seam has been walked all week: a plain grey
+                 hairline, then a `vflip`ped frieze half, then an
+                 `RgbHairline` (2026-08-07), which went down to open the foot
+                 and came back flipped on 08-09 to BRACKET the reading area
+                 against the foot's band. What stands here now is the card's
+                 one frieze, MOVED UP from the byline↔label seam it held
+                 since 08-07 — the card carries a single motif band and this
+                 is where it goes: the top seam is the one a reader crosses
+                 first, and a motif states "a new kind of thing begins" more
+                 plainly than a third copy of the same rule could.
+
+                 With the move the `--cap` FLIP is gone too, and so is the
+                 bracket argument that needed it: the card's three remaining
+                 sandwiches all run cyan-down, one grammar, and the figure at
+                 the top is a different device rather than the same one
+                 mirrored. -->
+            <FriezeBar slim class="post-square__frieze" />
 
             <!-- BYLINE band — the author's IDENTITY BLOCK, at the card's top
                  edge (2026-07-25; TWO RULED SIDES since 2026-08-09's last
@@ -844,13 +851,9 @@
                     :org="item.author.org"
                     :size="14"
                   />
-                  <!-- TRUST CHIP (Thread J) — invite-chain distance, part of
-                       the author unit; tooltip walks the vouch path. -->
-                  <span
-                    v-if="item.author?.trust"
-                    class="post-square__trust"
-                    :title="trustTitle(item.author.trust)"
-                  >{{ trustLabel(item.author.trust) }}</span>
+                  <!-- The TRUST CHIP stood here, third in the qualifier run,
+                       from Thread J until 2026-08-10 — see the ago line
+                       below, which is where it went and why. -->
                   <!-- HEAT CHIP (2026-08-07) — only under `order=heat`,
                        where the number IS the ordering being read. -->
                   <span
@@ -862,12 +865,38 @@
                   </span>
                 </span>
 
-                <!-- The AGO line — the relative age alone, no icon, no
-                     link: it is the identity stamp's second line now
-                     (2026-08-09, the arrangement's ask), the fact you scan
-                     the stream by sitting right under who did it. The
-                     precise datetime lives in the chip across the rule. -->
-                <span class="post-square__byline-ago">{{ timeAgo(item.created_at, item.moment) }}</span>
+                <!-- The AGO line — the identity stamp's quiet second line
+                     (2026-08-09), the fact you scan the stream by sitting
+                     right under who did it. The precise datetime lives in
+                     the chip across the rule.
+
+                     THE HOP CHIP LEADS IT since 2026-08-10 (user ask):
+
+                       [1 hop] · 3h ago
+
+                     It rode the WHO line as the author's third qualifier
+                     (badge, trust, heat) and it was the widest of the three
+                     — a bordered plate with a word in it, standing between
+                     the name and the card's right edge on the one line the
+                     name has to fit on. Down here it costs the name nothing,
+                     and the pairing is honest besides: how FAR the author is
+                     and how LONG ago they published are both distances, and
+                     this line is where the card states them. The DOT is the
+                     platform's own separator for facts of one kind on one
+                     line, drawn only when there is a chip to separate. -->
+                <span class="post-square__byline-ago">
+                  <span
+                    v-if="item.author?.trust"
+                    class="post-square__trust"
+                    :title="trustTitle(item.author.trust)"
+                  >{{ trustLabel(item.author.trust) }}</span>
+                  <span
+                    v-if="item.author?.trust"
+                    class="post-square__ago-dot"
+                    aria-hidden="true"
+                  >·</span>
+                  <span class="post-square__ago-text">{{ timeAgo(item.created_at, item.moment) }}</span>
+                </span>
               </div>
 
               <!-- The SEAM RULE — the full-band vertical hairline between
@@ -931,7 +960,20 @@
                  material — a `--teal-11` → `--indigo-11` gradient running down
                  the band, reversed on the mirrored one so indigo faces the lane
                  from both sides and mint faces the card. -->
-            <FriezeBar slim class="post-square__frieze" />
+            <!-- THE BYLINE'S CLOSING EDGE — an `RgbHairline` since
+                 2026-08-10 (user ask), and the ONLY thing on this seam since
+                 later the same day, when the frieze band that had stood here
+                 since 08-07 went up to close the cap instead. The two lived
+                 here together for one pass (motif over rule); what settled
+                 it is that the card has one frieze and the seam that earns
+                 it is the top one.
+
+                 It is the LABEL BRACKET's upper half (`--rail`, same day's
+                 last ask): the two bands around the label strip are dialled
+                 as a pair — thinner bread than the foot's, and their
+                 fillings facing each other. This one keeps the base
+                 orientation, cyan down toward the labels. -->
+            <RgbHairline class="post-square__hairline post-square__hairline--rail" />
 
             <!-- LABEL RAIL — the element's OWN classification, as the label
                  paths it holds, root to leaf. It sat BELOW the body until
@@ -957,43 +999,153 @@
                  element to sit on, which the inset rail is not. -->
             <div v-if="labelPaths(item).length" class="post-square__rail-strip">
               <div class="post-square__rail">
-                <!-- Each chip is the LINK to the label's page; the funnel
-                     beside it (hover-revealed — the head band's picker covers
-                     touch) is the second way into the label lens: filter the
-                     stream by this chip without leaving the feed. -->
-                <template v-for="lp in labelPaths(item)" :key="lp.id">
-                  <router-link
-                    :to="'/labels/' + lp.id"
-                    class="post-square__label mono"
-                    :title="lp.path"
-                    @click.stop
-                  >
+                <!-- BUNDLED BY ROOT since 2026-08-10 (user ask). The rail used
+                     to hold one plate per label PATH, each spelling its whole
+                     chain — so a post classified twice under the same tree
+                     printed that tree's root twice, and on plumbing posts the
+                     rail read `PATHCHAIN › … PATHCHAIN › …`. It now holds one
+                     plate per ROOT, and inside it:
+
+                       [ 🪐 │ INSTANTIATION │ POST › ORIGINAL ]
+
+                     The root is stated ONCE, at the plate's left edge, as its
+                     mark when it has one and as its name when it does not.
+                     Every label of that tree stands to the right of it in its
+                     own ruled cell, spelling only the TAIL of its path — the
+                     part the bundle has not already said.
+
+                     The plate is the chip that used to hold one path (same
+                     cream coat, `--indigo-1` rim, 4px corners); what moved is
+                     which element wears that chrome. And the members are
+                     PLATES OF THEIR OWN — `--grey-2` on a `--grey-4` rim
+                     (2026-08-10, the follow-on ask) — so the rail is now two
+                     tiers: a warm sheet per tree, cool tokens lying on it.
+                     That is why there are no hairlines between the cells the
+                     way the CAP and the FOOT divide theirs: a rule and a rim
+                     in the same three pixels would be the same seam drawn
+                     twice. -->
+                <div
+                  v-for="b in labelBundles(item)"
+                  :key="b.root"
+                  class="post-square__bundle"
+                >
+                  <!-- THE ROOT CELL. A masked SHAPE, not an `<img>`
+                       (2026-08-10, the hover ask): the mark is painted as a
+                       background colour clipped to the artwork's alpha, so
+                       ONE dial — `background-color` — carries both its
+                       resting grey and its hover tone. An `<img>` cannot do
+                       that: its bitmap draws above any background, so a tint
+                       would sit under the original rather than replace it.
+                       The registry's `src` arrives as a custom property
+                       because the mask lives in CSS and the address lives in
+                       `utils/labelRoots.js`; it is a repo-controlled
+                       constant, never user data. A markless root spells its
+                       name here instead, and the bundle is otherwise
+                       identical — the registry is additive. -->
+                  <span class="post-square__bundle-root" :title="b.root">
                     <span
-                      v-for="(name, i) in lp.names"
-                      :key="i"
-                      class="post-square__label-step"
-                      :class="{ 'is-leaf': i === lp.names.length - 1 }"
-                    >{{ name }}</span>
-                  </router-link>
-                  <button
-                    type="button"
-                    class="post-square__label-filter"
-                    :title="'Filter the feed by ' + lp.names[lp.names.length - 1]"
-                    @click.stop.prevent="setLabelFilter({ id: lp.id, name: lp.names[lp.names.length - 1] })"
-                  >
-                    <q-icon name="filter_alt" size="11px" />
-                  </button>
-                </template>
+                      v-if="b.mark"
+                      class="post-square__label-mark"
+                      role="img"
+                      :aria-label="b.root"
+                      :style="{ '--label-mark-src': 'url(' + b.mark.src + ')' }"
+                    />
+                    <span v-else class="mono">{{ b.root }}</span>
+                  </span>
+
+                  <!-- The seam between the tree and its labels (2026-08-10,
+                       user ask) — `::`, the card's own separator: the CAP
+                       divides its origin clause with it and the FOOT's
+                       address chip reads `post :: skeleton :: <hash>` in it.
+                       So the bundle says the same thing the rest of the card
+                       says when one term qualifies the next, and the rail
+                       stops being the only strip that states that relation
+                       with nothing at all. Decorative — the tree is already
+                       named by the root cell's `title` and the mark's
+                       `aria-label`, and a screen reader has no use for the
+                       punctuation. -->
+                  <span class="post-square__bundle-sep mono" aria-hidden="true">::</span>
+
+                  <!-- One ruled cell per label of the tree. Each is still the
+                       LINK to that label's page, and the funnel beside it
+                       (hover-revealed — the head band's picker covers touch)
+                       is still the second way into the label lens: filter the
+                       stream by this label without leaving the feed. Both
+                       kept their per-LABEL identity through the bundling;
+                       what the bundle groups is the drawing, not the data. -->
+                  <template v-for="lp in b.items" :key="lp.id">
+                    <span class="post-square__bundle-item">
+                      <!-- ⚠ `mono` STAYS ON THIS RUN. It came off for one pass
+                           on 2026-08-10 (Nasalization ask) and went straight
+                           back on the next (same user, "I didn't like
+                           nasalization on them") — the class is what beats
+                           the rule's inherited face, so the two halves of
+                           that swap live here and in `.post-square__label`
+                           together. The card is in its display face
+                           everywhere else; the label rail is the one
+                           deliberate exception, and the reason is in the
+                           rule. -->
+                      <router-link
+                        :to="'/labels/' + lp.id"
+                        class="post-square__label mono"
+                        :title="lp.path"
+                        @click.stop
+                      >
+                        <!-- The path's TAIL, step by step, the leaf carrying
+                             the weight. The root is not among them — the
+                             bundle said it — but `lp.path` still carries the
+                             whole chain on the tooltip, so the full
+                             classification is one hover away as it always
+                             was. -->
+                        <span
+                          v-for="(name, i) in lp.names"
+                          :key="i"
+                          class="post-square__label-step"
+                          :class="{ 'is-leaf': i === lp.names.length - 1 }"
+                        >{{ name }}</span>
+                      </router-link>
+                      <button
+                        type="button"
+                        class="post-square__label-filter"
+                        :title="'Filter the feed by ' + lp.names[lp.names.length - 1]"
+                        @click.stop.prevent="setLabelFilter({ id: lp.id, name: lp.names[lp.names.length - 1] })"
+                      >
+                        <q-icon name="filter_alt" size="11px" />
+                      </button>
+                    </span>
+                  </template>
+                </div>
               </div>
             </div>
 
-            <!-- The rail used to be closed by an `RgbHairline` (and, for a few
-                 hours before that, by the frieze pair's `vflip`ped half). That
-                 rule moved UP to the cap the same day — it is the divider
-                 between the header and everything under it now — and nothing
-                 replaced it here: the rail's own strip padding and the pit's
-                 6px top margin are the lane between classification and
-                 content. -->
+            <!-- THE RAIL IS CLOSED BY A BAND AGAIN (2026-08-10, user ask).
+                 It was closed by an `RgbHairline` on 2026-08-07 (and, for a
+                 few hours before that, by the frieze pair's `vflip`ped
+                 half); that rule moved UP to the cap the same day and for
+                 three days nothing replaced it — the strip's own padding and
+                 the pit's 6px top margin were the whole lane between
+                 classification and content. This is that divider restored,
+                 and the padding it replaces went with the same ask (see
+                 `.post-square__rail-strip`): a lane made of AIR became a
+                 lane made of a LINE, which is the trade, not an addition.
+
+                 CONDITIONAL, unlike its sibling above the rail: it closes
+                 the RAIL, so it is drawn on the same `v-if` the rail is. An
+                 unlabelled card would otherwise stack two sandwiches with
+                 nothing between them.
+
+                 FLIPPED (`--flip`, 2026-08-10's last ask) — indigo at the
+                 top, cyan at the bottom, so it and the band above the rail
+                 turn opposite ways and the label strip is BRACKETED: the two
+                 indigo ends face each other across the chips, the two cyan
+                 ends face out into the card. Same reflection argument the
+                 frieze pair was born with and the cap/foot pair carried
+                 after it — one figure with the labels inside it, not the
+                 same rule drawn twice. -->
+            <RgbHairline
+              v-if="labelPaths(item).length"
+              class="post-square__hairline post-square__hairline--rail post-square__hairline--flip"
+            />
 
             <!-- Body pit — the carved inset that echoes the dug-open label
                  squares. It holds the WHOLE post, not a preview: the feed is
@@ -1043,34 +1195,138 @@
                  DONE (address, votes, comments, forks), and who made it is
                  stated once, before the title.
 
-                 The CHIP is the card's second information trigger
-                 (2026-07-26) — the post's address is what the flyout is a
-                 read-out of, so the two belong on the same click. `linked:
-                 false` renders it as a span: as a router-link it would carry
-                 the viewer route and navigate on the same press. MicroChip
-                 stops the click from bubbling, but a listener on the chip
-                 itself still fires — stopPropagation does not cancel
-                 handlers sharing an element. -->
+                 The CHIP is a DOOR again (2026-08-10, user ask). It was the
+                 card's second information trigger from 2026-07-26 — a span
+                 (`linked: false`) reading `icon hash`, whose click popped
+                 the post's flyout — and it is a router-link to the POST
+                 VIEWER now, which is what a chip carrying an address does
+                 everywhere else on this platform. The flyout doors did not
+                 go anywhere: the cap's own lane, one strip up, still holds
+                 `sym_o_orthopedics` (route to the skeleton) and
+                 `open_in_new` (the same skeleton BESIDE the feed), so the
+                 press this chip used to answer is still on the card, twice.
+
+                 It also SAYS what it addresses now, in the cap's dialect —
+                 and says it in the cap's MARKS (2026-08-10, third ask):
+
+                   [sym_o_post] :: [sym_o_orthopedics] :: <hash>
+
+                 · the leading GLYPH is `sym_o_post`, the mark the cap states
+                   a post with (MicroChip's own default for the kind is
+                   `edit_note`, a different drawing) — the card's two strips
+                   wear one face for one thing.
+                 · the TYPE slot is `skeleton` — not `post`: what a post's
+                   address is a handle on is its skeleton, and that is the
+                   reading every control around it opens — but it is the
+                   cap's `sym_o_orthopedics` DRAWN rather than the word
+                   spelt (`typeIcon`, added to MicroChip for this). The
+                   chip's neighbours in this strip are all glyphs, and the
+                   one spelt-out word in a run of marks was the odd thing
+                   out; the reading it names is one hover away on the tooltip
+                   and one press away in the cap's own lane.
+                 · `::` is the cap's separator, passed down, so the foot
+                   closes the card in the punctuation the top opened it with.
+                 Nasalization for the whole chip follows from the same
+                 argument (see `.post-square__chip`).
+
+                 THE STRIP IS RULED IN FOUR CELLS (2026-08-10, second ask) —
+                 the CAP's own device brought down to the card's other end,
+                 so both strips are read the same way: a hairline at every
+                 seam, and each cell holding one kind of thing.
+
+                   [refs] │ [chip  copy] │ [comments forks] │ [⌃n]
+                                                              [⌄n]
+
+                 · REFS, at the far left edge, is the flyout press the chip
+                   gave up two paragraphs ago, re-homed and NAMED. What that
+                   box shows for a post is every element the post is made of
+                   as a chip — content node, moment, author, thread
+                   provenance — which is what a reader means by the post's
+                   references, so it wears `developer_guide` and emits the
+                   same `select` the chip used to. The card's `.is-open`
+                   marking follows it.
+                 · The ADDRESS cell is the only one that GIVES: the chip's
+                   hash ellipsizes so the three rigid cells around it never
+                   get squeezed off the card (the cap's `min-width: 0`
+                   argument, restated). Its `content_copy` puts the
+                   PATHCHAIN ADDRESS on the clipboard — `skeletons/<hash>`,
+                   the string the chip is showing a slice of, not a browser
+                   URL (the chip beside it is the browser door). Same
+                   glyph-flips-to-`check` feedback the media viewer's copy
+                   uses.
+                 · COMMENTS and FORKS keep their glyphs and their counts.
+                 · The VOTES cell closes the strip at the far right edge, a
+                   COLUMN rather than a row: `keyboard_arrow_up` over
+                   `keyboard_arrow_down`, each with its own tally — the
+                   TAILLESS pair at 9px (2026-08-10, third ask; the tailed
+                   `arrow_upward`/`arrow_downward` at 11px read as two
+                   instructions where this strip wanted two marks). The
+                   single
+                   `thumb_up` it replaces showed `votes.up` alone — half of
+                   what the feed has always answered with — so the shape
+                   that states both is also the one that stops hiding the
+                   other half. Tallies, not controls: nothing in this strip
+                   has ever been a vote button, and the card is a reading
+                   surface. -->
             <div class="post-square__foot">
-              <PostMicro
-                class="post-square__chip"
-                :class="{ 'is-open': isOpen(item) }"
-                :id="item.skeleton_id"
-                :path="item.skeleton_path"
-                :show-type="false"
-                :linked="false"
-                @click="$emit('select', item)"
-              />
-              <q-space />
-              <span class="post-square__stat" title="votes">
-                <q-icon name="thumb_up" size="11px" />{{ item.votes?.up || 0 }}
-              </span>
-              <span class="post-square__stat" title="comments">
-                <q-icon name="chat_bubble_outline" size="11px" />{{ item.comment_count || 0 }}
-              </span>
-              <span class="post-square__stat" title="forks">
-                <q-icon name="alt_route" size="11px" />{{ item.fork_count || 0 }}
-              </span>
+              <div class="post-square__foot-lead">
+                <button
+                  type="button"
+                  class="post-square__foot-act"
+                  :class="{ 'is-on': isOpen(item) }"
+                  title="References — every element this post is made of"
+                  @click.stop="$emit('select', item)"
+                >
+                  <!-- `sym_o_` prefixed, i.e. Material SYMBOLS, not Material
+                       Icons: `developer_guide` is a Symbols-only name, and
+                       bare it resolves against the default set, comes back
+                       with no glyph for the ligature and draws an empty
+                       14px box (which is exactly what it did for one pass
+                       here). The cap's marks are all Symbols anyway. -->
+                  <q-icon name="sym_o_developer_guide" size="14px" />
+                </button>
+              </div>
+              <span class="post-square__foot-rule" aria-hidden="true" />
+
+              <div class="post-square__foot-main">
+                <PostMicro
+                  class="post-square__chip"
+                  :id="item.skeleton_id"
+                  :path="item.skeleton_path"
+                  icon="sym_o_post"
+                  type-icon="sym_o_orthopedics"
+                  sep="::"
+                />
+                <button
+                  type="button"
+                  class="post-square__foot-act"
+                  :class="{ 'is-on': copiedId === item.skeleton_id }"
+                  :title="copiedId === item.skeleton_id ? 'Address copied' : 'Copy the pathchain address'"
+                  @click.stop="copyAddress(item)"
+                >
+                  <q-icon :name="copiedId === item.skeleton_id ? 'check' : 'content_copy'" size="12px" />
+                </button>
+              </div>
+              <span class="post-square__foot-rule" aria-hidden="true" />
+
+              <div class="post-square__foot-side">
+                <span class="post-square__stat" title="comments">
+                  <q-icon name="chat_bubble_outline" size="11px" />{{ item.comment_count || 0 }}
+                </span>
+                <span class="post-square__stat" title="forks">
+                  <q-icon name="alt_route" size="11px" />{{ item.fork_count || 0 }}
+                </span>
+              </div>
+              <span class="post-square__foot-rule" aria-hidden="true" />
+
+              <div class="post-square__votes">
+                <span class="post-square__stat" title="up-votes">
+                  <q-icon name="keyboard_arrow_up" size="9px" />{{ item.votes?.up || 0 }}
+                </span>
+                <span class="post-square__stat" title="down-votes">
+                  <q-icon name="keyboard_arrow_down" size="9px" />{{ item.votes?.down || 0 }}
+                </span>
+              </div>
             </div>
           </article>
         </template>
@@ -1102,6 +1358,9 @@ import MicroChip from 'src/components/shared/MicroChip.vue'
 import MarkdownBody from 'src/components/shared/MarkdownBody.vue'
 import FriezeBar from 'src/components/layout/FriezeBar.vue'
 import RgbHairline from 'src/components/layout/RgbHairline.vue'
+// A label tree whose ROOT has a mark draws it instead of spelling the root's
+// name — see the module for the registry and for why it is a front-end one.
+import { rootMark } from 'src/utils/labelRoots'
 
 // FilterSpec symbols → a concrete window, in the VIEWER's OWN timezone —
 // the deterministic half of "yesterday" the model never touches (P4: LLM
@@ -2081,6 +2340,31 @@ export default defineComponent({
     const isSkeletonOpen = (item) =>
       props.flyoutId != null && String(props.flyoutId) === String(item.skeleton_id)
 
+    // ── THE FOOT'S COPY (2026-08-10, user ask) ──────────────────────────
+    // The PATHCHAIN ADDRESS — `skeletons/<hash>`, the string the chip beside
+    // this button is showing a truncated slice of, and the one this post
+    // answers to everywhere on the platform. Deliberately not the browser
+    // URL: the chip IS that door, and a copy button next to an address chip
+    // copies the address (the media viewer's foot draws the same distinction
+    // with two separate buttons).
+    //
+    // ONE id rather than a boolean, because the stream draws thirty of these
+    // and a shared flag would flip every card's glyph to `check` at once.
+    const copiedId = ref(null)
+    const copyAddress = async (item) => {
+      const addr = item.skeleton_path
+      if (!addr) return
+      try {
+        await navigator.clipboard.writeText(addr)
+        copiedId.value = item.skeleton_id
+        setTimeout(() => {
+          // Guard the reset: a second card copied inside the window owns the
+          // mark now, and clearing it blind would blank the wrong glyph.
+          if (copiedId.value === item.skeleton_id) copiedId.value = null
+        }, 1600)
+      } catch (e) { /* clipboard denied — the glyph simply never flips */ }
+    }
+
     // ── THE HASH LENS (2026-08-09, user ask) — expand = filter by address ──
     // A post's chain address is its one unique reference, so "expand this
     // card" and "filter the feed to this post" are the same operation read
@@ -2276,6 +2560,39 @@ export default defineComponent({
         })
     }
 
+    // ── BUNDLED BY ROOT (2026-08-10, user ask) ──────────────────────────
+    // The rail draws one plate per label TREE, not per label path. A post
+    // classified twice under the same root printed that root twice — on a
+    // plumbing post the rail read `PATHCHAIN › … PATHCHAIN › …`, the same
+    // word standing at the head of every plate — and the root is the least
+    // informative step in a path besides.
+    //
+    // Grouping only, never filtering: every label that reached `labelPaths`
+    // reaches a bundle, keeps its own id, its own link and its own funnel.
+    // What changes is that each member spells the TAIL of its chain, because
+    // the bundle has already said the head. `path` rides along unsliced, so
+    // the tooltip is still the whole classification.
+    //
+    // Order is `labelPaths`' order, held by the Map's insertion order — user
+    // classification ahead of the PATHCHAIN plumbing families, alphabetical
+    // within that. Grouping cannot reorder what it groups.
+    //
+    // A bare-ROOT label (a chain of one) has no tail to spell, so it states
+    // its own name in the member cell rather than rendering an empty one.
+    const labelBundles = (item) => {
+      const groups = new Map()
+      for (const lp of labelPaths(item)) {
+        const root = lp.names[0]
+        if (!groups.has(root)) groups.set(root, { root, mark: rootMark(root), items: [] })
+        groups.get(root).items.push({
+          id: lp.id,
+          path: lp.path,
+          names: lp.names.length > 1 ? lp.names.slice(1) : lp.names
+        })
+      }
+      return [...groups.values()]
+    }
+
     // What the card renders. `body` is the WHOLE markdown body, present
     // because the load below asks for `body=full` — a feed card is an actual
     // post container, not a preview of one. `excerpt` (the 280-char slice
@@ -2304,9 +2621,12 @@ export default defineComponent({
       momentTitle,
       isOpen,
       isSkeletonOpen,
+      copiedId,
+      copyAddress,
       isExpanded,
       toggleExpand,
       hashFilter,
+      rootMark,
       capIcons,
       capKindTitle,
       originClauses,
@@ -2316,6 +2636,7 @@ export default defineComponent({
       pinnedIds,
       togglePin,
       labelPaths,
+      labelBundles,
       postBody,
       LENS_OPTS,
       maxHops,
@@ -3759,10 +4080,17 @@ export default defineComponent({
 // leave the pit half empty. Same shape as the resting formula below — the
 // card's height term swapped for the expanded height, the well's paddings
 // (22 + 12 = 34px, plus its 1× --frieze-h) folded in beside the card's own
-// 300px chrome and 0.55× band. Keep all three lines in step: the well's
-// `padding`, `.is-expanded`'s height, and this.
+// 276px chrome and 0.55× band. Keep all three lines in step: the well's
+// `padding`, `.is-expanded`'s height, and this. (276 + 34 = 310; the pair was
+// 300 + 34 = 334 until 2026-08-10, whose rail-padding asks took 8px out of
+// the card's chrome and whose frieze move traded a 6px band for a band
+// already counted in the variable term — move the resting constant and move
+// this one with it. ⚠ THIS LINE LAGGED THE RESTING ONE by one edit that day:
+// the frieze's two grey-6 rules went into the resting 280 → 282 and not into
+// this, which is exactly the drift the sentence above warns about. Both terms
+// are current as of the pit's margin ask, 282 → 276 here and there.)
 .post-square.is-expanded .post-square__pit {
-  --media-max-h: max(120px, calc(var(--feed-well-h, 60vh) - var(--fhead-h, 120px) - 334px - var(--frieze-h) * 1.55));
+  --media-max-h: max(120px, calc(var(--feed-well-h, 60vh) - var(--fhead-h, 120px) - 310px - var(--frieze-h) * 1.55));
 }
 
 // ── THE VEIL (2026-08-07, user ask) — the card's MIDDLE LAYER ──
@@ -4021,7 +4349,7 @@ export default defineComponent({
   // The card's deepest ink, the same the trust chip is lettered in — this
   // strip is the post's NAME and belongs at that weight, not at the
   // byline's.
-  color: var(--grey-9, #212121);
+  color: var(--grey-9, #424242);
   // The cap draws NO closing line of its own — its edge is the flipped
   // `RgbHairline` element after it (2026-08-09, last ask of the divider
   // walk; a plain `--grey-6` border-bottom held the seam for the hours
@@ -4100,7 +4428,7 @@ export default defineComponent({
 
   &:hover {
     background: rgba(var(--ink-rgb), 0.08);
-    color: var(--grey-9, #212121);
+    color: var(--grey-9, #424242);
   }
 
   &.is-on {
@@ -4208,12 +4536,42 @@ export default defineComponent({
 }
 
 // The post's name, taking all the slack and ellipsizing alone.
+// ⚠ IT STEPS UP ON DESKTOP — see the media query directly below this rule.
 .post-square__cap-title {
   flex: 1 1 auto;
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+// ── THE NAME IS BIGGER ON DESKTOP (2026-08-10, user ask) ──────────────────
+// The cap is a `0.62em` strip of chrome — a lane of icons, a provenance
+// clause, three buttons — and the post's NAME has been reading at that size
+// with everything else, which is right for chrome and wrong for the one thing
+// in the strip a reader is actually looking for. `1.16em` OF THE CAP (≈0.72em
+// of the card) lifts it a little over its neighbours without leaving the
+// strip's register: still small, still uppercase-adjacent display type, just
+// no longer one of the labels. It is the same move the byline's fold made when
+// it had width to spend — the type steps up, the strip does not.
+//
+// DESKTOP ONLY, and `min-width: 1024px` is not a number of this component's
+// own: it is FeedPage's desktop gate, the same one the byline reads, so the
+// card keeps following the PAGE's word for desktop rather than inventing a
+// second breakpoint. Under it the name stays flush with the rest of the lane,
+// where the strip is tight enough that a bigger name would just ellipsize
+// sooner — the cap's other two cells are rigid, so every point this takes
+// comes out of the title's own `flex: 1 1 auto` slack.
+//
+// ⚠ It sits BELOW the base rule ON PURPOSE (see specs/gotchas.md): a media
+// query adds no specificity, so written above it this block would lose to
+// source order and do nothing at all. And it changes TYPE, not the strip: the
+// cap's height is set by its 14px icon buttons and its padding, so the
+// measured `CAP 24` in the media budget above holds at both widths (verified).
+@media (min-width: 1024px) {
+  .post-square__cap-title {
+    font-size: 1.16em;
+  }
 }
 
 // THE BYLINE BAND — the card's first strip, holding the author (2026-07-25).
@@ -4283,15 +4641,45 @@ export default defineComponent({
   line-height: 1.15;
 }
 
-// The bare relative age under the author line — the stream's scan fact,
+// The relative age under the author line — the stream's scan fact,
 // extracted from the moment run with its icon left behind (the arrangement
 // ask): under the name it reads as the stamp's quiet second line, and the
 // PRECISE datetime is the chip across the rule.
+//
+// A ROW since 2026-08-10 (user ask), because the HOP CHIP now leads it:
+// `[1 hop] · 3h ago`. The 0.62em deliberately does NOT live on this line but
+// on its TEXT children: the hop chip is dialled in `em` against the BAND
+// (0.58em, tuned there and unchanged by the move), and a size on the row
+// would have compounded the two into 0.36em — the plate would have arrived
+// at the new line two thirds of the size it left the old one.
 .post-square__byline-ago {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  white-space: nowrap;
+}
+
+// The separator. One step quieter than the facts it stands between — it is
+// punctuation, and it should be the last thing on this line the eye lands on.
+.post-square__ago-dot {
+  flex: 0 0 auto;
   font-size: 0.62em;
   font-weight: 700;
   color: rgba(var(--ink-rgb), 0.55);
-  white-space: nowrap;
+  opacity: 0.5;
+}
+
+// The age itself gives before the chip does: a squeezed `3h ago` is still
+// legible cut, where a hop plate cut in half states nothing at all.
+.post-square__ago-text {
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 0.62em;
+  font-weight: 700;
+  color: rgba(var(--ink-rgb), 0.55);
 }
 
 // Line one: the author and everything that qualifies them (badge, trust,
@@ -4303,11 +4691,19 @@ export default defineComponent({
   min-width: 0;
 }
 
-// ── THE CARD'S TWO FRIEZE BANDS (2026-08-07, user ask) ────────────────────
+// ── THE CARD'S FRIEZE BAND (2026-08-07, user ask) ─────────────────────────
 // The crown motif at the scale the floating media viewer runs it (`slim`,
-// `--frieze-h / 2` ≈ 9.5px), standing where the byline's and the rail strip's
-// hairlines used to: one under the byline, one under the rail, the second
-// `vflip`ped so the pair reflects about the label lane instead of repeating.
+// `--frieze-h / 2` ≈ 9.5px). It was born as a PAIR standing where the
+// byline's and the rail strip's hairlines used to — one under the byline, one
+// under the rail, the second `vflip`ped so the two reflected about the label
+// lane instead of repeating — and the mirrored half went the same day (an
+// `RgbHairline` took the rail's seam; the reflection argument moved with it).
+//
+// THE SURVIVOR MOVED UP on 2026-08-10 (user ask): it closes the CAP now, the
+// card's first seam, where a flipped `RgbHairline` had been bracketing the
+// foot's band. One motif on the card, on the seam a reader crosses first;
+// every seam under it is a sandwich, all the same way up. `vflip` has no user
+// on this surface any more.
 //
 // THE PLAQUE WALKED DOWN THE GREYS, one user ask a step: `--grey-6` (the card's
 // line ink, which is what let the byline's hairline simply go — the band was
@@ -4328,9 +4724,9 @@ export default defineComponent({
 // `.post-square`).
 //
 // THE WAVE IS THE ONE THING HERE THAT IS NOT THE CARD'S OWN MATERIAL — a
-// gradient down the motif from `--teal-11` to `--indigo-11`, the two families'
-// A100 accents, through the `--frieze-bar-wave-two-paint` dial the bar grew the
-// same day. Three notes on it:
+// gradient down the motif between `--indigo-11` and `--teal-11`, the two
+// families' A100 accents, through the `--frieze-bar-wave-two-paint` dial the bar
+// grew the same day. Four notes on it:
 //
 //  · It is a PAINT, not a plaque: the mask means the ramp reaches the meander
 //    and nothing else, so the plate stays flat `--grey-6` under it (which was
@@ -4339,9 +4735,19 @@ export default defineComponent({
 //    ramp fills the whole strip however many times the 231px mask repeats
 //    across it. Give the layer a `background-size` and you get one ramp per
 //    tile, which reads as banding rather than as a run of colour.
-//  · The mirrored bar REVERSES it, so indigo faces the lane from both sides and
-//    mint faces out. That is what makes the pair read as one figure with the
-//    rail inside it: the two ends that meet are the same colour.
+//  · IT RUNS INDIGO-DOWN-TO-CYAN since 2026-08-10 (user ask, the same sitting
+//    that gave the band its two rules) — the reverse of the way it was born,
+//    and the reverse of the three rgb hairlines below it, which are cyan-down
+//    to a one-band. That is not a break in grammar, it is the reason the flip
+//    reads: the band and the hairlines are DIFFERENT DEVICES (a motif with
+//    height vs three flat lines), and running the frieze against them makes
+//    the pair of them read as a cyan LOW POINT at the card's reading area with
+//    cold indigo closing it top and bottom. The card's one mirrored copy of
+//    this band is long gone, so nothing has to be flipped in step.
+//  · The mirrored bar used to REVERSE it, so indigo faced the lane from both
+//    sides and mint faced out — the argument that made the pair read as one
+//    figure with the rail inside it. That twin went on 2026-08-07 and this
+//    band now carries the indigo-first end on its own.
 //
 // Accents at 1.5–2:1 on this plaque, deliberately: at `slim` size a wave the
 // full contrast of a written line reads as a stripe, and these are decoration
@@ -4351,6 +4757,25 @@ export default defineComponent({
 .post-square__frieze {
   flex: 0 0 auto;
   --frieze-bar-base: var(--grey-8, #616161);
+  // TWO RULES, ONE ABOVE AND ONE BELOW (2026-08-10, user ask) — and they are
+  // the CARD'S OWN LINE INK, `--grey-6`, not the plate's. That is the point of
+  // them: the walk down the greys turned this band into its own dark object
+  // laid across the card (see the note above), and an object wants an edge in
+  // the same ink as every other line on the square — the outer border, the
+  // byline hairline, the pit's frame. With them the plate is BOUND to the card
+  // rather than floating on it, and the `--grey-8` plaque now reads as inset
+  // between two of the card's lines instead of as a stripe that starts and
+  // stops in mid-air. Same ink, lightest weight: 1px, where the card's edges
+  // run 1.5px — this is a seam, not a boundary.
+  //
+  // ⚠ THE HEIGHT DIAL PAYS FOR THEM. Everything here is `border-box`, so a
+  // border eats the plate rather than sitting outside it, and 2px off a ~10.4px
+  // band is a motif row at ~0.65px — under the ~0.7px floor the note below
+  // spends three paragraphs establishing. The `+ 2px` gives the rules their own
+  // space and leaves the motif at exactly the height four user asks converged
+  // on. Any future move of the `0.55` factor keeps that term.
+  border-top: 1px solid var(--grey-6, #9e9e9e);
+  border-bottom: 1px solid var(--grey-6, #9e9e9e);
   // `× 0.55` — ~10.4px at a 900px viewport, a shade over `slim`'s half.
   //
   // THIS DIAL WAS WALKED FOUR TIMES IN ONE DAY and the walk is the
@@ -4367,16 +4792,18 @@ export default defineComponent({
   //
   // `slim` stays on at this height: it is what drops layer one, and two
   // interlocking waves in 10px would go straight back to texture. KEEP THE
-  // PIT'S MEDIA BUDGET IN STEP — it subtracts this band as `0.55 × --frieze-h`.
-  --frieze-bar-h: calc(var(--frieze-h) * 0.55);
+  // PIT'S MEDIA BUDGET IN STEP — it subtracts this band as
+  // `0.55 × --frieze-h + 2px`, the `+ 2px` being the rules above.
+  --frieze-bar-h: calc(var(--frieze-h) * 0.55 + 2px);
   // The flat tone under the paint — never seen while the gradient is drawn, and
   // stated anyway so a fallback lands in the same family rather than on the
-  // component's default brown.
-  --frieze-bar-wave-two: var(--teal-11, #a7ffeb);
+  // component's default brown. It follows the ramp's TOP end, so it walked to
+  // indigo with the 2026-08-10 flip.
+  --frieze-bar-wave-two: var(--indigo-11, #8c9eff);
   --frieze-bar-wave-two-paint: linear-gradient(
     to bottom,
-    var(--teal-11, #a7ffeb) 0%,
-    var(--indigo-11, #8c9eff) 100%
+    var(--indigo-11, #8c9eff) 0%,
+    var(--teal-11, #a7ffeb) 100%
   );
 }
 
@@ -4391,25 +4818,47 @@ export default defineComponent({
 // the same device twice: a frieze band is a MOTIF and needs height to read
 // (~0.8px a row is the floor, see the note above), while three flat lines
 // read at any size. THEN it closed the new CAP (2026-08-07), went DOWN to
-// open the FOOT (2026-08-09, a plain border holding the cap for hours) —
-// and the same day's last ask put a band at BOTH ends: one under the cap,
-// one over the foot, the cap's FILLING FLIPPED (indigo up, cyan down) so
-// the two cyan ends face the content and the pair reads as a BRACKET, not
-// a repeat — the exact reflection argument the frieze pair retired with.
-// Unconditional: every card has a cap and a foot.
+// open the FOOT (2026-08-09, a plain border holding the cap for hours), and
+// the same day's last ask put a band at BOTH ends, the cap's FILLING FLIPPED
+// so the pair read as a BRACKET rather than a repeat.
 //
-// The component ships this card's exact defaults — 2px bread, a 2px filling —
-// so only the cap's flip is dialled (`--rgb-hairline-fill` restated
-// reversed; the component's own note says why: CSS cannot read a gradient
-// backwards, so a mirrored pair states two gradients).
+// THERE ARE THREE OF THEM NOW (2026-08-10, four asks across the day). Two
+// were copied in — one under the byline, one under the label rail — and the
+// old cap/foot bracket went when the FRIEZE took the cap's seam, taking the
+// flipped `--cap` modifier with it: a mirror needs something to mirror, and
+// the top of the card is a different device now. So the card reads
+// cap │ FRIEZE │ byline │ rgb │ labels │ rgb │ pit │ rgb │ foot.
 //
-// KEEP THE PIT'S MEDIA BUDGET IN STEP: it counts the PAIR at a flat 12px,
-// and not as a worst case — every card draws both.
+// THE BRACKET CAME BACK ONE SEAM LOWER, around the LABELS (the day's last
+// ask). The two bands touching the label strip are a PAIR, `--rail`, and
+// they are dialled together:
+//
+//   · `--flip` on the LOWER one reverses its filling — indigo up, cyan down —
+//     so the two indigo ends face each other across the chips and the two
+//     cyan ends face out. CSS cannot read a gradient backwards, which is why
+//     a mirrored pair is two gradients and not one flag (the component says
+//     so at length). The FOOT's band is the odd one out and stays base-
+//     oriented: it closes the reading area, it is not half of anything.
+//   · 1px BREAD on both, against the foot's 2px. The label strip is the
+//     card's shortest band (21px) and it is now held between two rules; at
+//     the component's default weight the three grey lines around 21px of
+//     chips read heavier than the chips. Thinner bread also drops each band
+//     6px → 4px, and the FILLING is untouched at 2px — the hue is the
+//     bracket, and the component's own note puts 2px at the floor of where
+//     a ramp still reads as a ramp rather than as a flat mix.
+//
+// KEEP THE PIT'S MEDIA BUDGET IN STEP: 4 + 4 + 6 = 14px of bands, the
+// byline's and the foot's unconditional and the rail's travelling with the
+// strip.
 .post-square__hairline {
   min-width: 0;
 }
 
-.post-square__hairline--cap {
+.post-square__hairline--rail {
+  --rgb-hairline-edge-h: 1px;
+}
+
+.post-square__hairline--flip {
   --rgb-hairline-fill: linear-gradient(
     to bottom,
     var(--indigo-11, #8c9eff),
@@ -4526,14 +4975,28 @@ export default defineComponent({
   // `30vh`, because that ceiling is `min(width, 60vh)` — a narrow column
   // makes a short card, and a fixed viewport fraction would overflow it. The
   // constant is everything in the card that is NOT the medium, measured at
-  // 1440×900 / 595px column: 166px of card chrome (the CAP 24 — measured; a
+  // 1440×900: 146px of card chrome (the CAP 24 — measured; a
   // one-line strip by construction, so a constant like the rest — + byline
   // 41 — measured on the SPLIT-STAMP arrangement, 2026-08-09's last: author
   // over ago │ two stacked moment chips; the day walked it 42 → 33 → 32 →
-  // here — + rail strip 42
-  // + foot 30 + margins 13 + borders 4 — 3 of the card's own 1.5px pair since
-  // 2026-08-07, 1 of the pit's — + the rgb PAIR's 12, UNCONDITIONAL: one
-  // band under the cap, one over the foot since 2026-08-09's last ask), then
+  // here, and 2026-08-10's hop-chip move traded a plate off the who line for
+  // one on the ago line, leaving the worst case where it was — + rail strip
+  // 24 — it was 42, went to 21 across 2026-08-10's run of rail asks (the
+  // strip's vertical padding −12, the band's own vertical padding −8 once
+  // the chips' rims became the only lane, the band's rim −3) and came part
+  // way back: +3 when the chips became per-TREE bundles holding member
+  // plates, +4 when the band's vertical padding returned at a thin 2px —
+  // + foot 28 — was 30 until the same day's four-cell refit —
+  // + margins 7 — the pit's own, halved from 13 on 2026-08-10 when the card
+  // closed in on it (user ask); see the `margin` line below —
+  // + borders 4 — 3 of the card's own 1.5px pair since
+  // 2026-08-07, 1 of the pit's — + THREE rgb bands at 14: the byline's and
+  // the rail's at FOUR each (1px bread, the label bracket) and the foot's at
+  // six. The cap's band is not among them — the frieze closes that seam
+  // since 2026-08-10, and a frieze is the variable term below, not a px one.
+  // ⚠ 143 is MEASURED as `card − pit-outer − frieze` + the pit's own margin
+  // (13px then, 7px since 2026-08-10), not summed from the parts: at 1.5px
+  // borders and sub-pixel band heights the sum lands ~2px high), then
   // inside the pit 16px of padding,
   // ~70px of the Mini's own header and foot, ~21px of embed caption and
   // ~20px of block margin. Budget + all of that = the ceiling, which is the
@@ -4544,16 +5007,21 @@ export default defineComponent({
   // (2026-08-07): it stands at `0.55 × --frieze-h` (see `.post-square__frieze`),
   // a viewport-relative value, which cannot be folded into a px total and is
   // subtracted as itself — move that dial and move this factor with it. Its
-  // former mirrored twin is an `RgbHairline` now, in the constant at a flat
-  // 6px (2px + 2px + 2px), and unlike the band it is drawn on EVERY card:
-  // it closes the cap, not the rail. Worst case on purpose: a card with no
-  // labels draws no rail strip and is ~43px to the good.
+  // TWO GREY-6 RULES (2026-08-10) are px, though, so THEY went into the
+  // constant instead (280 → 282): only the variable term lives outside it.
+  // The band's former mirrored twin is an `RgbHairline` now, at a flat 6px
+  // (2px + 2px + 2px), and since 2026-08-10 there are THREE of those — 18px
+  // in the constant. Two are unconditional (under the byline, over the foot);
+  // the third closes the RAIL and rides its `v-if`. Worst case on purpose,
+  // and the two conditionals travel together: a card with no labels draws
+  // neither the strip nor its band and is that much to the good. The band
+  // that used to close the cap is gone — THIS frieze took that seam.
   //
   // Keep it in step with the 60vh ceiling and with the Mini's chrome — grow
   // one without the other and you get either a player that needs a scroll or
   // a small player in a half-empty card. The 120px floor is for the narrowest
   // columns, where the subtraction would otherwise go negative.
-  --media-max-h: max(120px, calc(min(var(--post-square-max, 100cqw), 60vh) - 300px - var(--frieze-h) * 0.55));
+  --media-max-h: max(120px, calc(min(var(--post-square-max, 100cqw), 60vh) - 276px - var(--frieze-h) * 0.55));
 
   flex: 1 1 auto;
   min-height: 0;
@@ -4566,9 +5034,29 @@ export default defineComponent({
   // The top margin is the gap to whatever line precedes it — since 2026-08-07
   // a FRIEZE BAND either way: the mirrored one closing the rail when the post
   // carries labels, the byline's own when it does not.
-  margin: 6px 7px 7px;
+  //
+  // THE CARD CLOSED IN ON THE PIT on 2026-08-10 (user ask, "reduce the padding
+  // from the card around it"): `6px 7px 7px` → `3px 4px 4px`, roughly half on
+  // every side. The margin is the card's own gap, not the pit's — the reading
+  // area's breathing room is the `padding` on the next line and did NOT move,
+  // which is the distinction that makes this cheap: what shrinks is the frame,
+  // what the prose sits in is untouched. It reads as a bigger reading area on
+  // an unchanged card, and it is the same move the well made when its side
+  // padding went to a sliver — this surface keeps deciding that a card's job
+  // is to BOUND the content, not to stand back from it. ⚠ 6px of vertical
+  // margin left the card, so the media budget's constant follows: 282 → 276.
+  margin: 3px 4px 4px;
   padding: 8px 10px;
-  border-radius: 7px;
+  // LESS ROUNDED since 2026-08-10 (same ask): `7px` → `3px`. Seven was
+  // `--radius-sm`, the platform's panel radius, which is right for a panel
+  // FLOATING on a surface and wrong for a frame set INTO one — at the new
+  // margin the pit sits nearly flush with the card's own corners, and a soft
+  // radius that close to a crisp one reads as a mistake in the smaller box
+  // rather than as a style. Three is the tightest step still visibly a curve
+  // (it is the radius the scrollbar thumbs already run), so the pit reads as
+  // cut into the card rather than laid on it — the same argument as its flat,
+  // carve-free surface below.
+  border-radius: 3px;
   // The pit's own two tones (2026-07-25): a `--grey-1` floor with the frame's
   // INNER border drawn around it in the card's line ink. The floor was a 5% ink
   // tint of whatever the card was, which made the pit a slightly darker patch
@@ -4788,19 +5276,38 @@ export default defineComponent({
 // The STRIP the rail sits in — a full-width band whose only job is the rail's
 // insets since 2026-08-07. Its EDGE-TO-EDGE HAIRLINE became a divider drawn
 // after it that day (a mirrored frieze band for a few hours, then an
-// `RgbHairline`), and by the end of it that rule had moved AGAIN, up to the
-// cap, where it divides the header from everything under it. So the rail is
-// closed by nothing now: its own padding and the pit's 6px top margin are the
-// lane between classification and content. The rule that put the line on the
-// STRIP rather than on the rail is still the one to know if a divider ever
-// comes back here — the rail is inset by this padding, so an edge drawn ON it
-// would stop 7px short of each side, and a divider has to run lip to lip. The
-// card is divided by full-bleed lines and panelled by inset boxes, and those
-// are two different devices.
+// `RgbHairline`), that rule moved up to the cap by the end of it, and on
+// 2026-08-10 a band came back below the strip — see the template. The rule
+// that put the line AFTER the strip rather than on the rail is the one to
+// keep: the rail is inset by this padding, so an edge drawn ON it would stop
+// 7px short of each side, and a divider has to run lip to lip. The card is
+// divided by full-bleed lines and panelled by inset boxes, and those are two
+// different devices.
+//
+// PADDING ON ONE AXIS ONLY (2026-08-10, three asks). The SIDE `7px` is gone
+// for good, and that was a real change of kind rather than a trade: the rail
+// is not a panel set into the card any more, it is a STRIP spanning it, lip
+// to lip like the cap and the foot — which is why the band's corners are
+// square too (see `.post-square__rail`), a radius stating an inset there is
+// no inset left to state.
+//
+// The VERTICAL `6px` is gone too, and did not come back HERE. It went when
+// the `RgbHairline` pair arrived — 6px of air above and below was the whole
+// lane while nothing was drawn in it, and two sandwiches took that lane's
+// job. When the air was later asked for again it went INSIDE the grey band
+// instead (`.post-square__rail`'s own padding), which is the difference this
+// element exists to hold: padding HERE would put card between the rules and
+// the band, so the band would float in a gap; padding THERE puts the band
+// against the rules and gives the chips their room inside it. The strip is
+// the card's row, the rail is the object standing in it.
+//
+// The strip element stays even with nothing left to declare: it is the
+// full-bleed row the inset rail used to need, and the day a divider or a
+// background comes back to this row, it belongs here and not on the
+// scroller (the argument above).
 .post-square__rail-strip {
   flex: 0 0 auto;
   min-width: 0;
-  padding: 6px 7px;
 }
 
 .post-square__rail {
@@ -4809,17 +5316,63 @@ export default defineComponent({
   align-items: center;
   gap: 4px;
   min-width: 0;
-  padding: 4px 6px;
-  // A HEAVIER TOP EDGE (1px box, 2px top), the mirror of the card's own
-  // uneven border (1px box, 2px foot). The tray reads as something the band
-  // above sits down onto rather than a box floating in the gap.
-  border: 1px solid var(--grey-6, #9e9e9e);
-  border-top-width: 2px;
-  border-radius: 7px;
-  // The bed tone, not the pit's near-white — see the note above. It has been
-  // "the bed tone" through both families: `--indigo-2` under the indigo bed,
-  // `--grey-4` since 2026-08-07 under the neutral one. Same rule, same step.
-  background: var(--grey-4, #e0e0e0);
+  // A HAIR OF VERTICAL PADDING (2026-08-10, and it took three asks to land).
+  // It was `4px`, went to `0` on the ask that turned this tray into a band —
+  // the chips are bordered plates with their own padding, so the lane
+  // between a label and the band's edge was the plate's rim rather than
+  // nothing, and the row did not read as crushed. Then the air was asked for
+  // back, and twice more precisely: not on the strip around this element
+  // (that would float the band in a gap between the rules — see
+  // `.post-square__rail-strip`) and "waay thinner" than the 4px it started
+  // at. `2px` is the answer to both: the plates clear the band's edges
+  // without the band reopening as a tray.
+  //
+  // The 6px SIDE padding never moved — it is the run-in before the first
+  // plate and the run-out after the last, and a scroller with no side lead
+  // reads as content already cut off at rest.
+  padding: 2px 6px;
+  // NO BORDER AT ALL (2026-08-10, last of the rail asks). It carried an
+  // uneven rim — 1px box, 2px top — the mirror of the card's own uneven
+  // border, drawn so the tray read as something the band above sat down onto
+  // rather than as a box floating in a gap. That reading is finished: there
+  // is no gap left (the strip's padding went), the corners are square, and
+  // the row is bounded on both sides by an `RgbHairline`. The rim was
+  // outlining a panel that no longer exists, and beside two 6px sandwiches it
+  // was a fourth and fifth line in three pixels of each other.
+  //
+  // What states the band now is its FLOOR, `--grey-7` (user ask, corrected
+  // from -6 in the same breath): one step off the card's line ink and onto
+  // the DIVIDER PLATE tone, the level the RgbHairline's bread and the frieze
+  // band's plaque already stand on. The strip stopped being a panel and
+  // became a full-bleed band — this is that reclassification stated in the
+  // palette, and it puts all of the card's full-width figures on one plate.
+  //
+  // SQUARE, from the same run of asks — the radius was `7px`, what every
+  // inset box on this card wears (pit, chips). A rounded corner on a
+  // full-bleed row rounds against the card's own edge and reads as a mistake.
+  border: 0;
+  border-radius: 0;
+  // THE FLOOR IS THE BAND (2026-08-10) — with no rim left it is the only
+  // thing stating this strip at all, and it walked the greys across that
+  // day's asks: `--grey-4`, the BED tone it had worn since 2026-08-07 (and
+  // `--indigo-2` before that under the indigo bed) — "a tray recessed into
+  // the card" — then -6, then -7 while it still had a rim, back to -6 when
+  // the rim went, down to -8, and **back to -6, where it rests**.
+  //
+  // The walk tried all three levels a full-bleed figure could stand on and
+  // came back to the shallowest. -7 is the DIVIDER PLATE (the RgbHairline's
+  // bread) and -8 the FRIEZE BAND's plaque — both read as CHROME, which is
+  // right for a plate the card is BUILT from and wrong for one it CLASSIFIES
+  // itself on: at those depths the strip stopped being part of the card and
+  // became a fourth divider with chips lying on it. `--grey-6` is the card's
+  // own LINE ink, so the band reads as that rule given height and filled —
+  // the card's material, thickened, which is what it is.
+  //
+  // The chips carry the contrast: each is a near-white `--grey-3` plate with
+  // its own rim, three levels up, so the classification stands OUT of the
+  // band instead of sitting in it — and their gradient foot is the only hue
+  // in the strip.
+  background: var(--grey-6, #9e9e9e);
   overflow-x: auto;
   overflow-y: hidden;
   // The same thin rail the pit and the well use, so a third scrolling surface
@@ -4836,46 +5389,256 @@ export default defineComponent({
 // A path, not a name: every step of the chain is drawn, the leaf carrying the
 // weight. The steps are separated by a drawn '›' rather than by punctuation in
 // the text, so the whole chip stays one link and one tab stop.
+// ── THE BUNDLE (2026-08-10, user ask) — one plate per label TREE ───────
+// The rail used to hold one plate per label PATH, each spelling its whole
+// chain, so a post classified twice under one root printed that root twice.
+// The plate is per-ROOT now: the tree is stated once at its left edge and
+// every label of that tree lies to the right of it, spelling only the tail.
+//
+// THE CHROME DID NOT CHANGE, IT MOVED. Everything below — the cream coat,
+// the `--indigo-1` half-pixel rim, the 4px corners, the `overflow: hidden`
+// that makes those corners clip — was `.post-square__label`'s until this
+// pass, and the walk that arrived at each dial is worth keeping:
+//
+//   · THE COAT is `--light-cream`, the tone the post square ITSELF wears. It
+//     reached here through `--grey-3` (its level since the card went neutral
+//     on 2026-08-07) → `--deep-purple-1` → `--indigo-1` in one afternoon.
+//     The old rule was CHIP-ON-TRAY RESTATING CARD-ON-BED one level down,
+//     and it broke when the tray became a `--grey-6` band — the step widened
+//     from one level to three and "one level down" stopped describing
+//     anything. What replaces it is stronger: the plate is not a step off
+//     its tray, it is the CARD'S OWN MATERIAL lying in a band cut through
+//     the card. Coat and card are one sheet; the strip is the hole. Warmth
+//     is what makes that read — the band, the card's lines, the pit and the
+//     foot are all neutral, so these are the rail's one warm object and they
+//     are warm BECAUSE the card is. (Each tint it passed through made the
+//     rail the one band with a hue of its OWN, which is exactly what made
+//     them read as tags rather than as paper.)
+//   · THE RIM is `--indigo-1` at `0.5px`, the end of a walk that ran the
+//     greys all the way up (-7 → -6 → -5 → -4 → -3 → -2) and then stepped
+//     off them. At -6 it was exactly the tone of the band underneath and did
+//     nothing at all; by -2 it had stopped being an outline and become a
+//     HIGHLIGHT — a lit lip catching the plate's edge against the mid-grey
+//     strip, the opposite device from where the walk began. Indigo-50 keeps
+//     that register and adds what no neutral could: a COOL edge on a warm
+//     sheet, so the outline is stated by hue as well as by lightness.
+//     Sub-pixel because 1px is not the thinnest register available and the
+//     platform already writes in that one (the cap title's
+//     `-webkit-text-stroke: 0.35px`); a non-zero border width is always
+//     painted, so it cannot vanish.
+//   · 4px CORNERS, down from 7 — this is one of the last inset boxes on a
+//     card whose bands all went square, and at 7px on a 17px plate the
+//     corners curved more than the shape has height for.
+//   · NO SHADOW. One rode here for a few minutes (`0 1px 1px` at 22%) and
+//     came off on the next ask. ⚠ The constraint is worth keeping if one is
+//     ever wanted again, because it is geometry and not taste: the rail has
+//     no vertical padding and `overflow-y: hidden` (a horizontal scroller
+//     cannot leave the other axis visible), so the plate has ~2px of
+//     centring clearance and anything painted past it is CLIPPED FLAT, which
+//     reads as a smudge and not as depth.
+//
+// ⚠ AND A LESSON FROM A DIAL THAT IS GONE (gotchas.md has it): the plate's
+// foot was briefly an `--indigo-11` → `--deep-purple-11` gradient, and a
+// gradient cannot be painted on ONE border edge as a `bottom / 100% Npx`
+// strip — `border-radius` clips the rectangle and the colour dies before the
+// corners. The way that works is a full border-box background layer with the
+// COAT clipped to `padding-box`, so what shows of the gradient is the border
+// RING and it follows the radius the way a real border does.
+//
+// No padding of its own beyond a hair: the members carry their own, and the
+// plate is a holder.
+.post-square__bundle {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  // Natural width, never squeezed (2026-07-25): inside a horizontal scroller
+  // a shrinkable plate would compress to fit the visible box and there would
+  // be nothing to scroll — the point is that the rail runs PAST its own
+  // right edge.
+  flex: 0 0 auto;
+  padding: 1.5px 4px;
+  // `1px` (2026-08-10, two "thicker" asks: 0.5 → 0.75 → here). The point of
+  // the change is the DIFFERENCE, not the weight — the members' rims stayed
+  // at `0.5px`, so the plate's edge is now twice its members' and the two
+  // tiers stop reading as one line drawn twice.
+  //
+  // ⚠ It leaves the sub-pixel register the rest of this rail is drawn in,
+  // and that is the trade to know: at 0.5 a rim is a HIGHLIGHT (a lit lip
+  // catching an edge, which is why the walk up the greys ended on a tone
+  // one step off white); at a full pixel it is closer to an OUTLINE, and
+  // only `--indigo-1` being as pale as it is keeps it from stating itself
+  // as a drawn line. Go heavier than this and the tone has to come up with
+  // it, or the plate gains a border it never wanted.
+  border: 1px solid var(--indigo-1, #e8eaf6);
+  border-radius: 4px;
+  overflow: hidden;
+  // ⚠ NEUTRAL AGAIN (2026-08-10) — `--grey-3`, off the `--light-cream` it
+  // wore for the length of the bundling pass. The cream's argument was that
+  // the plate IS the card's own material lying in a band cut through the
+  // card, which made it the rail's one warm object; what that cost is
+  // legibility of the TIERS, because the members are greys and a warm sheet
+  // under cool tokens states hue where the arrangement wants to state depth.
+  // At -3 the plate is one step off its members' -2 and three off the band's
+  // -6, so the rail reads as three tones of one material — band, sheet,
+  // token — which is what a two-tier stack is for. The card's warmth stays
+  // the CARD's, which is arguably where it belonged.
+  background: var(--grey-3, #eeeeee);
+
+  // ── THE PLATE'S HOVER ──────────────────────────────────────────────
+  // Two dials, and the ask that set them is precise about what NOT to do:
+  // the coat goes `--grey-2`, not the `--deep-purple-1` it took while this
+  // chrome belonged to a single chip. A plate that turns lilac under the
+  // pointer states a SELECTION, and this one is a container — what it should
+  // say is "you are in here", which is a step of tone, not a change of hue.
+  // The rim keeps the accent, so the colour on the state is on the EDGE.
+  //
+  // ⚠ At `--grey-2` the coat meets its own members' tone (they are -2 as
+  // well), so on hover the plate and the tokens on it flatten into one field
+  // and the `--grey-4` rims are what still tell them apart. That is the
+  // ask's arithmetic, not an oversight — it reads as the sheet lifting to
+  // meet what lies on it.
+  &:hover {
+    background: var(--grey-2, #f5f5f5);
+    border-color: var(--deep-purple-11, #b388ff);
+
+    // THE ROOT'S SIDE ANSWERS TOGETHER — the mark and the `::` seam, both to
+    // `--indigo-8` (2026-08-10). They are one utterance ("this tree, then:")
+    // and they share a tone at rest (`--grey-8`), so they share one under
+    // the pointer too; splitting them would make the seam read as part of
+    // the member list instead. The tone walked `--indigo-11` → `--indigo-2`
+    // → here across three asks, and the shape of that walk is the mark's own
+    // resting walk repeated: pale accents looked like a wash on a drawing
+    // whose mass is STROKE, and it wanted ink. -8 rather than the label
+    // ink's -9 for the same reason the filter glyph takes -8 — a mark at
+    // this size wants the step the text does not need.
+    .post-square__label-mark { background-color: var(--indigo-8, #303f9f); }
+    .post-square__bundle-sep { color: var(--indigo-8, #303f9f); }
+  }
+}
+
+// THE SEAM between the tree and its labels — `::`, the card's own separator
+// for "this term qualifies the next" (the CAP's origin clause and the FOOT's
+// `post :: skeleton :: <hash>` chip both use it). It takes the MARK's tone
+// rather than the labels' ink, because it belongs to the root's side of the
+// plate: mark and seam are one utterance, and the members answer it.
+.post-square__bundle-sep {
+  flex: 0 0 auto;
+  font-size: 0.62em;
+  letter-spacing: 0.03em;
+  // PULLED IN ON BOTH SIDES (2026-08-10, user ask). The plate's 4px flex gap
+  // is right between the MARK and a member plate, and too much around two
+  // colons: punctuation is not an object in the row, it is the joint between
+  // two, and a joint set at the row's own rhythm reads as a third item. -2px
+  // a side halves the gap to 2px and the seam closes up against what it
+  // joins. (It is also why the tracking below is left alone — `0.03em`
+  // spaces the two colons from each OTHER, which is the rail's letterform
+  // rhythm and belongs.)
+  margin: 0 -2px;
+  // BOLD, and `--grey-9` with the mark (2026-08-10, same ask). Two colons
+  // are four dots of ink; at 8.7em-scaled mono in a normal weight they were
+  // the faintest thing on a plate that had just gone neutral, and the seam
+  // has to hold its own against a 26px drawing on one side and a bordered
+  // plate on the other. Weight is the cheap dial for that — it costs no
+  // space, where a size bump would push both neighbours apart.
+  font-weight: 700;
+  color: var(--grey-9, #424242);
+}
+
+// THE ROOT CELL — the tree, stated once, at the plate's left edge: its mark
+// when the registry has one, its name when it does not.
+.post-square__bundle-root {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+  // TRIMMED AT THE LEFT, THEN GIVEN A LITTLE BACK (2026-08-10, two asks).
+  // The mark already returns its own transparent margin (see
+  // `.post-square__label-mark`), so what stood on this side was the plate's
+  // full 4px of padding against a drawing that begins at its box edge — a
+  // mark is not TEXT and does not want a text's lead-in. `-3px` cut it to
+  // one, which read as the planet falling off the plate's left rim; `-1px`
+  // is the settled value, a 3px lead that is clearly deliberate air rather
+  // than leftover padding. The members keep the full 4px — they are plates
+  // in their own right and do want the inset.
+  margin-left: -1px;
+  font-size: 0.62em;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: rgba(var(--ink-rgb), 0.62);
+}
+
+// A MEMBER — one label of the tree, as a plate of its own (2026-08-10, the
+// follow-on ask). Which makes the rail two TIERS, and that is the whole
+// point of bundling: a warm sheet per tree, cool tokens lying on it. It is
+// also why the members carry no hairline between them the way the CAP's and
+// the FOOT's cells do — a rule and a rim inside the same three pixels would
+// be one seam drawn twice.
+//
+// `--grey-2` on a `--grey-5` rim, after a three-ask walk (-2 on -4, then -4
+// on -1, then here) that tried the pairing both ways up and settled on the
+// conventional one: a PALE coat closed by a DARKER rim. The inverted setting
+// — a mid coat with a lit lip, echoing the plate's own `--indigo-1`
+// highlight one tier up — is a real device and it is why the walk happened,
+// but it made every member as heavy as the sheet holding it, and this tier
+// is meant to be the light one. At -2 on -5 the member is paler than the
+// cream plate and its rim is the only drawn line in the pair, so the rail
+// reads as tokens ON a sheet rather than as two competing surfaces.
+//
+// The rim keeps the plate's 0.5px sub-pixel register, and the padding is
+// down to 3px on the same "denser" ask that unplaced the funnel.
+.post-square__bundle-item {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+  padding: 0 3px;
+  border: 0.5px solid var(--grey-5, #bdbdbd);
+  border-radius: 3px;
+  background: var(--grey-2, #f5f5f5);
+}
+
+// The label itself — a bare run of text inside its member plate. It held the
+// chip chrome until the bundling pass; what is left here is the TYPE.
 .post-square__label {
   display: inline-flex;
   align-items: center;
-  // Natural width, never squeezed (2026-07-25): inside a horizontal scroller
-  // a shrinkable chip would compress to fit the visible box and there would
-  // be nothing to scroll — the point is that the chips run PAST the rail's
-  // right edge. `max-width: 100%` went with the wrapping rail for the same
-  // reason: a long path is meant to extend the scroll, not truncate.
   flex: 0 0 auto;
+  // ⚠ THE MONO FACE IS DELIBERATE, AND IT WAS TESTED. The card letters in
+  // `--font-display` everywhere else — cap, byline, foot, address chip — and
+  // on 2026-08-10 this was taken there too (the `mono` utility off in the
+  // template, `--font-display` here). It came back on the very next ask: "I
+  // didn't like nasalization on them." Worth the lines, because the argument
+  // FOR the swap is a good one and someone will make it again — the rail was
+  // the one strip on a one-face card reading in another voice. The argument
+  // against is what the eye found: a label PATH is a chain of IDENTIFIERS,
+  // the exact thing a mono face exists for, and uppercase display type at
+  // 8.7px turns that chain into a row of signage. The face is carried by the
+  // `mono` CLASS in the template, not stated here — a class beats
+  // inheritance, so moving this again means moving both places.
   font-size: 0.62em;
   text-transform: uppercase;
   letter-spacing: 0.03em;
   text-decoration: none;
-  color: rgba(var(--ink-rgb), 0.5);
-  border: 1px solid rgba(var(--ink-rgb), 0.14);
-  // A HEAVIER FOOT (1px box, 2px bottom) — the card's own uneven border read
-  // at chip scale, and the opposite edge to the rail's and the pit's heavier
-  // TOP: a panel is seated by the edge it meets what came before, a chip
-  // rests on the tray beneath it.
-  border-bottom-width: 2px;
-  border-radius: 7px;
-  padding: 1px 6px;
-  overflow: hidden;
-  // The card's own coat, lying in the tray (the chips were transparent, so
-  // they took the tray's tone and the rail read as one field with outlines
-  // drawn on it). Chip-on-tray restates card-on-bed one level down, and that
-  // held through the move to the greys on 2026-08-07: it was `--indigo-1` on
-  // `--indigo-2` when the card was -1 on the well's -2, and it is `--grey-3` on
-  // `--grey-4` now that the card is -3 on the bed's -4.
-  background: var(--grey-3, #eeeeee);
+  // ONE TONE DARKER (2026-08-10, user ask): 0.5 → 0.62 on the ANCESTOR steps,
+  // and the leaf follows 0.78 → 0.9 below so the pair keeps the ~0.28 spread
+  // that is what makes a path read as "context › THING" rather than as one
+  // grey run. Both are ink ALPHAS, not palette steps — this text has always
+  // been dialled that way.
+  color: rgba(var(--ink-rgb), 0.62);
 
-  &:hover {
-    color: #00829c;
-    border-color: rgba(0, 130, 156, 0.45);
-    background: rgba(0, 130, 156, 0.06);
-  }
+  // The LABEL answers for itself, where the plate around it answers for the
+  // tree: ink only, no coat of its own. `--indigo-9` is the same ink the
+  // member took while it was a chip in its own right.
+  &:hover { color: var(--indigo-9, #283593); }
 }
 
 .post-square__label-step {
   white-space: nowrap;
+  // `inline-flex` since a step may hold a MARK instead of a word
+  // (2026-08-10): an `<img>` is a replaced element and would sit on the
+  // text baseline with a descender's worth of air under it. The `::before`
+  // separator below is a flex child of this box either way, so it is
+  // unaffected — it draws before whatever the step holds.
+  display: inline-flex;
+  align-items: center;
 
   & + &::before {
     content: '›';
@@ -4885,11 +5648,102 @@ export default defineComponent({
 
   &.is-leaf {
     font-weight: 700;
-    color: rgba(var(--ink-rgb), 0.78);
+    // Moved with the ancestors' 0.5 → 0.62 (2026-08-10) — see the chip rule
+    // for why the two travel together.
+    color: rgba(var(--ink-rgb), 0.9);
   }
 }
 
-.post-square__label:hover .post-square__label-step.is-leaf { color: #00829c; }
+// THE ROOT MARK (2026-08-10, user ask) — a label tree's own icon, standing
+// where its root's name would be spelt. Today that is one tree, PATHCHAIN,
+// wearing the pathos mark the browser tab wears (`utils/labelRoots.js`).
+//
+// SIZED PAST ITS OWN SLOT (2026-08-10, four "bigger" asks: 11 → 15 → 20 → 24
+// → 28). It began at 11px, matched to the chip's content box, and read small
+// for two reasons that compound: an icon matched to a cap height always reads
+// smaller than the letters beside it (a letterform's mass is its stroke, a
+// mark's is its whole square), and this artwork was drawn for a browser tab,
+// so it carries a wide transparent margin of its own — at 11px the PLANET
+// itself was about 5px of that.
+//
+// So the image is drawn at 28px and pulled back to an 11px LAYOUT box with
+// `margin: -8.5px 0`. Nothing around it moves at any step: the plate stays
+// 20.03px and the rail 24px, so the pit's `--media-max-h` constant is
+// untouched by this dial.
+//
+// ⚠ THE CEILING IS ~38px, AND IT IS ARITHMETIC — recompute it if the plate's
+// height ever changes. The image overhangs the bundle's padding box (19.03px;
+// what `overflow: hidden` clips to) by (S−19.03)/2 each way, and that cut is
+// free only while it lands in the favicon's transparent margin. MEASURED off
+// the artwork's alpha channel (48×48 canvas, ink box x 6→41 / y 14→35): the
+// planet's pixels start 29.2% of the way down and end 25% up from the bottom,
+// so the binding condition is (S−19.03)/2 ≤ 0.25·S, i.e. S ≤ ~38. At 28 there
+// are 2.5px of slack on the tighter edge. (The ceiling was 32 while this sat
+// in a 16px chip — it moved because the BOX moved, which is the point of
+// writing the condition down rather than the number.) The planet is also only
+// 46% of its canvas TALL, which is why a mark this size still reads as a
+// small object: reason about the ink box, never the canvas.
+//
+// ITS COLOUR IS A MASK (2026-08-10, hover ask): the element paints a flat
+// `background-color` clipped to the artwork's ALPHA, so the mark is whatever
+// tone the state wants and the drawing is unchanged. That replaced a
+// `filter: grayscale(1) brightness(0.55)` over an `<img>`, which got to the
+// same grey by a longer road and could not be recoloured at all — a bitmap
+// draws above its own background, so a tint sits under the original instead
+// of replacing it.
+//
+// ⚠ THIS ONLY WORKS BECAUSE THE ALPHA IS THE DRAWING. Measured on the
+// artwork: inside its ink box just 14% of pixels are fully opaque, 41% are
+// partial and 45% clear — the planet is a LINE DRAWING whose strokes live in
+// the alpha channel, so the silhouette is the picture and its soft edges
+// survive. A mark drawn as a solid block with its detail in COLOUR would
+// mask down to a filled blob; check the alpha before adding one to the
+// registry.
+//
+// `--grey-8` at rest, after a two-ask walk -7 → -5 → here. -7 is where the
+// old `grayscale(1) brightness(0.55)` filter chain had landed the artwork
+// (cream → ≈#dcdcdc → ×0.55 ≈ #797979); -5 was the reasoning that a mark at
+// 28px states itself by AREA and can afford to go quiet; -8 is the answer to
+// what that actually looked like — at -5 the planet went thin and grey on a
+// cream plate, and the drawing is a LINE work, so its mass is stroke and it
+// needs ink the way the letters beside it do. It shares the tone with the
+// `::` seam (same ask), which is the pairing that matters: mark and seam are
+// the root's side of the plate speaking, and both now sit a step DEEPER than
+// the members' `rgba(ink, .62)` — the tree is stated more firmly than the
+// labels it holds, which is the reverse of the earlier reasoning and the one
+// the eye preferred. It stays a NEUTRAL either way: the rail's one hue is
+// the cream plate, never a badge repeated on every plumbing bundle.
+.post-square__label-mark {
+  display: block;
+  width: 26px;
+  height: 26px;
+  // ⚠ THE HORIZONTAL PULL IS THE ARTWORK'S OWN MARGIN, GIVEN BACK
+  // (2026-08-10, "there's too much padding between the planet and the ::").
+  // The gap that reads on screen is never just the flex gap: this favicon's
+  // ink box is x 6→41 of a 48px canvas, so 12.5% of every edge is empty
+  // artwork — 3.5px a side at 28px — and it stacks on top of the 4px the
+  // plate puts between its cells, making the seam sit ~7.5px from a planet
+  // that looks like it ends 4px earlier. `-3.5px` on each side shrinks the
+  // LAYOUT box to the ink box (28 − 7 = 21px, which is the measured ink
+  // width of 0.75 × 28), so the plate's gap is measured from the drawing
+  // rather than from its packaging. Keep the two numbers in step: this is
+  // `size × 0.125`, and it changes whenever the size does.
+  margin: -7.5px -3.25px;
+  background-color: var(--grey-9, #424242);
+  // `--label-mark-src` comes down from the registry, per root, inline.
+  -webkit-mask: var(--label-mark-src) center / contain no-repeat;
+  mask: var(--label-mark-src) center / contain no-repeat;
+}
+
+// Its HOVER tone lives with the plate (`.post-square__bundle:hover`) — the
+// mark states the TREE, so it answers when the pointer is anywhere in the
+// tree's plate, not only when it is over one of the labels.
+
+// The leaf takes the hover ink too (2026-08-10) — it carries its own resting
+// colour, so without this it would sit at `rgba(ink, .9)` while every
+// ancestor step around it turned indigo, and the one word the chip is
+// actually naming would be the one that did not answer.
+.post-square__label:hover .post-square__label-step.is-leaf { color: var(--indigo-9, #283593); }
 
 // The chip's FUNNEL (2026-08-01) — the second door into the label lens:
 // filter the stream by this chip without leaving the feed. Hover-revealed
@@ -4900,42 +5754,199 @@ export default defineComponent({
   border: 0;
   background: transparent;
   color: rgba(var(--ink-rgb), 0.45);
-  padding: 0 2px;
-  margin-left: -4px;
+  padding: 0;
+  // ⚠ `inline-flex` + `line-height: 1` ARE LOAD-BEARING, not tidiness. As a
+  // default `inline-block` button the glyph sat on a text baseline and the
+  // button measured ~22px for an 11px icon — which cost nothing while this
+  // stood OUTSIDE the chip as a sibling in the rail, and drove the whole
+  // strip's height the moment the 2026-08-10 bundling moved it INSIDE a
+  // member plate (rail 21 → 28px, measured). Flex + a unit line-height makes
+  // the box the icon.
+  display: inline-flex;
+  align-items: center;
+  line-height: 1;
+  // ⚠ IT TAKES NO WIDTH WHILE HIDDEN (2026-08-10, "remove the ghost padding
+  // on their right side, we want them denser"). It was `opacity: 0` alone,
+  // which hides a control without UNPLACING it — 11px of icon plus its gap
+  // sat inside every member as dead space that looked like slack padding.
+  // Collapsing the WIDTH is what removes it, and the reveal stays honest
+  // because the trigger is unchanged: `.post-square__rail:hover` opens EVERY
+  // funnel at once, so the strip shifts once as a whole rather than each
+  // member twitching under its own pointer.
+  width: 0;
+  margin-left: 0;
+  overflow: hidden;
   cursor: pointer;
   opacity: 0;
-  transition: opacity 0.12s;
+  transition: opacity 0.12s, width 0.12s, margin-left 0.12s;
 
-  .post-square__rail:hover & { opacity: 0.6; }
-  &:hover { opacity: 1 !important; color: #00829c; }
+  .post-square__rail:hover & {
+    opacity: 0.6;
+    width: 11px;
+    margin-left: 2px;
+  }
+  // `--indigo-8` under the pointer (2026-08-10, user ask), not the
+  // hard-coded `#00829c` teal it answered with for a year. That teal is the
+  // platform's generic interactive tone and it was the last of it left in
+  // this rail — the plate hovers `--deep-purple-11`, the label ink hovers
+  // `--indigo-9`, the tree's mark hovers `--indigo-2`. A control that lit up
+  // in a family nothing around it speaks read as borrowed from another
+  // surface. -8 rather than the label's -9: this is a GLYPH at 11px, and a
+  // mark that small wants the step the text does not need.
+  &:hover { opacity: 1 !important; color: var(--indigo-8, #303f9f); }
 }
 
 // The ORIGIN row — author, post hash, tallies. Rigid: it is the last thing a
 // square may give up, so it never enters the flex give-and-take above.
+// NASALIZATION on the STRIP (2026-08-10, third ask), not only on the two
+// things in it that letter today: the tallies carry it themselves and the
+// chip overrides `mono` deeply, so this declaration changes nothing on screen
+// right now — it is here so the next thing written into the foot inherits the
+// card's face instead of the app's body font, which is how the strip drifted
+// into Space Mono in the first place.
+//
+// RULED IN FOUR CELLS since 2026-08-10 (user ask) — the CAP's arrangement at
+// the card's other end, so the square opens and closes in the same grammar:
+// `align-items: stretch` and NO padding of its own, because a rule that is
+// meant to meet both edges of the strip square cannot do it from inside a
+// padded parent (the cap learned this; each CELL carries the padding here,
+// which is also why these rules need no negative margin the way
+// `__byline-rule` does). The old row — chip, `q-space`, three tallies, all in
+// one 8px-gapped line with `padding: 5px 9px 7px` — is what those cells
+// replace.
 .post-square__foot {
+  display: flex;
+  align-items: stretch;
+  min-width: 0;
+  flex: 0 0 auto;
+  font-family: var(--font-display);
+  letter-spacing: 0.02em;
+}
+
+// The seam. Same 1px of the card's one line ink as `__cap-rule`, and
+// deliberately a SEPARATE token: the two strips are dialled independently
+// (the cap's cells are 2–4px tall inside, the foot's up to 7), and one class
+// serving both would make every future tweak to either a shared decision.
+.post-square__foot-rule {
+  flex: 0 0 1px;
+  width: 1px;
+  background: var(--grey-6, #9e9e9e);
+}
+
+// THE REFERENCES CELL, at the far LEFT edge — one control, rigid, the mirror
+// of the cap's expand lead at the other end of the card.
+.post-square__foot-lead {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  padding: 4px 8px;
+}
+
+// THE ADDRESS CELL — the only one that gives. `min-width: 0` is what lets the
+// chip's hash ellipsize instead of pushing the three rigid cells off the card
+// (a flex-basis is a request; content overrules it — gotchas.md).
+.post-square__foot-main {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  overflow: hidden;
+}
+
+// THE TALLY CELL — comments and forks, measured by what it holds.
+.post-square__foot-side {
+  flex: 0 0 auto;
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 5px 9px 7px;
-  min-width: 0;
-  flex: 0 0 auto;
+  padding: 4px 9px;
 }
 
-// The foot chip as a TRIGGER (2026-07-26). It is a span now (`linked: false`),
-// so `.micro-chip.is-link`'s cursor and hover no longer reach it — both are
-// restated here, since the chip is still very much clickable, just not a link.
-.post-square__chip {
+// THE VOTES CELL, closing the strip at the far RIGHT edge — a COLUMN, up over
+// down. Its rows are tighter than the strip's other text (`line-height: 1.15`)
+// so two of them stand in about the height one tally row did: the foot is a
+// rigid strip on a square-ceilinged card, and every pixel it grows comes out
+// of the pit's reading room.
+.post-square__votes {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1px;
+  padding: 3px 9px;
+
+  .post-square__stat { line-height: 1.15; }
+}
+
+// The foot's own controls — the references button and the copy. Chromeless
+// until hovered, exactly as the cap's `__cap-act`: this strip is read far
+// more often than it is pressed. A SEPARATE class from the cap's for the
+// reason `__foot-rule` is separate, and one register smaller (18px against
+// 20px) — the foot's type is smaller than the cap's, and a button drawn to
+// the cap's size stood taller than the chip it sits beside.
+.post-square__foot-act {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--grey-8, #424242);
   cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+
+  &:hover {
+    background: rgba(var(--ink-rgb), 0.08);
+    color: var(--grey-9, #424242);
+  }
+
+  // Two different meanings, one dial. On REFERENCES it is a held state — the
+  // flyout is open on this card — and takes the platform accent the cap's pin
+  // takes. On COPY it is a 1.6s receipt beside a `check` glyph, and the same
+  // colour reads as "that worked" rather than "this is on".
+  &.is-on {
+    color: var(--accent, #c79a00);
+  }
+}
+
+// The foot chip as a DOOR (2026-08-10, user ask; it was a trigger-span from
+// 2026-07-26 and its `.is-open` lit state went with the flyout press). As a
+// router-link it gets `.micro-chip.is-link`'s cursor and hover for free — but
+// that hover is ink-toned, and this chip has worn the platform's cyan since
+// the day it was born. Nested under the foot so the restatement outranks it
+// (`.post-square__foot[data-v] .post-square__chip:hover` = four selectors
+// against the component's three) instead of racing it on bundle order.
+//
+// NASALIZATION, like the cap and the byline above it (the card is set in its
+// display face top to bottom now, and the foot was the last strip still
+// lettering in Space Mono). Both text spans carry the `mono` UTILITY class,
+// which a font-family on the chip would lose to at equal specificity — so
+// both are reached deeply, the move `.post-square__cap-chip.is-named` and
+// `.post-square__moment-chip` each make one strip up. Those two switched
+// face because they show STRINGS rather than addresses; this one shows an
+// address and switches anyway, because the ask is the CARD's face, and a
+// chip in two typefaces would state the seam between the word and the hash
+// louder than the `::` already does.
+.post-square__foot .post-square__chip {
+  font-family: var(--font-display);
+  letter-spacing: 0.02em;
+
+  :deep(.micro-chip__type),
+  :deep(.micro-chip__hash) { font-family: var(--font-display); }
+
+  // `::` is punctuation the eye should pass over, but MicroChip's 0.35 was
+  // dialled for a single `/`; a doubled glyph at that opacity reads as dirt.
+  :deep(.micro-chip__sep) { opacity: 0.5; }
 
   &:hover {
     background: rgba(0, 130, 156, 0.10);
     border-color: rgba(0, 130, 156, 0.4);
-    color: #00829c;
-  }
-
-  &.is-open {
-    background: rgba(0, 130, 156, 0.12);
-    border-color: #00829c;
     color: #00829c;
   }
 }
@@ -4963,12 +5974,24 @@ export default defineComponent({
 // as the block's own two lines while the band ran in columns; the STACK is
 // the whole band now, and this pair is its first line). One link to the
 // profile — the face beside it is the other, same destination.
+//
+// THE SQUEEZE ORDER IS THE HANDLE'S, NOT THE NAME'S (2026-08-10, user ask —
+// "the main name must not get trimmed, trim the @handle instead"). Both spans
+// carried a `16ch` cap and the default `flex-shrink: 1`, so a narrow card
+// took the two down TOGETHER, in proportion to their widths — on a phone that
+// produced `Dream Ope… @dreamo…`, the name unreadable to save an address
+// nobody reads off a card. The pair now shrinks in a stated order (see the
+// two rules below), and `overflow: hidden` here is what makes that order
+// enforceable: the name's `flex-shrink: 0` means the link's content can
+// exceed the link, and without a clip that overrun would push the badge and
+// the heat chip off the card instead of stopping at the name.
 .post-square__identity {
   display: inline-flex;
   align-items: baseline;
   gap: 4px;
   flex: 0 1 auto;
   min-width: 0;
+  overflow: hidden;
   text-decoration: none;
   color: inherit;
 
@@ -4991,14 +6014,18 @@ export default defineComponent({
   margin-left: -3px;
 }
 
-// TRUST CHIP (Thread J) — invite-chain distance, part of the author unit
-// like the badge above it (same pulled-in margin, same "belongs to the
-// identity" argument). Drawn as a tiny plate in the card's own recipe:
-// `--grey-1` floor, the line ink as its rim, the card's darkest ink for the
-// lettering — all three following the card into the greys on 2026-08-07. Zero
-// hops ("you") stays quiet; the tooltip walks the whole vouch path.
+// TRUST CHIP (Thread J) — invite-chain distance. Drawn as a tiny plate in
+// the card's own recipe: `--grey-1` floor, the line ink as its rim, the
+// card's darkest ink for the lettering — all three following the card into
+// the greys on 2026-08-07. Zero hops ("you") stays quiet; the tooltip walks
+// the whole vouch path.
+//
+// It sat on the WHO line beside the org badge until 2026-08-10, sharing that
+// line's pulled-in `-3px` and its "belongs to the identity" argument. It
+// LEADS THE AGO LINE now (user ask) — see the template — so the negative
+// margin is gone with the run it was closing up: this chip is the first
+// thing on its line, and there is nothing to its left to hug.
 .post-square__trust {
-  margin-left: -3px;
   flex: 0 0 auto;
   font-size: 0.58em;
   font-weight: 700;
@@ -5030,10 +6057,16 @@ export default defineComponent({
   padding: 1px 6px;
 }
 
-// The `16ch` caps survive the inline move: side by side the pair can no
-// longer lean on "never wider than the name above", so each bounds itself
-// and the line's flex does the rest.
+// THE NAME IS THE LAST THING TO GIVE (2026-08-10, user ask). `flex-shrink: 0`
+// takes it out of the squeeze entirely — every pixel the line is short comes
+// out of the handle beside it — and its old `16ch` cap is replaced by
+// `max-width: 100%`, which is the line ITSELF: the name ellipsizes only once
+// the handle has gone to nothing and the whole link is narrower than the name
+// alone, which on a phone means a name of about twenty characters or more.
+// (`16ch` was the cap that trimmed `Dream Operator` on a card wide enough to
+// print it — a fixed cap cannot know how much room the line actually has.)
 .post-square__identity-name {
+  flex: 0 0 auto;
   font-size: 0.72em;
   font-weight: 700;
   // CYAN since 2026-08-09 (user ask) — `--cyan-9`, Material 800, minted
@@ -5044,7 +6077,7 @@ export default defineComponent({
   // TEXT. Deep end of the family on purpose — the pointer takes it up to
   // `--cyan-14`, and a resting tone must be the one you can read.
   color: var(--cyan-9, #00838f);
-  max-width: 16ch;
+  max-width: 100%;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -5053,7 +6086,15 @@ export default defineComponent({
 // The handle is the address you can type back — quieter, riding the
 // name's baseline (in the band's display face since the Nasalization ask;
 // its `mono` went with it).
+//
+// AND IT IS THE ONE THAT ABSORBS (2026-08-10, user ask): `min-width: 0` frees
+// it to shrink all the way to `@…` and then out of sight, so the name above
+// it never has to. It keeps a `16ch` ceiling for the opposite case — a wide
+// card and a long handle, where the name is safe and the address is simply
+// longer than the line wants to spend on it.
 .post-square__identity-handle {
+  flex: 0 1 auto;
+  min-width: 0;
   font-size: 0.6em;
   color: rgba(var(--ink-rgb), 0.5);
   max-width: 16ch;
@@ -5101,12 +6142,18 @@ export default defineComponent({
   background: var(--grey-6, #9e9e9e);
 }
 
+// The foot's tallies. NASALIZATION since 2026-08-10 (user ask) — `'Space
+// Mono', monospace` was the last typeface on this card that was not the
+// display one, and these are COUNTS, not addresses: nothing about `0` needs a
+// fixed advance width. With this the whole square letters in one face, cap to
+// foot.
 .post-square__stat {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  font-family: 'Space Mono', monospace;
-  font-size: 0.7em;
+  font-family: var(--font-display);
+  letter-spacing: 0.02em;
+  font-size: 0.66em;
   color: rgba(var(--ink-rgb), 0.55);
   flex-shrink: 0;
 }
@@ -5178,5 +6225,48 @@ export default defineComponent({
   // `--indigo-7` rim on all four edges (2026-08-08). The rule that made them
   // necessary was two touching 2px rims in ONE ink; the bar shares neither
   // with the bundle now.
+
+  // ── THE BYLINE ON A PHONE (2026-08-10, user ask) ──────────────────────
+  // "Make the font smaller if needed" — it is needed. The card is the whole
+  // screen width here, but the WHO line still has to hold a name, a handle,
+  // an org badge and (under a heat lens) a heat plate, and the ask is that
+  // the NAME survives all of it whole. One register down on the pair buys
+  // roughly three more characters before the handle starts giving, which is
+  // usually the difference between `@dreamoperator` and `@dream…`.
+  //
+  // The shrink ORDER is not restated here — it is unconditional (the name is
+  // `flex-shrink: 0` at every width, the handle absorbs at every width). This
+  // block only makes the order need to fire later.
+  .post-square__identity-name { font-size: 0.66em; }
+  .post-square__identity-handle { font-size: 0.55em; }
+
+  // The hop chip travels with them: it leads the ago line now, and a plate
+  // dialled for the desktop band would out-weigh the name it sits under.
+  .post-square__trust { font-size: 0.54em; padding: 1px 5px; }
+
+  // AND THE MOMENT STACK GIVES FIRST (2026-08-10, same ask). The two rules
+  // above were not enough on their own: the handle collapsing to nothing
+  // still left the author 114px of a 322px card, because the date + place
+  // chips are `flex: 0 0 auto` and were taking ~150 of it. Measured, with a
+  // 28-character name: handle 0, name clipped at 114/160.
+  //
+  // Those chips are rigid BY ARGUMENT on desktop (2026-07-25, third pass:
+  // two shrinkable items shared the slack and the place string landed at a
+  // different length on every card — "Mexico City," over "Mexico City,
+  // Mexico" down the column). That argument is about a COLUMN of cards read
+  // side by side, and it loses to this one on a phone: the reader is looking
+  // at one card, and a trimmed author is worse than a trimmed timestamp.
+  //
+  // `20` rather than `1` so the order is stated, not left to the proportions:
+  // both sides may shrink, but the chips absorb twenty times as much, which
+  // in practice means the author block does not move until they are at their
+  // own floor. `min-width: 0` is what lets them reach it (the chips already
+  // ellipsize — their hash span's floor was freed for the same reason).
+  .post-square__byline-when {
+    flex: 0 20 auto;
+    min-width: 0;
+  }
+
+  .post-square__moment-chip { max-width: 100%; }
 }
 </style>

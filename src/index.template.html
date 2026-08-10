@@ -7,12 +7,19 @@
     <meta name="format-detection" content="telephone=no">
     <meta name="msapplication-tap-highlight" content="no">
     <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width">
-    <!-- The pathos mark (turbine rosette in the cyan ring) — recovered
-         2026-08-03 from the retired landing page, whose build these four
-         sizes + the .ico were made for. The binaries live TWICE in
+    <!-- Recovered 2026-08-03 from the retired landing page, whose build these
+         four sizes + the .ico were made for. The binaries live TWICE in
          public/ on purpose: public/landing/** is the preserved old site
          (byte-frozen), public/{favicon.ico,icons/} is the app's own set
-         — same bytes today, but the landing copy never changes. -->
+         — same bytes today, but the landing copy never changes.
+
+         ⚠ THE TWO SETS ARE DIFFERENT ARTWORK, which this comment got wrong
+         until 2026-08-10 (it called the PNGs "the pathos mark"): the four
+         PNGs are a turbine rosette in a cyan ring, and the .ico — declared
+         last, and what a browser actually shows in the tab — is the RINGED
+         PLANET. Anything in the app that wants "the mark the tab wears"
+         means favicon.ico; `src/utils/labelRoots.js` is the first consumer
+         and drew the rosette for one pass on the strength of this note. -->
     <link rel="icon" type="image/png" sizes="128x128" href="icons/favicon-128x128.png">
     <link rel="icon" type="image/png" sizes="96x96" href="icons/favicon-96x96.png">
     <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32x32.png">
