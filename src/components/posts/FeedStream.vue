@@ -4067,8 +4067,8 @@ export default defineComponent({
 // leave the pit half empty. Same shape as the resting formula below — the
 // card's height term swapped for the expanded height, the well's paddings
 // (22 + 12 = 34px, plus its 1× --frieze-h) folded in beside the card's own
-// 278px chrome and 0.55× band. Keep all three lines in step: the well's
-// `padding`, `.is-expanded`'s height, and this. (278 + 34 = 312; the pair was
+// 279px chrome and 0.55× band. Keep all three lines in step: the well's
+// `padding`, `.is-expanded`'s height, and this. (279 + 34 = 313; the pair was
 // 300 + 34 = 334 until 2026-08-10, whose rail-padding asks took 8px out of
 // the card's chrome and whose frieze move traded a 6px band for a band
 // already counted in the variable term, and 276 + 34 = 310 until that day's
@@ -4077,9 +4077,9 @@ export default defineComponent({
 // one with it. ⚠ THIS LINE HAS LAGGED THE RESTING ONE TWICE now: the frieze's
 // two grey-6 rules went into the resting 280 → 282 and not into this, and the
 // rail's rim pass landed here a beat late, which is exactly the drift the
-// sentence above warns about. Both terms are current at 278 / 312.)
+// sentence above warns about. Both terms are current at 279 / 313.)
 .post-square.is-expanded .post-square__pit {
-  --media-max-h: max(120px, calc(var(--feed-well-h, 60vh) - var(--fhead-h, 120px) - 312px - var(--frieze-h) * 1.55));
+  --media-max-h: max(120px, calc(var(--feed-well-h, 60vh) - var(--fhead-h, 120px) - 313px - var(--frieze-h) * 1.55));
 }
 
 // ── THE VEIL (2026-08-07, user ask) — the card's MIDDLE LAYER ──
@@ -4569,15 +4569,30 @@ export default defineComponent({
 // square ceiling may trim, so it stays out of the flex give-and-take and only
 // the pit gives way.
 //
-// ITS BOTTOM BORDER IS A FRIEZE BAND NOW (2026-08-07, user ask). Until then it
-// was an EDGE-TO-EDGE 1px hairline in `--grey-6`, the ink every line on this
-// CARD is drawn in (its outer border, the pit's rim, the head's vertical rule)
-// — a divider inside the card being the same line as the ones around it, at
-// hairline weight. The band that replaced it is dialled to that exact tone, so
-// nothing about that rule changed: the line simply gained height and a motif
-// carved into it (see `.post-square__frieze`). Two `border-bottom`s went with
-// the move, this one and the rail strip's, and the card's remaining lines are
-// unaffected. The frieze lips shared the `--grey-6` level for one
+// ⚠ ITS BOTTOM BORDER IS THE CLASSIC HAIRLINE AGAIN (2026-08-10, user ask,
+// "a classic grey-6 hairline between the author/moment section and the label
+// section") — an EDGE-TO-EDGE 1px rule in `--grey-6`, the ink every line on
+// this CARD is drawn in (its outer border, the pit's rim, the cap's vertical
+// rule): a divider inside the card being the same line as the ones around it,
+// at hairline weight. That is what stood here from the card's birth until
+// 2026-08-07, and the three devices that held the seam in between are the
+// argument for it coming back plain.
+//
+// THE SEAM'S WHOLE WALK: hairline → FRIEZE BAND (2026-08-07 — the same
+// `--grey-6` reading, the line "given height and a motif carved into it";
+// the border went so the card would not state one seam twice) → the frieze
+// moved UP to the cap on 2026-08-10 and an `RgbHairline` took this seam →
+// that band became half of a BRACKET around the labels → the bracket went
+// when the label strip took a rim of its own, leaving the seam BARE for one
+// pass. Bare is what this ask answers: the byline and the labels are two
+// different kinds of fact about a post, and with the strip inset from the
+// card's edges there was nothing running lip to lip to say where one ends.
+//
+// It goes HERE, on the band, and not on the strip below it — the strip is
+// inset by `7px` now, so a rule drawn on it would stop short of both edges,
+// and a divider has to run lip to lip. Same rule that has always governed
+// this card: it is DIVIDED by full-bleed lines and PANELLED by inset boxes.
+// The frieze lips shared the `--grey-6` level for one
 // day in 2026-08-06's indigo; they are the plaque's own tone now and the card's
 // lines are grey, so the two systems no longer meet anywhere.
 // TWO RULED SIDES SINCE 2026-08-09's last byline ask — the band walked
@@ -4595,6 +4610,10 @@ export default defineComponent({
   padding: 4px 9px;
   flex: 0 0 auto;
   min-width: 0;
+  // The card's INNER weight, 1px, where its outer edges run 1.5px — an inner
+  // line has to read as lighter than the edge that contains it. ⚠ Worth 1px
+  // in BOTH `--media-max-h` constants (279 / 313); see the pit's note.
+  border-bottom: 1px solid var(--grey-6, #9e9e9e);
   // NASALIZATION across the whole section (2026-08-09, user ask) — the
   // cap's own face and tracking, one strip down: the band inherits it to
   // the name, the ago line, the trust/heat plates and (through the deep
@@ -4961,12 +4980,14 @@ export default defineComponent({
   // + foot 28 — was 30 until the same day's four-cell refit —
   // + margins 7 — the pit's own, halved from 13 on 2026-08-10 when the card
   // closed in on it (user ask); see the `margin` line below —
-  // + borders 4 — 3 of the card's own 1.5px pair since
-  // 2026-08-07, 1 of the pit's — + ONE rgb band at 6, the foot's, which is
-  // the only one left: the label bracket's thin pair (4px each) went when the
-  // strip took a rim of its own. The cap's band is not among them either —
-  // the frieze closes that seam since 2026-08-10, and a frieze is the
-  // variable term below, not a px one.
+  // + borders 5 — 3 of the card's own 1.5px pair since
+  // 2026-08-07, 1 of the pit's, and 1 of the BYLINE's restored bottom
+  // hairline (2026-08-10's last ask, the classic `--grey-6` rule back on the
+  // byline→labels seam after a pass with it bare) — + ONE rgb band at 6, the
+  // foot's, which is the only one left: the label bracket's thin pair (4px
+  // each) went when the strip took a rim of its own. The cap's band is not
+  // among them either — the frieze closes that seam since 2026-08-10, and a
+  // frieze is the variable term below, not a px one.
   // ⚠ 143 is MEASURED as `card − pit-outer − frieze` + the pit's own margin
   // (13px then, 7px since 2026-08-10), not summed from the parts: at 1.5px
   // borders and sub-pixel band heights the sum lands ~2px high), then
@@ -4995,7 +5016,7 @@ export default defineComponent({
   // one without the other and you get either a player that needs a scroll or
   // a small player in a half-empty card. The 120px floor is for the narrowest
   // columns, where the subtraction would otherwise go negative.
-  --media-max-h: max(120px, calc(min(var(--post-square-max, 100cqw), 60vh) - 278px - var(--frieze-h) * 0.55));
+  --media-max-h: max(120px, calc(min(var(--post-square-max, 100cqw), 60vh) - 279px - var(--frieze-h) * 0.55));
 
   flex: 1 1 auto;
   min-height: 0;
