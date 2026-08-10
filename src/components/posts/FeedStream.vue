@@ -1123,6 +1123,48 @@
                   </template>
                 </div>
               </div>
+
+              <!-- THE ADD CONTROL (2026-08-10, user ask) — the strip's right
+                   end, OUTSIDE the rail rather than inside it. That placement
+                   is the whole design of this button: the rail is a horizontal
+                   SCROLLER, so anything laid inside it is a plate that slides
+                   away with the labels and is off-screen on exactly the cards
+                   that carry the most classification. Out here it is a fixed
+                   cell in the strip's row, always at the same place, and the
+                   rail simply takes the space it leaves (`flex: 1 1 auto`).
+
+                   It wears `.post-square__cap-act`, the card's own act-button
+                   chrome — chromeless glyph at rest, box under the cursor —
+                   so the card has ONE button language across its cap, its
+                   foot and now this row, rather than a third one invented for
+                   the rail.
+
+                   ⚠ IT HAS NO ACTION YET, ON PURPOSE. Attaching a label to a
+                   post is `POST /skeletons/:id/labels {labelId}` behind a
+                   picker (`maker/LabelPicker.vue` — compact mode, `picked`
+                   event, `excludeIds`), and it is owner-gated, which the feed
+                   is not: most cards in a stream belong to someone else, and
+                   what the button should do THERE (suggest? nothing? hide?)
+                   is a product decision, not a styling one. Wiring it to the
+                   owner path alone would put a control on every card that
+                   403s on most of them. So the cell is placed and dressed and
+                   the handler is the one thing left; `stop.prevent` is on it
+                   already so it never falls through to the card. -->
+              <button
+                type="button"
+                class="post-square__cap-act post-square__rail-add"
+                title="Add a label"
+                aria-label="Add a label"
+                @click.stop.prevent
+              >
+                <!-- ⚠ `new_label`, not `add` (2026-08-10, user ask) — and it
+                     is a BARE name, which on this platform means it must
+                     exist as a Material Icons LIGATURE or it draws an empty
+                     box rather than failing loudly (the `developer_guide`
+                     trap, specs/gotchas.md). Verified rendering, not
+                     assumed. -->
+                <q-icon name="new_label" size="14px" />
+              </button>
             </div>
 
             <!-- ⚠ AND NOTHING IS DRAWN ON THIS ONE EITHER — the bracket's
@@ -4067,8 +4109,8 @@ export default defineComponent({
 // leave the pit half empty. Same shape as the resting formula below — the
 // card's height term swapped for the expanded height, the well's paddings
 // (22 + 12 = 34px, plus its 1× --frieze-h) folded in beside the card's own
-// 279px chrome and 0.55× band. Keep all three lines in step: the well's
-// `padding`, `.is-expanded`'s height, and this. (279 + 34 = 313; the pair was
+// 276px chrome and 0.55× band. Keep all three lines in step: the well's
+// `padding`, `.is-expanded`'s height, and this. (276 + 34 = 310; the pair was
 // 300 + 34 = 334 until 2026-08-10, whose rail-padding asks took 8px out of
 // the card's chrome and whose frieze move traded a 6px band for a band
 // already counted in the variable term, and 276 + 34 = 310 until that day's
@@ -4077,9 +4119,9 @@ export default defineComponent({
 // one with it. ⚠ THIS LINE HAS LAGGED THE RESTING ONE TWICE now: the frieze's
 // two grey-6 rules went into the resting 280 → 282 and not into this, and the
 // rail's rim pass landed here a beat late, which is exactly the drift the
-// sentence above warns about. Both terms are current at 279 / 313.)
+// sentence above warns about. Both terms are current at 276 / 310.)
 .post-square.is-expanded .post-square__pit {
-  --media-max-h: max(120px, calc(var(--feed-well-h, 60vh) - var(--fhead-h, 120px) - 313px - var(--frieze-h) * 1.55));
+  --media-max-h: max(120px, calc(var(--feed-well-h, 60vh) - var(--fhead-h, 120px) - 310px - var(--frieze-h) * 1.55));
 }
 
 // ── THE VEIL (2026-08-07, user ask) — the card's MIDDLE LAYER ──
@@ -4612,7 +4654,7 @@ export default defineComponent({
   min-width: 0;
   // The card's INNER weight, 1px, where its outer edges run 1.5px — an inner
   // line has to read as lighter than the edge that contains it. ⚠ Worth 1px
-  // in BOTH `--media-max-h` constants (279 / 313); see the pit's note.
+  // in BOTH `--media-max-h` constants (276 / 310); see the pit's note.
   border-bottom: 1px solid var(--grey-6, #9e9e9e);
   // NASALIZATION across the whole section (2026-08-09, user ask) — the
   // cap's own face and tracking, one strip down: the band inherits it to
@@ -4969,21 +5011,26 @@ export default defineComponent({
   // over ago │ two stacked moment chips; the day walked it 42 → 33 → 32 →
   // here, and 2026-08-10's hop-chip move traded a plate off the who line for
   // one on the ago line, leaving the worst case where it was — + rail strip
-  // 34 — it was 42, went to 21 across 2026-08-10's run of rail asks (the
+  // 31 — it was 42, went to 21 across 2026-08-10's run of rail asks (the
   // strip's vertical padding −12, the band's own vertical padding −8 once
   // the chips' rims became the only lane, the band's rim −3) and came back:
   // +3 when the chips became per-TREE bundles holding member plates, +4 when
   // the band's vertical padding returned at a thin 2px, and +10 on the day's
   // last rail ask — the strip's vertical padding restored at 4px (+8) and the
   // band's own rim redrawn at an even 1px (+2), the two dials that turned this
-  // row back into an inset panel. It takes back 8px of the bands below —
+  // row back into an inset panel — then **31** on the day's very last ask,
+  // which tightened that padding 4px → 2px (−4) and closed the strip with a
+  // hairline of its own (+1): once a rule states the lane, the air in it is
+  // doing less work. It takes back 8px of the bands below —
   // + foot 28 — was 30 until the same day's four-cell refit —
   // + margins 7 — the pit's own, halved from 13 on 2026-08-10 when the card
   // closed in on it (user ask); see the `margin` line below —
-  // + borders 5 — 3 of the card's own 1.5px pair since
-  // 2026-08-07, 1 of the pit's, and 1 of the BYLINE's restored bottom
-  // hairline (2026-08-10's last ask, the classic `--grey-6` rule back on the
-  // byline→labels seam after a pass with it bare) — + ONE rgb band at 6, the
+  // + borders 6 — 3 of the card's own 1.5px pair since
+  // 2026-08-07, 1 of the pit's, and the LABEL STRIP'S TWO CLASSIC HAIRLINES
+  // (2026-08-10's last two asks): the byline's `border-bottom` back on the
+  // byline→labels seam after a pass with it bare, and the rail strip's own on
+  // the labels→content seam, which brackets the strip in plain `--grey-6`
+  // where rgb bands briefly did — + ONE rgb band at 6, the
   // foot's, which is the only one left: the label bracket's thin pair (4px
   // each) went when the strip took a rim of its own. The cap's band is not
   // among them either — the frieze closes that seam since 2026-08-10, and a
@@ -5016,7 +5063,7 @@ export default defineComponent({
   // one without the other and you get either a player that needs a scroll or
   // a small player in a half-empty card. The 120px floor is for the narrowest
   // columns, where the subtraction would otherwise go negative.
-  --media-max-h: max(120px, calc(min(var(--post-square-max, 100cqw), 60vh) - 279px - var(--frieze-h) * 0.55));
+  --media-max-h: max(120px, calc(min(var(--post-square-max, 100cqw), 60vh) - 276px - var(--frieze-h) * 0.55));
 
   flex: 1 1 auto;
   min-height: 0;
@@ -5290,13 +5337,44 @@ export default defineComponent({
 // chips' room, a different lane. Padding here separates the panel from the
 // card; padding there separates the chips from the panel's edge.)
 //
-// So the walk of this element's padding is 6px/7px → 0/0 → 4px/7px, and what
-// came back with it is the reading it always encoded: the strip is the card's
-// row, the rail is the object standing in it, and the object is inset.
+// So the walk of this element's padding is 6px/7px → 0/0 → 4px/7px → **2px/5px**
+// (2026-08-10's last two asks), and what came back with it is the reading it
+// always encoded: the strip is the card's row, the rail is the object standing
+// in it, and the object is inset. The TIGHTENING came with the hairline below
+// — once a rule closes the lane, the air in it is doing less work, and the two
+// asks belong together: the panel now sits in a stated slot rather than
+// floating in a gap. 5px still reads as an inset (the rim clears the card's
+// edge, which is all the radius needs); 2px is the thinnest lane that keeps
+// the rim from touching either rule.
 .post-square__rail-strip {
   flex: 0 0 auto;
   min-width: 0;
-  padding: 4px 7px;
+  padding: 2px 5px;
+  // A ROW since 2026-08-10's add-button ask: the rail and the `+` cell side by
+  // side. The rail takes the slack (`flex: 1 1 auto` on it) and the button is
+  // rigid, which is what keeps the control at a FIXED place on every card
+  // however much classification the rail is holding.
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  // ⚠ THE LABEL→CONTENT HAIRLINE (2026-08-10, user ask) — the seam's second
+  // classic rule, the twin of the one on `.post-square__byline` above, so the
+  // label strip is BRACKETED by plain `--grey-6` lines the way it was briefly
+  // bracketed by rgb bands. Same argument as its twin, one row lower: the
+  // classification and the reading are two different kinds of fact, and the
+  // card states that with a full-bleed line.
+  //
+  // ⚠ IT MUST LIVE ON THE STRIP, NOT THE RAIL. The rail is inset by the
+  // padding above, so a border drawn on it would stop 5px short of each side;
+  // a divider runs lip to lip. This is the oldest rule on this card — DIVIDED
+  // by full-bleed lines, PANELLED by inset boxes — and it is the whole reason
+  // this element exists as something separate from the scroller inside it.
+  //
+  // CONDITIONAL, unlike the byline's: it rides the strip's own `v-if`, so an
+  // unlabelled card draws neither the strip nor its rule and its byline
+  // hairline closes straight onto the pit. Its 1px is in the media budget as
+  // worst case, like everything else there.
+  border-bottom: 1px solid var(--grey-6, #9e9e9e);
 }
 
 .post-square__rail {
@@ -5304,6 +5382,12 @@ export default defineComponent({
   flex-wrap: nowrap;
   align-items: center;
   gap: 4px;
+  // ⚠ `1 1 auto` since the strip became a row (2026-08-10): the rail is the
+  // part that GIVES so the `+` cell beside it never moves. `min-width: 0` is
+  // load-bearing with it — without it a flex item refuses to shrink below its
+  // content, and a rail full of plates would push the button off the card
+  // instead of scrolling.
+  flex: 1 1 auto;
   min-width: 0;
   // A HAIR OF VERTICAL PADDING (2026-08-10, and it took three asks to land).
   // It was `4px`, went to `0` on the ask that turned this tray into a band —
@@ -5316,10 +5400,16 @@ export default defineComponent({
   // at. `2px` is the answer to both: the plates clear the band's edges
   // without the band reopening as a tray.
   //
-  // The 6px SIDE padding never moved — it is the run-in before the first
-  // plate and the run-out after the last, and a scroller with no side lead
-  // reads as content already cut off at rest.
-  padding: 2px 6px;
+  // The SIDE padding is the run-in before the first plate and the run-out
+  // after the last — the lane between the rail's own rim and the first
+  // bundle's root cell. It held at `6px` through every one of the rail asks
+  // and came down to **`4px`** on the last of them (2026-08-10, "reduce a
+  // little the padding between the first root label container and the main
+  // label container"). ⚠ It may not go to `0`: a scroller with no side lead
+  // reads as content already cut off at rest, which is the one thing this
+  // dial exists to prevent — and the rail is a scroller on every card that
+  // carries more than a plate or two.
+  padding: 2px 4px;
   // ⚠ THE RIM IS BACK (2026-08-10, the day's last rail ask) — `1px` of
   // `--grey-6`, the card's own LINE ink, EVEN on all four sides.
   //
@@ -5338,14 +5428,22 @@ export default defineComponent({
   // panel inset from the card on every side (`.post-square__rail-strip`), and
   // a free-standing box is drawn the same all the way round.
   //
-  // ROUNDED at `6px`, back in the family every inset box on this card belongs
-  // to (the pit's 7px, the bundle plates' 4px) — a hair under the pit's, since
-  // this box is a third its height and a radius reads relative to what it
-  // turns. It was square for exactly as long as the row was full-bleed, for
-  // the reason stated then: a rounded corner on a lip-to-lip row curves
-  // against the card's own edge. That objection dies with the inset.
+  // ROUNDED at `10px` (2026-08-10, last ask of the rail run — `6px` for the
+  // pass before it). It was square for exactly as long as the row was
+  // full-bleed, for the reason stated then: a rounded corner on a lip-to-lip
+  // row curves against the card's own edge. That objection dies with the
+  // inset.
+  //
+  // ⚠ IT OUT-ROUNDS THE PIT NOW (7px), deliberately, and that reverses the
+  // rule the 6px was picked under ("a hair under the pit's, since this box is
+  // a third its height"). The three rail radii are dialled as ONE NESTED
+  // FAMILY instead — rail 10 › bundle 7 › member 5 — each inner corner
+  // roughly its parent minus the lane between them, which is what keeps
+  // concentric boxes looking parallel rather than pinched at the corners.
+  // Move any one of the three and move the other two, or the nesting reads
+  // wrong at the corners long before anyone can say why.
   border: 1px solid var(--grey-6, #9e9e9e);
-  border-radius: 6px;
+  border-radius: 10px;
   // THE FLOOR IS THE BAND (2026-08-10) — with no rim left it is the only
   // thing stating this strip at all, and it walked the greys across that
   // day's asks: `--grey-4`, the BED tone it had worn since 2026-08-07 (and
@@ -5362,28 +5460,46 @@ export default defineComponent({
   // own LINE ink, so the band read as that rule given height and filled.
   //
   // ⚠ IT WENT SHALLOW AGAIN AND THEN BACK ONE STEP, ending at `--grey-5`
-  // (2026-08-10, two asks). First to `--grey-4` — not a new level on this row
+  // (2026-08-10, four asks). First to `--grey-4` — not a new level on this row
   // but the one it STARTED on, the BED tone it wore from 2026-08-07 until
   // that day's walk pushed it down — closing a full circle: -4 → -6 → -7 →
   // -6 → -8 → -6 → -4. Then HERE, the one level the whole walk had never
   // tried on this row.
+  //
+  // ⚠ -4 WAS TRIED ONCE MORE, at the end of the day, and came straight back
+  // to -5 on the next ask. It was worth trying: the objection that had sent
+  // the row here in the first place is about a FULL-BLEED band (below), and
+  // this row is an inset rimmed panel now, so the argument no longer applied
+  // on its own terms. It came back anyway, which settles the level by
+  // EXPERIMENT rather than by reasoning — -5 has now been chosen over -4
+  // twice, under two different classifications of the row. Do not re-derive
+  // it: the walk is -4 → -6 → -7 → -6 → -8 → -6 → -4 → -5 → -4 → **-5**, and
+  // every level on this row has been seen at least twice.
   //
   // What the round trip settled is that every argument the walk made was
   // about DEPTH, and depth was the wrong axis: -6/-7/-8 differ only in how
   // much like chrome the band reads, and this row is the one thing on the
   // card that is neither chrome nor content but CLASSIFICATION. The shallow
   // end is where that belongs — lighter than the card's own line ink rather
-  // than equal to it, so the strip stops competing with the two rgb rules
-  // bracketing it and reads as a shelf the chips stand on.
+  // than equal to it, so the strip stops competing with the rules around it
+  // and reads as a shelf the chips stand on.
   //
   // What -4 COST is the reason this is -5: it is the FEED BED's own tone, the
   // plate the whole field of cards sits on, so card and field met at exactly
-  // one place and that place was between two rgb rules. The band read as a
-  // window through the card to the surface under it — a real device, and the
-  // reason the row wore that level first — but a window is not what a
-  // classification strip is. One step down keeps everything the shallow end
-  // bought and takes the coincidence back: -5 belongs to no other figure on
-  // this surface, which is what a band stating its own tier wants.
+  // one place. The band read as a window through the card to the surface
+  // under it — a real device, and the reason the row wore that level first —
+  // but a window is not what a classification strip is. One step down keeps
+  // everything the shallow end bought and takes the coincidence back: -5
+  // belongs to no other figure on this surface, which is what a band stating
+  // its own tier wants.
+  //
+  // ⚠ THAT ARGUMENT IS NOT WHY -5 SURVIVED THE SECOND TRY, and the difference
+  // is worth keeping. The reasoning above is about a FULL-BLEED band, and
+  // this row has been an inset rimmed panel since the same day's rim ask —
+  // a plate that happens to share the bed's tone reads as a plate, not as a
+  // hole, so the objection had genuinely expired. -4 went back on and came
+  // straight back off. What decided it, twice, is the LOOK, not the argument;
+  // the tone coincidence is real and simply matters less than the reading.
   //
   // The chips carry the contrast either way: each is a near-white plate with
   // its own rim, well up from the band at any of these levels, so the
@@ -5523,7 +5639,10 @@ export default defineComponent({
   // ⚠ `overflow: hidden` below does NOT clip it: an element's own overflow
   // clips its CONTENT, never a shadow painted outside its border box.
   box-shadow: 0 0 0 0.5px var(--grey-7, #757575);
-  border-radius: 4px;
+  // `7px` since 2026-08-10's last rail ask (it was 4px) — the middle tier of
+  // the rail's nested radius family, rail 10 › HERE › member 5. See
+  // `.post-square__rail`: the three move together.
+  border-radius: 7px;
   overflow: hidden;
   // ⚠ NEUTRAL AGAIN (2026-08-10) — `--grey-3`, off the `--light-cream` it
   // wore for the length of the bundling pass. The cream's argument was that
@@ -5662,7 +5781,9 @@ export default defineComponent({
   // `_tokens.scss` beside the family's two hover tones, and it is the first
   // RESTING role deep purple has on this rail.
   box-shadow: inset 0 0 0 0.5px var(--deep-purple-2, #d1c4e9);
-  border-radius: 3px;
+  // `5px` since 2026-08-10's last rail ask (it was 3px) — the innermost tier
+  // of the rail's nested radius family, rail 10 › bundle 7 › HERE.
+  border-radius: 5px;
   background: var(--grey-2, #f5f5f5);
 }
 
