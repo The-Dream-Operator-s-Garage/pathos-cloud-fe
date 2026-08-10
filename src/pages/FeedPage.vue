@@ -68,20 +68,33 @@
            container instead of hanging over whatever slides under it. Done
            on left/right, not transform — the enter/leave transition owns
            transform, and an inline one would freeze the animation. -->
+      <!-- `v-show` for the PARKED state, `v-if` for the open one (2026-08-10,
+           the minimize ask). Minimize is not a close: the box keeps its DOM,
+           so its scroll position survives the round-trip and restoring costs
+           no request — `FeedPostPanel` quotes the content node through
+           `GET /nodes/by-path`, and a `v-if` would re-fetch it every time the
+           tab is clicked. Same reasoning `MediaViewerHost` uses to keep a
+           parked video playing. -->
       <div
-        v-if="selected || flyoutRef" class="feed-flyout"
+        v-if="selected || flyoutRef"
+        v-show="!flyouts.skeleton.minimized"
+        class="feed-flyout"
         :class="{ 'is-max': flyoutMax }"
         :style="trackScroll && !flyoutMax ? {
           left: `calc(52.5% - ${trackScroll}px)`,
           right: `calc(5% + ${trackScroll}px)`
         } : null"
       >
-        <!-- The green light asks, THIS PAGE performs: the box knows nothing
-             about where it stands (SkeletonFlyout's oldest rule), so the flag
-             goes down as a prop and the request comes back as an event. -->
+        <!-- The lights ask, THIS PAGE performs: the box knows nothing about
+             where it stands (SkeletonFlyout's oldest rule), so the flags go
+             down as props and the requests come back as events. Minimize is
+             the exception that proves it — the destination is the strip at
+             the TOP of the screen, which is neither this page's element nor
+             the box's, so it travels through the flyouts store instead. -->
         <SkeletonFlyout
           :item="selected" :skeleton-ref="flyoutRef" :maximized="flyoutMax"
           @close="clearSelection" @toggle-max="flyoutMax = !flyoutMax"
+          @minimize="flyouts.minimizeSkeleton()"
         />
       </div>
     </transition>
@@ -91,6 +104,7 @@
 <script>
 import { defineComponent, ref, watch, onMounted, onBeforeUnmount } from 'vue'
 import { useRoute } from 'vue-router'
+import { useFlyoutsStore } from 'src/stores/flyouts'
 import FriezeBarVertical from 'src/components/layout/FriezeBarVertical.vue'
 import FriezeBarVerticalB from 'src/components/layout/FriezeBarVerticalB.vue'
 import FeedStream from 'src/components/posts/FeedStream.vue'
@@ -109,6 +123,13 @@ export default defineComponent({
     // itself in CSS instead, so hand back nothing.
     const pageStyleFn = () => ({})
 
+    // The flyout's WINDOW state (2026-08-10). Minimized/maximized live in a
+    // store rather than in this file because the yellow light parks the box
+    // into `MediaTabsBar`, the thin band at the top of the screen — a
+    // component on the far side of the layout, which props and emits cannot
+    // reach. Everything the box SHOWS is still this page's (below).
+    const flyouts = useFlyoutsStore()
+
     // The post the flyout is reading out. The PAGE owns it rather than the
     // stream, because the box it feeds lives outside the feed container —
     // whoever places the flyout has to hold what goes in it.
@@ -125,14 +146,23 @@ export default defineComponent({
     const route = useRoute()
     const flyoutRef = ref(null)
     watch(() => route.query.flyout, (v) => {
-      if (v) { flyoutRef.value = String(v); selected.value = null }
+      if (v) { flyoutRef.value = String(v); selected.value = null; flyouts.restoreSkeleton() }
     }, { immediate: true })
 
     // TOGGLE, not set: the trigger for a post that is already open is the way
     // to close it again. Both triggers (title plate, foot chip) come through
     // here, so either closes what either opened.
+    // (2026-08-10) A PARKED box is un-parked instead of toggled: clicking a
+    // card while the flyout sits in the top strip means "show me this", never
+    // "close the thing I cannot see". The toggle only answers a box that is
+    // actually on screen.
     const onSelect = (item) => {
       flyoutRef.value = null
+      if (flyouts.skeleton.minimized) {
+        flyouts.restoreSkeleton()
+        selected.value = item
+        return
+      }
       selected.value =
         selected.value && selected.value.skeleton_id === item.skeleton_id ? null : item
     }
@@ -147,10 +177,21 @@ export default defineComponent({
     const onOpenSkeleton = (item) => {
       selected.value = null
       const ref = String(item.skeleton_id)
+      if (flyouts.skeleton.minimized) {
+        flyouts.restoreSkeleton()
+        flyoutRef.value = ref
+        return
+      }
       flyoutRef.value = flyoutRef.value === ref ? null : ref
     }
 
-    const clearSelection = () => { selected.value = null; flyoutRef.value = null }
+    // Closing also UN-PARKS, so the store can never hold a tab for a box that
+    // is no longer open (the tab bar reads `minimized` alone — see the store).
+    const clearSelection = () => {
+      selected.value = null
+      flyoutRef.value = null
+      flyouts.restoreSkeleton()
+    }
 
     // ── The flyout's SIZE (2026-08-10, with the traffic lights) ──────────
     // The box's green light emits; the size is this page's, because the slot
@@ -172,9 +213,15 @@ export default defineComponent({
     // finding its close button.
     const onKeydown = (e) => { if (e.key === 'Escape') clearSelection() }
     onMounted(() => window.addEventListener('keydown', onKeydown))
-    onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
+    onBeforeUnmount(() => {
+      window.removeEventListener('keydown', onKeydown)
+      // The box dies with this page, so its parked TAB must too — a handle in
+      // the top strip that restores nothing is worse than no handle. (The
+      // maximized flag survives on purpose; see the store.)
+      flyouts.resetSkeleton()
+    })
 
-    return { pageStyleFn, selected, flyoutRef, flyoutMax, onSelect, onOpenSkeleton, clearSelection, trackEl, trackScroll, onTrackScroll }
+    return { pageStyleFn, flyouts, selected, flyoutRef, flyoutMax, onSelect, onOpenSkeleton, clearSelection, trackEl, trackScroll, onTrackScroll }
   }
 })
 </script>

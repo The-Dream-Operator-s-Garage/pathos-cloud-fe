@@ -103,9 +103,9 @@
         <q-btn
           push no-caps
           class="nav-btn dashboard-btn"
-          :class="{ 'is-active': dashboardOpen }"
-          title="Dashboard — the floating dashboard panel"
-          @click="$emit('toggle-dashboard')"
+          :class="{ 'is-active': dashboardExpanded }"
+          title="Dashboard — the panel rising from this bar"
+          @click="toggleDashboard"
         >
           <q-icon name="sym_o_empty_dashboard" size="14px" />
         </q-btn>
@@ -242,6 +242,7 @@ import { useUploaderStore, uploadLabel } from 'src/stores/uploader'
 import { useSkeletonBuilderStore, builderLabel } from 'src/stores/skeletonBuilder'
 import { useLabelMakerStore } from 'src/stores/labelMaker'
 import { useChatStore } from 'src/stores/chat'
+import { useDashboardStore } from 'src/stores/dashboard'
 import { useEventsStore } from 'src/stores/events'
 import { pinService } from 'src/services/pin.service'
 import GlobalSearch from 'src/components/shared/GlobalSearch.vue'
@@ -250,7 +251,7 @@ import FriezeBar from 'src/components/layout/FriezeBar.vue'
 export default defineComponent({
   name: 'NavigationBar',
   components: { GlobalSearch, FriezeBar },
-  emits: ['toggle-drawer', 'open-maker', 'open-uploader', 'open-skeleton-builder', 'open-label-maker', 'toggle-dashboard', 'pins-changed'],
+  emits: ['toggle-drawer', 'open-maker', 'open-uploader', 'open-skeleton-builder', 'open-label-maker', 'pins-changed'],
   props: {
     // Increment to force a pin-state refresh from the parent (e.g. after the
     // PinsDrawer unpins something so the tack indicator updates).
@@ -259,14 +260,7 @@ export default defineComponent({
     // no drawer stands (MainLayout owns the call) — the drawer carries the
     // burger in its own footer block on these same pixels while it is there,
     // so exactly one of the two renders it at any moment.
-    showBurger: { type: Boolean, default: false },
-    // Is the dashboard flyout standing right now? MainLayout owns the box
-    // (it is the surface that outlives every route), so the bar is TOLD
-    // whether its button is lit — the same arrangement `showBurger` has, and
-    // the opposite of the chat button, whose window has a store of its own to
-    // read. A flyout is not a dock: no drafts, no persistence, nothing to
-    // restore — so there is nothing for a store to hold.
-    dashboardOpen: { type: Boolean, default: false }
+    showBurger: { type: Boolean, default: false }
   },
   setup (props, { emit }) {
     const route = useRoute()
@@ -276,6 +270,7 @@ export default defineComponent({
     const skeletonBuilderStore = useSkeletonBuilderStore()
     const labelMakerStore = useLabelMakerStore()
     const chatStore = useChatStore()
+    const dashboardStore = useDashboardStore()
     const events = useEventsStore()
 
     // ── The ONE route the bar gives way to (2026-08-02) ──────
@@ -297,6 +292,22 @@ export default defineComponent({
       if (chatStore.isOpen && !chatStore.isMinimized && events.unreadCount > 0) {
         events.ackAll()
       }
+    }
+
+    // ── Dashboard window toggle (2026-08-10) ─────────────────
+    // Read STRAIGHT off its own store, the way chat is, because the panel
+    // became a dock in its second pass: it rises from this bar with the other
+    // creative windows and parks as a minitab on it, so the bar is one of the
+    // two surfaces that own it and has no business being told about it from
+    // above. (Its flyout pass took a `dashboardOpen` prop from MainLayout —
+    // that prop and its `toggle-dashboard` emit are gone.) Same three-step
+    // toggle the chat button has: closed → open, parked → restore, standing →
+    // close.
+    const dashboardExpanded = computed(() => dashboardStore.isOpen && !dashboardStore.isMinimized)
+    const toggleDashboard = () => {
+      if (!dashboardStore.isOpen) dashboardStore.open()
+      else if (dashboardStore.isMinimized) dashboardStore.restore()
+      else dashboardStore.close()
     }
 
     // ── PIN state ────────────────────────────────────────────
@@ -428,6 +439,22 @@ export default defineComponent({
           restore: () => chatStore.restore()
         })
       }
+      // The dashboard panel parks HERE (2026-08-10, user ask: "for the
+      // dashboard, make it a tab on the bottom nav footer bar"). It costs one
+      // entry and nothing else — the strip was already the parking lot for
+      // every window that rises from this bar, and the panel joined those
+      // windows in the same pass.
+      if (dashboardStore.isOpen && dashboardStore.isMinimized) {
+        tabs.push({
+          key: 'dashboard',
+          icon: 'sym_o_empty_dashboard',
+          label: 'dashboard',
+          meta: '',
+          busy: false,
+          title: 'Restore the dashboard panel',
+          restore: () => dashboardStore.restore()
+        })
+      }
       return tabs
     })
 
@@ -448,6 +475,8 @@ export default defineComponent({
       minitabRight,
       chatExpanded,
       toggleChat,
+      dashboardExpanded,
+      toggleDashboard,
       events,
       parkedTabs,
       underlaid
@@ -583,6 +612,10 @@ export default defineComponent({
 .minitab__icon--uploader        { color: #7b52ab; }
 .minitab__icon--skeletonBuilder { color: #5b6c82; }
 .minitab__icon--labelMaker      { color: #00829c; }
+// The dashboard's tab is the only GREY mark in the strip, matching its button
+// four pixels above it and the coat of the window it restores — `--grey-9`,
+// the same #424242 the pebble letters its glyph in (2026-08-10).
+.minitab__icon--dashboard       { color: #424242; }
 
 .minitab__label {
   font-family: var(--font-mono);

@@ -194,53 +194,16 @@
     <NavigationBar
       :pins-refresh-key="pinsRefreshKey"
       :show-burger="showBurger"
-      :dashboard-open="dashboardOpen"
       @toggle-drawer="drawer = !drawer"
       @open-maker="makerStore.open()"
       @open-uploader="uploaderStore.open()"
       @open-skeleton-builder="skeletonBuilderStore.open()"
       @open-label-maker="labelMakerStore.open()"
-      @toggle-dashboard="dashboardOpen = !dashboardOpen"
       @pins-changed="pinsRefreshKey++"
     />
 
-    <!-- ── THE DASHBOARD FLYOUT (2026-08-10, user ask) and its SLOT.
-         `DashboardFlyout` is the second box in the flyout family (the first
-         being the skeleton viewer FeedPage floats beside its column); by that
-         family's oldest rule the component draws the box and the HOST places
-         it, so the geometry below is this layout's business.
-
-         It hangs HERE rather than on a page because the button that opens it
-         is on the nav bar, which outlives every route: a page-owned panel
-         would blink out the moment you followed a link out of it. Which is
-         also why the state is two plain refs in this file instead of a store
-         — a flyout has no drafts, no tabs and nothing to restore, so there is
-         nothing for a store to persist.
-
-         The slot restates the feed flyout's rhythm against the WINDOW rather
-         than against a page box (`left: 52.5%`, `right: 5%`, the band between
-         the two frieze strips), and `--rail-w` is bound inline so the box
-         keeps clear of the parked stack/pins column, which is opaque and
-         ranks above it. Maximized, it reaches from the drawer's mini rail to
-         that same right inset — the whole free width, which is what a
-         maximize means for a box that never covers the chrome. ── -->
-    <transition name="dashboard-flyout">
-      <div
-        v-if="dashboardOpen"
-        class="dashboard-flyout"
-        :class="{ 'is-max': dashboardMax }"
-        :style="{ '--rail-w': windows.railWidth + 'px' }"
-      >
-        <DashboardFlyout
-          :maximized="dashboardMax"
-          @close="dashboardOpen = false"
-          @toggle-max="dashboardMax = !dashboardMax"
-        />
-      </div>
-    </transition>
-
-    <!-- The seven docked windows (maker, uploader, skeleton builder, label
-         maker, chat, stack, pins) — always
+    <!-- The eight docked windows (maker, uploader, skeleton builder, label
+         maker, chat, DASHBOARD since 2026-08-10, stack, pins) — always
          mounted; their stores decide whether each renders open, minimized
          (maker/uploader/chat → minitab on the nav bar, stack/pins → icon
          rail on the right edge) or not at all, and stores/windows.js
@@ -256,11 +219,16 @@
     <SkeletonBuilderDock />
     <LabelMakerDock />
     <ChatDock />
+    <!-- The dashboard panel — the creation footprint in the flyout family's
+         grey coat, empty until we fill it (2026-08-10, second ask: it rises
+         from the bar like the other creative windows rather than floating in
+         the feed's right-hand slot, which is where its first pass put it). -->
+    <DashboardDock />
   </q-layout>
 </template>
 
 <script>
-import { defineComponent, ref, computed, onMounted, onBeforeUnmount } from 'vue'
+import { defineComponent, ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useNavStore } from 'src/stores/navigation'
 import { useAuthStore } from 'src/stores/auth'
@@ -270,7 +238,7 @@ import UploaderDock from 'src/components/maker/UploaderDock.vue'
 import SkeletonBuilderDock from 'src/components/maker/SkeletonBuilderDock.vue'
 import LabelMakerDock from 'src/components/maker/LabelMakerDock.vue'
 import ChatDock from 'src/components/chat/ChatDock.vue'
-import DashboardFlyout from 'src/components/dashboard/DashboardFlyout.vue'
+import DashboardDock from 'src/components/dashboard/DashboardDock.vue'
 import MediaViewerHost from 'src/components/media/MediaViewerHost.vue'
 import FriezeHeader from 'src/components/layout/FriezeHeader.vue'
 import FriezeBar from 'src/components/layout/FriezeBar.vue'
@@ -287,7 +255,7 @@ import { useEventsStore } from 'src/stores/events'
 
 export default defineComponent({
   name: 'MainLayout',
-  components: { MakerDock, UploaderDock, SkeletonBuilderDock, LabelMakerDock, ChatDock, DashboardFlyout, MediaViewerHost, FriezeHeader, FriezeBar, NavigationBar, PinsDrawer, StackPanel, EntityAvatar },
+  components: { MakerDock, UploaderDock, SkeletonBuilderDock, LabelMakerDock, ChatDock, DashboardDock, MediaViewerHost, FriezeHeader, FriezeBar, NavigationBar, PinsDrawer, StackPanel, EntityAvatar },
   setup () {
     const router = useRouter()
     const navStore = useNavStore()
@@ -378,26 +346,14 @@ export default defineComponent({
     const canGoBack = computed(() => (window.history.state?.position ?? 0) > 0)
     const goBack = () => { router.back() }
 
-    // ── The dashboard flyout (2026-08-10) ────────────────────
-    // Two plain refs, and deliberately not a store: the box has no drafts,
-    // no tabs and nothing to restore, so there is nothing to persist and
-    // nobody else to tell. It lives HERE because the nav bar opens it and the
-    // nav bar outlives every route — a page-owned panel would blink out on
-    // the next link. `dashboardMax` is kept ACROSS closes, the way the docks
-    // remember their maximized state: reopening a box you left maximized at
-    // its small size would read as the button doing something different the
-    // second time.
-    const dashboardOpen = ref(false)
-    const dashboardMax = ref(false)
-    // Escape closes it — the same dismissal the feed's flyout has, and the
-    // only one a floating box can offer without the pointer finding its red
-    // light. It does NOT restore the size: Escape means "put this away".
-    const onDashboardKeydown = (e) => {
-      if (e.key === 'Escape' && dashboardOpen.value) dashboardOpen.value = false
-    }
+    // ── The dashboard panel is a DOCK since 2026-08-10 ───────
+    // It spent one pass as a floating flyout with its window state in two
+    // refs here; the second ask moved it onto the bar with the other creative
+    // windows, so its flags live in `stores/dashboard.js` like every other
+    // dock's — which is also what lets the nav bar draw its minitab without
+    // this layout passing anything down. Nothing left to hold here.
 
     onMounted(async () => {
-      window.addEventListener('keydown', onDashboardKeydown)
       // Mobile pass (Thread H): keep windows.isMobile live so the rail
       // reserves flip off under 600px (the widgets hide via CSS).
       windows.initViewportWatch()
@@ -411,9 +367,7 @@ export default defineComponent({
       useEventsStore().connect()
     })
 
-    onBeforeUnmount(() => window.removeEventListener('keydown', onDashboardKeydown))
-
-    return { drawer, mini, drawerRailW, hideDrawer, showBurger, makerStore, uploaderStore, skeletonBuilderStore, labelMakerStore, windows, pinsRefreshKey, onPostCreated, onUploaded, user, isAlterEgo, profileName, profileHandle, goToProfile, handleLogout, canGoBack, goBack, dashboardOpen, dashboardMax }
+    return { drawer, mini, drawerRailW, hideDrawer, showBurger, makerStore, uploaderStore, skeletonBuilderStore, labelMakerStore, windows, pinsRefreshKey, onPostCreated, onUploaded, user, isAlterEgo, profileName, profileHandle, goToProfile, handleLogout, canGoBack, goBack }
   }
 })
 </script>
@@ -746,79 +700,4 @@ aside.q-drawer {
   }
 }
 
-// ── THE DASHBOARD FLYOUT'S SLOT (2026-08-10) ─────────────────────────────
-// The box is `DashboardFlyout` (`.flyout-window` chrome); this is where it
-// stands. FIXED, not absolute: it belongs to the layout, not to whatever page
-// happens to be under it, and it has to hold still while a route changes.
-//
-// VERTICALLY it is FeedPage's flyout law restated — between the two frieze
-// bands and clear of both, `--flyout-gap` of daylight off each, so the two
-// boxes in the family sit on exactly the same two lines whichever route you
-// are on. The bottom names the nav footer as well because this box measures
-// from the WINDOW, where the feed's measures from a page whose own box already
-// stops at the bar.
-//
-// HORIZONTALLY it takes the feed flyout's slot — `left: 52.5%`, the container's
-// 47.5% plus the 5% box gap — so on /feed it lands exactly where a reader
-// expects a flyout, and elsewhere it simply hangs in the right-hand half. The
-// right inset adds `--rail-w` (bound inline off `windows.railWidth`): the
-// parked stack/pins column is opaque at z 3100 and outranks this box, so the
-// percentage alone would slide the panel's edge under it.
-//
-// z 3060: OVER every dock (3010+ — this box is summoned from the bar, so it
-// has to arrive on top of whatever window was already open) and over the feed
-// container and its own sibling flyout (3001/3002), UNDER the parked side
-// widgets (3100), the nav bar (3110) and the drawer (3120) — the three
-// surfaces that overlap everything by design. The minitab strip (3045) is
-// below it and never in its box: the strip stands on the bar's top edge and
-// this slot stops a whole frieze band above that.
-.dashboard-flyout {
-  --flyout-gap: 14px;
-
-  position: fixed;
-  top: calc(var(--frieze-h) + var(--flyout-gap));
-  bottom: calc(var(--nav-footer-h) + var(--frieze-h) + var(--flyout-gap));
-  left: 52.5%;
-  right: calc(5% + var(--rail-w, 0px));
-  z-index: 3060;
-}
-
-// MAXIMIZED — the whole free width, and no more. It starts at the drawer's
-// mini rail (`--dock-rail-w`, the column the drawer keeps even collapsed) plus
-// the same gap it keeps off everything else, and it keeps its right inset, so
-// a maximized flyout still never covers a piece of chrome. That is the
-// difference between this and a dock's `is-max`: a dock is a window that takes
-// the screen, a flyout is a reading surface that takes the page.
-.dashboard-flyout.is-max {
-  left: calc(var(--dock-rail-w) + var(--flyout-gap));
-}
-
-// MOBILE — one surface at a time, exactly the bargain the feed's flyout
-// strikes at this width: the box overlays the full width on the same 8px of
-// daylight the docks keep, and maximize has nothing left to add (the rule is
-// stated for both states so the green light never moves the box a pixel and
-// looks broken). The drawer is an OVERLAY down here, so there is no mini rail
-// to clear on the left. Kept in step with MOBILE_MQ in stores/windows.js and
-// the mobile block in css/_components.scss.
-@media (max-width: 600px) {
-  .dashboard-flyout,
-  .dashboard-flyout.is-max {
-    left: 8px;
-    right: 8px;
-  }
-}
-
-// It arrives from the right — the direction it lives in, so the motion says
-// where the box came from rather than just that it appeared. Same 0.16s the
-// feed's flyout uses; they are one family and should enter alike.
-.dashboard-flyout-enter-active,
-.dashboard-flyout-leave-active {
-  transition: opacity 0.16s ease, transform 0.16s ease;
-}
-
-.dashboard-flyout-enter-from,
-.dashboard-flyout-leave-to {
-  opacity: 0;
-  transform: translateX(14px);
-}
 </style>

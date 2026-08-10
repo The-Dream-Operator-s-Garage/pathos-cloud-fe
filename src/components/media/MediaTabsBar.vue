@@ -10,19 +10,31 @@
 
        The row fills from the RIGHT edge leftward and never passes half
        the screen; `parked` is reversed so the newest tab is the leftmost
-       — the growing end — and every older tab keeps the slot it had. -->
-  <div class="media-tabs" role="toolbar" aria-label="minimized media viewers">
+       — the growing end — and every older tab keeps the slot it had.
+
+       IT IS NOT ONLY THE VIEWERS' BAND since 2026-08-10 (user ask: "for the
+       skeleton flyout, make it retreat into the thin header on the top of
+       the screen, where the media viewers retreat too"). The feed's skeleton
+       flyout parks here as well, so the row is built from a NORMALIZED list
+       — `{ key, icon, name, restore }` — rather than straight off the media
+       store, and this component stopped being about media the moment a
+       second kind of window hung from it. What both parkers have in common
+       is the posture, and it is the reason this strip is the right home for
+       both: a floating box retreats UPWARD, out of the way of the page it
+       was covering, where a docked window folds back down into the bar it
+       rose from. -->
+  <div class="media-tabs" role="toolbar" aria-label="minimized windows">
     <TransitionGroup ref="rowEl" tag="div" name="mtab" class="media-tabs__row nasalization" appear>
       <button
-        v-for="v in tabs"
-        :key="v.id"
+        v-for="t in tabs"
+        :key="t.key"
         type="button"
         class="media-tabs__tab"
-        :title="'restore ' + nameOf(v)"
-        @click="store.restore(v.id)"
+        :title="'restore ' + t.name"
+        @click="t.restore()"
       >
-        <q-icon :name="iconFor(v.node)" size="12px" class="media-tabs__glyph" />
-        <span class="media-tabs__name">{{ nameOf(v) }}</span>
+        <q-icon :name="t.icon" size="12px" class="media-tabs__glyph" />
+        <span class="media-tabs__name">{{ t.name }}</span>
       </button>
     </TransitionGroup>
   </div>
@@ -31,29 +43,54 @@
 <script>
 import { defineComponent, computed } from 'vue'
 import { useMediaViewersStore } from 'src/stores/mediaViewers'
+import { useFlyoutsStore } from 'src/stores/flyouts'
 import { iconFor, titleOf } from 'src/utils/mediaKind'
 
 export default defineComponent({
   name: 'MediaTabsBar',
   setup () {
     const store = useMediaViewersStore()
+    const flyouts = useFlyoutsStore()
 
-    // Newest FIRST, so the row grows leftward from the right edge and a
-    // tab, once placed, stays where it was put. It also puts the tab you
-    // just made at the row's start, which is the end that stays visible
-    // when the strip overflows into its scroller.
-    const tabs = computed(() => [...store.parked].reverse())
-
-    // The window's own name, verbatim — same seam, so a tab and the
-    // window it restores are never called two different things.
-    const nameOf = (v) => titleOf(v.node)
+    // One normalized shape for every parker (2026-08-10): media viewers, and
+    // the feed's skeleton flyout when it is parked. Each tab carries its own
+    // `restore`, so the strip never learns what kind of window it is holding
+    // — which is what let a second family join it for six lines.
+    //
+    // Media viewers NEWEST FIRST, so the row grows leftward from the right
+    // edge and a tab, once placed, stays where it was put. The flyout leads
+    // the row: there is at most one of it, so a fixed slot at the growing end
+    // costs the viewers nothing and gives the one tab that can appear on any
+    // route a place that does not move under the pointer.
+    const tabs = computed(() => {
+      const out = []
+      if (flyouts.skeleton.minimized) {
+        out.push({
+          key: 'flyout:skeleton',
+          icon: flyouts.skeleton.icon,
+          name: flyouts.skeleton.label,
+          restore: () => flyouts.restoreSkeleton()
+        })
+      }
+      for (const v of [...store.parked].reverse()) {
+        out.push({
+          key: v.id,
+          icon: iconFor(v.node),
+          // The window's own name, verbatim — same seam, so a tab and the
+          // window it restores are never called two different things.
+          name: titleOf(v.node),
+          restore: () => store.restore(v.id)
+        })
+      }
+      return out
+    })
 
     // NOTHING to set at runtime: `--media-tabs-h` is a constant in
     // _tokens.scss and the top chrome is laid out against it from boot.
     // The first pass had this component claim and release the space as it
     // mounted, which worked and made the whole page hop 4px whenever a
     // viewer parked — a band that is permanent has no such moment.
-    return { store, tabs, nameOf, iconFor }
+    return { tabs }
   }
 })
 </script>

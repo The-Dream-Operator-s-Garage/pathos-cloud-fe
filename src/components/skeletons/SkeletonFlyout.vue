@@ -74,14 +74,21 @@
          window like the docks are, and the platform states a window's
          controls in one place.
 
-         TWO LIGHTS, NOT THREE (2026-08-10, user ask: "traffic light controls
-         for maximize and close behaviors"). There is no yellow one because
-         there is nowhere to park: a flyout has no minitab on the nav bar the
-         way the five docks do, so a minimize would half-dismiss a box whose
-         red light already keeps no state. Red closes, green swaps the box
-         between its slot and the whole free width — and BOTH are the host's
-         to perform (geometry is not here), so both leave as events and the
-         green one is drawn from the `maximized` flag it is handed back.
+         THREE LIGHTS (2026-08-10; it opened the day with two). Red closes,
+         green swaps the box between its slot and the whole free width, and
+         the YELLOW one — added the same day, second ask — retreats the box
+         into the thin band at the TOP of the screen, the strip the floating
+         media viewers park on (`MediaTabsBar`), rather than onto the nav
+         bar's minitab strip where the docks go. That destination is the
+         whole reason this window may honestly offer a minimize at all: a box
+         with nowhere to park can only half-dismiss itself. It also says
+         something true about the two families — a dock rises from the bar and
+         folds back down into it, while a flyout hovers over the page and
+         retreats UPWARD out of the way of the thing it was describing.
+
+         All three are the host's to perform (geometry is not here), so all
+         three leave as events, and the green one is drawn from the
+         `maximized` flag it is handed back.
 
          The kind glyph is taken from `utils/kinds.js` rather than written in
          (2026-07-26): this box is a skeleton viewer, so it wears the glyph of
@@ -95,6 +102,12 @@
           title="Close (Esc)" @click="$emit('close')"
         >
           <q-icon name="close" />
+        </button>
+        <button
+          type="button" class="traffic__dot traffic__dot--yellow"
+          title="Minimize to the top strip" @click="$emit('minimize')"
+        >
+          <q-icon name="remove" />
         </button>
         <button
           type="button" class="traffic__dot traffic__dot--green"
@@ -151,7 +164,8 @@
 </template>
 
 <script>
-import { defineComponent, computed, ref } from 'vue'
+import { defineComponent, computed, ref, watch } from 'vue'
+import { useFlyoutsStore } from 'src/stores/flyouts'
 import FriezeBar from 'src/components/layout/FriezeBar.vue'
 import FeedPostPanel from 'src/components/posts/FeedPostPanel.vue'
 import SkeletonMini from 'src/components/skeletons/SkeletonMini.vue'
@@ -173,7 +187,7 @@ export default defineComponent({
     // disagree about what the box is doing.
     maximized: { type: Boolean, default: false }
   },
-  emits: ['close', 'toggle-max'],
+  emits: ['close', 'toggle-max', 'minimize'],
   setup (props) {
     // The generic face reports what it resolved (name + id) so the header
     // can title the box after the actual instance.
@@ -207,8 +221,22 @@ export default defineComponent({
     // `SkeletonMini` makes. Through `kinds.js` so that re-glyphing skeletons
     // platform-wide moves this header with everything else, rather than
     // leaving one hand-written icon behind.
+    const skeletonKind = kindFor('skeletons')
+
+    // ── The box names its own parked tab (2026-08-10) ───────────────────
+    // The yellow light retreats this window into the top strip, where a tab
+    // has to say WHAT is parked — and the only thing that knows is this
+    // header, whose title resolves asynchronously (SkeletonMini reports the
+    // instance's name back through `resolved`). So the title is mirrored into
+    // the flyouts store as it settles, and the tab reads it there rather than
+    // being handed a guess at park time. `immediate` covers the case that
+    // matters most: park a box that resolved long ago and the tab is right on
+    // its first frame.
+    const flyouts = useFlyoutsStore()
+    watch(title, (t) => flyouts.describeSkeleton(t, skeletonKind.icon), { immediate: true })
+
     return {
-      skeletonKind: kindFor('skeletons'),
+      skeletonKind,
       skeletonId,
       skeletonAddress,
       title,

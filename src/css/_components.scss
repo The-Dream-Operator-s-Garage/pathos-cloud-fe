@@ -476,6 +476,32 @@
   );
 }
 
+// ── DASHBOARD COLORWAY (2026-08-10) — the FLYOUT FAMILY'S coat on a dock's
+// footprint. The panel was a floating flyout for one pass ("the very same
+// aesthetic as the current flyout skeleton viewer") and then moved to the bar
+// ("make it rise from the bottom, like the other creative expanded versions…
+// attached to the footer nav bar"); these six values are how it keeps the
+// first ask while obeying the second, and they are exactly the tones
+// `SkeletonFlyout` argued its way to — `--grey-3` plaque, `--grey-4` lines,
+// the `--grey-4` well sunk one step under the coat, `--grey-5` for the strong
+// edge, and the family's two WARM marks left standing: brown-8 head ink,
+// brown-4 meta. Same dial seam chat used to go lime; no repainting modifier,
+// no second copy of the chrome.
+//
+// Note what this makes the greys do here that the browns do next door: coat
+// and rule are one step apart (1.06:1), which is the flyout's own quiet edge
+// and NOT the brown chrome's contrast — right, because this window is drawn to
+// be looked INTO rather than worked in, and the well inside it is where the
+// step actually falls.
+.dock-window--dashboard {
+  --dock-coat: var(--grey-3);
+  --dock-well: var(--grey-4);
+  --dock-rule: var(--grey-4);
+  --dock-rule-strong: var(--grey-5);
+  --dock-ink: var(--brown-8);
+  --dock-ink-mute: var(--brown-4);
+}
+
 // Maximize fills the whole slot from the screen's left edge to the side
 // column; the top gap and the right daylight stay — the crown strip and the
 // side bars are never covered.
@@ -634,8 +660,10 @@
 // platform reads ONE object out in. There are two of them now: the skeleton
 // viewer the feed opens beside its column (`SkeletonFlyout.vue`, 2026-07-26)
 // and the dashboard panel the nav bar opens on any route
-// (`DashboardFlyout.vue`, this day's ask). The second is why this block
-// exists at all: the whole aesthetic had been written once, in
+// (the dashboard panel, this day's ask — which became a DOCK hours later,
+// `.dock-window--dashboard` below, and wears this family's COAT rather than
+// its shell). The panel is why this block exists at all: the whole aesthetic
+// had been written once, in
 // SkeletonFlyout's scoped styles, over four passes of tone argument — a
 // `--grey-3` plaque with `--grey-4` lines, a frieze band on a `--grey-9`
 // base, and an information well sunk one step into the plaque and bevelled
@@ -646,9 +674,10 @@
 // record); what moved here is the recipe.
 //
 // GEOMETRY IS NOT HERE, and that is the family's oldest rule: each flyout is
-// sized and placed by whoever mounts it (`.feed-flyout` on FeedPage,
-// `.dashboard-flyout` on MainLayout), because only the host knows which slot
-// of the window is free. The shell fills what it is handed.
+// sized and placed by whoever mounts it (`.feed-flyout` on FeedPage), because
+// only the host knows which slot of the window is free. The shell fills what
+// it is handed — and since 2026-08-10 that includes its SIZE STATE and where
+// it PARKS: the head's three lights emit, and the host performs.
 //
 // What a component still owns is what it CONTAINS — SkeletonFlyout keeps its
 // `--node-mini-*` dials and the `:deep()` density rules that follow from the
@@ -679,13 +708,14 @@
   // pinned to the left edge, title centred — see `.dock-window--creation`),
   // which is what the lights ask for: a flyout is a window like the docks
   // are, and the platform states a window's controls in one place. The
-  // symmetric 56px side padding clears the cluster at BOTH dot sizes (2 ×
-  // 13px + 7px gap = 33 at an 8px inset on desktop; 2 × 17px + 8px = 42 on
-  // mobile) so the centred title never rides under a dot.
+  // symmetric 80px side padding is the docks' own number, kept identical so
+  // the two families' heads are one measurement: it was sized for the mobile
+  // cluster (3 × 17px dots + 2 × 8px gaps = 67, at an 8px inset = 75) and
+  // clears the smaller 13px-dot desktop one with room to spare.
   .dock-bar {
     position: relative;
     justify-content: center;
-    padding: 0 56px;
+    padding: 0 80px;
     background: var(--grey-3);
     border-bottom: none;
     flex: 0 0 auto;
@@ -714,44 +744,52 @@
     top: 0;
     bottom: 0;
   }
+}
 
-  // The band between the head and the well — the pins widget's arrangement,
-  // `slim` (half height, one wave) because the widest band in the smallest
-  // box was the one thing here shouting. Its plaque base is `--grey-9`
-  // through FriezeBar's own dial, so the band is neutral like the plaque and
-  // DARK where the bar's default `--brown-4` is a light plate: the motif
-  // inverts and the brown waves read as the light ON a dark strip, leaving
-  // the band the one carved and one dark thing in the box.
-  .flyout-window__frieze {
-    flex: 0 0 auto;
-    --frieze-bar-base: var(--grey-9);
-  }
+// ── THE FAMILY'S TWO NAMED PIECES, at TOP LEVEL on purpose ───────────────
+// They were nested inside `.flyout-window` for the length of one pass and
+// came out the moment the dashboard panel stopped being a flyout and became
+// a DOCK (`.dock-window--dashboard`): that window wears the creation docks'
+// shell and these two pieces INSIDE it, so a band and a well that only
+// existed as children of the flyout plaque could not follow it. Nothing about
+// either rule depends on the parent — which is what made the nesting a
+// convenience rather than a constraint, and what makes hoisting them free.
 
-  // The information container: the stack/pins wells' geometry — 8px of
-  // reveal where it meets the frieze band (a carved wave needs more air than
-  // a flat plaque edge), 6px elsewhere — and their RECESS, `--grey-4` sunk
-  // one step under the plaque so it is a floor cut into the box rather than
-  // a region drawn on it. Its rim is a two-tone BEVEL and that is what draws
-  // the recess: `--grey-5` on the top and left (darker than the fill on the
-  // two walls a top-left light cannot reach), `--brown-1` on the bottom and
-  // right (lighter, where it strikes as the floor climbs back to the
-  // plaque). The lit pair is warm on purpose — brown-1 is the side widgets'
-  // plaque coat at this plaque's own lightness, so the lip changes HUE and
-  // nothing else.
-  .flyout-window__well {
-    flex: 1 1 auto;
-    min-height: 0;
-    min-width: 0;
-    display: flex;
-    margin: 8px 6px 6px;
-    padding: 8px;
-    background: var(--grey-4);
-    border: 1px solid var(--brown-1);
-    border-top-color: var(--grey-5);
-    border-left-color: var(--grey-5);
-    border-radius: var(--radius-md);
-    overflow: hidden;
-  }
+// The band between a head and a well — the pins widget's arrangement, `slim`
+// (half height, one wave) because the widest band in the smallest box was the
+// one thing shouting. Its plaque base is `--grey-9` through FriezeBar's own
+// dial, so the band is neutral like the plaque and DARK where the bar's
+// default `--brown-4` is a light plate: the motif inverts and the brown waves
+// read as the light ON a dark strip, leaving the band the one carved and one
+// dark thing in the box.
+.flyout-window__frieze {
+  flex: 0 0 auto;
+  --frieze-bar-base: var(--grey-9);
+}
+
+// The information container: the stack/pins wells' geometry — 8px of reveal
+// where it meets the frieze band (a carved wave needs more air than a flat
+// plaque edge), 6px elsewhere — and their RECESS, `--grey-4` sunk one step
+// under the plaque so it is a floor cut into the box rather than a region
+// drawn on it. Its rim is a two-tone BEVEL and that is what draws the recess:
+// `--grey-5` on the top and left (darker than the fill on the two walls a
+// top-left light cannot reach), `--brown-1` on the bottom and right (lighter,
+// where it strikes as the floor climbs back to the plaque). The lit pair is
+// warm on purpose — brown-1 is the side widgets' plaque coat at this plaque's
+// own lightness, so the lip changes HUE and nothing else.
+.flyout-window__well {
+  flex: 1 1 auto;
+  min-height: 0;
+  min-width: 0;
+  display: flex;
+  margin: 8px 6px 6px;
+  padding: 8px;
+  background: var(--grey-4);
+  border: 1px solid var(--brown-1);
+  border-top-color: var(--grey-5);
+  border-left-color: var(--grey-5);
+  border-radius: var(--radius-md);
+  overflow: hidden;
 }
 
 // ── PICKER POPUP — light dropdown for the maker selects ──
