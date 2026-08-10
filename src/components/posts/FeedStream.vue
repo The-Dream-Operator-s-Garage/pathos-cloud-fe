@@ -960,20 +960,21 @@
                  material — a `--teal-11` → `--indigo-11` gradient running down
                  the band, reversed on the mirrored one so indigo faces the lane
                  from both sides and mint faces the card. -->
-            <!-- THE BYLINE'S CLOSING EDGE — an `RgbHairline` since
-                 2026-08-10 (user ask), and the ONLY thing on this seam since
-                 later the same day, when the frieze band that had stood here
-                 since 08-07 went up to close the cap instead. The two lived
-                 here together for one pass (motif over rule); what settled
-                 it is that the card has one frieze and the seam that earns
-                 it is the top one.
+            <!-- ⚠ NOTHING IS DRAWN ON THIS SEAM (2026-08-10, the day's last
+                 rail ask). An `RgbHairline` stood here for one day — the
+                 LABEL BRACKET's upper half (`--rail`), thin-breaded and
+                 paired with a flipped twin below the strip so the two indigo
+                 ends faced each other across the chips — and a frieze band
+                 for the three days before that. Both are gone: the label
+                 strip states its own bounds now, as a RIMMED BOX (see
+                 `.post-square__rail`), and a box that draws its own edge does
+                 not also need two full-bleed rules pressed against it. What
+                 divides classification from the byline above is the air the
+                 strip carries (`.post-square__rail-strip`'s padding), which
+                 is the lane those bands used to occupy.
 
-                 It is the LABEL BRACKET's upper half (`--rail`, same day's
-                 last ask): the two bands around the label strip are dialled
-                 as a pair — thinner bread than the foot's, and their
-                 fillings facing each other. This one keeps the base
-                 orientation, cyan down toward the labels. -->
-            <RgbHairline class="post-square__hairline post-square__hairline--rail" />
+                 The foot keeps ITS band — it closes the reading area and is
+                 half of nothing, so it never belonged to this bracket. -->
 
             <!-- LABEL RAIL — the element's OWN classification, as the label
                  paths it holds, root to leaf. It sat BELOW the body until
@@ -984,8 +985,9 @@
 
                  The rail is a ROUNDED RECTANGLE that scrolls HORIZONTALLY,
                  rimmed in the card's line ink like the pit and the title plate
-                 but floored in the BED TONE — one step off the card, where the
-                 pit is the near-white reading surface.
+                 but floored a step DOWN from it — where the pit is the
+                 near-white reading surface, this is a shelf the chips stand
+                 on.
                  Scrolling is what lets it keep its one-line height: chips used
                  to WRAP, so a post with four label paths grew a second and
                  third row and pushed the body down. A row that scrolls states
@@ -993,10 +995,15 @@
                  reader. Rigid, like the foot: the square ceiling may never
                  trim a card's classification.
 
-                 The STRIP around it carries the edge-to-edge hairline that
-                 divides classification from content — the same device as the
-                 byline band's bottom border, and it needs a full-width
-                 element to sit on, which the inset rail is not. -->
+                 The STRIP around it carries the rail's INSETS (2026-08-10, the
+                 day's last rail ask): the card showing on all four sides of
+                 the panel is what lets the rail wear a rim and rounded corners
+                 without curving against the card's own edge — and it is the
+                 air that divides classification from the byline above and the
+                 pit below, now that the two rgb bands which held that lane are
+                 gone. It has to be a separate element because that air is
+                 OUTSIDE the box; the rail's own padding is the chips' room
+                 INSIDE it, a different lane. -->
             <div v-if="labelPaths(item).length" class="post-square__rail-strip">
               <div class="post-square__rail">
                 <!-- BUNDLED BY ROOT since 2026-08-10 (user ask). The rail used
@@ -1118,34 +1125,14 @@
               </div>
             </div>
 
-            <!-- THE RAIL IS CLOSED BY A BAND AGAIN (2026-08-10, user ask).
-                 It was closed by an `RgbHairline` on 2026-08-07 (and, for a
-                 few hours before that, by the frieze pair's `vflip`ped
-                 half); that rule moved UP to the cap the same day and for
-                 three days nothing replaced it — the strip's own padding and
-                 the pit's 6px top margin were the whole lane between
-                 classification and content. This is that divider restored,
-                 and the padding it replaces went with the same ask (see
-                 `.post-square__rail-strip`): a lane made of AIR became a
-                 lane made of a LINE, which is the trade, not an addition.
-
-                 CONDITIONAL, unlike its sibling above the rail: it closes
-                 the RAIL, so it is drawn on the same `v-if` the rail is. An
-                 unlabelled card would otherwise stack two sandwiches with
-                 nothing between them.
-
-                 FLIPPED (`--flip`, 2026-08-10's last ask) — indigo at the
-                 top, cyan at the bottom, so it and the band above the rail
-                 turn opposite ways and the label strip is BRACKETED: the two
-                 indigo ends face each other across the chips, the two cyan
-                 ends face out into the card. Same reflection argument the
-                 frieze pair was born with and the cap/foot pair carried
-                 after it — one figure with the labels inside it, not the
-                 same rule drawn twice. -->
-            <RgbHairline
-              v-if="labelPaths(item).length"
-              class="post-square__hairline post-square__hairline--rail post-square__hairline--flip"
-            />
+            <!-- ⚠ AND NOTHING IS DRAWN ON THIS ONE EITHER — the bracket's
+                 lower half went with its twin above the strip (same ask, and
+                 a pair has to leave together or the survivor reads as a rule
+                 that lost its mirror). It was the `--flip`ped band: indigo
+                 up, cyan down, and conditional on the rail's own `v-if` so an
+                 unlabelled card never stacked two sandwiches with nothing
+                 between them. The strip's rim and its own air do that work
+                 now, and they travel with the labels for free. -->
 
             <!-- Body pit — the carved inset that echoes the dug-open label
                  squares. It holds the WHOLE post, not a preview: the feed is
@@ -4737,12 +4724,13 @@ export default defineComponent({
 //    tile, which reads as banding rather than as a run of colour.
 //  · IT RUNS INDIGO-DOWN-TO-CYAN since 2026-08-10 (user ask, the same sitting
 //    that gave the band its two rules) — the reverse of the way it was born,
-//    and the reverse of the three rgb hairlines below it, which are cyan-down
-//    to a one-band. That is not a break in grammar, it is the reason the flip
-//    reads: the band and the hairlines are DIFFERENT DEVICES (a motif with
-//    height vs three flat lines), and running the frieze against them makes
-//    the pair of them read as a cyan LOW POINT at the card's reading area with
-//    cold indigo closing it top and bottom. The card's one mirrored copy of
+//    and the reverse of the rgb hairline below it, which is cyan-down (there
+//    were three of those for one pass; the label bracket's pair went the same
+//    day the strip took a rim). That is not a break in grammar, it is the
+//    reason the flip reads: the band and the hairline are DIFFERENT DEVICES (a
+//    motif with height vs three flat lines), and running the frieze against it
+//    makes the pair of them read as a cyan LOW POINT at the card's reading
+//    area with cold indigo closing it top and bottom. The card's one mirrored copy of
 //    this band is long gone, so nothing has to be flipped in step.
 //  · The mirrored bar used to REVERSE it, so indigo faced the lane from both
 //    sides and mint faced out — the argument that made the pair read as one
@@ -4822,48 +4810,27 @@ export default defineComponent({
 // the same day's last ask put a band at BOTH ends, the cap's FILLING FLIPPED
 // so the pair read as a BRACKET rather than a repeat.
 //
-// THERE ARE THREE OF THEM NOW (2026-08-10, four asks across the day). Two
-// were copied in — one under the byline, one under the label rail — and the
-// old cap/foot bracket went when the FRIEZE took the cap's seam, taking the
-// flipped `--cap` modifier with it: a mirror needs something to mirror, and
-// the top of the card is a different device now. So the card reads
-// cap │ FRIEZE │ byline │ rgb │ labels │ rgb │ pit │ rgb │ foot.
+// THERE WERE THREE OF THEM for one day (2026-08-10, four asks across it):
+// two copied in around the LABEL STRIP as a `--rail` PAIR — thin-breaded, the
+// lower one `--flip`ped so the two indigo ends faced each other across the
+// chips — plus the foot's. **THE PAIR IS GONE** (the day's last rail ask) and
+// so are both modifiers with it: `--rail` (1px bread instead of 2) and
+// `--flip` (the filling restated backwards, CSS being unable to read a
+// gradient in reverse) existed only to dial that bracket, and a modifier with
+// no element left to modify is dead weight, not a spare part. The label strip
+// draws its OWN rim now, and a rimmed box pressed between two full-bleed rules
+// is the same seam stated twice — the rules lost, because the box is the thing
+// the user asked to see.
 //
-// THE BRACKET CAME BACK ONE SEAM LOWER, around the LABELS (the day's last
-// ask). The two bands touching the label strip are a PAIR, `--rail`, and
-// they are dialled together:
+// So the card reads cap │ FRIEZE │ byline │ labels │ pit │ RGB │ foot, and
+// this element is back to ONE instance at its base weight, closing the reading
+// area. It is half of nothing and has no mirror to keep — the same standing
+// the cap's band had before the frieze took that seam.
 //
-//   · `--flip` on the LOWER one reverses its filling — indigo up, cyan down —
-//     so the two indigo ends face each other across the chips and the two
-//     cyan ends face out. CSS cannot read a gradient backwards, which is why
-//     a mirrored pair is two gradients and not one flag (the component says
-//     so at length). The FOOT's band is the odd one out and stays base-
-//     oriented: it closes the reading area, it is not half of anything.
-//   · 1px BREAD on both, against the foot's 2px. The label strip is the
-//     card's shortest band (21px) and it is now held between two rules; at
-//     the component's default weight the three grey lines around 21px of
-//     chips read heavier than the chips. Thinner bread also drops each band
-//     6px → 4px, and the FILLING is untouched at 2px — the hue is the
-//     bracket, and the component's own note puts 2px at the floor of where
-//     a ramp still reads as a ramp rather than as a flat mix.
-//
-// KEEP THE PIT'S MEDIA BUDGET IN STEP: 4 + 4 + 6 = 14px of bands, the
-// byline's and the foot's unconditional and the rail's travelling with the
-// strip.
+// KEEP THE PIT'S MEDIA BUDGET IN STEP: 6px of bands now, all of it the foot's,
+// unconditional.
 .post-square__hairline {
   min-width: 0;
-}
-
-.post-square__hairline--rail {
-  --rgb-hairline-edge-h: 1px;
-}
-
-.post-square__hairline--flip {
-  --rgb-hairline-fill: linear-gradient(
-    to bottom,
-    var(--indigo-11, #8c9eff),
-    var(--cyan-11, #84ffff)
-  );
 }
 
 // THE MOMENT CHIP — the post's when over its where (or its date).
@@ -4981,19 +4948,23 @@ export default defineComponent({
   // over ago │ two stacked moment chips; the day walked it 42 → 33 → 32 →
   // here, and 2026-08-10's hop-chip move traded a plate off the who line for
   // one on the ago line, leaving the worst case where it was — + rail strip
-  // 24 — it was 42, went to 21 across 2026-08-10's run of rail asks (the
+  // 34 — it was 42, went to 21 across 2026-08-10's run of rail asks (the
   // strip's vertical padding −12, the band's own vertical padding −8 once
-  // the chips' rims became the only lane, the band's rim −3) and came part
-  // way back: +3 when the chips became per-TREE bundles holding member
-  // plates, +4 when the band's vertical padding returned at a thin 2px —
+  // the chips' rims became the only lane, the band's rim −3) and came back:
+  // +3 when the chips became per-TREE bundles holding member plates, +4 when
+  // the band's vertical padding returned at a thin 2px, and +10 on the day's
+  // last rail ask — the strip's vertical padding restored at 4px (+8) and the
+  // band's own rim redrawn at an even 1px (+2), the two dials that turned this
+  // row back into an inset panel. It takes back 8px of the bands below —
   // + foot 28 — was 30 until the same day's four-cell refit —
   // + margins 7 — the pit's own, halved from 13 on 2026-08-10 when the card
   // closed in on it (user ask); see the `margin` line below —
   // + borders 4 — 3 of the card's own 1.5px pair since
-  // 2026-08-07, 1 of the pit's — + THREE rgb bands at 14: the byline's and
-  // the rail's at FOUR each (1px bread, the label bracket) and the foot's at
-  // six. The cap's band is not among them — the frieze closes that seam
-  // since 2026-08-10, and a frieze is the variable term below, not a px one.
+  // 2026-08-07, 1 of the pit's — + ONE rgb band at 6, the foot's, which is
+  // the only one left: the label bracket's thin pair (4px each) went when the
+  // strip took a rim of its own. The cap's band is not among them either —
+  // the frieze closes that seam since 2026-08-10, and a frieze is the
+  // variable term below, not a px one.
   // ⚠ 143 is MEASURED as `card − pit-outer − frieze` + the pit's own margin
   // (13px then, 7px since 2026-08-10), not summed from the parts: at 1.5px
   // borders and sub-pixel band heights the sum lands ~2px high), then
@@ -5010,18 +4981,19 @@ export default defineComponent({
   // TWO GREY-6 RULES (2026-08-10) are px, though, so THEY went into the
   // constant instead (280 → 282): only the variable term lives outside it.
   // The band's former mirrored twin is an `RgbHairline` now, at a flat 6px
-  // (2px + 2px + 2px), and since 2026-08-10 there are THREE of those — 18px
-  // in the constant. Two are unconditional (under the byline, over the foot);
-  // the third closes the RAIL and rides its `v-if`. Worst case on purpose,
-  // and the two conditionals travel together: a card with no labels draws
-  // neither the strip nor its band and is that much to the good. The band
-  // that used to close the cap is gone — THIS frieze took that seam.
+  // (2px + 2px + 2px). There were THREE of those for one pass on 2026-08-10 —
+  // 14px in the constant, the label bracket's pair riding thin at 4px each —
+  // and the same day's last rail ask took the pair back out: ONE is left, over
+  // the foot, unconditional. Worst case is still what the constant carries:
+  // a card with no labels draws no rail strip at all and is that much to the
+  // good. The band that used to close the cap is gone — THIS frieze took that
+  // seam.
   //
   // Keep it in step with the 60vh ceiling and with the Mini's chrome — grow
   // one without the other and you get either a player that needs a scroll or
   // a small player in a half-empty card. The 120px floor is for the narrowest
   // columns, where the subtraction would otherwise go negative.
-  --media-max-h: max(120px, calc(min(var(--post-square-max, 100cqw), 60vh) - 276px - var(--frieze-h) * 0.55));
+  --media-max-h: max(120px, calc(min(var(--post-square-max, 100cqw), 60vh) - 278px - var(--frieze-h) * 0.55));
 
   flex: 1 1 auto;
   min-height: 0;
@@ -5273,41 +5245,35 @@ export default defineComponent({
 //
 // Rigid (`flex: 0 0 auto`), like the foot: the square ceiling trims the body,
 // never a card's classification.
-// The STRIP the rail sits in — a full-width band whose only job is the rail's
-// insets since 2026-08-07. Its EDGE-TO-EDGE HAIRLINE became a divider drawn
-// after it that day (a mirrored frieze band for a few hours, then an
-// `RgbHairline`), that rule moved up to the cap by the end of it, and on
-// 2026-08-10 a band came back below the strip — see the template. The rule
-// that put the line AFTER the strip rather than on the rail is the one to
-// keep: the rail is inset by this padding, so an edge drawn ON it would stop
-// 7px short of each side, and a divider has to run lip to lip. The card is
-// divided by full-bleed lines and panelled by inset boxes, and those are two
-// different devices.
+// The STRIP the rail sits in — a full-width row whose only job is the rail's
+// INSETS, which is the job it is doing again (2026-08-10, the day's last rail
+// ask, after a pass with nothing left to declare).
 //
-// PADDING ON ONE AXIS ONLY (2026-08-10, three asks). The SIDE `7px` is gone
-// for good, and that was a real change of kind rather than a trade: the rail
-// is not a panel set into the card any more, it is a STRIP spanning it, lip
-// to lip like the cap and the foot — which is why the band's corners are
-// square too (see `.post-square__rail`), a radius stating an inset there is
-// no inset left to state.
+// ⚠ THE SIDE `7px` IS BACK, and with it the classification of the thing
+// inside: the rail is a PANEL SET INTO THE CARD again, not a band spanning it
+// lip to lip. That is the whole of this pass — the two `RgbHairline`s that
+// bracketed the strip went (see the template), the rail took a rim and rounded
+// corners of its own (see `.post-square__rail`), and a rimmed, rounded box has
+// to stand off the card's edges or its corners curve against them and read as
+// a mistake. The three dials are ONE decision stated three ways; move any of
+// them and the other two stop making sense.
 //
-// The VERTICAL `6px` is gone too, and did not come back HERE. It went when
-// the `RgbHairline` pair arrived — 6px of air above and below was the whole
-// lane while nothing was drawn in it, and two sandwiches took that lane's
-// job. When the air was later asked for again it went INSIDE the grey band
-// instead (`.post-square__rail`'s own padding), which is the difference this
-// element exists to hold: padding HERE would put card between the rules and
-// the band, so the band would float in a gap; padding THERE puts the band
-// against the rules and gives the chips their room inside it. The strip is
-// the card's row, the rail is the object standing in it.
+// The VERTICAL `4px` is back too, and it is HERE rather than on the band. The
+// bands that used to hold this lane are gone, so without it the rail's new rim
+// would touch the byline above and the pit's margin below, and a box that
+// touches what it is distinguished from is not distinguished. It sits on the
+// strip because it is CARD showing around the panel — the same argument as the
+// side inset. (The band keeps its own thin `2px` inside the rim: that is the
+// chips' room, a different lane. Padding here separates the panel from the
+// card; padding there separates the chips from the panel's edge.)
 //
-// The strip element stays even with nothing left to declare: it is the
-// full-bleed row the inset rail used to need, and the day a divider or a
-// background comes back to this row, it belongs here and not on the
-// scroller (the argument above).
+// So the walk of this element's padding is 6px/7px → 0/0 → 4px/7px, and what
+// came back with it is the reading it always encoded: the strip is the card's
+// row, the rail is the object standing in it, and the object is inset.
 .post-square__rail-strip {
   flex: 0 0 auto;
   min-width: 0;
+  padding: 4px 7px;
 }
 
 .post-square__rail {
@@ -5331,27 +5297,32 @@ export default defineComponent({
   // plate and the run-out after the last, and a scroller with no side lead
   // reads as content already cut off at rest.
   padding: 2px 6px;
-  // NO BORDER AT ALL (2026-08-10, last of the rail asks). It carried an
-  // uneven rim — 1px box, 2px top — the mirror of the card's own uneven
-  // border, drawn so the tray read as something the band above sat down onto
-  // rather than as a box floating in a gap. That reading is finished: there
-  // is no gap left (the strip's padding went), the corners are square, and
-  // the row is bounded on both sides by an `RgbHairline`. The rim was
-  // outlining a panel that no longer exists, and beside two 6px sandwiches it
-  // was a fourth and fifth line in three pixels of each other.
+  // ⚠ THE RIM IS BACK (2026-08-10, the day's last rail ask) — `1px` of
+  // `--grey-6`, the card's own LINE ink, EVEN on all four sides.
   //
-  // What states the band now is its FLOOR, `--grey-7` (user ask, corrected
-  // from -6 in the same breath): one step off the card's line ink and onto
-  // the DIVIDER PLATE tone, the level the RgbHairline's bread and the frieze
-  // band's plaque already stand on. The strip stopped being a panel and
-  // became a full-bleed band — this is that reclassification stated in the
-  // palette, and it puts all of the card's full-width figures on one plate.
+  // It went for one pass, and the reason it went was sound at the time: the
+  // row had become a full-bleed band bounded on both sides by an
+  // `RgbHairline`, so a rim was a fourth and fifth line within three pixels
+  // of two 4px sandwiches. Those sandwiches are gone now (see the template),
+  // which reverses the arithmetic exactly: with nothing drawn on either seam,
+  // an unrimmed band would be a bare tone change and the only thing marking
+  // where classification starts and stops. One line replacing two bands is
+  // fewer lines, not more.
   //
-  // SQUARE, from the same run of asks — the radius was `7px`, what every
-  // inset box on this card wears (pit, chips). A rounded corner on a
-  // full-bleed row rounds against the card's own edge and reads as a mistake.
-  border: 0;
-  border-radius: 0;
+  // EVEN, unlike the old rim's uneven `1px box / 2px top` — that weight was
+  // mirroring the card's own uneven border so the tray read as something the
+  // band above sat DOWN onto. Nothing sits on it now; it is a free-standing
+  // panel inset from the card on every side (`.post-square__rail-strip`), and
+  // a free-standing box is drawn the same all the way round.
+  //
+  // ROUNDED at `6px`, back in the family every inset box on this card belongs
+  // to (the pit's 7px, the bundle plates' 4px) — a hair under the pit's, since
+  // this box is a third its height and a radius reads relative to what it
+  // turns. It was square for exactly as long as the row was full-bleed, for
+  // the reason stated then: a rounded corner on a lip-to-lip row curves
+  // against the card's own edge. That objection dies with the inset.
+  border: 1px solid var(--grey-6, #9e9e9e);
+  border-radius: 6px;
   // THE FLOOR IS THE BAND (2026-08-10) — with no rim left it is the only
   // thing stating this strip at all, and it walked the greys across that
   // day's asks: `--grey-4`, the BED tone it had worn since 2026-08-07 (and
