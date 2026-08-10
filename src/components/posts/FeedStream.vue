@@ -5364,15 +5364,33 @@ export default defineComponent({
   // bread) and -8 the FRIEZE BAND's plaque — both read as CHROME, which is
   // right for a plate the card is BUILT from and wrong for one it CLASSIFIES
   // itself on: at those depths the strip stopped being part of the card and
-  // became a fourth divider with chips lying on it. `--grey-6` is the card's
-  // own LINE ink, so the band reads as that rule given height and filled —
-  // the card's material, thickened, which is what it is.
+  // became a fourth divider with chips lying on it. `--grey-6` was the card's
+  // own LINE ink, so the band read as that rule given height and filled.
   //
-  // The chips carry the contrast: each is a near-white `--grey-3` plate with
-  // its own rim, three levels up, so the classification stands OUT of the
-  // band instead of sitting in it — and their gradient foot is the only hue
-  // in the strip.
-  background: var(--grey-6, #9e9e9e);
+  // ⚠ AND IT WENT ONE STEP SHALLOWER STILL, TO `--grey-4` (2026-08-10, user
+  // ask) — which is not a new level on this row but the one it STARTED on,
+  // the BED tone it wore from 2026-08-07 until that day's walk pushed it
+  // down. So the walk closed a full circle: -4 → -6 → -7 → -6 → -8 → -6 →
+  // -4. What the round trip settled is that every argument the walk made was
+  // about DEPTH, and depth was the wrong axis: -6/-7/-8 differ only in how
+  // much like chrome the band reads, and this row is the one thing on the
+  // card that is neither chrome nor content but CLASSIFICATION. At -4 it is
+  // the shallowest full-bleed figure on the square — lighter than the card's
+  // own line ink rather than equal to it — so the strip stops competing with
+  // the rules that bracket it and reads as a shelf the chips stand on.
+  //
+  // ⚠ IT IS ALSO THE FEED BED'S OWN TONE, the plate the whole field of cards
+  // sits on (see `--grey-4` in `_tokens.scss`). That is the one thing to
+  // weigh if this moves again: the band is now a window through the card to
+  // the surface underneath it, which is a real reading and the reason the row
+  // wore this level first — but it does mean card and field share a tone at
+  // exactly one place, and that place is between two rgb rules.
+  //
+  // The chips carry the contrast either way: each is a near-white plate with
+  // its own rim, well up from the band at any of these levels, so the
+  // classification stands OUT of the strip instead of sitting in it — and
+  // their gradient foot is the only hue in it.
+  background: var(--grey-4, #e0e0e0);
   overflow-x: auto;
   overflow-y: hidden;
   // The same thin rail the pit and the well use, so a third scrolling surface
@@ -5465,11 +5483,46 @@ export default defineComponent({
   // ⚠ It leaves the sub-pixel register the rest of this rail is drawn in,
   // and that is the trade to know: at 0.5 a rim is a HIGHLIGHT (a lit lip
   // catching an edge, which is why the walk up the greys ended on a tone
-  // one step off white); at a full pixel it is closer to an OUTLINE, and
-  // only `--indigo-1` being as pale as it is keeps it from stating itself
-  // as a drawn line. Go heavier than this and the tone has to come up with
-  // it, or the plate gains a border it never wanted.
-  border: 1px solid var(--indigo-1, #e8eaf6);
+  // one step off white); at a full pixel it is closer to an OUTLINE, and it
+  // is the tone's paleness that keeps it from stating itself as a drawn
+  // line. Go heavier than this and the tone has to come up with it, or the
+  // plate gains a border it never wanted.
+  //
+  // ONE STEP DEEPER, `--indigo-2` (2026-08-10, user ask) — and the step is
+  // exactly what the note above says a heavier rim needs. The `1px` weight
+  // landed two asks before this one and pushed the line out of the highlight
+  // register; at indigo-50 it was pale enough to get away with, which is
+  // what that ⚠ was about, but it was the palest thing the level could do
+  // rather than a tone chosen for the weight. At -2 the lip has enough
+  // colour to read AS a lip at a full pixel — still one of the two palest
+  // steps the family has, still no contest with the member tokens' ink, and
+  // now the one COOL edge on a plate whose coat and band are both neutral.
+  // It also opens the gap to the grey ring outside it (below): a highlight
+  // and an outline want to be told apart, and at -1 the pair were close to
+  // one line drawn twice in two greys.
+  border: 1px solid var(--indigo-2, #c5cae9);
+  // ── A SECOND EDGE, OUTSIDE THE FIRST (2026-08-10, user ask) ─────────────
+  // The plate wears TWO rims now: the `--indigo-1` highlight above, and a
+  // `0.5px --grey-7` ring hugging it. They do different jobs, which is the
+  // only reason two lines on one small object is not a mistake. The indigo
+  // is a HIGHLIGHT — one step off white, lit, stating the plate's lip against
+  // its own coat — and it has never been able to state the plate against the
+  // BAND, because the band is grey and the lip is nearly white: at `--grey-6`
+  // that read as contrast enough, and now that the rail floor has gone up to
+  // `--grey-4` (see `.post-square__rail`) the pale rim has even less to push
+  // against. The grey ring is the OUTLINE the highlight cannot be: -7 is the
+  // divider-plate tone, well under both the band and the plate's own -3 coat,
+  // so it draws the plate's actual boundary while the indigo keeps lighting
+  // its edge. Read outward the stack is coat → lit lip → drawn edge → band.
+  //
+  // It is a `box-shadow` RING and not a second border or an `outline`, for
+  // three reasons: it costs no layout (a border would grow the plate and the
+  // rail's measured 24px with it), it follows the `4px` radius exactly the
+  // way a real border does, and — unlike `outline` — it is not the focus
+  // ring, which this component may still want for a keyboard user.
+  // ⚠ `overflow: hidden` below does NOT clip it: an element's own overflow
+  // clips its CONTENT, never a shadow painted outside its border box.
+  box-shadow: 0 0 0 0.5px var(--grey-7, #757575);
   border-radius: 4px;
   overflow: hidden;
   // ⚠ NEUTRAL AGAIN (2026-08-10) — `--grey-3`, off the `--light-cream` it
@@ -5591,6 +5644,24 @@ export default defineComponent({
   flex: 0 0 auto;
   padding: 0 3px;
   border: 0.5px solid var(--grey-5, #bdbdbd);
+  // AN INNER RING (2026-08-10, user ask) — the member's answer to the ring the
+  // PLATE around it grew in the ask before, and the pair is what finally tells
+  // the rail's two tiers apart. Every edge on this row had been a grey, so
+  // depth was carrying a job it could not do at six steps and 0.5px; now there
+  // is one COLOUR PER TIER — `--indigo-2` states the plate, `--deep-purple-2`
+  // states its members — and a glance says which of the two nested boxes any
+  // edge belongs to. Reading outward from here: ring → member border -5 →
+  // plate coat -3 → plate border indigo-2 → plate ring -7 → band -4.
+  //
+  // ⚠ INSET, where the plate's ring is OUTSET, and that is not a style choice:
+  // members sit flush against each other inside the plate, so a ring painted
+  // outward would land on the next token's and read as one doubled line down
+  // the row. Inside its own border it stays the member's own edge.
+  //
+  // `--deep-purple-2` did not exist before this ask — it is minted in
+  // `_tokens.scss` beside the family's two hover tones, and it is the first
+  // RESTING role deep purple has on this rail.
+  box-shadow: inset 0 0 0 0.5px var(--deep-purple-2, #d1c4e9);
   border-radius: 3px;
   background: var(--grey-2, #f5f5f5);
 }
