@@ -54,28 +54,59 @@
 
   Geometry is NOT here: the box is sized and placed by `.feed-flyout` on
   FeedPage, which is the element that knows where the free right half of the
-  window slot is. This component just fills what it is given.
+  window slot is. This component just fills what it is given — and that now
+  includes its SIZE STATE: the green light asks, the host decides (see
+  `maximized` / `toggle-max` below).
+
+  THE SHELL IS SHARED since 2026-08-10 (`.flyout-window` in
+  `css/_components.scss`): plaque, head, frieze band and well moved there
+  whole when the dashboard flyout arrived, so the two boxes are one recipe
+  rather than two copies of an argument that took a week to settle. The tone
+  argument stays written HERE — this style block is the family's record — and
+  what is left in it is what this box CONTAINS: the dials and densities the
+  quoted node is read at.
 -->
 <template>
-  <aside class="skeleton-flyout" role="dialog" :aria-label="title">
-    <!-- Info box — kind glyph + what this is + the id, closing with the
-         one control. Same run as the stack/pins headers, minus the park tap:
-         this widget is dismissed, not minimized.
+  <aside class="skeleton-flyout flyout-window" role="dialog" :aria-label="title">
+    <!-- Info box — traffic lights, kind glyph, what this is, the id. The
+         head's LAYOUT (lights pinned to the left edge, title centred) is the
+         creation docks', stated once in `.flyout-window`: a flyout is a
+         window like the docks are, and the platform states a window's
+         controls in one place.
 
-         The glyph is the SKELETON kind's, taken from `utils/kinds.js` rather
-         than written in (2026-07-26): this box is a skeleton viewer, so it
-         wears the glyph of what it VIEWS, not of what it is currently pointed
-         at. It was `edit_note` — which is not a generic document icon but
-         literally `KINDS.posts.icon`, the platform's post glyph. -->
-    <header class="dock-bar skeleton-flyout__bar">
+         TWO LIGHTS, NOT THREE (2026-08-10, user ask: "traffic light controls
+         for maximize and close behaviors"). There is no yellow one because
+         there is nowhere to park: a flyout has no minitab on the nav bar the
+         way the five docks do, so a minimize would half-dismiss a box whose
+         red light already keeps no state. Red closes, green swaps the box
+         between its slot and the whole free width — and BOTH are the host's
+         to perform (geometry is not here), so both leave as events and the
+         green one is drawn from the `maximized` flag it is handed back.
+
+         The kind glyph is taken from `utils/kinds.js` rather than written in
+         (2026-07-26): this box is a skeleton viewer, so it wears the glyph of
+         what it VIEWS, not of what it is currently pointed at. It was
+         `edit_note` — which is not a generic document icon but literally
+         `KINDS.posts.icon`, the platform's post glyph. -->
+    <header class="dock-bar">
+      <div class="traffic">
+        <button
+          type="button" class="traffic__dot traffic__dot--red"
+          title="Close (Esc)" @click="$emit('close')"
+        >
+          <q-icon name="close" />
+        </button>
+        <button
+          type="button" class="traffic__dot traffic__dot--green"
+          :title="maximized ? 'Restore size' : 'Maximize'"
+          @click="$emit('toggle-max')"
+        >
+          <q-icon :name="maximized ? 'close_fullscreen' : 'open_in_full'" />
+        </button>
+      </div>
       <q-icon :name="skeletonKind.icon" size="14px" class="dock-bar__icon" />
       <span class="dock-bar__title nasalization">{{ title }}</span>
-      <q-space />
       <span class="dock-bar__meta mono">{{ meta }}</span>
-      <button type="button" class="dock-bar__action" @click="$emit('close')">
-        <q-icon name="close" size="15px" />
-        <q-tooltip anchor="bottom middle" self="top middle">Close (Esc)</q-tooltip>
-      </button>
     </header>
 
     <!-- The band between the header and the well — the mirror of the pins
@@ -94,13 +125,17 @@
          So the right half won and simply extends: the usual `-mirror` masks
          anchored at the LEFT EDGE again, tiling rightward across the box,
          which is what every other frieze on the platform does. -->
-    <FriezeBar slim class="skeleton-flyout__frieze" />
+    <FriezeBar slim class="flyout-window__frieze" />
 
     <!-- The inset well. The panel inside it is the ONE scroller (its own
          `__scroll` track for a post; the generic wrapper for anything else),
          so the well never scrolls and the panel's head stays put at the top
          while its groups run under it. -->
-    <div class="skeleton-flyout__well">
+    <!-- TWO CLASSES on one element: the geometry/recess is the family's
+         (`flyout-window__well`), and the box-specific `:deep()` density and
+         colour rules at the foot of this file still hang off the name they
+         were written against. -->
+    <div class="skeleton-flyout__well flyout-window__well">
       <FeedPostPanel v-if="item" :item="item" />
       <!-- Any other skeleton: the keys+populated-fields face. SkeletonMini
            self-resolves from an address or id, so the flyout needs to know
@@ -130,9 +165,15 @@ export default defineComponent({
     // face). Optional since 2026-07-31: give either this or `skeletonRef`.
     item: { type: Object, default: null },
     // ANY skeleton — a 'skeletons/<hash>' address or a numeric id.
-    skeletonRef: { type: [String, Number], default: null }
+    skeletonRef: { type: [String, Number], default: null },
+    // Is the HOST currently drawing this box at its maximized size? Only the
+    // green light reads it (which glyph, which tooltip) — the size itself is
+    // the host's, the same division `.feed-flyout` has always had with this
+    // component. A prop rather than local state so the two can never
+    // disagree about what the box is doing.
+    maximized: { type: Boolean, default: false }
   },
-  emits: ['close'],
+  emits: ['close', 'toggle-max'],
   setup (props) {
     // The generic face reports what it resolved (name + id) so the header
     // can title the box after the actual instance.
@@ -179,7 +220,14 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-// The plaque — flat `--grey-3` with a 1px `--grey-4` outer border, fully
+// THE PLAQUE, THE HEAD, THE BAND AND THE WELL ARE `.flyout-window` NOW
+// (2026-08-10, `css/_components.scss`) — moved there whole the day the
+// dashboard flyout arrived, so the two boxes in the family are one recipe.
+// Nothing about them CHANGED in the move; what is below is what belongs to
+// THIS box alone, plus the record of how the shell got its tones, kept here
+// because this is where the argument happened:
+//
+// The plaque is flat `--grey-3` with a 1px `--grey-4` outer border, fully
 // rounded (it floats free on all four sides, where the stack and pins widgets
 // are anchored to screen edges and round only their inner corners).
 //
@@ -190,16 +238,12 @@ export default defineComponent({
 // the same pass, because a warm `--brown-4` edge round a neutral box reads as
 // trim borrowed from another surface; `--grey-4` is the neutral standing at
 // brown-4's place in its own scale. The frieze band's plaque base followed on
-// the third (see `.skeleton-flyout__frieze`), which leaves the brown-8 header ink
-// and the band's wave motif as the only warm things on the box.
+// the third (`--grey-9`, dialled through FriezeBar), which leaves the brown-8
+// header ink and the band's wave motif as the only warm things on the box.
 //
 // `overflow: hidden` is load-bearing: the frieze band runs edge to edge and
 // would otherwise square off the corners it passes.
 .skeleton-flyout {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
   // ── The box is the yardstick for what it holds ─────────────────────────
   // `FeedPostPanel` quotes the post's CONTENT node as a `NodeMini` in `raw`
   // mode, whose source pane scrolls at `--node-source-max-h` — published by
@@ -299,33 +343,13 @@ export default defineComponent({
   // (`--node-mini-foot-glyph` went with NodeMini's foot, 2026-07-27 — the
   // panel has no foot band left to letter.)
   --node-mini-head-ink: var(--brown-10);
-  background: var(--grey-3);
-  border: 1px solid var(--grey-4);
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-  // A real drop, not the widgets' lateral `--shadow-side-edge`: this box is
-  // detached from every edge, so it casts all round. The alpha is high for the
-  // reason the feed container's is — it falls on the page's near-black canvas,
-  // where anything under ~0.4 darkens by too few levels to register.
-  box-shadow: 0 12px 38px rgba(0, 0, 0, 0.5);
 }
 
-// The shared `.dock-bar` ships a translucent white coat and a bottom hairline.
-// Both come off here for the same reason they do on the stack widget: the bar
-// IS the plaque's top, so one uniform coat and no rule under it — the frieze
-// band below states where the head ends. Keep this in step with the plaque's
-// background; two tones here and the head reads as a separate strip laid on.
-.skeleton-flyout__bar {
-  background: var(--grey-3);
-  border-bottom: none;
-  flex: 0 0 auto;
-
-  // The info box's ink, matching the stack/pins headers: brown-8 for the glyph
-  // and the title (the shared rule paints the icon teal), brown-4 for the meta.
-  .dock-bar__icon,
-  .dock-bar__title { color: var(--brown-8); }
-  .dock-bar__meta { color: var(--brown-4); }
-}
+// (The plaque's coat, border, radius, drop and flex column, and the head's
+// one-uniform-tone rule, are `.flyout-window`'s since 2026-08-10 — the whole
+// shell moved when the dashboard flyout took it. The head's ink note that
+// stood here rides along: brown-8 for the glyph and the title, brown-4 for
+// the meta, matching the stack/pins headers.)
 
 // A frieze band states its own height — `--frieze-h`, or half of it under
 // `slim`, which is what this one wears (2026-07-26, fourth pass: half height,
@@ -341,10 +365,7 @@ export default defineComponent({
 // and now read as the light ON a dark strip. That leaves the band the one
 // carved, one dark thing in a flat `--grey-3` box — and the `--brown-8` header
 // ink above it the only warmth left.
-.skeleton-flyout__frieze {
-  flex: 0 0 auto;
-  --frieze-bar-base: var(--grey-9);
-}
+// (The rule itself is `.flyout-window__frieze` since 2026-08-10.)
 
 // The information container. It is the stack/pins wells' geometry — 8px of
 // reveal where it meets the frieze band (a carved wave needs more air than a
@@ -392,20 +413,9 @@ export default defineComponent({
 // invisible on all four sides — which is what made the bevel the obvious use
 // for it: an edge that is no longer needed to state WHERE the container is, is
 // free to state what KIND of edge it is.
-.skeleton-flyout__well {
-  flex: 1 1 auto;
-  min-height: 0;
-  min-width: 0;
-  display: flex;
-  margin: 8px 6px 6px;
-  padding: 8px;
-  background: var(--grey-4);
-  border: 1px solid var(--brown-1);
-  border-top-color: var(--grey-5);
-  border-left-color: var(--grey-5);
-  border-radius: var(--radius-md);
-  overflow: hidden;
-}
+// (The rule itself is `.flyout-window__well` since 2026-08-10; the element
+// keeps `.skeleton-flyout__well` too, which is what every `:deep()` block
+// below still hangs off.)
 
 // FeedPostPanel, un-columned. It was built as a sticky side column on a page
 // that scrolls; in here the WELL is its frame, so:

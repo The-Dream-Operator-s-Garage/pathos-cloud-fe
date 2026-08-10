@@ -630,6 +630,130 @@
   &:active { opacity: 0.7; }
 }
 
+// ── FLYOUT WINDOW CHROME (2026-08-10) — the NEUTRAL floating box the
+// platform reads ONE object out in. There are two of them now: the skeleton
+// viewer the feed opens beside its column (`SkeletonFlyout.vue`, 2026-07-26)
+// and the dashboard panel the nav bar opens on any route
+// (`DashboardFlyout.vue`, this day's ask). The second is why this block
+// exists at all: the whole aesthetic had been written once, in
+// SkeletonFlyout's scoped styles, over four passes of tone argument — a
+// `--grey-3` plaque with `--grey-4` lines, a frieze band on a `--grey-9`
+// base, and an information well sunk one step into the plaque and bevelled
+// `--grey-5`/`--brown-1`. Restating that in a second component would leave
+// two copies of an argument that took a week to settle, and the day one of
+// them moved they would stop being the same box. The TONE PROSE stays where
+// it was written (SkeletonFlyout.vue's style block reads as the family's
+// record); what moved here is the recipe.
+//
+// GEOMETRY IS NOT HERE, and that is the family's oldest rule: each flyout is
+// sized and placed by whoever mounts it (`.feed-flyout` on FeedPage,
+// `.dashboard-flyout` on MainLayout), because only the host knows which slot
+// of the window is free. The shell fills what it is handed.
+//
+// What a component still owns is what it CONTAINS — SkeletonFlyout keeps its
+// `--node-mini-*` dials and the `:deep()` density rules that follow from the
+// ceiling it publishes, none of which mean anything to an empty panel.
+.flyout-window {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background: var(--grey-3);
+  border: 1px solid var(--grey-4);
+  border-radius: var(--radius-lg);
+  // Load-bearing: the frieze band runs edge to edge and would otherwise
+  // square off the corners it passes.
+  overflow: hidden;
+  // A real drop, not the side widgets' lateral `--shadow-side-edge`: a flyout
+  // is detached from every edge, so it casts all round. The alpha is high
+  // because it falls on the page's near-black canvas, where anything under
+  // ~0.4 darkens by too few levels to register.
+  box-shadow: 0 12px 38px rgba(0, 0, 0, 0.5);
+
+  // ── The head. The shared `.dock-bar` ships a translucent white coat and a
+  // bottom hairline; both come off for the reason they do on the stack
+  // widget — the bar IS the plaque's top, so one uniform coat and no rule
+  // under it, the frieze band below stating where the head ends.
+  //
+  // Its LAYOUT is the creation docks' since 2026-08-10 (traffic lights
+  // pinned to the left edge, title centred — see `.dock-window--creation`),
+  // which is what the lights ask for: a flyout is a window like the docks
+  // are, and the platform states a window's controls in one place. The
+  // symmetric 56px side padding clears the cluster at BOTH dot sizes (2 ×
+  // 13px + 7px gap = 33 at an 8px inset on desktop; 2 × 17px + 8px = 42 on
+  // mobile) so the centred title never rides under a dot.
+  .dock-bar {
+    position: relative;
+    justify-content: center;
+    padding: 0 56px;
+    background: var(--grey-3);
+    border-bottom: none;
+    flex: 0 0 auto;
+
+    // A `q-space` between title and lights would push the title off centre.
+    .q-space { display: none; }
+  }
+
+  // The head's ink, matching the stack/pins headers: brown-8 for the glyph
+  // and the title (the shared rule paints the icon teal), brown-4 for the
+  // meta. The two warm marks on the box, with the frieze band's waves.
+  .dock-bar__icon,
+  .dock-bar__title { color: var(--brown-8); }
+  .dock-bar__meta  { color: var(--brown-4); }
+  .dock-bar__title,
+  .dock-bar__meta {
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .traffic {
+    position: absolute;
+    left: 8px;
+    top: 0;
+    bottom: 0;
+  }
+
+  // The band between the head and the well — the pins widget's arrangement,
+  // `slim` (half height, one wave) because the widest band in the smallest
+  // box was the one thing here shouting. Its plaque base is `--grey-9`
+  // through FriezeBar's own dial, so the band is neutral like the plaque and
+  // DARK where the bar's default `--brown-4` is a light plate: the motif
+  // inverts and the brown waves read as the light ON a dark strip, leaving
+  // the band the one carved and one dark thing in the box.
+  .flyout-window__frieze {
+    flex: 0 0 auto;
+    --frieze-bar-base: var(--grey-9);
+  }
+
+  // The information container: the stack/pins wells' geometry — 8px of
+  // reveal where it meets the frieze band (a carved wave needs more air than
+  // a flat plaque edge), 6px elsewhere — and their RECESS, `--grey-4` sunk
+  // one step under the plaque so it is a floor cut into the box rather than
+  // a region drawn on it. Its rim is a two-tone BEVEL and that is what draws
+  // the recess: `--grey-5` on the top and left (darker than the fill on the
+  // two walls a top-left light cannot reach), `--brown-1` on the bottom and
+  // right (lighter, where it strikes as the floor climbs back to the
+  // plaque). The lit pair is warm on purpose — brown-1 is the side widgets'
+  // plaque coat at this plaque's own lightness, so the lip changes HUE and
+  // nothing else.
+  .flyout-window__well {
+    flex: 1 1 auto;
+    min-height: 0;
+    min-width: 0;
+    display: flex;
+    margin: 8px 6px 6px;
+    padding: 8px;
+    background: var(--grey-4);
+    border: 1px solid var(--brown-1);
+    border-top-color: var(--grey-5);
+    border-left-color: var(--grey-5);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+  }
+}
+
 // ── PICKER POPUP — light dropdown for the maker selects ──
 // The q-select menus teleport to <body>, which carries Quasar's global dark
 // mode; force the paper palette so options stay readable on light dialogs.
@@ -809,11 +933,21 @@
   // desktop now; see `.dock-window--creation` above). Still the same
   // classic lights (the glyphs keep their hover-only reveal — on a phone
   // that means they show while a press is held).
-  .dock-window--creation .traffic {
+  //
+  // THE FLYOUTS TAKE THE SAME BUMP (2026-08-10, with the lights themselves —
+  // user ask: "make sure the traffic lights look bigger on mobile"). They are
+  // the same 13px dots in the same cluster, and a flyout is MORE of a touch
+  // target than a dock is on a phone, where it overlays the whole width and
+  // its two controls are the only way out of it besides Esc — which a phone
+  // has no key for. One rule, both families, so the two can never disagree
+  // about what a light is worth under a thumb.
+  .dock-window--creation .traffic,
+  .flyout-window .traffic {
     gap: 8px;
   }
 
-  .dock-window--creation .traffic__dot {
+  .dock-window--creation .traffic__dot,
+  .flyout-window .traffic__dot {
     width: 17px;
     height: 17px;
     .q-icon { font-size: 11px; }

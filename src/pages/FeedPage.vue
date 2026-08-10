@@ -70,12 +70,19 @@
            transform, and an inline one would freeze the animation. -->
       <div
         v-if="selected || flyoutRef" class="feed-flyout"
-        :style="trackScroll ? {
+        :class="{ 'is-max': flyoutMax }"
+        :style="trackScroll && !flyoutMax ? {
           left: `calc(52.5% - ${trackScroll}px)`,
           right: `calc(5% + ${trackScroll}px)`
         } : null"
       >
-        <SkeletonFlyout :item="selected" :skeleton-ref="flyoutRef" @close="clearSelection" />
+        <!-- The green light asks, THIS PAGE performs: the box knows nothing
+             about where it stands (SkeletonFlyout's oldest rule), so the flag
+             goes down as a prop and the request comes back as an event. -->
+        <SkeletonFlyout
+          :item="selected" :skeleton-ref="flyoutRef" :maximized="flyoutMax"
+          @close="clearSelection" @toggle-max="flyoutMax = !flyoutMax"
+        />
       </div>
     </transition>
   </q-page>
@@ -145,6 +152,14 @@ export default defineComponent({
 
     const clearSelection = () => { selected.value = null; flyoutRef.value = null }
 
+    // ── The flyout's SIZE (2026-08-10, with the traffic lights) ──────────
+    // The box's green light emits; the size is this page's, because the slot
+    // is (`.feed-flyout` below). Kept ACROSS closes, the way the docks
+    // remember their maximized state: a box you left maximized should come
+    // back the way you left it, or the same click means two different things
+    // on two different days.
+    const flyoutMax = ref(false)
+
     // Horizontal scroll-follow (G8 limit closed 2026-07-31): mirror the
     // track's scrollLeft so the flyout's slot shifts with the content. The
     // track only overflows when its content exceeds it, so this is usually 0.
@@ -159,7 +174,7 @@ export default defineComponent({
     onMounted(() => window.addEventListener('keydown', onKeydown))
     onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
 
-    return { pageStyleFn, selected, flyoutRef, onSelect, onOpenSkeleton, clearSelection, trackEl, trackScroll, onTrackScroll }
+    return { pageStyleFn, selected, flyoutRef, flyoutMax, onSelect, onOpenSkeleton, clearSelection, trackEl, trackScroll, onTrackScroll }
   }
 })
 </script>
@@ -389,7 +404,20 @@ export default defineComponent({
     flex: 0 0 95%;
   }
 
-  .feed-flyout {
+  // Both states, so the green light never moves the box a pixel and looks
+  // broken (2026-08-10): down here the flyout ALREADY overlays the full
+  // width, which is what maximize means, and without naming `.is-max` here
+  // that rule would win with its desktop 5% right inset — maximizing would
+  // visibly SHRINK the box.
+  //
+  // `.feed-page` is on the second selector for ORDER, not for reach: this
+  // media block stands ABOVE the `.feed-flyout` rules in the file (it always
+  // has — `!important` is what let it), and two `!important` declarations of
+  // equal specificity are settled by which comes LAST, which would be the
+  // desktop one. The extra class breaks that tie here rather than moving a
+  // block that has read in this order since the mobile pass.
+  .feed-flyout,
+  .feed-page .feed-flyout.is-max {
     left: 2.5% !important;   // outranks the scroll-follow inline override
     right: 2.5% !important;  // (the track can't meaningfully scroll here)
   }
@@ -414,6 +442,23 @@ export default defineComponent({
   // and the pinned stack/pins column (3100), the two surfaces that overlap
   // everything on this page.
   z-index: 3002;
+}
+
+// ── MAXIMIZED (2026-08-10, the green traffic light) ──────────────────────
+// The whole free width of the track: from the container's own left gap
+// (2.5%) to the flyout's right one (5%), so the box covers the feed column
+// and stops exactly where it always stopped on the other side. The vertical
+// band does NOT change — the box stays between the two frieze strips, which
+// is a law of this slot rather than a size, and a reading surface that
+// climbed over the crown strip would be the one thing on this page that does.
+//
+// `!important` for the reason the mobile rule below has it: the page writes
+// the scroll-follow offsets as an INLINE left/right, and inline beats any
+// selector. (The binding also stops emitting them while maximized — belt and
+// braces, since a maximized box has no container to follow anyway.)
+.feed-flyout.is-max {
+  left: 2.5% !important;
+  right: 5% !important;
 }
 
 // ── DESKTOP: THE COLUMN RUNS TO THE WINDOW'S BOTTOM EDGE (2026-08-02) ──

@@ -80,6 +80,38 @@
 
         <div class="nav-divider" />
 
+        <!-- ── DASHBOARD (2026-08-10, user ask) — its OWN section between the
+             chat button and the blue create bundle, hairlined on both sides
+             so it reads as a third thing rather than as a pale member of
+             either group. That is what the position is for: chat is where
+             entities meet and the bundle is where elements are made, and this
+             opens a box that only LOOKS at the platform.
+
+             GREY on purpose, and the one grey control on this bar: it is the
+             tone of the box it opens (the flyout family's `--grey-3` plaque
+             with its `--grey-4` lines, the platform's one neutral surface),
+             where the chat pebble answers in aqua and the bundle in
+             light-blue. A button and the window it summons wearing one
+             colorway is the same trick the minitab strip plays with its
+             per-dock icon tints.
+
+             `sym_o_` prefixed — Material SYMBOLS, not Material Icons.
+             `empty_dashboard` exists only in the symbols font, and a name the
+             loaded font has no ligature for renders as the literal WORD at
+             full width (see specs/gotchas.md; the feed's cap glyphs hit this
+             first). Both fonts are loaded in quasar.config.js's `extras`. -->
+        <q-btn
+          push no-caps
+          class="nav-btn dashboard-btn"
+          :class="{ 'is-active': dashboardOpen }"
+          title="Dashboard — the floating dashboard panel"
+          @click="$emit('toggle-dashboard')"
+        >
+          <q-icon name="sym_o_empty_dashboard" size="14px" />
+        </q-btn>
+
+        <div class="nav-divider" />
+
         <!-- Create bundle: post maker + skeleton builder + label maker +
              uploader windows -->
         <q-btn-group push class="nav-bundle create-bundle">
@@ -218,7 +250,7 @@ import FriezeBar from 'src/components/layout/FriezeBar.vue'
 export default defineComponent({
   name: 'NavigationBar',
   components: { GlobalSearch, FriezeBar },
-  emits: ['toggle-drawer', 'open-maker', 'open-uploader', 'open-skeleton-builder', 'open-label-maker', 'pins-changed'],
+  emits: ['toggle-drawer', 'open-maker', 'open-uploader', 'open-skeleton-builder', 'open-label-maker', 'toggle-dashboard', 'pins-changed'],
   props: {
     // Increment to force a pin-state refresh from the parent (e.g. after the
     // PinsDrawer unpins something so the tack indicator updates).
@@ -227,7 +259,14 @@ export default defineComponent({
     // no drawer stands (MainLayout owns the call) — the drawer carries the
     // burger in its own footer block on these same pixels while it is there,
     // so exactly one of the two renders it at any moment.
-    showBurger: { type: Boolean, default: false }
+    showBurger: { type: Boolean, default: false },
+    // Is the dashboard flyout standing right now? MainLayout owns the box
+    // (it is the surface that outlives every route), so the bar is TOLD
+    // whether its button is lit — the same arrangement `showBurger` has, and
+    // the opposite of the chat button, whose window has a store of its own to
+    // read. A flyout is not a dock: no drafts, no persistence, nothing to
+    // restore — so there is nothing for a store to hold.
+    dashboardOpen: { type: Boolean, default: false }
   },
   setup (props, { emit }) {
     const route = useRoute()
@@ -679,6 +718,41 @@ export default defineComponent({
     background: var(--aqua-3);
     color: var(--ink-1);
     border-color: rgba(var(--ink-rgb-deep), 0.50);
+  }
+}
+
+// Dashboard — THE ONE GREY CONTROL ON THIS BAR (2026-08-10). `.nav-btn`'s
+// base is a light-green-1 pebble (search and chat wear it); this one restates
+// face, rim and ink in the flyout family's own neutrals — a `--grey-3` face
+// with a `--grey-4` rim, which is exactly the plaque-and-border pair of the
+// box it opens, and `--grey-9` ink for the glyph. So the button is a chip of
+// the panel, sitting between two coloured groups it belongs to neither of.
+//
+// The rim is the one departure from the pebble base, whose 40% ink border is
+// what makes the green ones read as glass: at `--grey-4` on `--grey-3` the
+// edge is the flyout's own 1.06:1 hairline, quiet by construction, and the
+// `--brown-3` hairlines on either side of the button are what actually
+// bracket it on the bar.
+//
+// ACTIVE (the panel is standing) steps the face one level down to `--grey-4`
+// and the rim one up to `--grey-6` rather than lighting an accent: this
+// button's whole statement is that it is the neutral one, and the pressed
+// state of a grey object is a darker grey. It is the same shape of answer the
+// chat button gives with `is-active`, in the colorway this one owns.
+.nav-bar .dashboard-btn {
+  background: var(--grey-3);
+  border-color: var(--grey-4);
+  color: var(--grey-9);
+  flex-shrink: 0;
+
+  .q-icon { color: var(--grey-9); }
+
+  &:hover:not(.disabled), &.is-active {
+    background: var(--grey-4);
+    border-color: var(--grey-6);
+    color: var(--grey-10);
+
+    .q-icon { color: var(--grey-10); }
   }
 }
 
