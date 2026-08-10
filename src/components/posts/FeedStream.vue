@@ -5367,30 +5367,36 @@ export default defineComponent({
   // became a fourth divider with chips lying on it. `--grey-6` was the card's
   // own LINE ink, so the band read as that rule given height and filled.
   //
-  // ⚠ AND IT WENT ONE STEP SHALLOWER STILL, TO `--grey-4` (2026-08-10, user
-  // ask) — which is not a new level on this row but the one it STARTED on,
-  // the BED tone it wore from 2026-08-07 until that day's walk pushed it
-  // down. So the walk closed a full circle: -4 → -6 → -7 → -6 → -8 → -6 →
-  // -4. What the round trip settled is that every argument the walk made was
+  // ⚠ IT WENT SHALLOW AGAIN AND THEN BACK ONE STEP, ending at `--grey-5`
+  // (2026-08-10, two asks). First to `--grey-4` — not a new level on this row
+  // but the one it STARTED on, the BED tone it wore from 2026-08-07 until
+  // that day's walk pushed it down — closing a full circle: -4 → -6 → -7 →
+  // -6 → -8 → -6 → -4. Then HERE, the one level the whole walk had never
+  // tried on this row.
+  //
+  // What the round trip settled is that every argument the walk made was
   // about DEPTH, and depth was the wrong axis: -6/-7/-8 differ only in how
   // much like chrome the band reads, and this row is the one thing on the
-  // card that is neither chrome nor content but CLASSIFICATION. At -4 it is
-  // the shallowest full-bleed figure on the square — lighter than the card's
-  // own line ink rather than equal to it — so the strip stops competing with
-  // the rules that bracket it and reads as a shelf the chips stand on.
+  // card that is neither chrome nor content but CLASSIFICATION. The shallow
+  // end is where that belongs — lighter than the card's own line ink rather
+  // than equal to it, so the strip stops competing with the two rgb rules
+  // bracketing it and reads as a shelf the chips stand on.
   //
-  // ⚠ IT IS ALSO THE FEED BED'S OWN TONE, the plate the whole field of cards
-  // sits on (see `--grey-4` in `_tokens.scss`). That is the one thing to
-  // weigh if this moves again: the band is now a window through the card to
-  // the surface underneath it, which is a real reading and the reason the row
-  // wore this level first — but it does mean card and field share a tone at
-  // exactly one place, and that place is between two rgb rules.
+  // What -4 COST is the reason this is -5: it is the FEED BED's own tone, the
+  // plate the whole field of cards sits on, so card and field met at exactly
+  // one place and that place was between two rgb rules. The band read as a
+  // window through the card to the surface under it — a real device, and the
+  // reason the row wore that level first — but a window is not what a
+  // classification strip is. One step down keeps everything the shallow end
+  // bought and takes the coincidence back: -5 belongs to no other figure on
+  // this surface, which is what a band stating its own tier wants.
   //
   // The chips carry the contrast either way: each is a near-white plate with
   // its own rim, well up from the band at any of these levels, so the
   // classification stands OUT of the strip instead of sitting in it — and
-  // their gradient foot is the only hue in it.
-  background: var(--grey-4, #e0e0e0);
+  // since the rings pass (see `.post-square__bundle`), one colour per tier
+  // does the separating that this floor no longer has to.
+  background: var(--grey-5, #bdbdbd);
   overflow-x: auto;
   overflow-y: hidden;
   // The same thin rail the pit and the well use, so a third scrolling surface
