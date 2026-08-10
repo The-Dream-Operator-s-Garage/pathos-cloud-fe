@@ -4067,17 +4067,19 @@ export default defineComponent({
 // leave the pit half empty. Same shape as the resting formula below — the
 // card's height term swapped for the expanded height, the well's paddings
 // (22 + 12 = 34px, plus its 1× --frieze-h) folded in beside the card's own
-// 276px chrome and 0.55× band. Keep all three lines in step: the well's
-// `padding`, `.is-expanded`'s height, and this. (276 + 34 = 310; the pair was
+// 278px chrome and 0.55× band. Keep all three lines in step: the well's
+// `padding`, `.is-expanded`'s height, and this. (278 + 34 = 312; the pair was
 // 300 + 34 = 334 until 2026-08-10, whose rail-padding asks took 8px out of
 // the card's chrome and whose frieze move traded a 6px band for a band
-// already counted in the variable term — move the resting constant and move
-// this one with it. ⚠ THIS LINE LAGGED THE RESTING ONE by one edit that day:
-// the frieze's two grey-6 rules went into the resting 280 → 282 and not into
-// this, which is exactly the drift the sentence above warns about. Both terms
-// are current as of the pit's margin ask, 282 → 276 here and there.)
+// already counted in the variable term, and 276 + 34 = 310 until that day's
+// LAST rail ask deleted the label bracket's two 4px bands and gave the strip
+// its padding and rim back, +2 net — move the resting constant and move this
+// one with it. ⚠ THIS LINE HAS LAGGED THE RESTING ONE TWICE now: the frieze's
+// two grey-6 rules went into the resting 280 → 282 and not into this, and the
+// rail's rim pass landed here a beat late, which is exactly the drift the
+// sentence above warns about. Both terms are current at 278 / 312.)
 .post-square.is-expanded .post-square__pit {
-  --media-max-h: max(120px, calc(var(--feed-well-h, 60vh) - var(--fhead-h, 120px) - 310px - var(--frieze-h) * 1.55));
+  --media-max-h: max(120px, calc(var(--feed-well-h, 60vh) - var(--fhead-h, 120px) - 312px - var(--frieze-h) * 1.55));
 }
 
 // ── THE VEIL (2026-08-07, user ask) — the card's MIDDLE LAYER ──
