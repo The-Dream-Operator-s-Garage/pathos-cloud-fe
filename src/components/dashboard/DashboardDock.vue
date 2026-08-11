@@ -79,12 +79,17 @@
       <!-- The tab strip: one tab per open board, the ghost mints a new one,
            the pencil flips edit mode for the open board. -->
       <nav class="dock-tabs dashboard-dock__tabs">
+        <!-- In edit mode every tab is ALSO a drag source (phase 5): drop
+             one onto a canvas slot and that board fills the pane. The
+             payload is the house MIME, the board's own address. -->
         <button
           v-for="t in store.tabs"
           :key="t.id"
           type="button"
           class="dock-tab"
           :class="{ 'is-active': t.id === store.activeId }"
+          :draggable="store.isEditing && !!t.path"
+          @dragstart="onTabDragStart(t, $event)"
           @click="store.select(t.id)"
         >
           <q-icon name="sym_o_empty_dashboard" size="12px" class="dock-tab__icon" />
@@ -104,6 +109,15 @@
         </button>
         <q-space />
         <button
+          v-if="store.activeTab && store.activeTab.path"
+          type="button"
+          class="dashboard-dock__edit"
+          title="Share this board to a conversation"
+          @click="shareOpen = true"
+        >
+          <q-icon name="ios_share" size="13px" />
+        </button>
+        <button
           v-if="store.activeTab"
           type="button"
           class="dashboard-dock__edit"
@@ -121,8 +135,13 @@
           :dashboard-id="store.activeTab.skeletonId"
           :editing="store.isEditing"
           @resolved="onResolved"
+          @exported="onExported"
         />
       </div>
+
+      <!-- Share = grant + send, through the chat's own machinery (the
+           picker owns the whole flow — see ConversationPicker). -->
+      <ConversationPicker v-model="shareOpen" :share-ref="store.activeTab?.path || ''" />
     </section>
   </transition>
 </template>
@@ -131,17 +150,19 @@
 import { defineComponent, ref, computed, watch } from 'vue'
 import FriezeBar from 'src/components/layout/FriezeBar.vue'
 import DashboardGrid from 'src/components/dashboard/DashboardGrid.vue'
+import ConversationPicker from 'src/components/chat/ConversationPicker.vue'
 import { useDashboardStore } from 'src/stores/dashboard'
 import { useWindowsStore } from 'src/stores/windows'
 import { dashboardService } from 'src/services/dashboard.service'
 
 export default defineComponent({
   name: 'DashboardDock',
-  components: { FriezeBar, DashboardGrid },
+  components: { FriezeBar, DashboardGrid, ConversationPicker },
   setup () {
     const store = useDashboardStore()
     const windows = useWindowsStore()
     const creating = ref(false)
+    const shareOpen = ref(false)
 
     // Boot: the ensure=1 list mints the default USER_HOME server-side; a
     // window with no tabs opens the first board. Fired every time the
@@ -154,7 +175,7 @@ export default defineComponent({
         if (!r.success || !r.dashboards?.length) return
         // The HOME board fronts a fresh window; newest-first otherwise.
         const first = r.dashboards.find(d => d.template?.name === 'USER_HOME') || r.dashboards[0]
-        store.openTab({ skeletonId: first.id, name: first.name })
+        store.openTab({ skeletonId: first.id, name: first.name, path: first.path })
       } catch (_) { /* the empty well states it honestly */ }
     }
     watch(() => store.isOpen && !store.isMinimized, (v) => { if (v) boot() }, { immediate: true })
@@ -166,7 +187,7 @@ export default defineComponent({
       try {
         const r = await dashboardService.create({})
         if (r.success) {
-          store.openTab({ skeletonId: r.dashboard.id, name: r.dashboard.name })
+          store.openTab({ skeletonId: r.dashboard.id, name: r.dashboard.name, path: r.dashboard.path })
           store.setEditing(true)
         }
       } catch (_) { /* leave the strip as it was */ }
@@ -174,11 +195,27 @@ export default defineComponent({
     }
 
     // The grid resolved the board — name the tab after it (covers renames
-    // landing server-side and the boot tab's stale copy).
+    // landing server-side and the boot tab's stale copy) and teach it its
+    // address (the drag payload).
     const onResolved = (d) => {
       if (store.activeTab && d?.id === store.activeTab.skeletonId) {
-        store.nameTab(store.activeTab.id, d.name)
+        store.nameTab(store.activeTab.id, d.name, d.path || null)
       }
+    }
+
+    // A canvas exported itself as a fresh board — open it (phase 5: the
+    // arrangement is itself a dashboard now).
+    const onExported = (d) => {
+      store.openTab({ skeletonId: d.id, name: d.name, path: d.path })
+    }
+
+    // The dock's tabs are canvas drag sources in edit mode.
+    const onTabDragStart = (t, e) => {
+      if (!store.isEditing || !t.path) return
+      e.dataTransfer.effectAllowed = 'copy'
+      e.dataTransfer.setData('application/x-pathos-ref', JSON.stringify({
+        kind: 'skeletons', address: t.path, primary: t.name || ''
+      }))
     }
 
     const meta = computed(() => {
@@ -186,7 +223,7 @@ export default defineComponent({
       return '#' + store.activeTab.skeletonId
     })
 
-    return { store, windows, creating, createBoard, onResolved, meta }
+    return { store, windows, creating, shareOpen, createBoard, onResolved, onExported, onTabDragStart, meta }
   }
 })
 </script>
@@ -206,6 +243,15 @@ export default defineComponent({
   flex: 1 1 auto;
   min-height: 0;
   overflow-y: auto;
+
+  // The family well is a flex ROW (`.flyout-window__well`), so its one
+  // child must GROW or it sizes to content — the same contract
+  // `.skeleton-flyout__generic` states in the sibling box. Without it the
+  // split canvas measured 393px inside a 1382px well.
+  :deep(.dash-grid-host) {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
 }
 
 // The strip sits on the plaque between the frieze band and the well — the

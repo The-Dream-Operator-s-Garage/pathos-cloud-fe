@@ -17,13 +17,47 @@
        EDIT MODE (the pencil, or arriving from the ghost tab): the two
        smart inputs appear (skeletons + nodes — picks append to ITEMS),
        and every removable cell grows an ✕ riding the pin splice. -->
-  <div class="dash-grid-host">
+  <div class="dash-grid-host" :class="{ 'dash-grid-host--canvas': splitTree }">
     <div v-if="editing" class="dash-grid__toolbar">
-      <SkeletonSearchInput @pick="onPick" />
-      <NodeSearchInput @pick="onPick" />
+      <SkeletonSearchInput v-if="!splitTree" @pick="onPick" />
+      <NodeSearchInput v-if="!splitTree" @pick="onPick" />
+      <button
+        v-if="!splitTree"
+        type="button"
+        class="dash-grid__tool"
+        title="Split this board into a multi-dashboard canvas"
+        @click="seedSplit"
+      >
+        <q-icon name="vertical_split" size="13px" /> Split view
+      </button>
+      <template v-else>
+        <span class="dash-grid__canvas-hint">drag tabs into the slots · drag dividers to resize</span>
+        <q-space />
+        <button
+          type="button"
+          class="dash-grid__tool"
+          title="Mint a NEW dashboard holding this exact arrangement"
+          :disabled="exporting"
+          @click="exportLayout"
+        >
+          <q-icon name="dashboard_customize" size="13px" /> Export layout as dashboard
+        </button>
+      </template>
     </div>
 
-    <div v-if="loading" class="dash-grid__loading">
+    <!-- THE SPLIT CANVAS (phase 5): when the board's LAYOUT carries a
+         split tree, the well becomes the recursively splittable
+         multi-dashboard canvas instead of the flat grid. Nested grids
+         (leaves) never reach this branch — the cycle guard. -->
+    <SplitLayout
+      v-if="splitTree && !nested"
+      class="dash-grid__canvas"
+      :node="splitTree"
+      :editing="editing"
+      @changed="onSplitChanged"
+    />
+
+    <div v-else-if="loading" class="dash-grid__loading">
       <q-spinner size="18px" color="primary" />
     </div>
 
@@ -71,8 +105,10 @@ import LockedChip from 'src/components/shared/LockedChip.vue'
 import SessionActivityCard from 'src/components/dashboard/SessionActivityCard.vue'
 import SkeletonSearchInput from 'src/components/dashboard/SkeletonSearchInput.vue'
 import NodeSearchInput from 'src/components/dashboard/NodeSearchInput.vue'
+import SplitLayout from 'src/components/dashboard/SplitLayout.vue'
 import { dashboardService } from 'src/services/dashboard.service'
 import { skeletonService } from 'src/services/skeleton.service'
+import { leafRefs } from 'src/utils/splitTree'
 
 export default defineComponent({
   name: 'DashboardGrid',
@@ -83,14 +119,22 @@ export default defineComponent({
     LockedChip,
     SessionActivityCard,
     SkeletonSearchInput,
-    NodeSearchInput
+    NodeSearchInput,
+    // SplitLayout imports THIS component back asynchronously (leaves are
+    // boards) — the one static edge of the pair lives here.
+    SplitLayout
   },
   props: {
     dashboardId: { type: Number, required: true },
-    editing: { type: Boolean, default: false }
+    editing: { type: Boolean, default: false },
+    // A leaf of a split canvas: renders the flat grid ONLY (its own split
+    // member is ignored) — the recursion/cycle guard, and what keeps a
+    // canvas one honest level deep.
+    nested: { type: Boolean, default: false }
   },
-  // The resolved board (id, name, layout) — the dock names the tab off it.
-  emits: ['resolved'],
+  // resolved: the board card (the dock names the tab off it);
+  // exported: a fresh board minted from the canvas (the dock opens it).
+  emits: ['resolved', 'exported'],
   setup (props, { emit }) {
     const loading = ref(false)
     const board = ref(null)
@@ -184,7 +228,53 @@ export default defineComponent({
       if (r.success) await load()
     }
 
-    return { loading, cells, onPick, onRemove }
+    // ── the split canvas (phase 5) ─────────────────────────────────
+    const splitTree = computed(() => (props.nested ? null : layout.value?.split || null))
+
+    const seedSplit = async () => {
+      layout.value = { v: 1, cells: layout.value?.cells || [], ...layout.value, split: { dir: 'h', ratio: 0.5, children: [{ leaf: null }, { leaf: null }] } }
+      await persistLayout()
+    }
+
+    // Every structural change + resize end saves (the LAYOUT NOTE
+    // versions — arrangements are history). A canvas fused back to one
+    // empty slot drops the split member and the flat grid returns.
+    let saveTimer = null
+    const onSplitChanged = () => {
+      const t = layout.value?.split
+      if (t && !t.children && !t.leaf) layout.value.split = null
+      clearTimeout(saveTimer)
+      saveTimer = setTimeout(persistLayout, 400)
+    }
+
+    const persistLayout = async () => {
+      const clean = JSON.parse(JSON.stringify(layout.value || { v: 1, cells: [] }))
+      if (!clean.split) delete clean.split
+      await dashboardService.saveLayout(props.dashboardId, clean)
+    }
+
+    // Export: mint a NEW dashboard whose LAYOUT is this exact split tree
+    // and whose ITEMS are the boards the leaves cite — the arrangement is
+    // thereby itself a dashboard (nesting closes the loop).
+    const exporting = ref(false)
+    const exportLayout = async () => {
+      if (!splitTree.value) return
+      exporting.value = true
+      try {
+        const tree = JSON.parse(JSON.stringify(splitTree.value))
+        const refs = leafRefs(tree)
+        const r = await dashboardService.create({})
+        if (!r.success) return
+        for (const ref of [...new Set(refs)]) {
+          await dashboardService.addItem(r.dashboard.id, ref)
+        }
+        await dashboardService.saveLayout(r.dashboard.id, { v: 1, cells: [], split: tree })
+        emit('exported', r.dashboard)
+      } catch (_) { /* the canvas stays as it was */ }
+      exporting.value = false
+    }
+
+    return { loading, cells, onPick, onRemove, splitTree, seedSplit, onSplitChanged, exporting, exportLayout }
   }
 })
 </script>
@@ -197,10 +287,46 @@ export default defineComponent({
   min-height: 0;
 }
 
+// Canvas mode fills the well exactly — the panes scroll, the well doesn't.
+.dash-grid-host--canvas {
+  height: 100%;
+}
+
+.dash-grid__canvas {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
 .dash-grid__toolbar {
   display: flex;
+  align-items: center;
   gap: 8px;
   flex-shrink: 0;
+}
+
+.dash-grid__tool {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 28px;
+  padding: 0 10px;
+  border: 1px solid var(--dock-rule-strong, var(--grey-5));
+  border-radius: 6px;
+  background: #fff;
+  color: var(--dock-ink, var(--brown-8));
+  font: inherit;
+  font-size: 0.74em;
+  cursor: pointer;
+  flex-shrink: 0;
+
+  &:hover { border-color: #00829c; color: #00829c; }
+  &:disabled { opacity: 0.5; cursor: default; }
+}
+
+.dash-grid__canvas-hint {
+  font-size: 0.72em;
+  font-style: italic;
+  color: var(--dock-ink-mute, var(--brown-4));
 }
 
 .dash-grid__loading { padding: 12px 0; }

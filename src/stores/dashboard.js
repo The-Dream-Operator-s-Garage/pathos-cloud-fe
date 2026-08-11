@@ -86,10 +86,15 @@ export const useDashboardStore = defineStore('dashboard', {
 
     // One tab per dashboard: opening an already-open board fronts its tab
     // (the id is derived from the skeleton id, so the dedupe is free).
-    openTab ({ skeletonId, name = null }) {
+    // `path` (the 'skeletons/<hash>' address) rides along when the caller
+    // has it — it is what a tab dragged into a canvas slot speaks.
+    openTab ({ skeletonId, name = null, path = null }) {
       const id = 'db' + skeletonId
-      if (!this.tabs.some(t => t.id === id)) {
-        this.tabs.push({ id, skeletonId, name })
+      const existing = this.tabs.find(t => t.id === id)
+      if (!existing) {
+        this.tabs.push({ id, skeletonId, name, path })
+      } else if (path && !existing.path) {
+        existing.path = path
       }
       this.activeId = id
       this.persist()
@@ -114,11 +119,16 @@ export const useDashboardStore = defineStore('dashboard', {
       }
     },
 
-    // The grid reports resolved names back so a tab never keeps a stale
-    // '(untitled)' after a rename lands server-side.
-    nameTab (id, name) {
+    // The grid reports the resolved board back so a tab never keeps a
+    // stale '(untitled)' after a rename lands server-side — and learns
+    // its address (the drag payload) the first time the board resolves.
+    nameTab (id, name, path = null) {
       const t = this.tabs.find(t => t.id === id)
-      if (t && t.name !== name) { t.name = name; this.persist() }
+      if (!t) return
+      let dirty = false
+      if (t.name !== name) { t.name = name; dirty = true }
+      if (path && t.path !== path) { t.path = path; dirty = true }
+      if (dirty) this.persist()
     },
 
     setEditing (v) { this.isEditing = !!v }

@@ -760,6 +760,19 @@
                 >
                   <q-icon name="open_in_new" size="13px" />
                 </button>
+                <!-- Share to chat (dashboards phase 5, 2026-08-10): the
+                     conversation picker prefills a draft with this post's
+                     chip; ChatDock's send flow grants through the share
+                     tree. Grants, never publishes. -->
+                <span class="post-square__cap-rule" aria-hidden="true" />
+                <button
+                  type="button"
+                  class="post-square__cap-act"
+                  title="Share this post to a conversation"
+                  @click.stop="openShare(item)"
+                >
+                  <q-icon name="ios_share" size="13px" />
+                </button>
               </div>
             </div>
 
@@ -1361,6 +1374,10 @@
         </template>
       </div>
     </div>
+
+    <!-- Share-to-chat picker (phase 5) — one instance for the whole
+         stream; the cap-lane button fills shareRef per card. -->
+    <ConversationPicker v-model="shareOpen" :share-ref="shareRef" />
   </div>
 </template>
 
@@ -1387,6 +1404,7 @@ import MicroChip from 'src/components/shared/MicroChip.vue'
 import MarkdownBody from 'src/components/shared/MarkdownBody.vue'
 import FriezeBar from 'src/components/layout/FriezeBar.vue'
 import RgbHairline from 'src/components/layout/RgbHairline.vue'
+import ConversationPicker from 'src/components/chat/ConversationPicker.vue'
 // A label tree whose ROOT has a mark draws it instead of spelling the root's
 // name — see the module for the registry and for why it is a front-end one.
 import { rootMark } from 'src/utils/labelRoots'
@@ -1448,7 +1466,7 @@ const KIND_ICONS = {
 
 export default defineComponent({
   name: 'FeedStream',
-  components: { EntityAvatar, OrgLogoChip, PostMicro, MicroChip, MarkdownBody, FeedHeadBox, FriezeBar, RgbHairline },
+  components: { EntityAvatar, OrgLogoChip, PostMicro, MicroChip, MarkdownBody, FeedHeadBox, FriezeBar, RgbHairline, ConversationPicker },
   props: {
     // The post whose information flyout is open, if any. The stream does not
     // own that state: the flyout is placed OUTSIDE the feed container (it
@@ -2380,6 +2398,17 @@ export default defineComponent({
     // ONE id rather than a boolean, because the stream draws thirty of these
     // and a shared flag would flip every card's glyph to `check` at once.
     const copiedId = ref(null)
+    // ── share to chat (dashboards phase 5, 2026-08-10) ──────────────
+    // The picker owns the whole flow (draft prefill → ChatDock's share
+    // tree); the card only says WHICH post.
+    const shareOpen = ref(false)
+    const shareRef = ref('')
+    const openShare = (item) => {
+      if (!item.skeleton_path) return
+      shareRef.value = item.skeleton_path
+      shareOpen.value = true
+    }
+
     const copyAddress = async (item) => {
       const addr = item.skeleton_path
       if (!addr) return
@@ -2652,6 +2681,9 @@ export default defineComponent({
       isSkeletonOpen,
       copiedId,
       copyAddress,
+      shareOpen,
+      shareRef,
+      openShare,
       isExpanded,
       toggleExpand,
       hashFilter,
