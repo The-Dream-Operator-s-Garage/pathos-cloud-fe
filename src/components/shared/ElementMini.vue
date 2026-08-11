@@ -4,7 +4,8 @@
        path|skeleton|entity } from pathService.resolveLinkTarget) and it
        renders the matching Mini panel. Skeleton refs split on the summary
        route: POST instances render PostMini, every other skeleton (schema
-       or populated instance) renders SkeletonMini's field summary. Kinds
+       or populated instance) renders ResourceSkeletonMini's embeddable
+       table (2026-08-10; SkeletonMini's field summary before). Kinds
        without a Mini (secrets) degrade to an InfoChip; so do
        unresolvable refs.
        Used by post content-element rails, by MarkdownBody's inline
@@ -22,7 +23,19 @@
     <EntityMini v-else-if="shape.kind === 'entity' && shape.entity" :entity="shape.entity" />
     <MomentMini v-else-if="shape.kind === 'moment' && shape.moment" :moment="shape.moment" :human="shape.human" />
     <LinkMini v-else-if="shape.kind === 'link' && shape.link" :link="shape.link" :target="shape.target" :parent-path="shape.parentPath" />
-    <SkeletonMini v-else-if="shape.kind === 'skeleton'" :id="shape.skeletonId" :name="label || shape.skeletonName" />
+    <!-- Non-POST skeletons wear the embeddable mini TABLE (dashboards
+         phase 2, 2026-08-10) — ResourceSkeletonMini resolves the walk
+         itself and blooms GITHUB_PR instances into their native card, so
+         this branch needs no name pre-check. depth/visited thread the
+         recursion guards through: a table nested in a table arrives here
+         with its ancestors' refs on the list. -->
+    <ResourceSkeletonMini
+      v-else-if="shape.kind === 'skeleton'"
+      :ref-or-id="shape.skeletonId"
+      :name="label || shape.skeletonName"
+      :depth="depth"
+      :visited="visited"
+    />
 
     <LockedChip v-else-if="shape.kind === 'locked'" :address="chipAddress" />
     <InfoChip v-else :address="chipAddress" :label="label" />
@@ -38,7 +51,7 @@ import LabelMini from 'src/components/labels/LabelMini.vue'
 import EntityMini from 'src/components/entities/EntityMini.vue'
 import MomentMini from 'src/components/moments/MomentMini.vue'
 import LinkMini from 'src/components/links/LinkMini.vue'
-import SkeletonMini from 'src/components/skeletons/SkeletonMini.vue'
+import ResourceSkeletonMini from 'src/components/skeletons/ResourceSkeletonMini.vue'
 import InfoChip from './InfoChip.vue'
 import LockedChip from './LockedChip.vue'
 import { nodeService } from 'src/services/node.service'
@@ -53,7 +66,7 @@ import { bodyOf } from 'src/utils/nodeContent'
 
 export default defineComponent({
   name: 'ElementMini',
-  components: { NodeMini, PathMini, PostMini, LabelMini, EntityMini, MomentMini, LinkMini, SkeletonMini, InfoChip, LockedChip },
+  components: { NodeMini, PathMini, PostMini, LabelMini, EntityMini, MomentMini, LinkMini, ResourceSkeletonMini, InfoChip, LockedChip },
   props: {
     // '<kind>/<hash>' reference (optionally owner-scoped) — self-resolves.
     address: { type: String, default: '' },
@@ -61,7 +74,12 @@ export default defineComponent({
     // skips fetching entirely when supplied.
     element: { type: Object, default: null },
     // Optional headline override for the InfoChip fallback.
-    label: { type: String, default: '' }
+    label: { type: String, default: '' },
+    // Recursion guards, threaded through to ResourceSkeletonMini (a
+    // skeleton table nested in a skeleton table re-enters this dispatcher
+    // conceptually — the guards ride the props either way).
+    depth: { type: Number, default: 0 },
+    visited: { type: Array, default: () => [] }
   },
   setup (props) {
     const loading = ref(false)
@@ -97,7 +115,7 @@ export default defineComponent({
       }
       if (el.kind === 'skeleton' && el.skeleton) {
         // POST instances read as posts; every other skeleton (schema or
-        // populated instance) gets the field-summary SkeletonMini.
+        // populated instance) gets the embeddable mini table.
         if (el.skeleton.name === 'POST') return fetchPost(el.skeleton.id)
         return { kind: 'skeleton', skeletonId: el.skeleton.id, skeletonName: el.skeleton.name || '' }
       }
@@ -144,11 +162,11 @@ export default defineComponent({
             const s = await refService.summary(addr)
             // The locked stub CARRIES an id (the hash stays visible by
             // doctrine) — check locked FIRST or a private skeleton mounts
-            // a SkeletonMini that 403s on every field.
+            // a mini table that 403s on every field.
             if (s.success && s.summary?.locked) return { kind: 'locked' }
             if (!s.success || s.summary?.id == null) return { kind: null }
             // POST instances get the post Mini; every other skeleton gets
-            // the field-summary SkeletonMini.
+            // the embeddable mini table.
             if ((s.summary.route || '').startsWith('/posts/')) return fetchPost(s.summary.id)
             return { kind: 'skeleton', skeletonId: s.summary.id, skeletonName: s.summary.primary || '' }
           }

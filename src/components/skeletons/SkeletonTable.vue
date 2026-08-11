@@ -166,7 +166,7 @@ export default defineComponent({
     )
 
     const kindStyle = (kind) => ({
-      '--skel-table-kind': kind ? kindFor(kind).color : 'var(--skel-table-ink-mute)'
+      '--skel-table-kind': kind ? kindFor(kind).color : 'var(--st-ink-mute)'
     })
 
     return { loading, failed, addressOf, rows, isGithubPr, kindStyle }
@@ -180,18 +180,18 @@ export default defineComponent({
 }
 
 .skel-table {
-  // The dial set — hosts re-tone the whole table by writing these
-  // (NodeMini's dial pattern at table scale; names follow the dock's
-  // six-dial seam). Defaults are the flyout grey family.
-  --skel-table-coat: var(--grey-3);
-  --skel-table-rule: var(--grey-4);
-  --skel-table-rule-strong: var(--grey-5);
-  --skel-table-ink: var(--brown-8);
-  --skel-table-ink-mute: var(--brown-4);
-  --skel-table-hover: var(--teal-12);
+  // The dial set — hosts re-tone the whole table by WRITING these on any
+  // ancestor (NodeMini's dial pattern at table scale; names follow the
+  // dock's six-dial seam). CONSUMED with fallbacks, never self-defined —
+  // a component that defined them on its own root would override the
+  // host's inherited value. Defaults are the flyout grey family. The two
+  // derived tones below are one seam each so the internal rules never
+  // restate a fallback chain.
+  --st-rule: var(--skel-table-rule, var(--grey-4));
+  --st-ink-mute: var(--skel-table-ink-mute, var(--brown-4));
 
-  background: var(--skel-table-coat);
-  border: 1px solid var(--skel-table-rule);
+  background: var(--skel-table-coat, var(--grey-3));
+  border: 1px solid var(--st-rule);
   border-radius: 6px;
   overflow: hidden;
 }
@@ -207,9 +207,9 @@ export default defineComponent({
     text-transform: uppercase;
     letter-spacing: 0.06em;
     font-weight: 600;
-    color: var(--skel-table-ink-mute);
+    color: var(--st-ink-mute);
     padding: 4px 8px;
-    border-bottom: 1px solid var(--skel-table-rule-strong);
+    border-bottom: 1px solid var(--skel-table-rule-strong, var(--grey-5));
   }
 }
 
@@ -222,28 +222,28 @@ export default defineComponent({
   td {
     padding: 4px 8px;
     vertical-align: top;
-    border-bottom: 1px solid var(--skel-table-rule);
+    border-bottom: 1px solid var(--st-rule);
   }
   &:last-child td { border-bottom: none; }
 
   // Teal answers the pointer and nothing else — the row marks with the
   // accent's inset bar, the neutrals hold everything at rest.
   &:hover td { background: rgba(255, 255, 255, 0.35); }
-  &:hover td:first-child { box-shadow: inset 2px 0 0 var(--skel-table-hover); }
+  &:hover td:first-child { box-shadow: inset 2px 0 0 var(--skel-table-hover, var(--teal-12)); }
 }
 
 .skel-table__key .mono {
   font-size: 0.7em;
   font-weight: 700;
   letter-spacing: 0.03em;
-  color: var(--skel-table-ink);
+  color: var(--skel-table-ink, var(--brown-8));
   word-break: break-word;
 }
 
 .skel-table__kind {
-  display: inline-flex;
-  align-items: center;
+  display: inline-block;
   height: 16px;
+  line-height: 16px;
   padding: 0 7px;
   border-radius: var(--radius-pill);
   font-family: var(--font-mono);
@@ -251,13 +251,19 @@ export default defineComponent({
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: #fff;
-  background: var(--skel-table-kind, var(--skel-table-ink-mute));
+  background: var(--skel-table-kind, var(--st-ink-mute));
+  // A nested table's type column can shrink under 50px — the pill clips
+  // to its first letters instead of wrapping into a dot.
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .skel-table__data {
   min-width: 0;
   font-size: 0.78em;
-  color: var(--skel-table-ink);
+  color: var(--skel-table-ink, var(--brown-8));
   word-break: break-word;
 }
 
@@ -267,13 +273,13 @@ export default defineComponent({
 
 .skel-table__empty {
   font-style: italic;
-  color: var(--skel-table-ink-mute);
+  color: var(--st-ink-mute);
 }
 
 .skel-table__none {
   padding: 8px;
   font-size: 0.74em;
   font-style: italic;
-  color: var(--skel-table-ink-mute);
+  color: var(--st-ink-mute);
 }
 </style>
