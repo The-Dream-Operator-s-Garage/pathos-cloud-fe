@@ -12,10 +12,12 @@
   the promise its name made. It takes EITHER a `GET /feed` item (a post —
   mounts `FeedPostPanel`, the rich face) OR any bare skeleton reference via
   `skeleton-ref` (a 'skeletons/<hash>' address or a numeric id — mounts
-  `SkeletonMini`, the keys+populated-fields face every non-POST skeleton
-  already wears in post bodies). The rename/move (`FeedPostFlyout` under
-  `components/posts/` → `SkeletonFlyout` under `components/skeletons/`)
-  landed with this work, exactly as the fifth pass said it should.
+  `SkeletonTable` since 2026-08-10, the dense Field | Type | Data face at
+  max detail; `SkeletonMini`, the compact face this branch mounted first,
+  stays what post bodies and chip scale wear). The rename/move
+  (`FeedPostFlyout` under `components/posts/` → `SkeletonFlyout` under
+  `components/skeletons/`) landed with this work, exactly as the fifth
+  pass said it should.
 
   What it holds is not new: `FeedPostPanel` is the same panel the legacy feed
   laid out in its right-hand column (full excerpt, every bound element as a
@@ -150,12 +152,16 @@
          were written against. -->
     <div class="skeleton-flyout__well flyout-window__well">
       <FeedPostPanel v-if="item" :item="item" />
-      <!-- Any other skeleton: the keys+populated-fields face. SkeletonMini
-           self-resolves from an address or id, so the flyout needs to know
-           nothing about what it was pointed at. -->
+      <!-- Any other skeleton: the DENSE TABLE face (dashboards phase 1,
+           2026-08-10) — Field | Type | Data at max detail, replacing the
+           compact SkeletonMini here (which stays the face used at chip
+           scale elsewhere). SkeletonTable self-resolves from an address or
+           id, keeps the `resolved` title emit and the GITHUB_PR dispatch,
+           so the flyout still needs to know nothing about what it was
+           pointed at. -->
       <div v-else class="skeleton-flyout__generic">
-        <SkeletonMini
-          :id="skeletonId" :address="skeletonAddress"
+        <SkeletonTable
+          :ref-or-id="skeletonRef"
           @resolved="onResolved"
         />
       </div>
@@ -168,12 +174,12 @@ import { defineComponent, computed, ref, watch } from 'vue'
 import { useFlyoutsStore } from 'src/stores/flyouts'
 import FriezeBar from 'src/components/layout/FriezeBar.vue'
 import FeedPostPanel from 'src/components/posts/FeedPostPanel.vue'
-import SkeletonMini from 'src/components/skeletons/SkeletonMini.vue'
+import SkeletonTable from 'src/components/skeletons/SkeletonTable.vue'
 import { kindFor, shortHash } from 'src/utils/kinds'
 
 export default defineComponent({
   name: 'SkeletonFlyout',
-  components: { FriezeBar, FeedPostPanel, SkeletonMini },
+  components: { FriezeBar, FeedPostPanel, SkeletonTable },
   props: {
     // One feed item, exactly as `GET /feed` returns it (a POST — the rich
     // face). Optional since 2026-07-31: give either this or `skeletonRef`.
@@ -709,17 +715,19 @@ export default defineComponent({
   // human title lives on the zone's tooltip.)
 }
 
-// The GENERIC face's frame (2026-07-31): SkeletonMini is a compact panel
-// drawn for post bodies, so in here it gets the well's whole width and its
-// own scroll track — the same one-scroller rule the post face keeps, just
-// owned by this wrapper instead of FeedPostPanel's `__scroll`.
+// The GENERIC face's frame (2026-07-31; table face 2026-08-10): the dense
+// SkeletonTable gets the well's whole width and its own scroll track — the
+// same one-scroller rule the post face keeps, just owned by this wrapper
+// instead of FeedPostPanel's `__scroll`. The table's dials are left at
+// their defaults on purpose: they ARE this box's grey family — the
+// component was toned for this well first and re-dialled elsewhere.
 .skeleton-flyout__generic {
   flex: 1 1 auto;
   min-width: 0;
   min-height: 0;
   overflow: auto;
 
-  :deep(.mini-panel) { width: 100%; }
+  :deep(.skel-table) { width: 100%; }
 }
 
 // The panel's scrollbar, one step darker than the floor it runs on: `--grey-5`

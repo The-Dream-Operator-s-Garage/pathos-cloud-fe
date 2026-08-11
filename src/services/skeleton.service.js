@@ -31,6 +31,14 @@ export const skeletonService = {
     return data
   },
 
+  // Batch walk (dashboards, 2026-08-10): one request per grid, never one
+  // walk per cell. payload: { ids?: [], refs?: [] } (≤24 combined) →
+  // { walks: { <requested key>: walkResult | error envelope } }.
+  async walkBatch (payload) {
+    const { data } = await api.post('/skeletons/walk-batch', payload)
+    return data
+  },
+
   // Deep export (2026-08-01, data-ownership thread A): the skeleton
   // unraveled `depth` layers with chain evidence (format 'bundle'), or the
   // tabular projection of its instances (format 'rows').
@@ -85,9 +93,10 @@ export const skeletonService = {
     return data
   },
 
-  // Instance history: fork lineage + per-slot binding versions.
-  async history (id) {
-    const { data } = await api.get(`/skeletons/${id}/history`)
+  // Instance history: fork lineage + per-slot binding versions (each with
+  // actor + NOTE textValue). params: { slot } narrows to one field's chain.
+  async history (id, params = {}) {
+    const { data } = await api.get(`/skeletons/${id}/history`, { params })
     return data
   },
 
