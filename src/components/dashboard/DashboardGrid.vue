@@ -134,8 +134,9 @@ export default defineComponent({
     nested: { type: Boolean, default: false }
   },
   // resolved: the board card (the dock names the tab off it);
-  // exported: a fresh board minted from the canvas (the dock opens it).
-  emits: ['resolved', 'exported'],
+  // exported: a fresh board minted from the canvas (the dock opens it);
+  // items: the shown item refs (the agent row's grant list).
+  emits: ['resolved', 'exported', 'items'],
   setup (props, { emit }) {
     const loading = ref(false)
     const board = ref(null)
@@ -152,6 +153,8 @@ export default defineComponent({
         items.value = r.items || []
         layout.value = r.layout
         emit('resolved', r.dashboard)
+        // The agent row grants what the grid SHOWS — hand the refs up.
+        emit('items', items.value.map(i => i.ref))
 
         // ONE batch walk for every skeleton ref on the board — ITEMS plus
         // any ref the LAYOUT places directly (a layout can cite an element

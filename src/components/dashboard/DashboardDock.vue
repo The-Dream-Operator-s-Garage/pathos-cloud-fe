@@ -129,13 +129,25 @@
         </button>
       </nav>
 
+      <!-- The agent seat (phase 7): Cuentista's row between the strip and
+           the well — collapsed one-liner ⇄ the pair-chat thread. Asks
+           grant the open board + its shown items to the seat. -->
+      <CuentistaRow
+        v-if="store.activeTab"
+        :dashboard-ref="store.activeTab.path || ''"
+        :item-refs="gridItemRefs"
+        @applied="gridEl?.load()"
+      />
+
       <div class="flyout-window__well dashboard-dock__well">
         <DashboardGrid
           v-if="store.activeTab"
+          ref="gridEl"
           :dashboard-id="store.activeTab.skeletonId"
           :editing="store.isEditing"
           @resolved="onResolved"
           @exported="onExported"
+          @items="gridItemRefs = $event"
         />
       </div>
 
@@ -151,18 +163,21 @@ import { defineComponent, ref, computed, watch } from 'vue'
 import FriezeBar from 'src/components/layout/FriezeBar.vue'
 import DashboardGrid from 'src/components/dashboard/DashboardGrid.vue'
 import ConversationPicker from 'src/components/chat/ConversationPicker.vue'
+import CuentistaRow from 'src/components/dashboard/CuentistaRow.vue'
 import { useDashboardStore } from 'src/stores/dashboard'
 import { useWindowsStore } from 'src/stores/windows'
 import { dashboardService } from 'src/services/dashboard.service'
 
 export default defineComponent({
   name: 'DashboardDock',
-  components: { FriezeBar, DashboardGrid, ConversationPicker },
+  components: { FriezeBar, DashboardGrid, ConversationPicker, CuentistaRow },
   setup () {
     const store = useDashboardStore()
     const windows = useWindowsStore()
     const creating = ref(false)
     const shareOpen = ref(false)
+    const gridEl = ref(null)
+    const gridItemRefs = ref([])
 
     // Boot: the ensure=1 list mints the default USER_HOME server-side; a
     // window with no tabs opens the first board. Fired every time the
@@ -223,7 +238,7 @@ export default defineComponent({
       return '#' + store.activeTab.skeletonId
     })
 
-    return { store, windows, creating, shareOpen, createBoard, onResolved, onExported, onTabDragStart, meta }
+    return { store, windows, creating, shareOpen, gridEl, gridItemRefs, createBoard, onResolved, onExported, onTabDragStart, meta }
   }
 })
 </script>

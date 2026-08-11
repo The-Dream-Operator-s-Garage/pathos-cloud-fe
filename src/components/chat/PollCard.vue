@@ -27,7 +27,26 @@
         label="No" :loading="voting === 'no'" :disable="!!voting"
         @click="cast('no')"
       />
+      <!-- The transformation face's THIRD affordance (phase 7): polls
+           stay strictly yes/no — Modify IS a decline, plus a fresh
+           proposal by design (the host prefills the agent input). -->
+      <q-btn
+        v-if="isTransformation"
+        outline dense no-caps size="sm" color="grey-8" icon="edit"
+        label="Modify" :loading="voting === 'modify'" :disable="!!voting"
+        @click="modify"
+      />
     </div>
+    <!-- Approved transformation, seen by its requester: the APPLY button —
+         the change replays under THEIR identity, here, now. -->
+    <div v-else-if="isTransformation && status === 'approved' && isDecider && !applied" class="poll-card__actions">
+      <q-btn
+        unelevated dense no-caps size="sm" color="primary" icon="play_arrow"
+        label="Apply the transformation"
+        :loading="applying" @click="applyTransformation"
+      />
+    </div>
+    <div v-else-if="applied" class="poll-card__wait">applied ✓</div>
     <div v-else-if="canReverse" class="poll-card__actions">
       <q-btn
         outline dense no-caps size="sm" icon="undo"
@@ -47,6 +66,12 @@
 import { defineComponent, ref, computed } from 'vue'
 import MarkdownBody from 'src/components/shared/MarkdownBody.vue'
 import { pollService } from 'src/services/poll.service'
+import { refService } from 'src/services/ref.service'
+import { transformationService } from 'src/services/transformation.service'
+
+// The transformation face's discovery seam: the receipt chip the server
+// appends to the poll QUESTION (transformService — keep in step).
+const RECEIPT_RE = /\[\[pathos:(skeletons\/[0-9a-f]{16,64})\|receipt\]\]/
 
 export default defineComponent({
   name: 'PollCard',
@@ -61,12 +86,14 @@ export default defineComponent({
     // profile's My-polls band; chats keep decisions read-only).
     allowReverse: { type: Boolean, default: false }
   },
-  emits: ['voted'],
+  emits: ['voted', 'modify', 'applied'],
   setup (props, { emit }) {
     const voting = ref(null)
     const reversing = ref(false)
     const errorMsg = ref('')
     const localStatus = ref(null)
+    const applying = ref(false)
+    const applied = ref(false)
 
     const status = computed(() => localStatus.value || props.item.poll?.status || 'pending')
     // Kind rides the feed item (server-derived); fall back to the TARGET
@@ -112,7 +139,72 @@ export default defineComponent({
       } finally { reversing.value = false }
     }
 
-    return { voting, reversing, errorMsg, status, kind, canDecide, canReverse, cast, doReverse }
+    // ── the transformation face (dashboards phase 7) ───────────────
+    const receiptRef = computed(() =>
+      RECEIPT_RE.exec(props.item.poll?.question || '')?.[1] || null
+    )
+    const isTransformation = computed(() => kind.value === 'approval' && !!receiptRef.value)
+
+    const receiptId = async () => {
+      const s = await refService.summary(receiptRef.value)
+      return s.success ? s.summary?.id : null
+    }
+
+    const applyTransformation = async () => {
+      applying.value = true
+      errorMsg.value = ''
+      try {
+        const id = await receiptId()
+        if (id == null) throw new Error('receipt unresolvable')
+        const r = await transformationService.apply(id)
+        if (r.success) {
+          applied.value = true
+          emit('applied', r)
+        } else if (r.error?.code === 40904) {
+          applied.value = true
+        } else {
+          errorMsg.value = r.error?.message || 'apply failed'
+        }
+      } catch (e) {
+        if (e?.response?.data?.error?.code === 40904) applied.value = true
+        else errorMsg.value = e?.response?.data?.error?.message || e?.message || 'apply failed'
+      } finally { applying.value = false }
+    }
+
+    // Modify = decline + fresh proposal by design: vote NO, mark the
+    // receipt declined, hand the host the receipt so it can prefill the
+    // agent input with the original prompt.
+    const modify = async () => {
+      voting.value = 'modify'
+      errorMsg.value = ''
+      try {
+        const r = await pollService.vote(props.item.id, 'no')
+        if (r.success) localStatus.value = r.status
+        const id = await receiptId()
+        if (id != null) await transformationService.decline(id).catch(() => {})
+        emit('modify', { receiptRef: receiptRef.value, receiptId: id })
+      } catch (e) {
+        errorMsg.value = e?.response?.data?.error?.message || e?.message || 'modify failed'
+      } finally { voting.value = null }
+    }
+
+    return {
+      voting,
+      reversing,
+      errorMsg,
+      status,
+      kind,
+      canDecide,
+      canReverse,
+      cast,
+      doReverse,
+      isDecider,
+      isTransformation,
+      applying,
+      applied,
+      applyTransformation,
+      modify
+    }
   }
 })
 </script>
