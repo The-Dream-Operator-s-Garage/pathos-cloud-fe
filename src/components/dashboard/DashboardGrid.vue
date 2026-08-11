@@ -87,6 +87,7 @@
           v-else-if="cell.type === 'skeleton' && cell.walk"
           :skeleton="cell.walk.skeleton"
           :slots="cell.walk.slots"
+          @changed="load"
         />
         <LockedChip v-else-if="cell.type === 'skeleton' && cell.locked" :address="cell.ref" />
         <InfoChip v-else-if="cell.type === 'skeleton'" :kind="'skeletons'" :address="cell.ref" />
@@ -274,7 +275,7 @@ export default defineComponent({
       exporting.value = false
     }
 
-    return { loading, cells, onPick, onRemove, splitTree, seedSplit, onSplitChanged, exporting, exportLayout }
+    return { loading, cells, load, onPick, onRemove, splitTree, seedSplit, onSplitChanged, exporting, exportLayout }
   }
 })
 </script>

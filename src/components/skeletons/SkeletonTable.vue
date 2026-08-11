@@ -59,25 +59,98 @@
         <tr v-for="row in rows" :key="row.slotName" class="skel-table__row">
           <td class="skel-table__key">
             <span class="mono">{{ row.slotName }}</span>
+            <!-- The per-row history glyph (phase 6): the slot's rebind
+                 chain — actor, value, moment — off ?slot=, loaded when
+                 the popover opens. Editable tables only: history is the
+                 mutation surface's receipt trail. -->
+            <button
+              v-if="editable && head.id != null"
+              type="button"
+              class="skel-table__hist"
+              title="This field's history"
+              @click.stop.prevent="toggleHistory(row.slotName)"
+            >
+              <q-icon name="history" size="11px" />
+            </button>
           </td>
           <td class="skel-table__type">
             <!-- The kind pill shows for BOTH bound and unbound rows — a
                  data table states its column types; the compact Mini only
-                 hints them on empties. -->
+                 hints them on empties. The unit symbol stands beside it
+                 (phase 6) — a measured column says what it measures. -->
             <span class="skel-table__kind" :style="kindStyle(row.expectedKind)">
               {{ row.expectedKind || 'any' }}
             </span>
+            <span v-if="row.unit" class="skel-table__unit" :title="row.unit.label + ' · step ' + row.unit.step">
+              {{ row.unit.symbol || row.unit.label }}
+            </span>
           </td>
           <td class="skel-table__data">
+            <!-- History popover (one open at a time, anchored to the row) -->
+            <div v-if="historyOpen === row.slotName" class="skel-table__hist-pop" @click.stop>
+              <div v-if="historyLoading" class="skel-table__hist-line"><q-spinner size="10px" /></div>
+              <div v-else-if="!historyRows.length" class="skel-table__hist-line">(no versions)</div>
+              <div v-for="v in historyRows" :key="v.valueLinkId" class="skel-table__hist-line" :class="{ 'is-dead': v.deleted }">
+                <span class="skel-table__hist-actor">{{ v.actor?.username || '?' }}</span>
+                <span class="skel-table__hist-val">{{ v.textValue != null ? v.textValue : (v.ref ? v.ref.slice(0, 18) + '…' : '(unbound)') }}</span>
+                <span class="skel-table__hist-when">{{ histWhen(v) }}</span>
+              </div>
+            </div>
+
+            <!-- Inline editor (phase 6): tap-to-edit on editable tables.
+                 Unit cells get a numeric input with STEP steppers; plain
+                 textable cells a bare input. Enter/✓ commits (the host
+                 owns the setSlot), Esc cancels. -->
+            <div v-if="editing === row.slotName" class="skel-table__edit" @click.stop>
+              <button
+                v-if="row.unit" type="button" class="skel-table__step"
+                @click.stop.prevent="stepEdit(-row.unit.step)"
+              >−</button>
+              <input
+                ref="editInput"
+                v-model="editText"
+                :type="row.unit ? 'number' : 'text'"
+                :step="row.unit ? row.unit.step : undefined"
+                class="skel-table__input mono"
+                @keydown.enter.prevent="commitEdit(row)"
+                @keydown.esc="cancelEdit"
+                @click.stop
+              >
+              <button
+                v-if="row.unit" type="button" class="skel-table__step"
+                @click.stop.prevent="stepEdit(row.unit.step)"
+              >+</button>
+              <button type="button" class="skel-table__ok" title="Save (Enter)" @click.stop.prevent="commitEdit(row)">
+                <q-icon name="check" size="12px" />
+              </button>
+              <button type="button" class="skel-table__cancel" title="Cancel (Esc)" @click.stop.prevent="cancelEdit">
+                <q-icon name="close" size="12px" />
+              </button>
+            </div>
+
             <!-- The one cell slot: phase-2+ hosts (recursive minis, edit
-                 cells) replace the default rendering per row. -->
-            <slot name="data" :row="row">
-              <span v-if="row.textValue" class="skel-table__text">{{ row.textValue }}</span>
+                 cells) replace the default rendering per row. The scope
+                 carries the edit hooks — slot content compiles in the
+                 HOST's scope, so a host restating the text/empty branches
+                 wires tap-to-edit through these, not through this file's
+                 spans. -->
+            <slot v-else name="data" :row="row" :can-edit="canEdit(row)" :begin-edit="() => beginEdit(row)">
+              <span
+                v-if="row.textValue"
+                class="skel-table__text"
+                :class="{ 'is-editable': canEdit(row) }"
+                @click="canEdit(row) && beginEdit(row, $event)"
+              >{{ row.textValue }}</span>
               <InfoChip
                 v-else-if="row.ref" dense
                 :kind="row.refKind || 'unknown'" :address="row.ref"
               />
-              <span v-else class="skel-table__empty">unbound</span>
+              <span
+                v-else
+                class="skel-table__empty"
+                :class="{ 'is-editable': canEdit(row) }"
+                @click="canEdit(row) && beginEdit(row, $event)"
+              >{{ canEdit(row) ? 'tap to set' : 'unbound' }}</span>
             </slot>
           </td>
         </tr>
@@ -106,11 +179,17 @@ export default defineComponent({
     // address (pathos: dress tolerated).
     refOrId: { type: [String, Number], default: null },
     // Labels the failure chip when resolution dies.
-    name: { type: String, default: '' }
+    name: { type: String, default: '' },
+    // Phase 6 — the mutation surface: textable cells (unconstrained /
+    // nodes) become tap-to-edit, unit cells get steppers, rows grow the
+    // history glyph. The HOST decides (RESOURCE-labeled + unlocked +
+    // owner-viewed) and owns the actual setSlot on `edit`.
+    editable: { type: Boolean, default: false }
   },
-  // What the walk resolved ({ id, name, path, is_schema }) — hosts that
-  // frame this table (SkeletonFlyout) title themselves after it.
-  emits: ['resolved'],
+  // resolved: what the walk found ({ id, name, path, is_schema }) — hosts
+  // that frame this table title themselves after it.
+  // edit: { slotName, text } — an inline commit; the host binds + reloads.
+  emits: ['resolved', 'edit'],
   setup (props, { emit }) {
     const loading = ref(false)
     const failed = ref(false)
@@ -169,7 +248,75 @@ export default defineComponent({
       '--skel-table-kind': kind ? kindFor(kind).color : 'var(--st-ink-mute)'
     })
 
-    return { loading, failed, addressOf, rows, isGithubPr, kindStyle }
+    // ── inline editing (phase 6) ───────────────────────────────────
+    const TEXTABLE = (kind) => !kind || kind === 'nodes'
+    const canEdit = (row) => props.editable && TEXTABLE(row.expectedKind)
+
+    const editing = ref(null)
+    const editText = ref('')
+    const beginEdit = (row) => {
+      editing.value = row.slotName
+      editText.value = row.textValue || ''
+      historyOpen.value = null
+    }
+    const cancelEdit = () => { editing.value = null; editText.value = '' }
+    const commitEdit = (row) => {
+      const text = String(editText.value).trim()
+      editing.value = null
+      emit('edit', { slotName: row.slotName, text })
+    }
+    const stepEdit = (delta) => {
+      const cur = Number(editText.value)
+      const next = (Number.isFinite(cur) ? cur : 0) + delta
+      // Trim float dust so 0.1+0.2 never lands in a NOTE.
+      editText.value = String(Math.round(next * 1e9) / 1e9)
+    }
+
+    // ── per-slot history popover (phase 6) ─────────────────────────
+    const historyOpen = ref(null)
+    const historyLoading = ref(false)
+    const historyRows = ref([])
+    const toggleHistory = async (slotName) => {
+      if (historyOpen.value === slotName) { historyOpen.value = null; return }
+      historyOpen.value = slotName
+      historyLoading.value = true
+      historyRows.value = []
+      try {
+        const r = await skeletonService.history(head.value.id, { slot: slotName })
+        if (r.success) {
+          historyRows.value = (r.slots?.[0]?.versions || []).slice(0, 20)
+        }
+      } catch (_) { /* the empty line stands */ }
+      historyLoading.value = false
+    }
+    const histWhen = (v) => {
+      const iso = v.moment?.time_utc
+      if (!iso) return ''
+      const d = new Date(iso)
+      return Number.isNaN(d.getTime()) ? '' : d.toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+    }
+
+    return {
+      loading,
+      failed,
+      addressOf,
+      head,
+      rows,
+      isGithubPr,
+      kindStyle,
+      canEdit,
+      editing,
+      editText,
+      beginEdit,
+      cancelEdit,
+      commitEdit,
+      stepEdit,
+      historyOpen,
+      historyLoading,
+      historyRows,
+      toggleHistory,
+      histWhen
+    }
   }
 })
 </script>
@@ -282,4 +429,128 @@ export default defineComponent({
   font-style: italic;
   color: var(--st-ink-mute);
 }
+
+// ── phase 6: the mutation surface, in the same grey family ──────────
+.skel-table__unit {
+  display: inline-block;
+  margin-left: 4px;
+  padding: 0 5px;
+  height: 16px;
+  line-height: 14px;
+  border: 1px solid var(--st-rule);
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.55);
+  font-family: var(--font-mono);
+  font-size: 0.58em;
+  color: var(--skel-table-ink, var(--brown-8));
+}
+
+.skel-table__hist {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 4px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--st-ink-mute);
+  cursor: pointer;
+  vertical-align: middle;
+
+  &:hover { color: var(--skel-table-hover, var(--teal-12)); }
+}
+
+.skel-table__hist-pop {
+  margin-bottom: 4px;
+  padding: 4px 6px;
+  background: #fff;
+  border: 1px solid var(--st-rule);
+  border-radius: 5px;
+  font-size: 0.7em;
+}
+
+.skel-table__hist-line {
+  display: flex;
+  gap: 6px;
+  align-items: baseline;
+  padding: 1px 0;
+
+  &.is-dead { opacity: 0.55; }
+  & + & { border-top: 1px dashed var(--st-rule); }
+}
+
+.skel-table__hist-actor {
+  font-weight: 600;
+  color: var(--skel-table-ink, var(--brown-8));
+  flex-shrink: 0;
+}
+
+.skel-table__hist-val {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.skel-table__hist-when {
+  flex-shrink: 0;
+  color: var(--st-ink-mute);
+  font-size: 0.92em;
+}
+
+.is-editable {
+  cursor: text;
+  &:hover { box-shadow: inset 0 -1px 0 var(--skel-table-hover, var(--teal-12)); }
+}
+
+.skel-table__empty.is-editable {
+  cursor: pointer;
+}
+
+.skel-table__edit {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.skel-table__input {
+  flex: 1;
+  min-width: 0;
+  height: 22px;
+  padding: 0 6px;
+  border: 1px solid var(--skel-table-hover, var(--teal-12));
+  border-radius: 4px;
+  background: #fff;
+  font-size: 0.76em;
+  color: var(--skel-table-ink, var(--brown-8));
+  outline: none;
+
+  // The steppers ARE the spinner for unit cells.
+  &::-webkit-outer-spin-button,
+  &::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+.skel-table__step,
+.skel-table__ok,
+.skel-table__cancel {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border: 1px solid var(--skel-table-rule-strong, var(--grey-5));
+  border-radius: 4px;
+  background: #fff;
+  color: var(--st-ink-mute);
+  cursor: pointer;
+  font-size: 0.8em;
+  flex-shrink: 0;
+
+  &:hover { color: var(--skel-table-ink, var(--brown-8)); border-color: var(--st-ink-mute); }
+}
+
+.skel-table__ok:hover { color: #2e8b57; border-color: #2e8b57; }
+.skel-table__cancel:hover { color: var(--coral-deep); border-color: var(--coral-deep); }
 </style>

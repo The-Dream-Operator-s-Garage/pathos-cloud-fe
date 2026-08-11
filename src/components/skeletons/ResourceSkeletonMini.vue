@@ -52,6 +52,20 @@
             {{ head.schema.name || ('#' + head.schema.id) }}
           </span>
           <q-space />
+          <!-- The LOCK (phase 6): owner-only on RESOURCE instances. A
+               locked table refuses every field write (403 40303) — flips
+               are versioned NOTEs on the element header, receipts. -->
+          <button
+            v-if="head.is_resource && isOwner"
+            type="button"
+            class="resource-mini__lock"
+            :class="{ 'is-locked': head.locked }"
+            :title="head.locked ? 'Locked — click to unlock' : 'Unlocked — click to lock'"
+            :disabled="lockBusy"
+            @click.stop.prevent="toggleLock"
+          >
+            <q-icon :name="head.locked ? 'lock' : 'lock_open'" size="12px" />
+          </button>
           <span class="resource-mini__hash mono">{{ shortHash(head.path, 10) }}</span>
           <router-link
             v-if="head.id != null"
@@ -66,11 +80,19 @@
       </template>
 
       <template #body>
+        <div v-if="editError" class="resource-mini__error">{{ editError }}</div>
         <div class="resource-mini__scroll">
-          <SkeletonTable :skeleton="head" :slots="slotRows">
-            <template #data="{ row }">
+          <SkeletonTable
+            :skeleton="head" :slots="slotRows"
+            :editable="editable"
+            @edit="onEdit"
+          >
+            <template #data="{ row, canEdit, beginEdit }">
               <!-- Skeleton-valued cells recurse; everything else restates
-                   the table's default cell (text / dense chip / unbound). -->
+                   the table's default cell (text / dense chip / unbound)
+                   — including the tap-to-edit wiring, which rides the
+                   slot scope's hooks (slot content compiles HERE, so the
+                   table's own spans never render in this mode). -->
               <template v-if="row.refKind === 'skeletons'">
                 <InfoChip
                   v-if="visited.includes(row.ref)"
@@ -95,12 +117,22 @@
                 </span>
               </template>
               <template v-else>
-                <span v-if="row.textValue" class="resource-mini__text">{{ row.textValue }}</span>
+                <span
+                  v-if="row.textValue"
+                  class="resource-mini__text"
+                  :class="{ 'is-editable': canEdit }"
+                  @click="canEdit && beginEdit()"
+                >{{ row.textValue }}</span>
                 <InfoChip
                   v-else-if="row.ref" dense
                   :kind="row.refKind || 'unknown'" :address="row.ref"
                 />
-                <span v-else class="resource-mini__empty">unbound</span>
+                <span
+                  v-else
+                  class="resource-mini__empty"
+                  :class="{ 'is-editable': canEdit }"
+                  @click="canEdit && beginEdit()"
+                >{{ canEdit ? 'tap to set' : 'unbound' }}</span>
               </template>
             </template>
           </SkeletonTable>
@@ -117,6 +149,7 @@ import InfoChip from 'src/components/shared/InfoChip.vue'
 import SkeletonTable from 'src/components/skeletons/SkeletonTable.vue'
 import { skeletonService } from 'src/services/skeleton.service'
 import { refService } from 'src/services/ref.service'
+import { useAuthStore } from 'src/stores/auth'
 import { kindFor, shortHash } from 'src/utils/kinds'
 
 export default defineComponent({
@@ -136,8 +169,10 @@ export default defineComponent({
     depth: { type: Number, default: 0 },
     visited: { type: Array, default: () => [] }
   },
-  // Mirror of SkeletonTable's emit, for hosts that title themselves.
-  emits: ['resolved'],
+  // resolved mirrors SkeletonTable's emit; changed tells a pre-walked
+  // host (the dashboard grid) its batch data went stale after an inline
+  // write or a lock flip.
+  emits: ['resolved', 'changed'],
   setup (props, { emit }) {
     const loading = ref(false)
     const failed = ref(false)
@@ -211,6 +246,55 @@ export default defineComponent({
 
     const skeletonKind = kindFor('skeletons')
 
+    // ── the mutation surface (phase 6) ─────────────────────────────
+    // Editable = a RESOURCE-labeled, unlocked instance the ACTING entity
+    // owns. The walk carries all three facts; the server re-checks every
+    // one on write (40300/40303/40010 — the UI is a convenience, never
+    // the gate).
+    const auth = useAuthStore()
+    const isOwner = computed(() => head.value.owner_id === auth.entityId)
+    const editable = computed(() =>
+      !!head.value.is_resource && !head.value.locked && isOwner.value
+    )
+
+    const editError = ref('')
+    const flashError = (m) => {
+      editError.value = m || ''
+      if (m) setTimeout(() => { editError.value = '' }, 4000)
+    }
+
+    // Re-walk after a write: pre-walked hosts get told (reload), the
+    // self-resolving mode refreshes itself.
+    const refresh = async () => {
+      if (preWalked.value) { emit('changed'); return }
+      await load()
+    }
+
+    const onEdit = async ({ slotName, text }) => {
+      try {
+        const r = await skeletonService.setSlot(head.value.id, slotName, { text })
+        if (!r.success) { flashError(r.error?.message || 'Could not save'); return }
+        await refresh()
+      } catch (e) {
+        flashError(e?.response?.data?.error?.message || 'Could not save')
+      }
+    }
+
+    const lockBusy = ref(false)
+    const toggleLock = async () => {
+      lockBusy.value = true
+      try {
+        const r = head.value.locked
+          ? await skeletonService.unlock(head.value.id)
+          : await skeletonService.lock(head.value.id)
+        if (!r.success) flashError(r.error?.message || 'Lock flip failed')
+        await refresh()
+      } catch (e) {
+        flashError(e?.response?.data?.error?.message || 'Lock flip failed')
+      }
+      lockBusy.value = false
+    }
+
     return {
       loading,
       failed,
@@ -223,6 +307,12 @@ export default defineComponent({
       expanded,
       expand,
       skeletonKind,
+      isOwner,
+      editable,
+      editError,
+      onEdit,
+      lockBusy,
+      toggleLock,
       shortHash
     }
   }
@@ -303,6 +393,26 @@ export default defineComponent({
   &:hover { color: var(--coral-deep, #c05a4e); }
 }
 
+.resource-mini__lock {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 2px;
+  border: none;
+  background: none;
+  color: #8995a8;
+  cursor: pointer;
+
+  &:hover { color: var(--teal-12, #00b8d4); }
+  &.is-locked { color: var(--coral-deep, #c05a4e); }
+  &:disabled { opacity: 0.5; cursor: default; }
+}
+
+.resource-mini__error {
+  padding: 2px 6px;
+  font-size: 0.7em;
+  color: var(--coral-deep, #c05a4e);
+}
+
 // The body's OWN scroll contract, in exchange for bodyFit: the surface
 // publishes the ceiling (dashboard cells); silence = uncapped.
 .resource-mini__scroll {
@@ -320,6 +430,14 @@ export default defineComponent({
 .resource-mini__empty {
   font-style: italic;
   color: var(--skel-table-ink-mute, var(--brown-4));
+}
+
+// The tap-to-edit affordance on the slot-restated cells (the table's own
+// spans never render under the #data slot — keep in step with its rule).
+.resource-mini__text.is-editable,
+.resource-mini__empty.is-editable {
+  cursor: pointer;
+  &:hover { box-shadow: inset 0 -1px 0 var(--teal-12, #00b8d4); }
 }
 
 .resource-mini__leaf {
