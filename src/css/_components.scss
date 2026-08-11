@@ -502,6 +502,28 @@
   --dock-ink-mute: var(--brown-4);
 }
 
+// EDIT MODE (dashboards phase 4, 2026-08-10): arranging a board wants the
+// whole desk, so `.is-edit` expands the dashboard dock to the FULL SPAN
+// between the crown strip, the nav bar and the side column — left edge to
+// the rail, no --dock-gap daylight. z is UNCHANGED on purpose (dock band
+// 3010+, under minitabs 3045 / rails 3100 / bar 3110 — never raise a
+// surface over the bar). Corners square where the box now touches chrome,
+// the is-max precedent on both sides. ⚠ RESTATED in the ≤600px block
+// below — this pair outscores the media block's bare
+// `.dock-window--creation` (2 classes vs 1), so without the restatement a
+// phone's edit mode would win itself full-bleed geometry the mobile dock
+// deliberately gave back (the !important/source-order trap, gotchas.md).
+.dock-window--dashboard.is-edit {
+  left: 0;
+  right: var(--dock-right, 0px);
+  top: calc(var(--frieze-h) + var(--media-tabs-h, 0px));
+  bottom: var(--nav-footer-h);
+  border-left: none;
+  border-right: none;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
+
 // Maximize fills the whole slot from the screen's left edge to the side
 // column; the top gap and the right daylight stay — the crown strip and the
 // side bars are never covered.
@@ -964,6 +986,21 @@
     // chat dock's left border has to come back GREEN.
     border-left: 1px solid var(--dock-rule);
     border-top-left-radius: var(--radius-lg);
+  }
+
+  // The dashboard's edit expansion, restated (see the desktop rule): on a
+  // phone every dock is already the full width, so edit mode is simply the
+  // ordinary mobile dock — gap daylight, rounded caps, the creation top.
+  // Required because the desktop `.is-edit` pair outscores the bare
+  // `.dock-window--creation` above and would otherwise go edge-to-edge.
+  .dock-window--dashboard.is-edit {
+    left: var(--dock-gap);
+    right: calc(var(--dock-right, 0px) + var(--dock-gap));
+    top: calc(var(--frieze-h) + var(--dock-gap) + var(--media-tabs-h, 0px));
+    border-left: 1px solid var(--dock-rule);
+    border-right: 1px solid var(--dock-rule);
+    border-top-left-radius: var(--radius-lg);
+    border-top-right-radius: var(--radius-lg);
   }
 
   // Bigger dots for touch: 13px → 17px on a wider gap (the header layout

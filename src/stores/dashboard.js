@@ -10,21 +10,54 @@ import { useWindowsStore } from './windows'
 // what it takes from the docks is everything else: the shared footprint, the
 // weld to the bar, maximize, and a minitab to park on.
 //
-// Flag-only, the `labelMaker` precedent: there is nothing to draft here yet
-// and so nothing to persist — the panel is empty by design and its contents
-// are the next piece of work. z-order lives in windows.js under the
-// 'dashboard' key, which is also what puts this window in the same stack as
-// the other five (open one and it covers the last; close it and that one
-// comes back).
+// TABS since phase 4 (2026-08-10, the maker.js shape): one tab per OPEN
+// dashboard — `{ id, skeletonId, name }` — persisted under
+// `pathos_dashboard_tabs`. windows.js persists only panels; per-dock CONTENT
+// persists in the dock's own store, and this is this dock's content: which
+// boards are open, which is front, nothing else (the boards themselves are
+// server data). `isEditing` is session-only on purpose — edit mode is a
+// posture, not content, and a reload should land you reading, not editing.
 export const useDashboardStore = defineStore('dashboard', {
   state: () => ({
     isOpen: false,
     isMinimized: false,
-    isMaximized: false
+    isMaximized: false,
+    isEditing: false,
+    tabs: [],
+    activeId: null,
+    _loaded: false
   }),
 
+  getters: {
+    activeTab: (s) => s.tabs.find(t => t.id === s.activeId) || null
+  },
+
   actions: {
+    load () {
+      if (this._loaded) return
+      this._loaded = true
+      try {
+        const raw = JSON.parse(localStorage.getItem('pathos_dashboard_tabs') || 'null')
+        if (raw?.tabs?.length) {
+          this.tabs = raw.tabs.filter(t => t && t.skeletonId != null)
+          this.activeId = this.tabs.some(t => t.id === raw.activeId)
+            ? raw.activeId
+            : (this.tabs[0]?.id || null)
+        }
+      } catch (_) { /* corrupted store — start clean */ }
+    },
+
+    persist () {
+      try {
+        localStorage.setItem('pathos_dashboard_tabs', JSON.stringify({
+          tabs: this.tabs,
+          activeId: this.activeId
+        }))
+      } catch (_) { /* quota — tabs stay in memory */ }
+    },
+
     open () {
+      this.load()
       this.isOpen = true
       this.isMinimized = false
       useWindowsStore().focus('dashboard')
@@ -33,6 +66,7 @@ export const useDashboardStore = defineStore('dashboard', {
     close () {
       this.isOpen = false
       this.isMinimized = false
+      this.isEditing = false
       // The SIZE survives a close, the way every other dock's does: a window
       // you left maximized should come back the way you left it.
       useWindowsStore().release('dashboard')
@@ -48,6 +82,45 @@ export const useDashboardStore = defineStore('dashboard', {
       useWindowsStore().focus('dashboard')
     },
 
-    toggleMaximize () { this.isMaximized = !this.isMaximized }
+    toggleMaximize () { this.isMaximized = !this.isMaximized },
+
+    // One tab per dashboard: opening an already-open board fronts its tab
+    // (the id is derived from the skeleton id, so the dedupe is free).
+    openTab ({ skeletonId, name = null }) {
+      const id = 'db' + skeletonId
+      if (!this.tabs.some(t => t.id === id)) {
+        this.tabs.push({ id, skeletonId, name })
+      }
+      this.activeId = id
+      this.persist()
+      return id
+    },
+
+    closeTab (id) {
+      const i = this.tabs.findIndex(t => t.id === id)
+      if (i === -1) return
+      this.tabs.splice(i, 1)
+      if (this.activeId === id) {
+        this.activeId = (this.tabs[i] || this.tabs[i - 1])?.id || null
+        this.isEditing = false
+      }
+      this.persist()
+    },
+
+    select (id) {
+      if (this.tabs.some(t => t.id === id)) {
+        this.activeId = id
+        this.persist()
+      }
+    },
+
+    // The grid reports resolved names back so a tab never keeps a stale
+    // '(untitled)' after a rename lands server-side.
+    nameTab (id, name) {
+      const t = this.tabs.find(t => t.id === id)
+      if (t && t.name !== name) { t.name = name; this.persist() }
+    },
+
+    setEditing (v) { this.isEditing = !!v }
   }
 })
