@@ -107,6 +107,39 @@
         >
           <q-icon name="sym_o_dashboard_customize" size="14px" />
         </button>
+        <!-- THE BOARDS PICKER (2026-08-11, the missing list): tabs are
+             this device's memory, not your boards — this button lists
+             what you actually OWN (listMine, the acting entity) and opens
+             any of them as a tab. Born of a real miss: the Ramona
+             campaign existed server-side while the phone's strip only
+             knew its old tabs. -->
+        <div class="dashboard-dock__boards" @focusout="onBoardsFocusOut">
+          <button
+            type="button"
+            class="dock-tab dock-tab--new"
+            title="Your boards"
+            @click="toggleBoards"
+          >
+            <q-icon name="apps" size="14px" />
+          </button>
+          <div v-if="boardsOpen" class="dashboard-dock__boards-drop">
+            <div v-if="boardsLoading" class="dashboard-dock__boards-line"><q-spinner size="12px" /></div>
+            <div v-else-if="!boards.length" class="dashboard-dock__boards-line">(no boards)</div>
+            <button
+              v-for="b in boards"
+              :key="b.id"
+              type="button"
+              class="dashboard-dock__boards-row"
+              @mousedown.prevent
+              @click="openBoard(b)"
+            >
+              <q-icon name="sym_o_empty_dashboard" size="12px" />
+              <span class="dashboard-dock__boards-name">{{ b.name || '(untitled)' }}</span>
+              <span class="dashboard-dock__boards-tmpl mono">{{ b.template?.name || '' }}</span>
+              <span class="dashboard-dock__boards-id mono">#{{ b.id }}</span>
+            </button>
+          </div>
+        </div>
         <q-space />
         <button
           v-if="store.activeTab && store.activeTab.path"
@@ -195,6 +228,28 @@ export default defineComponent({
     }
     watch(() => store.isOpen && !store.isMinimized, (v) => { if (v) boot() }, { immediate: true })
 
+    // ── the boards picker (the list tabs are not) ──────────────────
+    const boardsOpen = ref(false)
+    const boardsLoading = ref(false)
+    const boards = ref([])
+    const toggleBoards = async () => {
+      boardsOpen.value = !boardsOpen.value
+      if (!boardsOpen.value) return
+      boardsLoading.value = true
+      try {
+        const r = await dashboardService.listMine()
+        boards.value = r.success ? (r.dashboards || []) : []
+      } catch (_) { boards.value = [] }
+      boardsLoading.value = false
+    }
+    const onBoardsFocusOut = (e) => {
+      if (!e.currentTarget.contains(e.relatedTarget)) boardsOpen.value = false
+    }
+    const openBoard = (b) => {
+      store.openTab({ skeletonId: b.id, name: b.name, path: b.path })
+      boardsOpen.value = false
+    }
+
     // The ghost tab: mint an EMPTY dashboard and arrive in edit mode —
     // a fresh board exists to be arranged.
     const createBoard = async () => {
@@ -238,7 +293,25 @@ export default defineComponent({
       return '#' + store.activeTab.skeletonId
     })
 
-    return { store, windows, creating, shareOpen, gridEl, gridItemRefs, createBoard, onResolved, onExported, onTabDragStart, meta }
+    return {
+      store,
+      windows,
+      creating,
+      shareOpen,
+      gridEl,
+      gridItemRefs,
+      boardsOpen,
+      boardsLoading,
+      boards,
+      toggleBoards,
+      onBoardsFocusOut,
+      openBoard,
+      createBoard,
+      onResolved,
+      onExported,
+      onTabDragStart,
+      meta
+    }
   }
 })
 </script>
@@ -287,6 +360,74 @@ export default defineComponent({
       border-color: var(--dock-rule-strong, var(--grey-5));
     }
   }
+}
+
+// The boards picker — the strip's dropdown of what you OWN (tabs are the
+// device's memory; this is the server's).
+.dashboard-dock__boards {
+  position: relative;
+  display: inline-flex;
+}
+
+.dashboard-dock__boards-drop {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  z-index: 40;
+  min-width: 240px;
+  max-width: 320px;
+  max-height: 260px;
+  overflow-y: auto;
+  background: #fff;
+  border: 1px solid var(--dock-rule-strong, var(--grey-5));
+  border-radius: 6px;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.16);
+}
+
+.dashboard-dock__boards-line {
+  padding: 8px 10px;
+  font-size: 0.72em;
+  font-style: italic;
+  color: var(--dock-ink-mute, var(--brown-4));
+}
+
+.dashboard-dock__boards-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 6px 10px;
+  border: none;
+  border-bottom: 1px solid var(--grey-3, #eee);
+  background: none;
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+  font-size: 0.76em;
+  color: var(--dock-ink, var(--brown-8));
+
+  &:last-child { border-bottom: none; }
+  &:hover { background: rgba(0, 184, 212, 0.07); }
+}
+
+.dashboard-dock__boards-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dashboard-dock__boards-tmpl {
+  flex-shrink: 0;
+  font-size: 0.82em;
+  color: var(--dock-ink-mute, var(--brown-4));
+}
+
+.dashboard-dock__boards-id {
+  flex-shrink: 0;
+  font-size: 0.82em;
+  color: var(--dock-ink-mute, var(--brown-4));
 }
 
 .dashboard-dock__edit {
