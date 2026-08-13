@@ -1,5 +1,5 @@
 <template>
-  <q-footer class="nav-footer" :class="{ 'nav-footer--underlaid': underlaid }">
+  <q-footer class="nav-footer">
 
     <div class="nav-bar">
 
@@ -273,12 +273,10 @@ export default defineComponent({
     const dashboardStore = useDashboardStore()
     const events = useEventsStore()
 
-    // ── The ONE route the bar gives way to (2026-08-02) ──────
-    // /feed's column runs to the window's bottom edge on desktop and hovers
-    // OVER this bar (FeedPage.vue). Since nothing may climb over the bar's
-    // 3110 without slicing the docks, the bar itself steps down there — see
-    // the `.nav-footer--underlaid` note in the style block below.
-    const underlaid = computed(() => route.path === '/feed')
+    // (There WAS an `underlaid` computed here — `route.path === '/feed'`,
+    // 2026-08-02 → 2026-08-12 — that stepped this bar down to z 2999 so the
+    // feed column could paint over its plaque. The column stops on the bar's
+    // top edge now, so no route gives way any more; see the style block.)
 
     // ── Chat window toggle (footer-button semantics) ─────────
     const chatExpanded = computed(() => chatStore.isOpen && !chatStore.isMinimized)
@@ -478,8 +476,7 @@ export default defineComponent({
       dashboardExpanded,
       toggleDashboard,
       events,
-      parkedTabs,
-      underlaid
+      parkedTabs
     }
   }
 })
@@ -520,29 +517,33 @@ export default defineComponent({
   box-shadow: none !important;
 }
 
-// ── …EXCEPT ON /feed, WHERE THE FEED COLUMN STANDS ON IT (2026-08-02) ──
-// The feed's indigo column runs to the window's bottom edge on desktop
-// and hovers over this bar's plaque (FeedPage.vue's `min-width: 1024px`
-// block). Something has to give way for that, and it is THIS BAR, not the
-// container: raising the container over 3110 instead would put it over every
-// dock (3010+) too — each stands in the right HALF of the screen and would be
-// sliced by the column on this very page — while dropping the bar under the
-// container's 3001 changes exactly one relationship and leaves the rest of
-// the sandwich (docks, drawer, side widgets, minitab strip, both frieze
-// bands) untouched. Nothing else overlaps the bar's box, so 2999 costs only
-// what 3110 bought: on /feed the bar can once again catch a dock's or the
-// drawer's drop shadow across its plaque.
+// ── NO ROUTE STEPS THIS BAR DOWN ANY MORE (2026-08-12) ──
+// From 2026-08-02 `/feed` was an exception: `.nav-footer--underlaid` (a class
+// bound off `route.path === '/feed'`, inside `min-width: 1024px`, widened to
+// `601px` for a few hours on 2026-08-12) dropped the bar to **2999** so the
+// feed column — grown to the window's floor by FeedPage's own block — could
+// paint over this plaque. The bar gave way rather than the container climbing,
+// because anything over 3110 is over EVERYTHING and every right-half dock
+// (3010+) would have been sliced by that column on that very page.
 //
-// The minitab strip is unaffected — it is a lifted sibling OUTSIDE the
-// footer (see its note below), so it keeps its own 3045.
+// The 2026-08-12 ask ("the feed container's lower edge starts drawing from the
+// top edge of the footer") ended it: the column stops ON this bar's top edge
+// now, so nothing overlaps the bar on any route and the exception had nothing
+// left to buy. Both halves are gone — this rule, and the growth block in
+// FeedPage. The class and its `underlaid` computed went with them.
 //
-// Desktop only, matching the page: below 1024px the feed still stops at this
-// bar's top edge and the bar stays the topmost chrome.
-@media (min-width: 1024px) {
-  .nav-footer.nav-footer--underlaid {
-    z-index: 2999;
-  }
-}
+// WHAT THAT GIVES BACK, and why it is worth keeping: the one cost of 2999 was
+// exactly what 3110 had bought — on `/feed` a dock's or the drawer's drop
+// shadow could wash this plaque again. It cannot now. And the BURGER is safe
+// at every width with no rule of its own: below 1024px the drawer is a closed
+// overlay and this bar carries the burger at its left end, which the feed
+// column's 2.5% gap sat on top of while the underlay reached those widths
+// (specs/gotchas.md). If a surface ever needs to cover the bar again, this is
+// still the way to do it — lower the BAR on that route, never raise the
+// surface — but check first which controls live under it at every width.
+//
+// The minitab strip was never part of this: it is a lifted sibling OUTSIDE the
+// footer (see its note below), so it keeps its own 3045 regardless.
 
 // ── The floor band, in the crown strip's pale colours (2026-08-04) ──
 // Same recipe as every FriezeBar; only the three tone dials move, to the

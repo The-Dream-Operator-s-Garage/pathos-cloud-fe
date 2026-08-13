@@ -504,18 +504,33 @@
 
 // EDIT MODE (dashboards phase 4, 2026-08-10): arranging a board wants the
 // whole desk, so `.is-edit` expands the dashboard dock to the FULL SPAN
-// between the crown strip, the nav bar and the side column — left edge to
-// the rail, no --dock-gap daylight. z is UNCHANGED on purpose (dock band
-// 3010+, under minitabs 3045 / rails 3100 / bar 3110 — never raise a
-// surface over the bar). Corners square where the box now touches chrome,
-// the is-max precedent on both sides. ⚠ RESTATED in the ≤600px block
-// below — this pair outscores the media block's bare
-// `.dock-window--creation` (2 classes vs 1), so without the restatement a
-// phone's edit mode would win itself full-bleed geometry the mobile dock
-// deliberately gave back (the !important/source-order trap, gotchas.md).
+// between the crown strip and the nav bar — no --dock-gap daylight. z is
+// UNCHANGED on purpose (dock band 3010+, under minitabs 3045 / rails
+// 3100 / bar 3110 — never raise a surface over the bar). Corners square
+// where the box now touches chrome, the is-max precedent on both sides.
+// ⚠ RESTATED in the ≤600px block below — this pair outscores the media
+// block's bare `.dock-window--creation` (2 classes vs 1), so without the
+// restatement a phone's edit mode would win itself full-bleed geometry
+// the mobile dock deliberately gave back (the !important/source-order
+// trap, gotchas.md).
+//
+// BOTH SIDE EDGES SINCE 2026-08-12 (user ask: the extended board should
+// "occupy the whole screen, except for the footer nav bar and the thin
+// header", and display BEHIND the left drawer and the right side bars).
+// `right` was the rail reserve (`--dock-right`, 46px) — the one dimension
+// still holding daylight; it is now 0 and the board runs edge to edge.
+// NOTHING WAS RAISED to do it: the drawer (3120), the stack widget (3100)
+// and the pins widget (3120) all outrank this band already, so the board
+// simply PASSES UNDER them, exactly the way the ask reads. That is also
+// why the reserve was safe to drop — the rails are drawn over the board,
+// never covered by it, and a full-bleed desk under fixed chrome is the
+// arranging surface the ask asked for. The top stays
+// `--frieze-h + --media-tabs-h`, which IS the thin header's underside
+// (the tabs band is permanent chrome above the crown strip), and the
+// bottom stays welded to the nav footer.
 .dock-window--dashboard.is-edit {
   left: 0;
-  right: var(--dock-right, 0px);
+  right: 0;
   top: calc(var(--frieze-h) + var(--media-tabs-h, 0px));
   bottom: var(--nav-footer-h);
   border-left: none;
@@ -542,6 +557,55 @@
   top: calc(var(--frieze-h) + var(--dock-gap) + var(--media-tabs-h, 0px));
   height: auto;
   border-top-right-radius: 0;
+}
+
+// THE DASHBOARD'S MAXIMIZE IS THE DESK (2026-08-12, user ask: "remove its
+// padding from the top so it is right below the thin header bar", "add some
+// padding on the left edge so it starts drawing right next to the left
+// drawer", "reduce its padding on the right so the right edge is next to the
+// feed stack and pin side bars"). The creation footprint's daylight is a
+// WINDOW's daylight — 14px off the crown strip, 14px + the rail reserve off
+// the right — and an extended board is not a window on a page, it is the page:
+// so the three gaps become three joins. Its box is now exactly the rectangle
+// the chrome leaves: the thin header's underside, the drawer's mini column,
+// the stack/pins column, and the nav bar it was already welded to.
+//
+// NOT `.is-edit`'s geometry, which is the other answer to the same question:
+// that one runs edge to edge and passes UNDER the drawer and the rails
+// (2026-08-12, the earlier ask), insetting only its CONTENT with a
+// `padding-left`. This one STOPS where they start. Hence `:not(.is-edit)` —
+// the specificity (0,3,0) also settles the pair against
+// `.dock-window--creation.is-max` without depending on source order, and
+// arranging a maximized board keeps the arranging geometry.
+//
+// `--dock-right` (windows.dockRight = 46px, the permanent reserve the page
+// container pads by) is the "beside the column" number the base `.dock-window`
+// rule already uses, so the board's right edge lands on the same line every
+// other surface stops at. The drawer's is `--dock-rail-w`, and it is only a
+// STANDING rail from 1024px (Quasar `show-if-above`); below that the drawer is
+// an overlay and `left: 0` is honest, so the left join lives in its own block.
+// Under 601px nothing here applies at all: the phone's mobile block gives the
+// maximized dock its gap daylight back, there is no rail reserve down there,
+// and this pair would otherwise outscore it (the specificity trap this file
+// keeps warning about — gotchas.md).
+//
+// Corners square and the left border comes back: the box touches chrome on all
+// four sides now, the `.is-edit` precedent, and a rounded cap at the top-left
+// would leave a notch of daylight in the drawer/header junction.
+@media (min-width: 601px) {
+  .dock-window--dashboard.is-max:not(.is-edit) {
+    top: calc(var(--frieze-h) + var(--media-tabs-h, 0px));
+    right: var(--dock-right, 0px);
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+  }
+}
+
+@media (min-width: 1024px) {
+  .dock-window--dashboard.is-max:not(.is-edit) {
+    left: var(--dock-rail-w);
+    border-left: 1px solid var(--dock-rule);
+  }
 }
 
 // The 50/50 capture split pre-dates this geometry and keeps its own

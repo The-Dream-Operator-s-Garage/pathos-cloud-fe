@@ -34,10 +34,20 @@
 
   EDIT MODE: the pencil at the strip's right end (or arriving from the ghost
   tab) flips `isEditing` → the window EXPANDS via `.is-edit`
-  (css/_components.scss): the full span between the crown strip, the nav bar
-  and the side column — a board being arranged wants the whole desk. z is
-  UNCHANGED (dock band 3010+, under minitabs/rails/bar — never raise a
-  surface over the bar).
+  (css/_components.scss): SCREEN EDGE TO SCREEN EDGE, the whole span between
+  the crown strip and the nav bar — a board being arranged wants the whole
+  desk. Since 2026-08-12 that includes the rail column it used to leave
+  (`--dock-right`): the board runs UNDER the left drawer and the right side
+  bars, which is possible precisely because z is UNCHANGED (dock band 3010+,
+  drawer 3120 / rails 3100+ / minitabs 3045 / bar 3110 — never raise a
+  surface over the chrome).
+
+  MAXIMIZE (the green light) is the OTHER extended board, and since 2026-08-12
+  it is the desk drawn to the chrome instead of under it: flush beneath the
+  thin header, left edge on the drawer's mini column, right edge on the
+  stack/pins column, bottom still welded to the bar. Two answers to one
+  question, kept apart by `:not(.is-edit)` — see the rule in
+  css/_components.scss, where all this window's geometry lives.
 -->
 <template>
   <transition name="dock-slide">
@@ -340,6 +350,88 @@ export default defineComponent({
   :deep(.dash-grid-host) {
     flex: 1 1 auto;
     min-width: 0;
+  }
+}
+
+// ── THE EXTENDED BOARD'S WELL IS A PAGE, NOT A PANE (2026-08-12, user ask:
+// "remove its padding from the top and add a little padding on the left so it
+// starts drawing horizontally the same way as the public feed container";
+// "remove its rounded corners") ────────────────────────────────────────────
+// The family well is drawn as a small sunken pane — `margin: 8px 6px 6px`,
+// `padding: 8px`, `--radius-md` corners — which is right at flyout size and
+// wrong at desk size: at full screen those insets read as a box floating in a
+// box, and the corners round nothing (the window they sit in is square-cut on
+// all four sides in `.is-edit`). So in edit mode the well stops being a pane:
+// square, flush to the top, and inset on ONE side only.
+//
+.dashboard-dock.is-edit .dashboard-dock__well {
+  margin-top: 0;
+  padding-top: 0;
+  border-radius: 0;
+}
+
+// ── AND THE LEFT INSET RIDES THE WINDOW, NOT THE WELL (same ask) ──────────
+// It is stated on the DOCK so the whole board starts on one line — the strip
+// above the well is chrome the drawer was eating too: the tab row, the
+// Cuentista bar, and TWO OF THE THREE TRAFFIC LIGHTS. The cluster is
+// `position: absolute; left: 8px` inside `.dock-bar`, so at full-bleed the
+// close and minimize dots sat at x 8…21 and 25…38, i.e. under a 42px drawer
+// rail — the same class of bug the feed column's gap made of the nav bar's
+// burger the same day (specs/gotchas.md). Padding the well alone would have
+// left them buried.
+//
+// PADDING, not margin: the earlier full-bleed ask is intact — the board's
+// SURFACE still runs to both screen edges and passes UNDER the drawer and the
+// rails (that is why the box is `left: 0; right: 0` at a z below all of them);
+// only its CONTENT clears them. What shows in the inset strip is the dock's
+// own coat, which is exactly what the feed shows to the left of its column:
+// the page beneath it.
+//
+// THE NUMBER IS THE FEED COLUMN'S OWN LEFT EDGE, arrived at the way the feed
+// arrives at it, so the two surfaces start on one line. The feed's edge is
+// `q-page-container`'s left pad (the drawer, when it stands) plus
+// `.feed-container`'s `margin-left: 2.5%` measured off a TRACK that is the
+// window less the drawer and less the right rail reserve. This dock is FIXED
+// and full-bleed, so it states both terms itself: `--dock-rail-w` for the
+// drawer's mini column and `--dock-right` (inline, off `windows.dockRight`)
+// for the reserve. Hence two blocks, because the drawer is only a standing
+// rail from 1024px — Quasar's `show-if-above` breakpoint. Below it the drawer
+// is a closed overlay, the page pads nothing, and the feed's own edge is just
+// the 2.5%; the dock follows it there rather than clearing a rail that is not
+// on screen. Measured at 1440×900: dock content x 76 = `.feed-container`'s x
+// to the pixel, traffic lights at 84, well flush under the strip.
+//
+// ⚠ NOT under 601px: the phone's `.is-edit` restatement keeps the mobile
+// dock's own gap daylight on both sides (css/_components.scss), there is no
+// rail reserve down there (`windows.isMobile` zeroes it), and 2.5% of a 390px
+// window on top of the gap would be inset for its own sake.
+// ── AND THE RIGHT SIDE HAD THE SAME BURIED-CHROME BUG (2026-08-12, found by
+// the driver, not by eye) ─────────────────────────────────────────────────
+// The left inset went in for the traffic lights; the strip's OTHER end has
+// controls too — share and, at the very end, the PENCIL that leaves edit
+// mode. Full-bleed put them at x 1400+ under the parked stack rail (3100 over
+// this band), and Playwright reported it the way a user never could: 58
+// retries of "…from <section class='stack-window'> subtree intercepts pointer
+// events" while clicking "Done arranging". Edit mode was a room whose door
+// handle was on the other side of the wall.
+//
+// So the board pads for the rail column exactly as it pads for the drawer —
+// `--dock-right`, the same reserve `q-page-container` pads by, which is what
+// makes this a PAGE. Padding again, not margin: the surface still runs to
+// both screen edges under the chrome; only the content stops at it.
+@media (min-width: 601px) {
+  .dashboard-dock.is-edit {
+    padding-left: calc((100vw - var(--dock-right, 0px)) * 0.025);
+    padding-right: var(--dock-right, 0px);
+  }
+}
+
+@media (min-width: 1024px) {
+  .dashboard-dock.is-edit {
+    padding-left: calc(
+      var(--dock-rail-w) +
+      (100vw - var(--dock-rail-w) - var(--dock-right, 0px)) * 0.025
+    );
   }
 }
 

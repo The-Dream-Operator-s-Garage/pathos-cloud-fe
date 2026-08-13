@@ -4619,9 +4619,14 @@ export default defineComponent({
 // it had width to spend — the type steps up, the strip does not.
 //
 // DESKTOP ONLY, and `min-width: 1024px` is not a number of this component's
-// own: it is FeedPage's desktop gate, the same one the byline reads, so the
-// card keeps following the PAGE's word for desktop rather than inventing a
-// second breakpoint. Under it the name stays flush with the rest of the lane,
+// own: it is the card's TYPE gate, shared with the byline's fold below, and
+// the two move together. ⚠ It was FeedPage's gate too until 2026-08-12, when
+// that page's full-height-column block was RETIRED (the column stops on the
+// nav bar's top edge now, at every width, so the page states no breakpoint at
+// all). The number stayed here because the reason was always different — 1024
+// is where the cap has the WIDTH for a bigger name, not where the page had
+// chrome beside the bar. It is this component's own gate now.
+// Under it the name stays flush with the rest of the lane,
 // where the strip is tight enough that a bigger name would just ellipsize
 // sooner — the cap's other two cells are rigid, so every point this takes
 // comes out of the title's own `flex: 1 1 auto` slack.
@@ -6332,9 +6337,14 @@ export default defineComponent({
 // The byline's two dense lines fold into a SINGLE row when the window is
 // wide enough to hold them side by side: author at the left, the moment
 // run at the right end of the same line, the face hanging beside one line
-// instead of two. `min-width: 1024px` is FeedPage's own desktop gate (the
-// full-height container ask) — the byline follows the page's word for
-// desktop, not a number of its own; under it the stack stands.
+// instead of two. `min-width: 1024px` is the CARD's type gate, shared with
+// the cap title's step-up above — the two type rules follow one word for
+// desktop; under it the stack stands. ⚠ It came from FeedPage's full-height
+// container ask and was that page's gate until 2026-08-12, when that block was
+// retired entirely (the column stops on the nav bar's top edge now, with no
+// breakpoint of its own). This number did not follow it out: a byline folds
+// when the BAND is wide enough to hold two runs on one line, which was never
+// the same question as where the page had chrome beside the nav bar.
 //
 // The type steps UP with the fold (name 0.72→0.8em, handle 0.6→0.66,
 // ago 0.66→0.72, details 0.6→0.66): two lines' worth of facts on one line

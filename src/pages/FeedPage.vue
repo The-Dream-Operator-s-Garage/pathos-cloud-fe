@@ -236,10 +236,36 @@ export default defineComponent({
 // margin-top cancels q-page-container's `padding-top: var(--frieze-h)`, so
 // the track — and the container in it — start at y=0 and run UP OVER the
 // fixed crown strip instead of beginning below it.
-// (DESKTOP ONLY it runs one --nav-footer-h LOWER than this — see the
-// `min-width: 1024px` block at the end of this file.)
+//
+// ── AND IT STOPS ON THE NAV BAR'S TOP EDGE, EXACTLY (2026-08-12, user ask:
+// "the feed container's lower edge starts drawing from the top edge of the
+// footer") ── The column is a box STANDING ON the bar: its lower edge — the
+// border and both frieze bars' bottom caps — is drawn on the bar's own top
+// edge, and the whole bar stays visible and clickable below it. Two things
+// this height has to name, and it only named one for months:
+//
+//  · `--nav-footer-h` — the fixed bar the page must subtract by hand.
+//  · `--media-tabs-h` — the PERMANENT band above the crown strip, which
+//    `q-page-container` pads DOWN by (MainLayout states both tokens in its
+//    `paddingTop`) while the negative margin above cancels only `--frieze-h`.
+//    So the page box starts ~5px down and, without this second term, its
+//    bottom hung those same ~5px INTO the bar — a hairline of column over
+//    the plaque, and `documentElement.scrollHeight` 5px past `innerHeight`
+//    (the vertical scrollbar `pageStyleFn` exists to prevent). Subtracting
+//    the band lands the edge on the bar's line and squares the page's
+//    scroll height with the window at last.
+//
+// ⚠ THE COLUMN NO LONGER RUNS PAST THE BAR TO THE WINDOW FLOOR. That
+// behaviour stood from 2026-08-02 (desktop only, `min-width: 1024px`) and for
+// part of 2026-08-12, when a first reading of this ask widened its gate to
+// `601px`; the ask turned out to be the opposite one — the bottom edge should
+// be DRAWN, not bled off the screen — so the growth block (`height: 100vh` +
+// a negative `margin-bottom`), its flyout inset restatement and the bar's
+// `.nav-footer--underlaid` step-down all went with it. The bar is the topmost
+// fixed chrome again at EVERY width (NavigationBar.vue z 3110), which is also
+// what makes the burger safe on a narrow window — see gotchas.md.
 .feed-page {
-  height: calc(100vh - var(--nav-footer-h));
+  height: calc(100vh - var(--nav-footer-h) - var(--media-tabs-h, 0px));
   margin-top: calc(-1 * var(--frieze-h));
   padding: 0;
   overflow: hidden;
@@ -508,49 +534,31 @@ export default defineComponent({
   right: 5% !important;
 }
 
-// ── DESKTOP: THE COLUMN RUNS TO THE WINDOW'S BOTTOM EDGE (2026-08-02) ──
-// The page's slot stopped at the nav bar's TOP edge, so the feed column ended
-// there too. On desktop it now runs the FULL 100vh and HOVERS OVER the bar:
-// the last --nav-footer-h of the column stands on the bar's plaque, and the
-// stream scrolls through it, so the box reads as one uninterrupted column
-// from the crown strip to the floor instead of a panel sitting on a shelf.
+// ── WHY THERE IS NO GROWTH BLOCK HERE ANY MORE (2026-08-12) ──
+// From 2026-08-02 this file ended with a `min-width: 1024px` block that grew
+// the page to `height: 100vh` with a matching negative `margin-bottom`, so the
+// column ran PAST the bar to the window's floor and the stream scrolled
+// through that last strip; NavigationBar carried the other half of it, the bar
+// stepping down to z 2999 on this route (`.nav-footer--underlaid`) so the
+// grown strip could actually paint over the plaque. A first reading of the
+// 2026-08-12 ask widened that gate to `601px` for a few hours. The ask was the
+// opposite one — "the feed container's lower edge starts drawing from the top
+// edge of the footer" — so BOTH halves are gone and the height at the top of
+// this file states the whole vertical span again, at every width.
 //
-// Two halves make that work, and the second one is NOT here:
-//
-//  1. GEOMETRY (this block). `height: 100vh` grows the box by exactly the
-//     bar's height, and the matching NEGATIVE `margin-bottom` takes those
-//     48px back OUT OF FLOW — without it the page container (which pads its
-//     bottom by the fixed footer's height) would be taller than the window
-//     and hand it a vertical scrollbar, the very thing `pageStyleFn` exists
-//     to prevent. Same trick as `margin-top` above, at the other end.
-//
-//  2. PAINT ORDER (NavigationBar.vue). The bar is the topmost fixed chrome
-//     at z 3110 — raised there on 2026-08-02 so no panel's drop shadow could
-//     wash over its plaque — and the feed container is 3001, so growing the
-//     box alone would just hide its new strip behind the bar. The container
-//     deliberately does NOT climb over 3110 to fix that: every dock (3010+,
-//     each half the screen wide) would then be sliced by this column.
-//     Instead the BAR drops below the container ON THIS ROUTE ONLY
-//     (`.nav-footer--underlaid`, same breakpoint) — the one change that
-//     leaves every other layer of the sandwich exactly as it was.
-//
-// Mobile keeps the shelf: the bar is the only chrome down there and covering
-// it with the feed would put post cards under the thumb that opens the menu.
-@media (min-width: 1024px) {
-  .feed-page {
-    height: 100vh;
-    margin-bottom: calc(-1 * var(--nav-footer-h));
-  }
-
-  // The flyout stays exactly where it was — BETWEEN the two bands. Its
-  // `bottom` resolves against the page's box, which just grew a nav bar
-  // taller, so the inset has to name the bar as well to hold still. (The box
-  // has no business over the bar: it is a reading surface, not the column
-  // this change is about.)
-  .feed-flyout {
-    bottom: calc(var(--nav-footer-h) + var(--frieze-h) + var(--flyout-gap));
-  }
-}
+// Three things came back with the bar (all of them worth not re-losing):
+//  · The bar is the TOPMOST fixed chrome again everywhere — no route where a
+//    dock's or the drawer's drop shadow can wash its plaque.
+//  · The burger is safe on a narrow window with no special rule. Below 1024px
+//    the drawer is a closed overlay and the BAR carries the burger at its left
+//    end; while the gate was at 601 the column's 2.5% gap landed on that chip
+//    (x 21 vs the chip's 9…33 at 900px wide) and a `max(2.5%, --dock-rail-w)`
+//    floor on `.feed-container` had to be added to clear it. Nothing overlaps
+//    the bar now, so the floor went too and the gap is a clean percentage of
+//    the track at every width again.
+//  · `.feed-flyout` keeps ONE bottom inset (`--frieze-h + --flyout-gap`,
+//    stated above): it was restated with `--nav-footer-h` on top only because
+//    it resolves against a page box that had grown a bar taller.
 
 // It arrives from the right — the direction it lives in, so the motion says
 // where the box came from rather than just that it appeared.
