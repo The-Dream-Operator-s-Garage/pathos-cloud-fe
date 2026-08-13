@@ -232,10 +232,14 @@ export default defineComponent({
 // windows.railWidth (the parked stack/pins column). The vertical span is
 // ours to state — the nav bar is fixed, so the page subtracts it by hand.
 //
-// The slot reaches the window's TOP EDGE (2026-07-25): the negative
-// margin-top cancels q-page-container's `padding-top: var(--frieze-h)`, so
-// the track — and the container in it — start at y=0 and run UP OVER the
-// fixed crown strip instead of beginning below it.
+// The slot starts UNDER THE SILVER RAIL and nothing above it (2026-08-12).
+// It used to reach y=0 with a negative `margin-top` cancelling
+// q-page-container's `padding-top: var(--frieze-h)`, so the track ran UP OVER
+// the fixed crown strip. That strip is deleted (user ask) and the container
+// pads down by `--media-tabs-h` alone, which is the same line the column's top
+// edge already sat on — so the cancel came off with the strip. ⚠ It is why the
+// height below subtracts --media-tabs-h and NOT --frieze-h: one band up there,
+// and the page box starts under it.
 //
 // ── AND IT STOPS ON THE NAV BAR'S TOP EDGE, EXACTLY (2026-08-12, user ask:
 // "the feed container's lower edge starts drawing from the top edge of the
@@ -266,7 +270,6 @@ export default defineComponent({
 // what makes the burger safe on a narrow window — see gotchas.md.
 .feed-page {
   height: calc(100vh - var(--nav-footer-h) - var(--media-tabs-h, 0px));
-  margin-top: calc(-1 * var(--frieze-h));
   padding: 0;
   overflow: hidden;
   // The containing block for the flyout (2026-07-26). Deliberately WITHOUT a
@@ -505,9 +508,12 @@ export default defineComponent({
   // two ends equal at every window height, which a percentage would not.
   --flyout-gap: 14px;
 
+  // Each end used to add a band's height to this gap — the crown strip above,
+  // the floor band below. Both are gone (2026-08-12, user ask), so the daylight
+  // is the gap itself at both ends, which is what the note above always wanted.
   position: absolute;
-  top: calc(var(--frieze-h) + var(--flyout-gap));
-  bottom: calc(var(--frieze-h) + var(--flyout-gap));
+  top: var(--flyout-gap);
+  bottom: var(--flyout-gap);
   left: 52.5%;
   right: 5%;
   // Over the crown strip and the frieze footer (3000) and over the feed

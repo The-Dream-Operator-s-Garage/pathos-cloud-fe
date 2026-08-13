@@ -169,29 +169,15 @@
 
     </div>
 
-    <!-- ── FLOOR BAND (2026-08-02, user ask: "a dark brown frieze bar below
-         the nav footer bar — the ones from inside the left drawer"), now in
-         the crown strip's OWN pale palette (2026-08-04, user ask: "make it
-         like the clear one on top of the footer nav bar, and remove that
-         one" — FriezeFooter, which rode this bar's top edge, is deleted; this
-         band is the page's one closing band now). Same FriezeBar underneath,
-         same masks and carve — only the tones moved, through the
-         `--frieze-bar-base` + `--frieze-bar-wave-{one,two}` dials
-         (`.nav-floor-frieze` below) rather than a new component, the same
-         seam the chat dock's green band uses.
-
-         INSIDE the q-footer, under `.nav-bar`, rather than a fixed sibling:
-         the footer is what Quasar measures to pad the page, so mounting the
-         band here makes the page's bottom inset grow with it and nothing can
-         slide beneath the strip. The bar's row keeps --nav-bar-h; the footer
-         as a whole is --nav-footer-h, which is that row plus this band, and
-         that total is what every anchored surface still reads.
-
-         The drawer and the pinned column run PAST this footer to the window
-         floor, so each repeats the band inside its own rebuilt bar row
-         (MainLayout `.drawer-footer`, PinsDrawer `.pins-footer`) and the
-         line runs unbroken from screen edge to screen edge. ── -->
-    <FriezeBar class="nav-floor-frieze" />
+    <!-- ── NO FLOOR BAND SINCE 2026-08-12 (user ask: "remove the brown
+         frieze header from the top of the screen and also the one from the
+         bottom of the screen, below the footer bar"). A FriezeBar in the
+         crown strip's pale palette closed the window here from 2026-08-02,
+         mounted INSIDE the q-footer so Quasar's page inset grew with it —
+         which is why --nav-footer-h was `--nav-bar-h + --frieze-h` and is
+         simply --nav-bar-h again now. The drawer and the pinned column each
+         repeated the band across their own columns and dropped it with this
+         one, so the floor is the bar's row edge to edge. ── -->
   </q-footer>
 
   <!-- ── There is NO `.nav-top-shadow` box here anymore (2026-08-02, user
@@ -246,11 +232,10 @@ import { useDashboardStore } from 'src/stores/dashboard'
 import { useEventsStore } from 'src/stores/events'
 import { pinService } from 'src/services/pin.service'
 import GlobalSearch from 'src/components/shared/GlobalSearch.vue'
-import FriezeBar from 'src/components/layout/FriezeBar.vue'
 
 export default defineComponent({
   name: 'NavigationBar',
-  components: { GlobalSearch, FriezeBar },
+  components: { GlobalSearch },
   emits: ['toggle-drawer', 'open-maker', 'open-uploader', 'open-skeleton-builder', 'open-label-maker', 'pins-changed'],
   props: {
     // Increment to force a pin-state refresh from the parent (e.g. after the
@@ -545,18 +530,6 @@ export default defineComponent({
 // The minitab strip was never part of this: it is a lifted sibling OUTSIDE the
 // footer (see its note below), so it keeps its own 3045 regardless.
 
-// ── The floor band, in the crown strip's pale colours (2026-08-04) ──
-// Same recipe as every FriezeBar; only the three tone dials move, to the
-// exact palette FriezeHeader (and the retired FriezeFooter) write: brown-1
-// plaque, brown-3 then brown-4 waves. MainLayout's `.drawer-floor-frieze` and
-// PinsDrawer's `.pins-floor-frieze` dial the same three values so the strip
-// reads as one band across the whole window floor.
-.nav-floor-frieze {
-  --frieze-bar-base: var(--brown-1);
-  --frieze-bar-wave-one: var(--brown-3);
-  --frieze-bar-wave-two: var(--brown-4);
-}
-
 // ── Minitab strip — ON the frieze footer band itself (2026-07-27; it stood
 // on the band's TOP edge from 2026-07-25, back when nothing inside the
 // footer could out-paint the opaque z-3000 strip). A lifted FIXED sibling of
@@ -674,14 +647,12 @@ export default defineComponent({
   border-top: 1px solid var(--brown-3);
   // NO box-shadow here, and no cast anywhere on this bar anymore
   // (2026-08-02) — see the `.nav-footer` z-index note above.
-  // Exact height — the BAR'S OWN ROW, not the whole footer: since the floor
-  // band went in below it (2026-08-02) the footer is one --frieze-h taller
-  // than this plaque, and --nav-footer-h is that total. The pinned column and
-  // the drawer still sit at `bottom: var(--nav-footer-h)`, which is this
-  // plaque's TOP edge, so their edges merge with it exactly as before. (The
-  // creation docks and the minitab strip anchor to that same edge and paint
-  // OVER the floor frieze band, and so does chat since 2026-08-03 — every
-  // dock reads this one edge now.)
+  // Exact height — the BAR'S OWN ROW. From 2026-08-02 to 2026-08-12 that was
+  // a distinction: a --frieze-h floor band stood below this plaque and
+  // --nav-footer-h was the pair. The band is gone (user ask) and the two
+  // tokens now name the same line, which is still THIS plaque's top edge —
+  // where the pinned column, the drawer, every creation dock and the minitab
+  // strip all seat their bottom edges.
   height: var(--nav-bar-h);
   position: relative;
   user-select: none;

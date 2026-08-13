@@ -345,7 +345,7 @@
   right: calc(var(--dock-right, 0px) + var(--dock-gap));
   // --media-tabs-h is 0px unless a media viewer is parked, in which case the
   // whole top chrome (crown strip included) has stepped down by that band.
-  top: calc(var(--frieze-h) + var(--dock-gap) + var(--media-tabs-h, 0px));
+  top: calc(var(--dock-gap) + var(--media-tabs-h, 0px));
   // Straight off the NAV BAR's top edge (2026-07-27, second pass — it stood
   // one --frieze-h higher first, via the now-retired --dock-bottom, to clear
   // FriezeFooter, the pale band that used to occupy this edge before
@@ -472,7 +472,7 @@
   top: auto;
   height: min(
     60vh,
-    calc(100vh - var(--frieze-h) - var(--dock-gap) - var(--media-tabs-h, 0px) - var(--nav-footer-h))
+    calc(100vh - var(--dock-gap) - var(--media-tabs-h, 0px) - var(--nav-footer-h))
   );
 }
 
@@ -531,7 +531,7 @@
 .dock-window--dashboard.is-edit {
   left: 0;
   right: 0;
-  top: calc(var(--frieze-h) + var(--media-tabs-h, 0px));
+  top: var(--media-tabs-h, 0px);
   bottom: var(--nav-footer-h);
   border-left: none;
   border-right: none;
@@ -554,7 +554,7 @@
 // is untouched either way — `bottom: var(--nav-footer-h)` never moves, so
 // maximizing the chat window never covers it.
 .dock-window--chat.is-max {
-  top: calc(var(--frieze-h) + var(--dock-gap) + var(--media-tabs-h, 0px));
+  top: calc(var(--dock-gap) + var(--media-tabs-h, 0px));
   height: auto;
   border-top-right-radius: 0;
 }
@@ -594,7 +594,7 @@
 // would leave a notch of daylight in the drawer/header junction.
 @media (min-width: 601px) {
   .dock-window--dashboard.is-max:not(.is-edit) {
-    top: calc(var(--frieze-h) + var(--media-tabs-h, 0px));
+    top: var(--media-tabs-h, 0px);
     right: var(--dock-right, 0px);
     border-top-left-radius: 0;
     border-top-right-radius: 0;
@@ -1060,7 +1060,7 @@
   .dock-window--dashboard.is-edit {
     left: var(--dock-gap);
     right: calc(var(--dock-right, 0px) + var(--dock-gap));
-    top: calc(var(--frieze-h) + var(--dock-gap) + var(--media-tabs-h, 0px));
+    top: calc(var(--dock-gap) + var(--media-tabs-h, 0px));
     border-left: 1px solid var(--dock-rule);
     border-right: 1px solid var(--dock-rule);
     border-top-left-radius: var(--radius-lg);

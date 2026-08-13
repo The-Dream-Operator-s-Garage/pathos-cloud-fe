@@ -854,12 +854,23 @@ $warning:   #F2C037;
   // viewport-bounded surface (e.g. subject-panel) still subtracts the whole
   // chrome. Nothing anchored to it needed touching when the band went in —
   // only `.nav-bar` itself, which wants the row and not the total.
-  --nav-footer-h: calc(var(--nav-bar-h) + var(--frieze-h));
+  // ONE TERM AGAIN SINCE 2026-08-12 (user ask — the floor band below the bar
+  // is gone, with the crown strip at the other end): the bottom chrome IS the
+  // bar's row. The token keeps its MEANING, "how far up from the window floor
+  // the bottom chrome reaches", so every surface anchored at
+  // `bottom: var(--nav-footer-h)` needed no touching in either direction.
+  --nav-footer-h: var(--nav-bar-h);
 
-  // EXACT height of the fixed top FriezeHeader (the mercury-wave crown
-  // strip mounted by BOTH layouts). Percentage of the viewport — not
-  // pixels — so the band scales with the device. The page containers pad
-  // down by this token so content never hides under the plaque.
+  // THE FRIEZE FAMILY'S THICKNESS. Percentage of the viewport — not pixels —
+  // so the bands scale with the device.
+  //
+  // ⚠ IT IS NO LONGER THE TOP CHROME'S HEIGHT (2026-08-12, user ask): the
+  // fixed crown strip this token was born to size — FriezeHeader, mounted by
+  // both layouts — is deleted, along with the floor band below the nav bar.
+  // The page containers pad down by `--media-tabs-h` ALONE now, and nothing
+  // adds this token to a top offset any more. Grep before you put it back in
+  // one: a stray `--frieze-h` in a top-chrome calc is a band-height gap under
+  // a band that is not there.
   //
   // It is the THICKNESS OF THE WHOLE FRIEZE FAMILY, not just the crown:
   // every in-box FriezeBar (brown, the floor band's pale restating, the
@@ -888,18 +899,24 @@ $warning:   #F2C037;
   //
   // PERMANENT (second pass, same day): the band stands at the top of the
   // window whether or not anything is parked on it. It is chrome, not a
-  // notification — and a constant here is also what keeps the crown strip,
-  // the drawer and the page from stepping down and back up every time a
-  // viewer parks. The first pass had `MediaTabsBar` set this token on mount
-  // and clear it on unmount, which worked and jumped.
+  // notification — and a constant here is also what keeps the drawer and the
+  // page from stepping down and back up every time a viewer parks. The first
+  // pass had `MediaTabsBar` set this token on mount and clear it on unmount,
+  // which worked and jumped.
   //
-  // It used to reserve nothing at all and simply lay itself over the crown
-  // strip's top fifth, which cut the frieze motif off mid-carve across the
-  // whole width. The band is ABOVE the strip now, not on it: FriezeHeader,
-  // both page containers, the drawer, the stack widget and the creation
-  // docks all offset by this token, which is the whole list — anything else
-  // pinned to the top of the window has to join it or it will stand out of
-  // line with the crown strip.
+  // ⚠ IT IS THE WHOLE TOP CHROME NOW (2026-08-12, user ask): the crown strip
+  // it used to sit above is deleted, so this thin silver rail is the only
+  // band at the top of the window and this token is the ONLY offset a
+  // top-anchored surface takes. Both page containers, the drawer, the stack
+  // widget, the creation docks and the extended dashboard all start on its
+  // underside — anything else pinned to the top of the window has to join
+  // them or it will stand out of line.
+  //
+  // (History worth keeping: it reserved nothing at all at first and simply
+  // lay over the crown strip's top fifth, which cut the frieze motif off
+  // mid-carve across the whole width. Hence the band ABOVE the strip, and
+  // hence the fifth: `--frieze-h / 5` is still where its thickness comes
+  // from, the last thing the crown sizes.)
   --media-tabs-band: calc(var(--frieze-h) / 5);
   --media-tabs-h: calc(var(--media-tabs-band) + 1px);
 

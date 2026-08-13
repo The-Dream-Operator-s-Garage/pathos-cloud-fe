@@ -32,20 +32,24 @@ const measure = () => {
   vw.value = window.innerWidth
   vh.value = window.innerHeight
   // Measure the real fixed bands rather than restating their token math —
-  // `--frieze-h` is vh-based and `--nav-footer-h` is a calc(), and
-  // offsetHeight tracks both through any future token change. The
-  // fallbacks restate the current formulas (2.1vh crown, 32px bar + crown)
-  // for calls that land before the layout mounts.
-  const crown = document.querySelector('.frieze-header')
-  friezeH.value = crown?.offsetHeight || Math.round(window.innerHeight * 0.021)
-  // Where the crown strip ENDS, which is not its height any more: while a
-  // media viewer is parked the strip has stepped down by the tabs band
-  // (`--media-tabs-h`), and the arena's ceiling is the strip's BOTTOM edge
-  // (2026-08-05). Height and bottom are separate numbers now — friezeH
-  // still feeds `chromeOf`, which is about the band drawn INSIDE a viewer.
-  crownBottom.value = crown?.getBoundingClientRect().bottom || friezeH.value
-  footerH.value = document.querySelector('.nav-footer')?.offsetHeight ||
-    (32 + friezeH.value)
+  // `--nav-footer-h` is a calc() and offsetHeight tracks it through any
+  // future token change. The fallbacks restate the current formulas for
+  // calls that land before the layout mounts.
+  //
+  // ⚠ THE CROWN STRIP IS GONE (2026-08-12, user ask): there is no
+  // `.frieze-header` element to measure any more, so `friezeH` — which feeds
+  // `chromeOf`, i.e. the band drawn INSIDE a viewer, and is still a real
+  // `--frieze-h` box — comes from the token's own 2.1vh formula.
+  friezeH.value = Math.round(window.innerHeight * 0.021)
+  // THE ARENA'S CEILING is the window's top chrome, which is now the media
+  // tabs rail alone — the thin silver band the viewers park on. It was the
+  // crown strip's BOTTOM edge until the strip left (and the strip itself had
+  // stepped down by this same band since 2026-08-05, which is why ceiling and
+  // height were already two different numbers).
+  const rail = document.querySelector('.media-tabs')
+  crownBottom.value = rail?.getBoundingClientRect().bottom ||
+    Math.round(window.innerHeight * 0.021 / 5) + 1
+  footerH.value = document.querySelector('.nav-footer')?.offsetHeight || 32
 }
 
 export function useMediaArena () {

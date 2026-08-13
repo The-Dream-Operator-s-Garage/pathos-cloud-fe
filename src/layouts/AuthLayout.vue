@@ -1,15 +1,13 @@
 <template>
   <q-layout view="hHh lpR fFf">
-    <!-- The two crown bands, in the order they stack down the top edge:
-         the media tabs rail (permanent chrome since 2026-08-05 — the auth
-         pages never park a viewer on it, but the strip is part of the
-         window's top now and its space is reserved by --media-tabs-h
-         either way, so leaving it out would float the frieze on nothing)
-         and then the mercury frieze plaque, the same fixed band
-         MainLayout crowns its pages with. -->
+    <!-- ONE crown band since 2026-08-12 (user ask — the brown frieze plaque
+         that stood under it, `FriezeHeader`, is deleted from both layouts):
+         the media tabs rail, the thin silver strip that is the window's top
+         chrome now. Permanent since 2026-08-05 — the auth pages never park a
+         viewer on it, but its space is reserved by --media-tabs-h either way,
+         and it is the line every top-anchored surface starts under. -->
     <MediaTabsBar />
-    <FriezeHeader />
-    <q-page-container style="padding-top: calc(var(--frieze-h) + var(--media-tabs-h, 0px))">
+    <q-page-container style="padding-top: var(--media-tabs-h, 0px)">
       <router-view />
     </q-page-container>
   </q-layout>
@@ -17,7 +15,6 @@
 
 <script>
 import { defineComponent } from 'vue'
-import FriezeHeader from 'src/components/layout/FriezeHeader.vue'
 import MediaTabsBar from 'src/components/media/MediaTabsBar.vue'
-export default defineComponent({ name: 'AuthLayout', components: { FriezeHeader, MediaTabsBar } })
+export default defineComponent({ name: 'AuthLayout', components: { MediaTabsBar } })
 </script>

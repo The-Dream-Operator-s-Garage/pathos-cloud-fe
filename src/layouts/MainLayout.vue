@@ -1,12 +1,18 @@
 <template>
   <q-layout view="lHh Lpr lff">
-    <!-- Mercury frieze crown strip — fixed edge-to-edge over everything but
-         the left drawer (z 3000 < the drawer's 3120, which overlaps it from
-         the corner); the page container pads down by --frieze-h below. -->
-    <FriezeHeader />
+    <!-- ── NO CROWN STRIP HERE SINCE 2026-08-12 (user ask: "remove the brown
+         frieze header from the top of the screen and also the one from the
+         bottom of the screen, below the footer bar"). The mercury frieze
+         plaque stood fixed edge-to-edge across every page's top for months
+         and `FriezeHeader.vue` is DELETED with it; the window's top chrome is
+         now the media tabs rail alone — the thin silver band below, which
+         every top-anchored surface still steps down by (--media-tabs-h).
+         The band's PALETTE lives on in the drawer's section dividers and in
+         the widgets' own bands, and --frieze-h is still the frieze family's
+         thickness — only the two SCREEN-EDGE bands went. ── -->
 
-    <!-- Floating media viewers + their minimize sliver over the crown
-         strip (docs/plans/floating-media-viewer.md) — every child is
+    <!-- Floating media viewers + their minimize sliver, hanging from the
+         silver rail (docs/plans/floating-media-viewer.md) — every child is
          fixed-position, so the mount point only has to exist once. -->
     <MediaViewerHost @pins-changed="pinsRefreshKey++" />
 
@@ -19,13 +25,12 @@
     <q-drawer v-if="!hideDrawer" v-model="drawer" show-if-above :mini="mini" :width="220" :mini-width="drawerRailW"
       bordered class="pathos-drawer" @mouseover="mini = false" @mouseout="mini = true">
 
-      <!-- The drawer starts at the very TOP-LEFT corner, OVER the fixed crown
-           strip (z 3120 > the frieze's 3000), so this band REPLACES the strip
-           across the drawer's column instead of stacking under it: it is
-           pinned (outside the scroll area, never scrolls away) and wears the
-           crown strip's exact geometry — same --frieze-h box, same brown-3
-           bottom lip — so the two read as one continuous band. -->
-      <FriezeBar class="drawer-frieze drawer-frieze--top" />
+      <!-- The drawer's own top band went with the crown strip (2026-08-12):
+           it existed only to REPLACE that strip across this column — same
+           --frieze-h box, same brown-3 lip, so the two read as one band —
+           and a stub of it standing alone at the top-left corner would be
+           the band the ask removed, drawn in one column. The drawer's
+           SECTION dividers below are a different job and stay. -->
 
       <q-scroll-area class="drawer-scroll" :horizontal-thumb-style="{ opacity: 0 }">
         <q-list padding class="nasalization" style="font-size:0.82em;">
@@ -165,22 +170,19 @@
         <div class="drawer-footer-hairline" />
       </div>
 
-      <!-- The floor band, continued across the drawer's column (2026-08-02),
-           in the crown strip's pale palette since 2026-08-04 — see
-           NavigationBar's `.nav-floor-frieze` for why. The bar under here
-           carries the same FriezeBar inside its footer, but the drawer runs
-           PAST that footer to the window floor and owns these pixels — so it
-           draws the band itself and the line reads unbroken from screen edge
-           to screen edge. Un-flipped, exactly like the drawer's own section
-           dividers above it; the pinned column at the other end takes
-           `flip`, matching ITS siblings. -->
-      <FriezeBar class="drawer-floor-frieze" />
+      <!-- The floor band is gone too (2026-08-12, the same ask): this column
+           only carried it because the drawer runs PAST the footer to the
+           window floor and owed the line those pixels — NavigationBar's
+           `.nav-floor-frieze` was the band itself, PinsDrawer's the other
+           end. All three left together; the rebuilt bar ROW above stays,
+           and the drawer's last pixels are now that row's, exactly like the
+           bar's own. -->
     </q-drawer>
 
     <!-- Page content gives up the width of the parked stack/pins column on the
          right so they never cover it; EXPANDED windows overlap the page as
          they always did. -->
-    <q-page-container :style="{ paddingRight: windows.railWidth ? windows.railWidth + 'px' : null, paddingTop: 'calc(var(--frieze-h) + var(--media-tabs-h, 0px))' }">
+    <q-page-container :style="{ paddingRight: windows.railWidth ? windows.railWidth + 'px' : null, paddingTop: 'var(--media-tabs-h, 0px)' }">
       <!-- `pins-changed` is bound on the ROUTER-VIEW because a page can pin
            too (the feed card's cap, 2026-08-07) and the pins widget it has to
            reload is a sibling of this container, not of the page. Vue Router
@@ -240,7 +242,6 @@ import LabelMakerDock from 'src/components/maker/LabelMakerDock.vue'
 import ChatDock from 'src/components/chat/ChatDock.vue'
 import DashboardDock from 'src/components/dashboard/DashboardDock.vue'
 import MediaViewerHost from 'src/components/media/MediaViewerHost.vue'
-import FriezeHeader from 'src/components/layout/FriezeHeader.vue'
 import FriezeBar from 'src/components/layout/FriezeBar.vue'
 import NavigationBar from 'src/components/layout/NavigationBar.vue'
 import PinsDrawer from 'src/components/layout/PinsDrawer.vue'
@@ -255,7 +256,7 @@ import { useEventsStore } from 'src/stores/events'
 
 export default defineComponent({
   name: 'MainLayout',
-  components: { MakerDock, UploaderDock, SkeletonBuilderDock, LabelMakerDock, ChatDock, DashboardDock, MediaViewerHost, FriezeHeader, FriezeBar, NavigationBar, PinsDrawer, StackPanel, EntityAvatar },
+  components: { MakerDock, UploaderDock, SkeletonBuilderDock, LabelMakerDock, ChatDock, DashboardDock, MediaViewerHost, FriezeBar, NavigationBar, PinsDrawer, StackPanel, EntityAvatar },
   setup () {
     const router = useRouter()
     const navStore = useNavStore()
@@ -379,9 +380,11 @@ export default defineComponent({
 // silently didn't either; the drawer was painted by Quasar's --q-dark).
 
 // Kill Quasar's dark paint on the aside; the skin lives on the content.
-// The drawer OVERLAPS the crown strip (2026-07-24): it runs from the screen's
-// very top-left corner and outranks the fixed FriezeHeader (3000), wearing its
-// own frieze band up there instead of hiding under the strip.
+// The drawer RUNS TO THE SCREEN'S VERY TOP-LEFT CORNER (2026-07-24) — it did
+// that to overlap the fixed crown strip (3000) and wore its own band up there
+// instead of hiding under it. The strip and that band are both gone since
+// 2026-08-12 (user ask); the corner is still the drawer's, now under the
+// silver media-tabs rail alone.
 //
 // SINCE 2026-08-02 IT DOES THE SAME AT THE OTHER END (user ask): `bottom: 0`,
 // so the column runs the WHOLE window height and lies OVER the nav bar instead
@@ -452,11 +455,12 @@ aside.q-drawer {
   // same 41px brown-4 rail block at the left end. Whatever the drawer's width,
   // the bar reads as continuous — the drawer just owns those pixels.
   //
-  // It takes --nav-bar-h, the bar's ROW, not --nav-footer-h: since the floor
-  // band went in (same day) the chrome is that row plus a --frieze-h band, and
-  // the drawer rebuilds both — this block, then `.drawer-floor-frieze` under
-  // it. Sized to the total instead, the block would swallow the band's pixels
-  // and drop the burger chip half a band low.
+  // It takes --nav-bar-h, the bar's ROW. That was the two-band era's
+  // distinction — the footer was this row PLUS a --frieze-h floor band, and
+  // the drawer rebuilt both (this block, then `.drawer-floor-frieze`). The
+  // band is gone since 2026-08-12 and --nav-footer-h IS --nav-bar-h now, so
+  // the two read the same; the token stays named here because it is the ROW
+  // this block rebuilds, and only the row.
   .drawer-footer {
     flex: 0 0 auto;
     display: flex;
@@ -465,18 +469,6 @@ aside.q-drawer {
     background: var(--brown-1);
     border-top: 1px solid var(--brown-3);
     overflow: hidden;               // clips the hairline in the 42px mini state
-  }
-
-  // The band that closes the column, on the window floor. `flex: 0 0 auto` so
-  // it keeps its own --frieze-h against the scroll area's `flex: 1 1 auto`
-  // above it — the component states a height, not a basis.
-  .drawer-floor-frieze {
-    flex: 0 0 auto;
-    // The crown strip's pale palette (2026-08-04) — see NavigationBar's
-    // `.nav-floor-frieze`, which this matches tone for tone.
-    --frieze-bar-base: var(--brown-1);
-    --frieze-bar-wave-one: var(--brown-3);
-    --frieze-bar-wave-two: var(--brown-4);
   }
 
   // The rail block — NavigationBar's `.burger-slot` to the pixel: the column's
@@ -540,18 +532,6 @@ aside.q-drawer {
   // must run the full drawer width edge to edge.
   .drawer-frieze {
     margin: 6px 0;
-  }
-  // The topmost band REPLACES the crown strip over the drawer's column, so it
-  // must match FriezeHeader's box EXACTLY or the band would step at the
-  // drawer's right edge: same --frieze-h total height (border-box) and the
-  // same 1px brown-3 bottom lip, which also eats the same 1px off the carve
-  // area so both motifs are drawn at the identical size. It is pinned outside
-  // the scroll area (no q-list padding to cancel — the old -8px hack is gone).
-  .drawer-frieze--top {
-    flex: 0 0 auto;
-    margin: 0;
-    height: var(--frieze-h);
-    border-bottom: 1px solid #BCAAA4; // Quasar brown-3 — the crown strip's lip
   }
   .q-item:hover {
     background: var(--smoke);
