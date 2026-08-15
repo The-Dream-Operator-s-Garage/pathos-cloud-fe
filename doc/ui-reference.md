@@ -356,3 +356,31 @@ The typing session keylogger for NOTE nodes is stubbed at the data model:
 | data flow | The verdict rides the API payloads, never computed client-side: `node.integrity` on enriched nodes (NodeMini reads it directly), `summary.integrity` on `/refs/summary` rows (InfoChip's self-resolve; RefMicro passes it down to MicroChip as the `integrity` prop beside `claim-status`). |
 | `.node-mini__withheld` | The violated node's body face: the API already nulled `content`/`file.text`/`file.url` (`content_withheld: true`), and instead of pretending emptiness the panel says "body withheld — integrity check failed · open Talavero's report" (red ink, `report` icon, whole line clicks through to the flyout). Media/embed branches never render for a violated node because the API withheld their sources. |
 | deferred | The full-page Talavero integrity banner (NodeDetailPage third face beside 404/AccessDenied — needs its own art treatment worthy of the mascot) and an `.integrity-dot` on LockedChip (a locked element's proof state is the owner's business, undecided). |
+
+
+## HashInspection.vue (2026-08-15, eng-review E7)
+
+`components/shared/HashInspection.vue` — what an element's **address**
+proves, per kind. Opened from `ProvenanceBadge`'s menu; fed
+`verify.inspection` + `verify.checks` from `GET /api/verify/<kind>/<hash>`
+and **never** restating the spec (one source of truth lives in the api's
+`utils/signatures.js` `hashSpecOf`).
+
+It **branches on `inspection.derivable`**, because the two cases are
+different claims:
+
+- **nodes** (derivable) — shows the recomputation
+  `sha256(registerMomentHash_authorHash)`, whether it held, what the
+  address binds (moment, author) and, emphasised, what it does **not**
+  bind: the text. A node's body is not in its address; the signature is
+  what covers it.
+- **links / paths** (not derivable) — says so as a **property**, with the
+  reason, instead of an empty derivation row. A blank cell there reads as
+  a failed check, which is the opposite of the truth: these addresses were
+  never meant to be recomputed, and the signature is the whole proof.
+
+Both branches then show the signature block — the fields it covers and the
+verdict — because that is what carries the weight either way. The
+recomputation and signature verdicts each have **three** states (holds /
+contradicted / not available): a missing verdict is never rendered as a
+passing one.

@@ -11,6 +11,16 @@
     <q-icon v-else-if="state === 'invalid'" name="gpp_bad" size="12px" />
     <q-icon v-else name="shield" size="12px" />
     {{ label }}
+
+    <!-- WHAT the badge is actually claiming, per kind (E7). The badge is a
+         verdict; this is the reasoning behind it, and a reader who wants
+         to know what "verified" covers should not have to read the API
+         reference to find out. -->
+    <q-menu v-if="inspection" anchor="bottom left" self="top left" max-width="440px">
+      <div class="provenance-badge__menu">
+        <HashInspection :inspection="inspection" :checks="checks" :hash="hashOf" />
+      </div>
+    </q-menu>
   </span>
 </template>
 
@@ -32,11 +42,13 @@
 // matching FileContractBadge's rule. Only paths/links/nodes verify.
 import { defineComponent, ref, computed, onMounted, watch } from 'vue'
 import { verifyService } from 'src/services/verify.service'
+import HashInspection from './HashInspection.vue'
 
 const VERIFIABLE = /^(paths|links|nodes)\/[0-9a-f]{64}$/
 
 export default defineComponent({
   name: 'ProvenanceBadge',
+  components: { HashInspection },
   props: {
     // '<kind>/<hash>' — the element's canonical address.
     refPath: { type: String, default: null }
@@ -44,6 +56,10 @@ export default defineComponent({
   setup (props) {
     const state = ref('hidden') // verifying | verified | unsigned | invalid | hidden
     const checks = ref(null)
+    // Per-kind hash semantics, straight from the API — never restated here
+    // (E7: one source of truth is api utils/signatures `hashSpecOf`).
+    const inspection = ref(null)
+    const hashOf = computed(() => String(props.refPath || '').split('/').pop() || '')
 
     const label = computed(() => {
       if (state.value === 'verifying') return 'verifying'
@@ -72,12 +88,14 @@ export default defineComponent({
       try {
         const { verify } = await verifyService.verify(props.refPath)
         checks.value = verify.checks
+        inspection.value = verify.inspection || null
         if (verify.status === 'verified') state.value = 'verified'
         else if (verify.status === 'invalid') state.value = 'invalid'
         else if (verify.status === 'unsigned-legacy' || verify.status === 'unchained') state.value = 'unsigned'
         else state.value = 'hidden' // draft, not-found
       } catch {
         state.value = 'hidden'
+        inspection.value = null
       }
     }
 
@@ -86,7 +104,7 @@ export default defineComponent({
     onMounted(load)
     watch(() => props.refPath, load)
 
-    return { state, label, title, download }
+    return { state, label, title, download, inspection, checks, hashOf }
   }
 })
 </script>
@@ -95,6 +113,11 @@ export default defineComponent({
 // Same carved-chip relief as FileContractBadge — mint for a holding chain,
 // red for a broken one, and a FLAT muted chip for unsigned history (legacy
 // is a fact, not an alarm; it gets no relief treatment).
+.provenance-badge__menu {
+  padding: 10px;
+  max-width: 440px;
+}
+
 .provenance-badge {
   display: inline-flex;
   align-items: center;
