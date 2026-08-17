@@ -308,13 +308,20 @@ export default defineComponent({
   border-left: 1px solid var(--brown-4);
   border-top-left-radius: 0;
   border-bottom-left-radius: var(--radius-lg);
-  // Flat brown-1 plaque — one clean color, no sheen gradients, both
-  // presentations. Opaque — no backdrop blur. Shadow drops downward (the
-  // widget hangs from the top) PLUS the shared left-edge cast
-  // (`--shadow-side-edge`, 2026-07-24) that the pins widget and the nav bar's
-  // pin-tack slot also wear — the right-edge column lies on top of the page as
-  // one raised strip, in BOTH presentations (this rule is state-agnostic).
-  background: var(--brown-1);
+  // The shared `--plaque-coat` since 2026-08-17 (user ask) — a --light-cream
+  // sheet under a 30% --grey-3 veil, the same two layers the nav bar, the left
+  // drawer and the pins widget took that session, so the window's chrome edges
+  // stay ONE material. It was a flat brown-1 plaque before, and the rest of
+  // the recipe is unchanged: no sheen gradients, both presentations, opaque
+  // (no backdrop blur). Shadow drops downward (the widget hangs from the top)
+  // PLUS the shared left-edge cast (`--shadow-side-edge`, 2026-07-24) that the
+  // pins widget and the nav bar's pin-tack slot also wear — the right-edge
+  // column lies on top of the page as one raised strip, in BOTH presentations
+  // (this rule is state-agnostic). ⚠ The panel's own borders and its inset
+  // well are still the browns (--brown-4 rims, --brown-2 wells): on a paler
+  // coat those read as a DEEPER step than they did, which is what keeps the
+  // well looking sunk now that the plaque around it lightened.
+  background: var(--plaque-coat);
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
   box-shadow:
@@ -340,11 +347,13 @@ export default defineComponent({
 }
 
 // Header bar lives at the BOTTOM of this panel (below the list, beside the
-// newest step); shares the panel's flat brown-1 coat with NO top or bottom
+// newest step); shares the panel's `--plaque-coat` with NO top or bottom
 // border/hairline so it merges seamlessly into the list body above it (one
-// uniform brown-1 plaque).
+// uniform plaque — it followed the panel out of brown-1 on 2026-08-17, and
+// has to: a header row is the one place a coat mismatch would draw a line
+// where the whole point is that there is none).
 .stack-window .dock-bar {
-  background: var(--brown-1);
+  background: var(--plaque-coat);
   border-top: none;
   border-bottom: none;
 }

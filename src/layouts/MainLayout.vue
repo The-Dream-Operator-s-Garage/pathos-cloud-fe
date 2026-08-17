@@ -424,17 +424,24 @@ aside.q-drawer {
   transition: padding-right 0.18s ease;
 }
 
-// Mercury-plaque drawer — deliberately OPAQUE and FLAT: Quasar's brown-1,
-// matching the footer and the stack/pins docks. One clean color, no sheen
-// gradients; the complementary SMOKE coat keeps items and texts crisp on
-// the pastel.
+// Mercury-plaque drawer — deliberately OPAQUE, and since 2026-08-17 (user
+// ask) wearing the shared `--plaque-coat`: a --light-cream sheet under a 30%
+// --grey-3 veil, the post card's own two-layer construction. It was Quasar's
+// brown-1 flat, and the pairing it was chosen for still holds — the nav bar
+// below and the stack/pins widgets on the right edge took the identical coat
+// in the same session, so the window's four chrome edges remain ONE material.
+// (What that pass ended is the drawer matching the CREATION docks, which keep
+// brown-1 as `--dock-coat`: a window rising from the chrome is now a different
+// material from the chrome it rises out of.) Still no sheen gradients — the
+// veil is a flat wash, not a lit face; the complementary SMOKE coat keeps
+// items and texts crisp on the pastel.
 .pathos-drawer {
   // Column: the pinned top frieze band, then the scrolling list under it.
   // (No padding-top anymore — the drawer sits ON TOP of the crown strip and
   // supplies its own band at y=0, so nothing hides under the plaque.)
   display: flex;
   flex-direction: column;
-  background: var(--brown-1) !important;
+  background: var(--plaque-coat) !important;
   border-right: 1px solid #BCAAA4 !important; // Quasar brown-3
   box-shadow: 6px 0 22px rgba(0, 0, 0, 0.30);
 
@@ -450,10 +457,17 @@ aside.q-drawer {
   // ── The drawer's own nav-bar row (2026-08-02) ────────────
   // The drawer reaches the window floor now, so its last --nav-footer-h lands
   // exactly on the nav bar underneath. Rather than hide the bar there, this
-  // block REBUILDS that row inside the drawer: the same brown-1 plaque, the
-  // same brown-3 top lip on the same pixel as the bar's `border-top`, and the
-  // same 41px brown-4 rail block at the left end. Whatever the drawer's width,
-  // the bar reads as continuous — the drawer just owns those pixels.
+  // block REBUILDS that row inside the drawer: the same `--plaque-coat`, a
+  // top lip on the same pixel as the bar's `border-top`, and the same 41px
+  // brown-4 rail block at the left end. Whatever the drawer's width, the bar
+  // reads as continuous — the drawer just owns those pixels. Both surfaces
+  // took the cream-under-veil coat on 2026-08-17, so this block agrees with
+  // the drawer it lives in AND the bar it stands on, as it always has. ⚠ The
+  // one seam left is the LIP: the bar's went `--grey-6` that day (user ask)
+  // and this one is still `--brown-3`, so two different inks now land on the
+  // same pixel. Left as-is deliberately — the ask named the nav bar's top
+  // border, and this line is the drawer's own bottom-block edge — but if the
+  // continuity ever reads broken, this is the line to walk.
   //
   // It takes --nav-bar-h, the bar's ROW. That was the two-band era's
   // distinction — the footer was this row PLUS a --frieze-h floor band, and
@@ -466,7 +480,7 @@ aside.q-drawer {
     display: flex;
     align-items: stretch;
     height: var(--nav-bar-h);
-    background: var(--brown-1);
+    background: var(--plaque-coat);
     border-top: 1px solid var(--brown-3);
     overflow: hidden;               // clips the hairline in the 42px mini state
   }

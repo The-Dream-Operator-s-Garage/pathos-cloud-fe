@@ -419,13 +419,20 @@ export default defineComponent({
   border-left: 1px solid var(--brown-4);
   border-top-left-radius: var(--radius-lg);
   border-bottom-left-radius: 0;
-  // Flat brown-1 plaque — one clean color, no sheen gradients, both
-  // presentations. Opaque — no backdrop blur. Shadow drops upward (the widget
-  // rises from the bottom) PLUS the shared left-edge cast
-  // (`--shadow-side-edge`, 2026-07-24) that the stack widget and the nav bar's
-  // pin-tack slot also wear — the right-edge column lies on top of the page as
-  // one raised strip, in BOTH presentations (this rule is state-agnostic).
-  background: var(--brown-1);
+  // The shared `--plaque-coat` since 2026-08-17 (user ask) — a --light-cream
+  // sheet under a 30% --grey-3 veil, the same two layers the nav bar, the left
+  // drawer and the stack widget took that session, so the window's chrome
+  // edges stay ONE material. It was a flat brown-1 plaque before, and the rest
+  // of the recipe is unchanged: no sheen gradients, both presentations, opaque
+  // (no backdrop blur). Shadow drops upward (the widget rises from the bottom)
+  // PLUS the shared left-edge cast (`--shadow-side-edge`, 2026-07-24) that the
+  // stack widget and the nav bar's pin-tack slot also wear — the right-edge
+  // column lies on top of the page as one raised strip, in BOTH presentations
+  // (this rule is state-agnostic). ⚠ The panel's own borders and its inset
+  // well are still the browns (--brown-4 rims, --brown-2 wells): on a paler
+  // coat those read as a DEEPER step than they did, which is what keeps the
+  // well looking sunk now that the plaque around it lightened.
+  background: var(--plaque-coat);
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
   box-shadow:
@@ -442,11 +449,13 @@ export default defineComponent({
   }
 }
 
-// Header bar lives at the TOP of the expanded panel; shares the panel's flat
-// brown-1 coat with NO bottom border or hairline so it merges seamlessly into
-// the list body below (one uniform brown-1 plaque).
+// Header bar lives at the TOP of the expanded panel; shares the panel's
+// `--plaque-coat` with NO bottom border or hairline so it merges seamlessly
+// into the list body below (one uniform plaque — it followed the panel out of
+// brown-1 on 2026-08-17, and has to: a header row is the one place a coat
+// mismatch would draw a line where the whole point is that there is none).
 .pins-drawer .dock-bar {
-  background: var(--brown-1);
+  background: var(--plaque-coat);
   border-top: none;
   border-bottom: none;
 }
@@ -474,8 +483,13 @@ export default defineComponent({
 // The column reaches the floor now, so its last --nav-footer-h lands exactly
 // on the bar underneath. Rather than hide the bar there, this block REBUILDS
 // that row inside the widget — the mirror image of MainLayout's
-// `.drawer-footer` at the other end of the window: the same brown-1 plaque,
-// the same brown-3 top lip on the same pixel as the bar's `border-top`, and
+// `.drawer-footer` at the other end of the window: the same `--plaque-coat`
+// (both surfaces took it on 2026-08-17, so this block still agrees with the
+// widget it lives in AND the bar it stands on), a top lip on the same pixel as
+// the bar's `border-top` — ⚠ still `--brown-3` where the bar's went
+// `--grey-6` that day, two inks landing on one pixel; the ask named the nav
+// bar's top border and this is the widget's own block edge, but that is the
+// line to walk if the continuity ever reads broken — and
 // the same 41px brown-4 rail block, here at the RIGHT end (flush to the screen
 // edge, under the parked column's own body) with its closing hairline facing
 // the page. Whatever the widget's width — 42px parked, 300px expanded — the
@@ -491,7 +505,7 @@ export default defineComponent({
   align-items: stretch;
   justify-content: flex-end;         // the slot hugs the screen edge
   height: var(--nav-bar-h);
-  background: var(--brown-1);
+  background: var(--plaque-coat);
   border-top: 1px solid var(--brown-3);
   overflow: hidden;                  // clips the hairline in the 42px parked state
 }

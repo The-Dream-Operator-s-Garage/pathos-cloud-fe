@@ -186,15 +186,11 @@
        the same `--brown-1` then; what made them read as different materials
        was everything CASTING onto the bar, and that box was one of them. The
        whole family is gone — see the `.nav-footer` z-index note in the style
-       block for the one change that stops the rest. NOTE the pair no longer
-       shares a tone at all: on 2026-08-17 (user asks) the bar's coat became a
-       `--light-cream` sheet under a 30% `--grey-3` veil while the drawer kept
-       `--brown-1`, so the two surfaces now differ BY CHOICE — the bar is the
-       paler and warmer of the two. That is a different thing from the
-       2026-08-02 complaint, which was about a wash, not a stated tone; and the
-       no-cast rule still stands, because a shadow spilling across the seam
-       would muddy a deliberate edge just as badly as it muddied a continuous
-       one. ── -->
+       block for the one change that stops the rest. The pair STILL shares
+       its tone: both left `--brown-1` for `--plaque-coat` on 2026-08-17 (user
+       asks — the bar first, the drawer and the two right-edge widgets an hour
+       later), so the observation that made this box go away holds exactly as
+       written, one coat later. ── -->
 
   <!-- ── Minitab strip: the minimized maker/uploader/builders/chat park here
        as folder tabs standing ON the frieze footer band (2026-07-27). It
@@ -477,15 +473,18 @@ export default defineComponent({
 
 <style lang="scss" scoped>
 // All colors source from --ink, --paper, --aqua, etc. defined in _tokens.scss.
-// The bar's plaque is a --light-cream sheet under a --grey-3 veil at 30%
-// (2026-08-17; it was --brown-1 — the docked windows' own coat — for a year
-// and flat --grey-4 for one earlier ask the same day). The minitabs parked on
-// its top edge read as folder tabs attached to the bar by SHARING that face,
-// and they no longer do: they keep --brown-1, so what says "attached" is the
-// tab's border and its seat on the edge, not the material. The ONE section
-// painted brown-4 instead is the pin-tack slot at the right end, and the top
-// lip is --grey-6 — the bar's hardest line and the one piece of its brown
-// frame that left with this pass.
+// The bar's plaque is `--plaque-coat` — a --light-cream sheet under a
+// --grey-3 veil at 30%, shared with the left drawer and the two right-edge
+// widgets since 2026-08-17. It was --brown-1 for a year (flat --grey-4 for one
+// earlier ask the same day), and brown-1 is still the CREATION docks' coat, so
+// the surface vocabulary this bar shares has changed hands: it reads with the
+// fixed chrome now, not with the windows that rise from it. The minitabs
+// parked on its top edge read as folder tabs attached to the bar by SHARING
+// its face, and they no longer do — they keep --brown-1, so what says
+// "attached" is the tab's border and its seat on the edge, not the material.
+// The ONE section painted brown-4 instead is the pin-tack slot at the right
+// end, and the top lip is --grey-6 — the bar's hardest line and the one piece
+// of its brown frame that left with this pass.
 
 .nav-footer {
   position: fixed !important;
@@ -681,21 +680,23 @@ export default defineComponent({
   //
   // The bar's FRAME stays brown — brown-3 inner hairlines, brown-4 rail blocks
   // at both ends, brown-8 chips floating in them — and the top lip is the ONE
-  // piece of it that left (--grey-6 now, see below). The minitabs parked on
-  // the top edge and the drawer lying over the bar's left end are both still
-  // --brown-1 and no longer share this face; what says they belong to the bar
-  // is the tab's border and the drawer's own geometry. Walking either one is a
-  // one-token change if the joint should read closed again.
+  // piece of it that left (--grey-6 now, see below). THE DRAWER AND BOTH
+  // RIGHT-EDGE WIDGETS TOOK THIS COAT the same session (`--plaque-coat`), so
+  // the window's four chrome edges are one material again, as they were in
+  // brown-1. The MINITAB STRIP parked on this bar's top edge is the one
+  // surface that did not follow: it is still --brown-1, and what says a parked
+  // tab belongs to the bar is its border and its seat on the edge, not the
+  // face. One line closes that if it should — the tab takes both layers.
   //
   // The BODY of the bar stays pale: the ONE section wearing the darker brown-4
   // coat is the pin-tack slot at the right end, which continues the parked
   // pinned column down through the bar (2026-07-24).
-  // The gradient's two identical stops ARE the veil: --grey-3 (#eeeeee) at 30%,
-  // written raw because the token has no `-rgb` form — same as the post card's
-  // `.post-square::before`, which spells its own --grey-2 wash out too.
-  background:
-    linear-gradient(rgba(238, 238, 238, 0.3), rgba(238, 238, 238, 0.3)),
-    var(--light-cream);
+  // Both layers ride in ONE token, `--plaque-coat` (_tokens.scss) — a
+  // background LAYER LIST, not a colour. It was spelled out here for the hour
+  // this bar was the only surface wearing it; the drawer and the two
+  // right-edge widgets took the same coat the same session, so the veil's
+  // strength is one edit for all four now.
+  background: var(--plaque-coat);
   // ── Top lip --grey-6 (2026-08-17, user ask) ──
   // It was --brown-3 from the end of 2026-07-25 (brown-4 for one day before
   // that), and the argument for brown-3 was a JOINT that no longer exists:
