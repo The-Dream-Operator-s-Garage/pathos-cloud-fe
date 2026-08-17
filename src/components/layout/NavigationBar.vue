@@ -182,11 +182,19 @@
 
   <!-- ── There is NO `.nav-top-shadow` box here anymore (2026-08-02, user
        ask: "remove any effects or overlayers on top of the nav bar — its
-       color differs from the left drawer color"). The bar and the drawer are
-       the same `--brown-1`; what made them read as different materials was
-       everything CASTING onto the bar, and that box was one of them. The
+       color differs from the left drawer color"). The bar and the drawer were
+       the same `--brown-1` then; what made them read as different materials
+       was everything CASTING onto the bar, and that box was one of them. The
        whole family is gone — see the `.nav-footer` z-index note in the style
-       block for the one change that stops the rest. ── -->
+       block for the one change that stops the rest. NOTE the pair no longer
+       shares a tone at all: on 2026-08-17 (user asks) the bar's coat became a
+       `--light-cream` sheet under a 30% `--grey-3` veil while the drawer kept
+       `--brown-1`, so the two surfaces now differ BY CHOICE — the bar is the
+       paler and warmer of the two. That is a different thing from the
+       2026-08-02 complaint, which was about a wash, not a stated tone; and the
+       no-cast rule still stands, because a shadow spilling across the seam
+       would muddy a deliberate edge just as badly as it muddied a continuous
+       one. ── -->
 
   <!-- ── Minitab strip: the minimized maker/uploader/builders/chat park here
        as folder tabs standing ON the frieze footer band (2026-07-27). It
@@ -469,10 +477,15 @@ export default defineComponent({
 
 <style lang="scss" scoped>
 // All colors source from --ink, --paper, --aqua, etc. defined in _tokens.scss.
-// The bar is a flat brown-1 plaque — the SAME surface vocabulary as the
-// docked windows (.dock-window) so the minitabs parked on its top edge
-// read as folder tabs attached to the bar, not floating chips. The ONE
-// section painted brown-4 instead is the pin-tack slot at the right end.
+// The bar's plaque is a --light-cream sheet under a --grey-3 veil at 30%
+// (2026-08-17; it was --brown-1 — the docked windows' own coat — for a year
+// and flat --grey-4 for one earlier ask the same day). The minitabs parked on
+// its top edge read as folder tabs attached to the bar by SHARING that face,
+// and they no longer do: they keep --brown-1, so what says "attached" is the
+// tab's border and its seat on the edge, not the material. The ONE section
+// painted brown-4 instead is the pin-tack slot at the right end, and the top
+// lip is --grey-6 — the bar's hardest line and the one piece of its brown
+// frame that left with this pass.
 
 .nav-footer {
   position: fixed !important;
@@ -489,7 +502,11 @@ export default defineComponent({
   // bar received all of it: the maker/uploader dock's `0 12px 38px` at 45%
   // black straight down its whole width, the drawer's `6px 0 22px` reaching
   // ~11px below its own bottom, the pins widget's `0 -10px 40px` reaching
-  // ~10px. Three overlapping washes on an otherwise flat brown-1 plaque.
+  // ~10px. Three overlapping washes on an otherwise flat plaque (brown-1 then;
+  // a --light-cream sheet under a --grey-3 veil since 2026-08-17 — the
+  // argument is about ink cast ON the coat and holds at any tone, and holds
+  // HARDER on a two-layer one: a drop shadow landing on the bar would read as
+  // a third layer in a stack that already has two).
   //
   // Raising the bar above all of them is the whole fix, and it is safe
   // precisely BECAUSE nothing overlaps its box — the bar covers no panel, it
@@ -562,15 +579,23 @@ export default defineComponent({
   border: 1px solid rgba(var(--ink-rgb-deep), 0.35);
   border-bottom: none;
   border-radius: 9px 9px 0 0;
-  // Folder tabs attached to the brown-1 plaque — same flat color, no blur.
+  // Folder tabs on the bar's top edge, flat, no blur. This face WAS the
+  // plaque's own — same tone, which is what said "attached". The bar's coat
+  // became a --light-cream sheet under a --grey-3 veil on 2026-08-17 and the
+  // tabs did NOT follow (the ask was the bar's background), so the strip is
+  // brown-1 on a paler, warmer plaque now and the border + the seated bottom
+  // edge carry the attachment alone. Rejoining is one line, not one token, if
+  // the strip should read attached by material again: the tab would take the
+  // bar's whole two-layer background, sheet and veil together.
   background: var(--brown-1);
   color: var(--ink-1);
   cursor: pointer;
   // NO CAST (2026-08-02, user ask). It wore `0 2px 8px` onto the frieze band
   // it stands over, and that DOWNWARD reach — at the bar's own top edge —
   // is exactly what made a parked tab look like it hovers above the bar
-  // instead of being attached to it. A folder tab is stuck to its drawer;
-  // the shared brown-1 face and the border are what say so.
+  // instead of being attached to it. A folder tab is stuck to its drawer; the
+  // border is what says so (the shared brown-1 face said it too until the bar
+  // took its cream-under-veil plaque — see the background note above).
   box-shadow: none;
   transition: background 0.12s;
 
@@ -630,21 +655,66 @@ export default defineComponent({
   // No padding at all: the bar runs edge to edge so the right cluster's last
   // 42px (hairline + tack) lands exactly under the parked pinned column.
   padding: 0;
-  // Flat brown-1 plaque — one clean color, no sheen gradients, no blur. The
-  // BODY of the bar stays pale: the ONE section wearing the darker brown-4 coat
-  // is the pin-tack slot at the right end, which continues the parked pinned
-  // column down through the bar (2026-07-24).
-  background: var(--brown-1);
-  // Top lip BACK to --brown-3 (end of 2026-07-25; it was brown-3, went
-  // brown-4 on 2026-07-24, and returns now). FriezeFooter used to park on
-  // this edge wearing the crown strip's own brown-3 lip — with the bar in
-  // brown-4 the two hairlines bounding the band read as different lines. On
-  // brown-3 they were one material, and the bar keeps the tone (2026-08-04:
-  // FriezeFooter is gone, retired in favour of the pale floor band, but this
-  // edge stays brown-3 — the frieze's lip, the drawer's border-right and this
-  // edge all share the raw brown-3 hex regardless). (The brown-4 frame the
-  // bar used to keep survives at the tack slot's block.)
-  border-top: 1px solid var(--brown-3);
+  // ── THE PLAQUE: --light-cream UNDER A --grey-3 VEIL AT 30% ──
+  // (2026-08-17, user asks: "make it light-cream and put a 60% transparented
+  // grey-3 layer on top of it", then "make the veil 30%". The bar spent that
+  // same session at flat --grey-4 — the ask before those — and --brown-1 for
+  // every day before that.) TWO LAYERS, not one flat coat, which is the POST
+  // CARD's own construction moved onto a bar: a warm sheet with a cool neutral
+  // wash laid over it (`.post-square::before`, FeedStream.vue). The wash is
+  // what keeps the cream from reading as a yellow bar — it pulls the sheet's
+  // warmth back toward the platform's neutrals without ever leaving the light
+  // half of the scale. HALVING it (60% → 30%) is a move along that one line:
+  // composited the pair goes rgb(243,240,232) → rgb(247, 241, 228) (sampled off the rendered bar), so the
+  // plaque lightens a touch and its warmth roughly doubles (R−B 11 → 19,
+  // against the 6 that --brown-1 held for a year here). At 30% the cream is
+  // the material you read and the grey is a tint on it; at 60% they met in
+  // the middle. Either way the plaque stays PALER than the brown-1 it
+  // replaced — this bar got lighter and warmer at once.
+  //
+  // The layer is a flat two-stop gradient over the fill rather than a
+  // `::before` — the same idiom `.minitab:hover` uses above, and the reason is
+  // structural: `.nav-bar`'s children are unpositioned grid cells, so a
+  // positioned pseudo-element with `inset: 0` would paint OVER the buttons
+  // instead of under them. As a background layer the veil is between the
+  // sheet and the content by construction, with no z-index to keep straight.
+  //
+  // The bar's FRAME stays brown — brown-3 inner hairlines, brown-4 rail blocks
+  // at both ends, brown-8 chips floating in them — and the top lip is the ONE
+  // piece of it that left (--grey-6 now, see below). The minitabs parked on
+  // the top edge and the drawer lying over the bar's left end are both still
+  // --brown-1 and no longer share this face; what says they belong to the bar
+  // is the tab's border and the drawer's own geometry. Walking either one is a
+  // one-token change if the joint should read closed again.
+  //
+  // The BODY of the bar stays pale: the ONE section wearing the darker brown-4
+  // coat is the pin-tack slot at the right end, which continues the parked
+  // pinned column down through the bar (2026-07-24).
+  // The gradient's two identical stops ARE the veil: --grey-3 (#eeeeee) at 30%,
+  // written raw because the token has no `-rgb` form — same as the post card's
+  // `.post-square::before`, which spells its own --grey-2 wash out too.
+  background:
+    linear-gradient(rgba(238, 238, 238, 0.3), rgba(238, 238, 238, 0.3)),
+    var(--light-cream);
+  // ── Top lip --grey-6 (2026-08-17, user ask) ──
+  // It was --brown-3 from the end of 2026-07-25 (brown-4 for one day before
+  // that), and the argument for brown-3 was a JOINT that no longer exists:
+  // FriezeFooter parked on this edge wearing the crown strip's own brown-3
+  // lip, and two hairlines bounding that band had to be one material. The band
+  // was retired on 2026-08-04 and the lip kept the tone out of family loyalty
+  // — this edge, the frieze's lip and the drawer's border-right all carried
+  // the same raw hex. With the plaque now a cream sheet under a cool wash,
+  // that loyalty was the last thing holding a warm line at the bar's most
+  // structural edge, and --grey-6 (#9e9e9e) states it as a LINE instead: 2.4:1
+  // on the composited face, where brown-3 on the old brown-1 plaque sat at
+  // 1.9:1 — the bar's top edge is drawn now rather than implied, and the
+  // veil setting barely moves it (2.36:1 at 60%, 2.38:1 at 30%). NOTE the lip is the only piece of the
+  // frame that moved: the inner hairlines (`.nav-left`/`.nav-right` borders
+  // and `.nav-divider`) are still brown-3, which INVERTS the old relation —
+  // the lines drawn inside the bar used to be the softer ones, and the edge
+  // that closes it is now the hardest line on the bar by a wide margin. That
+  // is the ask, and it is worth knowing before touching either half.
+  border-top: 1px solid var(--grey-6);
   // NO box-shadow here, and no cast anywhere on this bar anymore
   // (2026-08-02) — see the `.nav-footer` z-index note above.
   // Exact height — the BAR'S OWN ROW. From 2026-08-02 to 2026-08-12 that was
@@ -790,8 +860,11 @@ export default defineComponent({
 // down through the bar — the drawer's 42px mini rail on the left, the parked
 // pinned column on the right — so the window is bounded by two matching
 // vertical strips that run from the crown strip to the bottom of the screen.
-// Both wear the columns' darker brown-4 coat instead of the bar's brown-1
-// plaque, and both are exactly --dock-rail-w wide COUNTING the hairline that
+// Both wear the columns' darker brown-4 coat instead of the bar's own plaque
+// (--brown-1 when that pairing was struck; a --light-cream sheet under a
+// --grey-3 veil since 2026-08-17 — the plaque got PALER, so the step that
+// states these blocks reads deeper than it did, not shallower), and both are
+// exactly --dock-rail-w wide COUNTING the hairline that
 // closes them (hence the `- 1px`) — the left block + `.nav-left`'s
 // `border-right` = 42px, the same 42px `q-drawer` gets from `:mini-width`, so
 // the drawer's rail and this block share both edges to the pixel.
@@ -821,7 +894,8 @@ export default defineComponent({
 // that divider went brown-3 with the bar's other hairlines on 2026-07-24,
 // while the column's border above stays brown-4. What carries the edge down
 // here is the brown-4 BLOCK, not the line.) It wears the column's DARKER brown-4 coat
-// (2026-07-24) instead of the bar's brown-1 plaque, and casts the shared
+// (2026-07-24) instead of the bar's own plaque (a --light-cream sheet under a
+// --grey-3 veil since 2026-08-17, --brown-1 before), and casts the shared
 // `--shadow-side-edge` leftward ON TOP of the bar — the same cast the stack/
 // pins widgets throw above it, so the whole right-edge column reads as one
 // raised strip. `position: relative` + z-index keep that cast above the bar's
