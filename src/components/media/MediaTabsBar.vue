@@ -123,10 +123,13 @@ export default defineComponent({
 // background LAYER LIST and cannot go there. A flat stand-in would be needed
 // (`--light-cream`, or the coat's composited rgb(248,242,228)).
 //
-// The 1px `--indigo-4` rim under it is the tabs' own border continued across
-// the window (user ask, same day: "so it looks smooth and metallic") — the
-// band is a machined edge with tabs cut out of it, and one line has to run
-// the whole way for that to read. That line was `--grey-6` until 2026-08-06,
+// THE RIM UNDER IT IS 2px OF `--grey-6` SINCE 2026-08-17 (user ask) — see
+// the rule below for what that costs at the seam. What follows is the history
+// it replaced, and the argument is worth keeping because it is the one the
+// tabs still live by: the 1px `--indigo-4` rim was the tabs' own border
+// continued across the window (user ask, 2026-08-06: "so it looks smooth and
+// metallic") — the band a machined edge with tabs cut out of it, one line
+// running the whole way. That line was `--grey-6` until 2026-08-06,
 // when the user moved every EDGE on this strip into the feed colorway and
 // every MARK on it to `--indigo-10`: the face stays the window's own neutral
 // coat, so the strip reads as grey metal with the platform's indigo scribed
@@ -151,9 +154,43 @@ export default defineComponent({
   left: 0;
   right: 0;
   box-sizing: border-box;
-  height: calc(var(--media-tabs-band) + 1px);
+  height: calc(var(--media-tabs-band) + var(--media-tabs-rim));
   background: var(--plaque-coat);
-  border-bottom: 1px solid var(--indigo-4, #7986cb);
+  // ── THE RIM: 2px of --grey-6 (2026-08-17, user ask) ──
+  // It was 1px of `--indigo-4` — the tabs' own border continued across the
+  // window, one line running band → flare → tab, walked up the indigo ramp on
+  // 2026-08-06 so the strip read as grey metal with the platform's indigo
+  // scribed into it. With the face off `--grey-4` and onto the cream coat,
+  // the line goes back to stating the EDGE rather than the colorway: --grey-6
+  // is the same ink the post cards draw every line in, on the same
+  // `--light-cream` sheet, and at 2px on a ~4px face it is no longer a scribe
+  // mark — it is the bottom of the rail, which is what a shadow can then hang
+  // off. Both pixels are declared, never assumed: `--media-tabs-rim` feeds
+  // this border, this element's `height` (border-box) and `--media-tabs-h`,
+  // the offset every top-anchored surface in the window starts on.
+  //
+  // ⚠ THE TABS' OWN RIM DID NOT FOLLOW — still 1px `--indigo-4`, in the
+  // border and in both flare gradients. The "one continuous line" reading is
+  // therefore gone at the seam: a tab now hangs off a thicker, greyer edge in
+  // its own thinner, bluer one. Closing it is three `--indigo-4` occurrences
+  // below (border + two radial-gradient stop pairs) and a width; left as-is
+  // because the ask named the BAR's border, and because the tab's rim is what
+  // ties it to the media window it restores.
+  border-bottom: var(--media-tabs-rim) solid var(--grey-6, #9e9e9e);
+  // A soft downward cast (2026-08-17, user ask) — the rail is a raised edge
+  // over the page now, not paint lying flush on it. Deliberately NOT the
+  // `--shadow-side-edge` family the right-edge column wears (that one is a
+  // horizontal cast at 16%, and this bar is 1440px of it — the same opacity
+  // reads as a smear across the whole window); deliberately not `--shadow-soft`
+  // either, which at 6% disappears against the page's dark canvas. 12% over
+  // 8px, offset down by the rim's own 2px, lands between them: it states the
+  // rail's underside on the light surfaces below it (the feed column, a dock)
+  // and stays invisible on the starfield.
+  //
+  // It falls BEHIND the tabs, not on them — `.media-tabs__row` is a child, so
+  // it paints above the parent's cast — which is what keeps a parked tab
+  // reading as attached metal rather than as something lying under the bar.
+  box-shadow: 0 2px 8px rgba(var(--ink-rgb-deep), 0.12);
   z-index: 3105;
   pointer-events: none;
 }

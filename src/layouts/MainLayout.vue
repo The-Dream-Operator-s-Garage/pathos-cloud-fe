@@ -30,19 +30,33 @@
            --frieze-h box, same brown-3 lip, so the two read as one band —
            and a stub of it standing alone at the top-left corner would be
            the band the ask removed, drawn in one column. The drawer's
-           SECTION dividers below are a different job and stay. -->
+           SECTION dividers below are a different job and stay — and since
+           2026-08-17 (user ask) one of them stands ABOVE the Back button too.
+           That is NOT the deleted band coming back: this one sits INSIDE the
+           scroll area, in the list's own padding, wearing the divider rhythm
+           and the divider palette. It divides the drawer's top edge from its
+           first control instead of continuing a screen-edge band across the
+           column, which is exactly the distinction that retired the old one. -->
 
       <q-scroll-area class="drawer-scroll" :horizontal-thumb-style="{ opacity: 0 }">
         <q-list padding class="nasalization" style="font-size:0.82em;">
 
-          <!-- Mirrored frieze bands — the drawer's section dividers (after
-               Back, before EXPLORE, before IDENTITY); full-bleed edge to edge
-               (the q-list only pads vertically) so each spans the drawer in
-               both mini and expanded states. -->
+          <!-- Mirrored frieze bands — the drawer's section dividers (ABOVE
+               Back since 2026-08-17, then after Back, before EXPLORE, before
+               IDENTITY); full-bleed edge to edge (the q-list only pads
+               vertically) so each spans the drawer in both mini and expanded
+               states. All four are the SAME element with the same class and
+               the default brown recipe (brown-4 base, brown-2 + brown-1
+               waves) — the drawer has one divider vocabulary, and a band that
+               happens to be first is not a different kind of band. -->
+          <FriezeBar class="drawer-frieze" />
 
           <!-- Distinctive Back button — pinned at the very top of the drawer
                so every viewer can reclaim its top bar. Disabled on the very
-               first entry of the history stack. -->
+               first entry of the history stack. Since 2026-08-17 it is
+               BRACKETED by friezes, one above and one below, which is what
+               makes it read as its own section rather than as the first item
+               of the list under it. -->
           <q-item
             clickable
             v-ripple
