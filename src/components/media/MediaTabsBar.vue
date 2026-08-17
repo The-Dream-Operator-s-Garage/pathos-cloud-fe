@@ -1,6 +1,9 @@
 <template>
-  <!-- The minimize band — a thin light-grey strip rimmed and lettered in
-       indigo (`--indigo-4` edges, `--indigo-10` marks, 2026-08-06),
+  <!-- The minimize band — a thin strip of the platform's chrome coat
+       (`--plaque-coat`), rimmed in 2px of `--grey-6` and lettered in
+       `--grey-8`, its tabs cut from the same material (2026-08-17 user asks;
+       it was a light-grey `--grey-4` strip rimmed and lettered in indigo,
+       `--indigo-4` edges + `--indigo-10` marks, from 2026-08-06),
        ABOVE the crown strip (not on it: `--media-tabs-h` moves the whole
        top chrome down for it, 2026-08-05), carrying one tab per parked
        viewer; clicking a tab restores its window
@@ -110,18 +113,17 @@ export default defineComponent({
 // cream-under-veil coat reaches it too: the window's chrome is now one
 // material on ALL FOUR EDGES, top rail included.
 //
-// ⚠ WHAT THAT COSTS, and it is the same trade the minitab strip made at the
-// other end of the window: the TABS did not follow — they keep `--grey-4`
-// (`--mtab-face` below), so a tab is a grey handle hanging off a cream rail
-// rather than a piece of the rail pulled downward. The flares still carve
-// their quarter-disc out with `transparent`, so the band shows through the
-// sweep correctly; what is gone is the shared FACE either side of that arc.
-// Two things to know before closing it: the tab face also matches the media
-// WINDOW it restores (still `--grey-4`), so walking the tab breaks that pair
-// instead; and `--mtab-face` is consumed inside the flares' radial-gradient
-// colour stops, where a `<color>` is required — `--plaque-coat` is a
-// background LAYER LIST and cannot go there. A flat stand-in would be needed
-// (`--light-cream`, or the coat's composited rgb(248,242,228)).
+// THE TABS FOLLOWED IT an ask later the same day, reported off the SKELETON
+// FLYOUT's minimize (every flyout and viewer parks on this one strip): face,
+// rim weight and rim tone all match the band again, so band → flare → tab is
+// one material with one line round it, which is the state this strip was
+// built in. The tab takes `--plaque-flat` and not `--plaque-coat` because
+// its face is also consumed inside the flares' radial-gradient colour stops,
+// where a background LAYER LIST is illegal — that token is the coat's
+// measured composite as a flat `<color>`, indistinguishable on an opaque
+// surface. What the tab no longer matches is the media WINDOW it restores,
+// which keeps `--grey-4`: the handle belongs to the strip it hangs from, the
+// same way its rim already did after 2026-08-06.
 //
 // THE RIM UNDER IT IS 2px OF `--grey-6` SINCE 2026-08-17 (user ask) — see
 // the rule below for what that costs at the seam. What follows is the history
@@ -141,9 +143,9 @@ export default defineComponent({
 // wave, it states the colorway and lets the strip stay a light thing. Depth
 // on this edge went the opposite way from the ink beside it, which took the
 // family's deepest step — the contrast between the two IS the strip.
-// `border-box` + the `+ 1px` in
+// `border-box` + the `+ var(--media-tabs-rim)` in
 // `--media-tabs-h` is what keeps the FACE a clean `--media-tabs-band` while
-// the rim adds its own pixel to the space the page gives up. The tabs then
+// the rim adds its own pixels to the space the page gives up. The tabs then
 // hang from `top: 100%` — the padding box, i.e. the face's underside — so
 // each one and its flares PAINT OVER the rim for their own width: the line
 // breaks where metal attaches to metal, which is exactly where a rim should
@@ -169,13 +171,12 @@ export default defineComponent({
   // this border, this element's `height` (border-box) and `--media-tabs-h`,
   // the offset every top-anchored surface in the window starts on.
   //
-  // ⚠ THE TABS' OWN RIM DID NOT FOLLOW — still 1px `--indigo-4`, in the
-  // border and in both flare gradients. The "one continuous line" reading is
-  // therefore gone at the seam: a tab now hangs off a thicker, greyer edge in
-  // its own thinner, bluer one. Closing it is three `--indigo-4` occurrences
-  // below (border + two radial-gradient stop pairs) and a width; left as-is
-  // because the ask named the BAR's border, and because the tab's rim is what
-  // ties it to the media window it restores.
+  // THE TABS' RIM FOLLOWED an ask later (user report off the skeleton
+  // flyout): their border and both flare arcs read `--mtab-rim` /
+  // `--mtab-rim-ink`, which default to this width and `--grey-6`, so one
+  // unbroken line runs band → flare → tab again. `--media-tabs-rim` is
+  // therefore FOUR numbers now, not three — this border, the band's height,
+  // `--media-tabs-h`, and the tab's own edge.
   border-bottom: var(--media-tabs-rim) solid var(--grey-6, #9e9e9e);
   // A soft downward cast (2026-08-17, user ask) — the rail is a raised edge
   // over the page now, not paint lying flush on it. Deliberately NOT the
@@ -229,19 +230,33 @@ export default defineComponent({
   > .media-tabs__tab:first-child { margin-left: auto; }
 }
 
-// A tab hangs off the band with a thin `--indigo-4` rim — the band's own
-// line, so the two are still one continuous edge — and a `--grey-4` face. It
-// WAS "a piece of the band pulled downward", identical face and all, until
-// the band took `--plaque-coat` on 2026-08-17 (see the note above); the face
-// now matches the media WINDOW the tab restores and no longer the strip it
-// hangs from, which is the reverse of what the rim did on 2026-08-06; it was the media window's `--grey-6` rim tone until
+// A tab is a piece of the band pulled downward: the band's own face
+// (`--plaque-flat`, the chrome coat as a flat colour) inside the band's own
+// rim (`--media-tabs-rim` of `--grey-6`), so the two are one material with
+// one continuous edge — it spent one ask on a `--grey-4` face and a 1px
+// `--indigo-4` rim after the band moved without it, and rejoined on
+// 2026-08-17; it was the media window's `--grey-6` rim tone until
 // 2026-08-06 (user ask), which is the day the handle stopped matching the
 // window it opens and started matching the STRIP it hangs from — and
 // `--indigo-10` ink in the display face. `--mtab-face` exists so the flares
 // can follow the face through hover and press — they are painted by a
 // gradient and cannot inherit `background`.
 .media-tabs__tab {
-  --mtab-face: var(--grey-4, #e0e0e0);
+  // ── THE TAB REJOINED THE BAND (2026-08-17, user ask, reported off the
+  // SKELETON FLYOUT's minimize — every flyout and viewer parks on this same
+  // strip, so one rule covers them all) ──
+  // `--plaque-flat` is `--plaque-coat` as a flat `<color>`: the coat's
+  // measured composite (#f8f2e4), which exists precisely because this face is
+  // also consumed inside the flares' gradient stops, where a background layer
+  // list is illegal. Tab and band are one material again — the state the
+  // strip was built in and lost for the hour the band alone wore the coat.
+  --mtab-face: var(--plaque-flat, #f8f2e4);
+  // The rim matches the band's, thickness and tone: `--media-tabs-rim` of
+  // `--grey-6`, so the line runs band → flare → tab unbroken again. The tab
+  // has no top edge (it flows OUT of the band), so what this paints is the
+  // bottom sweep and the two sides — one continuous edge with the rail's.
+  --mtab-rim: var(--media-tabs-rim, 2px);
+  --mtab-rim-ink: var(--grey-6, #9e9e9e);
   pointer-events: auto; // the one clickable thing on a click-through band
   position: relative; // the two flares are absolute to this box
   display: inline-flex;
@@ -252,11 +267,16 @@ export default defineComponent({
   min-width: 46px; // the shrink floor: glyph + a sliver of name
   max-width: 180px;
   padding: 0 10px;
-  border: 1px solid var(--indigo-4, #7986cb);
+  border: var(--mtab-rim) solid var(--mtab-rim-ink);
   border-top: none; // it flows out of the band, so it has no top edge
   border-radius: 0 0 9px 9px;
   background: var(--mtab-face);
-  color: var(--indigo-10, #1a237e);
+  // Ink --grey-8 (2026-08-17, user ask), from `--indigo-10`. The tab stopped
+  // being the one indigo-written thing on a neutral strip when the strip went
+  // cream: -8 is the platform's quiet-writing step on a light face, dark
+  // enough at 0.62em (5.9:1 on this face) and a whole family away from the
+  // rail's own `--grey-6` rim, so mark and edge never read as one weight.
+  color: var(--grey-8, #616161);
   font-size: 0.62em;
   cursor: pointer;
   transition: background 0.12s, height 0.12s, transform 0.12s;
@@ -266,8 +286,15 @@ export default defineComponent({
   // and lights the metal a step. Press: a 1px dip onto a step darker,
   // which is the direction a press reads on a light surface (the dark
   // coat this bar was born on wanted the opposite).
-  &:hover { --mtab-face: var(--grey-3, #eeeeee); height: 25px; }
-  &:active { --mtab-face: var(--grey-5, #bdbdbd); transform: translateY(1px); }
+  // The two states had to be re-based when the face went from `--grey-4`
+  // (224) to the cream composite (248): `--grey-3` was a step UP from grey-4
+  // and is a step DOWN from this, so the old hover would have read as a
+  // press. They are stated in the coat's own terms now — hover LIFTS THE VEIL
+  // (the bare `--light-cream` sheet, the lightest this surface goes), press
+  // lays more of it on (`--grey-3`, the veil's own tone) — which keeps the
+  // original direction: lighter reaching out, darker under the finger.
+  &:hover { --mtab-face: var(--light-cream, #fcf3e0); height: 25px; }
+  &:active { --mtab-face: var(--grey-3, #eeeeee); transform: translateY(1px); }
 
   // ── THE FLARES ──
   // A concave fillet at each top corner, so the tab does not butt into the
@@ -285,12 +312,20 @@ export default defineComponent({
   // Radial gradients, not borders: an INVERTED radius has no border-radius
   // spelling. `pointer-events: none` keeps the flares out of the hit box —
   // they are 9px of paint hanging over the crown strip.
+  // Both dimensions and every stop below follow `--mtab-rim` (2026-08-17), so
+  // the fillet's half of the line is the same weight as the tab's border and
+  // the band's rim. The WIDTH is 9px of sweep plus the rim's own pixels: that
+  // overlap lies over the stub of side border which would otherwise cross the
+  // sweep, and a 1px overlap stopped covering it the moment the border
+  // doubled. The arc thickens INWARD — its outer boundary stays at 8.9/9.1px,
+  // where the face begins and the tab's own edge stands — so the sweep still
+  // lands exactly where it did and only the line drawn along it got heavier.
   &::before,
   &::after {
     content: '';
     position: absolute;
     top: 0;
-    width: 10px;
+    width: calc(9px + var(--mtab-rim));
     height: 9px;
     pointer-events: none;
   }
@@ -298,26 +333,31 @@ export default defineComponent({
   &::before {
     left: -9px;
     background: radial-gradient(circle at 0 100%,
-      transparent 7.9px, var(--indigo-4, #7986cb) 8.1px,
-      var(--indigo-4, #7986cb) 8.9px, var(--mtab-face) 9.1px);
+      transparent calc(9px - var(--mtab-rim) - 0.1px),
+      var(--mtab-rim-ink) calc(9px - var(--mtab-rim) + 0.1px),
+      var(--mtab-rim-ink) 8.9px, var(--mtab-face) 9.1px);
   }
 
   &::after {
     right: -9px;
     background: radial-gradient(circle at 100% 100%,
-      transparent 7.9px, var(--indigo-4, #7986cb) 8.1px,
-      var(--indigo-4, #7986cb) 8.9px, var(--mtab-face) 9.1px);
+      transparent calc(9px - var(--mtab-rim) - 0.1px),
+      var(--mtab-rim-ink) calc(9px - var(--mtab-rim) + 0.1px),
+      var(--mtab-rim-ink) 8.9px, var(--mtab-face) 9.1px);
   }
 }
 
 .media-tabs__glyph {
   flex: 0 0 auto;
-  // The SAME tone as the name (2026-08-06, user ask: "text and icons to
-  // indigo-10"), where it used to sit a step under it at `--grey-8` —
-  // glyph, not word. At 12px on a light face the step was reading as a
-  // faded mark rather than a quieter one, and one ink for both makes the
-  // tab a single written thing.
-  color: var(--indigo-10, #1a237e);
+  // ONE ink for glyph and name, which is the rule this line has kept through
+  // both repaints (2026-08-06 took the pair to `--indigo-10` from a split
+  // where the glyph sat a step under the word at `--grey-8`, because at 12px
+  // that step read as a FADED mark rather than a quieter one). 2026-08-17
+  // (user ask) takes the pair to `--grey-8` — the old glyph tone, now doing
+  // the whole tab — as the strip left the indigo colorway for the platform's
+  // cream chrome. Inherit rather than restate: the tab sets `color` and this
+  // only has to not override it.
+  color: inherit;
 }
 
 .media-tabs__name {
