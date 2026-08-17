@@ -98,10 +98,30 @@ export default defineComponent({
 <style lang="scss" scoped>
 // Above the stack widget (3100) so the tabs stay clickable across the full
 // width, below the nav footer (3110) and drawer (3120). The band itself is
-// PAINT — pointer-events pass through it; only the tabs take taps. It wears
-// the media window's own `--grey-4` coat (2026-08-05, user ask): band, tab
-// and window are one material, which is what lets a tab flare out of the
-// band instead of being stuck onto it.
+// PAINT — pointer-events pass through it; only the tabs take taps.
+//
+// ── THE FACE: `--plaque-coat` since 2026-08-17 (user ask) ──
+// It wore the media window's own `--grey-4` coat from 2026-08-05, on the
+// argument that band, tab and window are ONE MATERIAL, which is what lets a
+// tab flare out of the band instead of being stuck onto it. This band is the
+// whole top chrome of the window (the crown strip was deleted 2026-08-12 and
+// the page container pads down by `--media-tabs-h` alone), so the ask that
+// took the nav bar, the drawer and both side widgets to the shared
+// cream-under-veil coat reaches it too: the window's chrome is now one
+// material on ALL FOUR EDGES, top rail included.
+//
+// ⚠ WHAT THAT COSTS, and it is the same trade the minitab strip made at the
+// other end of the window: the TABS did not follow — they keep `--grey-4`
+// (`--mtab-face` below), so a tab is a grey handle hanging off a cream rail
+// rather than a piece of the rail pulled downward. The flares still carve
+// their quarter-disc out with `transparent`, so the band shows through the
+// sweep correctly; what is gone is the shared FACE either side of that arc.
+// Two things to know before closing it: the tab face also matches the media
+// WINDOW it restores (still `--grey-4`), so walking the tab breaks that pair
+// instead; and `--mtab-face` is consumed inside the flares' radial-gradient
+// colour stops, where a `<color>` is required — `--plaque-coat` is a
+// background LAYER LIST and cannot go there. A flat stand-in would be needed
+// (`--light-cream`, or the coat's composited rgb(248,242,228)).
 //
 // The 1px `--indigo-4` rim under it is the tabs' own border continued across
 // the window (user ask, same day: "so it looks smooth and metallic") — the
@@ -132,7 +152,7 @@ export default defineComponent({
   right: 0;
   box-sizing: border-box;
   height: calc(var(--media-tabs-band) + 1px);
-  background: var(--grey-4, #e0e0e0);
+  background: var(--plaque-coat);
   border-bottom: 1px solid var(--indigo-4, #7986cb);
   z-index: 3105;
   pointer-events: none;
@@ -172,9 +192,12 @@ export default defineComponent({
   > .media-tabs__tab:first-child { margin-left: auto; }
 }
 
-// A tab is a piece of the band pulled downward: same `--grey-4` face, a
-// thin `--indigo-4` rim — the band's own line, so the two are still one
-// continuous edge; it was the media window's `--grey-6` rim tone until
+// A tab hangs off the band with a thin `--indigo-4` rim — the band's own
+// line, so the two are still one continuous edge — and a `--grey-4` face. It
+// WAS "a piece of the band pulled downward", identical face and all, until
+// the band took `--plaque-coat` on 2026-08-17 (see the note above); the face
+// now matches the media WINDOW the tab restores and no longer the strip it
+// hangs from, which is the reverse of what the rim did on 2026-08-06; it was the media window's `--grey-6` rim tone until
 // 2026-08-06 (user ask), which is the day the handle stopped matching the
 // window it opens and started matching the STRIP it hangs from — and
 // `--indigo-10` ink in the display face. `--mtab-face` exists so the flares
