@@ -373,8 +373,14 @@ export default defineComponent({
 // FriezeHeader's EXACT box: the same --frieze-h height plus the same 1px
 // brown-3 bottom lip — which, border-box, also trims the same 1px off the
 // carve area, so both motifs are drawn at an identical size and the band
-// doesn't step at the widget's left edge. Only the palette differs (FriezeBar's
-// inverted brown-4 base), same as the drawer's top band.
+// doesn't step at the widget's left edge. Only the palette differs — and since
+// 2026-08-17 (user ask) it is not FriezeBar's default brown-4 but the SIDE
+// CHROME TRIO rule in `_components.scss`: a `--grey-8` plate under the
+// orange-11/cyan-11 wave weave, shared by name with `.pins-frieze` and the
+// drawer's `.drawer-frieze` bands. ⚠ The brown-3 lip below is this file's own
+// and deliberately did NOT move with that coat — it still states the crown
+// strip's edge; it is the line to walk if a warm rule on the neutral plate
+// ever reads wrong.
 .stack-frieze {
   flex-shrink: 0;
   height: var(--frieze-h);

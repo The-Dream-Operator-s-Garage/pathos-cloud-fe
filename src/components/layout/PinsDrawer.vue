@@ -473,7 +473,10 @@ export default defineComponent({
 // the flex column (the list below it is the shrinking scroller). Same box as
 // the stack's inner band — plain --frieze-h, no brown-3 lip: neither of them
 // stands in for the crown strip, so the pair reads identically across the two
-// widgets.
+// widgets. Palette: the SIDE CHROME TRIO rule in `_components.scss` since
+// 2026-08-17 (user ask) — a `--grey-8` plate under the opposed
+// orange-11/cyan-11 wave ramps, shared by name with the stack's pair and the
+// drawer's bands.
 .pins-frieze {
   flex-shrink: 0;
   height: var(--frieze-h);

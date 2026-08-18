@@ -742,6 +742,70 @@
   &:active { opacity: 0.7; }
 }
 
+// ── THE SIDE CHROME'S FRIEZE WEAVE (2026-08-17, user ask) — ONE palette rule
+// for the three side surfaces' bands: the left drawer's section dividers
+// (`.drawer-frieze`, MainLayout ×4) and the stack/pins widgets' bracket bands
+// (`.stack-frieze` ×2, `.pins-frieze`). They had worn FriezeBar's default
+// browns (brown-4 plate, brown-2 + brown-1 waves) since birth; now the plate
+// is `--grey-8` — the level that already plaques the post card's frieze band
+// and the floating media viewer's divider, so every neutral frieze plate in
+// the app sits on ONE tone — and the waves are PAINTED, not re-toned, through
+// the bar's `-paint` dials: opposed three-step ramps of the A100 pair
+// `--orange-11`/`--cyan-11` in 30/40/30 thirds down the band.
+//
+//   wave two (mask `b`, the old brown-1)          orange / cyan / orange
+//   wave one (mask `a`, the old darker brown-2)   cyan / orange / cyan
+//
+// The two ramps are INVERSES: at any height where one wave is warm the other
+// is cold, so the interleave alternates in HUE as well as in phase — a weave,
+// not two tinted copies of one motif. The seams are FEATHERED (same ask's
+// follow-up, minutes after the weave was born hard-stopped): each colour
+// holds the middle of its third and blends across a zone ±10 points around
+// the 30% and 70% marks — holds at 0–20 / 40–60 / 80–100, blends between.
+// The proportions survive because every seam is feathered symmetrically
+// about the line it replaced. What the blur costs is known and accepted:
+// orange and cyan sit near-complementary, so the crossing passes through a
+// desaturated seam — kept to a fifth of the band per side so both accents
+// still stand at full chroma in their holds. The feather is the dial: pull
+// each stop pair further apart for blurrier, push them back toward
+// 30/30 and 70/70 for crisper, delete the blend by re-doubling the stops.
+//
+// The flat wave dials are stated UNDER the paints — FeedStream's rule for the
+// post card's band: never seen while the gradient draws, stated anyway so a
+// browser that drops the paint lands in the weave's own family rather than on
+// the component's default brown. Each follows its ramp's TOP end.
+//
+// ONE RULE, THREE WEARERS — the `--plaque-coat` doctrine from this same day:
+// a shared treatment is shared by NAME, not by three copies drifting apart.
+// The hosts keep their own geometry in their own files (the drawer's margins,
+// both widgets' --frieze-h heights, the stack's brown-3 crown lip — which
+// deliberately did NOT move with this coat); only the palette lives here.
+.drawer-frieze,
+.stack-frieze,
+.pins-frieze {
+  --frieze-bar-base: var(--grey-8, #616161);
+  --frieze-bar-wave-one: var(--cyan-11, #84ffff);
+  --frieze-bar-wave-one-paint: linear-gradient(
+    to bottom,
+    var(--cyan-11, #84ffff) 0%,
+    var(--cyan-11, #84ffff) 20%,
+    var(--orange-11, #ffd180) 40%,
+    var(--orange-11, #ffd180) 60%,
+    var(--cyan-11, #84ffff) 80%,
+    var(--cyan-11, #84ffff) 100%
+  );
+  --frieze-bar-wave-two: var(--orange-11, #ffd180);
+  --frieze-bar-wave-two-paint: linear-gradient(
+    to bottom,
+    var(--orange-11, #ffd180) 0%,
+    var(--orange-11, #ffd180) 20%,
+    var(--cyan-11, #84ffff) 40%,
+    var(--cyan-11, #84ffff) 60%,
+    var(--orange-11, #ffd180) 80%,
+    var(--orange-11, #ffd180) 100%
+  );
+}
+
 // ── FLYOUT WINDOW CHROME (2026-08-10) — the NEUTRAL floating box the
 // platform reads ONE object out in. There are two of them now: the skeleton
 // viewer the feed opens beside its column (`SkeletonFlyout.vue`, 2026-07-26)
