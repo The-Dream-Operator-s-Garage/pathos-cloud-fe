@@ -370,7 +370,9 @@ export default defineComponent({
 // The top-edge frieze band must keep its full height in the flex column (the
 // list below it is the shrinking scroller). Since the widget now overlaps the
 // crown strip, this band REPLACES it across the stack's column, so it wears
-// FriezeHeader's EXACT box: the same --frieze-h height plus a 1px bottom
+// FriezeHeader's EXACT box: the same height (now the trio's `--frieze-bar-h`
+// = 0.96 × `--frieze-h` since the same sitting's trim walk — this scoped
+// height reads that dial) plus a 1px bottom
 // lip (the strip's own brown-3 until 2026-08-17's rim ask took it to
 // `--grey-6`, the trio's rim ink) — which, border-box, also trims the same
 // 1px off the carve area, so both motifs are drawn at an identical size and
@@ -386,7 +388,7 @@ export default defineComponent({
 // strip's edge, whatever ink that edge wears.
 .stack-frieze {
   flex-shrink: 0;
-  height: var(--frieze-h);
+  height: var(--frieze-bar-h, var(--frieze-h));
   border-bottom: 1px solid var(--grey-6);
 }
 
@@ -394,14 +396,14 @@ export default defineComponent({
 // the scroll well and the header / head glyph. It is not standing in for the
 // crown strip, so it carried no lip of its own until the trio rule rimmed
 // every band 1px `--grey-6` top+bottom (2026-08-17); border-box means the
-// band above resolves to the very same --frieze-h box, and the two read as a
+// band above resolves to the very same `--frieze-bar-h` box, and the two read as a
 // matched pair bracketing the well. Full bleed like its twin: the band spans
 // the widget's width while the well inside keeps its margins. (The
 // `border-bottom: none` that once cancelled the top band's lip here is gone —
 // it would now cancel the trio's rim, this scoped rule outranking it.)
 .stack-frieze--inner {
   flex-shrink: 0;
-  height: var(--frieze-h);
+  height: var(--frieze-bar-h, var(--frieze-h));
 }
 
 .stack-empty {

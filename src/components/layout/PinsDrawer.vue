@@ -471,7 +471,8 @@ export default defineComponent({
 
 // The frieze band under the header / pin glyph must keep its full height in
 // the flex column (the list below it is the shrinking scroller). Same box as
-// the stack's inner band — plain --frieze-h, no crown lip of its own: neither
+// the stack's inner band — plain `--frieze-bar-h` (0.96 × `--frieze-h` via
+// the trio rule since the same sitting's trim walk), no crown lip of its own: neither
 // of them stands in for the crown strip, so the pair reads identically across
 // the two widgets. Palette: the SIDE CHROME TRIO rule in `_components.scss`
 // since 2026-08-17 (user ask) — a `--grey-8` plate under two smooth
@@ -480,7 +481,7 @@ export default defineComponent({
 // and the drawer's bands.
 .pins-frieze {
   flex-shrink: 0;
-  height: var(--frieze-h);
+  height: var(--frieze-bar-h, var(--frieze-h));
 }
 
 // ── The widget's own nav-bar row (2026-08-02) ───────────────

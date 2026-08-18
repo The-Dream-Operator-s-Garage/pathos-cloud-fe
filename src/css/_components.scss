@@ -810,6 +810,22 @@
 .drawer-frieze,
 .stack-frieze,
 .pins-frieze {
+  // A LITTLE THINNER (the sitting's trim ask), and the dial was WALKED the
+  // post card's way — 1 → 0.85 ("a little thinner") → 0.92 ("too thin now,
+  // less thin") → 0.96 ("still too thin") — each step halving the remaining
+  // gap back to full, because the number that decides it is the motif row,
+  // not the band: the masks are a 13-row grid, and the rims + padding take a
+  // fixed 4px off whatever the dial grants, so a 15% trim starved the rows
+  // (~0.9px @900) while this leaves them ~1.05px, a hair under the full
+  // bar's. Note what the walk is really negotiating: the RIMS arrived one
+  // ask earlier and ate 2px of motif on their own — most of the "too thin"
+  // was them, and 0.96 concedes nearly all of the trim back. The mask
+  // follows the box for free (`auto 99%` is a fraction of it); the carve's
+  // px offsets do not, which is the floor on this dial (~0.7px a row). The
+  // stack/pins scoped heights read this same dial, so ONE number moves all
+  // seven bands; the drawer's bands take it straight off the component's own
+  // height rule.
+  --frieze-bar-h: calc(var(--frieze-h) * 0.96);
   --frieze-bar-base: var(--grey-8, #616161);
   border-top: 1px solid var(--grey-6, #9e9e9e);
   border-bottom: 1px solid var(--grey-6, #9e9e9e);
