@@ -135,7 +135,7 @@ export default defineComponent({
 <style lang="scss" scoped>
 // ── The kind button — both faces wear it ──
 // Flat Quasar face, rounded corners, system color on outline + icon over the
-// grey-3 plaque (brown-1 until 2026-08-17's palette ask — one step lighter
+// grey-3 plaque (brown-1 until 2026-08-18's palette ask — one step lighter
 // than the `--grey-4` well it sits in, exactly the lift brown-1 had over
 // brown-2). `.is-current` (collapsed rail) and `--inverse` (expanded row)
 // flip the palette: solid kind-color fill, grey-3 icon.

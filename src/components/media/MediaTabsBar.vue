@@ -1,7 +1,8 @@
 <template>
   <!-- The minimize band — a thin strip of the platform's chrome coat
-       (`--plaque-coat`), rimmed in 2px of `--grey-6` and lettered in
-       `--grey-8`, its tabs cut from the same material (2026-08-17 user asks;
+       (`--plaque-coat`), rimmed in 3px of `--grey-6` and lettered in
+       `--grey-8`, its tabs cut from the same material (2026-08-17 user asks,
+       the rim walked to 3px on 2026-08-18;
        it was a light-grey `--grey-4` strip rimmed and lettered in indigo,
        `--indigo-4` edges + `--indigo-10` marks, from 2026-08-06),
        ABOVE the crown strip (not on it: `--media-tabs-h` moves the whole
@@ -85,7 +86,7 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-// ── THE TOP OF THE WHOLE Z LADDER: 3125 (2026-08-17, user ask) ──
+// ── THE TOP OF THE WHOLE Z LADDER: 3125 (2026-08-18, user ask) ──
 // The band was 3105 for its whole life — above the stack widget (3100) so the
 // tabs stay clickable across the full width, below the nav footer (3110) and
 // the left drawer (3120). That last relation is now REVERSED: the ask is that
@@ -132,7 +133,9 @@ export default defineComponent({
 // which keeps `--grey-4`: the handle belongs to the strip it hangs from, the
 // same way its rim already did after 2026-08-06.
 //
-// THE RIM UNDER IT IS 2px OF `--grey-6` SINCE 2026-08-17 (user ask) — see
+// THE RIM UNDER IT IS 3px OF `--grey-6` — 1px → 2px on 2026-08-17 (user ask,
+// with the grey-6 repaint) → 3px on 2026-08-18 (user ask: "make the top header
+// bar bottom border slightly thicker") — see
 // the rule below for what that costs at the seam. What follows is the history
 // it replaced, and the argument is worth keeping because it is the one the
 // tabs still live by: the 1px `--indigo-4` rim was the tabs' own border
@@ -165,7 +168,7 @@ export default defineComponent({
   box-sizing: border-box;
   height: calc(var(--media-tabs-band) + var(--media-tabs-rim));
   background: var(--plaque-coat);
-  // ── THE RIM: 2px of --grey-6 (2026-08-17, user ask) ──
+  // ── THE RIM: 3px of --grey-6 (1px → 2px 2026-08-17, → 3px 2026-08-18) ──
   // It was 1px of `--indigo-4` — the tabs' own border continued across the
   // window, one line running band → flare → tab, walked up the indigo ramp on
   // 2026-08-06 so the strip read as grey metal with the platform's indigo
@@ -192,7 +195,7 @@ export default defineComponent({
   // reads as a smear across the whole window); deliberately not `--shadow-soft`
   // either, which at 6% disappears against the page's dark canvas.
   //
-  // ⚠ WALKED UP THE SAME DAY (user ask: "make the top header bar project a
+  // ⚠ WALKED UP ON 2026-08-18 (user ask: "make the top header bar project a
   // little shadow on top of the bars behind") — 12% over 8px at +2px became
   // **22% over 10px at +3px**. The first figure was chosen while this rail sat
   // UNDER the drawer at z 3105, where the only thing its cast could land on was

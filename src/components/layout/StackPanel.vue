@@ -289,12 +289,12 @@ export default defineComponent({
 // --dock-stack-h, where the list starts scrolling instead. The
 // shared .dock-window width/height transition animates the morph. The top,
 // left (toward the page) and bottom (leading edge toward the middle gap) edges
-// wear a thin classic 1px `--grey-6` border (brown-4 until 2026-08-17's
+// wear a thin classic 1px `--grey-6` border (brown-4 until 2026-08-18's
 // palette ask — the trio's rim ink now, the same line the frieze bands and the
 // media tabs rail wear); the right sits bare at the screen edge. Rounded
 // bottom-left corner kept.
 .stack-window {
-  // THE WINDOW'S VERY TOP EDGE (2026-08-17, user ask: the left drawer and this
+  // THE WINDOW'S VERY TOP EDGE (2026-08-18, user ask: the left drawer and this
   // column both "start drawing at the very top of the screen", and the thin
   // header bar draws on top of both, partially covering the frieze bar). It
   // stepped down by `--media-tabs-h` from 2026-08-05, when the media tabs rail
@@ -328,7 +328,7 @@ export default defineComponent({
   // pins widget and the nav bar's pin-tack slot also wear — the right-edge
   // column lies on top of the page as one raised strip, in BOTH presentations
   // (this rule is state-agnostic). The panel's borders and its inset well
-  // JOINED IT in the grey family on 2026-08-17 (user ask) — `--grey-6` rims,
+  // JOINED IT in the grey family on 2026-08-18 (user ask) — `--grey-6` rims,
   // `--grey-4` wells, tone-for-tone with the brown-4/brown-2 pair they
   // replace — so the well still reads as a step sunk under the paler coat.
   background: var(--plaque-coat);
@@ -435,7 +435,7 @@ export default defineComponent({
   // clips the scrolling rows, so nothing pokes out square.
   // Floor is **grey-4** and the rim **grey-6**, in BOTH presentations; the rim
   // matches the widget's own outer border. (brown-2 / brown-4 until
-  // 2026-08-17's palette ask; the floor went a step lighter than the rim on
+  // 2026-08-18's palette ask; the floor went a step lighter than the rim on
   // 2026-07-24 so the well reads as a soft recess under the plaque rather than
   // a dark trough, and that step is what the grey pair preserves.)
   // The well is BRACKETED BY TWO FRIEZE BANDS now, so it gets a wider **8px**
@@ -460,7 +460,7 @@ export default defineComponent({
   gap: var(--side-item-gap);
   // No scrollbar-width/color here: any non-auto value makes Chrome 121+ ignore
   // the ::-webkit-scrollbar-* styling below (square grey thumb, no radius).
-  // Track matches the well floor (`--grey-4` since 2026-08-17, brown-2 before)
+  // Track matches the well floor (`--grey-4` since 2026-08-18, brown-2 before)
   // so only the thumb reads; the thumb keeps the well's rim ink, `--grey-6`.
   &::-webkit-scrollbar       { width: 5px; }
   &::-webkit-scrollbar-track { background: var(--grey-4); border-radius: 999px; }

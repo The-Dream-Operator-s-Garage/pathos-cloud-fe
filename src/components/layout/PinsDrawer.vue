@@ -123,7 +123,7 @@
          burger: the shared `--plaque-coat`, a `--grey-6` `border-top` landing
          on the same pixel as the bar's own, and the 41px grey-6 rail slot +
          1px hairline at the end that faces the page, holding the inverted
-         grey chip (all four were browns until 2026-08-17's palette ask). The
+         grey chip (all four were browns until 2026-08-18's palette ask). The
          two mirror each other across the window — the drawer's slot sits at
          its LEFT end, this one at its RIGHT, both flush to their screen edge.
          The bar keeps a tack of its own for the one case this column is
@@ -414,7 +414,7 @@ export default defineComponent({
   bottom: 0;
   right: 0;
   max-height: calc(var(--dock-pins-h) + var(--nav-footer-h));
-  // 1px `--grey-6` edges since 2026-08-17's palette ask (brown-4 before) — the
+  // 1px `--grey-6` edges since 2026-08-18's palette ask (brown-4 before) — the
   // trio's rim ink, the same line the stack widget, the frieze bands and the
   // media tabs rail wear.
   border-top: 1px solid var(--grey-6);
@@ -433,7 +433,7 @@ export default defineComponent({
   // stack widget and the nav bar's pin-tack slot also wear — the right-edge
   // column lies on top of the page as one raised strip, in BOTH presentations
   // (this rule is state-agnostic). The panel's borders and its inset well
-  // JOINED IT in the grey family on 2026-08-17 (user ask) — `--grey-6` rims,
+  // JOINED IT in the grey family on 2026-08-18 (user ask) — `--grey-6` rims,
   // `--grey-4` wells, tone-for-tone with the brown-4/brown-2 pair they
   // replace — so the well still reads as a step sunk under the paler coat.
   background: var(--plaque-coat);
@@ -528,7 +528,7 @@ export default defineComponent({
 }
 
 // NavigationBar's `.tack-slot` to the pixel: the column's darker rail coat
-// (`--grey-6` since 2026-08-17's palette ask, brown-4 before — this slot KEEPS
+// (`--grey-6` since 2026-08-18's palette ask, brown-4 before — this slot KEEPS
 // its coat; only the left drawer's twin went transparent, by its own ask),
 // --dock-rail-w less the hairline that closes it, the chip floating centred.
 .pins-footer .tack-slot {
@@ -544,7 +544,7 @@ export default defineComponent({
 // circle (grey-9 face + rim, grey-3 pushpin, inset top highlight, one step
 // LIGHTER at grey-8 on hover, since a dark chip lifts), INVERTING to a grey-3
 // face with a grey-9 rim + pushpin while the element you are looking at is
-// pinned. It read brown-8 / brown-1 / brown-7 until 2026-08-17's palette ask.
+// pinned. It read brown-8 / brown-1 / brown-7 until 2026-08-18's palette ask.
 // The bar's own copy renders only where this column does not (mobile), so the
 // two never disagree on screen.
 .pins-footer .tack-btn {
@@ -606,7 +606,7 @@ export default defineComponent({
   // clips the scrolling rows, so nothing pokes out square.
   // Floor is **grey-4** and the rim **grey-6**, in BOTH presentations; the rim
   // matches the widget's own outer border. (brown-2 / brown-4 until
-  // 2026-08-17's palette ask; the floor went a step lighter than the rim on
+  // 2026-08-18's palette ask; the floor went a step lighter than the rim on
   // 2026-07-24 so the well reads as a soft recess under the plaque rather than
   // a dark trough, and that step is what the grey pair preserves.)
   // The rows themselves are SidePanelItems.
@@ -635,7 +635,7 @@ export default defineComponent({
   gap: var(--side-item-gap);
   // No scrollbar-width/color here: any non-auto value makes Chrome 121+ ignore
   // the ::-webkit-scrollbar-* styling below (square grey thumb, no radius).
-  // Track matches the well floor (`--grey-4` since 2026-08-17, brown-2 before)
+  // Track matches the well floor (`--grey-4` since 2026-08-18, brown-2 before)
   // so only the thumb reads; the thumb keeps the well's rim ink, `--grey-6`.
   &::-webkit-scrollbar       { width: 5px; }
   &::-webkit-scrollbar-track { background: var(--grey-4); border-radius: 999px; }

@@ -53,7 +53,7 @@
                vocabulary, and a band that happens to be first is not a
                different kind of band.
                ⚠ THIS FIRST ONE IS FLUSH WITH THE WINDOW'S TOP EDGE (user ask,
-               same day): the drawer starts at `top: 0` over the media tabs
+               2026-08-18): the drawer starts at `top: 0` over the media tabs
                rail and the list's top padding + this band's top margin are
                both zeroed for it (see `.q-list--padding` in the styles), so
                its rim is the drawer's top line. Still not a different band —
@@ -123,7 +123,7 @@
                WHO you are with the same facts the feed card's author section
                states: the face, the display name, the @handle underneath it.
                Adapted to the drawer's cream `--plaque-coat` (and, since
-               2026-08-17, its grey ink) rather than the feed's indigo card.
+               2026-08-18, its grey ink) rather than the feed's indigo card.
 
                COLLAPSED (the 42px mini rail) Quasar keeps only the avatar
                section, which is exactly the right reduction — the face IS the
@@ -171,9 +171,9 @@
            --grey-6 top lip on the same pixel as the bar's `border-top`, and
            the 41px rail block + hairline at its left end holding the button.
            (It was a brown-1 plaque with a brown-3 lip and a brown-4 rail
-           block under a 24px round chip until 2026-08-17's asks: the coat
-           went shared, the edges went grey, the rail block went TRANSPARENT
-           and the chip became a rounded square filling it.) The column the
+           block under a 24px round chip until the asks of 2026-08-17 (the coat
+           went shared) and 2026-08-18 (the edges went grey, the rail block
+           went TRANSPARENT and the chip became a rounded square filling it).) The column the
            burger belonged to (drawer rail → bar block) is now one
            uninterrupted strip owned by ONE surface.
            Its job here is only to CLOSE: while the drawer stands there is
@@ -181,7 +181,7 @@
            back in exactly this spot (NavigationBar's `.burger-slot`). -->
       <div class="drawer-footer">
         <div class="drawer-burger-slot">
-          <!-- NO `round` SINCE 2026-08-17 (user ask): the chip is a rounded
+          <!-- NO `round` SINCE 2026-08-18 (user ask): the chip is a rounded
                SQUARE that fills its slot, so the radius is ours to state in
                the styles (`round` would force 50% and its own square padding
                box). -->
@@ -198,7 +198,7 @@
              --dock-rail-w. In the mini state the drawer is exactly that wide,
              so this line falls outside the content box and the drawer's own
              --grey-6 `border-right` stands in for it (same ink, same pixel —
-             both were brown-3 before 2026-08-17's palette ask, and the pair
+             both were brown-3 before 2026-08-18's palette ask, and the pair
              still moves together). -->
         <div class="drawer-footer-hairline" />
       </div>
@@ -428,13 +428,13 @@ export default defineComponent({
 // burger moved INTO the drawer's own footer block, `.drawer-footer` below),
 // and even expanded the drawer is 220px, far short of the right cluster.
 // It used to pay for that with a `6px 0 22px` cast washing the bar's plaque
-// for those last 48px; since 2026-08-17 (user ask, "no shadow pls") the drawer
+// for those last 48px; since 2026-08-18 (user ask, "no shadow pls") the drawer
 // casts NOTHING — see `.pathos-drawer` below.
 aside.q-drawer {
   background: transparent !important;
   z-index: 3120;
   bottom: 0;
-  // BACK TO THE WINDOW'S VERY TOP EDGE (2026-08-17, user ask: the drawer
+  // BACK TO THE WINDOW'S VERY TOP EDGE (2026-08-18, user ask: the drawer
   // should "start drawing at the top of the screen"). It stepped down by
   // `--media-tabs-h` from 2026-08-05, when the media tabs rail became the top
   // chrome and every top-anchored surface started on its underside; this
@@ -488,7 +488,7 @@ aside.q-drawer {
   flex-direction: column;
   background: var(--plaque-coat) !important;
   border-right: 1px solid var(--grey-6) !important;
-  // NO CAST AT ALL (2026-08-17, user ask: "remove the shadow it projects on
+  // NO CAST AT ALL (2026-08-18, user ask: "remove the shadow it projects on
   // top of the items it is layered above. no shadow pls"). It was
   // `6px 0 22px rgba(0,0,0,0.30)` — a raised-column cue that, now the drawer
   // runs the FULL window height over the nav bar (below) and over the media
@@ -517,7 +517,7 @@ aside.q-drawer {
   // reads as continuous — the drawer just owns those pixels. Both surfaces
   // took the cream-under-veil coat on 2026-08-17, so this block agrees with
   // the drawer it lives in AND the bar it stands on, as it always has. THE LIP
-  // SEAM IS CLOSED (2026-08-17, later the same day): the note that stood here
+  // SEAM IS CLOSED (2026-08-18, the next day): the note that stood here
   // said the bar's top border had gone `--grey-6` while this one was still
   // `--brown-3` — two inks on one pixel — and named this as the line to walk
   // if the continuity ever read broken. The palette ask walked it: every edge
@@ -542,7 +542,7 @@ aside.q-drawer {
 
   // The rail block — NavigationBar's `.burger-slot` geometry to the pixel:
   // `--dock-rail-w` less the hairline that closes it. ⚠ ITS COAT IS GONE
-  // (2026-08-17, user ask: "paint the background of this button container
+  // (2026-08-18, user ask: "paint the background of this button container
   // transparent so we see the left drawer background color instead"). It was
   // `--brown-4` — the darker rail block the bar's own slots still wear — and
   // dropping it is what lets the button read as a control sitting ON the
@@ -565,7 +565,7 @@ aside.q-drawer {
     background: var(--grey-6);
   }
 
-  // The chip — A ROUNDED SQUARE THAT FILLS ITS SLOT since 2026-08-17 (user
+  // The chip — A ROUNDED SQUARE THAT FILLS ITS SLOT since 2026-08-18 (user
   // ask): it was a 24px circle (the pin tack's figure, matched to
   // NavigationBar's `.burger-slot` chip to the pixel), and it now takes the
   // whole rail block less the slot's 4px pad — 33 × 24 at the current dials —
@@ -621,7 +621,7 @@ aside.q-drawer {
     margin: 6px 0;
   }
 
-  // ⚠ THE FIRST BAND IS FLUSH WITH THE DRAWER'S TOP EDGE (2026-08-17, user
+  // ⚠ THE FIRST BAND IS FLUSH WITH THE DRAWER'S TOP EDGE (2026-08-18, user
   // ask: "no gap between the screen top border and itself"). TWO gaps stood
   // above it and both had to go — Quasar's `padding` prop on the q-list
   // (`.q-list--padding`, 8px top and bottom) and the band's own 6px margin —
@@ -687,7 +687,7 @@ aside.q-drawer {
 
   // MASK CHIP — floating on the face's bottom-right corner, the same corner
   // a badge takes everywhere else on the platform. Inverted GREY (grey-9 fill,
-  // grey-3 glyph, since 2026-08-17's palette ask — brown-8/brown-1 before) so
+  // grey-3 glyph, since 2026-08-18's palette ask — brown-8/brown-1 before) so
   // it reads at 14px against any generated avatar, with a grey-3 ring
   // separating it from the tile underneath.
   .drawer-profile-mask {
@@ -745,7 +745,7 @@ aside.q-drawer {
 
   // ── Back button — distinctive, pinned-top affordance ─────
   // Inverted GREY chip (solid grey-9 fill, grey-3 ink — brown-8/brown-1 until
-  // 2026-08-17's palette ask) so it visually pops out of the grey-9-on-cream
+  // 2026-08-18's palette ask) so it visually pops out of the grey-9-on-cream
   // navigation list and reads as an action (not a destination), with a small
   // inward arrow shift on hover so the gesture echoes the direction.
   .drawer-back-item {

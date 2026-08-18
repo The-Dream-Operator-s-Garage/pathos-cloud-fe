@@ -676,7 +676,7 @@
 // frieze chrome). Hovering the parked column expands the panel
 // (2026-07-24 — the old .dock-side-tab folder handle is gone); the glyph
 // keeps its tap for touch screens, where hover doesn't exist.
-// Ink is **grey-9** (2026-08-17's palette ask — brown-8 since 2026-07-24's 8th
+// Ink is **grey-9** (2026-08-18's palette ask — brown-8 since 2026-07-24's 8th
 // pass, brown-4 before that): the glyph stands in for the header's icon, which
 // is grey-9, so parking a widget must not change the color of its own mark. Padding dropped to 0 and the glyph itself grown
 // (20px in both SFCs, was 14) so the icon fills its band instead of floating
@@ -710,7 +710,7 @@
 // subordinate to the title. The per-widget icon tints
 // (`.dock-bar__icon--stack` ink-2 / `--pins` coral) are gone.
 //
-// THE PAIR WAS brown-8 / brown-4 until 2026-08-17 (user ask: the side chrome's
+// THE PAIR WAS brown-8 / brown-4 until 2026-08-18 (user ask: the side chrome's
 // icons, texts and borders leave the browns so every bar shares one grey
 // palette). The title's step is exact (brown-8 → grey-9, both the family's
 // deep writing ink); the meta's is NOT a lightness match — brown-4's twin is
@@ -731,7 +731,7 @@
 
 // Trailing control in a side widget's info box, sitting at its very right end
 // (after the count meta): a flat grey-9 glyph on the plaque (brown-8 until
-// 2026-08-17's palette ask), no pebble or border — same restraint as
+// 2026-08-18's palette ask), no pebble or border — same restraint as
 // `.dock-side-head`. ElementFlyout borrows this class and overrides the ink
 // with its own `--grey-8`, so only the two side widgets read this line. `@click.stop` in the SFC keeps
 // it from parking the widget through the bar underneath.
