@@ -55,16 +55,18 @@
         @click.stop.prevent="openIntegrityReport"
       />
 
-      <!-- The MEDIA VIEWER trigger (2026-08-04) — the corner that was a
-           decorative glyph is the header's one real button now: it spawns
-           the floating dark-grey viewer for this node
-           (docs/plans/floating-media-viewer.md). `.stop.prevent` because
-           the whole panel is a router-link; navigation stays the panel's
-           job, the corner's is the preview. -->
+      <!-- The FLYOUT VIEWER trigger (2026-08-04 as the media viewer's;
+           the general element flyout since the 2026-08-17 fusion) — the
+           corner that was a decorative glyph is the header's one real
+           button now: it spawns the floating viewer for this node, media
+           faces and the node's skeleton one header switch away.
+           `.stop.prevent` because the whole panel is a router-link;
+           navigation stays the panel's job, the corner's is the
+           preview. -->
       <button
         type="button"
         class="node-mini__zone node-mini__zone--open"
-        title="open media viewer"
+        title="open in the flyout viewer"
         @click.stop.prevent="openViewer"
       >
         <q-icon name="open_in_full" size="13px" />
@@ -153,7 +155,7 @@ import EmbedFrame from 'src/components/shared/EmbedFrame.vue'
 import NodeMicro from './NodeMicro.vue'
 import { kindFor, hashOf, shortHash } from 'src/utils/kinds'
 import { bodyOf, excerptOf } from 'src/utils/nodeContent'
-import { useMediaViewersStore } from 'src/stores/mediaViewers'
+import { useFlyoutViewersStore } from 'src/stores/flyoutViewers'
 
 export default defineComponent({
   name: 'NodeMini',
@@ -174,8 +176,8 @@ export default defineComponent({
 
     // The header corner's job: hand THIS enriched node card to the
     // floating viewer family (one per node; re-triggering fronts it).
-    const mediaViewers = useMediaViewersStore()
-    const openViewer = () => { mediaViewers.spawn(props.node) }
+    const flyoutViewers = useFlyoutViewersStore()
+    const openViewer = () => { flyoutViewers.spawnNode(props.node) }
 
     const nodeKind = kindFor('nodes')
 

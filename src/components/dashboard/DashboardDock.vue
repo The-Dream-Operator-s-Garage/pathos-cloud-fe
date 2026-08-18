@@ -345,7 +345,7 @@ export default defineComponent({
 
   // The family well is a flex ROW (`.flyout-window__well`), so its one
   // child must GROW or it sizes to content — the same contract
-  // `.skeleton-flyout__generic` states in the sibling box. Without it the
+  // `.element-flyout__generic` states in the sibling box. Without it the
   // split canvas measured 393px inside a 1382px well.
   :deep(.dash-grid-host) {
     flex: 1 1 auto;

@@ -14,6 +14,16 @@
   to the column (one column, detail panel unfolding in place, its own
   scrolling well). FeedPageLegacy stays verbatim and unrouted as the restore
   point for the old full-page surface.
+
+  THE FLYOUT LEFT THIS PAGE with the 2026-08-17 FUSION. From 2026-07-26 the
+  page owned a single detail box in a computed `.feed-flyout` slot beside
+  the column — selection state, Escape, maximize, a scroll-follow mirror,
+  park flags in `stores/flyouts.js`. All of it died when the box joined the
+  floating-viewer family: a card trigger now SPAWNS a free window
+  (`stores/flyoutViewers.js` → ElementFlyoutHost in MainLayout), placed by
+  the fit engine, dragged anywhere, N at a time. What the page still owns
+  is the two doors — `select` from the cards, and the `?flyout=<ref>`
+  query — and the lit marks the store answers back.
 -->
 <template>
   <q-page class="feed-page" :style-fn="pageStyleFn">
@@ -21,7 +31,7 @@
          window slot (see .feed-page) and reaches the window's top edge, so
          anything laid inside it scrolls sideways without ever moving the page
          itself, and stands OVER the crown strip. -->
-    <div ref="trackEl" class="feed-track" @scroll.passive="onTrackScroll">
+    <div class="feed-track">
       <!-- Feed container — left-packed, 45% of the track's width, window top
            to nav bar. Its two side EDGES are vertical
            frieze bars (the crown strip turned 90° CW, indigo colorway),
@@ -40,79 +50,35 @@
                card's cap can pin a post, and the pins widget that has to
                reload lives in MainLayout. The page re-emits so the layout's
                `pinsRefreshKey` hears it through the router-view, which is the
-               same route MediaViewerHost's tack takes. -->
+               same route ElementFlyoutHost's tack takes.
+               `select` (the foot's references button AND the cap's
+               open_in_new, merged 2026-08-17) SPAWNS the post's flyout
+               viewer — one window per element, re-triggering fronts it —
+               and `open-ids` lights the pressed triggers on every card
+               whose window is open. -->
           <FeedStream
-            :selected-id="selected?.skeleton_id || null"
-            :flyout-id="flyoutRef"
+            :open-ids="flyouts.openPostIds"
             @select="onSelect"
-            @open-skeleton="onOpenSkeleton"
             @pins-changed="$emit('pins-changed')"
           />
         </div>
         <FriezeBarVerticalB lip="left" class="feed-container__edge" />
       </div>
     </div>
-
-    <!-- POST INFORMATION FLYOUT (2026-07-26) — the feed's detail box, back.
-         It is a sibling of the TRACK, not of the stream: the container clips
-         its content (that is what keeps the stream in its column), so a box
-         placed inside it could never reach the free half of the window beside
-         it. Placed here it is positioned against the page's own box, which IS
-         the free window slot — the layout has already carved the drawer off
-         its left and the parked stack/pins column off its right — so "the
-         right half of the available screen" needs no measurement. -->
-    <transition name="feed-flyout">
-      <!-- The slot follows the track's horizontal scroll (2026-07-31 — the
-           "flyout doesn't follow" G8 limit): its left/right restate the
-           52.5%/5% rhythm shifted by scrollLeft, so the box rides WITH the
-           container instead of hanging over whatever slides under it. Done
-           on left/right, not transform — the enter/leave transition owns
-           transform, and an inline one would freeze the animation. -->
-      <!-- `v-show` for the PARKED state, `v-if` for the open one (2026-08-10,
-           the minimize ask). Minimize is not a close: the box keeps its DOM,
-           so its scroll position survives the round-trip and restoring costs
-           no request — `FeedPostPanel` quotes the content node through
-           `GET /nodes/by-path`, and a `v-if` would re-fetch it every time the
-           tab is clicked. Same reasoning `MediaViewerHost` uses to keep a
-           parked video playing. -->
-      <div
-        v-if="selected || flyoutRef"
-        v-show="!flyouts.skeleton.minimized"
-        class="feed-flyout"
-        :class="{ 'is-max': flyoutMax }"
-        :style="trackScroll && !flyoutMax ? {
-          left: `calc(52.5% - ${trackScroll}px)`,
-          right: `calc(5% + ${trackScroll}px)`
-        } : null"
-      >
-        <!-- The lights ask, THIS PAGE performs: the box knows nothing about
-             where it stands (SkeletonFlyout's oldest rule), so the flags go
-             down as props and the requests come back as events. Minimize is
-             the exception that proves it — the destination is the strip at
-             the TOP of the screen, which is neither this page's element nor
-             the box's, so it travels through the flyouts store instead. -->
-        <SkeletonFlyout
-          :item="selected" :skeleton-ref="flyoutRef" :maximized="flyoutMax"
-          @close="clearSelection" @toggle-max="flyoutMax = !flyoutMax"
-          @minimize="flyouts.minimizeSkeleton()"
-        />
-      </div>
-    </transition>
   </q-page>
 </template>
 
 <script>
-import { defineComponent, ref, watch, onMounted, onBeforeUnmount } from 'vue'
+import { defineComponent, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import { useFlyoutsStore } from 'src/stores/flyouts'
+import { useFlyoutViewersStore } from 'src/stores/flyoutViewers'
 import FriezeBarVertical from 'src/components/layout/FriezeBarVertical.vue'
 import FriezeBarVerticalB from 'src/components/layout/FriezeBarVerticalB.vue'
 import FeedStream from 'src/components/posts/FeedStream.vue'
-import SkeletonFlyout from 'src/components/skeletons/SkeletonFlyout.vue'
 
 export default defineComponent({
   name: 'FeedPage',
-  components: { FriezeBarVertical, FriezeBarVerticalB, FeedStream, SkeletonFlyout },
+  components: { FriezeBarVertical, FriezeBarVerticalB, FeedStream },
   // Declared so it does NOT fall through to the root element as a DOM
   // listener — MainLayout binds it on the router-view.
   emits: ['pins-changed'],
@@ -123,105 +89,26 @@ export default defineComponent({
     // itself in CSS instead, so hand back nothing.
     const pageStyleFn = () => ({})
 
-    // The flyout's WINDOW state (2026-08-10). Minimized/maximized live in a
-    // store rather than in this file because the yellow light parks the box
-    // into `MediaTabsBar`, the thin band at the top of the screen — a
-    // component on the far side of the layout, which props and emits cannot
-    // reach. Everything the box SHOWS is still this page's (below).
-    const flyouts = useFlyoutsStore()
+    // The flyout viewers (the fused window family, 2026-08-17). The page
+    // holds NO viewer state of its own any more — a trigger spawns, the
+    // store dedupes per element and fronts an existing window, and the
+    // windows live in MainLayout's host across every route.
+    const flyouts = useFlyoutViewersStore()
 
-    // The post the flyout is reading out. The PAGE owns it rather than the
-    // stream, because the box it feeds lives outside the feed container —
-    // whoever places the flyout has to hold what goes in it.
-    //
-    // The whole feed item is kept, not just its id: `GET /feed` already
-    // answered with everything the panel shows (author card, moment, content
-    // node, provenance, labels, tallies), so opening the box costs no request.
-    const selected = ref(null)
+    const onSelect = (item) => { flyouts.spawnPost(item) }
 
-    // ANY skeleton in the flyout (2026-07-31 — the deferred G8 item, closed):
-    // `/#/feed?flyout=skeletons/<hash>` (or a bare id) opens the box on that
-    // skeleton's generic face. The query param is read on entry and on
-    // in-place route changes; selecting a post card supersedes it.
+    // The REF DOOR (2026-07-31 as the deferred G8 item, skeletons only;
+    // nodes/ refs since 2026-08-17): `/#/feed?flyout=skeletons/<hash>`,
+    // `?flyout=nodes/<hash>` or a bare skeleton id spawns a viewer on that
+    // element — the window picks the face per kind, and a ref that
+    // resolves to a post steps forward to its card. Read on entry and on
+    // in-place route changes.
     const route = useRoute()
-    const flyoutRef = ref(null)
     watch(() => route.query.flyout, (v) => {
-      if (v) { flyoutRef.value = String(v); selected.value = null; flyouts.restoreSkeleton() }
+      if (v) flyouts.spawnRef(String(v))
     }, { immediate: true })
 
-    // TOGGLE, not set: the trigger for a post that is already open is the way
-    // to close it again. Both triggers (title plate, foot chip) come through
-    // here, so either closes what either opened.
-    // (2026-08-10) A PARKED box is un-parked instead of toggled: clicking a
-    // card while the flyout sits in the top strip means "show me this", never
-    // "close the thing I cannot see". The toggle only answers a box that is
-    // actually on screen.
-    const onSelect = (item) => {
-      flyoutRef.value = null
-      if (flyouts.skeleton.minimized) {
-        flyouts.restoreSkeleton()
-        selected.value = item
-        return
-      }
-      selected.value =
-        selected.value && selected.value.skeleton_id === item.skeleton_id ? null : item
-    }
-
-    // The cap's `open_in_new` (2026-08-07): the same box, pointed at the post
-    // AS A SKELETON rather than at its post face. It reuses the `skeletonRef`
-    // door the query param opened — a bare id is one of the two forms
-    // SkeletonFlyout accepts — so nothing new had to be taught to the flyout.
-    //
-    // A TOGGLE, like `onSelect`, and mutually exclusive with it: the box shows
-    // one thing, so opening either face closes the other.
-    const onOpenSkeleton = (item) => {
-      selected.value = null
-      const ref = String(item.skeleton_id)
-      if (flyouts.skeleton.minimized) {
-        flyouts.restoreSkeleton()
-        flyoutRef.value = ref
-        return
-      }
-      flyoutRef.value = flyoutRef.value === ref ? null : ref
-    }
-
-    // Closing also UN-PARKS, so the store can never hold a tab for a box that
-    // is no longer open (the tab bar reads `minimized` alone — see the store).
-    const clearSelection = () => {
-      selected.value = null
-      flyoutRef.value = null
-      flyouts.restoreSkeleton()
-    }
-
-    // ── The flyout's SIZE (2026-08-10, with the traffic lights) ──────────
-    // The box's green light emits; the size is this page's, because the slot
-    // is (`.feed-flyout` below). Kept ACROSS closes, the way the docks
-    // remember their maximized state: a box you left maximized should come
-    // back the way you left it, or the same click means two different things
-    // on two different days.
-    const flyoutMax = ref(false)
-
-    // Horizontal scroll-follow (G8 limit closed 2026-07-31): mirror the
-    // track's scrollLeft so the flyout's slot shifts with the content. The
-    // track only overflows when its content exceeds it, so this is usually 0.
-    const trackEl = ref(null)
-    const trackScroll = ref(0)
-    const onTrackScroll = () => { trackScroll.value = trackEl.value?.scrollLeft || 0 }
-
-    // Escape closes it — the flyout hovers over the page rather than being
-    // part of it, and a floating box needs a dismissal that does not require
-    // finding its close button.
-    const onKeydown = (e) => { if (e.key === 'Escape') clearSelection() }
-    onMounted(() => window.addEventListener('keydown', onKeydown))
-    onBeforeUnmount(() => {
-      window.removeEventListener('keydown', onKeydown)
-      // The box dies with this page, so its parked TAB must too — a handle in
-      // the top strip that restores nothing is worse than no handle. (The
-      // maximized flag survives on purpose; see the store.)
-      flyouts.resetSkeleton()
-    })
-
-    return { pageStyleFn, flyouts, selected, flyoutRef, flyoutMax, onSelect, onOpenSkeleton, clearSelection, trackEl, trackScroll, onTrackScroll }
+    return { pageStyleFn, flyouts, onSelect }
   }
 })
 </script>
@@ -264,22 +151,19 @@ export default defineComponent({
 // part of 2026-08-12, when a first reading of this ask widened its gate to
 // `601px`; the ask turned out to be the opposite one — the bottom edge should
 // be DRAWN, not bled off the screen — so the growth block (`height: 100vh` +
-// a negative `margin-bottom`), its flyout inset restatement and the bar's
-// `.nav-footer--underlaid` step-down all went with it. The bar is the topmost
-// fixed chrome again at EVERY width (NavigationBar.vue z 3110), which is also
-// what makes the burger safe on a narrow window — see gotchas.md.
+// a negative `margin-bottom`) and the bar's `.nav-footer--underlaid`
+// step-down all went with it. The bar is the topmost fixed chrome again at
+// EVERY width (NavigationBar.vue z 3110), which is also what makes the
+// burger safe on a narrow window — see gotchas.md.
+//
+// (The `position: relative` + no-z-index note that closed this comment for
+// months — the flyout slot's containing block — left with the flyout: the
+// page positions nothing over itself now. The container's own 3001 is
+// against the fixed chrome and needs no positioned ancestor.)
 .feed-page {
   height: calc(100vh - var(--nav-footer-h) - var(--media-tabs-h, 0px));
   padding: 0;
   overflow: hidden;
-  // The containing block for the flyout (2026-07-26). Deliberately WITHOUT a
-  // z-index: `position: relative` alone creates no stacking context, so the
-  // flyout's 3002 still competes with the fixed chrome globally (over the
-  // frieze bands at 3000 and the feed container at 3001, under the drawer at
-  // 3050 and the pinned column at 3100). Give this element a z-index and the
-  // whole page becomes one context — the flyout would then rank against the
-  // page as a unit and slide under both bands.
-  position: relative;
 }
 
 .feed-track {
@@ -438,106 +322,15 @@ export default defineComponent({
   overflow: hidden;
 }
 
-// THE FLYOUT'S SLOT (2026-07-26) — where the post information box stands when
-// a card's title or foot chip opens it.
-//
-// VERTICALLY it is BETWEEN THE TWO FRIEZE BANDS, and CLEAR of both. The page's
-// own box already runs from the window's top edge (the negative `margin-top`
-// above) down to the nav bar, and the two bands sit at those extremes: the
-// crown strip takes the first `--frieze-h`, the frieze footer — parked on the
-// nav bar — takes the last. Insetting by that token is what puts the box
-// INSIDE the friezed chrome rather than under either band; `--flyout-gap` on
-// top of it is what makes it FLOAT there (2026-07-26, second pass — it was
-// flush against both bands, so a carved wave ran straight into the plaque's
-// rounded corner at each end and the box read as wedged between them rather
-// than hovering). Written as `top`/`bottom` rather than a height, so the box
-// simply follows the window.
-//
-// HORIZONTALLY it fills the track to the right of the container, laid out on
-// the same percentages the container uses so the two boxes share one rhythm
-// across the track (restated with each container resize, 2026-07-27):
-//
-//     2.5% gap │ container 45% │ 5% gap │ FLYOUT 42.5% │ 5% gap
-//
-// so its left edge sits at 52.5% — the container's own 47.5% (margin +
-// width) plus the box gap. The drawer-side gap halved to 2.5% that day; the
-// two gaps AROUND the flyout deliberately did not follow, so the flyout
-// keeps the same daylight off both of its neighbours. The percentages
-// resolve against this page's content box, which is the same box the track
-// fills, so the two sets line up exactly.
-//
-// The track-scroll limit is CLOSED (2026-07-31): the page mirrors the
-// track's scrollLeft into an inline left/right override on this slot, so
-// when the track overflows and scrolls, the box shifts with the content
-// instead of hanging over whatever slides under it. The override rides
-// left/right (not transform — the enter/leave transition owns transform).
 // Mobile pass (Thread H item 1, 2026-07-31): under 600px the container
-// takes the whole track (the stack/pins rail is hidden, so the slot IS the
-// screen minus the drawer's mini column) and the flyout overlays it
-// full-width — one surface at a time, dismissed by Escape/its close button.
+// takes the whole track — the stack/pins rail is hidden, so the slot IS
+// the screen minus the drawer's mini column. (The flyout rules that used
+// to share this block left with the flyout: the viewers place themselves
+// through the fit engine's arena, which has its own mobile answer.)
 @media (max-width: 600px) {
   .feed-container {
     flex: 0 0 95%;
   }
-
-  // Both states, so the green light never moves the box a pixel and looks
-  // broken (2026-08-10): down here the flyout ALREADY overlays the full
-  // width, which is what maximize means, and without naming `.is-max` here
-  // that rule would win with its desktop 5% right inset — maximizing would
-  // visibly SHRINK the box.
-  //
-  // `.feed-page` is on the second selector for ORDER, not for reach: this
-  // media block stands ABOVE the `.feed-flyout` rules in the file (it always
-  // has — `!important` is what let it), and two `!important` declarations of
-  // equal specificity are settled by which comes LAST, which would be the
-  // desktop one. The extra class breaks that tie here rather than moving a
-  // block that has read in this order since the mobile pass.
-  .feed-flyout,
-  .feed-page .feed-flyout.is-max {
-    left: 2.5% !important;   // outranks the scroll-follow inline override
-    right: 2.5% !important;  // (the track can't meaningfully scroll here)
-  }
-}
-
-.feed-flyout {
-  // The daylight the box keeps off each band, on top of the band's own height.
-  // Deliberately NOT the 5% the horizontal gaps use: that resolves against the
-  // slot's WIDTH and would come to ~67px here, which this axis cannot spare —
-  // the box is 800px tall in a 1342px-wide slot, so the same figure reads
-  // generous sideways and wasteful vertically. A flat px value also keeps the
-  // two ends equal at every window height, which a percentage would not.
-  --flyout-gap: 14px;
-
-  // Each end used to add a band's height to this gap — the crown strip above,
-  // the floor band below. Both are gone (2026-08-12, user ask), so the daylight
-  // is the gap itself at both ends, which is what the note above always wanted.
-  position: absolute;
-  top: var(--flyout-gap);
-  bottom: var(--flyout-gap);
-  left: 52.5%;
-  right: 5%;
-  // Over the crown strip and the frieze footer (3000) and over the feed
-  // container (3001), which it stands beside; under the left drawer (3050)
-  // and the pinned stack/pins column (3100), the two surfaces that overlap
-  // everything on this page.
-  z-index: 3002;
-}
-
-// ── MAXIMIZED (2026-08-10, the green traffic light) ──────────────────────
-// The whole free width of the track: from the container's own left gap
-// (2.5%) to the flyout's right one (5%), so the box covers the feed column
-// and stops exactly where it always stopped on the other side. The vertical
-// band does NOT change — the box stays between the two frieze strips, which
-// is a law of this slot rather than a size, and a reading surface that
-// climbed over the crown strip would be the one thing on this page that does.
-//
-// `!important` for the reason the mobile rule below has it: the page writes
-// the scroll-follow offsets as an INLINE left/right, and inline beats any
-// selector. (The binding also stops emitting them while maximized — belt and
-// braces, since a maximized box has no container to follow anyway.)
-.feed-flyout.is-max {
-  left: 2.5% !important;
-  right: 5% !important;
 }
 
 // ── WHY THERE IS NO GROWTH BLOCK HERE ANY MORE (2026-08-12) ──
@@ -562,20 +355,6 @@ export default defineComponent({
 //    floor on `.feed-container` had to be added to clear it. Nothing overlaps
 //    the bar now, so the floor went too and the gap is a clean percentage of
 //    the track at every width again.
-//  · `.feed-flyout` keeps ONE bottom inset (`--frieze-h + --flyout-gap`,
-//    stated above): it was restated with `--nav-footer-h` on top only because
-//    it resolves against a page box that had grown a bar taller.
-
-// It arrives from the right — the direction it lives in, so the motion says
-// where the box came from rather than just that it appeared.
-.feed-flyout-enter-active,
-.feed-flyout-leave-active {
-  transition: opacity 0.16s ease, transform 0.16s ease;
-}
-
-.feed-flyout-enter-from,
-.feed-flyout-leave-to {
-  opacity: 0;
-  transform: translateX(14px);
-}
+//  · (The `.feed-flyout` inset bullet that closed this list belonged to the
+//    single-box era and left with it, 2026-08-17.)
 </style>

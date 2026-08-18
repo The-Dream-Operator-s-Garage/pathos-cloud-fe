@@ -8,7 +8,8 @@
 // well padding) is added — i.e. maximize along whichever dimension is the
 // binding one — then center the window in the arena.
 
-// Chrome constants (kept in step with MediaViewerWindow's CSS):
+// Chrome constants (kept in step with ElementFlyout's CSS — the fused
+// viewer window, MediaViewerWindow until 2026-08-17):
 // .dock-bar height (--dock-bar-h) + the slim FriezeBar (≈ --frieze-h/2 +
 // its 2px padding) + the well's thin padding + the foot's tally ledge +
 // the window's own 1px borders.

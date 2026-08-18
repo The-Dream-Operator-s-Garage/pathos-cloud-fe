@@ -10,8 +10,8 @@
     · IT IS GRABBED BY ITS OWN HEADER. The box now opens with a bar — grip
       glyph, centred title — and that bar is the only drag surface, the same
       division of labour every floating window on this platform already makes
-      (`.dock-bar`, `MediaViewerWindow`): the header moves the box, the body
-      is content and takes its own taps.
+      (`.dock-bar`, `ElementFlyout` — the fused viewer window): the header
+      moves the box, the body is content and takes its own taps.
     · IT SLIDES UP AND DOWN BETWEEN THE FRIEZE BARS. Vertical only — the box
       spans lip to lip by construction, so there is no horizontal freedom to
       give — clamped so it never passes either end of the container. It left

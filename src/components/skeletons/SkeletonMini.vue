@@ -83,7 +83,8 @@ export default defineComponent({
     name: { type: String, default: '' }
   },
   // What the walk resolved ({ id, name, path }) — hosts that frame this
-  // panel (SkeletonFlyout) title themselves after it (2026-07-31).
+  // panel (the element flyout, when it mounted this face) title themselves
+  // after it (2026-07-31).
   emits: ['resolved'],
   setup (props, { emit }) {
     const loading = ref(false)

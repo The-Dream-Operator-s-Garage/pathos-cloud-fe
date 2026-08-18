@@ -43,7 +43,7 @@
   step so the square holds as much of the post as it can.
 -->
 <template>
-  <div class="feed-stream-pane" :style="{ '--fhead-h': headH + 'px' }">
+  <div class="feed-stream-pane" :class="{ 'is-embed': !!embedItem }" :style="{ '--fhead-h': headH + 'px' }">
     <!-- THE HEAD BOX (2026-08-06) — what used to be `.feed-stream__head`, a
          sticky band inside the well. It is a DRAGGABLE PLATE now, grabbed by
          its own inner header and slid up and down between the frieze bars,
@@ -56,6 +56,7 @@
          persisted through the StateHolder, so the box is where you left it
          when you come back from a post. -->
     <FeedHeadBox
+      v-if="!embedItem"
       :offset="headY"
       :seat="seat"
       :thinking="thinking"
@@ -717,16 +718,16 @@
                        instead of as a post. It is a link, not a button: it
                        navigates, and it should offer what every link does.
                      · `open_in_new` is that SAME destination WITHOUT the
-                       navigation (2026-08-07, user ask): it points the
-                       right-hand flyout — the box literally named the
-                       skeleton viewer — at this post's skeleton, so the
-                       slots open BESIDE the feed and the reader keeps their
-                       place in the column. A button, not a link, for the
-                       same reason the title plate is one: it opens a panel
-                       on this page rather than going anywhere, and it
-                       TOGGLES (a second press closes what it opened).
-                       FeedPage owns that state, hence the emit + the
-                       `flyoutId` prop coming back down for the lit mark. -->
+                       navigation (2026-08-07, user ask): it opens this post
+                       in a FLYOUT VIEWER, so the reader keeps their place
+                       in the column. Since 2026-08-17 (the fusion) that
+                       viewer is a free floating WINDOW — the postcard
+                       itself embedded, the skeleton one header press away,
+                       spawned per element so a second post pops a SECOND
+                       window — and the press is the very same `select` the
+                       foot's references button emits. FeedPage spawns
+                       through the flyoutViewers store; the `openIds` prop
+                       comes back down for the lit mark. -->
               <div class="post-square__cap-side">
                 <button
                   type="button"
@@ -754,9 +755,9 @@
                 <button
                   type="button"
                   class="post-square__cap-act"
-                  :class="{ 'is-on': isSkeletonOpen(item) }"
-                  title="Open the skeleton viewer beside the feed"
-                  @click.stop="$emit('open-skeleton', item)"
+                  :class="{ 'is-on': isOpen(item) }"
+                  title="Open this post in the flyout viewer beside the feed"
+                  @click.stop="$emit('select', item)"
                 >
                   <q-icon name="open_in_new" size="13px" />
                 </button>
@@ -1468,21 +1469,29 @@ export default defineComponent({
   name: 'FeedStream',
   components: { EntityAvatar, OrgLogoChip, PostMicro, MicroChip, MarkdownBody, FeedHeadBox, FriezeBar, RgbHairline, ConversationPicker },
   props: {
-    // The post whose information flyout is open, if any. The stream does not
-    // own that state: the flyout is placed OUTSIDE the feed container (it
-    // floats in the free right half of the window slot), so FeedPage holds
-    // the selection and hands the id back down for the cards' open marking.
-    selectedId: { type: [Number, String], default: null },
-    // The skeleton the flyout is reading out AS A SKELETON, if any — the
-    // cap's `open_in_new` half of the same arrangement (2026-08-07). Held by
-    // FeedPage for the reason above, and handed back only so the button can
-    // light up: the stream never decides what the flyout shows.
-    flyoutId: { type: [Number, String], default: null }
+    // The posts whose flyout VIEWERS are open right now (2026-08-17, the
+    // fusion — it was a single `selectedId` while the feed owned one box).
+    // The stream does not own that state: the viewers are free windows in
+    // MainLayout's host, so FeedPage reads the store's open list and hands
+    // it down for the cards' lit marking.
+    openIds: { type: Array, default: () => [] },
+    // EMBED MODE (2026-08-17) — the element flyout's post face. Given one
+    // `GET /feed` item, the stream renders exactly that card and NOTHING of
+    // the surface around it: no head box, no lenses, no feed fetch, no
+    // nav_state tracking (two holders both keyed 'feed' would fight over the
+    // reader's saved scroll spot). The card is the whole point — "the current
+    // postcard as it is on the feed" is this component's own markup and
+    // scoped styles, so embedding the stream in single-card dress is what
+    // keeps the two faces one face. Emits still fire; the host decides what
+    // they mean in a box that already shows the post.
+    embedItem: { type: Object, default: null }
   },
-  emits: ['select', 'open-skeleton', 'pins-changed'],
+  emits: ['select', 'pins-changed'],
   setup (props, { emit }) {
-    const items = ref([])
-    const total = ref(0)
+    // Embed mode is born holding its card — no fetch, and no one-frame
+    // flash of the empty state while `onMounted` gets around to load().
+    const items = ref(props.embedItem ? [props.embedItem] : [])
+    const total = ref(props.embedItem ? 1 : 0)
     const loading = ref(false)
     const wellEl = ref(null)
     const streamEl = ref(null)
@@ -1492,7 +1501,10 @@ export default defineComponent({
     // never scrolls, so window tracking is off and the well is tracked
     // instead.
     const holder = useStateHolder({}, { trackScroll: false })
-    holder.trackContainer(wellEl, 'feed')
+    // NEVER in embed mode: the flyout's copy of this stream scrolling its own
+    // little well must not write over the FEED's saved reading spot — two
+    // holders both keyed 'feed' would be two hands on one dial.
+    if (!props.embedItem) holder.trackContainer(wellEl, 'feed')
 
     // The cap's pin tack records its press like every other pin on the
     // platform (see `togglePin` below).
@@ -1507,7 +1519,10 @@ export default defineComponent({
     // having been undone. The box reports on RELEASE, not per frame, so this
     // writes one nav_state row per gesture.
     const headY = computed(() => (typeof holder.state.headY === 'number' ? holder.state.headY : null))
-    const setHeadY = (v) => { holder.state.headY = v }
+    // Embed mode never writes: there is no head box in the flyout, and the
+    // expand lead's `setHeadY(0)` would otherwise slide the REAL feed's
+    // board home from inside another window (same route, same nav_state).
+    const setHeadY = (v) => { if (!props.embedItem) holder.state.headY = v }
 
     // …and its measured height, published back down as `--fhead-h`: the well
     // reserves the box's HOME slot so the first card is not born underneath
@@ -2250,6 +2265,14 @@ export default defineComponent({
     }
 
     const load = async () => {
+      // EMBED MODE: the one item was handed in — there is no feed behind
+      // this stream, so every path that would reload one (lens changes, the
+      // expand lead, verdict applies) lands here and finds the card pinned.
+      if (props.embedItem) {
+        items.value = [props.embedItem]
+        total.value = 1
+        return
+      }
       loading.value = true
       try {
         // `body: 'full'` — the cards ARE the posts here, so each item carries
@@ -2301,6 +2324,14 @@ export default defineComponent({
     }
 
     onMounted(async () => {
+      // EMBED MODE mounts the card and the pin truth, nothing else — the
+      // label chip, the lens context and the seat all belong to the feed
+      // surface this instance deliberately is not.
+      if (props.embedItem) {
+        await load()
+        loadPinned()
+        return
+      }
       // Arriving on `/#/feed?label=<id>` — resolve the name for the chip
       // before the first load; a dead id just falls back to the open feed.
       const qid = parseInt(route.query.label)
@@ -2375,17 +2406,16 @@ export default defineComponent({
       return item.moment?.place ? `${when} · ${item.moment.place}` : when
     }
 
-    // Is this the card the flyout is currently reading out? Compared loosely
-    // on purpose — the id arrives from the parent, which may be holding it as
-    // a route-ish string while the feed item carries a number.
+    // Does this card hold an OPEN flyout viewer? Compared loosely on
+    // purpose — the ids arrive from the store as strings while the feed
+    // item carries a number. Both the foot's references button and the
+    // cap's `open_in_new` light off this one answer since 2026-08-17 —
+    // the viewer shows the ELEMENT, so there is no second "as a skeleton"
+    // state to mark (`isSkeletonOpen` died with the fusion, and the
+    // single `selectedId` became the store's open LIST when one box
+    // became N windows).
     const isOpen = (item) =>
-      props.selectedId != null && String(props.selectedId) === String(item.skeleton_id)
-
-    // Its sibling for the cap's `open_in_new`: is the flyout currently
-    // showing THIS post as a skeleton? Compared the same loose way, and for
-    // the same reason — FeedPage holds the ref as a string.
-    const isSkeletonOpen = (item) =>
-      props.flyoutId != null && String(props.flyoutId) === String(item.skeleton_id)
+      props.openIds.some((id) => String(id) === String(item.skeleton_id))
 
     // ── THE FOOT'S COPY (2026-08-10, user ask) ──────────────────────────
     // The PATHCHAIN ADDRESS — `skeletons/<hash>`, the string the chip beside
@@ -2678,7 +2708,6 @@ export default defineComponent({
       momentWhen,
       momentTitle,
       isOpen,
-      isSkeletonOpen,
       copiedId,
       copyAddress,
       shareOpen,
@@ -3758,6 +3787,21 @@ export default defineComponent({
   &::-webkit-scrollbar       { width: 6px; }
   &::-webkit-scrollbar-track { background: transparent; }
   &::-webkit-scrollbar-thumb { background: rgba(var(--ink-rgb), 0.3); border-radius: 3px; }
+}
+
+// ── EMBED DRESS (2026-08-17) — the element flyout's post face ────────────
+// One card in another window's well. The CARD is the feed's, its FURNITURE
+// is not: the bed goes transparent (the flyout's own sunk `--grey-4` floor
+// is the ground the card lies on), the feed-shaped padding collapses (there
+// is no head-box home slot to hold open and no footer band to clear — the
+// `--fhead-h` term is 0 here anyway, the box being `v-if`ed out), and the
+// indigo side borders stay behind — they are the graded frame's inner edge,
+// and the frame did not come along.
+.feed-stream-pane.is-embed .feed-stream__well {
+  background: transparent;
+  padding: 0;
+  border-left: none;
+  border-right: none;
 }
 
 .feed-stream__empty {

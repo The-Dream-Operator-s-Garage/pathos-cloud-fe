@@ -25,7 +25,7 @@
          once and deals the results out — never one walk per cell);
        - self-resolving: `refOrId` (a numeric id or 'skeletons/<hash>'
          address) — one GET /skeletons/:id/walk, `resolved` emitted so a
-         host (SkeletonFlyout) can title itself after the instance.
+         host (ElementFlyout) can title itself after the instance.
 
        GITHUB_PR instances keep their native card (the SkeletonMini
        precedent): a PR ref pointed at this table blooms into GithubPrCard,

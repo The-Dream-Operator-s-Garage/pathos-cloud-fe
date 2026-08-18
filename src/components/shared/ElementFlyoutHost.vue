@@ -1,18 +1,20 @@
 <template>
-  <!-- Mounts every live media viewer + the minimize band
-       (docs/plans/floating-media-viewer.md). `v-show`, not `v-if`: a
-       minimized viewer keeps its DOM, so a playing video or a scrolled
-       document survives the park/restore round-trip — minimize behaves
-       like a real window manager's, not like a close.
+  <!-- Mounts every live flyout viewer + the minimize band (born
+       media/MediaViewerHost.vue, 2026-08-04; renamed with the 2026-08-17
+       fusion — the windows it hosts are element viewers now, media faces
+       included). `v-show`, not `v-if`: a minimized viewer keeps its DOM,
+       so a playing video, a scrolled article or a drafted comment in an
+       embedded postcard survives the park/restore round-trip — minimize
+       behaves like a real window manager's, not like a close.
 
        The BAND is unconditional (2026-08-05, user ask): it is platform
        chrome, the rail every viewer hangs from, so it stands at the top
        of the window whether or not anything is parked on it — and the
        space it takes is a constant, which is also what stops the whole
        top chrome from stepping down and back up as viewers park. -->
-  <div class="media-viewer-host">
+  <div class="element-flyout-host">
     <MediaTabsBar />
-    <MediaViewerWindow
+    <ElementFlyout
       v-for="v in store.viewers"
       v-show="!v.minimized"
       :key="v.id"
@@ -24,19 +26,19 @@
 
 <script>
 import { defineComponent } from 'vue'
-import MediaViewerWindow from './MediaViewerWindow.vue'
-import MediaTabsBar from './MediaTabsBar.vue'
-import { useMediaViewersStore } from 'src/stores/mediaViewers'
+import ElementFlyout from 'src/components/shared/ElementFlyout.vue'
+import MediaTabsBar from 'src/components/media/MediaTabsBar.vue'
+import { useFlyoutViewersStore } from 'src/stores/flyoutViewers'
 
 export default defineComponent({
-  name: 'MediaViewerHost',
-  components: { MediaViewerWindow, MediaTabsBar },
+  name: 'ElementFlyoutHost',
+  components: { ElementFlyout, MediaTabsBar },
   // A viewer's pin button changed the pin set — MainLayout owns the
   // refresh key the tack and the pins widget both watch, so the signal
   // travels the same road the nav bar's does.
   emits: ['pins-changed'],
   setup () {
-    const store = useMediaViewersStore()
+    const store = useFlyoutViewersStore()
     return { store }
   }
 })
@@ -44,7 +46,7 @@ export default defineComponent({
 
 <style lang="scss" scoped>
 // No box of its own — every child is position: fixed.
-.media-viewer-host {
+.element-flyout-host {
   display: contents;
 }
 </style>
