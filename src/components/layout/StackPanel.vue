@@ -370,33 +370,38 @@ export default defineComponent({
 // The top-edge frieze band must keep its full height in the flex column (the
 // list below it is the shrinking scroller). Since the widget now overlaps the
 // crown strip, this band REPLACES it across the stack's column, so it wears
-// FriezeHeader's EXACT box: the same --frieze-h height plus the same 1px
-// brown-3 bottom lip — which, border-box, also trims the same 1px off the
-// carve area, so both motifs are drawn at an identical size and the band
-// doesn't step at the widget's left edge. Only the palette differs — and since
+// FriezeHeader's EXACT box: the same --frieze-h height plus a 1px bottom
+// lip (the strip's own brown-3 until 2026-08-17's rim ask took it to
+// `--grey-6`, the trio's rim ink) — which, border-box, also trims the same
+// 1px off the carve area, so both motifs are drawn at an identical size and
+// the band doesn't step at the widget's left edge. Only the palette differs — and since
 // 2026-08-17 (user ask) it is not FriezeBar's default brown-4 but the SIDE
 // CHROME TRIO rule in `_components.scss`: a `--grey-8` plate under the
-// orange-11/cyan-11 wave weave, shared by name with `.pins-frieze` and the
-// drawer's `.drawer-frieze` bands. ⚠ The brown-3 lip below is this file's own
-// and deliberately did NOT move with that coat — it still states the crown
-// strip's edge; it is the line to walk if a warm rule on the neutral plate
-// ever reads wrong.
+// orange-11/teal-11 wave weave, shared by name with `.pins-frieze` and the
+// drawer's `.drawer-frieze` bands. ⚠ The bottom lip below stayed brown-3
+// through the re-coat and joined the trio's rims in the same sitting's rim
+// ask (every trio band wears 1px `--grey-6` top+bottom now) — the walk the
+// earlier note here predicted. The scoped declaration stays, in the trio's
+// ink: it records that THIS band's lip predates the trio and is the crown
+// strip's edge, whatever ink that edge wears.
 .stack-frieze {
   flex-shrink: 0;
   height: var(--frieze-h);
-  border-bottom: 1px solid var(--brown-3);
+  border-bottom: 1px solid var(--grey-6);
 }
 
 // The INNER band (2026-07-24) — same block, same total size, sitting between
 // the scroll well and the header / head glyph. It is not standing in for the
-// crown strip, so it carries no brown-3 lip; border-box means the band above
-// resolves to the very same --frieze-h box, and the two read as a matched pair
-// bracketing the well. Full bleed like its twin: the band spans the widget's
-// width while the well inside keeps its margins.
+// crown strip, so it carried no lip of its own until the trio rule rimmed
+// every band 1px `--grey-6` top+bottom (2026-08-17); border-box means the
+// band above resolves to the very same --frieze-h box, and the two read as a
+// matched pair bracketing the well. Full bleed like its twin: the band spans
+// the widget's width while the well inside keeps its margins. (The
+// `border-bottom: none` that once cancelled the top band's lip here is gone —
+// it would now cancel the trio's rim, this scoped rule outranking it.)
 .stack-frieze--inner {
   flex-shrink: 0;
   height: var(--frieze-h);
-  border-bottom: none;
 }
 
 .stack-empty {
