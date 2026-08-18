@@ -672,13 +672,13 @@
 // Head glyph — the parked widget's marker, standing in for the header bar
 // (and exactly as tall as it, --dock-bar-h, so the list box below/above it
 // keeps its offset). NOT a button-looking button: no smoke pebble, border or
-// carved shadow, just a tiny brown-4 icon sitting flat on the plaque
-// (matching the frieze chrome). Hovering the parked column expands the panel
+// carved shadow, just a tiny icon sitting flat on the plaque (matching the
+// frieze chrome). Hovering the parked column expands the panel
 // (2026-07-24 — the old .dock-side-tab folder handle is gone); the glyph
 // keeps its tap for touch screens, where hover doesn't exist.
-// Ink is **brown-8** (2026-07-24, 8th pass — was brown-4): the glyph stands in
-// for the header's icon, which is brown-8, so parking a widget must not change
-// the color of its own mark. Padding dropped to 0 and the glyph itself grown
+// Ink is **grey-9** (2026-08-17's palette ask — brown-8 since 2026-07-24's 8th
+// pass, brown-4 before that): the glyph stands in for the header's icon, which
+// is grey-9, so parking a widget must not change the color of its own mark. Padding dropped to 0 and the glyph itself grown
 // (20px in both SFCs, was 14) so the icon fills its band instead of floating
 // in air a long way from the scroll well. The 30px BOX height is load-bearing
 // — see above — so the air comes out of the glyph, never out of the box.
@@ -693,7 +693,7 @@
   border: none;
   background: transparent;
   box-shadow: none;
-  color: var(--brown-8);
+  color: var(--grey-9);
   transition: opacity 0.12s;
 
   &:hover { opacity: 0.65; }
@@ -704,24 +704,36 @@
 // widget on the way out, this keeps a tap for touch screens.
 //
 // The info box wears ONE consistent ink (2026-07-24, 8th pass): the kind icon
-// and the title are both **brown-8** — the drawer's item ink, so the box reads
+// and the title are both **grey-9** — the drawer's item ink, so the box reads
 // as one piece of chrome instead of a teal-or-coral glyph beside grey text —
-// while the step/pin count meta sits at the far right in the lighter
-// **brown-4**, subordinate to the title. The per-widget icon tints
+// while the step/pin count meta sits at the far right a step lighter,
+// subordinate to the title. The per-widget icon tints
 // (`.dock-bar__icon--stack` ink-2 / `--pins` coral) are gone.
+//
+// THE PAIR WAS brown-8 / brown-4 until 2026-08-17 (user ask: the side chrome's
+// icons, texts and borders leave the browns so every bar shares one grey
+// palette). The title's step is exact (brown-8 → grey-9, both the family's
+// deep writing ink); the meta's is NOT a lightness match — brown-4's twin is
+// `--grey-6`, but that is this chrome's LINE ink (rims, hairlines, the frieze
+// bands' rules) and a count set in it would read as a hairline rather than as
+// writing. `--grey-7` is the writing step below grey-9, which is what the meta
+// actually is: subordinate, still legible (4.1:1 on the coat, where brown-4
+// gave 2.7:1).
 .dock-bar--park {
   cursor: pointer;
 
   .dock-bar__icon,
-  .dock-bar__title { color: var(--brown-8); }
-  .dock-bar__meta  { color: var(--brown-4); }
+  .dock-bar__title { color: var(--grey-9); }
+  .dock-bar__meta  { color: var(--grey-7); }
 
   &:hover .dock-bar__title { opacity: 0.75; }
 }
 
 // Trailing control in a side widget's info box, sitting at its very right end
-// (after the count meta): a flat brown-8 glyph on the plaque, no pebble or
-// border — same restraint as `.dock-side-head`. `@click.stop` in the SFC keeps
+// (after the count meta): a flat grey-9 glyph on the plaque (brown-8 until
+// 2026-08-17's palette ask), no pebble or border — same restraint as
+// `.dock-side-head`. ElementFlyout borrows this class and overrides the ink
+// with its own `--grey-8`, so only the two side widgets read this line. `@click.stop` in the SFC keeps
 // it from parking the widget through the bar underneath.
 .dock-bar__action {
   display: inline-flex;
@@ -734,7 +746,7 @@
   border: none;
   border-radius: var(--radius-sm);
   background: transparent;
-  color: var(--brown-8);
+  color: var(--grey-9);
   cursor: pointer;
   transition: background 0.12s, opacity 0.12s;
 

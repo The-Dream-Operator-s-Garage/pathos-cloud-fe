@@ -7,7 +7,7 @@
          (inverts to a solid fill when it is the element you are viewing).
        · expanded panel  → an informative block (micro chip · title · created
          "x ago" · minimal author) with the SAME button on the right,
-         palette-inverted (solid kind-color fill, brown-1 icon). The row for
+         palette-inverted (solid kind-color fill, grey-3 icon). The row for
          the element you are currently AT wraps block + button together in a
          kind-colored bubble (rounded rectangle, soft fill + colored rim).
 
@@ -135,8 +135,10 @@ export default defineComponent({
 <style lang="scss" scoped>
 // ── The kind button — both faces wear it ──
 // Flat Quasar face, rounded corners, system color on outline + icon over the
-// brown-1 plaque. `.is-current` (collapsed rail) and `--inverse` (expanded
-// row) flip the palette: solid kind-color fill, brown-1 icon.
+// grey-3 plaque (brown-1 until 2026-08-17's palette ask — one step lighter
+// than the `--grey-4` well it sits in, exactly the lift brown-1 had over
+// brown-2). `.is-current` (collapsed rail) and `--inverse` (expanded row)
+// flip the palette: solid kind-color fill, grey-3 icon.
 .side-item__btn {
   width: 26px;
   height: 26px;
@@ -149,13 +151,13 @@ export default defineComponent({
   justify-content: center;
   border-radius: var(--radius-md);
   border: 1px solid var(--item-accent, var(--ink));
-  background: var(--brown-1);
+  background: var(--grey-3);
   color: var(--item-accent, var(--ink));
 
   &.is-current,
   &--inverse {
     background: var(--item-accent, var(--ink));
-    color: var(--brown-1);
+    color: var(--grey-3);
   }
 
   // Collapsed (rail) face: the item IS this button, so it takes the shared
@@ -174,7 +176,7 @@ export default defineComponent({
 }
 
 // ── The expanded informative row ──
-// Transparent by default over the brown-2 well; the CURRENT element's row
+// Transparent by default over the `--grey-4` well; the CURRENT element's row
 // becomes the kind-colored bubble: soft accent fill + accent rim, rounded
 // rectangle wrapping the informative block and the inverted button together.
 // Fixed at --side-item-h (the parked chip's height): the two text lines are

@@ -120,9 +120,10 @@
          FLOOR and lies over the nav bar, so its last `--nav-bar-h` IS the
          bar's row — and this block rebuilds that row inside the widget,
          exactly as the left drawer's `.drawer-footer` rebuilds it around the
-         burger: brown-1 plaque, a brown-3 `border-top` landing on the same
-         pixel as the bar's own, and the 41px brown-4 rail slot + 1px hairline
-         at the end that faces the page, holding the inverted-brown chip. The
+         burger: the shared `--plaque-coat`, a `--grey-6` `border-top` landing
+         on the same pixel as the bar's own, and the 41px grey-6 rail slot +
+         1px hairline at the end that faces the page, holding the inverted
+         grey chip (all four were browns until 2026-08-17's palette ask). The
          two mirror each other across the window — the drawer's slot sits at
          its LEFT end, this one at its RIGHT, both flush to their screen edge.
          The bar keeps a tack of its own for the one case this column is
@@ -396,7 +397,7 @@ export default defineComponent({
 // band, against the stack's 70%) and shrink to fit when there are only a few
 // pins. The shared .dock-window width transition animates the
 // morph. Only the top (leading edge toward the middle gap) and left (toward
-// the page) edges wear a thin classic 1px brown-4 border; the bottom (flush
+// the page) edges wear a thin classic 1px `--grey-6` border; the bottom (flush
 // with the bar) and the right (screen edge) meet bare. Rounded top-left corner
 // kept (free corner).
 // ── AND SINCE 2026-08-02 IT RUNS TO THE WINDOW FLOOR (user ask) ──
@@ -413,10 +414,13 @@ export default defineComponent({
   bottom: 0;
   right: 0;
   max-height: calc(var(--dock-pins-h) + var(--nav-footer-h));
-  border-top: 1px solid var(--brown-4);
+  // 1px `--grey-6` edges since 2026-08-17's palette ask (brown-4 before) — the
+  // trio's rim ink, the same line the stack widget, the frieze bands and the
+  // media tabs rail wear.
+  border-top: 1px solid var(--grey-6);
   border-right: none;
   border-bottom: none;
-  border-left: 1px solid var(--brown-4);
+  border-left: 1px solid var(--grey-6);
   border-top-left-radius: var(--radius-lg);
   border-bottom-left-radius: 0;
   // The shared `--plaque-coat` since 2026-08-17 (user ask) — a --light-cream
@@ -428,10 +432,10 @@ export default defineComponent({
   // PLUS the shared left-edge cast (`--shadow-side-edge`, 2026-07-24) that the
   // stack widget and the nav bar's pin-tack slot also wear — the right-edge
   // column lies on top of the page as one raised strip, in BOTH presentations
-  // (this rule is state-agnostic). ⚠ The panel's own borders and its inset
-  // well are still the browns (--brown-4 rims, --brown-2 wells): on a paler
-  // coat those read as a DEEPER step than they did, which is what keeps the
-  // well looking sunk now that the plaque around it lightened.
+  // (this rule is state-agnostic). The panel's borders and its inset well
+  // JOINED IT in the grey family on 2026-08-17 (user ask) — `--grey-6` rims,
+  // `--grey-4` wells, tone-for-tone with the brown-4/brown-2 pair they
+  // replace — so the well still reads as a step sunk under the paler coat.
   background: var(--plaque-coat);
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
@@ -460,7 +464,7 @@ export default defineComponent({
   border-bottom: none;
 }
 
-// Icon + title ink comes from the shared `.dock-bar--park` rule (--brown-8,
+// Icon + title ink comes from the shared `.dock-bar--park` rule (--grey-9,
 // 2026-07-24 8th pass) — the old coral tint on this glyph is gone, the info
 // box reads as one consistent piece of chrome.
 
@@ -491,11 +495,10 @@ export default defineComponent({
 // `.drawer-footer` at the other end of the window: the same `--plaque-coat`
 // (both surfaces took it on 2026-08-17, so this block still agrees with the
 // widget it lives in AND the bar it stands on), a top lip on the same pixel as
-// the bar's `border-top` — ⚠ still `--brown-3` where the bar's went
-// `--grey-6` that day, two inks landing on one pixel; the ask named the nav
-// bar's top border and this is the widget's own block edge, but that is the
-// line to walk if the continuity ever reads broken — and
-// the same 41px brown-4 rail block, here at the RIGHT end (flush to the screen
+// the bar's `border-top` — `--grey-6`, THE SAME INK as the bar's since the
+// palette ask later that day walked this line (the note here had predicted it:
+// for a few hours two different inks landed on one pixel) — and
+// the same 41px rail block, here at the RIGHT end (flush to the screen
 // edge, under the parked column's own body) with its closing hairline facing
 // the page. Whatever the widget's width — 42px parked, 300px expanded — the
 // bar reads as continuous; the column just owns those pixels.
@@ -511,17 +514,22 @@ export default defineComponent({
   justify-content: flex-end;         // the slot hugs the screen edge
   height: var(--nav-bar-h);
   background: var(--plaque-coat);
-  border-top: 1px solid var(--brown-3);
+  // `--grey-6`, the nav bar's own `border-top` ink, since 2026-08-17's palette
+  // ask (brown-3 before): the bar's border and this column's rebuild of it land
+  // on the same pixel, so they must be the same line.
+  border-top: 1px solid var(--grey-6);
   overflow: hidden;                  // clips the hairline in the 42px parked state
 }
 
 .pins-footer-hairline {
   flex: 0 0 auto;
   width: 1px;
-  background: var(--brown-3);
+  background: var(--grey-6);
 }
 
-// NavigationBar's `.tack-slot` to the pixel: the column's darker brown-4 coat,
+// NavigationBar's `.tack-slot` to the pixel: the column's darker rail coat
+// (`--grey-6` since 2026-08-17's palette ask, brown-4 before — this slot KEEPS
+// its coat; only the left drawer's twin went transparent, by its own ask),
 // --dock-rail-w less the hairline that closes it, the chip floating centred.
 .pins-footer .tack-slot {
   flex: 0 0 auto;
@@ -529,14 +537,16 @@ export default defineComponent({
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--brown-4);
+  background: var(--grey-6);
 }
 
-// The chip: NavigationBar's tack, unchanged — a flat inverted-brown 24px
-// circle (brown-8 face + rim, brown-1 pushpin, inset top highlight, brown-7 on
-// hover), INVERTING to a brown-1 face with a brown-8 rim + pushpin while the
-// element you are looking at is pinned. The bar's own copy renders only where
-// this column does not (mobile), so the two never disagree on screen.
+// The chip: NavigationBar's tack, unchanged in FIGURE — a flat inverted 24px
+// circle (grey-9 face + rim, grey-3 pushpin, inset top highlight, one step
+// LIGHTER at grey-8 on hover, since a dark chip lifts), INVERTING to a grey-3
+// face with a grey-9 rim + pushpin while the element you are looking at is
+// pinned. It read brown-8 / brown-1 / brown-7 until 2026-08-17's palette ask.
+// The bar's own copy renders only where this column does not (mobile), so the
+// two never disagree on screen.
 .pins-footer .tack-btn {
   width: 24px;
   height: 24px;
@@ -544,30 +554,30 @@ export default defineComponent({
   min-height: 24px;
   padding: 0;
   border-radius: 50%;
-  background: var(--brown-8);
-  border: 1px solid var(--brown-8);
-  color: var(--brown-1);
+  background: var(--grey-9);
+  border: 1px solid var(--grey-9);
+  color: var(--grey-3);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25);
 
-  .q-icon { color: var(--brown-1); transition: transform 0.14s ease; }
+  .q-icon { color: var(--grey-3); transition: transform 0.14s ease; }
 
   &:hover:not(.q-btn--disable) {
-    background: #5d4037;             // Quasar brown-7 — lifts on hover
-    border-color: #5d4037;
+    background: var(--grey-8);       // a step LIGHTER — a dark chip lifts
+    border-color: var(--grey-8);
   }
 
   &.is-pinned {
-    background: var(--brown-1);
-    color: var(--brown-8);
-    border-color: var(--brown-8);
+    background: var(--grey-3);
+    color: var(--grey-9);
+    border-color: var(--grey-9);
     box-shadow: none;                // no inset highlight on the pale face
 
-    .q-icon { color: var(--brown-8); }
+    .q-icon { color: var(--grey-9); }
     // 22° rotation to mimic a pushpin pressed in — the bar's own tack tips
     // the same way, since this is that button moved, not a new one.
     .q-icon.tack-filled { transform: rotate(-22deg); }
 
-    &:hover { background: var(--brown-1); }
+    &:hover { background: var(--grey-3); }
   }
 
   &.q-btn--disable { opacity: 0.45; }
@@ -591,13 +601,15 @@ export default defineComponent({
 }
 
 .pins-list {
-  // Inset scroll well: a margin all around keeps a brown-1 reveal of the
-  // plaque, and the rounded corners keep the well's edges soft — the
-  // border-radius also clips the scrolling rows, so nothing pokes out square.
-  // Floor is **brown-2** (2026-07-24 — back a step lighter, so the well reads
-  // as a soft recess under the brown-1 plaque rather than a dark trough) and
-  // the rim **brown-4**, in BOTH presentations; the rim matches the widget's
-  // own outer border. The rows themselves are SidePanelItems.
+  // Inset scroll well: a margin all around keeps a reveal of the plaque, and
+  // the rounded corners keep the well's edges soft — the border-radius also
+  // clips the scrolling rows, so nothing pokes out square.
+  // Floor is **grey-4** and the rim **grey-6**, in BOTH presentations; the rim
+  // matches the widget's own outer border. (brown-2 / brown-4 until
+  // 2026-08-17's palette ask; the floor went a step lighter than the rim on
+  // 2026-07-24 so the well reads as a soft recess under the plaque rather than
+  // a dark trough, and that step is what the grey pair preserves.)
+  // The rows themselves are SidePanelItems.
   // The well's TOP now meets a frieze band, so that edge gets the wider **8px**
   // reveal the stack uses against its own bands (2026-07-24 — it was 3px when a
   // bare header sat there): a carved wave band needs more air than a flat
@@ -607,8 +619,8 @@ export default defineComponent({
   // presentations and break the in-place unravel once the pins overflow the cap.
   margin: 8px 6px 6px;
   padding: 4px 6px;
-  background: var(--brown-2);
-  border: 1px solid var(--brown-4);
+  background: var(--grey-4);
+  border: 1px solid var(--grey-6);
   border-radius: var(--radius-md);
   overflow-y: auto;
   overflow-x: hidden; // rows ellipsize — never show a horizontal scrollbar
@@ -623,11 +635,11 @@ export default defineComponent({
   gap: var(--side-item-gap);
   // No scrollbar-width/color here: any non-auto value makes Chrome 121+ ignore
   // the ::-webkit-scrollbar-* styling below (square grey thumb, no radius).
-  // Track matches the (now brown-2) well floor so only the thumb reads; the
-  // thumb keeps brown-4, the same ink as the well's rim.
+  // Track matches the well floor (`--grey-4` since 2026-08-17, brown-2 before)
+  // so only the thumb reads; the thumb keeps the well's rim ink, `--grey-6`.
   &::-webkit-scrollbar       { width: 5px; }
-  &::-webkit-scrollbar-track { background: var(--brown-2); border-radius: 999px; }
-  &::-webkit-scrollbar-thumb { background: var(--brown-4); border-radius: 999px; }
+  &::-webkit-scrollbar-track { background: var(--grey-4); border-radius: 999px; }
+  &::-webkit-scrollbar-thumb { background: var(--grey-6); border-radius: 999px; }
 
   // Parked face of the SAME scroller: narrowed to the icon column, chips
   // centered, same vertical padding + gap as above so the pins keep their

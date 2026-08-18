@@ -11,10 +11,10 @@
          the widgets' own bands, and --frieze-h is still the frieze family's
          thickness — only the two SCREEN-EDGE bands went. ── -->
 
-    <!-- Floating media viewers + their minimize sliver, hanging from the
-         silver rail (docs/plans/floating-media-viewer.md) — every child is
-         fixed-position, so the mount point only has to exist once. -->
-    <MediaViewerHost @pins-changed="pinsRefreshKey++" />
+    <!-- The flyout viewers (element + media faces, fused 2026-08-17) +
+         their minimize sliver, hanging from the silver rail — every child
+         is fixed-position, so the mount point only has to exist once. -->
+    <ElementFlyoutHost @pins-changed="pinsRefreshKey++" />
 
     <!-- mini-width = --dock-rail-w, READ FROM THE TOKEN rather than restated
          (2026-08-02): the collapsed drawer mirrors the stack/pins parked
@@ -43,12 +43,21 @@
 
           <!-- Mirrored frieze bands — the drawer's section dividers (ABOVE
                Back since 2026-08-17, then after Back, before EXPLORE, before
-               IDENTITY); full-bleed edge to edge (the q-list only pads
-               vertically) so each spans the drawer in both mini and expanded
+               IDENTITY); full-bleed edge to edge (the q-list pads vertically
+               only) so each spans the drawer in both mini and expanded
                states. All four are the SAME element with the same class and
-               the default brown recipe (brown-4 base, brown-2 + brown-1
-               waves) — the drawer has one divider vocabulary, and a band that
-               happens to be first is not a different kind of band. -->
+               the SIDE CHROME TRIO's palette (a --grey-8 plate under the
+               orange-11/teal-11 weave, rimmed --grey-6 — `_components.scss`,
+               shared by name with the stack/pins bands; FriezeBar's default
+               browns until 2026-08-17) — the drawer has one divider
+               vocabulary, and a band that happens to be first is not a
+               different kind of band.
+               ⚠ THIS FIRST ONE IS FLUSH WITH THE WINDOW'S TOP EDGE (user ask,
+               same day): the drawer starts at `top: 0` over the media tabs
+               rail and the list's top padding + this band's top margin are
+               both zeroed for it (see `.q-list--padding` in the styles), so
+               its rim is the drawer's top line. Still not a different band —
+               same class, same recipe, just no gap above it. -->
           <FriezeBar class="drawer-frieze" />
 
           <!-- Distinctive Back button — pinned at the very top of the drawer
@@ -113,8 +122,8 @@
                this row is where the acting identity lives now, so it states
                WHO you are with the same facts the feed card's author section
                states: the face, the display name, the @handle underneath it.
-               Adapted to the drawer's brown plaque rather than the feed's
-               indigo card.
+               Adapted to the drawer's cream `--plaque-coat` (and, since
+               2026-08-17, its grey ink) rather than the feed's indigo card.
 
                COLLAPSED (the 42px mini rail) Quasar keeps only the avatar
                section, which is exactly the right reduction — the face IS the
@@ -158,18 +167,26 @@
       <!-- THE BURGER LIVES IN THE DRAWER NOW (2026-08-02, user ask). The
            drawer runs to the WINDOW FLOOR and lies over the nav bar, so its
            last --nav-bar-h is the bar's own row: this block IS that row,
-           rebuilt from the bar's parts — brown-1 plaque, brown-3 top lip on
-           the same pixel as the bar's `border-top`, and the 41px brown-4
-           rail block + hairline at its left end holding the 28px inverted
-           chip. The column the burger belonged to (drawer rail → bar block)
-           is now one uninterrupted strip owned by ONE surface.
+           rebuilt from the bar's parts — the shared `--plaque-coat`, a
+           --grey-6 top lip on the same pixel as the bar's `border-top`, and
+           the 41px rail block + hairline at its left end holding the button.
+           (It was a brown-1 plaque with a brown-3 lip and a brown-4 rail
+           block under a 24px round chip until 2026-08-17's asks: the coat
+           went shared, the edges went grey, the rail block went TRANSPARENT
+           and the chip became a rounded square filling it.) The column the
+           burger belonged to (drawer rail → bar block) is now one
+           uninterrupted strip owned by ONE surface.
            Its job here is only to CLOSE: while the drawer stands there is
            nothing to open, and when it goes the bar grows its own burger
            back in exactly this spot (NavigationBar's `.burger-slot`). -->
       <div class="drawer-footer">
         <div class="drawer-burger-slot">
+          <!-- NO `round` SINCE 2026-08-17 (user ask): the chip is a rounded
+               SQUARE that fills its slot, so the radius is ours to state in
+               the styles (`round` would force 50% and its own square padding
+               box). -->
           <q-btn
-            round unelevated no-caps
+            unelevated no-caps
             class="drawer-burger-btn"
             @click="drawer = false"
           >
@@ -180,7 +197,9 @@
         <!-- The hairline that closes the rail block: 41px + this = 42px =
              --dock-rail-w. In the mini state the drawer is exactly that wide,
              so this line falls outside the content box and the drawer's own
-             brown-3 `border-right` stands in for it (same ink, same pixel). -->
+             --grey-6 `border-right` stands in for it (same ink, same pixel —
+             both were brown-3 before 2026-08-17's palette ask, and the pair
+             still moves together). -->
         <div class="drawer-footer-hairline" />
       </div>
 
@@ -202,8 +221,8 @@
            reload is a sibling of this container, not of the page. Vue Router
            forwards attrs — listeners included — to the matched component, so
            any page that declares the emit is heard here; the ones that do not
-           are unaffected. Same destination as MediaViewerHost's tack and the
-           nav bar's. -->
+           are unaffected. Same destination as ElementFlyoutHost's tack and
+           the nav bar's. -->
       <router-view @pins-changed="pinsRefreshKey++" />
     </q-page-container>
 
@@ -255,7 +274,7 @@ import SkeletonBuilderDock from 'src/components/maker/SkeletonBuilderDock.vue'
 import LabelMakerDock from 'src/components/maker/LabelMakerDock.vue'
 import ChatDock from 'src/components/chat/ChatDock.vue'
 import DashboardDock from 'src/components/dashboard/DashboardDock.vue'
-import MediaViewerHost from 'src/components/media/MediaViewerHost.vue'
+import ElementFlyoutHost from 'src/components/shared/ElementFlyoutHost.vue'
 import FriezeBar from 'src/components/layout/FriezeBar.vue'
 import NavigationBar from 'src/components/layout/NavigationBar.vue'
 import PinsDrawer from 'src/components/layout/PinsDrawer.vue'
@@ -270,7 +289,7 @@ import { useEventsStore } from 'src/stores/events'
 
 export default defineComponent({
   name: 'MainLayout',
-  components: { MakerDock, UploaderDock, SkeletonBuilderDock, LabelMakerDock, ChatDock, DashboardDock, MediaViewerHost, FriezeBar, NavigationBar, PinsDrawer, StackPanel, EntityAvatar },
+  components: { MakerDock, UploaderDock, SkeletonBuilderDock, LabelMakerDock, ChatDock, DashboardDock, ElementFlyoutHost, FriezeBar, NavigationBar, PinsDrawer, StackPanel, EntityAvatar },
   setup () {
     const router = useRouter()
     const navStore = useNavStore()
@@ -408,18 +427,30 @@ export default defineComponent({
 // bar needs: the bar's left cluster is empty while the drawer stands (its
 // burger moved INTO the drawer's own footer block, `.drawer-footer` below),
 // and even expanded the drawer is 220px, far short of the right cluster.
-// The one visible cost is the drawer's `6px 0 22px` shadow washing the bar's
-// plaque again for those last 48px — which is correct now: the drawer really
-// is lying on top of it there.
+// It used to pay for that with a `6px 0 22px` cast washing the bar's plaque
+// for those last 48px; since 2026-08-17 (user ask, "no shadow pls") the drawer
+// casts NOTHING — see `.pathos-drawer` below.
 aside.q-drawer {
   background: transparent !important;
   z-index: 3120;
   bottom: 0;
-  // Steps down with the crown strip while a media viewer is parked
-  // (2026-08-05) — this column carries its own FriezeBar in the strip's
-  // place, so the two have to start at the same y or the band breaks at
-  // the drawer's edge. 0px otherwise.
-  top: var(--media-tabs-h, 0px);
+  // BACK TO THE WINDOW'S VERY TOP EDGE (2026-08-17, user ask: the drawer
+  // should "start drawing at the top of the screen"). It stepped down by
+  // `--media-tabs-h` from 2026-08-05, when the media tabs rail became the top
+  // chrome and every top-anchored surface started on its underside; this
+  // column and the stack widget at the other edge are now the two exceptions,
+  // each carrying its own FriezeBar at y=0 exactly as they did over the
+  // deleted crown strip.
+  //
+  // ⚠ WHICH ONE PAINTS OVER THE OTHER FLIPPED WITHIN THE HOUR (a second user
+  // ask): the first pass left the rail at 3105 and let this drawer (3120)
+  // cover it, and the ask that followed was for the rail to draw ON TOP of
+  // both columns, "partially covering the frieze bar". The rail is 3125 now,
+  // so it lies across the top ~6px of this column's first band (about a third
+  // of it). Nothing changed HERE for that — `top: 0` is what both asks wanted;
+  // only the rail's z moved. It stays click-through paint, so the pixels it
+  // covers keep taking taps.
+  top: 0;
 }
 
 // MOBILE OVERLAY: below q-drawer's breakpoint the drawer is modal and dims the
@@ -456,8 +487,16 @@ aside.q-drawer {
   display: flex;
   flex-direction: column;
   background: var(--plaque-coat) !important;
-  border-right: 1px solid #BCAAA4 !important; // Quasar brown-3
-  box-shadow: 6px 0 22px rgba(0, 0, 0, 0.30);
+  border-right: 1px solid var(--grey-6) !important;
+  // NO CAST AT ALL (2026-08-17, user ask: "remove the shadow it projects on
+  // top of the items it is layered above. no shadow pls"). It was
+  // `6px 0 22px rgba(0,0,0,0.30)` — a raised-column cue that, now the drawer
+  // runs the FULL window height over the nav bar (below) and over the media
+  // tabs rail (above), was smearing 22px of black across every surface it
+  // passes: the bar's plaque, the rail's underside, the page. The `border-right`
+  // above is the only edge it states now, which is enough — the drawer is an
+  // opaque plaque against a dark canvas.
+  box-shadow: none;
 
   // The list takes whatever is left between the pinned band and the pinned
   // burger block (min-height:0 lets it actually shrink so the q-scroll-area
@@ -473,15 +512,17 @@ aside.q-drawer {
   // exactly on the nav bar underneath. Rather than hide the bar there, this
   // block REBUILDS that row inside the drawer: the same `--plaque-coat`, a
   // top lip on the same pixel as the bar's `border-top`, and the same 41px
-  // brown-4 rail block at the left end. Whatever the drawer's width, the bar
+  // rail block at the left end (whose brown-4 coat the same day's ask
+  // dropped — see `.drawer-burger-slot`). Whatever the drawer's width, the bar
   // reads as continuous — the drawer just owns those pixels. Both surfaces
   // took the cream-under-veil coat on 2026-08-17, so this block agrees with
-  // the drawer it lives in AND the bar it stands on, as it always has. ⚠ The
-  // one seam left is the LIP: the bar's went `--grey-6` that day (user ask)
-  // and this one is still `--brown-3`, so two different inks now land on the
-  // same pixel. Left as-is deliberately — the ask named the nav bar's top
-  // border, and this line is the drawer's own bottom-block edge — but if the
-  // continuity ever reads broken, this is the line to walk.
+  // the drawer it lives in AND the bar it stands on, as it always has. THE LIP
+  // SEAM IS CLOSED (2026-08-17, later the same day): the note that stood here
+  // said the bar's top border had gone `--grey-6` while this one was still
+  // `--brown-3` — two inks on one pixel — and named this as the line to walk
+  // if the continuity ever read broken. The palette ask walked it: every edge
+  // in this block is `--grey-6` now, so the bar's border and the drawer's
+  // rebuild of it are one line again.
   //
   // It takes --nav-bar-h, the bar's ROW. That was the two-band era's
   // distinction — the footer was this row PLUS a --frieze-h floor band, and
@@ -495,51 +536,69 @@ aside.q-drawer {
     align-items: stretch;
     height: var(--nav-bar-h);
     background: var(--plaque-coat);
-    border-top: 1px solid var(--brown-3);
+    border-top: 1px solid var(--grey-6);
     overflow: hidden;               // clips the hairline in the 42px mini state
   }
 
-  // The rail block — NavigationBar's `.burger-slot` to the pixel: the column's
-  // darker brown-4 coat, `--dock-rail-w` less the hairline that closes it, the
-  // chip floating centred with padding on both sides.
+  // The rail block — NavigationBar's `.burger-slot` geometry to the pixel:
+  // `--dock-rail-w` less the hairline that closes it. ⚠ ITS COAT IS GONE
+  // (2026-08-17, user ask: "paint the background of this button container
+  // transparent so we see the left drawer background color instead"). It was
+  // `--brown-4` — the darker rail block the bar's own slots still wear — and
+  // dropping it is what lets the button read as a control sitting ON the
+  // drawer rather than as a chip inside a second, darker column. The 4px
+  // padding is the button's breathing room: the button itself fills whatever
+  // is left (`.drawer-burger-btn` below is 100% × 100% of this box).
   .drawer-burger-slot {
     flex: 0 0 auto;
     width: calc(var(--dock-rail-w) - 1px);
     display: flex;
     align-items: center;
     justify-content: center;
-    background: var(--brown-4);
+    padding: 4px;
+    background: transparent;
   }
 
   .drawer-footer-hairline {
     flex: 0 0 auto;
     width: 1px;
-    background: var(--brown-3);
+    background: var(--grey-6);
   }
 
-  // The chip: the same 28px inverted-brown circle the pin tack and the old
-  // bar burger wear (flat brown-8 face + rim, brown-1 glyph, inset top
-  // highlight, brown-7 on hover — NOT Quasar's push preset).
-  // 24px since the bar went to 2/3 height (2026-08-02) — this chip must keep
-  // matching NavigationBar's `.burger-slot` chip to the pixel, and 28px no
-  // longer fits in a 32px row.
+  // The chip — A ROUNDED SQUARE THAT FILLS ITS SLOT since 2026-08-17 (user
+  // ask): it was a 24px circle (the pin tack's figure, matched to
+  // NavigationBar's `.burger-slot` chip to the pixel), and it now takes the
+  // whole rail block less the slot's 4px pad — 33 × 24 at the current dials —
+  // with `--radius-sm` corners, the same radius the drawer's own `.q-item`
+  // rows wear. Sizing by PERCENT and not by px is deliberate: the box is
+  // whatever `--dock-rail-w` and `--nav-bar-h` say it is, so the button
+  // follows both dials for free.
+  // Ink: the inverted GREY plaque (grey-9 face + rim, grey-3 glyph, inset top
+  // highlight, grey-10 on hover) — brown-8/brown-1/brown-7 until the same
+  // day's palette ask took the whole side chrome to the grey family.
+  // ⚠ NavigationBar's `.burger-slot` chip is this button's twin and still
+  // renders the round 24px figure; the two are never on screen together (the
+  // bar grows its own burger back only once the drawer is gone), so this pass
+  // deliberately leaves it alone.
   .drawer-burger-btn {
-    width: 24px;
-    height: 24px;
-    min-width: 24px;
-    min-height: 24px;
+    width: 100%;
+    height: 100%;
+    min-width: 0;
+    min-height: 0;
     padding: 0;
-    border-radius: 50%;
-    background: var(--brown-8);
-    border: 1px solid var(--brown-8);
-    color: var(--brown-1);
+    border-radius: var(--radius-sm);
+    background: var(--grey-9);
+    border: 1px solid var(--grey-9);
+    color: var(--grey-3);
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25);
 
-    .q-icon { color: var(--brown-1) !important; opacity: 1; transition: transform 0.14s ease; }
+    .q-icon { color: var(--grey-3) !important; opacity: 1; transition: transform 0.14s ease; }
 
+    // A dark plaque LIFTS by going LIGHTER (brown-7 was a step up from
+    // brown-8, not down) — `--grey-8` keeps that direction in the new family.
     &:hover {
-      background: #5d4037;          // Quasar brown-7 — lifts on hover
-      border-color: #5d4037;
+      background: var(--grey-8);
+      border-color: var(--grey-8);
     }
   }
 
@@ -548,7 +607,7 @@ aside.q-drawer {
   // margins that leaves a 32px chip, so rows tighten to 40px min-height and
   // the section rhythm shrinks a notch to match.
   .q-item {
-    color: var(--brown-8);
+    color: var(--grey-9);
     border-radius: var(--radius-sm);
     margin: 2px 5px;
     min-height: 40px;
@@ -561,12 +620,24 @@ aside.q-drawer {
   .drawer-frieze {
     margin: 6px 0;
   }
+
+  // ⚠ THE FIRST BAND IS FLUSH WITH THE DRAWER'S TOP EDGE (2026-08-17, user
+  // ask: "no gap between the screen top border and itself"). TWO gaps stood
+  // above it and both had to go — Quasar's `padding` prop on the q-list
+  // (`.q-list--padding`, 8px top and bottom) and the band's own 6px margin —
+  // so this pair of rules is one ask, not two tweaks. The list's BOTTOM
+  // padding is deliberately kept: the last row still needs its air above the
+  // footer block. And since the drawer itself now starts at `top: 0`, the
+  // band's own `--grey-6` top rim IS the window's top-left edge, which is the
+  // same job the deleted crown strip's lip used to do at that corner.
+  .q-list--padding { padding-top: 0; }
+  .drawer-frieze:first-child { margin-top: 0; }
   .q-item:hover {
     background: var(--smoke);
-    color: var(--brown-8);
+    color: var(--grey-9);
   }
   .q-icon {
-    color: var(--brown-8);
+    color: var(--grey-9);
     opacity: 0.9;
   }
 
@@ -587,7 +658,7 @@ aside.q-drawer {
   }
 
   .drawer-section-header {
-    color: var(--brown-8) !important;
+    color: var(--grey-9) !important;
     font-size: 0.62em;
     letter-spacing: 0.12em;
     padding: 6px 14px 3px;
@@ -615,9 +686,10 @@ aside.q-drawer {
   }
 
   // MASK CHIP — floating on the face's bottom-right corner, the same corner
-  // a badge takes everywhere else on the platform. Inverted brown (brown-8
-  // fill, brown-1 glyph) so it reads at 14px against any generated avatar,
-  // with a brown-1 ring separating it from the tile underneath.
+  // a badge takes everywhere else on the platform. Inverted GREY (grey-9 fill,
+  // grey-3 glyph, since 2026-08-17's palette ask — brown-8/brown-1 before) so
+  // it reads at 14px against any generated avatar, with a grey-3 ring
+  // separating it from the tile underneath.
   .drawer-profile-mask {
     position: absolute;
     right: -4px;
@@ -628,9 +700,9 @@ aside.q-drawer {
     align-items: center;
     justify-content: center;
     border-radius: 50%;
-    background: var(--brown-8);
-    border: 1.5px solid var(--brown-1);
-    .q-icon { color: var(--brown-1) !important; opacity: 1; }
+    background: var(--grey-9);
+    border: 1.5px solid var(--grey-3);
+    .q-icon { color: var(--grey-3) !important; opacity: 1; }
   }
 
   // Two stacked lines read as ONE stamp at 1.15 leading — any more and they
@@ -644,7 +716,7 @@ aside.q-drawer {
   .drawer-profile-name {
     font-size: 0.92em;
     font-weight: 700;
-    color: var(--brown-8);
+    color: var(--grey-9);
     max-width: 100%;
     white-space: nowrap;
     overflow: hidden;
@@ -655,7 +727,7 @@ aside.q-drawer {
   // wider than the name above it.
   .drawer-profile-handle {
     font-size: 0.78em;
-    color: rgba(78, 52, 46, 0.62);   // brown-8 at reading-quiet strength
+    color: rgba(66, 66, 66, 0.62);   // grey-9 at reading-quiet strength
     max-width: 100%;
     white-space: nowrap;
     overflow: hidden;
@@ -666,44 +738,44 @@ aside.q-drawer {
   // muted register rather than a navigation row's. No inverted chip: one
   // loud affordance per drawer, and that one is Back.
   .drawer-logout-item {
-    color: rgba(78, 52, 46, 0.72);
+    color: rgba(66, 66, 66, 0.72);
     .q-icon { opacity: 0.7; }
-    &:hover { color: var(--brown-8); .q-icon { opacity: 1; } }
+    &:hover { color: var(--grey-9); .q-icon { opacity: 1; } }
   }
 
   // ── Back button — distinctive, pinned-top affordance ─────
-  // Inverted brown chip (solid brown-8 fill, brown-1 ink) so it visually
-  // pops out of the brown-8-on-brown-1 navigation list and reads as an
-  // action (not a destination), with a small inward arrow shift on hover so
-  // the gesture echoes the direction.
+  // Inverted GREY chip (solid grey-9 fill, grey-3 ink — brown-8/brown-1 until
+  // 2026-08-17's palette ask) so it visually pops out of the grey-9-on-cream
+  // navigation list and reads as an action (not a destination), with a small
+  // inward arrow shift on hover so the gesture echoes the direction.
   .drawer-back-item {
-    background: var(--brown-8);
-    border: 1px solid var(--brown-8);
-    color: var(--brown-1);
+    background: var(--grey-9);
+    border: 1px solid var(--grey-9);
+    color: var(--grey-3);
     margin: 4px 5px 5px;
     font-weight: 600;
     letter-spacing: 0.04em;
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25);
 
     .drawer-back-icon {
-      color: var(--brown-1) !important;
+      color: var(--grey-3) !important;
       opacity: 1;
       transition: transform 0.12s;
     }
-    .drawer-back-label { color: var(--brown-1); }
+    .drawer-back-label { color: var(--grey-3); }
 
     &:hover {
-      background: #5D4037; // Quasar brown-7 — lifts on hover
-      border-color: #5D4037;
+      background: var(--grey-8); // one step LIGHTER — a dark chip lifts
+      border-color: var(--grey-8);
       .drawer-back-icon { transform: translateX(-2px); }
     }
 
     &.q-item--disabled {
       background: var(--smoke);
-      border-color: rgba(78, 52, 46, 0.20);
-      color: rgba(78, 52, 46, 0.40);
-      .drawer-back-icon { color: rgba(78, 52, 46, 0.40) !important; }
-      .drawer-back-label { color: rgba(78, 52, 46, 0.40); }
+      border-color: rgba(66, 66, 66, 0.20);
+      color: rgba(66, 66, 66, 0.40);
+      .drawer-back-icon { color: rgba(66, 66, 66, 0.40) !important; }
+      .drawer-back-label { color: rgba(66, 66, 66, 0.40); }
     }
   }
 }

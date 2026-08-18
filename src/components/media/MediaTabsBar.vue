@@ -15,17 +15,16 @@
        the screen; `parked` is reversed so the newest tab is the leftmost
        — the growing end — and every older tab keeps the slot it had.
 
-       IT IS NOT ONLY THE VIEWERS' BAND since 2026-08-10 (user ask: "for the
-       skeleton flyout, make it retreat into the thin header on the top of
-       the screen, where the media viewers retreat too"). The feed's skeleton
-       flyout parks here as well, so the row is built from a NORMALIZED list
-       — `{ key, icon, name, restore }` — rather than straight off the media
-       store, and this component stopped being about media the moment a
-       second kind of window hung from it. What both parkers have in common
-       is the posture, and it is the reason this strip is the right home for
-       both: a floating box retreats UPWARD, out of the way of the page it
-       was covering, where a docked window folds back down into the bar it
-       rose from. -->
+       IT STOPPED BEING ONLY MEDIA'S BAND on 2026-08-10 (user ask: the
+       skeleton flyout parked here too) and stopped hosting TWO families on
+       2026-08-17, when the fusion made every window one family — the
+       flyout viewers, element and media faces alike. The row keeps its
+       normalized `{ key, icon, name, restore }` shape from the two-family
+       era: the strip never learns what a window holds, which is what let
+       the families merge under it without it moving. The posture is why
+       this strip is their home: a floating box retreats UPWARD, out of
+       the way of the page it was covering, where a docked window folds
+       back down into the bar it rose from. -->
   <div class="media-tabs" role="toolbar" aria-label="minimized windows">
     <TransitionGroup ref="rowEl" tag="div" name="mtab" class="media-tabs__row nasalization" appear>
       <button
@@ -45,47 +44,34 @@
 
 <script>
 import { defineComponent, computed } from 'vue'
-import { useMediaViewersStore } from 'src/stores/mediaViewers'
-import { useFlyoutsStore } from 'src/stores/flyouts'
+import { useFlyoutViewersStore } from 'src/stores/flyoutViewers'
 import { iconFor, titleOf } from 'src/utils/mediaKind'
 
 export default defineComponent({
   name: 'MediaTabsBar',
   setup () {
-    const store = useMediaViewersStore()
-    const flyouts = useFlyoutsStore()
+    const store = useFlyoutViewersStore()
 
-    // One normalized shape for every parker (2026-08-10): media viewers, and
-    // the feed's skeleton flyout when it is parked. Each tab carries its own
-    // `restore`, so the strip never learns what kind of window it is holding
-    // — which is what let a second family join it for six lines.
+    // One normalized shape per parked window. The strip hosted TWO
+    // families from 2026-08-10 (the media viewers + the feed's
+    // single-instance skeleton flyout, its tab in a fixed lead slot);
+    // the 2026-08-17 FUSION folded them into one — every parker is a
+    // flyout viewer now, so the row is simply the store's parked list,
+    // NEWEST FIRST: the row grows leftward from the right edge and a
+    // tab, once placed, stays where it was put.
     //
-    // Media viewers NEWEST FIRST, so the row grows leftward from the right
-    // edge and a tab, once placed, stays where it was put. The flyout leads
-    // the row: there is at most one of it, so a fixed slot at the growing end
-    // costs the viewers nothing and gives the one tab that can appear on any
-    // route a place that does not move under the pointer.
+    // A tab's name + glyph are what the window mirrored down as its
+    // header resolved (`store.describe`) — same seam, so a tab and the
+    // window it restores are never called two different things. The
+    // mediaKind fallbacks catch a window parked before its first
+    // describe landed (node targets only — the others are born named).
     const tabs = computed(() => {
-      const out = []
-      if (flyouts.skeleton.minimized) {
-        out.push({
-          key: 'flyout:skeleton',
-          icon: flyouts.skeleton.icon,
-          name: flyouts.skeleton.label,
-          restore: () => flyouts.restoreSkeleton()
-        })
-      }
-      for (const v of [...store.parked].reverse()) {
-        out.push({
-          key: v.id,
-          icon: iconFor(v.node),
-          // The window's own name, verbatim — same seam, so a tab and the
-          // window it restores are never called two different things.
-          name: titleOf(v.node),
-          restore: () => store.restore(v.id)
-        })
-      }
-      return out
+      return [...store.parked].reverse().map((v) => ({
+        key: v.id,
+        icon: v.icon || iconFor(v.target?.node),
+        name: v.label || titleOf(v.target?.node),
+        restore: () => store.restore(v.id)
+      }))
     })
 
     // NOTHING to set at runtime: `--media-tabs-h` is a constant in
@@ -99,9 +85,30 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-// Above the stack widget (3100) so the tabs stay clickable across the full
-// width, below the nav footer (3110) and drawer (3120). The band itself is
-// PAINT — pointer-events pass through it; only the tabs take taps.
+// ── THE TOP OF THE WHOLE Z LADDER: 3125 (2026-08-17, user ask) ──
+// The band was 3105 for its whole life — above the stack widget (3100) so the
+// tabs stay clickable across the full width, below the nav footer (3110) and
+// the left drawer (3120). That last relation is now REVERSED: the ask is that
+// the drawer and the stack widget both start drawing at the very top of the
+// screen and that this rail draw ON TOP OF BOTH, "partially covering the
+// frieze bar" — so both columns run to y=0 with their own FriezeBar there, and
+// this ~6px rail lies across the top of those bands (about a third of each).
+// Nothing else on the ladder moved; 3121–3124 are left free between the drawer
+// and this band.
+//
+// TWO consequences worth knowing:
+//  · The band is still click-through PAINT (`pointer-events: none`), so the
+//    drawer's and the stack's top pixels keep taking taps through it. Only a
+//    TAB is solid, and tabs fill from the RIGHT edge leftward — they reach the
+//    drawer's column only on a narrow window with the row near its 50vw cap,
+//    where the tab is meant to win anyway now.
+//  · On MOBILE the drawer is modal and its backdrop sits at 3115 — under the
+//    drawer (3120) by construction, so it cannot dim a band above them both.
+//    This rail therefore stands lit over a dimmed page. It is 6px of chrome
+//    with no reachable control on it (the tabs are the only hit targets and
+//    they sit at the far right), which is why the ask's ordering wins over the
+//    dimming; putting the rail back under the backdrop would put it back under
+//    the drawer, which is the thing being undone here.
 //
 // ── THE FACE: `--plaque-coat` since 2026-08-17 (user ask) ──
 // It wore the media window's own `--grey-4` coat from 2026-08-05, on the
@@ -183,16 +190,26 @@ export default defineComponent({
   // `--shadow-side-edge` family the right-edge column wears (that one is a
   // horizontal cast at 16%, and this bar is 1440px of it — the same opacity
   // reads as a smear across the whole window); deliberately not `--shadow-soft`
-  // either, which at 6% disappears against the page's dark canvas. 12% over
-  // 8px, offset down by the rim's own 2px, lands between them: it states the
-  // rail's underside on the light surfaces below it (the feed column, a dock)
-  // and stays invisible on the starfield.
+  // either, which at 6% disappears against the page's dark canvas.
+  //
+  // ⚠ WALKED UP THE SAME DAY (user ask: "make the top header bar project a
+  // little shadow on top of the bars behind") — 12% over 8px at +2px became
+  // **22% over 10px at +3px**. The first figure was chosen while this rail sat
+  // UNDER the drawer at z 3105, where the only thing its cast could land on was
+  // the page; now that the rail is the ladder's top it falls across the drawer's
+  // and the stack's frieze bands, and 12% of ink over a carved orange/teal
+  // meander on a `--grey-8` plate is very nearly invisible — the bands it is
+  // meant to be lying on top of were the one surface it could not state itself
+  // against. 22% reads as a soft edge on those plates and still stays quiet on
+  // the light chrome below (the feed column, a dock) and effectively invisible
+  // on the starfield. The `+3px` offset keeps the cast clear of the rim's own
+  // 2px so the line and the shadow read as two things, not one thick edge.
   //
   // It falls BEHIND the tabs, not on them — `.media-tabs__row` is a child, so
   // it paints above the parent's cast — which is what keeps a parked tab
   // reading as attached metal rather than as something lying under the bar.
-  box-shadow: 0 2px 8px rgba(var(--ink-rgb-deep), 0.12);
-  z-index: 3105;
+  box-shadow: 0 3px 10px rgba(var(--ink-rgb-deep), 0.22);
+  z-index: 3125;                  // the ladder's top — see the note above
   pointer-events: none;
 }
 

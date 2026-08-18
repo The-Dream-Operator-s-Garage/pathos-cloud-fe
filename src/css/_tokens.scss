@@ -971,7 +971,9 @@ $warning:   #F2C037;
   // media viewers' tabs hang from. Two tokens, because the band's FACE and
   // the space it takes are different numbers:
   //
-  //  --media-tabs-band  the face, a fifth of the crown strip.
+  //  --media-tabs-band  the face — a fifth of the crown strip until
+  //                     2026-08-17's "slightly thicker" ask took it to a
+  //                     QUARTER (see the declaration).
   //  --media-tabs-h     what every top-anchored surface moves DOWN by:
   //                     the face plus the 1px rim under it.
   //
@@ -985,25 +987,52 @@ $warning:   #F2C037;
   // ⚠ IT IS THE WHOLE TOP CHROME NOW (2026-08-12, user ask): the crown strip
   // it used to sit above is deleted, so this thin silver rail is the only
   // band at the top of the window and this token is the ONLY offset a
-  // top-anchored surface takes. Both page containers, the drawer, the stack
-  // widget, the creation docks and the extended dashboard all start on its
-  // underside — anything else pinned to the top of the window has to join
-  // them or it will stand out of line.
+  // top-anchored surface takes. Both page containers, the creation docks and
+  // the extended dashboard start on its underside — anything else pinned to
+  // the top of the window has to join them or it will stand out of line.
+  // ⚠ TWO EXCEPTIONS SINCE 2026-08-17 (user asks): the LEFT DRAWER and the
+  // STACK widget are on `top: 0`, each carrying its own FriezeBar at y=0, and
+  // the rail was raised to z 3125 so it draws ON TOP of both, partially
+  // covering those bands. They do not offset by this token at all — do not
+  // "fix" them back into line.
   //
   // (History worth keeping: it reserved nothing at all at first and simply
   // lay over the crown strip's top fifth, which cut the frieze motif off
   // mid-carve across the whole width. Hence the band ABOVE the strip, and
-  // hence the fifth: `--frieze-h / 5` is still where its thickness comes
-  // from, the last thing the crown sizes.)
-  --media-tabs-band: calc(var(--frieze-h) / 5);
+  // hence the fraction: the crown is what sizes this rail, the last thing it
+  // sizes, even though the crown itself is gone.)
+  //
+  // ⚠ A QUARTER SINCE 2026-08-17 (user ask: "make the top header bar slightly
+  // thicker"), from the fifth it was born at. One dial, one step: the FACE
+  // goes 3.78px → 4.73px at a 900px viewport and the whole rail 5.78 → 6.73px
+  // (the rim's 2px are added below and do not scale). It is deliberately a
+  // small step — this rail now lies ON TOP of the drawer's and the stack's
+  // frieze bands (`--frieze-bar-h`, ~18.1px there), and what the ask before it
+  // wanted was for the rail to cover those bands PARTIALLY; a quarter covers
+  // ~37% of a band where a fifth covered ~32%, which reads thicker while
+  // leaving the meander plainly visible under it. The next steps, if it wants
+  // more, are /3.5 and /3 — past that the rail starts eating the whole band.
+  --media-tabs-band: calc(var(--frieze-h) / 4);
   // ⚠ THE `+ Npx` IS THE RIM, and the two must move together. The band is
   // `border-box`, so its `height` has to carry the rim's own pixels or the
   // FACE thins by exactly what the rim gains; and this token is what every
   // top-anchored surface offsets by, so it has to carry them too or the whole
-  // window slides up under the rail. The rim doubled to 2px on 2026-08-17
-  // (user ask, with the grey-6 repaint) — three numbers, one edit each:
-  // `--media-tabs-rim`, the height in `MediaTabsBar`, and this.
-  --media-tabs-rim: 2px;
+  // window slides up under the rail.
+  //
+  // THE WALK: 1px → **2px** (2026-08-17, user ask, with the grey-6 repaint) →
+  // **3px** (same day, user ask: "make the top header bar bottom border
+  // slightly thicker"). ONE EDIT, FOUR CONSUMERS — every one of them reads
+  // this token rather than restating the number, which is the whole reason the
+  // token exists: the band's `border-bottom` and its `height` (border-box) in
+  // `MediaTabsBar`, `--media-tabs-h` just below, and the TABS' own edge
+  // (`--mtab-rim`, which defaults to this) plus the two flare gradients that
+  // draw the arc's half of that line. The tabs following is deliberate and is
+  // the strip's oldest law — one unbroken line runs band → flare → tab — so a
+  // thicker rail edge is a thicker tab edge by construction. With the face at
+  // `--frieze-h / 4` the whole rail is now ~7.7px at a 900px viewport (4.73 +
+  // 3), of which the drawer's and the stack's ~18.1px frieze bands lie
+  // underneath.
+  --media-tabs-rim: 3px;
   --media-tabs-h: calc(var(--media-tabs-band) + var(--media-tabs-rim));
 
   // Mirrored side widgets (StackPanel drops from the very top over the
