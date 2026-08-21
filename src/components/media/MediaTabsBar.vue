@@ -26,7 +26,7 @@
        this strip is their home: a floating box retreats UPWARD, out of
        the way of the page it was covering, where a docked window folds
        back down into the bar it rose from. -->
-  <div class="media-tabs" role="toolbar" aria-label="minimized windows">
+  <div class="media-tabs" :class="{ 'media-tabs--underlaid': underlaid }" role="toolbar" aria-label="minimized windows">
     <TransitionGroup ref="rowEl" tag="div" name="mtab" class="media-tabs__row nasalization" appear>
       <button
         v-for="t in tabs"
@@ -45,6 +45,7 @@
 
 <script>
 import { defineComponent, computed } from 'vue'
+import { useRoute } from 'vue-router'
 import { useFlyoutViewersStore } from 'src/stores/flyoutViewers'
 import { iconFor, titleOf } from 'src/utils/mediaKind'
 
@@ -52,6 +53,16 @@ export default defineComponent({
   name: 'MediaTabsBar',
   setup () {
     const store = useFlyoutViewersStore()
+    const route = useRoute()
+
+    // ── The ONE route the rail gives way to (2026-08-21, user ask: the feed
+    // container "drawn on top of the header … From the very top") ────────
+    // Same mechanism, same reasoning, same gate as the nav bar's
+    // `.nav-footer--underlaid` (NavigationBar.vue): on /feed the feed column
+    // runs to y=0 and this rail steps under its 3001 rather than the column
+    // climbing over 3125 — which would drag every dock and flyout (3010+)
+    // above the rail with it. See the style block for what it costs.
+    const underlaid = computed(() => route.path === '/feed')
 
     // One normalized shape per parked window. The strip hosted TWO
     // families from 2026-08-10 (the media viewers + the feed's
@@ -80,7 +91,7 @@ export default defineComponent({
     // The first pass had this component claim and release the space as it
     // mounted, which worked and made the whole page hop 4px whenever a
     // viewer parked — a band that is permanent has no such moment.
-    return { tabs }
+    return { tabs, underlaid }
   }
 })
 </script>
@@ -214,6 +225,23 @@ export default defineComponent({
   box-shadow: 0 3px 10px rgba(var(--ink-rgb-deep), 0.22);
   z-index: 3125;                  // the ladder's top — see the note above
   pointer-events: none;
+}
+
+// ── …EXCEPT ON /feed, WHERE THE FEED COLUMN STANDS ON IT (2026-08-21, user
+// ask — born with the nav bar's THIRD `--underlaid` era, same date) ───────
+// The feed container runs from y=0 to the window floor on desktop and paints
+// over this rail's span, so the rail steps under its 3001 there. What it
+// costs, stated honestly: on /feed the drawer's and the stack's frieze bands
+// (3120 / 3100) cover this rail's far ends again — the pre-08-18 corner look
+// — because one element holds one z and the container's claim on the middle
+// outranks the corners' claim on the rail. The 2026-08-18 "rail on top of
+// both columns" reading still holds on EVERY OTHER ROUTE, where nothing
+// overlaps the rail's middle at all. Desktop-gated like the nav bar's rule:
+// below 1024px the rail stays the ladder's top everywhere.
+@media (min-width: 1024px) {
+  .media-tabs.media-tabs--underlaid {
+    z-index: 2999;
+  }
 }
 
 // Tabs hang DOWN from the band, minitab-style (rounded bottoms — the nav

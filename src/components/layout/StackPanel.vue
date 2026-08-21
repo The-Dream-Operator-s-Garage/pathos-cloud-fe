@@ -380,37 +380,31 @@ export default defineComponent({
 // The top-edge frieze band must keep its full height in the flex column (the
 // list below it is the shrinking scroller). Since the widget now overlaps the
 // crown strip, this band REPLACES it across the stack's column, so it wears
-// FriezeHeader's EXACT box: the same height (now the trio's `--frieze-bar-h`
-// = 0.96 × `--frieze-h` since the same sitting's trim walk — this scoped
-// height reads that dial) plus a 1px bottom
-// lip (the strip's own brown-3 until 2026-08-17's rim ask took it to
-// `--grey-6`, the trio's rim ink) — which, border-box, also trims the same
-// 1px off the carve area, so both motifs are drawn at an identical size and
-// the band doesn't step at the widget's left edge. Only the palette differs — and since
-// 2026-08-17 (user ask) it is not FriezeBar's default brown-4 but the SIDE
-// CHROME TRIO rule in `_components.scss`: a `--grey-8` plate under the
-// orange-11/teal-11 wave weave, shared by name with `.pins-frieze` and the
-// drawer's `.drawer-frieze` bands. ⚠ The bottom lip below stayed brown-3
-// through the re-coat and joined the trio's rims in the same sitting's rim
-// ask (every trio band wears 1px `--grey-6` top+bottom now) — the walk the
-// earlier note here predicted. The scoped declaration stays, in the trio's
-// ink: it records that THIS band's lip predates the trio and is the crown
-// strip's edge, whatever ink that edge wears.
+// FriezeHeader's box at the trio's `--frieze-bar-h` (= 0.96 × `--frieze-h`
+// since 2026-08-17's trim walk — this scoped height reads that dial). Only
+// the palette differs — and since 2026-08-17 (user ask) it is not
+// FriezeBar's default brown-4 but the SIDE CHROME TRIO rule in
+// `_components.scss`: `--grey-8` plate, `--grey-2` thick wave, `--grey-4`
+// other wave, carve off — three paints and nothing else since 2026-08-21's
+// from-scratch ask; an orange↔teal gradient weave 08-17 → 08-21, a rimmed
+// grey pass for part of that last sitting.
+// ⚠ THE 1px BOTTOM LIP IS GONE with the trio's rims (same ask): it was the
+// crown strip's own edge, brown-3 from birth, `--grey-6` after the rim ask —
+// the last line standing on any trio band, and "three paints" ended it. Its
+// history stays in git; do not re-add it without re-adding the trio's rims,
+// or this one band steps at the widget's left edge again.
 .stack-frieze {
   flex-shrink: 0;
   height: var(--frieze-bar-h, var(--frieze-h));
-  border-bottom: 1px solid var(--grey-6);
 }
 
 // The INNER band (2026-07-24) — same block, same total size, sitting between
-// the scroll well and the header / head glyph. It is not standing in for the
-// crown strip, so it carried no lip of its own until the trio rule rimmed
-// every band 1px `--grey-6` top+bottom (2026-08-17); border-box means the
-// band above resolves to the very same `--frieze-bar-h` box, and the two read as a
-// matched pair bracketing the well. Full bleed like its twin: the band spans
-// the widget's width while the well inside keeps its margins. (The
-// `border-bottom: none` that once cancelled the top band's lip here is gone —
-// it would now cancel the trio's rim, this scoped rule outranking it.)
+// the scroll well and the header / head glyph. It never stood in for the
+// crown strip and never carried a lip of its own (it wore the trio's rims
+// for the 2026-08-17 → 08-21 window like every band; all lines are off
+// since the three-paints ask, so the pair bracketing the well is matched by
+// construction again). Full bleed like its twin: the band spans
+// the widget's width while the well inside keeps its margins.
 .stack-frieze--inner {
   flex-shrink: 0;
   height: var(--frieze-bar-h, var(--frieze-h));

@@ -144,20 +144,38 @@ export default defineComponent({
 
 // Same carve recipe as FriezeHeader: dark up-left, light down-right,
 // full + half offset each so the coloured edge reads as a groove.
+//
+// THE CARVE IS A DIAL since 2026-08-21 (`--frieze-bar-carve`, user ask): the
+// side-chrome trio wanted its bands FLAT — plain grey waves on a grey plate,
+// no groove — and at band scale the carve's black/white flanks around
+// low-contrast waves read as noise rather than relief. A host states
+// `--frieze-bar-carve: none` on the element it mounts the bar on; unset, the
+// default below IS the recipe, unchanged. (`slim` still states its own
+// halved carve and does not read this dial — no flat host runs slim today,
+// and a slim bar without its carve is a smear by that variant's own notes.)
+// THE MASK FIT IS A DIAL TOO (`--frieze-bar-fit`, same ask): `auto 99%`
+// scales the motif to whatever box the band has, which is right for every
+// viewport-relative band and guarantees sub-pixel rows — 99% of a vh-derived
+// height never lands the 13-row grid on the pixel grid. A host that wants
+// the frieze PIXEL-DRAWN states a fixed fit instead (the side-chrome trio:
+// `auto 13px` in a 15px band — 1px per row, the 231×143 file tiling at
+// exactly 21×13). Unset, nothing changes.
 .frieze-bar__layer {
   position: absolute;
   inset: 0;
   mask-repeat: repeat-x;
-  mask-size: auto 99%;
+  mask-size: var(--frieze-bar-fit, auto 99%);
   mask-position: left center;
   -webkit-mask-repeat: repeat-x;
-  -webkit-mask-size: auto 99%;
+  -webkit-mask-size: var(--frieze-bar-fit, auto 99%);
   -webkit-mask-position: left center;
-  filter:
+  filter: var(
+    --frieze-bar-carve,
     drop-shadow(-1.05px -1.05px 0 #0b0c10)
     drop-shadow(-0.5px -0.5px 0 #0b0c10)
     drop-shadow(1.05px 1.05px 0 #ffffff)
-    drop-shadow(0.5px 0.5px 0 #ffffff);
+    drop-shadow(0.5px 0.5px 0 #ffffff)
+  );
 }
 
 // ── THE WAVES' PAINT (2026-08-07) — each wave dial has a second form, an

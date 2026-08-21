@@ -348,22 +348,33 @@ export default defineComponent({
 // the padded strip's WIDTH — the header's `auto 99%` on its side. The carve
 // drop-shadows are rotated with everything else: dark up-right, light
 // down-left, full + half offset each so the coloured edge reads as a groove.
+// THE FIT AND THE CARVE ARE DIALS since 2026-08-21 (`--frieze-bar-v-fit`,
+// `--frieze-bar-v-carve` — the vertical readings of FriezeBar's own pair,
+// added the same day for the same ask): a percentage fit on a vh-derived box
+// can never land the masks' 13-column grid on the pixel grid, so a host that
+// wants the motif PIXEL-DRAWN states a fixed fit (the feed head box's posts:
+// `13px auto` over an 11px layer — 1px per column, the empty edge columns
+// overhanging exactly as slim's `117%` intends, in whole pixels) and turns
+// the carve off (`none`), whose black/white flanks read as grime around
+// 1px strokes. Unset, nothing changes.
 .frieze-bar-v__layer {
   position: absolute;
   inset: 0;
   mask-repeat: repeat-y;
-  mask-size: 99% auto;
+  mask-size: var(--frieze-bar-v-fit, 99% auto);
   mask-position: center top;
   -webkit-mask-repeat: repeat-y;
-  -webkit-mask-size: 99% auto;
+  -webkit-mask-size: var(--frieze-bar-v-fit, 99% auto);
   -webkit-mask-position: center top;
   // Stepped 1.5/0.75 → 1.05/0.5 with --frieze-h's 30% cut (2026-08-02), same
   // move as the horizontal bars — only the rotated signs differ.
-  filter:
+  filter: var(
+    --frieze-bar-v-carve,
     drop-shadow(1.05px -1.05px 0 #0b0c10)
     drop-shadow(0.5px -0.5px 0 #0b0c10)
     drop-shadow(-1.05px 1.05px 0 #ffffff)
-    drop-shadow(-0.5px 0.5px 0 #ffffff);
+    drop-shadow(-0.5px 0.5px 0 #ffffff)
+  );
 }
 
 // ── THE PAIR INVERTED ON 2026-08-07 (user ask): -1 / -3, PALE WAVES ON A DEEP
@@ -541,13 +552,15 @@ export default defineComponent({
   --frieze-bar-v-edge-w: 0;
 
   .frieze-bar-v__layer {
-    mask-size: 117% auto;
-    -webkit-mask-size: 117% auto;
-    filter:
+    mask-size: var(--frieze-bar-v-fit, 117% auto);
+    -webkit-mask-size: var(--frieze-bar-v-fit, 117% auto);
+    filter: var(
+      --frieze-bar-v-carve,
       drop-shadow(0.5px -0.5px 0 #0b0c10)
       drop-shadow(0.3px -0.3px 0 #0b0c10)
       drop-shadow(-0.5px 0.5px 0 #ffffff)
-      drop-shadow(-0.3px 0.3px 0 #ffffff);
+      drop-shadow(-0.3px 0.3px 0 #ffffff)
+    );
   }
 }
 </style>

@@ -1,5 +1,5 @@
 <template>
-  <q-footer class="nav-footer">
+  <q-footer class="nav-footer" :class="{ 'nav-footer--underlaid': underlaid }">
 
     <div class="nav-bar">
 
@@ -262,10 +262,13 @@ export default defineComponent({
     const dashboardStore = useDashboardStore()
     const events = useEventsStore()
 
-    // (There WAS an `underlaid` computed here — `route.path === '/feed'`,
-    // 2026-08-02 → 2026-08-12 — that stepped this bar down to z 2999 so the
-    // feed column could paint over its plaque. The column stops on the bar's
-    // top edge now, so no route gives way any more; see the style block.)
+    // ── The ONE route the bar gives way to — BACK (2026-08-21, third era;
+    // first 2026-08-02 → 08-12) ──────────────────────────────────────────
+    // /feed's column runs the whole window again and hovers OVER this bar on
+    // desktop (FeedPage.vue's growth block). Since nothing may climb over the
+    // bar's 3110 without slicing the docks, the bar itself steps down there —
+    // see the `.nav-footer--underlaid` note in the style block.
+    const underlaid = computed(() => route.path === '/feed')
 
     // ── Chat window toggle (footer-button semantics) ─────────
     const chatExpanded = computed(() => chatStore.isOpen && !chatStore.isMinimized)
@@ -465,7 +468,8 @@ export default defineComponent({
       dashboardExpanded,
       toggleDashboard,
       events,
-      parkedTabs
+      parkedTabs,
+      underlaid
     }
   }
 })
@@ -518,33 +522,39 @@ export default defineComponent({
   box-shadow: none !important;
 }
 
-// ── NO ROUTE STEPS THIS BAR DOWN ANY MORE (2026-08-12) ──
-// From 2026-08-02 `/feed` was an exception: `.nav-footer--underlaid` (a class
-// bound off `route.path === '/feed'`, inside `min-width: 1024px`, widened to
-// `601px` for a few hours on 2026-08-12) dropped the bar to **2999** so the
-// feed column — grown to the window's floor by FeedPage's own block — could
-// paint over this plaque. The bar gave way rather than the container climbing,
-// because anything over 3110 is over EVERYTHING and every right-half dock
-// (3010+) would have been sliced by that column on that very page.
+// ── …EXCEPT ON /feed, WHERE THE FEED COLUMN STANDS ON IT AGAIN (2026-08-21,
+// user ask: the container "drawn on top of the header and footer bars. From
+// the very top to the very bottom") ──────────────────────────────────────
+// THIRD ERA of this exception. It ran 2026-08-02 → 08-12 (the column grew to
+// the window floor and this bar stepped to 2999 under the container's 3001),
+// was retired on 08-12 when the ask reversed ("the container's lower edge
+// starts drawing from the top edge of the footer"), and is back by the same
+// mechanism it always used: the BAR gives way on this one route, the
+// container never climbs. The reasoning has not aged — anything over this
+// bar's 3110 is over EVERYTHING, and every right-half dock and flyout viewer
+// (3010+) would open BEHIND the feed column on the very page they are most
+// used on.
 //
-// The 2026-08-12 ask ("the feed container's lower edge starts drawing from the
-// top edge of the footer") ended it: the column stops ON this bar's top edge
-// now, so nothing overlaps the bar on any route and the exception had nothing
-// left to buy. Both halves are gone — this rule, and the growth block in
-// FeedPage. The class and its `underlaid` computed went with them.
+// The cost is the one it always had: on `/feed` a dock's or the drawer's
+// drop shadow can wash this plaque again, and the container's own lateral
+// cast now falls across it. The BURGER stays safe with no rule of its own:
+// desktop-gated at the same 1024px as FeedPage's growth block, and below
+// that the drawer is a closed overlay, this bar carries the burger at its
+// left end, and the bar stays the topmost chrome (specs/gotchas.md).
 //
-// WHAT THAT GIVES BACK, and why it is worth keeping: the one cost of 2999 was
-// exactly what 3110 had bought — on `/feed` a dock's or the drawer's drop
-// shadow could wash this plaque again. It cannot now. And the BURGER is safe
-// at every width with no rule of its own: below 1024px the drawer is a closed
-// overlay and this bar carries the burger at its left end, which the feed
-// column's 2.5% gap sat on top of while the underlay reached those widths
-// (specs/gotchas.md). If a surface ever needs to cover the bar again, this is
-// still the way to do it — lower the BAR on that route, never raise the
-// surface — but check first which controls live under it at every width.
+// The media tabs rail makes the same move at the other edge — see
+// `.media-tabs--underlaid` in MediaTabsBar.vue, born with this era: the
+// container runs to y=0 now, not just to the floor.
 //
-// The minitab strip was never part of this: it is a lifted sibling OUTSIDE the
-// footer (see its note below), so it keeps its own 3045 regardless.
+// The minitab strip is not part of this: it is a lifted sibling OUTSIDE the
+// footer (see its note below), so it keeps its own 3045 — parked tabs stay
+// clickable over the column even when it is dragged wide (taskbar
+// semantics).
+@media (min-width: 1024px) {
+  .nav-footer.nav-footer--underlaid {
+    z-index: 2999;
+  }
+}
 
 // ── Minitab strip — ON the frieze footer band itself (2026-07-27; it stood
 // on the band's TOP edge from 2026-07-25, back when nothing inside the

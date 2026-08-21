@@ -31,7 +31,7 @@
          window slot (see .feed-page) and reaches the window's top edge, so
          anything laid inside it scrolls sideways without ever moving the page
          itself, and stands OVER the crown strip. -->
-    <div class="feed-track">
+    <div ref="trackEl" class="feed-track">
       <!-- Feed container — left-packed, 45% of the track's width, window top
            to nav bar. Its two side EDGES are vertical
            frieze bars (the crown strip turned 90° CW, indigo colorway),
@@ -43,8 +43,43 @@
            casts a soft shadow off each side so it reads as standing above
            the page. They are THINNER than the crown strip since 2026-08-07
            (user ask) — see `.feed-container__edge`. -->
-      <div class="feed-container">
-        <FriezeBarVertical lip="right" class="feed-container__edge" />
+      <div
+        ref="boxEl"
+        class="feed-container"
+        :class="[
+          { 'is-sizing': !!sizing },
+          sizing ? 'is-sizing--' + sizing : null
+        ]"
+        :style="boxStyle"
+      >
+        <!-- ── THE TWO RAILS (2026-08-18, user ask; BARE since 2026-08-21) ──
+             Each frieze bar is wrapped, because the bar itself opts out
+             of the pointer entirely (`FriezeBarVertical`'s `pointer-events:
+             none` — it is decoration and says so). The wrapper is what
+             hovers and what takes the resize drag; the bar
+             inside it is untouched, still purely a plate with a motif on it.
+             That split is deliberate: the day this surface wants a bar with
+             no grip on it, the grip comes off here and the frieze family
+             never learns about resizing.
+
+             ⚠ NOTHING STANDS ON THE BARS ANY MORE (2026-08-21, user ask:
+             "keep the frieze bars clean … their pattern fully displayed").
+             The rails carried two keys each for three days — a fold key
+             riding Talavero's board and a ↔ grip at mid height, both plates
+             the bar's full width — and every one of them was a blank tablet
+             laid OVER the meander. The keys went, and the FOLD went with
+             them: the keys were its only door (the stub deliberately took no
+             press of its own), so the container no longer folds shut. The
+             resize drag survives — it lives on the rail's strip of space and
+             costs the motif nothing: a cursor, a title, and a silhouette
+             glow that never covers a single wave. -->
+        <div
+          class="feed-container__rail feed-container__rail--l"
+          :title="railTitle"
+          @pointerdown="onRailDown($event, 'l')"
+        >
+          <FriezeBarVertical lip="right" class="feed-container__edge" />
+        </div>
         <div class="feed-container__body">
           <!-- `pins-changed` is a PASS-THROUGH, not this page's business: a
                card's cap can pin a post, and the pins widget that has to
@@ -62,19 +97,53 @@
             @pins-changed="$emit('pins-changed')"
           />
         </div>
-        <FriezeBarVerticalB lip="left" class="feed-container__edge" />
+        <div
+          class="feed-container__rail feed-container__rail--r"
+          :title="railTitle"
+          @pointerdown="onRailDown($event, 'r')"
+        >
+          <FriezeBarVerticalB lip="left" class="feed-container__edge" />
+        </div>
       </div>
     </div>
   </q-page>
 </template>
 
 <script>
-import { defineComponent, watch } from 'vue'
+import { defineComponent, ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
 import { useRoute } from 'vue-router'
 import { useFlyoutViewersStore } from 'src/stores/flyoutViewers'
 import FriezeBarVertical from 'src/components/layout/FriezeBarVertical.vue'
 import FriezeBarVerticalB from 'src/components/layout/FriezeBarVerticalB.vue'
 import FeedStream from 'src/components/posts/FeedStream.vue'
+
+// ── THE CONTAINER'S GEOMETRY (2026-08-18, user ask) ──────────────────────
+// Three numbers and one flag are all this surface's new sizing needs, and
+// every one of them is a CLAMP rather than a size: the box keeps deciding its
+// own width from a percentage, and these only say where it may not go.
+//
+// GAP — the daylight the box must keep at each end of the track, which is what
+// "never touch the left drawer" and "never touch the stack and pin sidebars"
+// actually reduce to. ⚠ THE TRACK ALREADY IS THAT SLOT: MainLayout's
+// `q-page-container` pads left by the drawer and right by `windows.railWidth`
+// (the parked stack/pins column), so a box clamped INSIDE the track's client
+// box cannot reach either of them by construction. Nothing here reads a
+// drawer width or a rail width, and nothing here should start to — the day a
+// third piece of chrome carves the slot, this file is already correct.
+//
+// MIN_VW — the floor the user set for a horizontal collapse: **25% of the
+// SCREEN** (15% until 2026-08-18's last ask), not of the track, so it does not
+// shrink along with the slot when a dock opens. Restated as `min-width: 25vw`
+// in the stylesheet, which is the guarantee; this is the copy the drag reads
+// so the gesture STOPS at the floor instead of running past a wall it cannot
+// see.
+//
+// (A FOLD lived beside this ramp for three days — 2026-08-18 → 08-21, the box
+// collapsing to its two bars behind a pair of keys that stood ON them. It
+// went with the keys: see the rails' template note.)
+const GAP = 8
+const MIN_VW = 0.25
+const STORE_KEY = 'pathos_feed_geometry'
 
 export default defineComponent({
   name: 'FeedPage',
@@ -108,7 +177,226 @@ export default defineComponent({
       if (v) flyouts.spawnRef(String(v))
     }, { immediate: true })
 
-    return { pageStyleFn, flyouts, onSelect }
+    // ── THE TWO RAILS (2026-08-18, user ask; the FOLD they carried is GONE
+    // since 2026-08-21 — see the template note) ─────────────────────────
+    // The container's arrangement lives HERE and nowhere else, because this
+    // file is the only one that owns the container: the rails are this
+    // page's own markup and nothing below this page holds a copy.
+    const trackEl = ref(null)
+    const boxEl = ref(null)
+
+    // FRACTIONS OF THE TRACK, never pixels — `null` until someone drags,
+    // which is what leaves the stylesheet's 45%/2.5% in charge until then.
+    // The unit matters: a percentage follows the slot when a dock opens, the
+    // drawer swings or the window resizes, exactly as the two defaults it
+    // replaces always have. Pixels would need a handler for every one of
+    // those and would still read as a box that forgot its proportion.
+    const widthPct = ref(null)
+    const leftPct = ref(null)
+
+    // Which rail is being dragged ('l' | 'r' | null) — the class it drives
+    // keeps the hovered rail lit while the pointer is outside
+    // it, which it will be for most of any real drag.
+    const sizing = ref(null)
+
+    // ── PERSISTED, and for the same reason the head box's own offset is:
+    // where you put the walls of a room is an ARRANGEMENT, not a lens you
+    // look through, and coming back from a post to find the feed re-widened
+    // would read as the drag having been undone. It rides `localStorage`
+    // rather than the StateHolder that carries `headY`, deliberately: a
+    // holder is keyed by route, this page and `FeedStream` are the SAME
+    // route, and two holders on one key are two hands on one dial — each
+    // `saveState` writes its own snapshot over the other's. The dock stores
+    // (`stores/dashboard.js`, `stores/chat.js`) are the house pattern for a
+    // per-browser arrangement, and this is one of those.
+    const persist = () => {
+      try {
+        localStorage.setItem(STORE_KEY, JSON.stringify({
+          w: widthPct.value, l: leftPct.value
+        }))
+      } catch (_) { /* private mode — the arrangement is simply not remembered */ }
+    }
+
+    const restore = () => {
+      try {
+        const raw = JSON.parse(localStorage.getItem(STORE_KEY) || 'null')
+        if (!raw) return
+        if (typeof raw.w === 'number') widthPct.value = raw.w
+        if (typeof raw.l === 'number') leftPct.value = raw.l
+        // A snapshot from the fold's three days (2026-08-18 → 08-21) may
+        // still carry `c` (folded) and `k` (the board's line). Both are
+        // simply ignored: a browser that was left folded comes back OPEN,
+        // which is the only state the container has now.
+      } catch (_) { /* unreadable = never arranged */ }
+    }
+
+    // The box's inline arrangement — a margin and a flex-basis, both
+    // fractions of the track, both absent until the first drag.
+    const boxStyle = computed(() => {
+      const st = {}
+      if (leftPct.value != null) st.marginLeft = (leftPct.value * 100).toFixed(3) + '%'
+      if (widthPct.value != null) {
+        st.flex = '0 0 ' + (widthPct.value * 100).toFixed(3) + '%'
+      }
+      return st
+    })
+
+    const railTitle = 'Drag to resize the feed — the bar is the handle'
+
+    // ── The drag. Pointer Events with capture on the rail, the same hygiene
+    // the head box and the media windows keep: one gesture at a time, the
+    // pointer may outrun the element, the body's selection and cursor are
+    // parked for the gesture, and ONE teardown that release, cancel and
+    // unmount all reach.
+    let pid = null
+    let capEl = null
+    let originX = 0
+    let baseLeft = 0
+    let baseW = 0
+    let trackW = 0
+
+    // The floor, in px against the current window — the user's 25vw.
+    const minWidth = () => window.innerWidth * MIN_VW
+
+    // ── ONE PLACE DECIDES WHERE THE BOX MAY STAND, and it does it PER
+    // ANCHOR, because the two rails are not the same gesture mirrored:
+    //
+    //  · LEFT rail — the box's RIGHT edge is fixed. The wall you are holding
+    //    is the one that moves; the far side staying put is what makes the
+    //    gesture read as moving THAT bar rather than sliding the container.
+    //    So the free variable is `l`, bounded by GAP below (the drawer),
+    //    `right - room` below as well (a box may not be wider than the slot),
+    //    and `right - minW` above (the 25vw floor).
+    //  · RIGHT rail — the LEFT edge is fixed and `w` is the free variable,
+    //    capped so the right edge stops GAP short of the rail column.
+    //
+    // ⚠ THEY WERE ONE FUNCTION FIRST AND IT WAS WRONG in both directions:
+    // clamping `l` after `w` let a right-rail drag shove the LEFT edge over
+    // (measured: the box's x went 75.8 → 50 on a drag that should not have
+    // touched it), and re-pinning the right edge after a shared clamp let a
+    // left-rail drag past its floor escape the track entirely (measured: x
+    // = −1070, a box 1112px left of the drawer). Anchor first, clamp second.
+    const limits = () => ({ minW: minWidth(), room: Math.max(minWidth(), trackW - 2 * GAP) })
+
+    const onMove = (e) => {
+      if (e.pointerId !== pid) return
+      const dx = e.clientX - originX
+      const { minW, room } = limits()
+      let l = baseLeft
+      let w = baseW
+      if (sizing.value === 'l') {
+        const right = baseLeft + baseW
+        l = Math.max(baseLeft + dx, GAP, right - room)
+        l = Math.min(l, right - minW)
+        w = right - l
+      } else {
+        w = Math.max(baseW + dx, minW)
+        w = Math.min(w, Math.max(minW, trackW - GAP - baseLeft))
+      }
+      leftPct.value = l / trackW
+      widthPct.value = w / trackW
+    }
+
+    const teardown = () => {
+      if (capEl) {
+        capEl.removeEventListener('pointermove', onMove)
+        capEl.removeEventListener('pointerup', end)
+        capEl.removeEventListener('pointercancel', end)
+        if (pid != null && capEl.hasPointerCapture?.(pid)) capEl.releasePointerCapture(pid)
+      }
+      capEl = null
+      pid = null
+      sizing.value = null
+      document.body.style.userSelect = ''
+      document.body.style.cursor = ''
+    }
+
+    const end = (e) => {
+      if (e && e.pointerId !== pid) return
+      teardown()
+      persist()
+    }
+
+    const onRailDown = (e, side) => {
+      if (pid != null || e.button !== 0) return
+      const track = trackEl.value
+      const box = boxEl.value
+      if (!track || !box) return
+      const tr = track.getBoundingClientRect()
+      const br = box.getBoundingClientRect()
+      // `+ scrollLeft` because the track is a horizontal scroller. It should
+      // never be scrolled — the clamp keeps the box inside the slot, which is
+      // the whole point of it — but reading the offset in the track's own
+      // coordinates rather than the viewport's costs one term and survives
+      // the day something else puts content in there.
+      baseLeft = br.left - tr.left + track.scrollLeft
+      baseW = br.width
+      trackW = track.clientWidth
+      originX = e.clientX
+      pid = e.pointerId
+      capEl = e.currentTarget
+      sizing.value = side
+      e.preventDefault()
+      capEl.setPointerCapture?.(pid)
+      capEl.addEventListener('pointermove', onMove)
+      capEl.addEventListener('pointerup', end)
+      capEl.addEventListener('pointercancel', end)
+      document.body.style.userSelect = 'none'
+      document.body.style.cursor = 'col-resize'
+    }
+
+    // ── RE-CLAMP WHEN THE SLOT CHANGES. Percentages follow the track on
+    // their own, so this is not about the SIZE — it is about the two floors
+    // that are not percentages: `GAP` is px and `MIN_VW` is a share of the
+    // window. Open a dock (the track narrows without a window resize, which
+    // is why this is a ResizeObserver and not a `resize` listener) or shrink
+    // the window and a stored fraction can fall under 25vw or push the box
+    // into the rail.
+    let ro = null
+    const reclamp = () => {
+      const track = trackEl.value
+      if (!track) return
+      if (widthPct.value == null && leftPct.value == null) return
+      trackW = track.clientWidth
+      if (!trackW) return
+      // LEFT-ANCHORED, like the right rail: a slot that narrowed takes it out
+      // of the box's WIDTH and leaves its left edge where the user put it.
+      const { minW } = limits()
+      const l0 = Math.min(Math.max((leftPct.value ?? 0.025) * trackW, GAP), Math.max(GAP, trackW - GAP - minW))
+      const w0 = Math.min(Math.max((widthPct.value ?? 0.45) * trackW, minW), Math.max(minW, trackW - GAP - l0))
+      const l = l0 / trackW
+      const w = w0 / trackW
+      if (Math.abs(l - (leftPct.value ?? 0)) > 0.0005 || Math.abs(w - (widthPct.value ?? 0)) > 0.0005) {
+        leftPct.value = l
+        widthPct.value = w
+        persist()
+      }
+    }
+
+    onMounted(() => {
+      restore()
+      if (typeof ResizeObserver === 'undefined') return
+      ro = new ResizeObserver(reclamp)
+      if (trackEl.value) ro.observe(trackEl.value)
+    })
+
+    onBeforeUnmount(() => {
+      if (ro) ro.disconnect()
+      ro = null
+      teardown()
+    })
+
+    return {
+      pageStyleFn,
+      flyouts,
+      onSelect,
+      trackEl,
+      boxEl,
+      boxStyle,
+      sizing,
+      railTitle,
+      onRailDown
+    }
   }
 })
 </script>
@@ -166,6 +454,36 @@ export default defineComponent({
   overflow: hidden;
 }
 
+// ── DESKTOP: THE COLUMN RUNS THE WHOLE WINDOW (2026-08-21, user ask: "drawn
+// on top of the header and footer bars. From the very top to the very
+// bottom") ────────────────────────────────────────────────────────────────
+// The page grows to the full viewport and pulls itself up over
+// `q-page-container`'s top padding, so the container — and both its frieze
+// bars with it — starts at y=0 and ends on the window floor. The two bars of
+// chrome it now crosses do not move; they STEP UNDER it on this route
+// (`.nav-footer--underlaid` in NavigationBar.vue, `.media-tabs--underlaid` in
+// MediaTabsBar.vue, both z 2999 under the container's 3001). The bar gives
+// way rather than the container climbing, and it is the SECOND time this
+// surface learns that lesson (2026-08-02 → 08-12, the first run of this exact
+// block): anything over the nav bar's 3110 is over every dock too, and the
+// maker/chat/flyout windows (3010+) would open BEHIND the feed on the one
+// page they are most used on.
+//
+// The two negative margins are the scroll arithmetic, not decoration: the
+// page container pads top by `--media-tabs-h` and bottom by the footer, so a
+// 100vh page without them hands the window a scrollbar exactly that tall.
+//
+// Desktop only, same gate as the first run: below 1024px the drawer is modal,
+// the burger lives in the bar's left cluster, and a container over the bar
+// would bury it (see gotchas).
+@media (min-width: 1024px) {
+  .feed-page {
+    height: 100vh;
+    margin-top: calc(-1 * var(--media-tabs-h, 0px));
+    margin-bottom: calc(-1 * var(--nav-footer-h));
+  }
+}
+
 .feed-track {
   height: 100%;
   width: 100%;
@@ -215,20 +533,130 @@ export default defineComponent({
 // where these bars stop being a pattern, and it exists for the head box's 9px
 // posts, which carry a motif chosen to survive it.
 .feed-container__edge {
-  --frieze-bar-v-w: calc(var(--frieze-h) * 0.8);
+  --frieze-bar-v-w: var(--feed-edge-w);
 }
 
+// ── THE RAILS (2026-08-18, user ask) ─────────────────────────────────────
+// A wrapper round each frieze bar, and the wrapper is the whole of what is
+// new: `FriezeBarVertical` sets `pointer-events: none` on itself because it
+// is decoration, so a bar can never be a handle — but the STRIP OF SPACE it
+// occupies can, and that is this element. The bar inside is untouched.
+//
+// It is a flex box of one item so the bar's own `flex: 0 0 --frieze-bar-v-w`
+// still decides the thickness; the rail simply takes whatever that comes to
+// (`flex: 0 0 auto`) and the container's arithmetic is unchanged — the two
+// rails together are exactly the two bars, as they were when the bars were
+// the container's direct children.
+//
+// `position: relative` held the two keys while they existed (2026-08-18 →
+// 08-21) and stays as an unstacked relative for whatever ever needs a frame
+// here — it changes nothing about how the bars rank inside `.feed-container`'s
+// 3001, the same note the bar's own `position: relative` carries.
+.feed-container__rail {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: stretch;
+  position: relative;
+  cursor: col-resize;
+  // The glow is a box-shadow rather than a filter: a `drop-shadow` would
+  // follow the bar's own alpha mask (the motif is cut out of the plate) and
+  // light every wave crest individually instead of the bar's silhouette.
+  transition: box-shadow 0.14s;
+  touch-action: none; // or a phone claims the drag for a pan and the stream dies mid-gesture
+}
+
+// LIT — hovered, or held while the pointer has run off it (which it will for
+// most of any real drag). `rgba(140, 158, 255, …)` is `--indigo-11`, and it is
+// not a new mark: it is the exact ink the post cards' hover and open glows
+// use, so "this thing is lit" says the same thing everywhere on this surface.
+// The reach is generous where a card's is not — a card must not touch its
+// neighbour, a rail has the page's near-black canvas on one side and its own
+// container on the other.
+.feed-container__rail:hover,
+.feed-container.is-sizing .feed-container__rail--l,
+.feed-container.is-sizing .feed-container__rail--r {
+  box-shadow:
+    0 0 0 1px rgba(140, 158, 255, 0.45),
+    0 0 12px 2px rgba(140, 158, 255, 0.55);
+}
+
+// ⚠ While a drag is live only the DRAGGED rail is lit — the rule above lights
+// both, and this takes the other one back. Two lit walls would say the box is
+// being scaled from its centre, which is not what either gesture does.
+.feed-container.is-sizing--l .feed-container__rail--r,
+.feed-container.is-sizing--r .feed-container__rail--l {
+  box-shadow: none;
+}
+
+// ── THE KEYS ARE GONE (2026-08-21, user ask: "keep the frieze bars clean …
+// their pattern fully displayed and not distorted") ───────────────────────
+// Two controls lived ON the bars for three days (2026-08-18 → 08-21): a FOLD
+// key riding Talavero's board and a ↔ GRIP at mid height — `--indigo-10`
+// tablets the rail's full width, each one a blank plate laid over the
+// meander. They, the fold state they doored, and their whole aesthetic walk
+// (marbles → channel → flush tablets; the 0.8px inset-shadow rim; the
+// board-riding `top`) are in git under this date if a control ever needs to
+// stand on this chrome again — and the lesson to take from the removal is
+// the one to re-read first: a frieze this narrow has no room to carry
+// anything but its own motif.
+
 .feed-container {
+  // ── THE EDGE DIAL (2026-08-18) — ONE number, TWO readers: the bars'
+  // thickness (`.feed-container__edge` maps it onto `--frieze-bar-v-w`) and
+  // the FOLDED width, which is exactly two of them plus this box's own two
+  // 1px side borders. They were one number before too, by both being spelled
+  // `calc(var(--frieze-h) * 0.8)`; now they are one number by construction,
+  // and a fold that stopped matching its bars is a class of bug that cannot
+  // happen. See the paragraph below for why it is safe HERE and
+  // `--frieze-bar-v-w` was not: this name is read by nothing but the two
+  // rails, so inheriting it into the head box's own posts changes nothing.
+  // **BACK TO `0.8` ON 2026-08-21** (user ask: "thinner … not so thin they
+  // lose detail") — ~15.1px at a 900px viewport, the exact width 2026-08-07's
+  // "a little thinner" ask settled and the one the user named the clean look.
+  // It spent 2026-08-18 → 08-21 at `0.95` ("a little thicker", ~17.9px) and
+  // came back with the keys' removal: what actually mangled the bars was the
+  // pair of tablets standing ON the motif, but the thicker bar read heavier
+  // beside the board's slim posts too. The floor arithmetic: the masks are a
+  // 13-row grid read across the thickness, so a row is ~1.16px here — above
+  // the ~0.7px line where the meander stops being a pattern (0.95 gave
+  // ~1.38px; the detail survives the trim with room to spare).
+  --feed-edge-w: calc(var(--frieze-h) * 0.8);
+
   flex: 0 0 45%;
   height: 100%;
   display: flex;
   align-items: stretch;
+
+  // ── THE FLOOR, 25% OF THE SCREEN (2026-08-18, user asks — 15% for the
+  // first few hours of the same day) ─────────────────────────────────────
+  // The stated minimum for a horizontal collapse, and it is the GUARANTEE:
+  // the drag clamps to the same number in JS so the gesture stops rather than
+  // pushing against an invisible wall, but a stored fraction, a media query
+  // or a future percentage cannot get under this.
+  //
+  // ⚠ IT ALSO KEEPS THE JOB `min-width: 0` HELD — see the note under it. An
+  // explicit `min-width` of ANY value overrides a flex item's automatic
+  // min-content floor, so 25vw suppresses the "widest nowrap title" floor
+  // exactly as 0 did. Do not read the 0 below as having been deleted; it has
+  // been raised, and it is still the line holding the percentage exact.
+  min-width: 25vw;
+
+  // The drag is this property moving, and the box CANCELS the easing while a
+  // rail is held, because a width that eases toward the pointer instead of
+  // tracking it reads as lag, not as smoothness.
+  transition: flex-basis 0.18s ease, margin-left 0.18s ease, box-shadow 0.14s;
   // Holds the 45% EXACTLY, now that the box has content in it. A flex item's
   // default `min-width: auto` is a floor at its content's min-content size,
   // and that floor OUTRANKS a percentage flex-basis — the stream's widest
   // nowrap post title measured out to 54.6% of the track before this line.
   // FeedStream zeroes the same floor down its own chain so the title
   // ellipsizes; this is the guarantee at the box itself.
+  //
+  // ⚠ RAISED TO `25vw` ABOVE (2026-08-18) — the declaration that wins is the
+  // later one, and it does this job as well as `0` did: what suppresses the
+  // automatic min-content floor is min-width being EXPLICIT, not its being
+  // zero. This line stays as the reasoning, and as the value to come back to
+  // if the 15% floor is ever dropped.
   min-width: 0;
   // A FORTIETH OF THE TRACK of daylight off the drawer's edge (a hairline
   // 8px until 2026-07-25, then a tenth, 5% for most of the range since, and
@@ -321,6 +749,14 @@ export default defineComponent({
   height: 100%;
   overflow: hidden;
 }
+
+// (THE FOLD lived here 2026-08-18 → 08-21 — `.is-collapsed` shrank the box to
+// its two bars behind the keys that stood on them. It left with the keys; the
+// state blocks are in git under the removal date.)
+
+// HELD — the drag must track the pointer exactly, so the easing above comes
+// off for the length of the gesture.
+.feed-container.is-sizing { transition: none; }
 
 // Mobile pass (Thread H item 1, 2026-07-31): under 600px the container
 // takes the whole track — the stack/pins rail is hidden, so the slot IS

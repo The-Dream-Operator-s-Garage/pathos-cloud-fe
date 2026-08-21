@@ -479,10 +479,11 @@ export default defineComponent({
 // the trio rule since the same sitting's trim walk), no crown lip of its own: neither
 // of them stands in for the crown strip, so the pair reads identically across
 // the two widgets. Palette: the SIDE CHROME TRIO rule in `_components.scss`
-// since 2026-08-17 (user ask) — a `--grey-8` plate under two smooth
-// warm-first orange-11/teal-11 wave ramps, rimmed 1px `--grey-6` top and
-// bottom (the same sitting's rim ask), shared by name with the stack's pair
-// and the drawer's bands.
+// since 2026-08-17 (user ask) — three paints and nothing else since
+// 2026-08-21's from-scratch ask: `--grey-8` plate, `--grey-2` thick wave,
+// `--grey-4` other wave, carve and rims off (an orange↔teal gradient weave
+// 08-17 → 08-21, then one rimmed grey pass, before it) — shared by name
+// with the stack's pair and the drawer's bands.
 .pins-frieze {
   flex-shrink: 0;
   height: var(--frieze-bar-h, var(--frieze-h));

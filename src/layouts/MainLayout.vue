@@ -46,10 +46,12 @@
                IDENTITY); full-bleed edge to edge (the q-list pads vertically
                only) so each spans the drawer in both mini and expanded
                states. All four are the SAME element with the same class and
-               the SIDE CHROME TRIO's palette (a --grey-8 plate under the
-               orange-11/teal-11 weave, rimmed --grey-6 — `_components.scss`,
-               shared by name with the stack/pins bands; FriezeBar's default
-               browns until 2026-08-17) — the drawer has one divider
+               the SIDE CHROME TRIO's palette (three paints, nothing else,
+               since 2026-08-21's from-scratch ask: --grey-8 plate, --grey-2
+               thick wave, --grey-4 other wave, carve and rims off —
+               `_components.scss`, shared by name with the stack/pins bands;
+               an orange↔teal gradient weave 2026-08-17 → 08-21, FriezeBar's
+               default browns before that) — the drawer has one divider
                vocabulary, and a band that happens to be first is not a
                different kind of band.
                ⚠ THIS FIRST ONE IS FLUSH WITH THE WINDOW'S TOP EDGE (user ask,
