@@ -62,27 +62,32 @@
       :thinking="thinking"
       :live="live"
       :line="line"
+      :manual="manualMode"
+      :spoken="standingSay"
+      :lens-live="lensLive"
       @update:offset="setHeadY"
       @update:height="(h) => (headH = h)"
+      @update:manual="manualMode = $event"
       @ask="onAsk"
       @open-chat="openLensChat"
       @sweep="sweepLane"
     >
       <template #controls>
         <div class="feed-stream__controls">
-          <!-- ⚠ THE LABEL BAR COMES FIRST (2026-08-08, user ask: swap the
-               section's two rows). Reading order, not just paint: the field
-               you TYPE a filter into sits above the bundle of ready-made
-               lenses, which is the order the section is used in — you either
-               name the label you want or reach for one of the three. Moved in
-               the MARKUP rather than with `column-reverse` or `order`, so the
-               tab order follows the eye. ⚠ Which means the PHONE flips too
-               (there the section is one row, so "first" is left): label field
-               left, bundle right, where it was bundle-left before. That is the
-               same decision read sideways, and the alternative — an `order`
-               override in the media query — would have put DOM and visual
-               order back out of step on the one layout where a caret and a
-               thumb are working together.
+          <!-- ⚠ THIS SECTION RENDERS IN THE MANUAL BAND NOW (2026-08-21,
+               user ask) — the workbench the head box's talavera toggle
+               opens, ONE ROW under Talavero's bubble — and only there: in
+               full-talavero mode (the default) the slot's berth is `v-if`ed
+               away and none of this mounts. The LABEL BAR still COMES FIRST
+               (2026-08-08, user ask, then a swap of rows, now the row's left
+               end): the field you TYPE a filter into before the bundle of
+               ready-made lenses, which is the order the section is used in —
+               you either name the label you want or reach for one of the
+               four. Stated in the MARKUP rather than with `order`, so the
+               tab order follows the eye. -->
+          <!-- (History: the section was a two-row column beside the composer
+               from 2026-08-07; the phone ran this single row from 2026-08-08
+               and the manual band promoted it to every width.)
 
                ⚠ AND THE VERB IS BACK INSIDE THE BAR (a later ask the same
                day), where it began. It spent a few asks OUTSIDE, standing on
@@ -501,13 +506,17 @@
         <span v-if="total > 0" class="feed-stream__count">{{ total }}</span>
       </template>
 
-      <!-- The lane's contents. Two regimes share it: the OLD single-label
-           lens chip (`?label=`, shareable URL) when no spoken lens is live,
-           and the SPOKEN LENS's clause chips when one is — one chip per
-           lane label plus one per synthesized clause (yesterday / from
-           allegue / pictures / "coffee"), each with a close that removes
-           JUST that clause client-side (no model round-trip), and a
-           trailing × that clears the whole lens. -->
+      <!-- The lens's chips — rendered by the BOX in one of two places
+           (2026-08-21): inside Talavero's STANDING LINE in the bubble when
+           the board is full-talavero (the labels embedded in his text), or
+           in the manual band's active tray when the workbench is open. Two
+           regimes share the slot: the OLD single-label lens chip (`?label=`,
+           shareable URL) when no spoken lens is live, and the SPOKEN LENS's
+           clause chips when one is — one chip per lane label plus one per
+           synthesized clause (yesterday / from allegue / pictures /
+           "coffee"), each with a close that removes JUST that clause
+           client-side (no model round-trip), and a trailing × that clears
+           the whole lens. -->
       <template #labels>
         <!-- The LOCAL hash lens (the card's expand lead) joins the spoken
              one here (2026-08-09): its chip rides the same loop, so the
@@ -1919,6 +1928,23 @@ export default defineComponent({
     const thinking = ref(false)
     const live = ref(false)
     const line = ref(null) // { kind: 'say'|'song'|'fail', text }
+    // ── THE TWO ARRANGEMENTS (2026-08-21, user ask) ───────────────────
+    // false = FULL TALAVERO, the default: the board is the header and the
+    // seat's bubble, the lens lives in Talavero's standing text, nothing
+    // hand-operated shows. true = the MANUAL band is open under the bubble
+    // (label search, lens bundle, active tray, broom, trash). Session-local
+    // like every lens: a reload comes back to Talavero.
+    const manualMode = ref(false)
+    // Talavero's STANDING sentence — the last `say`, held for as long as it
+    // stays honest: any HAND edit of the lens (a chip closed, a restore, the
+    // broom, the URL chip dropped) nulls it, and the chips alone stand in
+    // the bubble. A fresh verdict writes it again.
+    const standingSay = ref(null)
+    // The standing line's gate: any of the three filter regimes is live —
+    // the spoken spec, the `?label=` URL filter, or the card's local hash
+    // expand. Only this component sees all three, so the box takes it as a
+    // prop rather than deriving a partial answer from its slots.
+    const lensLive = computed(() => !!(lensSpec.value || labelFilter.value || hashFilter.value))
     const pendingReceipt = ref(null)
     let thinkTimer = null
     let lineTimer = null
@@ -1985,6 +2011,12 @@ export default defineComponent({
         const stripped = applySpec(meta.spec || {}, meta.lane_labels || [], meta.receipt)
         // The say line stays honest when the trash vetoed part of the
         // verdict — the seat's words promised a label the lane won't wear.
+        // The same words STAND (2026-08-21): `standingSay` is what the
+        // full-talavero bubble keeps showing after the transient's ~6s —
+        // Talavero's text, with the lens chips embedded after it. Written
+        // AFTER applySpec on purpose: its branches null the standing line
+        // (clearLens, afterMutation) and the fresh verdict outranks them.
+        standingSay.value = meta.say ? meta.say + (stripped ? ' · trash kept out' : '') : null
         if (meta.say) showLine('say', meta.say + (stripped ? ' · trash kept out' : ''))
       } else if (meta.mode === 'song') {
         showLine('song', '♪ ' + String(meta.verse || '').replace(/\n/g, ' · '), 9000)
@@ -2069,6 +2101,9 @@ export default defineComponent({
       laneLabels.value = []
       sortOrder.value = null
       pendingReceipt.value = null
+      // No lens, no sentence — and on the applySpec paths that call this
+      // before applying a verdict, the watcher rewrites it right after.
+      standingSay.value = null
       if (reload) load()
     }
 
@@ -2088,6 +2123,11 @@ export default defineComponent({
     }
 
     const afterMutation = () => {
+      // A hand edit makes Talavero's sentence stale — his words may promise
+      // the clause that was just dropped (or not know the one restored) — so
+      // the standing line falls back to CHIPS ONLY. The next verdict speaks
+      // a fresh one.
+      standingSay.value = null
       const s = lensSpec.value
       if (s.authors && !s.authors.names?.length && !s.authors.exclude_names?.length && !s.authors.org && !s.authors.me) delete s.authors
       if (s.labels && !s.labels.length) {
@@ -2125,6 +2165,7 @@ export default defineComponent({
     // the same door to the trash.
     const dropUrlLabel = () => {
       if (labelFilter.value) _trash({ id: labelFilter.value.id, name: labelFilter.value.name, weight: 1, subtree: true })
+      standingSay.value = null
       setLabelFilter(null)
     }
     // A trashed chip clicked = re-applied NOW (the veto lifts). With no
@@ -2152,6 +2193,7 @@ export default defineComponent({
     // business.
     const sweepLane = () => {
       trashedLabels.value = []
+      standingSay.value = null
       if (lensSpec.value?.labels?.length) {
         lensSpec.value.labels = []
         afterMutation()
@@ -2703,6 +2745,9 @@ export default defineComponent({
       headY,
       setHeadY,
       headH,
+      manualMode,
+      standingSay,
+      lensLive,
       authorName,
       authorHandle,
       momentWhen,
@@ -2945,28 +2990,31 @@ export default defineComponent({
   background: var(--indigo-9, #283593);
   font-family: var(--font-display);
   display: flex;
-  flex-direction: column;
+  // ── ONE ROW SINCE 2026-08-21 (user ask: the manual section "on a single
+  // row … under talavero's bubble") ────────────────────────────────────────
+  // The section spent 2026-08-07/08 as a two-row COLUMN beside the composer;
+  // it renders inside the head box's MANUAL BAND now — the workbench the
+  // talavera toggle opens — and the band is one row for everything, so the
+  // column is a row of two bars: the label bar first (markup order, the
+  // reading order the 08-08 swap argued — you type before you reach for
+  // presets), the bundle after it. This is the arrangement the PHONE always
+  // had, promoted; the old desktop-only column went with the lens half.
+  flex-direction: row;
+  // STRETCH — the mobile board's 2026-08-08 lesson, now the base: two bars
+  // left to size themselves land at 21 and 23 and nothing makes them agree.
+  // The manual band states the height; both bars fill it.
   align-items: stretch;
-  // CENTRED in the height the half hands it, so whatever the two bars do not
-  // use splits evenly above and below them instead of pooling at one end —
-  // the dark field then reads as a thin border around the pair rather than as
-  // a gap under them.
-  justify-content: center;
-  // NO GAP (2026-08-08, user ask) — the two bars touch. It was 3px, set
-  // against the half's padding back when the half had some; the padding went
-  // to zero an ask earlier and this is the same decision finishing. The
-  // `--indigo-9` floor now shows only where `justify-content` leaves it, above
-  // and below the pair.
-  //
-  // ⚠ Touching bars DOUBLE their rims — 2px meeting 2px is a 4px line between
-  // them, heavier than the 2px anywhere else on the block. So the second bar
-  // drops the edge that meets the first (see `.feed-stream__label-row`: no
-  // `border-top` stacked, no `border-left` in the phone's single row). That is
-  // a consequence of closing the gap, not a separate design choice — undo both
-  // together if the seam ever comes back.
-  gap: 0;
+  // 3px of the section's own `--indigo-9` between the two bars — the seam
+  // the stacked block showed vertically, turned 90° with the layout. A gap,
+  // not touching rims, so nothing doubles and the label bar keeps all four
+  // of its 1px edges.
+  gap: 3px;
+  // Fill whatever berth the manual band hands this section. On the desktop
+  // band the berth shrink-wraps (`0 1 auto`), so this is invisible there; on
+  // the phone the berth is a full wrapped row, and this is what makes the
+  // label field span it.
+  flex: 1 1 auto;
   min-width: 0;
-
 }
 
 // THE TRUST LENS (Thread J) — a small segmented control in the head band,
@@ -3012,7 +3060,13 @@ export default defineComponent({
 // stretches to the column rather than driving it.
 .feed-stream__lens-group {
   display: flex;
-  width: 100%;
+  // NATURAL WIDTH since the single-row pass (2026-08-21) — the phone's
+  // arrangement promoted to the base: side by side with the label bar, the
+  // bundle takes what its four lenses need and the bar takes the slack. The
+  // `width: 100%` era belonged to the stacked column, where both rows took
+  // the section's measure.
+  flex: 0 0 auto;
+  width: auto;
   border: var(--lens-rim-w) solid var(--lens-rim);
   // SQUARE (2026-08-08, user ask), from `--radius-sm`. It follows the pass
   // that took this section's padding to zero and painted it `--indigo-9`: the
@@ -3039,12 +3093,13 @@ export default defineComponent({
 // content wrapper, which the scope attribute never reaches. Its `gap` is what
 // used to be the flex row's on the plain button.
 .feed-stream__lens-btn {
-  // EQUAL THIRDS of the bundle (2026-08-07, user ask — the group spans its
-  // container now, and a bundle with a gap at one end is not a bundle). A
-  // ZERO basis, not `auto`: with `auto` the three would divide the SLACK in
-  // proportion to their content, and the trust lens is wider than the other
-  // two by the mark it prints, so the row would come out visibly uneven.
-  flex: 1 1 0;
+  // NATURAL WIDTH (2026-08-21, with the single row — it was equal thirds of
+  // a spanning bundle from 2026-08-07): the group hugs its lenses now, so
+  // each button is its glyph and its mark, the phone's rule promoted. The
+  // zero-basis note stays worth knowing for any return to a spanning
+  // bundle: with `auto` in that layout the three divided the SLACK unevenly
+  // by content, and `1 1 0` was what made the row even.
+  flex: 0 0 auto;
   min-width: 0;
   min-height: 0;
   border-right: var(--lens-rim-w) solid var(--lens-rim);
@@ -3121,6 +3176,11 @@ export default defineComponent({
   display: flex;
   align-items: center;
   gap: 4px;
+  // THE BAR TAKES THE ROW'S SLACK (2026-08-21, the single-row pass) — beside
+  // a natural-width bundle, the field is the one thing here that can spend
+  // extra room; under pressure it is also the first to give (the input's own
+  // stated width below is the resting size, its `min-width` the floor).
+  flex: 1 1 auto;
   min-width: 0;
   // ── THE ROOM RIM (2026-08-08, user ask: thin `--indigo-7` borders on the
   // board's brown-1 rounded containers) ────────────────────────────────────
@@ -3190,7 +3250,13 @@ export default defineComponent({
 
 .feed-stream__label-input {
   flex: 1 1 auto;
-  min-width: 0;
+  // A STATED RESTING WIDTH (2026-08-21): an `<input>`'s intrinsic basis is
+  // the UA's ~170px, which on the shared manual row would hand the label bar
+  // a third of the band before a letter is typed. 88px is the word "Label…"
+  // plus a real query's worth; the flex above still grows it into any slack
+  // and shrinks it to the floor below when the trays crowd in.
+  width: 88px;
+  min-width: 36px;
   border: 0;
   background: transparent;
   color: var(--fhead-ink, var(--indigo-8, #303f9f));
@@ -6449,61 +6515,12 @@ export default defineComponent({
 // so the section spends width instead of height. Two rows here would cost
 // ~25px of a box that already stands over the stream.
 @media (max-width: 600px) {
-  .feed-stream__controls {
-    flex-direction: row;
-    // STRETCH, not `center` (2026-08-08, user ask: the bundle and the label
-    // section should be the same height). Side by side they came out 21 and
-    // 23 — the bundle is its buttons' 17px plus two rims, the field is its own
-    // leading plus padding plus two rims, and nothing was making the two
-    // agree. Stretching hands the height to the taller of them and the shorter
-    // grows into it, which is the only version of "the same height" that stays
-    // true when either one's contents change. (Quasar already gives every
-    // `.q-btn-item` `align-self: stretch`, so the lenses fill the bundle when
-    // the bundle grows.)
-    align-items: stretch;
-    gap: 0;
-    // FILL THE HALF (2026-08-08, user ask: "there is a huge gap on the right
-    // inside this section"). The section is a flex ITEM of the lens half, and
-    // with no flex of its own it was sized by its content — bundle 86 + gap 5
-    // + the label field's natural 176 = 267 in a 293px half, leaving 20px of
-    // floor at the right end. `1 1 auto` makes the section take the half, and
-    // the label row's own `1 1 auto` below hands that width straight to the
-    // field, which is where it was wanted.
-    //
-    // Mobile only. Stacked, the half HUGS this section by design — that is
-    // what makes the buttons take the width they need and the composer take
-    // the rest — so growing it there would undo the layout it was built for.
-    flex: 1 1 auto;
-    width: auto;
-  }
-
-  // The single row puts them side by side, so the desktop arrangement inverts:
-  // the bundle takes only what its three lenses need, and the field — which
-  // spans the section when the two are stacked — takes everything left.
-  .feed-stream__lens-group {
-    flex: 0 0 auto;
-    width: auto;
-  }
-
-  .feed-stream__lens-btn {
-    flex: 0 0 auto;
-  }
-
-  // The BAR takes the width here (it is what stands beside the bundle), the
-  // way it did before the verb's brief spell outside it.
-  .feed-stream__label-row {
-    flex: 1 1 auto;
-    align-self: auto;
-    width: auto;
-    min-width: 0;
-  }
-
-  // ⚠ NOTHING TO UNDO HERE ANY MORE. This block used to restore the row's top
-  // edge and drop its left one — the doubled-rim rule turned 90° for the
-  // side-by-side layout — and both halves went when the bar took its own 1px
-  // `--indigo-7` rim on all four edges (2026-08-08). The rule that made them
-  // necessary was two touching 2px rims in ONE ink; the bar shares neither
-  // with the bundle now.
+  // ⚠ NO CONTROLS OVERRIDES ANY MORE (2026-08-21). This block invented the
+  // single-row arrangement in 2026-08-08 — row, stretch, natural-width
+  // bundle, the bar taking the slack — and the manual-band pass promoted all
+  // of it to the BASE, so the phone and the desktop run the same section and
+  // only the head box's own media block (which wraps the band into two rows)
+  // says anything phone-shaped about it.
 
   // ── THE BYLINE ON A PHONE (2026-08-10, user ask) ──────────────────────
   // "Make the font smaller if needed" — it is needed. The card is the whole

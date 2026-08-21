@@ -25,22 +25,23 @@
       reads as a piece of the frieze pulled out of it rather than a rectangle
       dropped between the two bars.
 
-  WHAT IT HOLDS, after the same day's compression asks — three thin bands,
-  71px all in (it was 119):
+  WHAT IT HOLDS — TWO ARRANGEMENTS since 2026-08-21 (user ask: the manual
+  toggle; it was three constant bands from the 2026-08-06 compression pass —
+  handle · split body line · 19px label lane):
 
-    · the HANDLE, 18px;
-    · one BODY LINE, split in half by a rule. Left: the seat (face, name, org
-      badge) and an inert filter field — an input and one button wearing an
-      oversized `filter_alt`. Neither talks to anything yet; this is the
-      surface placed before the wiring, and `disabled` is how it says so. The
-      seat CURRENTLY references claude in the Dream Operator's Garage;
-      "currently" is the whole point, so it is a name and an org pattern at
-      the top of the script rather than a hardcoded entity id (ids differ per
-      install), resolved through the platform's own entity search. Right: the
-      stream's controls through the `controls` slot — the stream still owns
-      its trust lens, its label funnel, its sort placeholder and its count.
-    · the LABEL LANE, 19px, a constant-height scroller for the labels being
-      filtered on (`labels` slot).
+    · FULL TALAVERO, the default: the HANDLE, then ONE band — the talk pit
+      (the seat's face and his bubble, carved `--brown-2`) with the talavera
+      TOGGLE at the bubble's right. The lens lives in Talavero's STANDING
+      TEXT inside the bubble (labels embedded as chips); nothing
+      hand-operated shows, and the box is at its shortest.
+    · MANUAL: the toggle pulled down adds the WORKBENCH — one `--indigo-9`
+      band under the bubble holding the stream's controls (label search +
+      lens bundle, `controls` slot) and the old lane's four pieces (active
+      tray · broom · trash tray · bin; `labels`/`trash` slots).
+
+  The stream still owns every lens, its sort and its count; the box owns the
+  geometry and the mode. Heights differ BY DESIGN between the arrangements —
+  the `update:height` observer carries whichever is standing up to the well.
 
   And two INNER FRIEZE POSTS standing where the corner sweeps flatten out,
   which is what makes the box a framed span rather than a slab between bars.
@@ -185,13 +186,42 @@
                  a caption under a 22px face is a second line the row exists to
                  avoid. `v-if`, not `display: none` — a hidden element still
                  holds its line in the column. -->
+            <!-- CURVED since 2026-08-21 (user ask: "curve it on the bottom
+                 left side of his profile pic"): the handle is an SVG
+                 text-on-path now, a 105° arc (r=17 on the 28px face) hugging
+                 the avatar's lower-left corner from ~8 o'clock round to
+                 ~4:30, glyph tops toward the face — a caption wrapped around
+                 the porcelain rather than a line under it. The link box
+                 itself stays IN FLOW under the face (28×9px, the same 9px
+                 line the straight caption held), so the seat column — and
+                 the band whose height it sets — measures exactly as before;
+                 the svg reaches up and around from inside it, and nothing
+                 here clips (the box's own rule: no overflow:hidden).
+                 The curve is drawn by `seatArc`, which is `@tala` when the
+                 real handle outruns the arc — the user named the fallback —
+                 while the tooltip and the route keep carrying the full
+                 seat. -->
             <router-link
               v-if="enabled && !isMobile"
               :to="'/entities/' + seatCard.id"
               class="feed-head__seat-handle"
               :title="seatTitle + ' — open the profile'"
-            >{{ seatHandle }}</router-link>
-            <span v-else-if="!isMobile" class="feed-head__seat-handle is-stub">{{ seatHandle }}</span>
+            >
+              <svg class="feed-head__seat-arc" viewBox="-4 0 34 34" aria-hidden="false">
+                <path id="fhead-seat-arc-path" d="M -1.59 23 A 18 18 0 0 0 26.73 26.73" fill="none" />
+                <text class="feed-head__seat-arc-text" text-anchor="middle">
+                  <textPath href="#fhead-seat-arc-path" startOffset="50%">{{ seatArc }}</textPath>
+                </text>
+              </svg>
+            </router-link>
+            <span v-else-if="!isMobile" class="feed-head__seat-handle is-stub">
+              <svg class="feed-head__seat-arc" viewBox="-4 0 34 34" aria-hidden="false">
+                <path id="fhead-seat-arc-path" d="M -1.59 23 A 18 18 0 0 0 26.73 26.73" fill="none" />
+                <text class="feed-head__seat-arc-text" text-anchor="middle">
+                  <textPath href="#fhead-seat-arc-path" startOffset="50%">{{ seatArc }}</textPath>
+                </text>
+              </svg>
+            </span>
           </span>
 
           <!-- THE COMPOSER. The field and its button are ONE object now: the
@@ -203,35 +233,70 @@
                field's slot for ~6s, and a button that vanished with it would
                leave the corner empty and move nothing else. -->
           <div class="feed-head__chat">
-            <!-- The transient reply line — the field's slot, borrowed. -->
+            <!-- The transient reply line — the field's slot, borrowed.
+                 ⚠ A SAY verdict SKIPS this door in full-talavero mode
+                 (2026-08-21): it lands straight in the STANDING line below,
+                 where the same words persist with the labels embedded. Songs
+                 and failures still pass through here for their ~6s — they
+                 change no lens, so they have nothing to stand on. -->
             <button
-              v-if="line"
+              v-if="line && (manual || line.kind !== 'say')"
               type="button"
               class="feed-head__chat-line"
               :class="'is-' + line.kind"
               :title="line.text + ' — open the chat for the transcript'"
               @click="$emit('open-chat')"
             >{{ line.text }}</button>
-            <!-- A TEXTAREA since 2026-08-07 (user ask: "the input section to
-                 hold 2 lines of written stuff"). `rows` is not what sizes it —
-                 the height is stated in the stylesheet so the band's geometry
-                 is one number in one place — but it is still the right value
-                 to declare for anything reading the DOM. ENTER SENDS and
-                 SHIFT+ENTER breaks the line: `.exact` is what makes the pair
-                 possible, since a plain `.enter` swallows the modified press
-                 too and a two-line field you cannot put a second line in is a
-                 tall single-line input. -->
+            <!-- TALAVERO'S STANDING TEXT (2026-08-21, user ask) — the whole
+                 point of full-talavero mode: the labels the seat set are not
+                 chips in a lane, they are part of what Talavero is SAYING,
+                 and the sentence stands as long as the lens does. The chips
+                 are the stream's own (the `labels` slot — the very buttons
+                 the manual tray holds when the workbench is open), embedded
+                 inline after his words; closing one drops that clause exactly
+                 as it does in the lane. Click anywhere else on the line to
+                 get the field back and refine by voice — Escape or an empty
+                 blur returns the sentence. The bubble GROWS a little with the
+                 lens and past its cap it scrolls INSIDE (user ask): a
+                 talkative lens must cost the board a scrollbar, not the
+                 stream its space. `@click.stop` on the chip span is what
+                 keeps a chip's close from also opening the editor. -->
+            <div
+              v-else-if="showStanding"
+              class="feed-head__chat-standing"
+              role="button"
+              tabindex="0"
+              title="Talavero's lens — click to type a refinement; close a chip to drop that clause"
+              @click="beginEdit"
+              @keydown.enter.prevent="beginEdit"
+            >
+              <span v-if="spoken" class="feed-head__chat-standing-say">{{ spoken }}</span>
+              <span class="feed-head__chat-standing-chips" @click.stop @keydown.stop>
+                <slot name="labels" />
+              </span>
+            </div>
+            <!-- A textarea, ONE LINE by default since 2026-08-21 (user ask:
+                 "dense by default, very simple, a single line" — it held two
+                 from 2026-08-07). `rows` is not what sizes it — the height is
+                 stated in the stylesheet so the band's geometry is one number
+                 in one place — but it is still the right value to declare for
+                 anything reading the DOM. ENTER SENDS and SHIFT+ENTER breaks
+                 the line (the text scrolls, exactly as the phone's one-line
+                 field always has): `.exact` is what makes the pair possible,
+                 since a plain `.enter` swallows the modified press too. -->
             <textarea
               v-else
               ref="askInput"
               v-model="draft"
               class="feed-head__chat-input"
-              rows="2"
+              rows="1"
               :disabled="!enabled || thinking"
               :placeholder="thinking ? 'Talavero is thinking…' : 'Filter by…'"
               :title="enabled ? 'Ask for a lens in plain words — Enter sends, Shift+Enter breaks the line' : 'The seat isn\'t seeded here'"
               :aria-label="enabled ? 'Ask Talavero to filter the feed' : 'Filter (the seat isn\'t seeded here)'"
               @keydown.enter.exact.prevent="doAsk"
+              @keydown.esc="onChatEsc"
+              @blur="onChatBlur"
             />
             <button
               type="button"
@@ -246,54 +311,70 @@
           </div>
         </div>
 
-        <!-- SECOND HALF — whatever the stream puts there (its lenses). It is
-             no longer HALF of anything (2026-08-07, user ask): it takes the
-             width its controls actually need and the chat section takes
-             everything left over. See the stylesheet for why that is the
-             right way round. -->
-        <div class="feed-head__half feed-head__half--lens">
-          <slot name="controls" />
-        </div>
+        <!-- THE MANUAL TOGGLE (2026-08-21, user ask) — the board's ONE mode
+             control, at the right of Talavero's bubble: a talavera 3D
+             vertical handle (`TalaveraToggle`, the board posts' own ceramic
+             as its rail) with the thin nasalization word `manual` stood
+             VERTICALLY at its left, so the caption spends height the band
+             already has instead of width the bubble needs (user ask).
+             Down = open. It stands OUTSIDE the talk room, on the body's
+             `--indigo-9` backdrop beside the right frieze post — a lever
+             mounted on the frame, not furniture in the room — and what it
+             opens is the MANUAL band directly below, which the pulled-down
+             handle then points at. -->
+        <TalaveraToggle
+          class="feed-head__toggle"
+          :model-value="manual"
+          title="Manual filters — pull the handle to open the workbench; the lenses, the label search, the broom and the trash live in it"
+          @update:model-value="$emit('update:manual', $event)"
+        />
       </div>
 
-      <!-- THE LABEL LANE (user ask) — the one strip the compression pass was
-           told to LEAVE: a scroller across the box's foot where the labels
-           being filtered on stand. Empty is its normal state and it keeps its
-           height anyway; a lane that appeared with the first chip would
-           resize the box — and move the stream's reserved home slot — every
-           time someone picked or cleared a label.
+      <!-- THE MANUAL BAND (2026-08-21, user ask) — the workbench the toggle
+           opens, and the board's SECOND arrangement. In full-talavero mode
+           (the default) it does not exist: the box is the header and the
+           bubble, the labels live in Talavero's own text, and the board is
+           at its shortest. Pulled open, everything hand-operated stands on
+           ONE row under the bubble: the stream's lens controls (label
+           search + the bundle, through the `controls` slot), then the lane's
+           old four — active tray · broom · trash tray · bin — in the same
+           order they always read ("the labels, then the thing you do to
+           them"; the keys' history is in the stylesheet).
 
-           SPLIT 70/30 WITH A TRASH (2026-08-07, user ask): the active
-           scroller keeps ~70%, and the right 30% is the TRASHED section —
-           labels the user discarded, held in a disabled aesthetic so they
-           can be re-applied later, and STANDING VETOES meanwhile (a new
-           verdict never re-applies a trashed label; the stream owns that
-           rule). The BROOM at the lane's far left sweeps BOTH sections
-           clean in one press — active labels leave the live filter (the
-           reload is the stream's job, via the `sweep` emit) and the trash
-           empties, so nothing is suppressed afterward. -->
-      <div class="feed-head__lane">
+           ⚠ THIS RETIRES THE ALWAYS-PRESENT LANE (2026-08-06 → 2026-08-21).
+           The lane held its height so the box never resized on a pick; the
+           toggle makes resizing the POINT — two arrangements, two heights —
+           and the `update:height` ResizeObserver already carries either one
+           up to the stream's reserved slot, which is what makes the trade
+           legal now when it wasn't then.
+
+           ⚠ The `labels` slot renders HERE or in the bubble's standing line,
+           never both: this band is `v-if="manual"` and the standing line is
+           gated on `!manual`. -->
+      <div v-if="manual" class="feed-head__manual">
+        <div class="feed-head__manual-controls">
+          <slot name="controls" />
+        </div>
         <div class="feed-head__lane-active">
           <slot name="labels" />
         </div>
         <button
           type="button"
           class="feed-head__lane-broom"
-          title="Sweep both lanes — clear the active labels and empty the trash"
+          title="Sweep both trays — clear the active labels and empty the trash"
           aria-label="Sweep active and trashed label filters clean"
           @click="$emit('sweep')"
         >
           <q-icon name="cleaning_services" size="11px" />
         </button>
         <!-- THE KEYS STAND OUTSIDE THEIR TRAYS, AND AFTER THEM (2026-08-08,
-             two user asks in a row). First the bin left `.feed-head__lane-trash`
-             for the lane itself — a key sitting IN a rounded `--brown-1` panel
-             read as a chip rather than as the room's name — and then both keys
-             moved from the LEFT of their trays to the RIGHT. So each room is
-             now "the labels, then the thing you do to them", which is the
-             order the sentence is read in; the two keys had been openers, and
-             a broom that opens a lane of chips names them where a broom that
-             follows them acts on them. Each tray holds nothing but labels. -->
+             two user asks in a row, inherited by the manual band unchanged).
+             First the bin left `.feed-head__lane-trash` for the strip itself
+             — a key sitting IN a rounded `--brown-1` panel read as a chip
+             rather than as the room's name — and then both keys moved from
+             the LEFT of their trays to the RIGHT. So each room is "the
+             labels, then the thing you do to them", which is the order the
+             sentence is read in. Each tray holds nothing but labels. -->
         <div class="feed-head__lane-trash">
           <slot name="trash" />
         </div>
@@ -316,11 +397,12 @@
 </template>
 
 <script>
-import { defineComponent, ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
+import { defineComponent, ref, computed, watch, nextTick, onMounted, onBeforeUnmount } from 'vue'
 import EntityAvatar from 'src/components/entities/EntityAvatar.vue'
 import OrgLogoChip from 'src/components/organizations/OrgLogoChip.vue'
 import FriezeBarVertical from 'src/components/layout/FriezeBarVertical.vue'
 import FriezeBarVerticalB from 'src/components/layout/FriezeBarVerticalB.vue'
+import TalaveraToggle from 'src/components/shared/TalaveraToggle.vue'
 
 // The phone breakpoint, stated ONCE and read by both the script and the
 // stylesheet's `@media` block at the foot of this file. Two places that must
@@ -352,7 +434,7 @@ const SEAT_STUB = { id: null, display_name: 'Talavero', username: null, photo: n
 
 export default defineComponent({
   name: 'FeedHeadBox',
-  components: { EntityAvatar, OrgLogoChip, FriezeBarVertical, FriezeBarVerticalB },
+  components: { EntityAvatar, OrgLogoChip, FriezeBarVertical, FriezeBarVerticalB, TalaveraToggle },
   props: {
     // Where the box stands, in px from the container's top edge. `null` is
     // "nobody has moved it" — the box resolves that to HOME itself, so the
@@ -365,9 +447,22 @@ export default defineComponent({
     // dot, and the transient reply line { kind: 'say'|'song'|'fail', text }.
     thinking: { type: Boolean, default: false },
     live: { type: Boolean, default: false },
-    line: { type: Object, default: null }
+    line: { type: Object, default: null },
+    // ── THE TWO ARRANGEMENTS (2026-08-21, user ask) ─────────────────────
+    // `manual` is the toggle's state, OWNED BY THE STREAM (session-local,
+    // like every lens): false = full-talavero — header, seat, bubble,
+    // nothing hand-operated; true = the workbench band is open below.
+    manual: { type: Boolean, default: false },
+    // Talavero's STANDING sentence — his last `say`, kept by the stream for
+    // as long as it is honest (a hand-edit of the lens clears it, and the
+    // chips alone stand). Rendered only in full-talavero mode.
+    spoken: { type: String, default: null },
+    // Whether ANY lens is live (spoken spec, `?label=` filter, or the local
+    // hash expand) — the gate on the standing line, stated by the stream
+    // because only it knows all three regimes.
+    lensLive: { type: Boolean, default: false }
   },
-  emits: ['update:offset', 'update:height', 'ask', 'open-chat', 'sweep'],
+  emits: ['update:offset', 'update:height', 'ask', 'open-chat', 'sweep', 'update:manual'],
   setup (props, { emit }) {
     const rootEl = ref(null)
     const y = ref(props.offset == null ? HOME : props.offset)
@@ -522,9 +617,48 @@ export default defineComponent({
     const draft = ref('')
     const askInput = ref(null)
 
+    // ── THE STANDING LINE'S EDIT SWITCH (2026-08-21) ────────────────────
+    // In full-talavero mode with a live lens the bubble shows Talavero's
+    // standing text, not the field — `editing` is the way back in. It is
+    // deliberately NOT a mode: it flips true on a click and falls back false
+    // the moment it stops being needed (empty blur, Escape, a fresh spoken
+    // verdict, the lens dying), so the bubble always rests on the sentence.
+    const editing = ref(false)
+    const showStanding = computed(() => !props.manual && props.lensLive && !editing.value)
+
+    const beginEdit = () => {
+      if (!enabled.value) return
+      editing.value = true
+      nextTick(() => { if (askInput.value) askInput.value.focus() })
+    }
+
+    const onChatBlur = () => {
+      if (!draft.value.trim()) editing.value = false
+    }
+
+    const onChatEsc = () => {
+      if (props.lensLive && !props.manual) {
+        editing.value = false
+        if (askInput.value) askInput.value.blur()
+      }
+    }
+
+    // A fresh spoken verdict or a dead lens both end the edit: the first
+    // because the new sentence IS the answer to what was being typed, the
+    // second because there is nothing left to stand behind the field.
+    watch(() => props.spoken, () => { editing.value = false })
+    watch(() => props.lensLive, (v) => { if (!v) editing.value = false })
+
     const doAsk = () => {
       const text = draft.value.trim()
-      if (!text || !enabled.value || props.thinking) return
+      if (!enabled.value || props.thinking) return
+      // The funnel on a standing line is a door, not a send: with nothing
+      // typed it opens the field where a bare no-op would read as a broken
+      // button.
+      if (!text) {
+        if (showStanding.value) beginEdit()
+        return
+      }
       emit('ask', text)
       draft.value = ''
     }
@@ -542,6 +676,18 @@ export default defineComponent({
     // the handle under the face is the real address rather than a guess.
     const seatHandle = computed(() => '@' + (seatCard.value.username || 'tala'))
 
+    // What the CURVED caption actually draws (2026-08-21, user ask). The arc
+    // hugging the face's lower-left corner is ~31px of path and holds about
+    // six characters of the display font; a handle that outruns it — locally
+    // the seat is the root account `talavero`, nine — falls back to the short
+    // name the user gave the fallback state: `@tala`. Truncation would be the
+    // textPath's own behaviour (glyphs past the path's end are simply not
+    // rendered) and a name cut mid-letter reads as a bug, not a caption. The
+    // tooltip and the profile route keep the full seat either way.
+    const seatArc = computed(() => (
+      seatHandle.value.length <= 6 ? seatHandle.value : '@tala'
+    ))
+
     const seatTitle = computed(() => {
       const name = seatCard.value.display_name || 'Talavero'
       return seatCard.value.org ? `${name} · ${seatCard.value.org.name}` : name
@@ -553,6 +699,7 @@ export default defineComponent({
       dragging,
       seatCard,
       seatHandle,
+      seatArc,
       isMobile,
       seatEntity,
       seatTitle,
@@ -560,6 +707,11 @@ export default defineComponent({
       draft,
       askInput,
       doAsk,
+      editing,
+      showStanding,
+      beginEdit,
+      onChatBlur,
+      onChatEsc,
       onBarPointerDown,
       onBarKeydown
     }
@@ -887,38 +1039,30 @@ export default defineComponent({
   // the second for how far the content insets past them — so they are named
   // once here instead of being restated.
   //
-  // THE POST WIDTH IS `0.6 × --frieze-h` SINCE 2026-08-07 (user ask: "thinned
-  // horribly … the pattern looks distorted"), where it had been the slim
-  // variant's own `/ 2` since the box was built. Two things happened at once
-  // and the fix answers both:
+  // ── THE POST WIDTH IS A FIXED **15px** SINCE 2026-08-21 (user ask: the
+  // posts "poorly rendered … I do not see the full svg pattern", the same
+  // complaint 2026-08-07's "thinned horribly … the pattern looks distorted"
+  // ask patched by widening) ────────────────────────────────────────────────
+  // The 08-07 fix (`0.6 × --frieze-h + 2px`) bought the mask rows back above
+  // the ~0.7px legibility floor, but any vh-derived width leaves them
+  // FRACTIONAL — ~0.85px a row, every stroke anti-aliased soft and the motif's
+  // centre line drowning at some window heights. The cure is the pixel grid,
+  // not more width: 15px = 1px border + 1px pad each side + an **11px layer**,
+  // and the posts dial `--frieze-bar-v-fit: 13px auto` below — the mask at
+  // its NATURAL 1px per column, centred so its empty edge columns overhang
+  // exactly (13/11 is slim's own `117%`, in whole pixels), the ink filling
+  // the layer edge to edge and the tile landing at a clean 13×21. Nothing
+  // squeezes at ANY window size, minimized or maximized — a fixed-px motif
+  // no longer follows the viewport, which is the point: the board's posts
+  // are drawings, not bands. (Resize only in whole-pixel steps of the
+  // 13-column grid; the next clean width up is `26px auto` in a 30px post.)
   //
-  //  · The bar took 1px SIDE BORDERS that day, which come out of its width. At
-  //    9.5px that left 5.5px of motif under 2px of padding — the posts really
-  //    were thinner than they had ever been, by a fifth, without this file
-  //    changing. `FriezeBarVertical`'s slim block cancels those borders now,
-  //    which is the actual regression fix and gives 7.5px back.
-  //  · 7.5px was ALREADY marginal. The masks are a 13-row grid scaled to 117%
-  //    of the padded box, so it put a row at ~0.68px — just under the ~0.7px
-  //    floor the frieze family documents as where a meander stops being a
-  //    pattern. That is why the distortion was visible at all rather than
-  //    merely measurable.
-  //
-  // `0.6` lands the padded field at ~9.4px and a row at ~0.85px, clear of the
-  // floor with room to spare, for +20% of width. It is stated as its own dial
-  // (`--frieze-bar-v-slim-w` on the posts below) rather than as
-  // `--frieze-bar-v-w`, which the component's own slim rule also sets on the
-  // same element — two scoped rules of equal specificity, decided by bundle
-  // order, which is not a contract.
-  //
-  // `+ 2px` SINCE 2026-08-07 (the ask that gave the posts side borders): the
-  // rims are `box-sizing: border-box` and come OUT of this width, so at a flat
-  // `0.6` they would take the padded field back from ~9.4px to ~7.4px and a
-  // mask row from ~0.85px to ~0.66px — under the ~0.7px floor, which is the
-  // exact regression the `0.6` was minted to fix. The width now carries the
-  // borders' cost explicitly, so the motif is the same size it was before them
-  // and the two dials cannot drift apart silently.
+  // Still stated as its own dial (`--frieze-bar-v-slim-w` on the posts below)
+  // rather than as `--frieze-bar-v-w`, which the component's own slim rule
+  // also sets on the same element — two scoped rules of equal specificity,
+  // decided by bundle order, which is not a contract.
   --fhead-flare: 11px;
-  --fhead-post-w: calc(var(--frieze-h) * 0.6 + 2px);
+  --fhead-post-w: 15px;
 
   position: absolute;
   left: 0;
@@ -1074,6 +1218,15 @@ export default defineComponent({
   // The slim variant's width, dialled — ONE number with the inset math above,
   // which is why it reads `--fhead-post-w` rather than restating the calc.
   --frieze-bar-v-slim-w: var(--fhead-post-w);
+  // ── PIXEL-DRAWN (2026-08-21, user ask — see `--fhead-post-w`'s note for
+  // the arithmetic): the mask at its natural 1px/column on the 15px post's
+  // 11px layer, and the carve OFF — its black/white flanks around 1px
+  // strokes are the "poorly rendered" the ask names, and the brown-2 motif
+  // on the -10 plate reads by its own contrast (Material 800 under a 50),
+  // needing no groove. The full svg pattern — the centre line included — is
+  // now drawn stroke for stroke at every board size.
+  --frieze-bar-v-fit: 13px auto;
+  --frieze-bar-v-carve: none;
   // `--indigo-9` SINCE 2026-08-07 (user ask, the same pass that thickened the
   // inner rules and stated their ink). The two posts and the five hairlines
   // are now ONE TONE: everything the box draws INSIDE itself is -9, and the
@@ -1198,9 +1351,9 @@ export default defineComponent({
   // ink with. At 1px it IS one of them: same tone, same weight, one hand for
   // every line drawn against the board's `--indigo-9` field. The width is its
   // own dial now, since it follows the RIMS and not the walls.
-  // ⚠ The lane's rule, the other line between two sections, is 4px and still
-  // -9 — not a pair, and the note on `.feed-head__lane` says what its ink
-  // would have to become to draw at all.
+  // ⚠ The MANUAL band's rule (the lane's heir since 2026-08-21) is this same
+  // 1px `--indigo-7` through `--fhead-lane-rule` — the two visible section
+  // rules are a pair on purpose.
   border-bottom: var(--fhead-bar-rule-w) solid var(--fhead-bar-rule);
   cursor: grab;
   user-select: none;
@@ -1370,13 +1523,10 @@ export default defineComponent({
   // would have been two ways of saying the same nothing — but a 1px
   // `--indigo-7` line IS a line, and a line wants daylight on both sides or it
   // reads as an edge of whatever it touches. This is the upper half of that
-  // daylight; the lane's own `padding-top` is the lower half.
-  // ⚠ The box pays for both — unlike the header and the lane, this band has no
-  // stated height to absorb it.
-  //
-  // ⚠ On the PHONE it composes rather than doubles: this puts the talk room
-  // off the header, and `.feed-head__half--lens`'s own `padding-top` (the
-  // desktop's left gutter, turned 90°) puts the filter block off the talk room.
+  // daylight; the MANUAL band's own `padding-top` (the lane's heir) is the
+  // lower half when the workbench is open.
+  // ⚠ The box pays for both — unlike the header and the manual band, this
+  // band has no stated height to absorb it.
   padding: var(--fhead-gutter);
   display: flex;
   align-items: stretch;
@@ -1457,83 +1607,121 @@ export default defineComponent({
   // the face LIFTS to `--grey-3` while the box is held, and a room that
   // followed it would go neutral for the length of every drag — the one thing
   // this floor is here to not be.
-  background: var(--brown-1, #efebe9);
+  // ── THE ROOM IS A CARVED PIT SINCE 2026-08-21 (user ask: the label
+  // maker's "ahuevada" texture, brought to Talavero's bubble, profile photo
+  // included, "con color brown-2 y sombras un poco más oscuras") ──────────
+  // The recipe is `LabelSquares.vue`'s `.label-square__pit` — the label
+  // maker's descendance well, the one concave surface on the platform: a
+  // darkened floor under an `inset` top shade with a white lip at the foot,
+  // which is what makes a box read as dug INTO the plate instead of lying on
+  // it. Three changes tune it to this board:
+  //  · the floor is `--brown-2` OUTRIGHT (the pit darkens by rgba over its
+  //    parent; this room has the body's `--indigo-9` behind it, so the tone
+  //    is stated instead) — one warm step below the `--brown-1` the room
+  //    wore, the board posts' own motif tone;
+  //  · the shadows run DARKER than the maker's (0.30 against its 0.14 base
+  //    — "un poco más oscuras"), because this pit is one step deeper in
+  //    tone and a shade calibrated for near-white would vanish on it;
+  //  · the white lip drops to 0.4 for the same reason.
+  // The whole room is the egg: the seat's porcelain face AND the bubble
+  // stand INSIDE the carve, which is the ask's "toda la burbuja … incluida
+  // su foto de perfil".
+  background: var(--brown-2, #d7ccc8);
+  box-shadow:
+    inset 0 2px 6px rgba(var(--ink-rgb-deep), 0.3),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.4);
   // ROUNDED, all four corners (2026-08-08, second attempt — see
-  // `--fhead-room-r`). The room is a warm panel LYING ON the body's
-  // `--indigo-9` rather than a half of a split plate, and its `border-right`
-  // wall curves with it: the division between the halves is now where the warm
-  // panel ends, drawn in the same ink as everything behind it.
-  // A LITTLE MORE than its three siblings (10px vs 7px, later ask the same
-  // day): see `--fhead-talk-r` for why the biggest container takes the bigger
-  // corner.
+  // `--fhead-room-r`). The room is a warm panel in the body's `--indigo-9`
+  // field — a PIT in it, since the carve — and the curve is what makes the
+  // carve read as a basin rather than a trench.
+  // A LITTLE MORE than its siblings (13px vs 7px): see `--fhead-talk-r` for
+  // why the biggest container takes the bigger corner.
   border-radius: var(--fhead-talk-r);
-  // ⚠ ITS RIM REPLACES THE WALL (2026-08-08, user ask). This half carried
-  // `border-right: var(--fhead-rule-w) solid var(--fhead-rule)` — one of the
-  // box's five walls, the rule between the two rooms — and that line had
-  // already stopped drawing when the body went `--indigo-9` under it: a -9
-  // wall on a -9 backdrop. So the room's own 1px `--indigo-7` rim takes that
-  // edge over, and the division between the halves is stated by where the
-  // outlined warm panel ends. Four walls left in the box, not five.
-  border: var(--fhead-room-rim-w) solid var(--fhead-room-rim);
-  // 2px/3px, in step with the lens half (2026-08-08): the composer draws its
-  // own 2px rim, so the half's 4px/6px was a second margin outside it. Kept
-  // when the ask it came in with turned out to be about HEIGHT, because the
-  // vertical half of it is exactly what the stretch below needs — 2px top and
-  // bottom is the daylight the bubble keeps off the walls once it fills the
-  // band. It is now also the only place this floor SHOWS as a border rather
-  // than as a bed: 2px of room around the bubble on three sides, and the seat
-  // column standing on it.
-  padding: 2px 3px;
+  // ⚠ NO RIM ANY MORE (2026-08-21). The room wore the four containers' 1px
+  // `--indigo-7` outline from 2026-08-08; a pit is stated by its SHADOW —
+  // depth is the edge — and an outline around a carve reads as a panel
+  // pretending to be a hole. The other warm containers (the manual band's
+  // trays, the stream's label bar) keep theirs: they are still panels.
+  // 4px/5px since the carve (from 2px/3px): the inset shade needs a little
+  // floor to fall on above the bubble, or the concavity is invisible — the
+  // top 2-3px of the pit ARE the texture.
+  padding: 4px 5px;
   // TIGHTER THAN ITS SIBLING (2026-08-08, user ask: less space between the
   // face and the bubble) — 2px against `.feed-head__half`'s 5. The gap was
   // set when the seat was a 36px face with a name beside it and the row
   // needed air to read as three things; it is a 28px face and a handle now,
   // one object, and the composer is the only thing it stands next to. The
-  // room's own 3px of side padding is what keeps the pair off the walls, so
+  // room's own side padding is what keeps the pair off the walls, so
   // this number only has to say how close the seat and the field are.
   gap: 2px;
 }
 
-// The lens row stays CENTRED on its own line: it is a row of controls, not a
-// column of content, and its band is as tall as the composer beside it.
+// ── THE MANUAL TOGGLE'S BERTH (2026-08-21, user ask) ────────────────────
+// The lever stands where the LENS HALF stood (that half is gone — its
+// controls live in the manual band below now): outside the talk room, on the
+// body's `--indigo-9` backdrop, between the pit's right edge and the right
+// frieze post. Which is the right ground for it twice over — the porcelain
+// knob and `--brown-2` rail read on the structural ink exactly as the posts
+// do, and a MODE control mounted on the frame says "this changes the board"
+// where one inside the room would say "this asks Talavero something".
+// `stretch` is what gives the vertical word its height and the knob its
+// travel: the toggle is as tall as the talk band, whatever the bubble grows
+// to.
+.feed-head__toggle {
+  flex: 0 0 auto;
+  align-self: stretch;
+  margin-left: var(--fhead-gutter);
+}
+
+// ── THE MANUAL BAND (2026-08-21, user ask) — the workbench ──────────────
+// One row under the bubble holding everything hand-operated: the stream's
+// controls (label search + lens bundle, through the slot) and the lane's
+// four inherited pieces (active tray · broom · trash tray · bin). It is the
+// old lens half and the old lane FUSED, on the lane's own ground: the
+// `--indigo-9` band, the `--indigo-7` hairline above it (the lane's rule —
+// the daylight argument at `--fhead-gutter` still governs: the body's
+// `padding-bottom` is the upper half, this band's `padding-top` the lower),
+// and the post gutter at the sides.
 //
-// NO PADDING AT ALL (2026-08-08, user ask), after one pass at 2px/3px and the
-// `.feed-head__half` default of 4px/6px before that. The walk is the argument:
-// the two halves do not share a frame, and they should not. The composer is
-// ONE object that wants air around it; this half is a BLOCK of two full-width
-// control bars that already draw their own rims, so every pixel of padding
-// here was a second margin outside those rims, saying nothing they were not
-// already saying and taking width straight out of the label field.
+// `v-if`, so full-talavero mode pays NOTHING for it — the box is header +
+// bubble and nothing else, which is the ask's "by default, we just want to
+// have talavero". The height jump on toggle is carried by the existing
+// `update:height` observer; see the template note for why the constant-
+// height doctrine this retires no longer binds.
 //
-// At zero the bars run wall to wall — the rule between the halves on one side,
-// the box's inner frieze post on the other — and the only thing left inside
-// the room is the SEAM between the two bars, which is what the `--indigo-9`
-// the section is now painted in exists to show. This half is a container with
-// nothing to contain but its own contents.
-.feed-head__half--lens {
-  flex: 0 1 auto;
-  // STRETCH, so the section fills the room it is in. The half is as tall as
-  // the COMPOSER beside it (the body stretches both), and the two control bars
-  // add up to a few pixels less — centred, that left a sliver of the body's
-  // `--grey-4` at the top and bottom of a section the ask asked to be painted
-  // `--indigo-9`. Stretched, the paint reaches the walls and the leftover
-  // becomes part of the same dark field the seam between the bars is.
+// STRETCH, so the trays, the keys and the slotted bars all take the band's
+// one height — the mobile board learned in 2026-08-08 that two control bars
+// left to size themselves land at 21 and 23 and nothing makes them agree.
+.feed-head__manual {
+  display: flex;
   align-items: stretch;
   gap: 4px;
-  // ── NOT QUITE ZERO ANY MORE (2026-08-08, user ask: `--indigo-9` padding
-  // between the label filter box and the chat section) ─────────────────────
-  // MEASURED before: the talk room's right edge and the label bar's left edge
-  // were both at x=547 — the two containers were touching, with the room's
-  // 1px rim and the bar's 1px rim making a 2px seam and no field between them.
-  // A gutter here is the body's own `--indigo-9` showing through, exactly as
-  // the post gutter is, so the two outlined panels sit in the same dark field
-  // on every side.
-  //
-  // The half's padding is still 0 on the three other edges, and the argument
-  // for that stands: the bars draw their own rims and any padding around them
-  // is a second margin. This edge is different — it is not the half's frame,
-  // it is the space between two objects that belong to different rooms.
-  padding: 0 0 0 var(--fhead-gutter);
+  // STATED, like the lane's height always was, and for one extra reason: the
+  // two KEYS are `height: 100%`, and a percentage against an auto-height
+  // band resolves to nothing — Quasar's 1em would size the bin again (the
+  // exact bug the lane's `height: 100%` rule was written against).
+  // The chain: the lens bundle is the band's tallest fixed object at 21
+  // (17px buttons + two 2px rims), the lane chain needs 19 for its trays
+  // (chip 16.6 → tray 17 inside → +2 of rims), so the content row is 21 —
+  // everything stretches to it — plus the gutter above and below (3 + 3) and
+  // the hairline: **28**. Redo it after any change to the bundle's density,
+  // the tray rims or the chip padding.
+  height: 28px;
+  background: var(--indigo-9, #283593);
+  padding: var(--fhead-gutter);
+  border-top: var(--fhead-lane-rule-w) solid var(--fhead-lane-rule);
+  min-width: 0;
+}
+
+// The slot's berth. `0 1 auto` against the active tray's `1 1 auto`: the
+// controls take the width their bars need and give ground under pressure
+// (the label field inside is the shrinkable part), the chip tray takes the
+// rest — the same priority the old body gave its two halves, read sideways.
+.feed-head__manual-controls {
+  flex: 0 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: stretch;
 }
 
 // ── THE SEAT ────────────────────────────────────────────────────────
@@ -1555,14 +1743,19 @@ export default defineComponent({
 // the two read as one mark starting at the same line.
 // A COLUMN since 2026-08-08 (user ask): the face row over the handle. It was
 // the face row itself — hence the extra element below, which is the row the
-// badge still stands in. Centred, because the two things it stacks are
-// different widths and a handle ragged-left under a round face reads as a
-// caption that slipped.
+// badge still stands in.
+// LEFT-ANCHORED since 2026-08-21 (it was centred while the handle was a
+// straight caption — "a handle ragged-left under a round face reads as a
+// caption that slipped"): the handle is a curve wrapped AROUND the face now,
+// and its geometry is stated in the avatar's own coordinates, so the two must
+// share a left edge no matter whether the org badge widens the face row.
+// Centring would shift the avatar against the arc by half the badge every
+// time the org chip mounts.
 .feed-head__seat-col {
   flex: 0 0 auto;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-start;
   gap: 2px;
 }
 
@@ -1572,29 +1765,67 @@ export default defineComponent({
   gap: 5px;
 }
 
-// THE HANDLE — `--indigo-8` (user ask), which on this `--grey-4` floor is the
-// deepest mark in the body and the tone the box's own header band is plated
-// in. It is the only WRITING left in the section that is not inside a control,
-// so it takes the strongest ink rather than the ink of the field beside it.
+// THE HANDLE — CURVED round the face's lower-left corner since 2026-08-21
+// (user ask); it was a straight one-line caption under the face from
+// 2026-08-08. The ink is unchanged: `--indigo-8`, the deepest mark in the
+// body and the tone the box's own header band is plated in — still the only
+// WRITING in the section that is not inside a control.
 //
-// `max-width: 100%` + ellipsis: a seeded username can be any length, and the
-// seat column is a fixed 36px of face — without it, one long handle would
-// widen the column and take the width straight out of the composer.
+// THE GEOMETRY, all in the avatar's 28px coordinates (the col is
+// left-anchored exactly so these numbers hold):
+//  · the link box stays IN FLOW, 28×9px under the face — the same 9px line
+//    the straight caption occupied, so the seat column's height (which sets
+//    the whole band's) does not move.
+//  · the svg is absolute against it, spanning x −4…30, y 0…34 of the avatar
+//    frame (`top: -30px` = 28px of face + the col's 2px gap), and nothing
+//    on the way up clips it — the box carries no overflow:hidden by its own
+//    rule.
+//  · the path is a 105° arc of r=18 about the face's centre (14,14), from
+//    ~8 o'clock through 6 to ~4:30 — sweep-flag 0, which is what stands the
+//    glyphs upright with their tops toward the face. It was r=17 for the
+//    first render and the glyph tops grazed the face's rounded corner (a 40%
+//    corner bulges to ~r15.5 on the diagonal); one pixel out is the air. The
+//    leftmost ink lands ~3px left of the avatar — the last pixel of the talk
+//    room's own padding, inside its rim; the ellipsis the straight caption
+//    needed is retired — `seatArc` shortens the TEXT instead, because a
+//    textPath drops glyphs past the path's end mid-letter.
 .feed-head__seat-handle {
-  max-width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-family: var(--font-display);
-  font-size: 0.56em;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  line-height: 1;
-  color: var(--indigo-8, #303f9f);
+  position: relative;
+  display: block;
+  width: 28px;
+  height: 9px;
   text-decoration: none;
-  &:hover { text-decoration: underline; }
+  cursor: pointer;
   // The stub install's legend: same mark, no destination, and saying so.
   &.is-stub { opacity: 0.5; cursor: default; }
+}
+
+.feed-head__seat-arc {
+  position: absolute;
+  left: -4px;
+  top: -30px;
+  width: 34px;
+  height: 34px;
+  overflow: visible;
+  // The face and its two live signals stay the pointer's business; the arc is
+  // a caption. The LINK's own 28×9 flow box is the click target, exactly the
+  // strip the straight caption offered.
+  pointer-events: none;
+}
+
+.feed-head__seat-arc-text {
+  font-family: var(--font-display);
+  font-size: 7.5px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  fill: var(--indigo-8, #303f9f);
+}
+
+// The hover answer the underline used to give — an underline on a curve is
+// not a thing CSS draws, so the ink LIFTS instead, three steps, the same
+// direction every lit mark on this surface moves.
+.feed-head__seat-handle:hover .feed-head__seat-arc-text {
+  fill: var(--indigo-5, #5c6bc0);
 }
 
 // ROUNDER, HERE ONLY (2026-08-08, user ask). `EntityAvatar` draws every face
@@ -1646,6 +1877,11 @@ export default defineComponent({
   background: var(--positive, #21ba45);
   border: 1px solid var(--fhead-face);
   pointer-events: none;
+  // Above the curved handle (2026-08-21): the arc's tail ends near this
+  // corner, and a liveness signal is never the thing a caption may cover.
+  // The handle is a positioned LATER sibling of this dot's own wrap, so DOM
+  // order would paint it on top without this.
+  z-index: 1;
 }
 
 // ── THE COMPOSER ────────────────────────────────────────────────────
@@ -1660,26 +1896,30 @@ export default defineComponent({
 // `--fhead-send` is the button's box, and the field's padding is derived from
 // it — one dial, two rules, no arithmetic restated in either.
 .feed-head__chat {
-  // ── 33px SINCE 2026-08-08 (user ask: shorter, still two lines) ──────────
-  // MEASURED, not guessed, and this is the arithmetic to redo if any part of
-  // it moves: one line of this field is **12.096px** (font 8.96px, leading
-  // `normal`), so two are 24.19; the padding adds 3 + 3; the rim adds 1.5 +
-  // 1.5. 33.19 → **34**, the smallest this box can be and still hold the
-  // second line, with 0.8px of slack. (It was 33 for the one ask the rim spent
-  // at 1px — the rim and this number move together, always.)
+  // ── ONE LINE SINCE 2026-08-21 (user ask: "dense by default, very simple,
+  // a single line") ────────────────────────────────────────────────────────
+  // The desktop bubble joins the phone's arithmetic: one line of this field
+  // is **12.096px** (font 8.96px, leading 1.35), the padding adds 3 + 3, the
+  // 1.5px rim adds 3 — 21.1 → **22**, with 0.9 of slack. Shift+Enter still
+  // breaks a line; the text scrolls inside, as the phone's field always has.
   //
-  // It was 36 — itself 34 plus the 2px the thicker rim took out of the text
-  // box — and the same rule is what gives 3px back here: a textarea's lines
-  // are measured INSIDE its border, so the rim going 2px → 1px pays for part
-  // of this on its own. The height carries the rim's cost, exactly as
-  // `--fhead-post-w` carries the posts'.
+  // It was 34 (two lines) from 2026-08-08, and 36 before the rim thinned —
+  // the old two-line arithmetic is in git if the bubble ever holds two
+  // again: lines × 12.096 + 6 + the rim, always measured INSIDE the border.
   //
-  // ⚠ It is a `min-height`, not the height: the bubble STRETCHES to the band,
-  // so what you measure on screen is the band's height and this number only
-  // sets the floor. Shortening the band is the SEAT's job (its column is what
-  // the half is as tall as) — and below ~45px the LENS block takes over as the
-  // floor, being two 21px bars and a 3px gap.
-  --fhead-chat-h: 34px;
+  // ⚠ It is a `min-height`, and since the same ask the bubble NO LONGER
+  // STRETCHES to the band (the `align-self: stretch` era is over): this is
+  // the RESTING height, and the bubble GROWS from it when Talavero's
+  // standing text needs more — capped by `--fhead-chat-max`, past which the
+  // standing line scrolls inside (user ask: "when it is too much … a
+  // navigable inner scroll section"). The BAND's height is the seat column's
+  // 39px until the bubble outgrows it; the box's ResizeObserver carries
+  // either case up to the well.
+  --fhead-chat-h: 22px;
+  // The growth cap — a little over three chip rows of standing lens. Past
+  // it the bubble stops paying height and starts scrolling: the board must
+  // never let a talkative lens push the stream off the screen.
+  --fhead-chat-max: 64px;
   // 19px SINCE 2026-08-08 (user ask: a little tinier), from 22, with the glyph
   // 17px → 15px in the template. It is the bubble's own corner furniture and
   // it had grown into the object it sits in: at 22 in a 34px box the button
@@ -1711,7 +1951,18 @@ export default defineComponent({
   // It is also the tone the feed CONTAINER's frieze-bar lips wear, the inward
   // edge the reader's side faces — worth knowing but not a pairing: nothing
   // was moved to match, and the two answer different questions.
-  --fhead-chat-rim: var(--indigo-5, #5c6bc0);
+  //
+  // ── `--indigo-7` SINCE 2026-08-21 (user ask: "usa indigo para el borde de
+  // la burbuja", with the pit pass) ────────────────────────────────────────
+  // Two steps back down the walk, and the room change is why it lands: -5
+  // was tuned against a `--brown-1` floor at the bubble's own lightness,
+  // where a darker line read as a second box. The room is a `--brown-2`
+  // CARVED PIT now — one step deeper and shaded — and on it the -5 rim went
+  // faint. -7 is the box's frame ink (`--fhead-rim`, the room rims the other
+  // containers still wear), so the bubble's edge is a clearly-indigo line in
+  // the family the board already draws — the porcelain object in the pit,
+  // outlined in the frame's own hand.
+  --fhead-chat-rim: var(--indigo-7, #3949ab);
   // ── 1px SINCE 2026-08-08 (user ask: thinner) ────────────────────────────
   // It had been 2px since the day the composer was told to read in the same
   // language as the lens bars — but those bars are `--indigo-9` on a deep
@@ -1778,18 +2029,14 @@ export default defineComponent({
   flex: 1 1 auto;
   min-width: 0;
   display: flex;
-  // ALL AVAILABLE HEIGHT (2026-08-08, user ask). The body's two halves are
-  // `stretch`, so the talk half is as tall as the LENS half beside it — two
-  // bars and a gap, ~47px — while the composer sat at its own 36px and left
-  // ~11px of empty floor under it. `align-self: stretch` overrides the half's
-  // `flex-start` (which is there to pin the SEAT to the top corner, and still
-  // does) so the bubble fills the band it is in.
-  //
-  // `--fhead-chat-h` becomes the FLOOR rather than the height: two lines is
-  // what the field must never be smaller than, and on mobile — where the
-  // halves stack and the band is only as tall as its own content — that floor
-  // is the whole story again.
-  align-self: stretch;
+  // ⚠ NO STRETCH ANY MORE (2026-08-21, the dense-bubble ask). The 2026-08-08
+  // `align-self: stretch` existed to fill the band the LENS HALF set (~47px);
+  // that half is gone with the manual toggle, so stretching would blow the
+  // one-line bubble up to the 39px seat column for nothing. The bubble is
+  // its content's height now — resting at `--fhead-chat-h`, growing with the
+  // standing text, scrolling past `--fhead-chat-max` — which is exactly the
+  // arrangement the phone board always had, promoted to the whole board.
+  align-self: flex-start;
 }
 
 // ── THE REPLY LINE ──────────────────────────────────────────────────
@@ -1832,6 +2079,58 @@ export default defineComponent({
 
   &.is-song { font-style: italic; }
   &.is-fail { opacity: 0.75; }
+}
+
+// ── TALAVERO'S STANDING TEXT (2026-08-21, user ask) ─────────────────────
+// Full-talavero mode's persistent face of the bubble: the seat's last
+// sentence with the lens's chips EMBEDDED in it — the labels he set, shown
+// as his own text. Same bubble dials as its two siblings (face, rim, radius,
+// the send button's reserved corner), because it is the same object in a
+// third state; what is its own:
+//  · it GROWS — `min-height` the resting line, height its content's — and
+//    past `--fhead-chat-max` it becomes the inner scroller the user asked
+//    for ("when it is too much … a navigable inner scroll section");
+//  · `cursor: text` + the click handler make the whole line the door back
+//    to the field (the chips stop their own clicks);
+//  · line-height opens to 1.5 so inline chips have leading to stand in.
+.feed-head__chat-standing {
+  width: 100%;
+  min-width: 0;
+  min-height: var(--fhead-chat-h);
+  max-height: var(--fhead-chat-max);
+  overflow-y: auto;
+  scrollbar-width: thin;
+  padding: 3px calc(var(--fhead-send) + 6px) 3px 6px;
+  border: var(--fhead-chat-rim-w) solid var(--fhead-chat-rim);
+  border-radius: var(--fhead-chat-r);
+  background: var(--fhead-chat-face);
+  color: var(--fhead-ink);
+  font-family: var(--font-display);
+  font-size: 0.64em;
+  line-height: 1.5;
+  text-align: left;
+  cursor: text;
+}
+
+.feed-head__chat-standing-say {
+  margin-right: 4px;
+}
+
+// The chips run INLINE with the sentence — that is the whole ask ("the
+// labels are embedded inside talavero's text"). They are the stream's own
+// `.feed-stream__label-chip` buttons through the slot, so removal logic
+// lives in one place; what this context restates:
+//  · `inline-flex` + `vertical-align`, so a chip sits in the line of text
+//    like a word rather than breaking the flow;
+//  · the font-size — the chip's own 0.6em is relative to its parent, which
+//    in the lane is the band (~14px) and here is the standing line's 9px;
+//    unscaled they came out 5.4px. 0.92em of THIS line lands them back at
+//    the lane's ~8.3px.
+.feed-head__chat-standing-chips :deep(.feed-stream__label-chip) {
+  display: inline-flex;
+  vertical-align: middle;
+  margin: 1px 3px 1px 0;
+  font-size: 0.92em;
 }
 
 // ── THE CHAT BOX ────────────────────────────────────────────────────
@@ -1895,13 +2194,17 @@ export default defineComponent({
 .feed-head__chat-send {
   position: absolute;
   right: 3px;
-  bottom: 3px;
+  // 2px/18px since the bubble went to ONE line (2026-08-21): the old 3px/20px
+  // pair measured 23 in a 22px box. Bottom-anchored, so when the standing
+  // text grows the bubble the funnel rides its lower corner the way every
+  // composer button on this platform does.
+  bottom: 2px;
   z-index: 1;
   display: flex;
   align-items: center;
   justify-content: center;
   width: var(--fhead-send);
-  height: 20px;
+  height: 18px;
   // NO OUTLINE since 2026-08-07 (user ask). It kept a rim and a floor of its
   // own while the field's line was a hairline — a button ON the field rather
   // than a glyph printed inside it. At the field's new 2px `--indigo-8` that
@@ -1915,74 +2218,21 @@ export default defineComponent({
   &:disabled { cursor: not-allowed; opacity: 0.55; }
 }
 
-// ── THE LABEL LANE ──────────────────────────────────────────────────
-// A full-width strip across the box's foot, under both halves, holding the
-// labels the stream is being filtered on. It is ALWAYS THERE at a constant
-// 19px: it is the one thing the compression pass was told to leave, and a
-// lane that appeared with its first chip would change the box's height —
-// which moves the well's reserved home slot — every time someone picked or
-// cleared a label.
+// ── THE LABEL LANE IS THE MANUAL BAND'S BACK HALF NOW (2026-08-21) ──────
+// `.feed-head__lane` — the always-present 23px strip across the box's foot —
+// is RETIRED with the manual toggle: its four pieces (active tray, broom,
+// trash tray, bin) stand at the end of `.feed-head__manual` above, on the
+// same `--indigo-9` band, behind the same `--indigo-7` hairline, in the same
+// order. The constant-height argument it was built on (a lane that appears
+// with its first chip moves the well's slot on every pick) is deliberately
+// traded away: the toggle makes the board TWO arrangements, and the height
+// observer carries both. The lane-era chain — chip 16.6 → tray 19 → band
+// 19 + rule + daylight — still governs the manual band's stated height.
 //
-// SPLIT 70/30 since 2026-08-07 (user ask): broom · active · trash. The LANE
-// itself no longer scrolls — each half is its own sideways scroller (label
-// names are long, and a filter you cannot read the name of is not a filter
-// you can trust; hidden scrollbars, the `MediaTabsBar` call — a scrollbar
-// under a 19px strip is all noise).
-// PAINTED `--indigo-9` (2026-08-08, user rule: whatever lies behind a rounded
-// container is the board's structural ink, so the corners open onto something
-// rather than onto a pale notch). The lane was transparent — the box's own
-// `--grey-4` face showing through — and its two chip trays are `--brown-1`
-// panels with curves at every corner, so this strip is now the dark band they
-// lie on. It is the same relation the body has with the talk room one row up.
-//
-// ⚠ TWO THINGS STOP DRAWING, and both are wanted: the lane's own TOP RULE
-// (`--fhead-rule`, this exact tone) and the two KEY PLATES (also -9, with
-// their -9 closing walls). What is left of the keys is their `--brown-1`
-// glyphs standing directly on the band — 8.8:1, the board's own mapping — and
-// the broom's `--indigo-8` hover plate now appears only when pointed at,
-// which is a better statement of "this one is a control" than a plate that
-// was always there. The BOX'S BOTTOM EDGE is -9 too, so the lane and the foot
-// it stands on are one band.
-.feed-head__lane {
-  display: flex;
-  align-items: stretch;
-  // 20px SINCE 2026-08-08 — 23 for the hour the top rule was 4px thick, 19
-  // before the trays were rimmed. ⚠ THE HEIGHT PAYS FOR EVERY LINE ADDED
-  // INSIDE IT, because the lane is a STATED height with `box-sizing:
-  // border-box`: anything drawn on the strip or its trays comes straight out
-  // of the room the CHIPS have, silently, since the trays hide their vertical
-  // overflow.
-  //
-  // MEASURED, and this is the chain that governs — redo it after ANY change
-  // to the rule, the tray rims or the chip's own padding: a lane chip is
-  // **16.6px** tall → a tray needs 17 of inside → with its 1px rims a tray
-  // needs 19 → with the top rule the lane needs 19 + rule. At a 4px rule that
-  // was 23; at the 1px hairline it was 20; and with the 3px of `--indigo-9`
-  // daylight that hairline was then given BELOW it, this band needs
-  // 19 + 1 + 3 = **23** again. At 19 and at 21 the chips were clipping by
-  // 1.6px. Board 95.8 with both halves of that daylight, 89.8 without.
-  height: 23px;
-  background: var(--indigo-9, #283593);
-  // The post gutter, in step with the body — see `--fhead-gutter` — plus the
-  // TOP gutter (2026-08-08, user ask), the LOWER half of the daylight around
-  // the hairline above. The body's `padding-bottom` is the upper half: the
-  // line then sits between two runs of `--indigo-9` and reads as a rule
-  // BETWEEN two sections rather than as the edge of one of them.
-  padding: var(--fhead-gutter) var(--fhead-gutter) 0;
-  // ── THE LINE BETWEEN THE FILTER SECTION AND THIS ONE (2026-08-08, user ask:
-  // thicker) ────────────────────────────────────────────────────────────────
-  // 4px, off the 2px it shared with the box's other walls, and stated on its
-  // own dial because the two are no longer the same decision.
-  //
-  // ⚠ IT DRAWS NOW, and it did not before: this rule was `--fhead-rule`
-  // (`--indigo-9`) between an `--indigo-9` body and an `--indigo-9` lane, so
-  // no thickness could make a mark appear — the 4px it spent one ask at bought
-  // a wider dark BAND and nothing else. `--fhead-lane-rule` is `--indigo-7`
-  // now (user ask), which is the ink the header's foot rule and the four
-  // container rims already use, so the board's visible lines are one hand.
-  border-top: var(--fhead-lane-rule-w) solid var(--fhead-lane-rule);
-  overflow: hidden;
-}
+// The pieces keep their `lane-*` names: they ARE the lane's, the stream's
+// slots address them by story, and a rename would cut every doc that names
+// them. Their rules below are unchanged except where the band's geometry
+// (stated height, shared row) is the thing being read.
 
 // ── THE LANE'S TWO KEYS ─────────────────────────────────────────────
 // The BROOM (one press, both sections — the sweep itself is the stream's,
@@ -2121,15 +2371,17 @@ export default defineComponent({
 //    its wall take (`calc()` below). Without it the trash side would grow by
 //    26px and the active tray, the lane's only flexible item, would pay it.
 .feed-head__lane-trash {
-  // The ROOM is **40% since 2026-08-08** (user ask, from 30) — this tray plus
-  // its key, so the key's 24px comes off here and the split the lane reads as
-  // is 60/40. Its old `- var(--fhead-rule-w)` term went when the divider moved
-  // to the broom (the trash room draws no wall of its own any more).
-  // ⚠ The percentage is of the lane's CONTENT box, which is 6px narrower than
-  // the lane since the post gutter, so the rooms are 60/40 of what is left
-  // between the frieze posts — not of the box.
-  flex: 0 0 calc(40% - 24px);
-  min-width: 0;
+  // A STATED BASIS since the band became shared (2026-08-21). The lane-era
+  // 40%-minus-key split divided a strip that held nothing but the two rooms;
+  // this band also carries the manual controls, so a percentage of it would
+  // hand the trash a cut of the label field's width. 130px is roughly what
+  // 40% of the old lane's content box came to at the board's common widths,
+  // and `0 1` (not `0 0`) lets it give ground before the active tray does —
+  // the trash is the archive, the active tray is the working set.
+  flex: 0 1 130px;
+  // The floor under the shrink: room for one chip's worth of scroller, so a
+  // crowded band narrows the archive without ever erasing the place.
+  min-width: 36px;
   display: flex;
   align-items: center;
   gap: 4px;
@@ -2189,31 +2441,34 @@ export default defineComponent({
 // down the right of a full-width band, which is a wall with nothing on the
 // other side of it.
 @media (max-width: 600px) {
-  .feed-head__body {
-    flex-direction: column;
+  // ⚠ THE BODY NO LONGER STACKS (2026-08-21). The column existed because the
+  // composer and the LENS BLOCK could not share ~330px; the lens block lives
+  // in the manual band now and the body is the talk pit plus a ~33px toggle —
+  // a pair that shares the row at any phone width. The toggle stays at the
+  // bubble's right on every layout, which is where the ask put it.
+
+  // THE MANUAL BAND WRAPS instead: the controls take a full first row, the
+  // four lane pieces the second. Two consequences are paid here:
+  //  · the stated height goes back to auto (two rows have no one number),
+  //    so the KEYS' `height: 100%` stops resolving — the second row's items
+  //    state 21px (the content height the desktop chain derives) instead;
+  //  · `row-gap` restates the gutter between the two rows.
+  .feed-head__manual {
+    flex-wrap: wrap;
+    height: auto;
+    row-gap: var(--fhead-gutter);
   }
 
-  .feed-head__half {
-    flex: 0 0 auto;
-    width: 100%;
+  .feed-head__manual-controls {
+    flex: 1 1 100%;
   }
 
-  // ⚠ NOTHING TO MOVE HERE ANY MORE. This block used to swap the talk half's
-  // `border-right` wall for a `border-bottom` — the divider between the two
-  // rooms, turned 90° for the stacked layout — and both halves of that went
-  // when the room took its own 1px `--indigo-7` rim on all four edges
-  // (2026-08-08). Left in place they were actively wrong: `border-right: 0`
-  // knocked the RIGHT EDGE off an outlined panel on the phone, and the
-  // `border-bottom` redrew its bottom in the walls' 2px `--indigo-9`. What
-  // separates the two rooms here is the same thing that separates them on the
-  // desktop — where each outlined panel ends — plus the gutter below.
-
-  // THE GUTTER TURNS 90° WITH THE LAYOUT. Stacked, the label bar is BELOW the
-  // chat room, not beside it, so the desktop's left padding would put its
-  // `--indigo-9` field on the wrong axis — an inset from the post, where what
-  // is needed is daylight between the two panels.
-  .feed-head__half--lens {
-    padding: var(--fhead-gutter) 0 0;
+  .feed-head__lane-active,
+  .feed-head__lane-trash,
+  .feed-head__lane-broom,
+  .feed-head__lane-trash-mark {
+    height: 21px;
+    align-self: center;
   }
 
   .feed-head__chat {
@@ -2224,16 +2479,10 @@ export default defineComponent({
     // ⚠ The SEAT's size follows this, not the other way round — on this layout
     // the face and the field are the same object tall (the script's mobile
     // branch is 20 now); change one and the row's whole reason goes.
+    // (The `align-self: flex-start` this block used to restate is the BASE
+    // since 2026-08-21 — the desktop bubble is dense too now, so the phone
+    // stopped being the exception and only the height number is its own.)
     --fhead-chat-h: 20px;
-    // ⚠ NO STRETCH HERE, and the height goes back to DEFINITE. On the desktop
-    // board the composer fills the band because the lens section beside it is
-    // taller; stacked, the band's tallest item is the 36px SEAT, so stretching
-    // would blow a one-line field up to the face's height. And `height: 100%`
-    // against an auto-height parent resolves to `auto`, which for a textarea
-    // means its `rows="2"` intrinsic size — measured 40px, i.e. exactly the
-    // two lines this layout exists to avoid. Both halves of that have to be
-    // undone, not one.
-    align-self: flex-start;
   }
 
   .feed-head__chat-input,
