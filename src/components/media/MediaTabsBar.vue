@@ -1,8 +1,10 @@
 <template>
-  <!-- The minimize band — a thin strip of the platform's chrome coat
-       (`--plaque-coat`), rimmed in 3px of `--grey-6` and lettered in
-       `--grey-8`, its tabs cut from the same material (2026-08-17 user asks,
-       the rim walked to 3px on 2026-08-18;
+  <!-- The minimize band — a strip of the platform's chrome coat
+       (`--plaque-coat`) at the side bands' own 15px (2026-08-21 user ask:
+       same height as the drawer's top frieze bar), rimmed in 1px of
+       `--grey-6` and lettered in `--grey-8`, its tabs cut from the same
+       material (2026-08-17 user asks; the rim walked 2px → 3px over the
+       next day and back to 1px with the 08-21 height;
        it was a light-grey `--grey-4` strip rimmed and lettered in indigo,
        `--indigo-4` edges + `--indigo-10` marks, from 2026-08-06),
        ABOVE the crown strip (not on it: `--media-tabs-h` moves the whole
@@ -104,7 +106,9 @@ export default defineComponent({
 // the drawer and the stack widget both start drawing at the very top of the
 // screen and that this rail draw ON TOP OF BOTH, "partially covering the
 // frieze bar" — so both columns run to y=0 with their own FriezeBar there, and
-// this ~6px rail lies across the top of those bands (about a third of each).
+// this rail lies across the top of those bands (about a third of each when the
+// rail was ~6px; since 2026-08-21 it stands at their own 15px and covers them
+// edge to edge — the "partial" is now the /feed exception's, see below).
 // Nothing else on the ladder moved; 3121–3124 are left free between the drawer
 // and this band.
 //
@@ -116,7 +120,7 @@ export default defineComponent({
 //    where the tab is meant to win anyway now.
 //  · On MOBILE the drawer is modal and its backdrop sits at 3115 — under the
 //    drawer (3120) by construction, so it cannot dim a band above them both.
-//    This rail therefore stands lit over a dimmed page. It is 6px of chrome
+//    This rail therefore stands lit over a dimmed page. It is 15px of chrome
 //    with no reachable control on it (the tabs are the only hit targets and
 //    they sit at the far right), which is why the ask's ordering wins over the
 //    dimming; putting the rail back under the backdrop would put it back under
@@ -144,9 +148,10 @@ export default defineComponent({
 // which keeps `--grey-4`: the handle belongs to the strip it hangs from, the
 // same way its rim already did after 2026-08-06.
 //
-// THE RIM UNDER IT IS 3px OF `--grey-6` — 1px → 2px on 2026-08-17 (user ask,
+// THE RIM UNDER IT IS 1px OF `--grey-6` — 1px → 2px on 2026-08-17 (user ask,
 // with the grey-6 repaint) → 3px on 2026-08-18 (user ask: "make the top header
-// bar bottom border slightly thicker") — see
+// bar bottom border slightly thicker") → 1px on 2026-08-21 (user ask, with the
+// height above: "make its bottom border (and the floating tabs) thinner") — see
 // the rule below for what that costs at the seam. What follows is the history
 // it replaced, and the argument is worth keeping because it is the one the
 // tabs still live by: the 1px `--indigo-4` rim was the tabs' own border
@@ -179,16 +184,19 @@ export default defineComponent({
   box-sizing: border-box;
   height: calc(var(--media-tabs-band) + var(--media-tabs-rim));
   background: var(--plaque-coat);
-  // ── THE RIM: 3px of --grey-6 (1px → 2px 2026-08-17, → 3px 2026-08-18) ──
+  // ── THE RIM: 1px of --grey-6 (1px → 2px 2026-08-17 → 3px 2026-08-18 →
+  // 1px 2026-08-21, thinned in the same ask that grew the face to 14px) ──
   // It was 1px of `--indigo-4` — the tabs' own border continued across the
   // window, one line running band → flare → tab, walked up the indigo ramp on
   // 2026-08-06 so the strip read as grey metal with the platform's indigo
   // scribed into it. With the face off `--grey-4` and onto the cream coat,
   // the line goes back to stating the EDGE rather than the colorway: --grey-6
   // is the same ink the post cards draw every line in, on the same
-  // `--light-cream` sheet, and at 2px on a ~4px face it is no longer a scribe
-  // mark — it is the bottom of the rail, which is what a shadow can then hang
-  // off. Both pixels are declared, never assumed: `--media-tabs-rim` feeds
+  // `--light-cream` sheet. (The 2px/3px years ran a heavier line because the
+  // face was ~4px and the BORDER had to be the bottom of the rail; at the side
+  // bands' full height the face does that stating itself, and a thick line
+  // under it read as a ledge — so the rim rejoined the platform's 1px ink
+  // weight.) Both pixels are declared, never assumed: `--media-tabs-rim` feeds
   // this border, this element's `height` (border-box) and `--media-tabs-h`,
   // the offset every top-anchored surface in the window starts on.
   //
@@ -216,8 +224,11 @@ export default defineComponent({
   // meant to be lying on top of were the one surface it could not state itself
   // against. 22% reads as a soft edge on those plates and still stays quiet on
   // the light chrome below (the feed column, a dock) and effectively invisible
-  // on the starfield. The `+3px` offset keeps the cast clear of the rim's own
-  // 2px so the line and the shadow read as two things, not one thick edge.
+  // on the starfield. The `+3px` offset keeps the cast clear of the rim so the
+  // line and the shadow read as two things, not one thick edge. (Since
+  // 2026-08-21 the rail covers the side bands entirely, so the cast lands
+  // BELOW them — on the drawer's plaque and the stack's well — where 22% still
+  // reads and never smears.)
   //
   // It falls BEHIND the tabs, not on them — `.media-tabs__row` is a child, so
   // it paints above the parent's cast — which is what keeps a parked tab
