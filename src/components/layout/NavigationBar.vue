@@ -1,7 +1,36 @@
 <template>
-  <q-footer class="nav-footer" :class="{ 'nav-footer--underlaid': underlaid }">
+  <q-footer class="nav-footer">
 
     <div class="nav-bar">
+
+      <!-- ── THE TRAIL (2026-08-23, two user asks the same sitting) — the LEFT
+           DRAWER'S OWN SECTION-DIVIDER BAND, laid across this bar at its
+           vertical middle with the whole button row standing on it. It is
+           literally that element: an unflipped `FriezeBar` wearing the SIDE
+           CHROME TRIO's flat greys, and `.nav-frieze` joins that palette rule
+           BY NAME in `_components.scss` (a quartet now, not a trio) rather
+           than copying three paints into this file.
+
+           It differs from the drawer's four in ONE number, and that number is
+           the second ask ("place them over the new frieze bar, like the frieze
+           bar is a trail for the buttons … or make the frieze bar a little
+           higher if needed"): the band stands at the family's NEXT PIXEL-DRAWN
+           STEP UP — 28px on an `auto 26px` fit, 2px a motif row where the
+           drawer's 15px band gives 1px — so the buttons ride INSIDE the trail
+           instead of straddling it. 28px is arithmetic, not taste: the masks
+           are a 13-row grid and only `13n` of mask + the component's own 2px
+           of pad lands on the pixel grid, so this family's sizes are 15 → 28
+           → 41 and there is nothing between them.
+
+           ABSOLUTE, and the reason that is safe is the trap this file already
+           records one block down: `.nav-bar`'s children are UNPOSITIONED grid
+           cells, so anything positioned paints OVER them (which is why the
+           plaque's veil is a background layer and not a `::before`). The band
+           takes `z-index: 0` and the two edge sections are lifted to 1 — the
+           only z-pair on this bar, and the whole reason the buttons read as
+           standing ON the trail. The empty middle is deliberately NOT lifted:
+           the trail crosses it. ── -->
+      <FriezeBar class="nav-frieze" />
 
       <!-- ── LEFT: the drawer column continued down through the bar — but
            ONLY WHILE THERE IS NO DRAWER (2026-08-02). The drawer runs to the
@@ -57,20 +86,92 @@
              — messages, polls, invites, grants, comments all land here or
              one click away. Opening the dock marks the queue seen (coarse
              v1 ack; see stores/events.js). -->
-<!-- Global search (Thread E, 2026-07-30): one input over
-             GET /api/search — self-contained button + dialog. -->
-        <GlobalSearch />
+        <!-- ── The four creation windows: post maker · skeleton builder ·
+             label maker · uploader. FOUR SEPARATE BUTTONS SINCE 2026-08-23
+             (user ask: "separate each button so that each one of them is an
+             individual button"). They were a Quasar `q-btn-group` from
+             2026-07-24 — one slab, `border-left: none` on all but the first so
+             the four shared three lines instead of drawing six — and the group
+             element is GONE, not just unstyled: it was the thing fusing them.
+             Each now closes its own box and takes `.nav-right`'s own 6px gap
+             from its neighbours, exactly like the chat and dashboard chips, so
+             the bar holds SIX buttons of one kind rather than two singles and
+             a slab.
+
+             They carry `.nav-btn` now — the bar's one button rule — and
+             `.create-btn` is kept purely as a NAME: no rule reads it (the aqua
+             hover it used to carry went when the bar took one shared hover),
+             but the witness flow and the docs address these four by it. ── -->
+        <div class="create-row">
+        <q-btn unelevated class="nav-btn create-btn" @click="$emit('open-maker')">
+          <q-icon name="add_circle_outline" size="19px" />
+          <span class="nav-btn__label">POST</span>
+          <q-tooltip>Make post</q-tooltip>
+        </q-btn>
+        <q-btn unelevated class="nav-btn create-btn" @click="$emit('open-skeleton-builder')">
+          <q-icon name="schema" size="19px" />
+          <span class="nav-btn__label">SKELETONS</span>
+          <q-tooltip>Build skeletons — define templates, populate and edit instances</q-tooltip>
+        </q-btn>
+        <q-btn unelevated class="nav-btn create-btn" @click="$emit('open-label-maker')">
+          <q-icon name="label_important" size="19px" />
+          <span class="nav-btn__label">LABELS</span>
+          <q-tooltip>Label maker — grow, fork and reorganize label trees</q-tooltip>
+        </q-btn>
+        <q-btn unelevated class="nav-btn create-btn" @click="$emit('open-uploader')">
+          <q-icon name="upload" size="19px" />
+          <span class="nav-btn__label">UPLOADS</span>
+          <q-tooltip>Upload files, links or notes</q-tooltip>
+        </q-btn>
+        </div>
+
+        <!-- ── ORDER: THE FOUR CREATION CHIPS FIRST, THEN THE TWO
+             WINDOW BUTTONS AT THE FAR RIGHT (2026-08-24, user ask:
+             "re-arrange the buttons so that the messages and dashboard ones
+             are sticking to the right end of the bar"). Chat led this cluster
+             from the day the bar was built and dashboard was wedged beside it
+             in 2026-08-10; both now sit AFTER the makers, so the row reads
+             make · make · make · make | look · look, with the two
+             window-openers hard against the bar's right end (or against
+             `.nav-right--railed`'s 42px reserve, which is as far right as
+             anything on this bar may go while the pinned column stands).
+             They are also the two chips with NO WORD — see their notes. ── -->
+
+<!-- ── NO SEARCH BUTTON SINCE 2026-08-23 (user ask: "remove the
+             search button and its functionalities"). `GlobalSearch.vue` — the
+             magnifier chip plus the top-anchored dialog it opened over
+             GET /api/search, Thread E's whole face since 2026-07-30 — is
+             DELETED, not hidden, and this bar was its only mount. The
+             ENDPOINT lives on: `NodeSearchInput.vue` (the dashboard's node
+             picker) rides the same FULLTEXT shadow, so the ask took the face
+             and left the spine. ── -->
         <q-btn
-          push no-caps
+          unelevated no-caps
           class="nav-btn chat-btn"
           :class="{ 'is-active': chatExpanded }"
           title="Chats — private conversations"
           @click="toggleChat"
         >
-          <!-- Icon ONLY (2026-08-02): the word "chat" said nothing the forum
+          <!-- ⭐ THE WORD IS BACK — AND ON DESKTOP ONLY (2026-08-23, user ask
+               naming all six: chat → "MESSAGES"). It went icon-only on
+               2026-08-02 for a reason that still holds and is exactly why the
+               media query is here: the word "chat" said nothing the forum
                glyph does not, and the bar has to hold this cluster inside a
-               375px screen. The title/tooltip carries the name. -->
-          <q-icon name="forum" size="14px" />
+               375px screen. What changed is that the ask names a DIFFERENT
+               word — MESSAGES, the thing the unread badge counts, not the
+               window's name — and gates it to the width that can spend the
+               pixels. Below the gate the title/tooltip still carries it. -->
+          <!-- ⚠ GLYPH ONLY AGAIN, AND AS BIG AS THE CHIP ALLOWS (2026-08-24,
+               user ask: "only from messages and dashboard ones, remove their
+               inner text and leave the big icons only. make the icons as big
+               as possible inside their containeres, removing inner padding on
+               top and bottom"). MESSAGES lasted a day. 21px is not a taste
+               pick — it is `--nav-trail-h`, i.e. the chip's whole CONTENT
+               height now that the top and bottom rims are gone, so the glyph
+               fills the chip corner to corner with nothing left to remove. The
+               four MAKERS keep their words; these two are the LOOKERS, and the
+               row now says four labelled makers, two bare windows. -->
+          <q-icon name="forum" size="21px" />
           <q-badge
             v-if="events.unreadCount > 0"
             floating color="amber-9" text-color="black"
@@ -78,7 +179,20 @@
           >{{ events.unreadCount }}</q-badge>
         </q-btn>
 
-        <div class="nav-divider" />
+        <!-- ── NO DIVIDER HERE ANYMORE (2026-08-24, user ask: "there are
+             weird hairlines in between the buttons … make sure each button is
+             separated individually and that they all hold the same style and
+             then remove those hairlines"). TWO `.nav-divider`s stood inside
+             this cluster — after chat and after dashboard — bracketing the
+             dashboard button into "its OWN section" (2026-08-10's ask) back
+             when the row was two single pebbles and a fused four-button slab
+             and the lines were the only thing saying which was which. Both
+             premises are gone: the group was dissolved into six identical
+             chips, and the chips' own side rims now state every edge. What
+             was left was a full-bar-height brown-3 line cutting across the
+             band and its cream margins between two of the six pairs and not
+             the other three — a section marker with no sections to mark.
+             `.nav-divider` survives for the TACK alone; see below. ── -->
 
         <!-- ── DASHBOARD (2026-08-10, user ask) — its OWN section between the
              chat button and the blue create bundle, hairlined on both sides
@@ -88,12 +202,17 @@
              opens a box that only LOOKS at the platform.
 
              GREY on purpose, and the one grey control on this bar: it is the
-             tone of the box it opens (the flyout family's `--grey-3` plaque
-             with its `--grey-4` lines, the platform's one neutral surface),
-             where the chat pebble answers in aqua and the bundle in
-             light-blue. A button and the window it summons wearing one
-             colorway is the same trick the minitab strip plays with its
-             per-dock icon tints.
+             tone of the box it opens — where the chat pebble answers in aqua
+             and the bundle in light-blue. A button and the window it summons
+             wearing one colorway is the same trick the minitab strip plays
+             with its per-dock icon tints.
+             ⚠ THAT TIE IS NOW HALF TRUE (2026-08-26): the board's COAT left
+             the flyout family for this bar's own `--plaque-coat`, so the
+             pebble no longer matches the window's sheet. What it still
+             matches — and what the tie now rests on — is the board's LINES
+             and WELL, `--grey-4`, which did not move. If the pebble is ever
+             re-toned, `--grey-4` is the tone to walk to, not the cream: a
+             button in the coat of the bar it sits on would disappear.
 
              `sym_o_` prefixed — Material SYMBOLS, not Material Icons.
              `empty_dashboard` exists only in the symbols font, and a name the
@@ -101,37 +220,16 @@
              full width (see specs/gotchas.md; the feed's cap glyphs hit this
              first). Both fonts are loaded in quasar.config.js's `extras`. -->
         <q-btn
-          push no-caps
+          unelevated no-caps
           class="nav-btn dashboard-btn"
           :class="{ 'is-active': dashboardExpanded }"
           title="Dashboard — the panel rising from this bar"
           @click="toggleDashboard"
         >
-          <q-icon name="sym_o_empty_dashboard" size="14px" />
+          <!-- Glyph only and chip-height, same ask as the chat button beside
+               it — 21px = `--nav-trail-h`, the full content box. -->
+          <q-icon name="sym_o_empty_dashboard" size="21px" />
         </q-btn>
-
-        <div class="nav-divider" />
-
-        <!-- Create bundle: post maker + skeleton builder + label maker +
-             uploader windows -->
-        <q-btn-group push class="nav-bundle create-bundle">
-          <q-btn push class="create-btn" @click="$emit('open-maker')">
-            <q-icon name="add_circle_outline" size="14px" />
-            <q-tooltip>Make post</q-tooltip>
-          </q-btn>
-          <q-btn push class="create-btn" @click="$emit('open-skeleton-builder')">
-            <q-icon name="schema" size="14px" />
-            <q-tooltip>Build skeletons — define templates, populate and edit instances</q-tooltip>
-          </q-btn>
-          <q-btn push class="create-btn" @click="$emit('open-label-maker')">
-            <q-icon name="label_important" size="14px" />
-            <q-tooltip>Label maker — grow, fork and reorganize label trees</q-tooltip>
-          </q-btn>
-          <q-btn push class="create-btn" @click="$emit('open-uploader')">
-            <q-icon name="upload" size="14px" />
-            <q-tooltip>Upload files, links or notes</q-tooltip>
-          </q-btn>
-        </q-btn-group>
 
         <div v-if="showTack" class="nav-divider" />
 
@@ -235,11 +333,11 @@ import { useChatStore } from 'src/stores/chat'
 import { useDashboardStore } from 'src/stores/dashboard'
 import { useEventsStore } from 'src/stores/events'
 import { pinService } from 'src/services/pin.service'
-import GlobalSearch from 'src/components/shared/GlobalSearch.vue'
+import FriezeBar from './FriezeBar.vue'
 
 export default defineComponent({
   name: 'NavigationBar',
-  components: { GlobalSearch },
+  components: { FriezeBar },
   emits: ['toggle-drawer', 'open-maker', 'open-uploader', 'open-skeleton-builder', 'open-label-maker', 'pins-changed'],
   props: {
     // Increment to force a pin-state refresh from the parent (e.g. after the
@@ -262,13 +360,19 @@ export default defineComponent({
     const dashboardStore = useDashboardStore()
     const events = useEventsStore()
 
-    // ── The ONE route the bar gives way to — BACK (2026-08-21, third era;
-    // first 2026-08-02 → 08-12) ──────────────────────────────────────────
-    // /feed's column runs the whole window again and hovers OVER this bar on
-    // desktop (FeedPage.vue's growth block). Since nothing may climb over the
-    // bar's 3110 without slicing the docks, the bar itself steps down there —
-    // see the `.nav-footer--underlaid` note in the style block.
-    const underlaid = computed(() => route.path === '/feed')
+    // ── NO ROUTE THE BAR GIVES WAY TO ANY MORE (2026-08-24, user ask: "make
+    // the main public feed container be drawn behind the top navigation header
+    // and the footer navigation bar"). `underlaid` — a `route.path === '/feed'`
+    // computed feeding `.nav-footer--underlaid`, which dropped this bar to
+    // z 2999 on desktop so the feed column's 3001 could paint over the plaque
+    // — is DELETED, and with it the THIRD era of that mechanism (2026-08-02 →
+    // 08-12, then 08-21 → today). The column still runs y=0 to the window
+    // floor; what changed is which one wins where they cross, and the ask says
+    // the chrome does. So the bar is the topmost fixed chrome at every width
+    // and on every route again, which is the arrangement gotchas.md prefers on
+    // its own merits: no page where a dock's or the drawer's drop shadow can
+    // wash this plaque, and no special rule needed to keep the burger reachable
+    // on a narrow window.
 
     // ── Chat window toggle (footer-button semantics) ─────────
     const chatExpanded = computed(() => chatStore.isOpen && !chatStore.isMinimized)
@@ -468,8 +572,7 @@ export default defineComponent({
       dashboardExpanded,
       toggleDashboard,
       events,
-      parkedTabs,
-      underlaid
+      parkedTabs
     }
   }
 })
@@ -550,11 +653,18 @@ export default defineComponent({
 // footer (see its note below), so it keeps its own 3045 — parked tabs stay
 // clickable over the column even when it is dragged wide (taskbar
 // semantics).
-@media (min-width: 1024px) {
-  .nav-footer.nav-footer--underlaid {
-    z-index: 2999;
-  }
-}
+// ⚠ THE RULE THAT STOOD HERE IS DELETED (2026-08-24, user ask: "make the main
+// public feed container be drawn behind the top navigation header and the
+// footer navigation bar"). It was
+// `@media (min-width: 1024px) { .nav-footer--underlaid { z-index: 2999 } }` —
+// the THIRD era of a step-down that let /feed's full-window column cross this
+// plaque. The column is unchanged and still runs y=0 to the floor; the ask
+// settles which one wins at the crossing, and it is the chrome. The doctrine
+// the eras were negotiating is untouched and still the reason no one should
+// simply raise the container instead: anything over this bar's 3110 is over
+// every dock too, and the maker/chat/flyout windows (3010+) would open BEHIND
+// the feed on the page they are most used on. LOWER THE BAR ON THE ROUTE or
+// leave the container underneath — never raise the surface.
 
 // ── Minitab strip — ON the frieze footer band itself (2026-07-27; it stood
 // on the band's TOP edge from 2026-07-25, back when nothing inside the
@@ -647,8 +757,11 @@ export default defineComponent({
 .minitab-pop-enter-active, .minitab-pop-leave-active { transition: transform 0.16s ease, opacity 0.16s ease; }
 .minitab-pop-enter-from, .minitab-pop-leave-to { transform: translateY(8px); opacity: 0; }
 
-// The nav-btn base styling lives in src/css/_components.scss (light glass
-// pebbles) — only per-variant tweaks remain here.
+// The nav-btn base styling lives in src/css/_components.scss — CREAM CHIPS ON
+// THE TRAIL since 2026-08-23 (they were light glass pebbles, a light-green-1
+// face under a 40% ink rim, from the day this bar was built). Only per-variant
+// tweaks remain here, and there is far less of that than there was: the whole
+// bar wears ONE face now, so what is left per button is its ACTIVE state.
 
 .nav-bar {
   display: grid;
@@ -706,6 +819,19 @@ export default defineComponent({
   // this bar was the only surface wearing it; the drawer and the two
   // right-edge widgets took the same coat the same session, so the veil's
   // strength is one edit for all four now.
+  // ⭐ THE TRAIL'S HEIGHT IS ONE NUMBER FOR TWO OBJECTS (2026-08-23, the day's
+  // last ask: "touch the bar, but within the frieze bar" — the chips fill the
+  // band edge to edge and stop there). It is declared HERE, on the bar, rather
+  // than on either of them, because both read it and custom properties
+  // inherit: `.nav-frieze` takes it as `--frieze-bar-h` two rules down, and
+  // `.nav-btn` takes it as its own height from `_components.scss`, a different
+  // file entirely. Six settings of this pair across one day were six chances
+  // for two numbers to drift; there is only one number now, and moving it
+  // moves the band and every chip in it together.
+  // ⚠ ODD ON PURPOSE — see the centring note on `.nav-frieze`: the formula
+  // there is the ODD-parity one, and an even value silently lands this band on
+  // half pixels.
+  --nav-trail-h: 21px;
   background: var(--plaque-coat);
   // ── Top lip --grey-6 (2026-08-17, user ask) ──
   // It was --brown-3 from the end of 2026-07-25 (brown-4 for one day before
@@ -742,6 +868,140 @@ export default defineComponent({
   // right beneath it, which is why there is no right inset left here.
 }
 
+// ── THE TRAIL (2026-08-23) ──────────────────────────────────
+// The band the buttons stand on — see the template note for what it is and
+// why it is absolute. Only its BOX lives here; its three paints come from the
+// side-chrome frieze rule in `_components.scss`, which `.nav-frieze` joins by
+// name, exactly as StackPanel and PinsDrawer keep their own heights beside
+// that same shared palette.
+//
+// ⚠ CENTRED BY ARITHMETIC, NOT BY `top: 50%` — and the formula PAIRS WITH THE
+// HEIGHT'S PARITY (2026-08-23; the first half was caught by the witness flow,
+// not by eye). An absolutely positioned box lays out against its ancestor's
+// PADDING box, and this bar is 32px INCLUDING a 1px `border-top` lip — so that
+// box is 31px, an ODD number, and a plain `top: 50%` + half-height translate
+// put the band on HALF PIXELS, which is exactly the fuzz this band's row
+// arithmetic exists to prevent. Two formulas land on whole pixels, one per
+// parity, and they differ by exactly the lip:
+//
+//   ODD  height → `(--nav-bar-h - 1px - --frieze-bar-h) / 2`   ← today's, 17px
+//        centres the band in the bar's FIELD: equal cream above and below,
+//        with the lip drawn on top of the upper margin. An odd band fits an
+//        odd box exactly; it cannot centre on the 32px outer box at all.
+//   EVEN height → `(--nav-bar-h - --frieze-bar-h) / 2 - 1px`
+//        centres on the OUTER box and borrows the lip's pixel to do it (the
+//        24px band's rule for the hour it stood).
+//
+// SWAP THE FORMULA IF THE HEIGHT CHANGES PARITY, or the band goes fuzzy for a
+// reason nothing on screen explains.
+.nav-frieze {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc((var(--nav-bar-h) - 1px - var(--frieze-bar-h)) / 2);
+  // Under the button row, over the empty middle. THE one z-pair on this bar.
+  z-index: 0;
+
+  // ── 21px ON `auto 13px` — THE BAND THAT CONTAINS ITS BUTTONS (2026-08-23,
+  // two asks: "considerably more padding … between the top and bottom edges of
+  // the footer bar and the frieze bar. Also inside the frieze bar, between the
+  // top and bottom edges and the friezes … kind of the same height as the left
+  // drawer inner friezes, without deformating the frieze pattern" took it from
+  // 24px to 17px; "make the frieze bar slightly thicker … and then adjust the
+  // inner buttons height so they fit well inside the frieze bar" brought it
+  // here). Everything on this bar is ZERO-SUM in 32px and the arithmetic says
+  // so exactly: at 1px a row the ink is 11px (11 inked rows of 13), so
+  // `band + 2×cream = 31` and every 2px of band converts 1px of cream into 1px
+  // of plate. Crisp rungs, all odd: 15 (2px plate / 8px cream — the drawer's
+  // literal recipe) → 17 (3 / 7) → **21 (5 / 5)** → 23 (6 / 4) → 25 (7 / 3).
+  //
+  // WHY 21 AND NOT 19, when the ask said "slightly": the second half of it —
+  // buttons INSIDE the band, with "very tiny" padding "so we can have big
+  // icons" — sets the floor. A chip needs a 2px shoulder of band above and
+  // below to read as contained, and its glyph gets the chip less its two 1px
+  // rims, so the chain is band − 4 = chip, chip − 2 = icon. At 19px that lands
+  // a 13px glyph, SMALLER than the 14px this bar already had; at 21px it lands
+  // 15px, which is the first rung where "fit inside" and "big icons" are both
+  // true. Going further is a straight trade of cream for glyph: 23px gives a
+  // 17px icon on 4px of cream, 25px a 19px icon on 3px.
+  //
+  // ⚠ THE ROWS ARE 1px NOW, NOT 2px, AND THAT IS THE POINT, NOT A COST — it is
+  // the drawer's exact fit (`auto 13px`: the 231×143 file tiling at 21×13), so
+  // the two surfaces draw ONE pattern at ONE scale, which is precisely what
+  // "the same height as the left drawer inner friezes, without deformating"
+  // asks for. 2px rows cannot survive at this thickness at all: their ink alone
+  // is 22px, so a 2px-row band is 24px at its very thinnest and there is no
+  // cream left to give. The trimmed-to-ink trick the 24px band used (mask
+  // overflowing the box so the empty rows fall outside) is the OPPOSITE move
+  // and went with it — the whole file sits inside the box again, plus room.
+  //
+  // ⭐ SO THE FIT IS NOT STATED HERE ANYMORE: it comes from the shared chrome
+  // frieze rule in `_components.scss` along with the three paints, exactly as
+  // it does for the drawer's four bands and the stack/pins' three. This band
+  // now differs from those seven in ONE number — its height, 17px against
+  // their 15px — which is the least a fourth wearer has ever differed by, and
+  // the right amount for a rule that exists so a shared treatment is shared by
+  // NAME. (It restated `auto 26px` for the hour it ran 2px rows; that override
+  // is deleted, not merely equal to the inherited value.)
+  --frieze-bar-h: var(--nav-trail-h);
+
+  // ── ITS OWN COLORWAY — GREY-8 PLATE, CREAM MOTIF (2026-08-23, three asks:
+  // "make the frieze bar's from the footer bar background color light-cream
+  // and paint the inner friezes grey-3 and grey-4", then "make the footer
+  // bar's inner frieze bar's background grey-6 and the inner friezes
+  // light-cream" — the same two families, swapped — then "try grey-8 on the
+  // background", two steps deeper on the plate alone). THIS IS WHY `.nav-frieze`
+  // IS NOT IN `_components.scss`'s GROUPED RULE: that rule is one PALETTE
+  // shared by name, and a band stating its own three paints has nothing left
+  // to take from it. The trio was a quartet for half a day and is a trio again.
+  //
+  // The swap put the band back in the family's NORMAL orientation — a LIGHT
+  // motif on a DARK plate, like the side chrome's grey-2/-4 on grey-8 and the
+  // component's own brown-2/-1 on brown-4 — after one hour inverted, which is
+  // the only inverted frieze the platform has ever drawn. Two consequences of
+  // coming back, both worth knowing:
+  //  · THE CARVE IS LEGAL AGAIN. FriezeBar's groove reads only when the ink is
+  //    lighter than the plate it is cut into, so the inverted hour forbade it
+  //    outright; it is still OFF below, but now for the trio's reason alone (at
+  //    band scale the black/white flanks read as grime) rather than by law.
+  //  · THE BAND IS LOUD NOW, where the cream-on-cream hour made it a
+  //    watermark: `--light-cream` on `--grey-8` is about **4.4:1**, the
+  //    strongest this band has read — cream on `--grey-6` gave 2.4:1 for the
+  //    hour between, and that pairing had a tie this one gives up (grey-6 is
+  //    the bar's own top lip and the side chrome's line ink, so the plate was
+  //    drawn in the ink the bar's structural lines already use, with the chips'
+  //    `--grey-6` rims matching the plate exactly).
+  //  · WHAT THE DEEPER PLATE BUYS INSTEAD is a tie to the OTHER bands:
+  //    `--grey-8` is the side chrome trio's own plate ("keep the dark
+  //    background", `_components.scss`), so the drawer's dividers, the
+  //    stack/pins bands and this trail all stand on ONE plate again and differ
+  //    only in the motif's hue — cool greys up the sides, warm cream along the
+  //    floor. That is a closer relation to the rule this band left than it had
+  //    at grey-6, and it is the reason this pick is not just "darker".
+  //  · AND THE CHIPS' RIMS INVERT THEIR ROLE: `--grey-6` on `--grey-8` is a
+  //    LIGHTER hairline on a darker plate, where at grey-6 the rim and plate
+  //    were one tone and the chip's edge fell entirely to its cream face. Each
+  //    chip is now outlined rather than merely cut out.
+  //
+  // ⚠ BOTH WAVES TAKE ONE TONE, which is new for this component. Everywhere
+  // else the two masks are told apart by VALUE as well as by shape (that is
+  // the whole point of `--frieze-bar-wave-one` and `-two` being separate
+  // dials, and why the trio picks grey-4 for `a` and grey-2 for the thick `b`).
+  // The ask names one colour for "the inner friezes", so the interleave now
+  // reads as a SINGLE meander rather than two waves at two depths — flatter,
+  // and the right answer for a band this size. If it should ever gain that
+  // second depth back, the dial to move is wave ONE (mask `a`, the thinner
+  // pair of spirals) a step off the cream, never the thick `b`.
+  --frieze-bar-base: var(--grey-8);
+  --frieze-bar-wave-one: var(--light-cream);
+  --frieze-bar-wave-two: var(--light-cream);
+  // Kept from the trio deliberately: the pixel-exact fit is what makes the
+  // meander crisp at 1px a row, and the carve stays off for the grime reason
+  // above (no longer for the inversion's).
+  --frieze-bar-fit: auto 13px;
+  --frieze-bar-carve: none;
+}
+
 // ── Three sections ─────────────────────────────────────────
 // Each is a full-height grid cell (the bar stretches them) that centers its own
 // buttons, so the section borders below run the WHOLE bar height. NEITHER edge
@@ -751,6 +1011,13 @@ export default defineComponent({
 .nav-left, .nav-right {
   display: flex;
   align-items: center;
+  // ON the trail (2026-08-23). These are unpositioned grid cells by default,
+  // and a positioned sibling paints over unpositioned content no matter what
+  // order it is written in — so without this pair the band would swallow the
+  // whole button row. `.nav-center` is deliberately left flat: it is empty,
+  // and the trail is supposed to cross it.
+  position: relative;
+  z-index: 1;
 }
 .nav-left  { gap: 0; padding: 0;         border-right: 1px solid var(--brown-3); }
 // Tighter with the shortened bar (2026-08-02: gap 8 → 6, inset 6 → 5) — the
@@ -776,17 +1043,101 @@ export default defineComponent({
 // surface that is supposed to be continuous.
 .nav-left--bare { border-right: none; }
 
-// The middle is now pure slack — no content, no padding, just the 1fr track
-// that holds the two edge clusters apart.
+// The middle is still pure slack — no content, no padding, just the 1fr track
+// that holds the two edge clusters apart. Since 2026-08-23 it is also the one
+// stretch of the trail nothing stands on: the band runs behind this cell
+// (unpositioned and transparent, so it simply shows through) and the frieze is
+// the only thing drawn in the middle of the bar.
 .nav-center { min-width: 0; }
 
-// Every inner hairline on the bar is brown-3 and spans the FULL bar height
-// (`align-self: stretch`, no fixed height) — the section borders above and
-// these dividers all carry that ONE lighter ink (2026-07-24, a step up from
-// brown-4), so the lines drawn INSIDE the bar read softer than the brown-4
-// edges that bound it: the bar's own `border-top` and the two rail blocks at
-// its ends, where the drawer's mini column and the parked pinned column land.
+// ⚠ ONE WEARER LEFT (2026-08-24): the hairline before the TACK SLOT, and it is
+// there for ARITHMETIC rather than for grouping — that line plus the 41px slot
+// make exactly `--dock-rail-w` (42px), so it lands on the same pixel as the
+// parked pinned column's own left border and the two read as one right-edge
+// column. It is the pinned column's edge continued down through the bar, not a
+// separator, which is why it survived the ask that deleted the other two.
+//
+// The two that went stood INSIDE the button cluster (after chat, after
+// dashboard) and carried the bar's oldest line doctrine: every inner hairline
+// brown-3 and spanning the FULL bar height (`align-self: stretch`), a step
+// lighter than the brown-4 edges bounding the bar, so lines drawn inside read
+// softer than the ones closing it. That doctrine now lives on in the section
+// borders (`.nav-left`/`.nav-right`) alone.
 .nav-divider { width: 1px; align-self: stretch; background: var(--brown-3); flex-shrink: 0; }
+
+// ── THE SIX WORDS — DESKTOP ONLY (2026-08-23, user ask naming each one:
+// MESSAGES · DASHBOARDS · POST · SKELETONS · LABELS · UPLOADS) ──────────────
+// NASALIZATION comes for free: `.nav-btn` has carried `font-family:
+// var(--font-display)` since the bar was built, and that token IS Nasalization
+// (`_tokens.scss`; the `.nasalization` utility is the same declaration under a
+// class). So the ask needed no font wiring — only a size that survives the
+// chip, and a gate.
+//
+// THE SIZE IS SET BY THE CHIP, not chosen: the box is 17px with two 1px rims,
+// so the glyph beside these words is 15px and the words have to sit inside the
+// same 15px. 9px with the display face's own tracking is the largest that
+// leaves the cap-line clear of both rims — nasalization is a wide face, and at
+// 10px the row stopped fitting a 1024px screen before it stopped fitting the
+// chip.
+//
+// THE GATE IS `min-width: 1024px` and it is the same line the bar already
+// draws for `.nav-footer--underlaid`: the width at which the drawer stands
+// open beside the page rather than over it, i.e. this platform's own
+// definition of "desktop". Below it the six words are simply not rendered
+// wide — `display: none`, so they cost no layout — and every button falls back
+// to the glyph plus its title/tooltip, which is exactly the arrangement the
+// cluster had from 2026-08-02 until this ask. The mobile block at the bottom
+// of this file therefore needs no new rule: at ≤600px it is already tightening
+// a cluster of six icons.
+// ── THE FOUR CREATION CHIPS AS ONE MEASURE (2026-08-24, user ask: "for the
+// creative ones, help me making them all have the same width on desktop") ────
+// A grid whose columns are `1fr`, which in a shrink-to-fit container resolves
+// to "every column as wide as the WIDEST one's content" — so SKELETONS sets the
+// measure and POST, LABELS and UPLOADS take it, with no number written down.
+// That is the whole reason for a grid rather than a `width` on `.create-btn`:
+// the words are content, and a hard-coded box rots the day one of them changes.
+//
+// ⚠ THIS IS NOT A RETURN TO THE `q-btn-group` deleted two hours earlier. That
+// element FUSED the four — one slab, `border-left: none` on all but the first,
+// three shared lines instead of eight — and the ask against it was that each
+// button be individual. This wrapper draws nothing, fuses nothing and inherits
+// nothing to its children: every chip keeps its own rims, its own hover and its
+// own 6px of trail either side. It equalises a MEASURE, which is the opposite
+// of grouping — four chips of one size read as four peers, where four chips of
+// four sizes read as a list.
+//
+// ONE PROPERTY switches the two states, and the gap is stated in both blocks to
+// match `.nav-right`'s own (6px, 4px at ≤600px).
+.create-row {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: auto;      // natural widths — the sub-1024px state
+  gap: 6px;
+  align-items: center;
+}
+
+@media (min-width: 1024px) {
+  // Equal columns, sized to the widest. Desktop only, and for the same reason
+  // the words are: below the gate there are no words to equalise, only glyphs,
+  // and four equal glyph chips is what they already are.
+  .create-row { grid-auto-columns: 1fr; }
+}
+
+.nav-btn__label { display: none; }
+
+@media (min-width: 1024px) {
+  .nav-btn__label {
+    display: inline;
+    font-size: 9px;
+    line-height: 1;
+    letter-spacing: 0.05em;   // the `.nasalization` utility's own tracking
+    // The words are the chip's ink, not a second colour on the bar: they take
+    // whatever `color` the button states, so the dashboard chip's `--grey-9`
+    // and the chat chip's `--ink-2` reach the word without a rule each.
+    color: inherit;
+    white-space: nowrap;
+  }
+}
 
 // Chat — the conversation window's button. Aqua treatment on purpose:
 // this is where entities talk, not another maker pebble.
@@ -800,40 +1151,40 @@ export default defineComponent({
 
   :deep(.q-btn__content) { gap: 4px; }
 
-  &:hover, &.is-active {
+  // THE HOVER LEFT THE ACCENT ON 2026-08-23 and the ACTIVE STATE KEPT IT —
+  // one rule split in two, which is the whole shape of that day's repaint.
+  // Hover is now the bar's shared neutral step (`.nav-btn`'s own, in
+  // _components.scss): every chip on the trail answers the pointer the same
+  // way, because a row that reads as one material has to feel like one too.
+  // What aqua still says is the one thing it alone can say — THE CHAT DOCK IS
+  // STANDING — and a single accent on an otherwise cream bar states that
+  // louder than it ever did while the button was coloured at rest.
+  &.is-active {
     background: var(--aqua-3);
     color: var(--ink-1);
     border-color: rgba(var(--ink-rgb-deep), 0.50);
   }
 }
 
-// Dashboard — THE ONE GREY CONTROL ON THIS BAR (2026-08-10). `.nav-btn`'s
-// base is a light-green-1 pebble (search and chat wear it); this one restates
-// face, rim and ink in the flyout family's own neutrals — a `--grey-3` face
-// with a `--grey-4` rim, which is exactly the plaque-and-border pair of the
-// box it opens, and `--grey-9` ink for the glyph. So the button is a chip of
-// the panel, sitting between two coloured groups it belongs to neither of.
-//
-// The rim is the one departure from the pebble base, whose 40% ink border is
-// what makes the green ones read as glass: at `--grey-4` on `--grey-3` the
-// edge is the flyout's own 1.06:1 hairline, quiet by construction, and the
-// `--brown-3` hairlines on either side of the button are what actually
-// bracket it on the bar.
-//
-// ACTIVE (the panel is standing) steps the face one level down to `--grey-4`
-// and the rim one up to `--grey-6` rather than lighting an accent: this
-// button's whole statement is that it is the neutral one, and the pressed
-// state of a grey object is a darker grey. It is the same shape of answer the
-// chat button gives with `is-active`, in the colorway this one owns.
+// Dashboard — IT WAS "THE ONE GREY CONTROL ON THIS BAR" (2026-08-10) and that
+// distinction ENDED ON 2026-08-23, when the user's ask took every button on
+// this bar to one flat cream face: a chip cannot be the neutral one on a bar
+// where neutral is the only thing there is. What that pass DELETED here is the
+// resting face and rim (a `--grey-3` plate with a `--grey-4` hairline, the
+// plaque-and-border pair of the box this button opens, worn so the control
+// read as a chip of its own panel); what it KEPT is the ink and the pressed
+// state. So the argument survives one level down: the glyph is still the
+// flyout family's `--grey-9`, and the panel-is-standing state is still a
+// DARKER GREY rather than an accent — the pressed state of a grey object.
+// That reading is if anything cleaner now, because the darker grey it steps to
+// is the trail's own family showing through the chip.
 .nav-bar .dashboard-btn {
-  background: var(--grey-3);
-  border-color: var(--grey-4);
   color: var(--grey-9);
   flex-shrink: 0;
 
   .q-icon { color: var(--grey-9); }
 
-  &:hover:not(.disabled), &.is-active {
+  &.is-active {
     background: var(--grey-4);
     border-color: var(--grey-6);
     color: var(--grey-10);
@@ -842,29 +1193,19 @@ export default defineComponent({
   }
 }
 
-// ── Button bundles (Quasar q-btn-group push) — light-blue-1 pebbles.
-// Quasar's push preset paints the 3D bottom lip AND the press animation
-// natively, so there is NO extra colored ledge shadow here (the old
-// surface-4 "blue" ledge is gone) — just the light-blue-1 face color.
-.nav-bundle {
-  border-radius: var(--radius-sm);
-  flex-shrink: 0;
-
-  // 24px on 8px of side padding since the bar was shortened to 2/3
-  // (2026-08-02; it was 30px/10px) — the same box `.nav-btn` takes in
-  // _components.scss, so the chat pebble, the search pebble and these four
-  // read as one row.
-  :deep(.q-btn) {
-    min-height: 24px;
-    height: 24px;
-    padding: 0 8px;
-    background: #e1f5fe;   // Quasar light-blue-1
-    color: var(--ink-1);
-    border: 1px solid rgba(var(--ink-rgb-deep), 0.40);
-
-    &:not(:first-child) { border-left: none; }
-  }
-}
+// ── NO BUTTON BUNDLE ANYMORE (2026-08-23, user ask: "separate each button so
+// that each one of them is an individual button"). `.nav-bundle` +
+// `.create-bundle` are DELETED with the `q-btn-group` they dressed — every
+// declaration in them (24px box, square corners, `--plaque-flat` face,
+// `--grey-6` rim, the shared hover) is `.nav-btn`'s in `_components.scss`, so
+// the four create buttons simply took that class and the two rules had nothing
+// left to say. Two things the group did are gone WITH it and are worth naming,
+// because they were the point of grouping: `border-left: none` on all but the
+// first — the four shared three lines, so the slab read as one object cut into
+// quarters — and the aqua `.create-bundle` hover, the last per-family hover on
+// a bar that now answers the pointer in one grey everywhere. What separates
+// them today is `.nav-right`'s own 6px gap, which is what separates every
+// other chip on the bar.
 
 // ── The two RAIL BLOCKS at the bar's ends ───────────────────
 // One grammar, mirrored (2026-08-02). Each is its side's column continued
@@ -919,10 +1260,12 @@ export default defineComponent({
 // slot. It was 28px — the parked column's own chip box — until the bar went to
 // 2/3 height on 2026-08-02: 28px leaves under 2px of air in a 31px content
 // box, so the chip is 24px here while the column's chips upstairs keep their
-// 28px. The floating rhythm is what the two share, not the diameter. Skin is the drawer's Back button, NOT Quasar's push preset:
-// a flat inverted brown chip — solid brown-8 fill, matching brown-8 rim so
-// there is no contrasting outline, brown-1 glyph, a hairline inset highlight
-// along the top, and a brown-7 lift on hover. The burger wears it too.
+// 28px. The floating rhythm is what the two share, not the diameter.
+//
+// And since 2026-08-22 (user ask) the BOX is ALL they share. The two chips wore
+// ONE skin — the drawer's Back button — from the day this block was twinned; the
+// tack left it for the node panel's round pill and the burger kept it, so the
+// rule split in three: the box both still share, then a skin each.
 .nav-bar .tack-btn,
 .nav-bar .burger-btn {
   width: 24px;
@@ -931,33 +1274,81 @@ export default defineComponent({
   min-height: 24px;
   padding: 0;
   border-radius: 50%;
+
+  // The glide that tips the pushpin and stands the burger on end — shared,
+  // because it belongs to the BOX's behaviour and to neither skin.
+  .q-icon { transition: transform 0.14s ease; }
+}
+
+// ── BURGER: the drawer's Back button, NOT Quasar's push preset ──────────────
+// A flat inverted brown chip — solid brown-8 fill, matching brown-8 rim so there
+// is no contrasting outline, brown-1 glyph, a hairline inset highlight along the
+// top, and a brown-7 lift on hover. The tack wore this too until 2026-08-22.
+.nav-bar .burger-btn {
   background: var(--brown-8);
   border: 1px solid var(--brown-8);
   color: var(--brown-1);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25);
 
-  .q-icon { color: var(--brown-1); transition: transform 0.14s ease; }
+  .q-icon { color: var(--brown-1); }
 
   &:hover:not(.q-btn--disable) {
     background: #5d4037;                   // Quasar brown-7 — lifts on hover
     border-color: #5d4037;
   }
+}
 
-  // On a pinned element the chip INVERTS — a flat brown-1 face with a brown-8
-  // outline + pushpin. Rim and pushpin were brown-4, which went invisible once
-  // the SLOT under them was painted brown-4 (2026-07-24); brown-8 restores the
-  // outline — the same ink the unpinned chip's own face and rim carry.
+// ── TACK: NodeMini's ROUND PILL, moved here (2026-08-22, user ask: take "the
+// rounded one with the node icon inside" from the top-left corner of the node
+// viewer quoted in the post cards and "use it on the bottom right's pin button",
+// "instead of teal-13, use red-13") ─────────────────────────────────────────
+// The material arrives whole from `.node-mini__round-pill`: a `--grey-3` fill, a
+// `--grey-5` hairline RING outside the box and SEAM inside its bottom edge (both
+// box-shadows, for the pill's own reason — the one border is spent on the base,
+// and a shadow follows `border-radius` where an outline may not), a 2px coloured
+// BASE curving along the bottom arc, `--grey-8` ink, and the hairline stroke that
+// thickens a small glyph without enlarging it. ONE line differs: the base is
+// `--red-13` where the pill's is teal, and that is the whole distance between the
+// two objects — same material, different thing. The DIAMETER stays this chip's
+// 24px rather than the pill's 18px: the slot was built around 24, and 18 is a
+// fact about a header row, not about the material.
+//
+// What this REPLACES is an inverted brown chip whose entire grammar was VALUE —
+// a dark face going pale to say pinned. The pill is a pale object in both states,
+// so the state moved onto the MARK: the base closes into a full 2px ring and the
+// pushpin takes the same red as ink. Hover deliberately stays off that colour
+// (the face lifts to `--grey-1` instead) — the rule recorded on --teal-12/-13 is
+// that an object's own mark and the pointer's are never the same at once.
+.nav-bar .tack-btn {
+  background: var(--grey-3, #eeeeee);
+  border: 0;
+  border-bottom: 2px solid var(--red-13, #ff1744);
+  box-shadow:
+    0 0 0 1px var(--grey-5, #bdbdbd),
+    inset 0 -1px 0 var(--grey-5, #bdbdbd);
+  color: var(--grey-8, #616161);
+
+  .q-icon {
+    color: var(--grey-8, #616161);
+    -webkit-text-stroke: 0.35px currentColor;
+  }
+
+  // A pale chip lifts by going PALER — the mirror of the dark chip's rule in the
+  // pinned column, and the reason hover has no business borrowing the base.
+  &:hover:not(.q-btn--disable) { background: var(--grey-1, #fafafa); }
+
+  // Pinned: the base closes into a ring and takes the rim's job with it, so the
+  // grey hairlines stand down (`box-shadow: none`) instead of doubling it.
   &.is-pinned {
-    background: var(--brown-1);
-    color: var(--brown-8);
-    border-color: var(--brown-8);
-    box-shadow: none;                      // no inset highlight on the pale face
+    border: 2px solid var(--red-13, #ff1744);
+    box-shadow: none;
+    color: var(--red-13, #ff1744);
 
-    .q-icon { color: var(--brown-8); }
+    .q-icon { color: var(--red-13, #ff1744); }
     // 22° rotation to mimic a pushpin pressed in.
     .q-icon.tack-filled { transform: rotate(-22deg); }
 
-    &:hover { background: var(--brown-1); }
+    &:hover { background: var(--grey-1, #fafafa); }
   }
 }
 
@@ -976,18 +1367,9 @@ export default defineComponent({
 // permanently pale chip on the left would break the twinning the whole block
 // exists for. The glyph alone says which way the toggle goes.
 
-// Create bundle — aqua accent, same grammar as before the bundling.
-.create-bundle {
-  :deep(.create-btn) {
-    color: var(--ink-2);
-
-    &:hover {
-      color: var(--ink-1);
-      background: var(--aqua-3);
-    }
-  }
-}
-
+// (The create buttons' own aqua hover lived here until 2026-08-23 — see the
+// note where `.nav-bundle` was. `.create-btn` survives as a NAME with no rule
+// behind it: the witness flow and the docs address those four by it.)
 .pins-count-badge {
   font-size: 0.62em !important;
   padding: 0 4px !important;
@@ -1003,6 +1385,17 @@ export default defineComponent({
   min-height: 12px !important;
   letter-spacing: 0;
 }
+
+// ⚠ IT FLOATS AT EVERY WIDTH AGAIN (2026-08-24) — and the round trip is worth
+// keeping, because it is the same rule read twice. Quasar's `floating` pins the
+// count to the button's top-right and half-hangs it off the corner, which is
+// right whenever that corner holds nothing. For the one day the chip wore the
+// word MESSAGES, the corner belonged to the word's last letter and the count
+// sat on top of it, so a `min-width: 1024px` block dropped `position: static`
+// on it and the count read AFTER the word — "MESSAGES 3". The ask that took the
+// word away took the collision with it, and the override is DELETED rather than
+// left standing: a static badge on a glyph-only chip would widen a box whose
+// whole point is that the glyph fills it.
 
 // ── The top-edge cast is GONE (2026-08-02) ─────────────────
 // `.nav-top-shadow` — the lifted transparent sibling box that traced the bar
@@ -1030,22 +1423,33 @@ export default defineComponent({
     padding-left: 3px;
   }
 
-  // Both `.nav-divider`s live in `.nav-right`; nothing else on the bar uses
-  // one anymore.
+  // The ONE remaining `.nav-divider` is the tack slot's, and mobile is exactly
+  // where the tack renders in this bar — so this rule and `.tack-slot`'s
+  // `margin-left: -4px` below are a pair: drop the line, close the gap it
+  // occupied. (It hid two more until 2026-08-24, when the cluster's own
+  // dividers were deleted outright.)
   .nav-divider { display: none; }
 
-  // Search + chat: square-ish icon pebbles.
+  // ⚠ THE PHONE GOES WIDER THAN THE DESKTOP, DELIBERATELY (2026-08-23). The
+  // base chip is 24px on 2px of padding — "very tiny", so a 17px glyph fits a
+  // 19px box — and this rule OVERRIDES it upward, which reads backwards in a
+  // block whose whole job is tightening. It is the one dimension where the two
+  // arguments differ: on the desktop these numbers buy the glyph its size in a
+  // row full of words; here there are no words (the six are gated at 1024px)
+  // and the number that matters is the TAP TARGET, where 22px is under any
+  // reasonable floor. So the chips keep 28px of width and 4px of side padding
+  // on a phone and the row still fits 375px with the rails at their full 42px.
   .nav-bar .nav-btn {
-    min-width: 30px;
-    padding: 0 5px;
+    min-width: 28px;
+    padding: 0 4px;
   }
 
-  // The four create buttons — the widest thing in the cluster. 10px of side
-  // padding each is 80px of the screen spent on air.
-  .nav-bundle :deep(.q-btn) {
-    min-width: 30px;
-    padding: 0 5px;
-  }
+  // (The four create buttons were the widest thing in the cluster and took
+  // their own mobile rule through `.nav-bundle` until 2026-08-23 — they wear
+  // `.nav-btn` now, so the rule above already tightens all six.)
+
+  // The creation row's own gap follows `.nav-right`'s down.
+  .create-row { gap: 4px; }
 
   // The tack butts against `.nav-right`'s gap, which just shrank.
   .tack-slot { margin-left: -4px; }

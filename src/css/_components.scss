@@ -92,24 +92,101 @@
 .int-count    { font-size: 0.82em; color: var(--ink); min-width: 16px; }
 .int-sep      { width: 1px; height: 16px; background: rgba(var(--ink-rgb), 0.22); margin: 0 4px; }
 
-// ── PUSHY NAV BUTTON — a genuine Quasar push button (<q-btn push>) in the
-// NavigationBar footer, wearing a light-green-1 face. Quasar's push preset
-// supplies the 3D bottom lip AND the press-down animation natively, so there
-// is NO fake colored ledge here (the old surface-4 "blue" ledge + drop shadow
-// are gone) — we only paint the face and set the compact footer sizing.
-// Sizes are stated for the SHORTENED bar (2026-08-02): 30px → 24px tall on
-// 6px of side padding, which is what fits inside `--nav-footer-h`'s 32px (2/3
-// of the old 48) less its 1px top lip. The create bundle's pebbles in
-// NavigationBar carry the identical 24px/8px pair — the two button families
-// sit side by side in the right cluster and must read as one row.
+// ── NAV BUTTON — A CREAM CHIP ON THE TRAIL (2026-08-23, user ask: "take all
+// the buttons from the footer navigation bar, make them all flat and paint
+// them light-cream, just like the footer bar, and place them over the new
+// frieze bar"). It was a PUSHY button for a year — `<q-btn push>`, Quasar's
+// 3D bottom lip and press-down animation, on a light-green-1 face — and both
+// halves of that went in one pass: the preset is `unelevated` in
+// NavigationBar's markup now, and the face is the BAR'S OWN SURFACE.
+//
+// `--plaque-flat` is exactly that and is why it exists: the composited hex of
+// `--plaque-coat`'s cream sheet under its 30% grey veil, for the places a
+// background LAYER LIST is illegal or pointless (see _tokens.scss). So a chip
+// on this bar is a piece of the bar, and what makes it a BUTTON is not its
+// colour but the dark frieze band it stands on plus the `--grey-6` hairline
+// closing it — the bar's own structural ink, the tone of its top lip, which
+// is the line that has to do the work where a chip overhangs the trail onto
+// the plaque and face meets face at 1:1.
+//
+// HOVER steps COOL, not deeper into a hue: `--grey-3` is the veil's own tone,
+// ten levels under the composited face, so the chip reads as the same material
+// pressed rather than as a second colour arriving. (`--grey-4` is the next
+// step down if it ever wants more, and is what `is-active` already takes on
+// the two buttons that have one.)
+//
+// ── 17px, SQUARE, AND SET INSIDE THE BAND (2026-08-23, three asks in a row on
+// one object). The first squared these corners and matched the chip to the
+// band exactly ("remove the padding on top and below the buttons from the
+// footer bar so they completely cover the height of the frieze bar. also
+// remove their rounded corners"); a band thinning left the chip OVERHANGING
+// for an hour; the last one INVERTED the relation — "adjust the inner buttons
+// height so they fit well inside the frieze bar … make their inner padding
+// very tiny so we can have big icons inside". So the chip does not cover the
+// trail anymore, it is SET INTO it: 17px in a 21px band leaves a 2px shoulder
+// of plate above and below every button, and the meander runs on in the gaps.
+//
+// ⚠ THE CHIP IS THE BAND, EXACTLY — `--nav-trail-h`, THE SAME DECLARATION THE
+// TRAIL READS (2026-08-23, the day's last two asks: "the buttons still hold a
+// gap between them and the top and bottom edges of the friezebar", then, after
+// one pass that reached all the way to the bar's own edges, "nooo… touch the
+// bar, but within the frieze bar"). So the chips fill the band edge to edge
+// and stop there: no shoulder above or below, and no reaching past it either.
+//
+// THIS IS ONE NUMBER, NOT TWO IN STEP. `--nav-trail-h` is declared on
+// `.nav-bar` in NavigationBar.vue and inherits down to both objects — the band
+// reads it as `--frieze-bar-h`, this rule reads it as its height — because the
+// pair was reset six times in one day (RIDING the band 22-in-28, COVERING it
+// 24-in-24, OVERHANGING it 24-over-17, FLOATING in it 17-in-21, SET NEAT on a
+// 1px shoulder 19-in-21, and reaching the bar's edges at 31) and every one of
+// those was a chance for two files to disagree.
+//
+// The GLYPH is the chip less its two 1px rims (border-box): 21 → 19px, the
+// "very tiny padding … big icons" ask carried to its end — vertically the
+// chip is now ALL glyph. The band survives in `.nav-right`'s 6px gaps between
+// chips and across the empty middle, which is where its meander and its 5px of
+// cream margin are read.
+//
+// The corners are square for a reason that survived the height changing twice:
+// a radius on a tile lying in a band leaves four dark notches where the band
+// shows through the cut, which reads as damage rather than as a rounded button.
+//
+// SIDES ARE 5px SINCE 2026-08-23's last ask ("add a little more internal
+// padding at the inner sides of the footer bar's buttons content") — 2px for
+// the hour before that, which was the "very tiny" setting the VERTICAL ask
+// needed. The two never really competed: "very tiny" was about clearing room
+// for a big glyph, and once the chip took the band's own height that room came
+// from the height, not from the sides. So the gutter went back up and the
+// glyph kept its 19px. Arithmetic: 19px of icon + 10px of padding + 2px of rim
+// = 31px, so `min-width: 32px` is the whole chip with a pixel to spare.
+// (5px also for a year before this day, at 24px and 30px tall.) (5px for an hour this same day at 22px and 24px tall; 6px/8px
+// from 2026-08-02; 6px/10px before that.) The four create buttons wear this
+// very class since their group was dissolved, so all six chips on the bar are
+// one object with one box.
 .nav-btn {
-  min-width: 30px;
-  min-height: 24px;
-  height: 24px;
-  padding: 0 6px;
-  border-radius: var(--radius-sm);
-  border: 1px solid rgba(var(--ink-rgb-deep), 0.40);
-  background: #f1f8e9;             // Quasar light-green-1
+  min-width: 32px;
+  min-height: var(--nav-trail-h, 21px);
+  height: var(--nav-trail-h, 21px);
+  padding: 0 5px;
+  border-radius: 0;
+  // ── SIDES ONLY (2026-08-23, user ask: "remove their top and bottom borders
+  // so they blend smoothly with the bar"). The chip is exactly the band's
+  // height, so those two rims were the only thing between its cream face and
+  // the band's own top and bottom edges — a line drawn across a joint that has
+  // nothing to join. Gone, the face runs to the band's edges and the chip
+  // reads as a section of the trail repainted rather than a tile laid on it.
+  // ⚠ NO LAYOUT MOVED: `box-sizing: border-box` means the 21px box is 21px
+  // either way — what grew is the CONTENT height, 19px → 21px, which is why
+  // the 19px glyph still has a pixel of slack top and bottom and why the
+  // `chip − 2 = glyph` chain now holds on the sides alone.
+  // The SIDES stay, and are load-bearing twice over: they separate adjacent
+  // chips across `.nav-right`'s 6px gap, and they state each chip's own edges
+  // against the plate. `--grey-6` on the `--grey-8` plate is a LIGHTER hairline
+  // on a darker ground — see the plate note in NavigationBar.
+  border: 1px solid var(--grey-6);
+  border-top: 0;
+  border-bottom: 0;
+  background: var(--plaque-flat);
   color: var(--ink-1);
   font-family: var(--font-display);
 
@@ -117,7 +194,7 @@
   .q-btn__content { gap: 2px; }
 
   &:hover:not(.disabled) {
-    background: #dcedc8;           // light-green-2, a shade deeper on hover
+    background: var(--grey-3);
     color: var(--ink-1);
   }
 
@@ -339,13 +416,93 @@
 // mobile `border-left` restatement would have quietly won against it.
 .dock-window--creation {
   --dock-gap: 14px;
-  --dock-coat: var(--brown-1);
+  // THE CAP RADIUS IS A DIAL TOO (2026-08-24, user ask: "make their corners a
+  // little less round") — `--radius-lg` (1.25em, 17.5px measured) →
+  // `--radius-md` (0.85em, ~12px). A dial rather than a literal because the
+  // number is restated three more times in this file, always in a rule that
+  // has to give a squared-off corner BACK (the ≤600px block's left cap, and
+  // the dashboard's edit-mode restatement of both caps): a literal would have
+  // meant four edits to move one corner, and the two that live inside a media
+  // block are exactly the ones a later pass forgets. Applied to the shared
+  // FOOTPRINT, so chat and the dashboard round the same amount — six windows
+  // that are the same box in six colorways may not disagree about their shape.
+  --dock-radius: var(--radius-md);
+  // THE COAT IS THE NAV BAR'S OWN PLAQUE (2026-08-26, user ask: the
+  // dashboards, chat, post, skeletons, labels and uploads windows should
+  // "all be light-cream… with the same veil/effect as the footer navigation
+  // bar so the windows match the exact same bar color") — `--plaque-coat`,
+  // which is a `--light-cream` sheet under a 30% `--grey-3` veil, taken whole
+  // from the bar these docks rise from (_tokens.scss § THE PLAQUE COAT).
+  //
+  // THE DAY BEFORE THIS it was flat `--light-cream` (2026-08-24, "all have
+  // light-cream background color"), and before that `--brown-1` since the
+  // plaque pass of 2026-08-02. So this is the SECOND half of one move, and
+  // the half that closes it: 08-24 got the sheet right and left the wash off,
+  // which put the docks at #fcf3e0 against a bar compositing to #f8f2e4 —
+  // near enough to read as one intent and far enough to read as a mismatch
+  // exactly where the two surfaces touch. A dock is welded to that bar by its
+  // bottom edge; the two are one material now, veil included, and re-tuning
+  // the veil moves bar and windows together because there is one token.
+  //
+  // IT REACHES ALL SIX DOCKS, which is a change of kind for this dial. Until
+  // today chat (`.dock-window--chat`, lime) and the dashboard
+  // (`.dock-window--dashboard`, the flyout family's greys) repointed the coat
+  // themselves further down and this value meant "the colorway of the docks
+  // that have no colorway of their own". The ask named all six, so both of
+  // those lines now point back HERE — a colorway is its LINES, WELLS and INK
+  // from today on, never its sheet. The two rules below are kept (rather than
+  // deleted down to their remaining dials) so the next colorway reads the
+  // whole set in one place.
+  //
+  // ⚠ `--dock-coat` IS A BACKGROUND LAYER LIST NOW, NOT A COLOUR. Every
+  // consumer must be a `background` shorthand — the shell and `.dock-bar`
+  // here, `.dock-tab:hover` below, `DashboardDock`'s tab hover, and
+  // `SplitLayout`/`CuentistaRow`'s cell floors. It will NOT work in
+  // `border-color`, `color` or a gradient stop; `--plaque-flat` (#f8f2e4, the
+  // composite) is the flat tone for those places.
+  //
+  // ⚠ `--dock-rule` STAYS BROWN *HERE*. The cream's own line ink elsewhere on
+  // the platform is `--grey-6` (the cards' sheet-and-line pairing), and moving
+  // this dial would repaint the tab strip's rims and the header's underline
+  // in the same stroke — a bigger change than the ask, and `--brown-3` on
+  // cream still reads as a warm line rather than a grey one on a warm sheet.
+  // ⚠ ONE WINDOW TURNED IT ANYWAY, AT THE WINDOW (2026-08-26, user ask: the
+  // post maker should contrast in blue-grey "instead of the remaining brown
+  // bits"). `MakerDock.vue` re-points this dial and four others on
+  // `.maker-dock`. The objection above is intact and is exactly why it was
+  // done there: what it warns against is moving the SHARED value and
+  // repainting four docks at once. The dials exist so one window can differ —
+  // it is the seam chat uses to go lime — and the post window is now the
+  // second to use it, sheet included (`--dock-coat`, sanctioned in the
+  // `dock-coat` witness).
+  --dock-coat: var(--plaque-coat);
   --dock-rule: var(--brown-3);
   left: 50vw;
   right: calc(var(--dock-right, 0px) + var(--dock-gap));
-  // --media-tabs-h is 0px unless a media viewer is parked, in which case the
-  // whole top chrome (crown strip included) has stepped down by that band.
-  top: calc(var(--dock-gap) + var(--media-tabs-h, 0px));
+  // ── DAYLIGHT OFF THE TOP CHROME, INCLUDING WHAT HANGS OFF IT (2026-08-24,
+  // user ask: "make sure they leave a little space between their top border
+  // and the header nav bar tabs") ──
+  // `--media-tabs-h` is the whole top chrome (permanent since 2026-08-12,
+  // when the crown strip it used to sit above was deleted — the comment here
+  // claimed it was "0px unless a media viewer is parked" for twelve days
+  // after that stopped being true). But it is the RAIL's height, and the
+  // rail's parked TABS hang below it: `.media-tabs__row` is absolute at
+  // `top: 100%`, outside the band's box entirely. So `--dock-gap` off
+  // `--media-tabs-h` alone was daylight measured from the wrong line —
+  // measured, the dock's top border and a parked tab's bottom edge were both
+  // at y=29 and the tab (z 3125, over every dock) sat welded to the window's
+  // cap. `--media-tabs-park-h` is what the strip reaches past the rail, so
+  // the gap is the same 14px it has always been and it is now taken from the
+  // lowest thing the chrome actually draws.
+  //
+  // ALWAYS RESERVED, never conditional on a tab being parked. A dock that
+  // stepped down 14px the moment you minimized a flyout — and it has a
+  // `top` transition, so it would visibly slide — is a worse window than one
+  // that keeps its line. (The dashboard's `.is-edit` / `.is-max` geometries
+  // deliberately WELD to `--media-tabs-h` instead; those two are the board
+  // becoming the page, not a window on it, so the tabs lie over them the way
+  // they lie over the feed.)
+  top: calc(var(--dock-gap) + var(--media-tabs-h, 0px) + var(--media-tabs-park-h, 0px));
   // Straight off the NAV BAR's top edge (2026-07-27, second pass — it stood
   // one --frieze-h higher first, via the now-retired --dock-bottom, to clear
   // FriezeFooter, the pale band that used to occupy this edge before
@@ -361,8 +518,8 @@
   -webkit-backdrop-filter: none;
   border: 1px solid var(--dock-rule);
   border-bottom: none;
-  border-top-left-radius: var(--radius-lg);
-  border-top-right-radius: var(--radius-lg);
+  border-top-left-radius: var(--dock-radius);
+  border-top-right-radius: var(--dock-radius);
   // NO DOWNWARD CAST (2026-08-02, user ask: an open maker/uploader "looks
   // like it's floating on top of the bar"). The old `0 12px 38px` at 45%
   // black was offset twelve pixels DOWN, and this dock's bottom edge IS the
@@ -452,7 +609,18 @@
 // worth seeing through the window, and a chat that now covers half the screen
 // (all of it on a phone) is not that.
 .dock-window--chat {
-  --dock-coat: var(--lime-1);
+  // ⚠ THE COAT LEFT THIS COLORWAY (2026-08-26, user ask: all six docks wear
+  // the nav bar's cream-under-veil plaque). `--lime-1` was the sheet from the
+  // day the window went green; it is now `--plaque-coat`, inherited from
+  // `.dock-window--creation` and NOT restated here — a repeat of the parent's
+  // value is a second copy to keep in step, and this dial's whole point is
+  // that there is one. What green means in this window from today: its LINES
+  // (`--lime-3` hairlines, `--lime-4` for the heavy ones), its WELLS (the
+  // conversations column and the consent strip, `--lime-2`) and its INK
+  // (`--lime-10`). The message bed is the one interior surface that was
+  // never painted — it lies on the shell's coat — so the thread now reads on
+  // cream while the column beside it stays a green well, which is the same
+  // figure/ground step the brown docks have had since the plaque pass.
   --dock-well: var(--lime-2);
   --dock-rule: var(--lime-3);
   --dock-rule-strong: var(--lime-4);
@@ -472,7 +640,7 @@
   top: auto;
   height: min(
     60vh,
-    calc(100vh - var(--dock-gap) - var(--media-tabs-h, 0px) - var(--nav-footer-h))
+    calc(100vh - var(--dock-gap) - var(--media-tabs-h, 0px) - var(--media-tabs-park-h, 0px) - var(--nav-footer-h))
   );
 }
 
@@ -494,7 +662,16 @@
 // be looked INTO rather than worked in, and the well inside it is where the
 // step actually falls.
 .dock-window--dashboard {
-  --dock-coat: var(--grey-3);
+  // ⚠ THE COAT LEFT THIS COLORWAY TOO (2026-08-26, the same ask) — `--grey-3`
+  // was the flyout family's plaque, and the board now takes `--plaque-coat`
+  // from the shared footprint. The note above about coat and rule sitting one
+  // step apart (1.06:1, "the flyout's own quiet edge") is what CHANGED: the
+  // cream sheet under `--grey-4` lines is a warm/cool step rather than a
+  // value one, so the board's edges read by hue now and the well below is
+  // carrying more of the depth than it used to. The two warm marks the flyout
+  // family kept standing (brown-8 head ink, brown-4 meta) are now marks on a
+  // warm sheet, which is why the ink dials are untouched — they were already
+  // the right family for this coat, four settings before it arrived.
   --dock-well: var(--grey-4);
   --dock-rule: var(--grey-4);
   --dock-rule-strong: var(--grey-5);
@@ -554,7 +731,7 @@
 // is untouched either way — `bottom: var(--nav-footer-h)` never moves, so
 // maximizing the chat window never covers it.
 .dock-window--chat.is-max {
-  top: calc(var(--dock-gap) + var(--media-tabs-h, 0px));
+  top: calc(var(--dock-gap) + var(--media-tabs-h, 0px) + var(--media-tabs-park-h, 0px));
   height: auto;
   border-top-right-radius: 0;
 }
@@ -755,10 +932,26 @@
 }
 
 // ── THE SIDE CHROME'S FRIEZES — FLAT GREYS, NOTHING ELSE (2026-08-21, two
-// user asks the same sitting) — ONE palette rule for the three side
-// surfaces' bands: the left drawer's section dividers (`.drawer-frieze`,
-// MainLayout ×4) and the stack/pins widgets' bracket bands (`.stack-frieze`
-// ×2, `.pins-frieze`). The band's whole recipe here is THREE PAINTS:
+// user asks the same sitting) — ONE palette rule for the three side surfaces'
+// bands: the left drawer's section dividers (`.drawer-frieze`, MainLayout ×4)
+// and the stack/pins widgets' bracket bands (`.stack-frieze` ×2,
+// `.pins-frieze`).
+//
+// ⚠ IT WAS A QUARTET FOR HALF A DAY ON 2026-08-23 and is a trio again. The nav
+// bar's trail (`.nav-frieze`) joined by name — the user asked for "a frieze bar
+// such as the one from the inner left drawer frieze bars", which is a request
+// for THIS band somewhere else, not for one like it — and left the same day
+// when a later ask gave it its own three paints. A band stating its own palette
+// has nothing left to take from a palette rule, so it states its fit and its
+// carve locally too and the selector list shrank back. (Where it went: one hour
+// INVERTED — a `--light-cream` plate with `--grey-3`/`--grey-4` waves, the only
+// inverted frieze the platform has drawn — then back to this family's
+// orientation on a `--grey-6` plate under ONE `--light-cream` tone for both
+// waves, where it stands. That single tone is the part that differs from this
+// rule structurally rather than in hue: here `a` and `b` are told apart by
+// VALUE as well as by shape.) What the trail still takes from here is the
+// ARGUMENT — pixel-exact fit, carve off — which is in NavigationBar's own
+// notes. The band's whole recipe here is THREE PAINTS:
 //
 //   plate      --grey-8   — "keep the dark background"
 //   wave two   --grey-2   (mask `b` — the THICK wave, the one carrying the
@@ -823,6 +1016,16 @@
   // The stack/pins scoped heights read this same dial, so ONE number moves
   // all seven bands; the drawer's bands take it straight off the component's
   // own height rule.
+  // (The nav bar's trail read this pair for half of 2026-08-23 at its own
+  // 21px height — three more pixels of plate around the same ink, room its
+  // buttons sit inside, which is what a band on a floor needs and a divider
+  // between list sections does not. It states both dials itself now; see the
+  // inversion note above.) THE FIT IS THIS
+  // ONE — it spent an hour at `28px`/`auto 26px` (2px a row, sized to hold
+  // 24px buttons inside it) and came back when the ask was for the drawer's
+  // own proportions; the override is deleted, not restated. So all eight bands
+  // on the platform's chrome now draw ONE pattern at ONE scale, and the trail
+  // differs from the other seven by a single number.
   --frieze-bar-h: 15px;
   --frieze-bar-fit: auto 13px;
   --frieze-bar-base: var(--grey-8, #616161);
@@ -1138,7 +1341,7 @@
     // tablets and it fires here too. `--dock-rule`, never a literal — the
     // chat dock's left border has to come back GREEN.
     border-left: 1px solid var(--dock-rule);
-    border-top-left-radius: var(--radius-lg);
+    border-top-left-radius: var(--dock-radius);
   }
 
   // The dashboard's edit expansion, restated (see the desktop rule): on a
@@ -1149,11 +1352,11 @@
   .dock-window--dashboard.is-edit {
     left: var(--dock-gap);
     right: calc(var(--dock-right, 0px) + var(--dock-gap));
-    top: calc(var(--dock-gap) + var(--media-tabs-h, 0px));
+    top: calc(var(--dock-gap) + var(--media-tabs-h, 0px) + var(--media-tabs-park-h, 0px));
     border-left: 1px solid var(--dock-rule);
     border-right: 1px solid var(--dock-rule);
-    border-top-left-radius: var(--radius-lg);
-    border-top-right-radius: var(--radius-lg);
+    border-top-left-radius: var(--dock-radius);
+    border-top-right-radius: var(--dock-radius);
   }
 
   // Bigger dots for touch: 13px → 17px on a wider gap (the header layout

@@ -15,10 +15,19 @@
       bottom edge WELDED to the nav bar's top edge, both top corners rounded,
       maximize to the screen's left edge, full width under 600px, and a
       minitab on the footer strip to park on;
-    · the COAT is the FLYOUT FAMILY's — `.dock-window--dashboard` points the
-      six `--dock-*` dials at the greys that box is drawn in (`--grey-3`
-      plaque, `--grey-4` lines and well, brown-8/brown-4 head ink), the same
-      seam chat used to go lime. Inside it, the family's own two pieces:
+    · the LINES, THE WELL AND THE INK are the FLYOUT FAMILY's —
+      `.dock-window--dashboard` points the `--dock-*` dials at the greys that
+      box is drawn in (`--grey-4` lines and well, `--grey-5` strong edge,
+      brown-8/brown-4 head ink), the same seam chat uses to go lime.
+      ⚠ THE COAT IS NO LONGER AMONG THEM (2026-08-26, user ask: the
+      dashboards, chat, post, skeletons, labels and uploads windows should all
+      be light-cream "with the same veil/effect as the footer navigation bar
+      so the windows match the exact same bar color"). This rule declared
+      `--dock-coat: var(--grey-3)`; it declares nothing of the sort now and
+      inherits `--plaque-coat` from the footprint, so the board's SHEET comes
+      from the bar and only its lines come from the flyout. Do not restate the
+      dial here to "complete the set" — `fsck --static`'s `dock-coat` witness
+      fails on a second declaration anywhere. Inside it, the family's own two pieces:
       a `slim` FriezeBar on a `--grey-9` base and the sunk, bevelled
       `.flyout-window__well`.
 

@@ -387,7 +387,12 @@ export default defineComponent({
 // `_components.scss`: `--grey-8` plate, `--grey-2` thick wave, `--grey-4`
 // other wave, carve off — three paints and nothing else since 2026-08-21's
 // from-scratch ask; an orange↔teal gradient weave 08-17 → 08-21, a rimmed
-// grey pass for part of that last sitting.
+// grey pass for part of that last sitting. (The rule was a QUARTET for half
+// of 2026-08-23: the nav bar's trail wore these three paints and this
+// `auto 13px` fit on the window's floor at its own 21px box, then left when a
+// later ask gave it its own palette — a `--grey-6` plate under one
+// `--light-cream` tone, after an inverted cream-plate hour. The fit and the
+// carve-off argument went with it; the paints did not.)
 // ⚠ THE 1px BOTTOM LIP IS GONE with the trio's rims (same ask): it was the
 // crown strip's own edge, brown-3 from birth, `--grey-6` after the rim ask —
 // the last line standing on any trio band, and "three paints" ended it. Its

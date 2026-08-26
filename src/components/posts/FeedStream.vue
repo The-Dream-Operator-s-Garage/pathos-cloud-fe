@@ -786,24 +786,16 @@
               </div>
             </div>
 
-            <!-- THE CAP'S CLOSING EDGE — THE FRIEZE BAND (2026-08-10, user
-                 ask). This seam has been walked all week: a plain grey
-                 hairline, then a `vflip`ped frieze half, then an
-                 `RgbHairline` (2026-08-07), which went down to open the foot
-                 and came back flipped on 08-09 to BRACKET the reading area
-                 against the foot's band. What stands here now is the card's
-                 one frieze, MOVED UP from the byline↔label seam it held
-                 since 08-07 — the card carries a single motif band and this
-                 is where it goes: the top seam is the one a reader crosses
-                 first, and a motif states "a new kind of thing begins" more
-                 plainly than a third copy of the same rule could.
-
-                 With the move the `--cap` FLIP is gone too, and so is the
-                 bracket argument that needed it: the card's three remaining
-                 sandwiches all run cyan-down, one grammar, and the figure at
-                 the top is a different device rather than the same one
-                 mirrored. -->
-            <FriezeBar slim class="post-square__frieze" />
+            <!-- ⚠ THE CAP CLOSES ITSELF NOW (2026-08-22, user ask). For twelve
+                 days its edge was an ELEMENT after it — the card's one frieze
+                 band, and a flipped `RgbHairline` before that — and for one
+                 pass that band stood INSIDE this box as its floor. The band
+                 has left the card altogether: it is inlaid in the window's own
+                 top rail now (`media/MediaTabsBar.vue`), one motif for the
+                 whole screen instead of one per card. What holds the seam here
+                 is the cap's own `border-bottom`, 2px of `--grey-6` — see the
+                 style block for why it is neither the card's weight nor the
+                 card's ink. -->
 
             <!-- BYLINE band — the author's IDENTITY BLOCK, at the card's top
                  edge (2026-07-25; TWO RULED SIDES since 2026-08-09's last
@@ -1412,7 +1404,6 @@ import PostMicro from 'src/components/posts/PostMicro.vue'
 // element — so it reaches for the generic chip rather than PostMicro.
 import MicroChip from 'src/components/shared/MicroChip.vue'
 import MarkdownBody from 'src/components/shared/MarkdownBody.vue'
-import FriezeBar from 'src/components/layout/FriezeBar.vue'
 import RgbHairline from 'src/components/layout/RgbHairline.vue'
 import ConversationPicker from 'src/components/chat/ConversationPicker.vue'
 // A label tree whose ROOT has a mark draws it instead of spelling the root's
@@ -1476,7 +1467,7 @@ const KIND_ICONS = {
 
 export default defineComponent({
   name: 'FeedStream',
-  components: { EntityAvatar, OrgLogoChip, PostMicro, MicroChip, MarkdownBody, FeedHeadBox, FriezeBar, RgbHairline, ConversationPicker },
+  components: { EntityAvatar, OrgLogoChip, PostMicro, MicroChip, MarkdownBody, FeedHeadBox, RgbHairline, ConversationPicker },
   props: {
     // The posts whose flyout VIEWERS are open right now (2026-08-17, the
     // fusion — it was a single `selectedId` while the feed owned one box).
@@ -3773,7 +3764,62 @@ export default defineComponent({
   // the other half and must carry the same tone: this bed covers the container
   // edge to edge (both measured `95,5,571,900`), so a coat set on only one of
   // them is either invisible or a seam. The trap has cost three passes now.
-  background: var(--grey-4, #e0e0e0);
+  //
+  // **`--indigo-1` SINCE 2026-08-22** (user ask — named on the CONTAINER, as
+  // every one of today's five asks on this tone was; set here for the reason
+  // above, which is the whole point of the warning). It is where this line
+  // STARTED: the bed wore `--indigo-1` from 2026-07-25 until 2026-08-05 went
+  // neutral, so the field has come home after a walk across the entire scale in
+  // one sitting — `--grey-4` → `--grey-8` → `--grey-7` → `--grey-6` →
+  // `--brown-1` → here, of which only -6 and brown-1 deployed.
+  //
+  // ⚠ IT IS THE BEST-SEPARATED SETTING OF THE SITTING. Measured at the seam:
+  // bed rgb(232,234,246) against the card's veiled rgb(241,239,234) — the card
+  // LIGHTER in red and green (+9, +5) and DARKER in blue (−12), so the pair
+  // separates on TWO axes, a warm sheet on a COOL plate. Everything else today
+  // had both tones neutral or both warm and leaned on lightness alone;
+  // `--brown-1` immediately before this ran two levels of red with both warm,
+  // the closest the pair has ever been. This opens the step back up without
+  // going dark to do it, which is what the dark settings were reaching for.
+  //
+  // **THE WASH'S RULE IS SATISFIED FOR THE FIRST TIME TODAY**: "a wash may not
+  // be, or approach, the BED's tone — the RELATION, not the token." It is not
+  // approached here on any axis. ⚠ The corollary binds the CARD, not this line:
+  // its coat may not follow the field into indigo. That is exactly what
+  // `--light-cream` was minted to prevent on 2026-08-07 (a card drawn in the
+  // field's own family reads as that plaque BORROWED rather than as a card with
+  // a coat of its own), so what to protect here is the warm/cool OPPOSITION,
+  // not either token by name.
+  //
+  // Two things the dark pass left behind on the card, both now standing as
+  // decisions rather than as fallout — read their own notes before moving them:
+  //  · the card's WHOLE LINE SYSTEM is `--grey-5`, one level lighter than the
+  //    `--grey-6` it used from 2026-08-07 — the outer edge moved first as a
+  //    repair, the ten inner lines followed as a choice, and the one-ink rule
+  //    is intact at the new level;
+  //  · the veil is `--grey-3` at 75% with a 1px hairline, having been darkened
+  //    and thinned in the same sitting the bed was at its closest.
+  // ⚠ **`--grey-8` SINCE 2026-08-24** (user ask: "please paint the background of
+  // the feed container grey-8" — named on the CONTAINER again, and set here for
+  // exactly the reason the warning above gives; this is the FOURTH time that
+  // trap has been paid). The field crosses to the DARK half of the scale for
+  // the first time, so every relation the note above records is inverted, not
+  // merely re-toned:
+  //  · FIGURE/GROUND FLIPS. The cards are the PALE things on a dark plate now,
+  //    where the surface has always been a light box with slightly lighter or
+  //    slightly darker sheets on it.
+  //  · THE WASH RULE IS SATISFIED BY DISTANCE, not by hue. `--indigo-1` earned
+  //    it on two axes at close range; grey-8 (97) against the card's veiled 241
+  //    puts ~144 levels between them, the widest this pair has ever run, and
+  //    the rule ("a wash may not be, or approach, the BED's tone") cannot be
+  //    troubled at that distance.
+  //  · WHAT NOW NEEDS WATCHING is the opposite of what did: not the card's
+  //    separation from the bed, which is enormous, but every PALE-ON-PALE mark
+  //    that used to sit safely on a light field — a hairline, a disabled chip,
+  //    a scrollbar track — since each of those now has a dark plate behind it.
+  //    The dark settings this line tried and rejected in one sitting
+  //    (`--grey-8` itself, then -7 and -6) were rejected on that ground.
+  background: var(--grey-8, #616161);
   // The bed's REVEAL around the cards. The sides walked the whole way down and
   // then back up: `10px` (from the day the well took padding back) → `5px` →
   // `0` ("remove completely") → `3px` ("just a little little", all four on
@@ -3795,6 +3841,32 @@ export default defineComponent({
   // margin. Going the last 2px to a true 10 is not obviously better: the sides
   // are read against a hard vertical edge and the top/bottom against another
   // card, and equal numbers do not look equal across that difference.
+  //
+  // **`3px` SINCE 2026-08-22** — the sides' half of a DENSITY PASS (user ask,
+  // "reduce the overall padding around them to make the feed fit denser"),
+  // after `8px` → `5px` earlier the same sitting. The full walk is now
+  // `10px` → `5` → `0` → `3` (2026-08-06) → `8` (08-07) → `5` → **`3`**.
+  //
+  // 3px is THE FLOOR, and it is a floor with a reason rather than a taste:
+  // it is the smallest reveal that keeps the card's own border from LANDING ON
+  // the frieze bar. At `0` the two edges met as one line — that pass is why the
+  // bar's lip draws nothing to this day — and every value above 3 has been
+  // bought with a separate argument about how far apart bar and card are in
+  // TONE. Those arguments have all expired: 8px was minted on 2026-08-07 for a
+  // pale card against a newly-`--indigo-8` bar, 5px earlier today for a bed
+  // that had gone dark enough to read as one frame with that bar. What is left
+  // is the original mechanical job, and 3px does exactly it and nothing more.
+  //
+  // ⚠ SO THE NEXT MOVE DOWN IS `0`, AND `0` COSTS SOMETHING SPECIFIC — not a
+  // little less air, but the card's edge and the bar's becoming one line. If a
+  // future ask wants denser still, take it out of the VERTICAL rhythm or the
+  // card's own inner padding, not out of these three pixels.
+  //
+  // The vertical rhythm came down in the same pass (the stream's flex `gap` is
+  // 6px now, from 10), so the reveal stays deliberately UNEVEN — 3 against 6 —
+  // and for the reason it always has been: the sides are read against a hard
+  // vertical edge, the top and bottom against another card of the same
+  // material, and equal numbers do not look equal across that difference.
   // The head band's negative side margins used to be exactly `-1 x` this number
   // so the band stayed full-bleed lip to lip while the cards kept the sliver
   // (`-10px`, `-5px`, `0`, `-3px`, in step with it); the head is a BOX outside
@@ -3818,7 +3890,14 @@ export default defineComponent({
   // NOTE the side padding narrows `.feed-stream`, which is the element the
   // square ceiling is measured from — the ResizeObserver picks the new width
   // up on its own, so `--post-square-max` follows automatically.
-  padding: calc(var(--fhead-h, 120px) + 22px) 8px calc(var(--frieze-h) + 12px);
+  // ⚠ ALL THREE TERMS MOVED IN THE DENSITY PASS. Top `+22px` → **`+18px`**
+  // (the 12px HOME offset is untouched — it clears the head box's corner
+  // sweeps — and the 10px gap to the first card became 6, matching the new
+  // flex gap); bottom `+12px` → **`+8px`**. KEEP THE SUBTRACTION IN STEP: the
+  // expanded card states its height as this well minus these two constants,
+  // and `fsck --static`'s `expanded-card` witness fails the build if the pair
+  // drifts. Grep `KEEP THE SUBTRACTION IN STEP` — there are exactly two sites.
+  padding: calc(var(--fhead-h, 120px) + 18px) 3px calc(var(--frieze-h) + 8px);
 
   // ── THE BED'S SIDE BORDERS (2026-08-07, user ask) — 1px `--indigo-6` down
   // each side, nothing on the ends. This box IS what holds the post cards, and
@@ -3886,7 +3965,39 @@ export default defineComponent({
 .feed-stream {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  // **6px SINCE 2026-08-22** (user ask, "reduce the overall padding around them
+  // to make the feed fit denser"), from the `10px` it had held since
+  // 2026-07-25 — the vertical half of the density pass, the sides' half being
+  // the well's 3px reveal above.
+  //
+  // ⚠ THIS NUMBER IS RESTATED IN THE WELL'S TOP PADDING and must move with it:
+  // that padding is `12px` (the head box's HOME offset) + this gap, so the
+  // first card sits the same distance under the box as every later card sits
+  // under its neighbour. It reads `+18px` now; it read `+22px` at a 10px gap.
+  //
+  // Density is bought HERE rather than at the sides for the reason written on
+  // that reveal: the 3px side value is a mechanical floor (below it a card's
+  // border lands on the frieze bar), while this gap has no floor but legibility
+  // — two cards of the same material still separate at 6px because each carries
+  // its own outline and its own contact shadow, whose reach is ~2.5px down and
+  // dies well inside it.
+  //
+  // ⚠ **ONE MEASURED CONSEQUENCE, AND IT IS THE FIRST CARD'S ALONE.** The head
+  // box is not a card and does not cast like one: `0 7px 14px -7px
+  // rgba(0,0,0,.45)`, a floating shadow reaching ~21px down at two orders of
+  // alpha above a card's `.045/.05` contact shadow. At the old 10px gap it
+  // already landed on card₁'s top border; at 6px it lands 4px deeper into the
+  // falloff. Measured, that border renders **rgb(173,173,173)** where the card's
+  // other three edges draw `--grey-5`'s rgb(189,189,189) — card₂'s top border
+  // measures a clean 189, so nothing systemic is wrong. It is the head box
+  // reading as ABOVE the stream, which is precisely what its shadow is for.
+  //
+  // Worth knowing anyway, because it means **card₁'s top edge is 16 levels
+  // darker than the rest of its own outline**, and because it names the dial:
+  // if that ever reads wrong the fix is the head box's shadow or its 12px HOME
+  // offset — NOT the card's border tone, which is already correct and shared
+  // with ten other lines.
+  gap: 6px;
   container-type: inline-size;
 }
 
@@ -4088,30 +4199,76 @@ export default defineComponent({
   // cast and its silhouette. The outline is one of three devices now instead of
   // the only one, so it can sit level with the inner lines without the box
   // losing its edge. If the shadow is ever removed, this wants 1.5px back.
-  border: 1px solid var(--grey-6, #9e9e9e);
-  // ROUNDER, twice on 2026-08-07 (two user asks: "a little more roundness",
-  // then "a little bit more round") — `4px` → `6px` → **`8px`**, reversing both
-  // of the 2026-08-06 steps that had taken it down. That walk was `--radius-md`
-  // (0.85em) → `--radius-sm` (0.5em, the step the card's own inner boxes turn)
-  // → a flat `4px`, on the reading that a card whose LINES do the separating
-  // wants a corner saying only "not a raw rectangle". The card is a sheet with
-  // a cast now, not a plaque held by its outline, and a sheet's corner can
-  // afford to be a corner.
   //
-  // **`7px` IS THE ONE VALUE TO SKIP**, which is why this went 6 → 8 rather
-  // than 6 → 7: the pit, the title plate and the label rail all turn at exactly
-  // `--radius-sm` (7px), and a container that turns at the same radius as the
-  // boxes INSIDE it reads as a tray moulded around them rather than as a sheet
-  // they are laid on. At 6 the outer corner was a pixel tighter than its
-  // contents, at 8 a pixel looser — and LOOSER is the better of the two
-  // readings, because a box holding other boxes should turn more than they do,
-  // not less. So this step both answers the ask and lands on the right side of
-  // that line.
   //
-  // Flat px stays right for the same reason it was before: there is no platform
-  // step here, and minting one for a single box would state a rhythm the
-  // platform does not have.
-  border-radius: 8px;
+  //
+  // ── **`--grey-5` SINCE 2026-08-22** (user ask, "make the outer border of the
+  // post cards grey-5 again") — and this time it is a SETTLED CHOICE rather
+  // than a fix, which is the whole reason the detour is written down.
+  //
+  // It went -6 → -5 → -6 → -5 across one sitting, and only the middle move had
+  // a mechanical cause: the bed had walked to `--grey-6`, this line's own ink,
+  // so for one setting bed and card edge were the same value, the border did
+  // not draw against the field at all, and the card's silhouette fell to the
+  // veil's `--grey-1` hairline alone. -5 fixed that at the card's end; when the
+  // bed went `--brown-1` the collision evaporated and -6 came back as the
+  // one-ink rule's default. This last step chooses -5 on a pale bed, where -6
+  // draws perfectly well — so it is a judgement about WEIGHT, not a repair.
+  //
+  // ⚠ IT BROKE THE ONE-INK RULE FOR PART OF ONE SITTING AND THE RULE IS WHOLE
+  // AGAIN — because the CARD came to this line rather than this line going
+  // back. The last ask of the day moved all ten of the card's inner lines to
+  // `--grey-5` too ("make the inner hairlines of the post cards grey-5 like
+  // their borders"), so the card is once more drawn in ONE INK, one level
+  // lighter than the -6 it used from 2026-08-07. "Grep `.post-square` and move
+  // the LINES together" is back to meaning exactly what it says: eleven
+  // declarations, no exception.
+  //
+  // What the whole move is, stated once: **the card's entire line system
+  // stepped one level lighter in a single sitting.** The outer edge went first
+  // and as a REPAIR — the bed had briefly walked to `--grey-6`, this line's own
+  // ink, so the border stopped drawing against the field altogether — and the
+  // inner lines followed later as a CHOICE, on a bed that had since gone
+  // `--indigo-1` and made the repair unnecessary. So a collision fix became a
+  // deliberate softening of the card's whole ruling.
+  //
+  // ⚠ Which means: do not "fix" this one line back to -6. Doing it to any
+  // single declaration reopens the exception that was just closed; the value
+  // only makes sense applied to all eleven at once.
+  border: 1px solid var(--grey-5, #bdbdbd);
+  // ── THE CORNER — **`2px` SINCE 2026-08-22** (user ask, "return a very subtle
+  // roundness to the post card borders"), off the `0` set hours earlier the
+  // same day. The full walk: `--radius-md` → `--radius-sm` → `4px` (2026-08-06)
+  // → `6px` → `8px` (08-07, two asks) → `6px` → `0` → **`2px`** (all four
+  // today). It is the smallest value that reads as a DECISION: at 1px the arc
+  // is a single antialiased pixel and looks like a rendering artifact, at 2px
+  // it is visibly a softened corner. Below `--radius-sm`'s 7px there is no
+  // platform step to land on, so a flat px stays right — minting one for a
+  // single box would state a rhythm the platform does not have.
+  //
+  // ⚠ THE 7px RULE STILL STANDS, AND THIS VALUE IS SAFE FROM IT — but the
+  // reason is worth stating precisely, because the rule has been misread once
+  // already today. It says: the pit, the title plate and the label rail all
+  // turn at exactly `--radius-sm` (7px), and **a container turning at the same
+  // radius as the boxes INSIDE it reads as a tray moulded around them** rather
+  // than as a sheet they are laid on. The danger zone is therefore NEAR 7, not
+  // BELOW it. That is what made `6px` the weak setting on 08-07 — one pixel
+  // tighter than its contents reads as a failed match, an attempt at the same
+  // corner that missed — and why the ask that wanted less roundness that day
+  // knowingly took the worse of two readings. At `2px` the outer edge is five
+  // pixels off its contents: nobody reads that as an attempt at 7. It is
+  // unambiguously its own register, a squared sheet with the corner taken off,
+  // holding boxes that are frankly round. Same escape `0` used — a change of
+  // KIND rather than a contest of degree — just one step less absolute.
+  //
+  // So the ordering to carry forward is not "bigger is safer": it is **6 is
+  // the value to avoid, 7 is the value to skip, and everything ≤4 or ≥8 states
+  // itself.**
+  //
+  // ⚠ The card is now the ONLY thing on this surface turning a corner at the
+  // outer level — bed and container are square. That is fine at 2px (a corner
+  // this subtle does not ask its field to answer it); it would not be at 8.
+  border-radius: 2px;
   // `--light-cream` (#FCF3E0) since 2026-08-07 — THE COAT ALONE LEAVES THE
   // NEUTRALS, hours after the card's lines went grey, and it took two asks to
   // land: `--brown-1` first ("just the background"), then a TOKEN MINTED FOR IT
@@ -4235,12 +4392,15 @@ export default defineComponent({
   // value cannot fail) minus the well's OWN paddings, which is what leaves
   // the little daylight above and below the card the well already reserves
   // for every card. ⚠ KEEP THE SUBTRACTION IN STEP with the well's
-  // `padding` line: top = --fhead-h + 22px, bottom = --frieze-h + 12px.
+  // `padding` line: top = --fhead-h + 18px, bottom = --frieze-h + 8px
+  // (both came down from 22/12 in the 2026-08-22 density pass, and
+  // `fsck --static`'s `expanded-card` witness exists to catch exactly the
+  // case where one of the two sites moves without the other).
   // The square ceiling lifts (`max-height: none`) and the PIT — the one
   // flexible track — takes every pixel the rigid strips leave, scrolling in
   // place exactly as it does at card scale.
   &.is-expanded {
-    height: calc(var(--feed-well-h, 100vh) - var(--fhead-h, 120px) - 22px - var(--frieze-h) - 12px);
+    height: calc(var(--feed-well-h, 100vh) - var(--fhead-h, 120px) - 18px - var(--frieze-h) - 8px);
     max-height: none;
   }
 }
@@ -4250,20 +4410,26 @@ export default defineComponent({
 // and a medium sized for a ≤60vh card standing in a full-height one would
 // leave the pit half empty. Same shape as the resting formula below — the
 // card's height term swapped for the expanded height, the well's paddings
-// (22 + 12 = 34px, plus its 1× --frieze-h) folded in beside the card's own
-// 276px chrome and 0.55× band. Keep all three lines in step: the well's
-// `padding`, `.is-expanded`'s height, and this. (276 + 34 = 310; the pair was
+// (18 + 8 = 26px since the 2026-08-22 density pass, plus its 1× --frieze-h)
+// folded in beside the card's own 276px chrome — which no longer carries a
+// band term of its own. Keep all three lines in step: the well's
+// `padding`, `.is-expanded`'s height, and this. (276 + 26 = 302; the pair was
 // 300 + 34 = 334 until 2026-08-10, whose rail-padding asks took 8px out of
 // the card's chrome and whose frieze move traded a 6px band for a band
 // already counted in the variable term, and 276 + 34 = 310 until that day's
 // LAST rail ask deleted the label bracket's two 4px bands and gave the strip
 // its padding and rim back, +2 net — move the resting constant and move this
-// one with it. ⚠ THIS LINE HAS LAGGED THE RESTING ONE TWICE now: the frieze's
-// two grey-6 rules went into the resting 280 → 282 and not into this, and the
-// rail's rim pass landed here a beat late, which is exactly the drift the
-// sentence above warns about. Both terms are current at 276 / 310.)
+// one with it. ⚠ THIS LINE HAS LAGGED THE RESTING ONE THREE TIMES now: the
+// frieze's two grey-6 rules went into the resting 280 → 282 and not into this,
+// the rail's rim pass landed here a beat late, and the 2026-08-22 density pass
+// took the well's own paddings 22/12 → 18/8 while this constant kept counting
+// the old 34 — an 8px overcharge that stood until the frieze move audited the
+// line. That is exactly the drift the sentence above warns about, and it is
+// always THIS copy: the resting rule is the one you naturally edit. Both terms
+// are current at 276 / 302, and the variable term is the WELL's own
+// `1 × --frieze-h` alone — the card's `0.55 ×` half went with the band.)
 .post-square.is-expanded .post-square__pit {
-  --media-max-h: max(120px, calc(var(--feed-well-h, 60vh) - var(--fhead-h, 120px) - 310px - var(--frieze-h) * 1.55));
+  --media-max-h: max(120px, calc(var(--feed-well-h, 60vh) - var(--fhead-h, 120px) - 302px - var(--frieze-h)));
 }
 
 // ── THE VEIL (2026-08-07, user ask) — the card's MIDDLE LAYER ──
@@ -4375,7 +4541,48 @@ export default defineComponent({
   position: absolute;
   inset: 0;
   z-index: 0;
-  background: rgba(245, 245, 245, 0.65); // --grey-2 at 65% (see the tone note above)
+  // **`--grey-3` AT 75% SINCE 2026-08-22** (user ask, "one tone darker of grey
+  // and 10% less transparent"), from `--grey-2` at 65%. Both dials move the
+  // same way — a darker wash applied more strongly — so the walk's whole
+  // history is one axis: `--grey-3` 30% → 50% → `--grey-2` 50% → `--grey-3` 70%
+  // → `--grey-4` → -3 → -4 → `--grey-3` → `--grey-2` at 80% → 65% → **here**.
+  //
+  // ⚠ READ THE WASH'S ONE RULE BEFORE THE NEXT SETTING — it is the reason this
+  // dial has a history at all: **a wash may not be, or approach, the BED's
+  // tone; the rule is the RELATION, not the token.** The repeated `--grey-4`
+  // settings above are not dithering, they were measured against different
+  // beds. This setting is the closest the pair has ever run: measured, the
+  // veiled field lands rgb(241,239,234) against a `--brown-1` bed of
+  // rgb(239,235,233) — **two levels of red, four of green, one of blue**, and
+  // both warm, so there is no hue step underneath the value one either. The
+  // card is very nearly the tone of the plate it lies on — closer than the
+  // 2026-08-06 convergence the wash's rule was written for (which ran eight
+  // levels of red), and closer than any setting since.
+  //
+  // That is a legitimate register and not a mistake — it is the 2026-07-25
+  // arrangement, a card stated by LINE rather than by tone — but it moves the
+  // whole job onto the outline: the `--grey-6` border and this element's own
+  // `--grey-1` hairline are now what say where a card is, and the contact
+  // shadow is what says it is lying on something. If the cards ever read as
+  // washed out, **the dial is the BED, not this line**: a wash can only give
+  // back some of what it took from a coat, while the field states whatever
+  // value it likes.
+  //
+  // Note for whoever reads the border's own MEASURED line below: it has said
+  // "x=3 onward rgb(242,239,234) the veiled field" since 2026-08-07 and that
+  // number had drifted badly (it read rgb(247,244,237) at `--grey-2`/65%).
+  // This setting brings it back to within one level — the field is
+  // rgb(241,239,234) today — and the offsets in that note are stale in a
+  // second way now: with the corner square and the reveal at 3px the card's
+  // first pixel is not where it was. Trust the pixel row in the bed's note
+  // above, which was taken today.
+  // The wash is `--card-veil` since 2026-08-23 — it was a literal
+  // `rgba(238, 238, 238, 0.75)` here until the NodeMini quoted inside a post
+  // had to wear this same coat (user ask). Tokenising it rather than copying
+  // it is what keeps ONE number: `--card-coat` in `_tokens.scss` composes
+  // this exact wash over `--light-cream` for surfaces that need the sandwich
+  // as a single `background`, and both read this line.
+  background: var(--card-veil, rgba(238, 238, 238, 0.75)); // --grey-3 at 75%
   // THE VEIL'S OWN BORDER — a 1px `--grey-1` line at 80% (2026-08-07, fourth
   // setting: it arrived as a 6px `--light-cream` band at 50%, "thick
   // transparent borders", was taken "waay thinner" to 1px `--grey-2` at 80%,
@@ -4442,7 +4649,53 @@ export default defineComponent({
   // palest step on the platform exactly, and the note above about a
   // semi-transparent border compositing over its own washed self is HISTORY
   // rather than mechanism.
-  border: 2px solid var(--grey-1, #fafafa);
+  // **1px SINCE 2026-08-22** (user ask, "make the veil border slightly
+  // thinner"), from the 2px it took on 2026-08-07. The full walk is
+  // `6px --light-cream` at 50% ("thick transparent borders") → `1px --grey-2`
+  // at 80% ("waay thinner") → `1px --grey-1` at 80% → `2px --grey-1` at full
+  // strength → **back to 1px, at full strength this time**.
+  //
+  // ⚠ **1.5px WAS TRIED FIRST AND IS NOT AVAILABLE — A HALF-STEP BORDER DOES
+  // NOT EXIST HERE.** Chrome rounds a border's USED width to whole pixels, and
+  // `getComputedStyle` reports that used value, so `border-width: 1.5px`
+  // came back as `1px` — measured at **BOTH DPR 1 AND DPR 2** (CDP
+  // `Emulation.setDeviceMetricsOverride`), which rules out the obvious guess
+  // that it survives on a retina screen as three device pixels. The rendered
+  // pixel row agrees: one solid `rgb(250,250,250)` pixel and no half-intensity
+  // neighbour on either edge. So 1.5 and 1 are the SAME LINE, and writing 1.5
+  // would state a step the browser does not draw. ⚠ Note this also means the
+  // card's own outer border was very probably rendering at 1px for the whole
+  // hour its history records as "1.5px" (see the walk on `.post-square`) —
+  // that half-step was measured by eye, not off a pixel.
+  //
+  // The law was already on file — [specs/gotchas.md](../../../../specs/gotchas.md),
+  // "a border cannot be thinner than 1px", written 2026-08-18 for the feed's
+  // marble keys; today's setting only confirmed it UPWARD (every fraction
+  // snaps, not just sub-1px ones). That entry also names the escape hatch, and
+  // it applies here if 1px ever reads as too big a step:
+  // **`box-shadow: inset 0 0 0 1.5px <color>` draws a real 1.5px ring**, costs
+  // no box and follows `border-radius` exactly. It is NOT a drop-in for this
+  // line, and the difference is the mechanism written just below: a border here
+  // composites over its own washed self because `background-clip` defaults to
+  // `border-box`, and it grows the veil INWARD from the padding box it is
+  // pinned to. An inset shadow paints above the background instead and rings a
+  // different rectangle. Worth doing if a true half-step is wanted; not worth
+  // doing silently.
+  //
+  // So 1px is what "slightly thinner" resolves to as a border: the only step
+  // between 2px and nothing, and a return to the width this line held for two
+  // of its four settings. What is genuinely new is the pairing — 1px at FULL
+  // strength, where the earlier 1px settings were 80% washes.
+  //
+  // ⚠ IT MATTERS MORE THAN ITS WIDTH SUGGESTS RIGHT NOW. With the bed at
+  // `--brown-1` the card sits two levels off its field, so this hairline and
+  // the card's `--grey-5` edge are very nearly the entire silhouette — halving
+  // the brighter of the two lines is thinning the card's statement of itself.
+  // Both moved the same sitting and in the same direction (softer: -6 → -5
+  // outside, 2px → 1px inside), which is worth knowing if the cards start
+  // reading as washed out. They were not softened once, they were softened
+  // twice, on a bed that had just stopped separating them by tone.
+  border: 1px solid var(--grey-1, #fafafa);
   // ── THE VEIL TURNS ITS OWN CORNER (2026-08-07) ──────────────────────────
   // `7px` = the card's `8px` outer radius MINUS its `1px` border, which is the
   // radius of the padding box this element is pinned to (`inset: 0`). It was
@@ -4458,7 +4711,26 @@ export default defineComponent({
   //
   // KEEP THE THREE NUMBERS IN STEP: card radius − card border = this. Both of
   // the card's move together in the same ask more often than not.
-  border-radius: 7px;
+  //
+  // **`1px` SINCE 2026-08-22**, following the card back off `0` in the same ask
+  // ("a very subtle roundness"). Nothing here decided anything — this number is
+  // DERIVED, and the whole value of the line above is that it says from what:
+  // card radius (2) − card border (1). Today it went 7 → 5 → 0 → 1, in step
+  // with the card at 8 → 6 → 0 → 2 each time.
+  //
+  // ⚠ AND IT IS LIVE AGAIN. At `0` this declaration was a no-op kept only so
+  // the reason would survive; at 1px the mechanism above is doing real work
+  // once more — the card's `overflow: hidden` clips the veil's square corners
+  // to the card's round ones for free, but a clip cannot BEND the veil's own
+  // border, and a square corner clipped by an arc leaves that line thickening
+  // into the bend instead of following it. One pixel of arc against a one-pixel
+  // border is the smallest case where that is still true.
+  //
+  // Note this is NOT the same snap trap as the veil's border WIDTH (see its
+  // note above, and specs/gotchas.md): `border-radius` takes fractional and
+  // sub-pixel values and renders them — it is `border-width` alone that Chrome
+  // rounds to whole pixels. Do not let one rule talk you out of the other.
+  border-radius: 1px;
   backdrop-filter: blur(2px);
   -webkit-backdrop-filter: blur(2px);
   pointer-events: none;
@@ -4523,10 +4795,23 @@ export default defineComponent({
   // strip is the post's NAME and belongs at that weight, not at the
   // byline's.
   color: var(--grey-9, #424242);
-  // The cap draws NO closing line of its own — its edge is the flipped
-  // `RgbHairline` element after it (2026-08-09, last ask of the divider
-  // walk; a plain `--grey-6` border-bottom held the seam for the hours
-  // between the band leaving for the foot and coming back mirrored).
+  // THE CAP'S OWN CLOSING LINE (2026-08-22, user ask: "on the post card,
+  // remove the frieze bar and leave just a thick grey-6 hairline"). For twelve
+  // days this seam WAS the frieze — the cap drew no line of its own and the
+  // band standing after it was the edge (before that, the flipped
+  // `RgbHairline` of 2026-08-09's divider walk). With the band gone from the
+  // card entirely, the seam is a border again, and it is the ONE LINE ON THIS
+  // CARD
+  // THAT IS NOT THE CARD'S LINE INK: 2px of `--grey-6` where every other rule
+  // on the square — the outer border, the byline, the cap's own cell rules, the
+  // pit, the rail, the foot — runs 1px of `--grey-5` since this morning's walk
+  // (see `--grey-5` in _tokens.scss). Both halves of that are the ask: DOUBLE
+  // the weight and ONE STEP darker, because this seam has to do alone what a
+  // motif band did before it. `--grey-6` is also exactly where the card's whole
+  // line system stood until today, so the ink is a return rather than a new
+  // pick — this line is the card's old voice kept for its loudest seam.
+  // ⚠ Worth 2px in BOTH `--media-max-h` constants; see the pit's note.
+  border-bottom: 2px solid var(--grey-6, #9e9e9e);
 }
 
 .post-square__cap-main {
@@ -4619,7 +4904,7 @@ export default defineComponent({
 .post-square__cap-rule {
   flex: 0 0 1px;
   width: 1px;
-  background: var(--grey-6, #9e9e9e);
+  background: var(--grey-5, #bdbdbd);
 }
 
 // The kind marks. One step under the ink — they classify, they do not name.
@@ -4802,7 +5087,7 @@ export default defineComponent({
   // The card's INNER weight, 1px, where its outer edges run 1.5px — an inner
   // line has to read as lighter than the edge that contains it. ⚠ Worth 1px
   // in BOTH `--media-max-h` constants (276 / 310); see the pit's note.
-  border-bottom: 1px solid var(--grey-6, #9e9e9e);
+  border-bottom: 1px solid var(--grey-5, #bdbdbd);
   // NASALIZATION across the whole section (2026-08-09, user ask) — the
   // cap's own face and tracking, one strip down: the band inherits it to
   // the name, the ago line, the trust/heat plates and (through the deep
@@ -4888,122 +5173,32 @@ export default defineComponent({
   min-width: 0;
 }
 
-// ── THE CARD'S FRIEZE BAND (2026-08-07, user ask) ─────────────────────────
-// The crown motif at the scale the floating media viewer runs it (`slim`,
-// `--frieze-h / 2` ≈ 9.5px). It was born as a PAIR standing where the
-// byline's and the rail strip's hairlines used to — one under the byline, one
-// under the rail, the second `vflip`ped so the two reflected about the label
-// lane instead of repeating — and the mirrored half went the same day (an
-// `RgbHairline` took the rail's seam; the reflection argument moved with it).
+// ── THE CARD'S FRIEZE BAND — GONE FROM THIS SURFACE 2026-08-22 ────────────
+// (user ask: "take the cyan-indigo frieze bar from the post cards and incrust
+// it on the top navigation header of the whole screen".) The band lived here
+// from 2026-08-07, born as a PAIR standing where the byline's and the label
+// rail's hairlines used to (the second `vflip`ped, so the two reflected about
+// the label lane); the mirrored half went the same day, the survivor moved UP
+// to close the CAP on 08-10, walked INTO the cap as its floor for one pass
+// this morning, and then off the card entirely.
 //
-// THE SURVIVOR MOVED UP on 2026-08-10 (user ask): it closes the CAP now, the
-// card's first seam, where a flipped `RgbHairline` had been bracketing the
-// foot's band. One motif on the card, on the seam a reader crosses first;
-// every seam under it is a sandwich, all the same way up. `vflip` has no user
-// on this surface any more.
+// WHERE IT WENT AND WHAT CAME WITH IT: `media/MediaTabsBar.vue`, inlaid at the
+// bottom of the window's light-cream top rail over `--media-tabs-frieze-pad`
+// of the rail's own coat. Everything that made this band THIS band travelled —
+// the `slim` recipe, the `--grey-8` plaque two steps under its host's line
+// ink, the indigo→cyan paint on the wave, and the `0.55 × --frieze-h + 2px`
+// height dial the card walked four asks in one day (the notes on all of it are
+// on the rail's own rule now, including the ~0.7px-per-motif-row floor any
+// future move of that dial has to clear).
 //
-// THE PLAQUE WALKED DOWN THE GREYS, one user ask a step: `--grey-6` (the card's
-// line ink, which is what let the byline's hairline simply go — the band was
-// that same line with height and a carve), then `--grey-7` ("one tone of grey
-// darker"), then `--grey-8` here. Each step buys the same thing, and it is the
-// carve rather than the tone: the waves are two very light accents, and a
-// groove only reads as a groove when the plate is well under what is cut into
-// it — 1.7:1 on -6, 2.2:1 on -7, 3.5:1 here.
-//
-// What the walk cost is the "the band IS the card's line, thickened" reading
-// that justified deleting the hairline; two steps under that ink the band is
-// its own object, a dark plate laid across the card. That is a fair trade at
-// this size and it is why the plate reads as CHROME now — the same relation
-// the feed container has with its own `--indigo-8` frieze edges, one family
-// over. The card's own lines did not follow it down: they are `--grey-6`
-// `--grey-6`, inner lines and outer edge alike — this plate is two steps under
-// the card's own line ink and belongs to a different group (see
-// `.post-square`).
-//
-// THE WAVE IS THE ONE THING HERE THAT IS NOT THE CARD'S OWN MATERIAL — a
-// gradient down the motif between `--indigo-11` and `--teal-11`, the two
-// families' A100 accents, through the `--frieze-bar-wave-two-paint` dial the bar
-// grew the same day. Four notes on it:
-//
-//  · It is a PAINT, not a plaque: the mask means the ramp reaches the meander
-//    and nothing else, so the plate stays flat `--grey-6` under it (which was
-//    the ask — gradient on the pattern, background untouched).
-//  · It spans the BAND, not the tile. Gradients have no intrinsic size, so one
-//    ramp fills the whole strip however many times the 231px mask repeats
-//    across it. Give the layer a `background-size` and you get one ramp per
-//    tile, which reads as banding rather than as a run of colour.
-//  · IT RUNS INDIGO-DOWN-TO-CYAN since 2026-08-10 (user ask, the same sitting
-//    that gave the band its two rules) — the reverse of the way it was born,
-//    and the reverse of the rgb hairline below it, which is cyan-down (there
-//    were three of those for one pass; the label bracket's pair went the same
-//    day the strip took a rim). That is not a break in grammar, it is the
-//    reason the flip reads: the band and the hairline are DIFFERENT DEVICES (a
-//    motif with height vs three flat lines), and running the frieze against it
-//    makes the pair of them read as a cyan LOW POINT at the card's reading
-//    area with cold indigo closing it top and bottom. The card's one mirrored copy of
-//    this band is long gone, so nothing has to be flipped in step.
-//  · The mirrored bar used to REVERSE it, so indigo faced the lane from both
-//    sides and mint faced out — the argument that made the pair read as one
-//    figure with the rail inside it. That twin went on 2026-08-07 and this
-//    band now carries the indigo-first end on its own.
-//
-// Accents at 1.5–2:1 on this plaque, deliberately: at `slim` size a wave the
-// full contrast of a written line reads as a stripe, and these are decoration
-// bracketing a tray of chips, not another rule the eye has to account for.
-// `flex: 0 0 auto` is load-bearing (the bar states a height, but in this flex
-// column an item that may shrink WILL — the pit is the only part that gives).
-.post-square__frieze {
-  flex: 0 0 auto;
-  --frieze-bar-base: var(--grey-8, #616161);
-  // TWO RULES, ONE ABOVE AND ONE BELOW (2026-08-10, user ask) — and they are
-  // the CARD'S OWN LINE INK, `--grey-6`, not the plate's. That is the point of
-  // them: the walk down the greys turned this band into its own dark object
-  // laid across the card (see the note above), and an object wants an edge in
-  // the same ink as every other line on the square — the outer border, the
-  // byline hairline, the pit's frame. With them the plate is BOUND to the card
-  // rather than floating on it, and the `--grey-8` plaque now reads as inset
-  // between two of the card's lines instead of as a stripe that starts and
-  // stops in mid-air. Same ink, lightest weight: 1px, where the card's edges
-  // run 1.5px — this is a seam, not a boundary.
-  //
-  // ⚠ THE HEIGHT DIAL PAYS FOR THEM. Everything here is `border-box`, so a
-  // border eats the plate rather than sitting outside it, and 2px off a ~10.4px
-  // band is a motif row at ~0.65px — under the ~0.7px floor the note below
-  // spends three paragraphs establishing. The `+ 2px` gives the rules their own
-  // space and leaves the motif at exactly the height four user asks converged
-  // on. Any future move of the `0.55` factor keeps that term.
-  border-top: 1px solid var(--grey-6, #9e9e9e);
-  border-bottom: 1px solid var(--grey-6, #9e9e9e);
-  // `× 0.55` — ~10.4px at a 900px viewport, a shade over `slim`'s half.
-  //
-  // THIS DIAL WAS WALKED FOUR TIMES IN ONE DAY and the walk is the
-  // documentation: `slim` (0.5) → `0.4` ("slightly thinner") → "too thin, I
-  // cannot see the friezes well" → `0.65` → "thinner, but not so thin the
-  // friezes get deformed" → here. The number that decides it is not the band's
-  // height but the height of ONE MOTIF ROW: the masks are a 13-row grid, so
-  // `0.4` put a row at ~0.54px, `slim` at ~0.67px, `0.65` at ~0.87px and this
-  // at ~0.80px. Under ~0.7px the meander stops being a pattern and becomes a
-  // texture — that is what "deformed" means in numbers, and it is the floor any
-  // future ask on this line has to clear. The mask follows the box for free
-  // (its fit is a percentage of it); the carve does not, its offsets being
-  // absolute px, so trimming coarsens the groove relative to the strokes.
-  //
-  // `slim` stays on at this height: it is what drops layer one, and two
-  // interlocking waves in 10px would go straight back to texture. KEEP THE
-  // PIT'S MEDIA BUDGET IN STEP — it subtracts this band as
-  // `0.55 × --frieze-h + 2px`, the `+ 2px` being the rules above.
-  --frieze-bar-h: calc(var(--frieze-h) * 0.55 + 2px);
-  // The flat tone under the paint — never seen while the gradient is drawn, and
-  // stated anyway so a fallback lands in the same family rather than on the
-  // component's default brown. It follows the ramp's TOP end, so it walked to
-  // indigo with the 2026-08-10 flip.
-  --frieze-bar-wave-two: var(--indigo-11, #8c9eff);
-  --frieze-bar-wave-two-paint: linear-gradient(
-    to bottom,
-    var(--indigo-11, #8c9eff) 0%,
-    var(--teal-11, #a7ffeb) 100%
-  );
-}
+// WHAT THE CARD KEPT is the argument the band left behind: its seam. The cap
+// closes itself with `border-bottom: 2px solid var(--grey-6)` — see
+// `.post-square__cap`. And what the card GOT BACK is a px-only media budget:
+// the band was the one piece of this square's chrome that was viewport-
+// relative, subtracted as `0.55 × --frieze-h` beside a px constant, and with
+// it gone `--media-max-h` is a flat number again on the resting card (the
+// expanded twin keeps a 1× term, but that one is the WELL's padding, not the
+// card's). One motif for the whole screen now, instead of one per card.
 
 // ── THE CARD'S RGB PAIR (2026-08-09, last ask of the divider walk) ────────
 // The band's history is the documentation. It started as the frieze pair's
@@ -5152,8 +5347,11 @@ export default defineComponent({
   // `30vh`, because that ceiling is `min(width, 60vh)` — a narrow column
   // makes a short card, and a fixed viewport fraction would overflow it. The
   // constant is everything in the card that is NOT the medium, measured at
-  // 1440×900: 146px of card chrome (the CAP 24 — measured; a
-  // one-line strip by construction, so a constant like the rest — + byline
+  // 1440×900: 148px of card chrome (the CAP 26 — measured; a one-line strip
+  // of 24 plus the 2px `--grey-6` rule it closes itself with since 2026-08-22.
+  // It touched 29 for one pass that morning, while the frieze band stood
+  // inside the box over 3px of padding; the band then left the card for the
+  // window's top rail and took its padding with it — + byline
   // 41 — measured on the SPLIT-STAMP arrangement, 2026-08-09's last: author
   // over ago │ two stacked moment chips; the day walked it 42 → 33 → 32 →
   // here, and 2026-08-10's hop-chip move traded a plate off the who line for
@@ -5191,26 +5389,32 @@ export default defineComponent({
   // point: a card holding one medium comes out exactly full, with nothing to
   // scroll for.
   //
-  // THE FRIEZE BAND IS THE ONE PART OF THAT CHROME NOT IN THE CONSTANT
-  // (2026-08-07): it stands at `0.55 × --frieze-h` (see `.post-square__frieze`),
-  // a viewport-relative value, which cannot be folded into a px total and is
-  // subtracted as itself — move that dial and move this factor with it. Its
-  // TWO GREY-6 RULES (2026-08-10) are px, though, so THEY went into the
-  // constant instead (280 → 282): only the variable term lives outside it.
+  // ⚠ THE FORMULA IS PX-ONLY AGAIN SINCE 2026-08-22 — no variable term at all.
+  // From 2026-08-07 the frieze band was the one part of this chrome that could
+  // not be folded into a px total (`0.55 × --frieze-h`, viewport-relative, so
+  // it was subtracted as itself while its two 1px rules went into the constant,
+  // 280 → 282). The band has left the card for the window's top rail, and the
+  // whole term left with it: −2 for the rules, −`0.55 × --frieze-h` for the
+  // plate, +2 for the cap's own closing rule — landing the constant back on
+  // **276** by three moves that cancel. Anything viewport-relative that ever
+  // joins this card's chrome goes back OUTSIDE the constant, the same way.
   // The band's former mirrored twin is an `RgbHairline` now, at a flat 6px
   // (2px + 2px + 2px). There were THREE of those for one pass on 2026-08-10 —
   // 14px in the constant, the label bracket's pair riding thin at 4px each —
   // and the same day's last rail ask took the pair back out: ONE is left, over
   // the foot, unconditional. Worst case is still what the constant carries:
   // a card with no labels draws no rail strip at all and is that much to the
-  // good. The band that used to close the cap is gone — THIS frieze took that
-  // seam.
+  // good. Both of the card's motif bands are gone from this seam now: the
+  // `RgbHairline` that used to close the cap went down to the foot in 2026-08-09,
+  // the frieze that replaced it went to the top rail on 2026-08-22, and what
+  // closes the cap is the cap's own 2px `--grey-6` border — the only line on
+  // this square at neither the card's weight nor its ink.
   //
   // Keep it in step with the 60vh ceiling and with the Mini's chrome — grow
   // one without the other and you get either a player that needs a scroll or
   // a small player in a half-empty card. The 120px floor is for the narrowest
   // columns, where the subtraction would otherwise go negative.
-  --media-max-h: max(120px, calc(min(var(--post-square-max, 100cqw), 60vh) - 276px - var(--frieze-h) * 0.55));
+  --media-max-h: max(120px, calc(min(var(--post-square-max, 100cqw), 60vh) - 276px));
 
   flex: 1 1 auto;
   min-height: 0;
@@ -5235,7 +5439,20 @@ export default defineComponent({
   // is to BOUND the content, not to stand back from it. ⚠ 6px of vertical
   // margin left the card, so the media budget's constant follows: 282 → 276.
   margin: 3px 4px 4px;
-  padding: 8px 10px;
+  // ── THE BLEED CONTRACT (2026-08-23, user ask: "remove the padding between
+  // the mini node viewer's right border and the post card's content
+  // container's right border, and also the left") ──────────────────────────
+  // This box IS the content container, and its 10px side inset is what stood
+  // between a quoted panel's borders and its own. Rather than hard-code the
+  // pull-out at the other end, the pit PUBLISHES its inset and the panel
+  // reads it — the same publisher/consumer seam `--media-max-h` uses two
+  // lines up, and for the same reason: the number is a fact about THIS box,
+  // so it should be stated here once and consumed, never mirrored. A surface
+  // publishing nothing leaves the panel at its `0px` fallback, i.e. unbled.
+  // ⚠ `overflow-x: hidden` above is why the contract is the padding EXACTLY:
+  // a panel pulled further than this would be clipped, not shown.
+  --quoted-bleed-x: 10px;
+  padding: 8px var(--quoted-bleed-x);
   // LESS ROUNDED since 2026-08-10 (same ask): `7px` → `3px`. Seven was
   // `--radius-sm`, the platform's panel radius, which is right for a panel
   // FLOATING on a surface and wrong for a frame set INTO one — at the new
@@ -5274,7 +5491,7 @@ export default defineComponent({
   // shallow tray and a lip suits it, while the pit is the READING area and
   // wants a plain frame — a weighted edge above the text reads as a rule the
   // prose hangs from. The heavy-top device stays the rail's alone.
-  border: 1px solid var(--grey-6, #9e9e9e);
+  border: 1px solid var(--grey-5, #bdbdbd);
   background: var(--grey-1, #fafafa);
   // NO carve (end of 2026-07-25) — the surface is FLAT. The pit used to wear
   // the `.label-square__pit` recipe, an inset dark shadow at the top edge over
@@ -5521,7 +5738,7 @@ export default defineComponent({
   // unlabelled card draws neither the strip nor its rule and its byline
   // hairline closes straight onto the pit. Its 1px is in the media budget as
   // worst case, like everything else there.
-  border-bottom: 1px solid var(--grey-6, #9e9e9e);
+  border-bottom: 1px solid var(--grey-5, #bdbdbd);
 }
 
 .post-square__rail {
@@ -5589,7 +5806,7 @@ export default defineComponent({
   // concentric boxes looking parallel rather than pinched at the corners.
   // Move any one of the three and move the other two, or the nesting reads
   // wrong at the corners long before anyone can say why.
-  border: 1px solid var(--grey-6, #9e9e9e);
+  border: 1px solid var(--grey-5, #bdbdbd);
   border-radius: 10px;
   // THE FLOOR IS THE BAND (2026-08-10) — with no rim left it is the only
   // thing stating this strip at all, and it walked the greys across that
@@ -6170,7 +6387,7 @@ export default defineComponent({
 .post-square__foot-rule {
   flex: 0 0 1px;
   width: 1px;
-  background: var(--grey-6, #9e9e9e);
+  background: var(--grey-5, #bdbdbd);
 }
 
 // THE REFERENCES CELL, at the far LEFT edge — one control, rigid, the mirror
@@ -6373,7 +6590,7 @@ export default defineComponent({
   white-space: nowrap;
   color: var(--grey-9, #424242);
   background: var(--grey-1, #fafafa);
-  border: 1px solid var(--grey-6, #9e9e9e);
+  border: 1px solid var(--grey-5, #bdbdbd);
   border-radius: 9px;
   padding: 1px 6px;
 }
@@ -6484,7 +6701,7 @@ export default defineComponent({
   width: 1px;
   align-self: stretch;
   margin: -4px 0 -4px auto;
-  background: var(--grey-6, #9e9e9e);
+  background: var(--grey-5, #bdbdbd);
 }
 
 // The foot's tallies. NASALIZATION since 2026-08-10 (user ask) — `'Space

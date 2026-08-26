@@ -28,7 +28,27 @@
        this strip is their home: a floating box retreats UPWARD, out of
        the way of the page it was covering, where a docked window folds
        back down into the bar it rose from. -->
-  <div class="media-tabs" :class="{ 'media-tabs--underlaid': underlaid }" role="toolbar" aria-label="minimized windows">
+  <div class="media-tabs" role="toolbar" aria-label="minimized windows">
+    <!-- ── THE INLAID FRIEZE BAND (2026-08-22, user ask: "take the cyan-indigo
+         frieze bar from the post cards and incrust it on the top navigation
+         header of the whole screen") ──────────────────────────────────────
+         THE POST CARD'S BAND, moved here whole. It stood on the feed's cards
+         from 2026-08-07 — born as a mirrored pair bracketing the label lane,
+         down to one survivor, up to the card's first seam — and this is where
+         it ends up: ONE motif for the whole window instead of one per card,
+         which is what a thirty-card column had been asking for all along (a
+         figure repeated thirty times down a scroll is a texture; the same
+         figure once, at the top of the screen, is a crown).
+         It is INLAID, not laid on: the rail's face is `lead + band + pad`, so
+         cream shows above it and a little cream shows beneath it, and the band
+         never touches either of the rail's own edges. Everything about the band
+         itself came across unchanged — `slim`, the `--grey-8` plaque, the
+         indigo→cyan paint on the wave, the `0.55 × --frieze-h + 2px` dial —
+         and only the two 1px rules were restated, in this bar's ink rather
+         than the card's (see the style block).
+         Decorative: `pointer-events: none` from the component, on a parent
+         that is already `none`. -->
+    <FriezeBar slim class="media-tabs__frieze" />
     <TransitionGroup ref="rowEl" tag="div" name="mtab" class="media-tabs__row nasalization" appear>
       <button
         v-for="t in tabs"
@@ -47,25 +67,24 @@
 
 <script>
 import { defineComponent, computed } from 'vue'
-import { useRoute } from 'vue-router'
 import { useFlyoutViewersStore } from 'src/stores/flyoutViewers'
+import FriezeBar from 'src/components/layout/FriezeBar.vue'
 import { iconFor, titleOf } from 'src/utils/mediaKind'
 
 export default defineComponent({
   name: 'MediaTabsBar',
+  components: { FriezeBar },
   setup () {
     const store = useFlyoutViewersStore()
-    const route = useRoute()
-
-    // ── The ONE route the rail gives way to (2026-08-21, user ask: the feed
-    // container "drawn on top of the header … From the very top") ────────
-    // Same mechanism, same reasoning, same gate as the nav bar's
-    // `.nav-footer--underlaid` (NavigationBar.vue): on /feed the feed column
-    // runs to y=0 and this rail steps under its 3001 rather than the column
-    // climbing over 3125 — which would drag every dock and flyout (3010+)
-    // above the rail with it. See the style block for what it costs.
-    const underlaid = computed(() => route.path === '/feed')
-
+    // ── NO ROUTE THE RAIL GIVES WAY TO ANY MORE (2026-08-24, user ask: "make
+    // the main public feed container be drawn behind the top navigation header
+    // and the footer navigation bar"). `underlaid` and
+    // `.media-tabs--underlaid` — the 2026-08-21 twin of the nav bar's
+    // step-down, dropping this rail to 2999 on /feed so the column's 3001 could
+    // cross it — are DELETED with that bar's. The rail is the ladder's top
+    // again on every route, which also restores the 2026-08-18 reading in full:
+    // it draws on top of BOTH side columns, their frieze bands included, with
+    // no route where the corners take it back.
     // One normalized shape per parked window. The strip hosted TWO
     // families from 2026-08-10 (the media viewers + the feed's
     // single-instance skeleton flyout, its tab in a fixed lead slot);
@@ -93,7 +112,7 @@ export default defineComponent({
     // The first pass had this component claim and release the space as it
     // mounted, which worked and made the whole page hop 4px whenever a
     // viewer parked — a band that is permanent has no such moment.
-    return { tabs, underlaid }
+    return { tabs }
   }
 })
 </script>
@@ -182,7 +201,37 @@ export default defineComponent({
   left: 0;
   right: 0;
   box-sizing: border-box;
-  height: calc(var(--media-tabs-band) + var(--media-tabs-rim));
+  // ⚠ ONE SOURCE FOR THE HEIGHT SINCE 2026-08-22: `--media-tabs-h` IS
+  // `band + rim`, and the face is now a sum of three dials rather than a
+  // constant — restating the arithmetic here would be a third place to keep in
+  // step for no gain. (It used to be written out because both terms mattered at
+  // a glance; now the terms live in _tokens.scss, where the lead, the band and
+  // the pad are declared together.)
+  height: var(--media-tabs-h);
+  // THE BAND IS THE FACE, LESS A HAIRLINE EACH SIDE (2026-08-22, two asks).
+  // It was placed at the bottom of a taller bar first (`justify-content:
+  // flex-end` over a 3px `padding-bottom`, 5px of coat above it); the second ask
+  // — "reduce the padding … so the whole nav bar matches the height of the left
+  // drawer frieze bar" — took the face back to its pinned `15px − rim` and left
+  // the band whatever the paddings do not use.
+  //
+  // ⚠ BOTH PADDINGS ARE LOAD-BEARING ARITHMETIC, not spacing: they are
+  // subtracted in `--media-tabs-frieze-h`, so a pixel added here is a pixel off
+  // the motif, which is already at its legibility floor (~0.72px a row — see the
+  // token). `justify-content: flex-end` is kept for what it STATES rather than
+  // what it does: with the band sized to the remainder there is no free space to
+  // distribute, and the rule is there so a future trim to the band's height
+  // drops it onto the bar's floor rather than floating it in the middle.
+  //
+  // The tabs are untouched by any of it: `.media-tabs__row` is
+  // `position: absolute`, out of this flow entirely, and hangs from `top: 100%`
+  // — the PADDING box's underside, which padding does not move. So the strip
+  // still attaches to the face's floor and paints over the rim for its own
+  // width, exactly as before.
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: var(--media-tabs-lead) 0 var(--media-tabs-frieze-pad);
   background: var(--plaque-coat);
   // ── THE RIM: 1px of --grey-6 (1px → 2px 2026-08-17 → 3px 2026-08-18 →
   // 1px 2026-08-21, thinned in the same ask that grew the face to 14px) ──
@@ -238,22 +287,88 @@ export default defineComponent({
   pointer-events: none;
 }
 
-// ── …EXCEPT ON /feed, WHERE THE FEED COLUMN STANDS ON IT (2026-08-21, user
-// ask — born with the nav bar's THIRD `--underlaid` era, same date) ───────
-// The feed container runs from y=0 to the window floor on desktop and paints
-// over this rail's span, so the rail steps under its 3001 there. What it
-// costs, stated honestly: on /feed the drawer's and the stack's frieze bands
-// (3120 / 3100) cover this rail's far ends again — the pre-08-18 corner look
-// — because one element holds one z and the container's claim on the middle
-// outranks the corners' claim on the rail. The 2026-08-18 "rail on top of
-// both columns" reading still holds on EVERY OTHER ROUTE, where nothing
-// overlaps the rail's middle at all. Desktop-gated like the nav bar's rule:
-// below 1024px the rail stays the ladder's top everywhere.
-@media (min-width: 1024px) {
-  .media-tabs.media-tabs--underlaid {
-    z-index: 2999;
-  }
+// ── THE INLAID BAND'S DIALS (2026-08-22, user ask) ────────────────────────
+// Everything here except the two rules is the POST CARD'S recipe carried over
+// letter for letter, and that is the point of the move: the ask was to take
+// THAT band and set it into this bar, not to draw a second one in the same
+// family. So the plaque, the paint and the height all read exactly as they did
+// on `.post-square__frieze`, and the notes that earned those numbers live in
+// _tokens.scss (the height) and in FeedStream's tombstone (the walk).
+//
+// THE PLAQUE, `--grey-8`: two steps under this bar's line ink, which is the
+// same relation it had to the card's. It is not a tone chosen for cream — it
+// is chosen for the CARVE. The waves are two very light accents and a groove
+// only reads as a groove when the plate is well under what is cut into it
+// (3.5:1 here, against 1.7:1 at the ink's own level). On this surface it also
+// does a second job the card's did not need: it is the only DARK thing on a
+// light-cream rail, so the band states itself without a frame around it.
+//
+// THE PAINT, indigo→cyan down the wave: `--frieze-bar-wave-two-paint`, the two
+// families' A100 accents. It reaches the MOTIF and nothing else — the layer is
+// a mask over a painted box, so a gradient fills the meander exactly as a flat
+// colour would and the plaque under it stays flat. It spans the BAND, once: a
+// gradient has no intrinsic size, so one ramp runs the full 1440px however
+// many times the 231px mask repeats across it. ⚠ Give the layer a
+// `background-size` and you get one ramp per tile, which reads as banding.
+// ⚠ IT RUNS CYAN DOWN TO INDIGO SINCE 2026-08-24 (user ask: "invert the inner
+// color gradient from the top header's bar inner frieze. instead of goin indigo
+// to cyan, make it cyan to indigo"). The other direction — indigo at the top —
+// is what the POST CARD's pair settled on 2026-08-10 and still runs, so the two
+// surfaces now ramp OPPOSITE ways, and that is the thing to know before
+// touching either: this band was built as the card's device moved onto chrome,
+// and the shared part is the recipe (one ramp per band, the paint reaching the
+// motif alone, the two A100 accents) rather than the direction. `--teal-11`
+// leading also puts the LIGHTER accent (#a7ffeb) at the top, where the carve
+// lights every frieze on the platform from the top left — so the ramp and the
+// light now agree, which the old direction had backwards.
+//
+// THE TWO RULES are the one thing restated: `--grey-6`, this bar's own ink —
+// the same the rim under them is drawn in — where the card ran them in its
+// `--grey-5`. Same argument either way: two greys under its host's line ink
+// the plate is its own dark object laid across the surface, and framing it in
+// the surface's ink BINDS it rather than leaving it a stripe floating on the
+// sheet. Inner weight, 1px, matching the rim exactly, so the bar's three
+// horizontal lines are one ink at one weight.
+// ⚠ THE HEIGHT DIAL PAYS FOR THEM — `border-box` means a border eats the
+// plate, and `--media-tabs-frieze-h` carries a `+ 2px` for exactly this. Move
+// these rules and move that term.
+//
+// `flex: 0 0 auto` is load-bearing: the bar states a height, and in a flex
+// column an item that MAY shrink will.
+.media-tabs__frieze {
+  flex: 0 0 auto;
+  --frieze-bar-h: var(--media-tabs-frieze-h);
+  --frieze-bar-base: var(--grey-8, #616161);
+  border-top: 1px solid var(--grey-6, #9e9e9e);
+  border-bottom: 1px solid var(--grey-6, #9e9e9e);
+  // The flat tone under the paint — never seen while the gradient draws, and
+  // stated anyway so a fallback lands in the same family rather than on the
+  // component's default brown. ⚠ IT FOLLOWS THE RAMP'S TOP END, so it moved
+  // with the inversion: teal now, indigo before 2026-08-24. Keep the two in
+  // step or a paint-less fallback lands on the wrong end of the ramp.
+  --frieze-bar-wave-two: var(--teal-11, #a7ffeb);
+  --frieze-bar-wave-two-paint: linear-gradient(
+    to bottom,
+    var(--teal-11, #a7ffeb) 0%,
+    var(--indigo-11, #8c9eff) 100%
+  );
 }
+
+// ── …ON EVERY ROUTE, /feed INCLUDED AGAIN (2026-08-24, user ask: "make the
+// main public feed container be drawn behind the top navigation header and the
+// footer navigation bar") ─────────────────────────────────────────────────
+// A `.media-tabs--underlaid` rule stood here from 2026-08-21 to today, dropping
+// this rail to z 2999 on /feed at desktop widths so the feed column (3001,
+// running y=0 to the window floor) could paint across its span. The column has
+// not moved; the ask reverses which one wins where they cross, so the rule is
+// DELETED along with the nav bar's twin.
+//
+// What comes back with it is worth naming, because it was the honest cost of
+// the era: on /feed the drawer's and the stack's frieze bands (3120 / 3100)
+// covered this rail's far ends — the pre-08-18 corner look — since one element
+// holds one z and the container's claim on the middle outranked the corners'
+// claim on the rail. That is gone: the 2026-08-18 reading ("the rail draws on
+// top of BOTH columns") now holds on every route without exception.
 
 // Tabs hang DOWN from the band, minitab-style (rounded bottoms — the nav
 // strip's device mirrored to the top edge), and the row is pinned to the
@@ -276,14 +391,25 @@ export default defineComponent({
 .media-tabs__row {
   position: absolute;
   top: 100%;
-  right: 31px; // 40px minus the fillet padding — the group still lands at 40
+  // ── CLEAR OF THE STACK COLUMN (2026-08-24, user ask: "make the first tab on
+  // the right appear a little away from the stack sidebar, leave a little
+  // space") ──
+  // This offset is the row's PADDING box, so the outermost flare paints out to
+  // exactly this line and the tab's own edge stands 9px further in. At the old
+  // flat `31px` (written as "40px minus the fillet padding", i.e. aimed at the
+  // TAB landing 40px in) that flare crossed 11px INTO the parked stack rail,
+  // which is what made the first tab read as stuck to that column. Stated
+  // against the rail's OWN width now, so a wider rail carries the gap with it:
+  // 10px of daylight past `--dock-rail-w`, a little over the row's own 6px
+  // between tabs, which is the reading — the stack column is not another tab.
+  right: calc(var(--dock-rail-w, 42px) + 10px);
   max-width: 50vw;
   display: flex;
   gap: 6px;
   padding: 0 9px 5px;
   overflow-x: auto;
   overflow-y: hidden;
-  scrollbar-width: none; // a scrollbar under a 22px tab strip is all noise
+  scrollbar-width: none; // a scrollbar under a 15px tab strip is all noise
   &::-webkit-scrollbar { display: none; }
 
   > .media-tabs__tab:first-child { margin-left: auto; }
@@ -322,10 +448,39 @@ export default defineComponent({
   align-items: center;
   gap: 5px;
   flex: 0 1 auto;
-  height: 22px;
+  // ── THE TAB IS AS TALL AS WHAT IS WRITTEN ON IT (2026-08-24, user ask: "a
+  // lot denser, removing top inner padding and making bottom padding very
+  // thin") ──
+  // It was a flat `height: 22px` with the row centred inside it, which spelled
+  // ~5px of dead face above the glyph and ~5px below — a fixed box that had to
+  // be re-cut by hand every time the writing on it changed size. The height is
+  // CONTENT now: the 12px kind glyph sets the line (the name's own 0.62em line
+  // box is smaller), `line-height: 1` stops the inherited leading from padding
+  // it back out, and the ONLY vertical space declared anywhere is the 2px
+  // under the writing. Total 12 + 2 + the rim = 15px — the band's own height,
+  // so the tab hangs exactly as far below the rail as the rail is tall.
+  //
+  // NO TOP PADDING IS THE POINT, not a saving. The tab has no top BORDER
+  // either (it flows out of the band), and with nothing above the glyph the
+  // writing starts on the band's underside — metal continuing into metal,
+  // which is the same argument the flares make at the two corners.
+  //
+  // ⚠ THE TWO NUMBERS THAT MAKE THAT HEIGHT ARE ALSO A TOKEN (2026-08-24) —
+  // `--media-tabs-park-h` in _tokens.scss is how far a parked tab hangs below
+  // the rail, and it is `glyph + pad` (the tab's own rim cancels against the
+  // one it paints over the rail's, since the row hangs off the PADDING box).
+  // The four creation docks now start their daylight from that line rather
+  // than from `--media-tabs-h`, because their top border was landing on this
+  // element's bottom edge. Because the tab is deliberately CONTENT-tall there
+  // is no height declaration to read the number out of, so the tie is prose —
+  // and `fsck --static`'s `tab-hang` witness is what makes it hold: it sums
+  // the `size=` prop on `.media-tabs__glyph` above and this rule's
+  // `padding-bottom`, and fails if they no longer equal the token. Change
+  // either one and move `--media-tabs-park-h` in the same commit.
   min-width: 46px; // the shrink floor: glyph + a sliver of name
   max-width: 180px;
-  padding: 0 10px;
+  padding: 0 10px 2px;
+  line-height: 1;
   border: var(--mtab-rim) solid var(--mtab-rim-ink);
   border-top: none; // it flows out of the band, so it has no top edge
   border-radius: 0 0 9px 9px;
@@ -338,7 +493,7 @@ export default defineComponent({
   color: var(--grey-8, #616161);
   font-size: 0.62em;
   cursor: pointer;
-  transition: background 0.12s, height 0.12s, transform 0.12s;
+  transition: background 0.12s, padding-bottom 0.12s, transform 0.12s;
 
   // Hover pulls the tab a little further out of the band — the same
   // "this one will answer" cue the side widgets use, stated as reach —
@@ -352,7 +507,10 @@ export default defineComponent({
   // (the bare `--light-cream` sheet, the lightest this surface goes), press
   // lays more of it on (`--grey-3`, the veil's own tone) — which keeps the
   // original direction: lighter reaching out, darker under the finger.
-  &:hover { --mtab-face: var(--light-cream, #fcf3e0); height: 25px; }
+  // The reach is spelled in the PAD since 2026-08-24, not in a height: with
+  // the box content-sized there is no height to grow, and growing the pad
+  // grows the same edge by the same +3px the `height: 22px → 25px` did.
+  &:hover { --mtab-face: var(--light-cream, #fcf3e0); padding-bottom: 5px; }
   &:active { --mtab-face: var(--grey-3, #eeeeee); transform: translateY(1px); }
 
   // ── THE FLARES ──

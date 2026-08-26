@@ -44,9 +44,18 @@
           <!-- The title rides the header row (title | author | labels) so
                the meta chrome costs ONE control line before the editor. -->
           <template v-if="!draft.parent" #title>
+            <!-- ⚠ PLACEHOLDER, NOT A FLOATING LABEL (2026-08-26, user ask:
+                 "way denser"). A q-input's label floats INTO the control's
+                 top, which is the whole reason Quasar's dense field is 40px
+                 tall; the row carries its own tiny label at the left now
+                 (MakerHeader's `.row-label`), so the field is free to be the
+                 26px box the ask wants. `optional` alone as the hint — the
+                 word "title" is already stated one column to the left, and
+                 repeating it inside the box is the kind of duplication a
+                 dense row cannot pay for. -->
             <q-input
               :model-value="draft.title" :dark="false" outlined dense
-              label="Title (optional)"
+              placeholder="optional"
               @update:model-value="patch({ title: $event })"
             />
           </template>
@@ -87,8 +96,20 @@
             title="Keep the draft as a footer maker tab"
             @click="$emit('close')"
           />
+          <!-- THE POST BUTTON (2026-08-26, user ask) — it wears the FEED
+               CARD'S OWN POST PLATE now, `.post-square__foot
+               .post-square__chip`: MicroChip chrome (hairline rim, 4px
+               corners, a 4% ink wash) lettered in the display face. It was
+               a filled `color="primary"` button, i.e. the runtime brand
+               violet, which is the one saturated object in a window whose
+               every other surface is cream, paper and hairline — and the
+               control that PUBLISHES a post now states itself in the
+               language the published post will be read in. No `color`
+               prop: the plate paints itself, and Quasar's `bg-primary`
+               carries an `!important` that a class cannot outrank. -->
           <q-btn
-            unelevated dense no-caps size="sm" color="primary"
+            unelevated dense no-caps size="sm"
+            class="maker-surface__post"
             :icon="draft.parent ? 'send' : 'add'"
             :label="draft.parent ? 'Post comment' : 'Post'"
             :loading="posting"
@@ -348,6 +369,52 @@ export default defineComponent({
 
 <style lang="scss" scoped>
 .maker-surface {
+  // ── THE WINDOW'S CONTRAST COLOUR (2026-08-26, user ask) — `--grey-6` ──
+  //
+  // Everything Quasar painted "primary" inside the post maker was the brand
+  // VIOLET `#6C63FF`, and it is worth writing down where that tone lives,
+  // because it is not where this codebase keeps colour: `quasar.variables
+  // .scss` maps `$primary: $ink` (#2C3D4E), and `quasar.config.js`'s
+  // `framework.config.brand` overwrites `--q-primary` on the body at boot.
+  // The runtime brand wins, the SCSS value never reaches the screen, and
+  // grepping the stylesheets for the violet finds NOTHING — it exists as one
+  // JS string and arrives as a custom property. (Verified in the page, not
+  // assumed: `--q-primary` reads `#6C63FF` on every node under the body.)
+  //
+  // Re-declaring the property here is therefore the whole mechanism, and it
+  // is one line because custom properties INHERIT ACROSS COMPONENT
+  // BOUNDARIES — scoped styles fence selectors, never inheritance. So this
+  // repaints, in one place and in every window this surface is mounted in:
+  //   · the previewer's Edit │ Split │ Preview toggle (NoteEditor's
+  //     `toggle-color="primary"` — the component is shared with the node
+  //     editor, which keeps the brand, as asked; the uploader stopped
+  //     mounting NoteEditor with 2026-08-26's three-methods rework, and
+  //     declares its own `--q-primary`, teal, at `.uploader-dock`);
+  //   · every q-field's focus ring and floating label (title, ref search);
+  //   · the ref browser's spinner.
+  // The brand itself is untouched: the nav bar, chat, the dashboards and
+  // every other window still wear the violet.
+  //
+  // ⚠ The two contrast surfaces this does NOT reach state it themselves,
+  // because neither is painted by Quasar: the draft TABS (MakerDock's
+  // `.dock-tab.is-active` lip, teal from the shared dock chrome) and the ref
+  // browser's KIND BUTTONS (a per-kind tint set inline). Both wear this same
+  // token — grep it across the maker family and move them together or not at
+  // all.
+  //
+  // ⚠ THE TONE IS A DIAL, `--maker-contrast`, and it has moved twice since
+  // this rule was written — `--grey-6` → `--blue-grey-8` → `--blue-grey-6`,
+  // all on 2026-08-26. Two things that walk taught:
+  //   · `--grey-6` is this platform's LINE ink, 2.8:1 against white — the
+  //     contrast of a MARK. Everything this dial reaches is a FILL (a pressed
+  //     pill, a lit lip, a toggle's selected face), so the tone had to come
+  //     down the ramp to carry them, and "solid" was the operative word: no
+  //     wash, no transparency, the tone as declared.
+  //   · Naming a LEVEL here cost a four-file grep every time the ask moved.
+  //     The dial is in `_tokens.scss`; the level it points at is that file's
+  //     business, not this one's.
+  --q-primary: var(--maker-contrast);
+
   display: flex;
   flex-direction: column;
   min-height: 0;
@@ -455,12 +522,65 @@ export default defineComponent({
 
 .maker-surface__msg { font-size: 0.78em; }
 
+// ── THE POST PLATE (2026-08-26, user ask) ──
+//
+// The feed card's post button, copied dial for dial: MicroChip's rim
+// (`rgba(ink, 0.18)`), wash (0.04), ink (0.78) and 4px corners, plus the
+// override the card's foot lays over them — `--font-display` at 0.02em, the
+// card's own face. `.post-square__foot .post-square__chip` is the source;
+// if that plate moves, this moves with it.
+//
+// Why it is not the chip COMPONENT: MicroChip addresses an element that
+// EXISTS (kind + hash + route), and this button's whole job is that the
+// element does not exist yet. So the chrome is copied and the semantics are
+// not — the same reason SlotRefPicker restates RefBrowser's pill row.
+//
+// The q-btn dials that have to be beaten are all single-class
+// (`.q-btn--rectangle`'s 3px radius, `.q-btn--dense`'s padding, the 500
+// weight): `.maker-surface__post` carries the scope attribute, so two
+// simple selectors outrank them without `!important`.
+.maker-surface__post {
+  min-height: 0;
+  padding: 3px 10px;
+  // ⚠ SOLID `--maker-contrast` RIM since 2026-08-26's second ask — the card's
+  // 18% wash is a hairline for a card in a column; this is the one control
+  // that publishes, and its box is drawn. Fill and ink stay the card's.
+  border: 1px solid var(--maker-contrast);
+  border-radius: 4px;
+  background: rgba(var(--ink-rgb), 0.04);
+  color: rgba(var(--ink-rgb), 0.78);
+  font-family: var(--font-display);
+  font-size: 0.68em;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+
+  // Under the cursor it FILLS with the window's contrast tone rather than
+  // taking the card's teal ink: the plate is the card's, the state is this
+  // window's, and once that tone became solid the honest hover for a
+  // publish control is the tone itself, not a wash of it.
+  &:hover {
+    background: var(--maker-contrast);
+    border-color: var(--maker-contrast);
+    color: #fff;
+  }
+
+  // Quasar's disabled state is a 0.6 opacity wash on the whole button; the
+  // plate needs its rim to go with it or a dead control keeps a live edge.
+  &.disabled { border-color: rgba(var(--ink-rgb), 0.18); }
+
+  :deep(.q-icon) { font-size: 13px; }
+}
+
 // References card — sibling of the feed's detail panel.
 .maker-surface__refs {
   min-height: 0;
   overflow-y: auto;
   background: var(--paper-card, #ffffff);
-  border: 1px solid rgba(var(--ink-rgb), 0.16);
+  // An INNER BORDER of the window (2026-08-26, third ask) — the refs card is
+  // the biggest box inside the maker, and a 16% ink wash left it floating on
+  // the coat while every line around it had gone blue-grey.
+  border: 1px solid var(--maker-contrast);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-soft);
   padding: 10px 12px;

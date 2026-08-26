@@ -234,7 +234,14 @@ export default defineComponent({
 
 <style lang="scss" scoped>
 // Same visual grammar as RefBrowser: mono uppercase section labels, white
-// cards on a carved inset pit, teal accents.
+// cards on a carved inset pit — and since 2026-08-26's repaint (the uploader
+// wears the post window's construction in teal) the accents read the
+// window's dial, `--uploader-contrast`, instead of the shared chrome's
+// `#00829c`. Washes restate the dial's channels (0,150,136) — see the drop
+// zone's note in UploaderDock. The per-kind ICON palette (`KIND_COLOR`)
+// stays: it classifies files, it does not chrome the window — the same line
+// RefBrowser drew when its pressed pills went one-tone and its result icons
+// kept the kind colours.
 .file-explorer {
   display: flex;
   flex-direction: column;
@@ -256,7 +263,10 @@ export default defineComponent({
   font-size: 0.7em;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: var(--ink-soft);
+  // A TITLE — the window's section headings letter in its contrast tone,
+  // as RefBrowser's do in the maker's: words that NAME are one colour,
+  // words that ARE something are ink.
+  color: var(--uploader-contrast);
   font-family: var(--font-mono);
 }
 
@@ -268,10 +278,11 @@ export default defineComponent({
   padding: 0 6px;
 }
 
-// ── List / gallery toggle — carved pill pair ──
+// ── List / gallery toggle — carved pill pair, the mode pills' tones: mute
+// rim at rest, contrast pressed. ──
 .view-toggle {
   display: inline-flex;
-  border: 1px solid rgba(var(--ink-rgb), 0.18);
+  border: 1px solid var(--teal-4);
   border-radius: var(--radius-pill);
   overflow: hidden;
   background: rgba(255, 255, 255, 0.6);
@@ -292,7 +303,7 @@ export default defineComponent({
   &:hover { color: var(--ink); }
 
   &.is-active {
-    background: #00829c;
+    background: var(--uploader-contrast);
     color: #fff;
     box-shadow: var(--shadow-carved-pressed);
   }
@@ -352,7 +363,7 @@ export default defineComponent({
   text-align: left;
   transition: border-color 0.12s;
 
-  &:hover { border-color: rgba(0, 130, 156, 0.5); }
+  &:hover { border-color: rgba(0, 150, 136, 0.5); }
 }
 
 .file-row__thumb {
@@ -421,9 +432,9 @@ export default defineComponent({
   font-family: var(--font-mono);
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: #00829c;
-  background: rgba(0, 130, 156, 0.08);
-  border: 1px solid rgba(0, 130, 156, 0.25);
+  color: var(--uploader-contrast);
+  background: rgba(0, 150, 136, 0.08);
+  border: 1px solid rgba(0, 150, 136, 0.25);
   border-radius: var(--radius-pill);
   padding: 0 6px;
   white-space: nowrap;
@@ -454,7 +465,7 @@ export default defineComponent({
   transition: border-color 0.12s, box-shadow 0.12s;
 
   &:hover {
-    border-color: rgba(0, 130, 156, 0.55);
+    border-color: rgba(0, 150, 136, 0.55);
     box-shadow: 0 2px 10px rgba(var(--ink-rgb-deep), 0.16);
   }
 }

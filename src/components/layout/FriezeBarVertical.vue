@@ -13,7 +13,9 @@
                     (mercury-wave-{a,b}-rot90.svg — 90° CW, canvas
                     swapped 231×143 → 143×231), tiled repeat-Y at
                     `99% auto` (the header's `auto 99%` on its side)
-         padding    1px on the SIDES (the header pads 1px top/bottom)
+         padding    1px on the SIDES (the header pads 1px top/bottom),
+                    and DIALLABLE to 0 by a host on a fixed-px fit
+                    (`--frieze-bar-v-pad`, 2026-08-22)
          carve      the light source rotates too: a vector (dx,dy) turned
                     90° CW becomes (-dy,dx), so the header's dark up-left
                     + light down-right read here as dark up-RIGHT +
@@ -175,7 +177,24 @@ export default defineComponent({
   width: var(--frieze-bar-v-w, var(--frieze-h));
   flex: 0 0 var(--frieze-bar-v-w, var(--frieze-h));
   height: 100%;
-  padding: 0 1px; // the header's `1px 0`, turned
+  // ── THE PAD IS A DIAL since 2026-08-22 (`--frieze-bar-v-pad`) ───────────
+  // The header's `1px 0`, turned — and the fourth piece of this bar's
+  // host-settable geometry, after `-w`, `-fit` and `-carve`. It exists to
+  // reserve a dark margin the default `99% auto` mask cannot reach, so the
+  // motif never runs onto the silhouette.
+  //
+  // A host on a FIXED-px fit has already reserved that margin INSIDE the
+  // mask: the tiles' two edge columns carry no white cells, so at `13px auto`
+  // over an 11px layer the ink stops exactly at the layer's edge and the pad
+  // is a SECOND margin, paid twice. Dialling it to `0` takes 2px off the
+  // bar's width and touches NOTHING about the drawing — same layer size, same
+  // mask scale, same 1px cell — which makes it the one way to thin one of
+  // these bars without deforming its pattern. Unset, nothing changes.
+  //
+  // ⚠ Only safe to zero ALONGSIDE a fixed fit. Under `99% auto` the mask
+  // follows the padded box, so this 1px IS the margin and the motif would
+  // land on the bar's own edge.
+  padding: 0 var(--frieze-bar-v-pad, 1px);
   pointer-events: none;
   // Kept `relative` after the roll came off (2026-08-07): it is what holds the
   // bar's own paint together if anything is ever positioned inside it again,

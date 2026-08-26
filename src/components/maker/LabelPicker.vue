@@ -145,8 +145,15 @@ export default defineComponent({
 .label-picker.is-compact {
   gap: 0;
   .picker-select { font-size: 0.78em; }
-  :deep(.q-field--dense .q-field__control) { height: 30px; min-height: 30px; }
-  :deep(.q-field__marginal)                { height: 30px; }
+  // ⚠ THE CONTROL'S BOX IS NOT STATED HERE ANY MORE (2026-08-26, user ask).
+  // It carried `height/min-height: 30px` on the dense control and a matching
+  // `.q-field__marginal`, from the pass that squeezed the pickers into a
+  // shared row. The field aesthetic — 26px box, 13px corners, `--blue-grey-1`
+  // fill, 2px `--maker-contrast` rim, thick icons — is stated ONCE in
+  // `MakerHeader.vue` (`.row-field :deep(.q-field--outlined)`), for the title
+  // input and both pickers together. Restating a height here would win on
+  // specificity (four classes against three) and silently undo it.
+
 }
 
 .leaf-option {

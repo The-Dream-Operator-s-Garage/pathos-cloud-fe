@@ -14,46 +14,76 @@
        See dashboard/doc/ui-reference.md. -->
   <MiniPanel :to="targetRoute" :body-fit="isMedia || showsSource">
     <template #head>
-      <!-- The ROUND PILL (2026-07-27) — the address pill's material closed
-           into a circle around the kind glyph alone: the same `--grey-3`
-           fill, `--grey-5` ring + inner seam and 2px `--teal-12` base the
-           foot's chip wore, at the smallest size the device survives. An
-           OBJECT laid on the coat where a flat icon used to be — the same
-           statement the chip beside it makes. -->
-      <span class="node-mini__zone node-mini__zone--icon">
-        <span class="node-mini__round-pill">
-          <q-icon :name="nodeKind.icon" size="12px" />
-        </span>
-      </span>
+      <!-- ── THE ADDRESS CHIP + ITS COPY BUTTON, the row's left end ──────
+           (2026-08-23, third pass: "swap the title section with the nano chip
+           section", plus "add a copy icon that lets me copy the node's hash".)
+           The chip led the header until 2026-07-27, spent a day in the foot,
+           came back to the right of the title, and now leads again — which is
+           the reading the panel settled on: WHAT IT IS first, what it is
+           CALLED second.
 
-      <!-- The node's ADDRESS where the title stood (2026-07-27): the foot
-           pill's content — icon / node / hash — reset in MicroChip's own
-           plain skin, the exact chip the feed card's foot wears, so the
-           header names the node by what it IS in the element system. The
-           human title survives on the zone's tooltip; the hash keeps the
-           foot's stated 10-digit cut (`chipHash`), full path on the chip's
-           own tooltip. -->
-      <span class="node-mini__zone node-mini__zone--title" :title="effectiveTitle">
+           The COPY button hands over the FULL hash, not the chip's `chipHash`
+           cut: the truncated form is for reading and the whole one is what a
+           `[[pathos:nodes/…]]` ref or an API call needs, and a copy button
+           that yields a value you cannot paste anywhere is a trap. House
+           idiom for the feedback (FeedStream, ElementFlyout, PinsDrawer): flip
+           the glyph to a check for 1600ms and swallow a denied clipboard —
+           the mark simply never flips. `.stop.prevent` because the panel is a
+           router-link. -->
+      <span class="node-mini__zone node-mini__zone--chip">
         <NodeMicro
           :id="node.id"
           :path="node.path"
           :hash-str="chipHash"
           :show-type="true"
         />
+        <button
+          type="button"
+          class="node-mini__copy"
+          :class="{ 'is-copied': copied }"
+          :title="copied ? 'hash copied' : 'copy the full node hash'"
+          @click.stop.prevent="copyHash"
+        >
+          <q-icon :name="copied ? 'check' : 'content_copy'" size="10px" />
+        </button>
+      </span>
+
+      <!-- ── THE TITLE ────────────────────────────────────────────────────
+           `nodeLabel` — the node's title, or else `node #1758 · URL` (its id
+           and `node.type.name`). Deliberately NOT `effectiveTitle`, which
+           falls back to the EMBED'S PROVIDER first and would call that node
+           "YouTube"; the provider is what the FOOT says.
+
+           BARE TEXT since the third pass ("on the title section, remove the
+           icon and the '::'"). It carried a 10px kind glyph and a dimmed `::`
+           for a few hours: the glyph restated what the chip beside it already
+           says in words, and the separator only existed to hold the glyph off
+           the text. With the glyph gone the separator had nothing to separate,
+           so both left together. -->
+      <span class="node-mini__zone node-mini__zone--name" :title="nodeLabel">
+        <span class="node-mini__name-text">{{ nodeLabel }}</span>
       </span>
 
       <!-- The integrity traffic light (integrity-debt plan): the panel
            wears its node's verdict in the header — green proof-verified,
            red violated (click → Talavero's report). Same grammar as the
-           chips'; lawful-unproven draws nothing. -->
-      <span
-        v-if="integrityState"
-        class="node-mini__integrity"
-        :class="'integrity-' + integrityState"
-        :title="integrityTitle"
-        role="button"
-        @click.stop.prevent="openIntegrityReport"
-      />
+           chips'; lawful-unproven draws nothing.
+
+           IN A ZONE OF ITS OWN since the third pass, which is what puts
+           hairlines on both sides of it (see `.node-mini__zone`'s `& + &`
+           rule: it only fires between ADJACENT zones, so a bare dot in the
+           row broke the chain and the flyout beyond it went unruled). The
+           `v-if` degrades correctly — with no verdict to show, the flyout's
+           previous sibling is the title zone and it keeps its hairline. -->
+      <span v-if="integrityState" class="node-mini__zone node-mini__zone--dot">
+        <span
+          class="node-mini__integrity"
+          :class="'integrity-' + integrityState"
+          :title="integrityTitle"
+          role="button"
+          @click.stop.prevent="openIntegrityReport"
+        />
+      </span>
 
       <!-- The FLYOUT VIEWER trigger (2026-08-04 as the media viewer's;
            the general element flyout since the 2026-08-17 fusion) — the
@@ -62,14 +92,23 @@
            faces and the node's skeleton one header switch away.
            `.stop.prevent` because the whole panel is a router-link;
            navigation stays the panel's job, the corner's is the
-           preview. -->
+           preview. Glyph down to 10px with the 2026-08-23 density pass.
+
+           THE ROUND PILL that stood at the row's other end is GONE with
+           that pass (user ask: "remove the button from the left section on
+           the header — remove the section"). It was the kind glyph closed
+           into a `--grey-3` circle over a 2px `--teal-12` base, and its
+           MATERIAL survives it: the pin tack took it the day before
+           (2026-08-22, `--red-13` base), which is now the only place that
+           object exists — see NavigationBar's `.tack-btn` and the
+           `tack-skin` witness. -->
       <button
         type="button"
         class="node-mini__zone node-mini__zone--open"
         title="open in the flyout viewer"
         @click.stop.prevent="openViewer"
       >
-        <q-icon name="open_in_full" size="13px" />
+        <q-icon name="open_in_full" size="10px" />
       </button>
     </template>
 
@@ -85,24 +124,15 @@
 
            Every one of these is sized by the SURFACE, through
            `--media-max-h` — see the media styles below. -->
-      <!-- The THUMBS live on the caption line (2026-07-27), where the
-           provider and url are written — FLAT: bare glyph + count in the
-           caption's own gray, no box and no rim, aligned to the row's
-           right end through EmbedFrame's `cap-end` slot. They report, they
-           don't route (the panel is the link). The viewer's OWN vote keeps
-           its semantic green/red in the INK alone — the one thing here
-           reporting a decision rather than a fact. -->
+      <!-- `:caption="false"` since 2026-08-23 — the provider/url line the
+           frame used to print underneath IS the header now, and drawing it
+           twice would state the same address on both sides of the picture.
+           The flat vote thumbs that rode that line's right end through
+           EmbedFrame's `cap-end` slot went out with it, by the same ask
+           ("remove the voting section"): a preview reports what the node IS,
+           and the place to read its activity is the node's own viewer. -->
       <div v-if="embed" class="node-mini__embed">
-        <EmbedFrame :embed="embed">
-          <template #cap-end>
-            <span class="vote-flat" :class="{ 'is-up': viewerVote === 'UP' }">
-              <q-icon name="thumb_up" size="10px" /> {{ votes.up || 0 }}
-            </span>
-            <span class="vote-flat" :class="{ 'is-down': viewerVote === 'DOWN' }">
-              <q-icon name="thumb_down" size="10px" /> {{ votes.down || 0 }}
-            </span>
-          </template>
-        </EmbedFrame>
+        <EmbedFrame :embed="embed" :caption="false" />
       </div>
 
       <div v-else-if="mediaKind === 'image'" class="node-mini__media">
@@ -139,21 +169,46 @@
       <div v-else class="node-mini__empty">(no content)</div>
     </template>
 
-    <!-- NO FOOT (2026-07-27). The three-section foot (`votes │ node chip │
-         tallies`) is gone: the chip moved into the header's title zone, the
-         votes onto the embed caption line, and the comment/fork tallies
-         came off with the band — the panel is a preview, and the place to
-         read a node's activity is the node's own viewer. -->
+    <!-- ── THE FOOT: THE LINK LINE (2026-08-23, second pass) ─────────────
+         The band came back on the first pass to hold the address chip ("remove
+         the voting section and center the micro chip while extending it all
+         the container's width"); the second pass swapped its occupant for the
+         LINK LINE and sent the chip up to the header. The BAND's rules are the
+         ones that ask established and they did not change with the tenant:
+         full width, contents centred, 1px of vertical air.
+
+         `v-if="linkLine"` on the SLOT, not inside it: MiniPanel renders its
+         `<footer>` on `$slots.foot` being present, so a slot passed and left
+         empty would draw an empty band with a divider above it. A conditional
+         slot is absent, and the panel goes back to head + body for every node
+         with no address to state — a note, a picture, a doc. -->
+    <template v-if="linkLine" #foot>
+      <span class="node-mini__foot-link" :title="linkTitle">
+        <q-icon :name="linkLine.icon" size="10px" />
+        <span class="node-mini__link-provider">{{ linkLine.provider }}</span>
+        <a
+          :href="linkLine.href"
+          target="_blank"
+          rel="noopener"
+          class="node-mini__link-url mono"
+          @click.stop
+        >{{ linkLine.url }}</a>
+      </span>
+    </template>
+
   </MiniPanel>
 </template>
 
 <script>
-import { defineComponent, computed } from 'vue'
+import { defineComponent, computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import MiniPanel from 'src/components/shared/MiniPanel.vue'
 import EmbedFrame from 'src/components/shared/EmbedFrame.vue'
 import NodeMicro from './NodeMicro.vue'
-import { kindFor, hashOf, shortHash } from 'src/utils/kinds'
+// `kindFor` left with the title section's glyph (2026-08-23, third pass) —
+// nothing on this panel draws the node KIND as a picture any more: the chip
+// says it in words and the title says what this one is called.
+import { hashOf, shortHash } from 'src/utils/kinds'
 import { bodyOf, excerptOf } from 'src/utils/nodeContent'
 import { useFlyoutViewersStore } from 'src/stores/flyoutViewers'
 
@@ -179,7 +234,24 @@ export default defineComponent({
     const flyoutViewers = useFlyoutViewersStore()
     const openViewer = () => { flyoutViewers.spawnNode(props.node) }
 
-    const nodeKind = kindFor('nodes')
+    // THE HASH COPY (2026-08-23, third pass). The FULL hash, not `chipHash`'s
+    // 10-digit cut: the short form is for reading, and what a `[[pathos:]]`
+    // ref or an API call needs is the whole one — a copy button handing over
+    // a value that pastes into nothing is worse than no button.
+    // The house feedback idiom (FeedStream's `copyAddress`, ElementFlyout's
+    // `copyPath`, PinsDrawer's): flip a flag for 1600ms so the glyph becomes a
+    // check, and swallow a denied clipboard — the mark simply never flips,
+    // which is the correct silent failure for a convenience button.
+    const copied = ref(false)
+    const copyHash = async () => {
+      const full = hashOf(props.node.path)
+      if (!full) return
+      try {
+        await navigator.clipboard.writeText(full)
+        copied.value = true
+        setTimeout(() => { copied.value = false }, 1600)
+      } catch (e) { /* clipboard denied — the glyph simply never flips */ }
+    }
 
     // "Node #276" is the fallback for a node with nothing better to say.
     // An embeddable link has something better: the provider it resolves to,
@@ -189,6 +261,26 @@ export default defineComponent({
       props.node.embed?.provider ||
       ('Node #' + props.node.id)
     )
+
+    // THE NAME the header's left section states (2026-08-23, second pass).
+    // Title when the node has one, and otherwise the node stated by what it
+    // IS: `node #1758 · URL` — its id and `node.type.name`, which the
+    // `GET /nodes/by-path/:hash` payload a block embed lands on carries
+    // (checked against the live API; a node with no `type` degrades to
+    // `node #1758` rather than printing an empty separator).
+    //
+    // NOT `effectiveTitle`, and the difference is the whole point: that one
+    // answers "what should this panel be CALLED", so it falls back to the
+    // embed's PROVIDER before the id — node #1758 is a titleless YouTube link
+    // and `effectiveTitle` calls it "YouTube". The ask names it `node #1758 ·
+    // URL`, because the provider is what the FOOT says and a panel should not
+    // print the same fact twice.
+    const nodeLabel = computed(() => {
+      const t = String(props.node.title || '').trim()
+      if (t) return t
+      const type = props.node.type?.name
+      return `node #${props.node.id}${type ? ` · ${type}` : ''}`
+    })
 
     const excerpt = computed(() => {
       // File-backed nodes: excerptOf reads the resolved body for text kinds
@@ -202,6 +294,48 @@ export default defineComponent({
     // The embed descriptor an EMBED_RULE produced for this node's URL
     // (API-side; null for links no rule matches and for every other kind).
     const embed = computed(() => props.node.embed || null)
+
+    // THE HEADER'S LINK LINE (2026-08-23) — the fields EmbedFrame's
+    // figcaption used to print under the frame, resolved here because the
+    // header is where they land now and the frame's caption is off.
+    //
+    // Three cases, so the band is never blank. (1) An EMBEDDABLE link:
+    // the rule's own icon and provider, which is what the panel below is
+    // showing. (2) A PLAIN link no rule matched: `link` and the host, so an
+    // address still announces itself as one. (3) Everything else — a note,
+    // a file, a doc — has no address to state, and the node's title stands
+    // in. The url is trimmed exactly the way the caption trimmed it (scheme
+    // and `www.` say nothing at this size); `href` keeps the whole thing.
+    const linkLine = computed(() => {
+      const e = embed.value
+      if (e) {
+        const raw = e.url || e.src || ''
+        return {
+          icon: e.icon || 'play_circle',
+          provider: e.provider || 'Embed',
+          href: raw,
+          url: raw.replace(/^https?:\/\/(www\.)?/, '')
+        }
+      }
+      // `node.content` is an ADDRESS on file-backed nodes, never a url the
+      // reader typed — so only content-carrying nodes are asked.
+      const raw = props.node.file ? '' : String(props.node.content || '').trim()
+      if (!/^https?:\/\/\S+$/i.test(raw)) return null
+      let host = ''
+      try { host = new URL(raw).hostname.replace(/^www\./, '') } catch (err) { host = '' }
+      return {
+        icon: 'link',
+        provider: host || 'link',
+        href: raw,
+        url: raw.replace(/^https?:\/\/(www\.)?/, '')
+      }
+    })
+
+    // The zone's tooltip carries what the ellipsis eats — the whole address
+    // when there is one, the human title otherwise.
+    const linkTitle = computed(() =>
+      linkLine.value ? `${linkLine.value.provider} · ${linkLine.value.href}` : effectiveTitle.value
+    )
 
     // Non-text file kinds render as themselves in the body slot.
     const mediaKind = computed(() => {
@@ -241,14 +375,9 @@ export default defineComponent({
       !!embed.value || mediaKind.value === 'image' || mediaKind.value === 'video'
     )
 
-    const votes = computed(() => props.node.votes || {})
-    // node_vote stores 'UP'/'DOWN'; tolerate the ±1 form some callers shape.
-    const viewerVote = computed(() => {
-      const v = votes.value.viewer_vote
-      if (v === 1 || v === 'UP') return 'UP'
-      if (v === -1 || v === 'DOWN') return 'DOWN'
-      return null
-    })
+    // (`votes` / `viewerVote` came out 2026-08-23 with the flat thumbs that
+    // were their only reader — the ask removed the voting section outright.
+    // `node.votes` still arrives on the enriched node for whoever wants it.)
 
     // The integrity verdict rides the enriched node (integrity-debt plan):
     // green proof-verified / red violated (click → Talavero's report in
@@ -281,7 +410,6 @@ export default defineComponent({
       integrityReport,
       isWithheld,
       openIntegrityReport,
-      nodeKind,
       effectiveTitle,
       excerpt,
       sourceText,
@@ -290,8 +418,11 @@ export default defineComponent({
       embed,
       mediaKind,
       isMedia,
-      votes,
-      viewerVote
+      linkLine,
+      linkTitle,
+      nodeLabel,
+      copied,
+      copyHash
     }
   }
 })
@@ -352,10 +483,35 @@ export default defineComponent({
 // card. What says it is the `--teal-1` ring, the body — and the viewer's
 // own vote on the caption line, which no dial touches.
 :deep(.mini-panel) {
-  --panel-chrome: var(--node-mini-coat, var(--teal-1, #e0f2f1));
-  --panel-body:   var(--node-mini-coat, var(--teal-1, #e0f2f1));
+  // THE COAT IS THE POST CARD'S (2026-08-23, second ask on the same surface:
+  // "the background color of the mini node card should be the same as the
+  // post card's background color, the light-cream with a grey veil"). It was a
+  // uniform `--teal-1`, head to foot, since the colorway was written.
+  //
+  // `transparent` was the FIRST answer, earlier the same day, and it was
+  // wrong for a reason worth keeping: this panel does not sit on the card, it
+  // sits in the card's PIT — `.post-square__pit`, a `--grey-1` well with its
+  // own `--grey-5` border — so taking no coat showed the WELL's near-white,
+  // not the card's cream. "The same as the post card" had to be painted.
+  //
+  // `--card-coat` is that sandwich as one background value (`_tokens.scss`,
+  // beside `--plaque-coat`): `--card-veil` — the wash `.post-square::before`
+  // itself now reads — over `--light-cream`. Two consumers, one declaration
+  // each, so a repaint of the card carries the panel with it and there is no
+  // pasted `rgba(...)` here to go stale. It is a LAYER LIST, not a colour;
+  // MiniPanel only ever puts these two properties in `background`, which is
+  // the one place a layer list is legal.
+  --panel-chrome: var(--node-mini-coat, var(--card-coat));
+  --panel-body:   var(--node-mini-coat, var(--card-coat));
   // MiniPanel's own line tone: its outer border AND its head/body divider.
-  --panel-rule:   var(--node-mini-rule, var(--teal-3, #80cbc4));
+  // GREY-5 SINCE 2026-08-23 (user ask: "make the mini node viewer's borders
+  // grey-5 instead of teal"). It was `--teal-3` from the colorway's first day
+  // — the panel drew every line in one hue so it read as another ELEMENT set
+  // into the post. What replaces that argument is the pit's own border, which
+  // is `--grey-5` exactly (`.post-square__pit`): the quoted panel and the well
+  // it sits in are now drawn in one line tone, which is the same "one
+  // material" idea one box further out.
+  --panel-rule:   var(--node-mini-rule, var(--grey-5, #bdbdbd));
   // OUR hairlines — the header's zone splits, which MiniPanel knows nothing
   // about. Same tone, held in a variable for the same reason `--panel-rule`
   // is: at rest every line on this panel is one colour, so hovering has one
@@ -363,7 +519,7 @@ export default defineComponent({
   // HERE, on the panel, so the header zones inherit it — and so the hover
   // rule below can flip the panel's entire line system by writing two
   // custom properties.
-  --node-rule:    var(--node-mini-rule, var(--teal-3, #80cbc4));
+  --node-rule:    var(--node-mini-rule, var(--grey-5, #bdbdbd));
   // There is no WEIGHT dial to go with the two tone dials, and the attempt is
   // worth a line (2026-07-27): `--node-mini-rule-w` existed for part of a day
   // so the flyout could thicken this panel's lines to 2px, and came out with
@@ -376,10 +532,63 @@ export default defineComponent({
   // below has to become `calc(w * 2)` or a thickened system catches up with
   // it and the panel is just an even box.
 
-  // A HEAVIER BASE (1px box, 2px bottom) — the feed card's uneven-border
-  // device read at Mini scale: enough of a base to seat the panel on the
-  // post's surface without the outline shouting on all four sides.
-  border-bottom-width: 2px;
+  // ONE WEIGHT ON ALL FOUR SIDES (2026-08-23 user ask: "make all its borders
+  // the same thinness — the bottom border is thicker right now"). It carried
+  // the feed card's uneven-border device at Mini scale — a 1px box on a 2px
+  // base, seating the panel on the post's surface — which was a statement a
+  // COATED panel could afford. With the coat gone the base was the last thing
+  // still drawing weight, and it read as a shadow under a frame rather than as
+  // a frame. MiniPanel's own 1px stands unmodified now; the note further up
+  // about a width dial having to double this base is dead with it.
+  //
+  // SQUARE, by the same ask: `--radius-md` rounded a panel that now shares its
+  // fill with the card behind it, and a rounded hole cut in a square column of
+  // prose shows its corners as four gaps.
+  border-radius: 0;
+
+  // ── FULL BLEED TO THE HOST CONTAINER'S BORDER (2026-08-23 user ask:
+  // "remove the padding between the mini node viewer's right border and the
+  // post card's content container's right border, and also the left") ──────
+  // The gap was never this panel's: it is `.post-square__pit`'s own 10px side
+  // padding, and the panel was simply standing inside it. The pit PUBLISHES
+  // that inset as `--quoted-bleed-x` (declared once there and used for its own
+  // `padding`), and the panel pulls itself back out by exactly that much — the
+  // `--media-max-h` seam again, the surface stating a fact about itself and
+  // the quoted thing consuming it.
+  //
+  // Negative margins and not a width: a block box with `width: auto` and
+  // negative side margins grows into the parent's PADDING area, which is
+  // inside the padding box, so nothing overflows and the pit's
+  // `overflow-x: hidden` has nothing to clip. A `width: calc(100% + 20px)`
+  // would have needed the offset written twice and would fight the flex
+  // column above it.
+  //
+  // The `0px` fallback is what keeps every other host unchanged — a chat
+  // bubble, a skeleton cell, the post viewer's scroller publish nothing and
+  // the panel sits where it always did. ⚠ `0px`, not `0`: it lands inside a
+  // `calc()`, where a unitless zero is invalid and would drop the declaration.
+  margin-left: calc(-1 * var(--quoted-bleed-x, 0px));
+  margin-right: calc(-1 * var(--quoted-bleed-x, 0px));
+
+  // ── NO SIDE BORDERS (2026-08-23 user ask: "remove the borders from the
+  // right and left of the mini node viewer") ───────────────────────────────
+  // The finish of the bleed above. Once the panel reaches the pit's padding
+  // edge, its own side lines land ONE PIXEL inside `.post-square__pit`'s
+  // border — two hairlines of the same `--grey-5`, a pixel apart, running the
+  // panel's whole height. That reads as a doubled edge, not as two boxes: the
+  // pit's line is already stating where the content column ends, and a second
+  // one beside it says nothing new. Dropping them leaves the panel bounded
+  // top and bottom, which is all a full-width band needs — the horizontal
+  // rules are what separate it from the prose above and below, and the
+  // container supplies the vertical ones.
+  //
+  // Written as WIDTH, not `border-style: none`: MiniPanel's hover rule and
+  // this component's both set `border-color` on the panel, and a coloured
+  // zero-width border stays invisible where a re-declared style might not.
+  // The head/body/foot dividers are untouched — they are `& > * + *`
+  // `border-top`s inside the panel, not part of its box.
+  border-left-width: 0;
+  border-right-width: 0;
   // The card's own drop shadow goes with the coat: a tinted panel already
   // separates from the post body it sits in, and the shadow only greyed
   // the tint.
@@ -392,6 +601,16 @@ export default defineComponent({
 // another language. `--teal-11` is the family's mint ACCENT — brighter than
 // the resting `--teal-3`, so the lines LIGHTEN under the pointer, the same
 // direction MiniPanel's shadow and 1px lift already move.
+//
+// ⚠ THE HOVER TONE MOVED WITH THE RESTING ONE (2026-08-23). The ask was only
+// "borders grey-5 instead of teal", but the two dials are one system and the
+// paragraph below says why: lighting a GREY panel's whole line system to
+// `--teal-11` would have put a mint flash on a surface with no teal on it —
+// precisely the fault this block was written to fix, one hue further out. So
+// hover is `--grey-7` now, and note it DARKENS where the teal LIGHTENED: on a
+// mint-on-teal panel the pointer answered by chroma, and on a neutral one over
+// a pale coat there is no chroma to answer with, so weight is the only channel
+// left. (If the teal ever comes back, this line goes back to -11 with it.)
 //
 // The pointer lights the panel's WHOLE LINE SYSTEM, not just its rim: the
 // outer border, MiniPanel's head/body dividers and the header's vertical
@@ -418,9 +637,9 @@ export default defineComponent({
 // with no teal on it — the exact fault this block was written to fix, one
 // hue further out. The two dials move together or not at all.
 :deep(.mini-panel.mini-panel--hover):hover {
-  --panel-rule: var(--node-mini-rule-hover, var(--teal-11, #a7ffeb));
-  --node-rule:  var(--node-mini-rule-hover, var(--teal-11, #a7ffeb));
-  border-color: var(--node-mini-rule-hover, var(--teal-11, #a7ffeb));
+  --panel-rule: var(--node-mini-rule-hover, var(--grey-7, #757575));
+  --node-rule:  var(--node-mini-rule-hover, var(--grey-7, #757575));
+  border-color: var(--node-mini-rule-hover, var(--grey-7, #757575));
 }
 
 // The header is a ROW of zones divided by FULL-HEIGHT vertical hairlines,
@@ -437,6 +656,44 @@ export default defineComponent({
   align-items: stretch;
   gap: 0;
   padding: 0;
+}
+
+// ── THE BODY RUNS EDGE TO EDGE (2026-08-23 user ask: "remove the padding
+// between the content container's side borders and the side borders of the
+// mini node viewer") ─────────────────────────────────────────────────────
+// MiniPanel pads its body `7px 10px`. The 10px was written for an EXCERPT —
+// prose wants a margin off its rule — but this panel's body is a picture, a
+// player or an embedded page far more often than it is prose, and for those
+// the inset is a frame around a frame: the media already carries its own rim,
+// so the reader sees two edges with a stripe of coat between them. With the
+// coat now the card's own (see the dial above) that stripe had nothing left
+// to be. Sides go to ZERO and the content meets the border; the vertical pad
+// drops to 2px with the density ask rather than to nothing, because the
+// head/body divider is a real line and a body flush against it reads as one
+// thick rule.
+//
+// The item inside is CENTRED (same ask: "center horizontally the item
+// showcased in the node"). `text-align` is the whole mechanism and that is
+// deliberate — it reaches the inline and inline-flex bodies (the binary line,
+// the empty note) without laying a flex context over the block ones, which
+// would have fought `--media-max-h`'s intrinsic sizing. The block media
+// centre themselves on `margin: 0 auto` as they always did, and the two TEXT
+// bodies opt back out to `justify` below, which the ask names explicitly.
+:deep(.mini-panel__body) {
+  padding: 2px 0;
+  min-height: 0;
+  text-align: center;
+}
+
+// ── THE FOOT IS THE CHIP (2026-08-23) ────────────────────────────────────
+// "center the micro chip while extending it all the container's width." The
+// band was `4px 10px` with an 8px gap for the three sections it used to hold;
+// with one occupant and no siblings the gap has nothing to space and the
+// padding only shortens the thing it is asked to extend. 1px of vertical air
+// keeps the chip's own rim off the divider above it.
+:deep(.mini-panel__foot) {
+  padding: 1px 0;
+  gap: 0;
 }
 
 // Everything WRITTEN on the panel's own zones is the colorway's own ink.
@@ -460,8 +717,18 @@ export default defineComponent({
   display: flex;
   align-items: center;
   min-width: 0;
-  padding: 5px 8px;
+  // 5px 8px → 1px 4px with the 2026-08-23 density ask ("reduce the paddings
+  // dramatically to make the node viewer very dense"). The zone hairlines
+  // still run the full band height, so the row reads as divided at any
+  // padding; what the padding buys is only air, and the ask is for none.
+  padding: 1px 4px;
   color: var(--node-mini-head-ink, var(--teal-10, #004d40));
+  // ONE LINE, ALWAYS (same ask: "make sure the text is cut off instead of
+  // creating extra lines if the space for it gets too reduced"). A header
+  // that grows a second line changes the panel's height from its content,
+  // which is the one thing a dense band must not do.
+  white-space: nowrap;
+  overflow: hidden;
 
   // The vertical hairlines — one before every zone but the first, so the
   // count follows the zones and no rule can end up hanging at an edge. Drawn
@@ -469,50 +736,173 @@ export default defineComponent({
   & + & { border-left: 1px solid var(--node-rule, #80cbc4); }
 }
 
-.node-mini__zone--icon {
-  flex: 0 0 auto;
-}
+// ── THE ICON ZONE AND ITS ROUND PILL ARE GONE (2026-08-23) ──────────────
+// User ask: "remove the button from the left section on the header (remove
+// the section)". `.node-mini__zone--icon` held `.node-mini__round-pill` — the
+// kind glyph closed into an 18px `--grey-3` circle with a `--grey-5` ring
+// outside and seam inside, over a 2px `--teal-12` base — an OBJECT laid on
+// the coat rather than a zone of it, which is what made it worth a rule of
+// its own.
+//
+// THE MATERIAL OUTLIVED THE ELEMENT BY ONE DAY. On 2026-08-22 the pin tack
+// took it whole (user ask), swapping only the base to `--red-13`; the tack is
+// where that object lives now, in `NavigationBar.vue` and `PinsDrawer.vue`,
+// held together by the `tack-skin` witness in `fsck --static`. Anyone wanting
+// the pill back should copy it from there rather than rebuild it — and should
+// know the witness reads those two rules as the definition.
 
-// ── The ROUND PILL, top left (2026-07-27) ────────────────────────────────
-// The address pill's material at its smallest read: the same `--grey-3`
-// fill, the same `--grey-5` hairline RING outside the box and SEAM inside
-// its bottom edge (both box-shadows, for the reasons the pill had — the
-// one border is spent on the base, and a shadow follows `border-radius`
-// where an outline may not), and the same 2px `--teal-12` BASE — here
-// closed into a CIRCLE around the kind glyph alone. `border-radius: 50%`
-// on a fixed 18px box; the base curves along the bottom arc, which is the
-// pill's own device (its 999px ends did exactly that). Grey-8 ink with the
-// hairline stroke every glyph on that pill wore. An OBJECT laid on the
-// coat, not a zone of it — which is why no ink dial reaches it.
-.node-mini__round-pill {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 18px;
-  height: 18px;
-  flex: 0 0 auto;
-  border-radius: 50%;
-  background: var(--grey-3, #eeeeee);
-  border: 0;
-  border-bottom: 2px solid var(--teal-12, #64ffda);
-  box-shadow:
-    0 0 0 1px var(--grey-5, #bdbdbd),
-    inset 0 -1px 0 var(--grey-5, #bdbdbd);
-  color: var(--grey-8, #616161);
-
-  .q-icon { -webkit-text-stroke: 0.35px currentColor; }
-}
-
+// ── THE TITLE ZONE (2026-08-23; second in the row since the third pass) ──
 // The one elastic zone: it absorbs all the slack, which is what pushes the
-// open glyph to the row's right end. Since 2026-07-27 it holds the ADDRESS
-// CHIP — a plain NodeMicro in MicroChip's own stock skin, the exact chip
-// the feed card's foot wears — so the type styling the title text carried
-// went with the text: the chip states its own face, and the zone only has
-// to hold it (`min-width: 0` so the chip's ellipsis can bite instead of
-// the zone overflowing). The human title lives on the zone's tooltip.
-.node-mini__zone--title {
+// dot and the open glyph to the row's right end while the chip keeps its
+// natural width at the left. It has held, in order, the ADDRESS CHIP (from
+// 2026-07-27), the LINK LINE (for a few hours), `[glyph] :: [nodeLabel]`, and
+// now `nodeLabel` bare — the glyph restated in a picture what the chip beside
+// it says in words, and the `::` existed only to hold the glyph off the text,
+// so removing one removed the other's job.
+// `min-width: 0` is what lets the label take the ellipsis instead of forcing
+// the row wider; the whole string is on the zone's tooltip.
+.node-mini__zone--name {
   flex: 1 1 auto;
   min-width: 0;
+  // CENTRED in the slack it absorbs (2026-08-23 user ask). It is the elastic
+  // zone, so it owns every spare pixel in the row — the title sat at its left
+  // edge, hard against the chip's hairline, with all of that space trailing
+  // it. Centring is what makes the band read as `[what it is] · [what it is
+  // called] · [verdict] · [open]` rather than as three things crowded left
+  // and one parked right.
+  justify-content: center;
+}
+
+// The label itself, and the only run here allowed to disappear.
+//
+// NASALIZATION since 2026-08-23 (user ask) — `--font-display`, the platform's
+// display face, which is what MiniPanel's own `#title` slot wears (`.mini-panel__title
+// .nasalization`) and what every parked dock tab wears. Declared here rather
+// than by adding the `.nasalization` utility class to the span because the
+// utility also sets `letter-spacing: 0.05em`, and at this size that tracking
+// costs about a character of the ellipsis on a narrow card; the face is what
+// the ask is for. `text-align: center` as well as the zone's `justify-content`
+// — the zone centres the BOX, and this centres the text inside it once the
+// box has been squeezed narrower than its content.
+.node-mini__name-text {
+  flex: 0 1 auto;
+  min-width: 0;
+  font-family: var(--font-display);
+  font-size: 0.76em;
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+// ── THE DOT'S ZONE (2026-08-23, third pass) ──────────────────────────────
+// The verdict light used to stand in the row as a BARE span, which cost it
+// both hairlines: `.node-mini__zone`'s `& + &` rule fires only between
+// adjacent ZONES, so an unwrapped element in the middle broke the chain and
+// the flyout past it went unruled too. Wrapping it restores the row's own
+// grammar — every boundary is a hairline, and the count follows the zones.
+// `flex: 0 0 auto` because a dot has one size.
+.node-mini__zone--dot {
+  flex: 0 0 auto;
+}
+
+// ── THE HASH COPY BUTTON (2026-08-23, third pass) ────────────────────────
+// A bare glyph beside the chip whose address it copies — no box, no rim, the
+// zone's own ink at 60% so it reads as an affordance ON the chip's line
+// rather than as a second object in the row. It brightens to full ink under
+// the pointer and turns `--positive` for the 1600ms the check is showing,
+// which is the only moment this button says anything.
+.node-mini__copy {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+  margin-left: 3px;
+  padding: 0;
+  appearance: none;
+  background: none;
+  border: 0;
+  font: inherit;
+  cursor: pointer;
+  color: inherit;
+  opacity: 0.6;
+  transition: opacity 0.12s, color 0.12s;
+
+  &:hover { opacity: 1; }
+
+  &.is-copied {
+    opacity: 1;
+    color: var(--positive, #21BA45);
+  }
+}
+
+// ── THE ADDRESS CHIP'S ZONE ──────────────────────────────────────────────
+// LEFT OF THE GREEN DOT by the ask, which is what fixes the header's reading
+// order: name, address, verdict, action. `flex: 0 1 auto` — it may be
+// squeezed (MicroChip is container-adaptive and shortens its own hash slice)
+// but never stretched, because the slack belongs to the name.
+//
+// ITS TEXT IS DARK TEAL since 2026-08-23 (user ask: "make the nano node
+// chip's text dark teal"). MicroChip's stock ink is `rgba(var(--ink-rgb),
+// .78)` — the platform's slate, correct for a chip smuggled into prose and
+// wrong here, now that the panel's LINES have gone grey: the chip's ink is
+// the last thing on the panel still able to say which colorway this is.
+// `--teal-10` is the colorway's own ink, the tone the source pane reads
+// directly for exactly the same reason. `:deep()` + `!important` because
+// MicroChip states `color` on `.micro-chip` itself and again on
+// `.is-link:hover`, and a linked chip would otherwise take its slate back
+// under the pointer.
+// FIRST IN THE ROW since the third pass (it was second, right of the title,
+// for a few hours). It holds two things now — the chip and its copy button —
+// so it is a row within the row; `flex: 0 1 auto` keeps it squeezable but
+// never stretched, the slack belonging to the title beside it.
+.node-mini__zone--chip {
+  flex: 0 1 auto;
+  min-width: 0;
+
+  :deep(.micro-chip) {
+    color: var(--teal-10, #004d40) !important;
+  }
+}
+
+// ── THE FOOT'S LINK LINE (2026-08-23, second pass) ───────────────────────
+// The three runs EmbedFrame's figcaption used to print under the frame, in
+// the band the address chip vacated. The band's own rules (full width,
+// centred) come from the first pass and did not move with the tenant, so the
+// wrapper only has to be a row that can be cut: the ADDRESS is the elastic
+// run and the first thing the ellipsis eats, while the provider — shorter and
+// more identifying — holds. Whole string on the tooltip (`linkTitle`).
+:deep(.mini-panel__foot) .node-mini__foot-link,
+.node-mini__foot-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  flex: 1 1 auto;
+  width: 100%;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  color: var(--node-mini-head-ink, var(--teal-10, #004d40));
+}
+
+.node-mini__link-provider {
+  flex: 0 0 auto;
+  font-size: 0.74em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+// The address: the elastic run, and the first thing cut.
+.node-mini__link-url {
+  flex: 0 1 auto;
+  min-width: 0;
+  font-size: 0.72em;
+  color: inherit;
+  text-decoration: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  opacity: 0.78;
+
+  &:hover { text-decoration: underline; }
 }
 
 // A real <button> since 2026-08-04 (the media-viewer trigger) — reset to
@@ -536,6 +926,13 @@ export default defineComponent({
   color: #2C3D4E;
   white-space: pre-wrap;
   word-break: break-word;
+  // The ask centres the showcased item and JUSTIFIES it when it is text —
+  // opting back out of the body's `text-align: center`, which would have
+  // ragged both edges of a paragraph. Prose is the one body that keeps a side
+  // inset (4px): the body's own went to zero for the media, and a run of text
+  // set flush against a border is the case that inset exists for.
+  text-align: justify;
+  padding: 0 4px;
 }
 
 // ── SOURCE (`raw`) — the markdown as written ─────────────────────────────
@@ -565,9 +962,18 @@ export default defineComponent({
   background: var(--grey-1, #fafafa);
   border: 1px solid var(--node-rule, #80cbc4);
   border-radius: var(--radius-sm, 5px);
-  padding: 8px 10px;
+  // 8px 10px → 3px 5px (2026-08-23 density ask). The pane keeps a pad of its
+  // own where the body gave its up: this is a document set into the panel,
+  // and its rim has to stand off the type or the first character sits on the
+  // line.
+  padding: 3px 5px;
   max-height: var(--node-source-max-h, 320px);
   overflow-y: auto;
+  // Justified with the 2026-08-23 ask, like the excerpt — and it costs
+  // nothing here that `pre-wrap` has not already paid: justification only
+  // touches lines the browser wrapped ITSELF, and a hard-wrapped source line
+  // ends at its own newline, which is never a justified edge.
+  text-align: justify;
   // The file's own line structure IS the readability.
   white-space: pre-wrap;
   // `break-word` splits a long word only when the LINE can't hold it;
@@ -608,10 +1014,34 @@ export default defineComponent({
 }
 
 // The frame bounds ITSELF from the same budget (EmbedFrame turns the height
-// limit into the width cap its aspect-ratio box actually needs) — nothing
-// to cap here, only the gap to the header.
+// limit into the width cap its aspect-ratio box actually needs) — nothing to
+// cap here. The 2px gap to the header came off with the 2026-08-23 density
+// ask; the body's own 2px is the whole separation now.
+//
+// ── AND IT IS CENTRED (2026-08-23 user ask: "center the video/item
+// horizontally — the videos are leaning on the left") ────────────────────
+// The lean was real and measured: a 469px box in a 534px figure with 0px to
+// its left and 65px to its right. It is the cost of how the frame bounds
+// itself — `max-width: min(100%, calc(--media-max-h * --embed-ratio))` on
+// `.embed-frame__box`, so whenever the HEIGHT budget binds (a 16:9 player in
+// a short card, which is the common case) the box comes out narrower than the
+// figure and, being a block with `margin: 0`, sits flush left. The body's
+// `text-align: center` cannot reach it — that centres inline content, and
+// this is a block.
+//
+// `auto` side margins are the fix, and they belong HERE rather than in
+// EmbedFrame: the same lean exists wherever a bounded frame is quoted, but
+// EmbedFrame is also mounted by surfaces that WANT it left-aligned with their
+// prose (`NodeContentViewer`'s full mode prints the address under it and the
+// two edges line up). Scoped to the Mini, the ask is answered without moving
+// a shared component under three other callers.
 .node-mini__embed {
-  margin-top: 2px;
+  margin-top: 0;
+
+  :deep(.embed-frame__box) {
+    margin-left: auto;
+    margin-right: auto;
+  }
 }
 
 .node-mini__audio audio {
@@ -640,7 +1070,9 @@ export default defineComponent({
   align-self: center;
   width: 8px;
   height: 8px;
-  margin: 0 4px;
+  // No margin since 2026-08-23: the dot sits in a padded zone of its own now,
+  // and its old `0 4px` would have doubled that inset on both sides.
+  margin: 0;
   border-radius: 50%;
   &.integrity-ok       { background: #2e6a3a; }
   &.integrity-violated {
@@ -653,35 +1085,22 @@ export default defineComponent({
 .node-mini__withheld {
   display: flex;
   align-items: center;
+  justify-content: center;   // centred with everything else (2026-08-23)
   gap: 6px;
   font-size: 0.78em;
   color: #a03d3d;
   cursor: pointer;
 }
 
-// ── The THUMBS, flat on the caption line (2026-07-27) ────────────────────
-// They left the foot (which left with them) for the embed caption — the
-// line where the provider and url are written — through EmbedFrame's
-// `cap-end` slot, which parks them at the row's right end. FLAT: no fill,
-// no rim, no box — a bare glyph and its count in caption-scale gray, a
-// size down from the pills they were. They report; the caption's link and
-// the panel itself do the routing.
-//
-// Scoped styles reach them because slot content compiles in THIS
-// component's scope — the spans carry NodeMini's scope id even though
-// EmbedFrame renders them.
-.vote-flat {
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
-  font-size: 0.95em; // of the caption's 0.74em — a size down from the pills
-  color: var(--grey-8, #616161);
-
-  // The viewer's OWN vote keeps its semantic green/red, in the INK alone:
-  // this pair is the one thing on the panel reporting a decision rather
-  // than a fact, and flat means the ink is all it has left to say it with.
-  &.is-up   { color: #3d7a2a; }
-  &.is-down { color: #b14848; }
-}
+// ── THE FLAT VOTE THUMBS ARE GONE (2026-08-23) ──────────────────────────
+// User ask: "remove the voting section". `.vote-flat` was a bare glyph + count
+// in caption gray, parked at the right end of EmbedFrame's caption line
+// through its `cap-end` slot, with the viewer's OWN vote keeping a semantic
+// green/red in the ink alone. It went out with the caption itself — that line
+// is the panel's HEADER now — and the votes were not moved up with it: a
+// preview states what the node IS, and a node's activity is read in the node's
+// own viewer. `node.votes` still arrives on the enriched node, so a surface
+// that wants them back has the data; the ONE-line record of how they were
+// drawn is this paragraph.
 
 </style>

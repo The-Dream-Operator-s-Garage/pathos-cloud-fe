@@ -49,7 +49,15 @@
                the SIDE CHROME TRIO's palette (three paints, nothing else,
                since 2026-08-21's from-scratch ask: --grey-8 plate, --grey-2
                thick wave, --grey-4 other wave, carve and rims off —
-               `_components.scss`, shared by name with the stack/pins bands;
+               `_components.scss`, shared by name with the stack/pins bands.
+               The NAV BAR'S TRAIL — the band the footer's button row sits in
+               — was a fourth wearer for half of 2026-08-23, these dividers
+               asked for by name and rebuilt at 21px, and left when a later
+               ask gave it its own palette — one hour inverted on a cream
+               plate, then a `--grey-6` plate under ONE `--light-cream` tone
+               for both waves; it keeps this `auto 13px` fit and the carve-off
+               argument, and states its three paints itself. These four are unchanged by any of it; the
+               rule is a quartet and is no longer only side chrome;
                an orange↔teal gradient weave 2026-08-17 → 08-21, FriezeBar's
                default browns before that) — the drawer has one divider
                vocabulary, and a band that happens to be first is not a
@@ -477,9 +485,13 @@ aside.q-drawer {
 // brown-1 flat, and the pairing it was chosen for still holds — the nav bar
 // below and the stack/pins widgets on the right edge took the identical coat
 // in the same session, so the window's four chrome edges remain ONE material.
-// (What that pass ended is the drawer matching the CREATION docks, which keep
-// brown-1 as `--dock-coat`: a window rising from the chrome is now a different
-// material from the chrome it rises out of.) Still no sheen gradients — the
+// (That pass ended the drawer matching the CREATION docks, which kept
+// brown-1 as `--dock-coat` — a window rising from the chrome being a
+// different material from the chrome it rose out of. ⚠ IT IS BACK, and wider:
+// on 2026-08-24 the four creative docks went flat `--light-cream` and on
+// 2026-08-26 all SIX took this very `--plaque-coat`, veil included. The
+// drawer, the bar, the side widgets, the top rail and every docked window are
+// one material again — which is the state this coat was minted to reach.) Still no sheen gradients — the
 // veil is a flat wash, not a lit face; the complementary SMOKE coat keeps
 // items and texts crisp on the pastel.
 .pathos-drawer {

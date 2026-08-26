@@ -483,7 +483,11 @@ export default defineComponent({
 // 2026-08-21's from-scratch ask: `--grey-8` plate, `--grey-2` thick wave,
 // `--grey-4` other wave, carve and rims off (an orange↔teal gradient weave
 // 08-17 → 08-21, then one rimmed grey pass, before it) — shared by name
-// with the stack's pair and the drawer's bands.
+// with the stack's pair and the drawer's bands. (The nav bar's trail wore these
+// same three paints on the window's FLOOR for half of 2026-08-23 and left the
+// rule when a later ask gave it its own palette — a `--grey-6` plate under one
+// `--light-cream` tone, by way of an inverted cream-plate hour; it keeps the
+// fit and the carve-off argument and states its paints itself.)
 .pins-frieze {
   flex-shrink: 0;
   height: var(--frieze-bar-h, var(--frieze-h));
@@ -541,13 +545,28 @@ export default defineComponent({
   background: var(--grey-6);
 }
 
-// The chip: NavigationBar's tack, unchanged in FIGURE — a flat inverted 24px
-// circle (grey-9 face + rim, grey-3 pushpin, inset top highlight, one step
-// LIGHTER at grey-8 on hover, since a dark chip lifts), INVERTING to a grey-3
-// face with a grey-9 rim + pushpin while the element you are looking at is
-// pinned. It read brown-8 / brown-1 / brown-7 until 2026-08-18's palette ask.
-// The bar's own copy renders only where this column does not (mobile), so the
-// two never disagree on screen.
+// The chip: NavigationBar's tack, and since 2026-08-22 (user ask) that is
+// NodeMini's ROUND PILL — the rounded button with the kind glyph at the top-left
+// corner of a node quoted inside a post card, lifted whole onto the pin button
+// with its one coloured line swapped from teal to `--red-13`. `--grey-3` fill,
+// a `--grey-5` hairline RING outside the box and SEAM inside its bottom edge,
+// a 2px red BASE curving along the bottom arc, `--grey-8` ink with the glyph's
+// hairline stroke. PINNED closes that base into a full 2px ring and hands the
+// pushpin the same red; hover lifts the pale face to `--grey-1` and never
+// borrows the base's colour (--teal-12/-13's rule: an object's own mark and the
+// pointer's are never the same at once).
+//
+// It was a flat inverted circle before — grey-9 face + rim, grey-3 pushpin,
+// inset top highlight, one step LIGHTER at grey-8 on hover since a dark chip
+// lifts, inverting to a grey-3 face with a grey-9 rim while the element you are
+// looking at was pinned; brown-8 / brown-1 / brown-7 before 2026-08-18's palette
+// ask. Every one of those states spoke in VALUE, which a pale-throughout pill
+// cannot, and that is why the pinned state moved onto the mark.
+//
+// This block and NavigationBar's are kept identical BY HAND — one of the two
+// stands at a time (the bar keeps its copy for mobile and for a closed pins
+// panel, this one for every arrangement where the column is up), so a drift here
+// shows up as the same corner changing skin when a panel opens.
 .pins-footer .tack-btn {
   width: 24px;
   height: 24px;
@@ -555,30 +574,35 @@ export default defineComponent({
   min-height: 24px;
   padding: 0;
   border-radius: 50%;
-  background: var(--grey-9);
-  border: 1px solid var(--grey-9);
-  color: var(--grey-3);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  background: var(--grey-3, #eeeeee);
+  border: 0;
+  border-bottom: 2px solid var(--red-13, #ff1744);
+  box-shadow:
+    0 0 0 1px var(--grey-5, #bdbdbd),
+    inset 0 -1px 0 var(--grey-5, #bdbdbd);
+  color: var(--grey-8, #616161);
 
-  .q-icon { color: var(--grey-3); transition: transform 0.14s ease; }
-
-  &:hover:not(.q-btn--disable) {
-    background: var(--grey-8);       // a step LIGHTER — a dark chip lifts
-    border-color: var(--grey-8);
+  .q-icon {
+    color: var(--grey-8, #616161);
+    -webkit-text-stroke: 0.35px currentColor;
+    transition: transform 0.14s ease;
   }
 
-  &.is-pinned {
-    background: var(--grey-3);
-    color: var(--grey-9);
-    border-color: var(--grey-9);
-    box-shadow: none;                // no inset highlight on the pale face
+  // A pale chip lifts by going PALER — the mirror of the rule the dark chip
+  // that stood here used to follow.
+  &:hover:not(.q-btn--disable) { background: var(--grey-1, #fafafa); }
 
-    .q-icon { color: var(--grey-9); }
+  &.is-pinned {
+    border: 2px solid var(--red-13, #ff1744);
+    box-shadow: none;                // the ring takes the rim's job; no doubling
+    color: var(--red-13, #ff1744);
+
+    .q-icon { color: var(--red-13, #ff1744); }
     // 22° rotation to mimic a pushpin pressed in — the bar's own tack tips
     // the same way, since this is that button moved, not a new one.
     .q-icon.tack-filled { transform: rotate(-22deg); }
 
-    &:hover { background: var(--grey-3); }
+    &:hover { background: var(--grey-1, #fafafa); }
   }
 
   &.q-btn--disable { opacity: 0.45; }

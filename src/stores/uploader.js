@@ -10,15 +10,19 @@ import { useWindowsStore } from './windows'
 
 const LS_KEY = 'pathos_uploader_drafts'
 
-// Tab label shared by the dock's tab strip and the footer minitab: the
-// first staged file, the link's host, or the note's first line.
+// Tab label shared by the dock's tab strip and the footer minitab. It was
+// keyed off the tab's MODE until 2026-08-26, when the dock's three methods
+// (files / link / note) became simultaneous sections and the mode field
+// died with the pills — so the label reads the tab's CONTENT in the
+// sections' own order: staged files first, then the link's host, then the
+// note's first line.
 export const uploadLabel = (u) => {
   if (!u) return 'empty'
   let t = ''
-  if (u.mode === 'files') {
+  if (u.staged.length) {
     t = u.staged[0]?.name || ''
     if (u.staged.length > 1) t += ` +${u.staged.length - 1}`
-  } else if (u.mode === 'link') {
+  } else if ((u.linkUrl || '').trim()) {
     try { t = new URL(u.linkUrl).hostname } catch (_) { t = (u.linkUrl || '').trim() }
   } else {
     t = (u.noteText || '').split('\n').map(s => s.replace(/^#+\s*/, '').trim()).find(Boolean) || ''
@@ -31,8 +35,6 @@ const newId = () =>
 
 const blankUpload = () => ({
   id: newId(),
-  // files | link | write — which pane the tab is on
-  mode: 'files',
   authorEntityId: null,
   labelIds: [],
   // Full leaf-label objects so the LabelBox can re-render them on restore
@@ -41,8 +43,13 @@ const blankUpload = () => ({
   noteText: '',
   // File objects staged for upload — in-memory only (see header comment)
   staged: [],
-  // idle | busy — busy tabs keep uploading while another tab is active
+  // idle | busy | done — busy tabs keep uploading while another tab is
+  // active. Since the three methods became simultaneous sections
+  // (2026-08-26) `busyKind` says WHICH section's button is in flight
+  // ('files' | 'link' | 'note'), so the other two can show as merely
+  // disabled rather than as loading. Transient, like status.
   status: 'idle',
+  busyKind: null,
   errors: [],
   createdAt: Date.now(),
   updatedAt: Date.now()
@@ -76,6 +83,7 @@ export const useUploaderStore = defineStore('uploader', {
             ...u,
             staged: [],
             status: 'idle',
+            busyKind: null,
             errors: []
           }))
           this.activeId = this.uploads.some(u => u.id === raw.activeId)
@@ -88,7 +96,7 @@ export const useUploaderStore = defineStore('uploader', {
     persist () {
       try {
         localStorage.setItem(LS_KEY, JSON.stringify({
-          uploads: this.uploads.map(({ staged, status, errors, ...rest }) => rest),
+          uploads: this.uploads.map(({ staged, status, busyKind, errors, ...rest }) => rest),
           activeId: this.activeId
         }))
       } catch (_) { /* quota — uploads stay in memory */ }

@@ -85,7 +85,8 @@ export default defineComponent({
 <style lang="scss" scoped>
 .label-box {
   background: rgba(var(--ink-rgb), 0.08);
-  border: 1px solid rgba(var(--ink-rgb), 0.18);
+  // An inner border of the window (2026-08-26, third user ask).
+  border: 1px solid var(--maker-contrast);
   border-radius: 10px;
   padding: 10px 12px;
   display: flex;
@@ -120,7 +121,8 @@ export default defineComponent({
   display: flex;
   align-items: center;
   font-size: 0.72em;
-  color: rgba(var(--ink-rgb), 0.7);
+  // A TITLE — the window's headings letter in its contrast tone.
+  color: var(--maker-contrast);
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
@@ -144,30 +146,55 @@ export default defineComponent({
   &::-webkit-scrollbar-thumb { background: rgba(var(--ink-rgb), 0.3); border-radius: 2px; }
 }
 
-// ── Identity chip (author, moment) — locked, dark-gray look ────
+// ── Identity chips (author, moment) — locked ──────────────────
+//
+// ⚠ BUG FIXED IN PASSING (2026-08-26): this chip painted its NAME in
+// `rgba(ink, 0.85)` on a `rgba(ink, 0.85)` fill — the same value twice, so
+// the author's name was invisible and the chip read as a blank dark plate
+// with two icons on it. It is a leftover from the DARK-SURFACE era, when the
+// maker sat on an ink panel and that fill was the hole the light text stood
+// in; the dock went to paper on 2026-07-27 and the pair was never re-read.
+// Measured before the fix: fill rgba(44,61,78,.85), text rgba(44,61,78,.85).
+//
+// The chips now wear the window's field aesthetic — `--blue-grey-1` fill,
+// `--maker-contrast` rim, ink text — so they are legible AND they read as
+// siblings of the three controls above them, which is what the ask asked
+// for ("match the title input aesthetic", then "blue-grey instead of the
+// remaining brown bits"). They stay ROUNDER than the fields (12px against
+// 13px on a 26px box is nearly a pill either way) because these are chips,
+// not controls: nothing here can be typed into.
 .canonic-chip {
   display: inline-flex;
   align-items: center;
   gap: 4px;
   height: 26px;
   padding: 0 10px;
-  background: rgba(var(--ink-rgb), 0.85);
-  border: 1px solid rgba(var(--ink-rgb), 0.18);
+  background: var(--blue-grey-1);
+  border: 1px solid var(--maker-contrast);
   border-radius: 12px;
   font-family: 'Space Mono', monospace;
   font-size: 0.72em;
   letter-spacing: 0.03em;
-  color: rgba(var(--ink-rgb), 0.85);
+  color: var(--ink);
 
-  .canonic-icon { color: var(--ink); }
+  .canonic-icon { color: var(--maker-contrast); }
   .canonic-name { white-space: nowrap; }
-  .lock-icon    { color: rgba(255, 200, 0, 0.5); margin-left: 2px; }
+  // The LOCK was amber (`rgba(255,200,0,.5)`) — one of the warm bits the
+  // third ask sent out of this window. It is the deep step, not the contrast:
+  // a lock is the one mark on the chip that has to out-read the rim.
+  .lock-icon    { color: var(--blue-grey-8); margin-left: 2px; }
 }
 
+// The MOMENT chip was the window's most-brown object — a `rgba(45,30,15,.55)`
+// ground under amber text, from the same dark era. It keeps its distinction
+// from the author chip by TONE within the one family (a step-deeper fill, the
+// deep rim) rather than by belonging to another one.
 .moment-chip {
-  background: rgba(45, 30, 15, 0.55);
-  border-color: rgba(255, 180, 0, 0.18);
-  color: rgba(255, 220, 150, 0.75);
+  background: var(--blue-grey-4);
+  border-color: var(--blue-grey-8);
+  color: var(--ink);
+
+  .canonic-icon { color: var(--blue-grey-8); }
 }
 
 // ── User-added: red wrapper + delete button ───────────────────

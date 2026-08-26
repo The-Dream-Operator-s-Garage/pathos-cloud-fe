@@ -85,7 +85,11 @@ export default defineComponent({
   width: var(--frieze-bar-v-w, var(--frieze-h));
   flex: 0 0 var(--frieze-bar-v-w, var(--frieze-h));
   height: 100%;
-  padding: 0 1px;
+  // A's pad, and A's DIAL since 2026-08-22 (`--frieze-bar-v-pad`) — a host on
+  // a fixed-px fit has its margin in the mask's empty edge columns already and
+  // can zero this to thin the bar without touching the drawing. A carries the
+  // arithmetic and the ⚠ (it is not safe to zero under the default `99%` fit).
+  padding: 0 var(--frieze-bar-v-pad, 1px);
   pointer-events: none;
   position: relative; // no z-index, as in A (it held the roll until 2026-08-07)
   // Same plaque as A, same dial — INVERTED to `--indigo-8` on 2026-08-07, taken
@@ -128,20 +132,38 @@ export default defineComponent({
 }
 
 // A's layer recipe verbatim — only the mask files differ.
+// ⚠ THE FIT AND THE CARVE ARE DIALS HERE TOO SINCE 2026-08-22 — they were
+// added to A alone on 2026-08-21 and this file kept its hardcoded values, so
+// for one day THE PAIR WAS ASYMMETRIC IN THE ONE PLACE IT MUST NOT BE. The
+// head box's two posts set `--frieze-bar-v-fit: 13px auto` + `-carve: none`
+// for both; A obeyed and B did not, so the LEFT post was pixel-drawn and the
+// RIGHT one ran slim's `117%` (12.87px over a 13-column grid — 0.99px a
+// column, every stroke fractional) with the carve's black/white flanks still
+// on. That is precisely the "poorly rendered … I do not see the full svg
+// pattern" the 08-21 ask was raised to end, surviving on the mirror half.
+// Found by MEASURING computed style on both posts, not by looking — at 13px
+// the two readings are a tenth of a pixel apart and the difference is
+// softness, which no screenshot states.
+//
+// ⚠ RULE: any dial A grows, B grows in the SAME edit. B is A mirrored, and a
+// prop that only one of them reads makes a host's one declaration draw two
+// different bars. Defaults are A's verbatim, so unset nothing changes.
 .frieze-bar-v-b__layer {
   position: absolute;
   inset: 0;
   mask-repeat: repeat-y;
-  mask-size: 99% auto;
+  mask-size: var(--frieze-bar-v-fit, 99% auto);
   mask-position: center top;
   -webkit-mask-repeat: repeat-y;
-  -webkit-mask-size: 99% auto;
+  -webkit-mask-size: var(--frieze-bar-v-fit, 99% auto);
   -webkit-mask-position: center top;
-  filter:
+  filter: var(
+    --frieze-bar-v-carve,
     drop-shadow(1.05px -1.05px 0 #0b0c10)
     drop-shadow(0.5px -0.5px 0 #0b0c10)
     drop-shadow(-1.05px 1.05px 0 #ffffff)
-    drop-shadow(-0.5px 0.5px 0 #ffffff);
+    drop-shadow(-0.5px 0.5px 0 #ffffff)
+  );
 }
 
 // In step with A through 2026-08-05's whole walk (-3/-4 → -4/-5 → -5/-6 →
@@ -208,14 +230,18 @@ export default defineComponent({
   --frieze-bar-v-w: var(--frieze-bar-v-slim-w, calc(var(--frieze-h) / 2));
   --frieze-bar-v-edge-w: 0;
 
+  // Slim's own fit and carve, and DIALLABLE as A's are (2026-08-22 — see the
+  // layer rule above for the day B spent ignoring both while A honoured them).
   .frieze-bar-v-b__layer {
-    mask-size: 117% auto;
-    -webkit-mask-size: 117% auto;
-    filter:
+    mask-size: var(--frieze-bar-v-fit, 117% auto);
+    -webkit-mask-size: var(--frieze-bar-v-fit, 117% auto);
+    filter: var(
+      --frieze-bar-v-carve,
       drop-shadow(0.5px -0.5px 0 #0b0c10)
       drop-shadow(0.3px -0.3px 0 #0b0c10)
       drop-shadow(-0.5px 0.5px 0 #ffffff)
-      drop-shadow(-0.3px 0.3px 0 #ffffff);
+      drop-shadow(-0.3px 0.3px 0 #ffffff)
+    );
   }
 }
 </style>

@@ -4,7 +4,11 @@
     <!-- ── Browse & search ─────────────────────────────────── -->
     <div class="ref-browser__section-label">Reference browser</div>
 
-    <!-- Kind tabs — search one element type at a time -->
+    <!-- Kind tabs — search one element type at a time.
+         ⚠ NO `--kind-color` BINDING SINCE 2026-08-26 (user ask): the pressed
+         pill wears the post window's one contrast tone, not a per-kind tint.
+         See `.ref-kind.is-active` in the style block for the five tones this
+         row used to carry and why they went. -->
     <div class="ref-kinds">
       <button
         v-for="k in kindTabs"
@@ -12,7 +16,6 @@
         type="button"
         class="ref-kind"
         :class="{ 'is-active': kind === k.key }"
-        :style="kind === k.key ? { '--kind-color': k.color } : {}"
         @click="setKind(k.key)"
       >
         <q-icon :name="k.icon" size="13px" />
@@ -144,12 +147,16 @@ import { kindFor } from 'src/utils/kinds'
 // Reference kinds a CONTENT path can carry (posts are skeletons).
 const REF_KINDS = new Set(['nodes', 'paths', 'skeletons', 'labels'])
 
+// ⚠ NO `color` KEY since 2026-08-26 (user ask) — the pressed pill is
+// `--grey-6` for every kind now. The tones this row carried are kept in the
+// style block, not here: dead data on a config array reads as a dial that
+// still turns something.
 const KIND_TABS = [
-  { key: 'posts', label: 'Posts', icon: 'article', color: '#6c4d72' },
-  { key: 'nodes', label: 'Nodes', icon: 'adjust', color: '#2C3D4E' },
-  { key: 'labels', label: 'Labels', icon: 'label_important', color: '#00829c' },
-  { key: 'paths', label: 'Paths', icon: 'route', color: '#4d8a83' },
-  { key: 'skeletons', label: 'Skels', icon: 'schema', color: '#5b6c82' }
+  { key: 'posts', label: 'Posts', icon: 'article' },
+  { key: 'nodes', label: 'Nodes', icon: 'adjust' },
+  { key: 'labels', label: 'Labels', icon: 'label_important' },
+  { key: 'paths', label: 'Paths', icon: 'route' },
+  { key: 'skeletons', label: 'Skels', icon: 'schema' }
 ]
 
 export default defineComponent({
@@ -335,7 +342,11 @@ export default defineComponent({
   font-size: 0.7em;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: var(--ink-soft);
+  // A TITLE (2026-08-26, third ask) — the window's section headings letter in
+  // its contrast tone, the same one the header's row captions take, so every
+  // word that NAMES something here is one colour and every word that IS
+  // something is ink.
+  color: var(--maker-contrast);
   font-family: var(--font-mono);
 }
 
@@ -360,7 +371,12 @@ export default defineComponent({
   gap: 4px;
   height: 24px;
   padding: 0 9px;
-  border: 1px solid rgba(var(--ink-rgb), 0.18);
+  // The resting pill's rim is one ramp step UP from the contrast, not a wash
+  // of it: the contrast tone states the PRESSED pill, and a row of five at
+  // full strength reads as five pressed ones. A step (`--blue-grey-4`) rather
+  // than a transparency because every other line in this window is solid, and
+  // one washed rim among them reads as a rendering artefact.
+  border: 1px solid var(--blue-grey-4);
   border-radius: var(--radius-pill);
   background: rgba(255, 255, 255, 0.6);
   color: var(--ink-soft);
@@ -371,10 +387,30 @@ export default defineComponent({
   cursor: pointer;
   transition: background 0.12s, color 0.12s, border-color 0.12s, box-shadow 0.12s;
 
-  &:hover { border-color: rgba(var(--ink-rgb), 0.4); color: var(--ink); }
+  &:hover { border-color: var(--maker-contrast); color: var(--ink); }
 
+  // PRESSED — the post window's contrast tone (2026-08-26, user ask), one
+  // grey for all five kinds.
+  //
+  // It was a PER-KIND TINT, bound inline off `KIND_TABS`: posts `#6c4d72`,
+  // nodes `#2C3D4E`, labels `#00829c`, paths `#4d8a83`, skels `#5b6c82` —
+  // the platform's kind palette, the same five the result icons still draw
+  // themselves in one row below (`colorFor`, `utils/kinds.js`). Kept here as
+  // the record, because the ARGUMENT for them was sound and is only
+  // outranked: a row where exactly one pill is lit does not need the lit
+  // pill to also say WHICH kind — the label under it says that, and the
+  // icons keep the colour language alive where it classifies many things at
+  // once instead of one thing at a time.
+  //
+  // `--kind-color` survives as the dial INSIDE this component (the row is
+  // one edit from tints again); it resolves to the window's own dial now,
+  // `--maker-contrast`. That tone walked `--grey-6` → `--blue-grey-8` →
+  // `--blue-grey-6` on 2026-08-26 and the walk is why the pill reads a dial
+  // twice over: white on grey-6 measured 2.8:1 (a pill this size is small
+  // enough that a single ramp step is the difference between a mark and an
+  // unreadable one), and it reads 4.4:1 where it stands today.
   &.is-active {
-    --kind-color: #00829c;
+    --kind-color: var(--maker-contrast);
     color: #fff;
     background: var(--kind-color);
     border-color: var(--kind-color);

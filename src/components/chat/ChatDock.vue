@@ -8,7 +8,11 @@
        frieze band. Its own identity is the LIME COLORWAY
        (`.dock-window--chat`, opaque — the glass shell and its backdrop blur
        are gone, hue-swapped from green 2026-08-05) plus the slim frieze band
-       under the header. Since 2026-08-05 the window also caps its OWN height
+       under the header — and since 2026-08-26 that colorway is its LINES, its
+       WELLS and its INK only: the COAT left for the nav bar's own
+       `--plaque-coat`, shared by all six docks (user ask: they should match
+       "the exact same bar color"). So the header row and the message bed are
+       cream and the conversations column stays a green well. Since 2026-08-05 the window also caps its OWN height
        at 60% of the screen when open — the maximize (green) traffic light
        reclaims the full span every other creation dock always has.
 
@@ -689,7 +693,8 @@ export default defineComponent({
 <style lang="scss" scoped>
 // GEOMETRY IS THE CREATION DOCK'S (2026-08-03) — `.dock-window--creation` in
 // _components.scss states left/right/top/bottom and `width/height: auto`, and
-// `.dock-window--chat` states the tones. What was here before — `74vw × 72vh`,
+// `.dock-window--chat` states the tones — all but the COAT, which since
+// 2026-08-26 comes from `.dock-window--creation` for every dock alike. What was here before — `74vw × 72vh`,
 // an `.is-maximized` pair and a mobile width — had to GO, not be overridden: a
 // scoped `.chat-dock[data-v-…]` selector outranks those global rules, so any
 // leftover width declaration would have quietly kept the old footprint.
@@ -727,8 +732,11 @@ export default defineComponent({
 }
 
 // ── Conversations column ──
-// A WELL (--lime-2) set into the window's --lime-1 coat, the same figure/
-// ground step the side widgets' scroll wells take out of their brown plaque.
+// A WELL (--lime-2) set into the window's coat, the same figure/ground step
+// the side widgets' scroll wells take out of their brown plaque. The coat
+// under it was --lime-1 until 2026-08-26 and is the bar's cream plaque now,
+// so this step is warm-sheet-to-green-well rather than one tone off another
+// — a bigger step than it was, and the reason the column reads as a column.
 .chat-dock__list {
   display: flex;
   flex-direction: column;
@@ -791,7 +799,8 @@ export default defineComponent({
   &::-webkit-scrollbar-thumb { background: var(--lime-4); border-radius: 2px; }
 }
 
-// A row is a --lime-1 card on the column's --lime-2 floor; the ACTIVE one
+// A row is a --lime-1 card on the column's --lime-2 floor (both still lime —
+// the coat above them left, the well and its cards did not); the ACTIVE one
 // goes to PAPER, which is the same "current = the lightest thing here" device
 // the dock tab strip uses, with --lime-4 (the colorway's heavy line) closing
 // it. Nothing here is translucent: the whole window is opaque now.
@@ -937,8 +946,12 @@ export default defineComponent({
   margin-top: -2px;
 }
 
-// The thread lies on the window's own coat (--lime-1, inherited from the
-// shell) — the bubbles carry the tone difference, so the bed stays quiet.
+// The thread lies on the window's own coat, inherited from the shell and
+// never painted here — the bubbles carry the tone difference, so the bed
+// stays quiet. ⭐ WHICH IS WHY THIS SURFACE CHANGED WITHOUT BEING TOUCHED on
+// 2026-08-26: the coat went from --lime-1 to --plaque-coat and the biggest
+// face in the window went cream with it. A `background` on this rule would
+// have held the green and split the window in two.
 .chat-dock__msgs {
   flex: 1;
   min-height: 0;

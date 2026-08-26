@@ -21,7 +21,7 @@
     · ITS CORNERS FLARE INTO THE BARS. All four, through the concave fillets
       the parked-media tabs are cut with (`MediaTabsBar.vue`) — 9px radial
       gradients carrying the rim's own tone along the arc, so one continuous
-      `--indigo-7` line runs bar → flare → box edge → flare → bar and the plate
+      `--indigo-6` line runs bar → flare → box edge → flare → bar and the plate
       reads as a piece of the frieze pulled out of it rather than a rectangle
       dropped between the two bars.
 
@@ -34,7 +34,7 @@
       TOGGLE at the bubble's right. The lens lives in Talavero's STANDING
       TEXT inside the bubble (labels embedded as chips); nothing
       hand-operated shows, and the box is at its shortest.
-    · MANUAL: the toggle pulled down adds the WORKBENCH — one `--indigo-9`
+    · MANUAL: the toggle pulled down adds the WORKBENCH — one `--indigo-8`
       band under the bubble holding the stream's controls (label search +
       lens bundle, `controls` slot) and the old lane's four pieces (active
       tray · broom · trash tray · bin; `labels`/`trash` slots).
@@ -67,7 +67,7 @@
          a post, and the box reads as a framed span rather than a slab wedged
          between two bars.
          They are the media viewer's THIN bar turned 90° (`slim`) and painted
-         `--indigo-9` plaque under a `--brown-1` motif — the same tone as the
+         `--indigo-8` plaque under a `--brown-1` motif — the same tone as the
          box's inner walls since 2026-08-07, so post and rule are one mark — a
          MIRRORED PAIR like the
          container's own: variant A on the left, B — the same waves flipped
@@ -207,16 +207,16 @@
               class="feed-head__seat-handle"
               :title="seatTitle + ' — open the profile'"
             >
-              <svg class="feed-head__seat-arc" viewBox="-4 0 34 34" aria-hidden="false">
-                <path id="fhead-seat-arc-path" d="M -1.59 23 A 18 18 0 0 0 26.73 26.73" fill="none" />
+              <svg class="feed-head__seat-arc" viewBox="0 0 28 40" aria-hidden="false">
+                <path id="fhead-seat-arc-path" d="M -2.58 23.58 A 19.15 19.15 0 0 0 30.58 23.58" fill="none" />
                 <text class="feed-head__seat-arc-text" text-anchor="middle">
                   <textPath href="#fhead-seat-arc-path" startOffset="50%">{{ seatArc }}</textPath>
                 </text>
               </svg>
             </router-link>
             <span v-else-if="!isMobile" class="feed-head__seat-handle is-stub">
-              <svg class="feed-head__seat-arc" viewBox="-4 0 34 34" aria-hidden="false">
-                <path id="fhead-seat-arc-path" d="M -1.59 23 A 18 18 0 0 0 26.73 26.73" fill="none" />
+              <svg class="feed-head__seat-arc" viewBox="0 0 28 40" aria-hidden="false">
+                <path id="fhead-seat-arc-path" d="M -2.58 23.58 A 19.15 19.15 0 0 0 30.58 23.58" fill="none" />
                 <text class="feed-head__seat-arc-text" text-anchor="middle">
                   <textPath href="#fhead-seat-arc-path" startOffset="50%">{{ seatArc }}</textPath>
                 </text>
@@ -318,7 +318,7 @@
              VERTICALLY at its left, so the caption spends height the band
              already has instead of width the bubble needs (user ask).
              Down = open. It stands OUTSIDE the talk room, on the body's
-             `--indigo-9` backdrop beside the right frieze post — a lever
+             `--indigo-8` backdrop beside the right frieze post — a lever
              mounted on the frame, not furniture in the room — and what it
              opens is the MANUAL band directly below, which the pulled-down
              handle then points at. -->
@@ -720,6 +720,33 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
+/* ── ⚠ EVERY INDIGO IN THIS FILE STEPPED ONE TONE LIGHTER ON 2026-08-24 ─────
+   (user ask: "for all the indigo elements inside of talavero's board, make them
+   one tone of indigo lighter"). ONE wholesale pass, 24 references, applied to
+   DECLARATIONS ONLY — every comment below still names the tone it was written
+   about, deliberately: those notes are the board's design record, and rewriting
+   them would falsify the history rather than update it. So read any indigo
+   named in prose below as ONE STEP DARKER than what the code now states.
+
+   The whole map, and it is the entire vocabulary this box had:
+     --indigo-10 → -9   the two inner frieze posts' plaque   (×1)
+     --indigo-9  → -8   THE BOX'S PLATE and its five walls   (×10)
+     --indigo-8  → -7   the handle band, control rims        (×5)
+     --indigo-7  → -6   the four warm containers' rim ink    (×5)
+     --indigo-5  → -4   the talk panel's rim                 (×3)
+
+   TWO THINGS SURVIVED THE SHIFT INTACT, which is why a uniform step was the
+   right answer rather than a re-pick:
+    · THE LADDER'S SPACING. Each level is one Material stop, so every relation
+      inside the box — plate under walls, walls over rims, posts deepest of all
+      — holds its exact distance. The box is lighter; it is not rearranged.
+    · THE PAIRINGS WITH THE CREAM. The same sitting took the face, the talk
+      half and the posts' motif to `--light-cream`, and cream reads against the
+      whole indigo family; a step of one leaves those contrasts strong (the
+      posts' motif is now 242 on -9 rather than on -10).
+   ⚠ `--indigo-6` had been ROLELESS since 2026-08-08 and is load-bearing again;
+   `--indigo-10` is out of this file entirely. Check `_tokens.scss` before
+   assuming either is free. ── */
 // ── THE BOX ─────────────────────────────────────────────────────────
 // Absolute against `.feed-stream-pane` (which is the container's field
 // between the two frieze bars), spanning it lip to lip: `left/right: 0` is
@@ -744,7 +771,55 @@ export default defineComponent({
 // thickness is a variable because the fillet geometry below is derived from it
 // — an arc drawn for a 1px line does not fit a 2px one.
 .feed-head {
-  --fhead-face: var(--grey-4, #e0e0e0);
+  // ⚠ `--light-cream` SINCE 2026-08-24 (user ask: "for the grey sections
+  // between talavero's board inner friezes and the main feed container friezes,
+  // paint them light-cream too"). THIS ONE DIAL *IS* THOSE SECTIONS: the box
+  // spans the container lip to lip (measured 92 → 668 at a 1440px window, the
+  // two edge bars at 77→92 and 668→683), its posts stand 11px inside each end,
+  // and what showed in those two strips — plus the 2–3px slivers above and
+  // below the posts — was this face; everything else in the box paints over it.
+  // Three things follow it for free, all of them correct: the FOUR CORNER
+  // FILLETS (their gradients read this dial, so the box still flows into the
+  // container's frieze bars instead of stopping at them), the liveness dot's
+  // 1px ring, and the held state further down.
+  // ⚠ AND `--indigo-6` AN ASK LATER THE SAME DAY (user ask: "for the sections
+  // between the main feed container frieze bars and talavero's board inner
+  // friezes, paint it indigo-6 and make sure when the board is hovered, it
+  // remains in that color"). The cream lasted one pass. What the indigo does
+  // that the cream could not: those strips are the only pixels of the box that
+  // touch the container's OWN frieze bars, and those bars inverted to a
+  // `--light-cream` plate in the same sitting — so a cream face met a cream
+  // plate at the seam and the board's edge stopped existing. At `--indigo-6`
+  // (Material 500, the pure hue) the strips read as the box's own material
+  // running out to meet the bars, which is what the corner fillets have always
+  // been for: they read this dial, so the sweep now carries indigo into cream
+  // instead of cream into cream.
+  // ⚠ BACK TO `--light-cream` AN ASK LATER (2026-08-24: "for the sections
+  // between the main feed container frieze bars and talavero's board inner
+  // friezes, paint them light-cream and make sure when the board is hovered, it
+  // remains in that color"). The indigo held for one pass, and what makes the
+  // cream work THIS time is that the bars it meets moved underneath it: they
+  // inverted back to an `--indigo-8` plate in the same message, so the seam the
+  // cream failed at an hour ago — cream face against a cream PLATE — is now
+  // cream face against a dark bar. What the two still share is the bar's own
+  // 3px EDGE, which is `--light-cream` too, so the join reads as the box's face
+  // running into the bar's frame and stopping at its dark plate. That is a
+  // seam by material rather than by line, and it is the arrangement to keep in
+  // mind before re-toning either side.
+  --fhead-face: var(--light-cream, #FCF3E0);
+  // ── `--indigo-8` SINCE 2026-08-22 (user ask: "pinta el borde curveado de
+  // la parte superior del board de talavero indigo-8") ─────────────────────
+  // One step deeper, and the walk's second visit to -8 (it ran -4 → -8 → -7
+  // across 2026-08-08/21). The CURVED part of the ask is free: the two top
+  // fillets read their colour stops from this dial by construction, which is
+  // the whole reason the sweeps are derived from the rim rather than painted
+  // — "the fillets carry the line around" (below). So the top edge and the
+  // two corners it turns through move as ONE mark, as they always have.
+  // ⚠ The BOTTOM edge does NOT follow: `--fhead-rim-b` is its own dial at
+  // `--indigo-9` and the box has been asymmetric on purpose (2px top / 3px
+  // bottom) since 08-08 — weight to the base where the cast falls. The board
+  // now steps -8 top, -9 bottom, which deepens that asymmetry by tone as
+  // well as by weight.
   --fhead-rim: var(--indigo-7, #3949ab);
   // THE BOTTOM EDGE HAS ITS OWN TONE since 2026-08-07 (user ask): the box's two
   // edges were one line in two thicknesses until then; they are two lines.
@@ -783,7 +858,7 @@ export default defineComponent({
   // BROKEN on purpose and three levels wide now: the lips are still -5
   // (`FriezeBarVertical.vue` / `…B.vue`). Move them here if the two are ever
   // meant to read as one line again.
-  --fhead-rim-b: var(--indigo-9, #283593);
+  --fhead-rim-b: var(--indigo-8, #303f9f);
   // TOP THINNER THAN BOTTOM (user ask). Not by taking the top back down — the
   // 2px is the thickening asked for two passes ago — but by giving the BOTTOM
   // the extra pixel, which is where the weight belongs anyway: the box's cast
@@ -824,7 +899,7 @@ export default defineComponent({
   //
   // The HANDLE stands outside both (`--fhead-bar-face`, below): it is the one
   // plated band, and -8 is now spent entirely on it.
-  --fhead-ink: var(--indigo-9, #283593);
+  --fhead-ink: var(--indigo-8, #303f9f);
   // THE WALLS WALKED -9 → -8 → `--indigo-6` across three asks, each time
   // following the BODY's floor rather than leading it. On the `--indigo-9`
   // floor they were invisible; on `--indigo-7` they came up a step to keep one
@@ -861,7 +936,7 @@ export default defineComponent({
   // meeting of two materials instead of by a line. The two that draw outright
   // are the ones with a pale room on at least one side: the talk/lens rule
   // against `--brown-1`, and the lane's top edge against `--grey-4`.
-  --fhead-rule: var(--indigo-9, #283593);
+  --fhead-rule: var(--indigo-8, #303f9f);
   // THE INNER HAIRLINES ARE 2px SINCE 2026-08-07 (user ask: "make the inner
   // hairlines … slightly thicker and color them indigo-9" — the tone was
   // already -9 and is restated here as the settled answer, not a change).
@@ -928,7 +1003,7 @@ export default defineComponent({
   // rounded corner does the rest. ⚠ The composer inside the talk room keeps
   // its own `--indigo-5` 1px rim: container deeper, object lighter, which is
   // the order the box reads in everywhere else.
-  --fhead-room-rim: var(--indigo-7, #3949ab);
+  --fhead-room-rim: var(--indigo-6, #3f51b5);
   --fhead-room-rim-w: 1px;
   // ── THE POST GUTTER (2026-08-08, user ask: "a little `--indigo-9` padding
   // between the frieze bars and the content") ──────────────────────────────
@@ -963,11 +1038,11 @@ export default defineComponent({
   // this board that can be seen is one ink at one weight, and the `--indigo-9`
   // walls are the ones that state a division by a plate ending instead.
   --fhead-lane-rule-w: 1px;
-  --fhead-lane-rule: var(--indigo-7, #3949ab);
+  --fhead-lane-rule: var(--indigo-6, #3f51b5);
   // The header's foot — see `.feed-head__bar`. It left `--fhead-rule` when it
   // was asked to be painted, since the box's other three walls had no reason
   // to become visible with it.
-  --fhead-bar-rule: var(--indigo-7, #3949ab);
+  --fhead-bar-rule: var(--indigo-6, #3f51b5);
   // 1px, the CONTAINER RIMS' gauge and not the walls' 2px — see the note on
   // `.feed-head__bar`. A visible line in the rims' ink should be at the rims'
   // weight; it is `--fhead-room-rim-w`'s twin in every way but the name (they
@@ -1032,37 +1107,77 @@ export default defineComponent({
   // the slot the COUNT and the SORT button in `FeedStream.vue` (which keep
   // `--grey-3` fallbacks for anywhere else they might be slotted). The focus
   // ring follows it by reading the same dial, so it stays visible for free.
-  --fhead-bar-face: var(--indigo-9, #283593);
+  --fhead-bar-face: var(--indigo-8, #303f9f);
   --fhead-bar-ink: var(--brown-1, #efebe9);
   // The fillets' sweep radius (`FLARE` in the script) and the width of the two
   // inner posts. Both are read by them below — the first for where they stand,
   // the second for how far the content insets past them — so they are named
   // once here instead of being restated.
   //
-  // ── THE POST WIDTH IS A FIXED **15px** SINCE 2026-08-21 (user ask: the
-  // posts "poorly rendered … I do not see the full svg pattern", the same
-  // complaint 2026-08-07's "thinned horribly … the pattern looks distorted"
-  // ask patched by widening) ────────────────────────────────────────────────
-  // The 08-07 fix (`0.6 × --frieze-h + 2px`) bought the mask rows back above
-  // the ~0.7px legibility floor, but any vh-derived width leaves them
-  // FRACTIONAL — ~0.85px a row, every stroke anti-aliased soft and the motif's
-  // centre line drowning at some window heights. The cure is the pixel grid,
-  // not more width: 15px = 1px border + 1px pad each side + an **11px layer**,
-  // and the posts dial `--frieze-bar-v-fit: 13px auto` below — the mask at
-  // its NATURAL 1px per column, centred so its empty edge columns overhang
-  // exactly (13/11 is slim's own `117%`, in whole pixels), the ink filling
-  // the layer edge to edge and the tile landing at a clean 13×21. Nothing
-  // squeezes at ANY window size, minimized or maximized — a fixed-px motif
-  // no longer follows the viewport, which is the point: the board's posts
-  // are drawings, not bands. (Resize only in whole-pixel steps of the
-  // 13-column grid; the next clean width up is `26px auto` in a 30px post.)
+  // ── THE POST WIDTH IS A FIXED **13px** SINCE 2026-08-22 (was 15px from
+  // 2026-08-21; user ask: the posts "slightly thinner … just make sure the
+  // pattern is not deformated … a little denser") ──────────────────────────
+  // Both settings answer the SAME complaint from opposite sides — 08-21's
+  // "poorly rendered … I do not see the full svg pattern" and 08-07's
+  // "thinned horribly … the pattern looks distorted". The 08-07 fix
+  // (`0.6 × --frieze-h + 2px`) bought the mask rows back above the ~0.7px
+  // legibility floor, but any vh-derived width leaves them FRACTIONAL —
+  // ~0.85px a row, every stroke anti-aliased soft and the motif's centre line
+  // drowning at some window heights. The cure was the pixel grid, not more
+  // width, and it still is: the posts dial `--frieze-bar-v-fit: 13px auto`
+  // below — the mask at its NATURAL 1px per column over an **11px layer**,
+  // centred so its two EMPTY edge columns overhang exactly (13/11 is slim's
+  // own `117%`, in whole pixels), the ink filling the layer edge to edge and
+  // the tile landing at a clean 13×21. Nothing squeezes at ANY window size,
+  // minimized or maximized — a fixed-px motif no longer follows the viewport,
+  // which is the point: the board's posts are drawings, not bands.
+  //
+  // ⚠ IT GOT THERE IN TWO PASSES THE SAME DAY, AND THE SECOND ONE REVERSED
+  // THE FIRST'S TRADE. Both kept the post at 13px; what moved is WHO PAYS.
+  //
+  //     15px = 1px rim + 1px pad + 11px layer + 1px pad + 1px rim   (08-21)
+  //     13px = 1px rim +           11px layer +           1px rim   (08-22 a)
+  //     13px = 1px rim + 1px pad +  9px layer + 1px pad + 1px rim   (08-22 b)
+  //
+  // PASS (a) took the 2px off the CHROME and kept the drawing pixel-exact:
+  // at a fixed fit the pad's dark margin is already inside the mask (columns
+  // 0 and 12 of `mercury-wave-{a,b}-rot90.svg` carry no white cells), so the
+  // pad was a second margin paid twice and `--frieze-bar-v-pad: 0` collected
+  // it. Same layer, same mask, same 1px cell — 11/15 of the bar became 11/13.
+  //
+  // PASS (b) is the user's correction, and it is the one standing: "regresa
+  // el poquito de padding que había en los costados … y trata de comprimir
+  // los frisos un poco. No importa si se deforman un poco en detalle, como
+  // en la barra indigo-cyan debajo del header de las post cards." So the pad
+  // comes BACK, the 2px comes out of the LAYER instead, and the motif is
+  // SQUEEZED to fit — the fixed `13px auto` fit is gone and slim's own
+  // `117%` takes over, which is exactly the device the cited bar uses
+  // (`.media-tabs__frieze` states a thickness and lets the percentage fit
+  // follow). 117% of a 9px layer is 10.53px over 13 columns = ~0.81px a
+  // column, so the strokes are sub-pixel and soft again — DELIBERATELY, and
+  // with the ask's blessing. The pixel grid was never the goal; it was the
+  // answer to a complaint about legibility, and a different complaint now
+  // outranks it.
+  //
+  // ⚠ SO THE 08-21 ARITHMETIC IS SUSPENDED, NOT WRONG. Everything it says
+  // about the 13-column grid still holds and is how to get back: state
+  // `--frieze-bar-v-fit: 13px auto` and `--frieze-bar-v-pad: 0` together and
+  // the post is pixel-drawn again at this same 13px. Keep BOTH numbers in
+  // mind — the fit needs an 11px layer, and only the padless post has one.
+  //
+  // What the pad buys back is the SIDE BORDERS (user ask, same pass: "ponle
+  // un borde delgado a los costados … indigo-8"). The 1px `--indigo-8` rims
+  // below have been there since 2026-08-07, but pass (a) left them with the
+  // motif's ink running straight into them and they stopped reading as a
+  // border at all — a line is only a line if something sits either side of
+  // it. The 1px of `--indigo-10` plaque the pad restores is that something.
   //
   // Still stated as its own dial (`--frieze-bar-v-slim-w` on the posts below)
   // rather than as `--frieze-bar-v-w`, which the component's own slim rule
   // also sets on the same element — two scoped rules of equal specificity,
   // decided by bundle order, which is not a contract.
   --fhead-flare: 11px;
-  --fhead-post-w: 15px;
+  --fhead-post-w: 13px;
 
   position: absolute;
   left: 0;
@@ -1093,8 +1208,22 @@ export default defineComponent({
 // fillets follow through `--fhead-face`), so the box says it is loose. One
 // step, not three: `--grey-1` was the right lift off a `--grey-3` face and
 // reads as a different object off this one.
+// ⚠ THE FACE NO LONGER MOVES WHEN HELD (2026-08-24, user ask: "make sure when
+// the board is hovered, it remains in that color"). This state carried a
+// `--fhead-face` step for as long as the box has been draggable — `--grey-3`
+// off a `--grey-4` face, then `--grey-2` for the hour the face was cream — and
+// the ask ends it: the face is `--indigo-6` at rest and at every moment of a
+// drag. So the state is stated by DEPTH ALONE now, which the two shadows below
+// already did most of the work of; what is gone is the tonal half.
+//
+// ⚠ ONE CONSEQUENCE WORTH KNOWING BEFORE ANYONE "RESTORES" IT: the four corner
+// fillets read `--fhead-face`, so a face that changes while held repaints four
+// gradients mid-gesture. Holding the face still is therefore the cheaper
+// arrangement as well as the asked-for one — and the note further down that
+// explains why `.feed-head__body` STATES its tone rather than reading
+// `--fhead-face` (so the lift would not flatten the controls into the plate)
+// describes a hazard that no longer exists. Left standing as history.
 .feed-head.is-grabbed {
-  --fhead-face: var(--grey-3, #eeeeee);
   box-shadow:
     0 12px 24px -10px rgba(0, 0, 0, 0.55),
     0 -8px 18px -10px rgba(0, 0, 0, 0.35);
@@ -1218,14 +1347,26 @@ export default defineComponent({
   // The slim variant's width, dialled — ONE number with the inset math above,
   // which is why it reads `--fhead-post-w` rather than restating the calc.
   --frieze-bar-v-slim-w: var(--fhead-post-w);
-  // ── PIXEL-DRAWN (2026-08-21, user ask — see `--fhead-post-w`'s note for
-  // the arithmetic): the mask at its natural 1px/column on the 15px post's
-  // 11px layer, and the carve OFF — its black/white flanks around 1px
-  // strokes are the "poorly rendered" the ask names, and the brown-2 motif
-  // on the -10 plate reads by its own contrast (Material 800 under a 50),
-  // needing no groove. The full svg pattern — the centre line included — is
-  // now drawn stroke for stroke at every board size.
-  --frieze-bar-v-fit: 13px auto;
+  // ── SQUEEZED, NOT PIXEL-DRAWN (2026-08-22's second pass, user ask: "trata
+  // de comprimir los frisos un poco. No importa si se deforman un poco en
+  // detalle, como en la barra indigo-cyan debajo del header de las post
+  // cards") ─────────────────────────────────────────────────────────────────
+  // NO `--frieze-bar-v-fit` HERE ANY MORE, and its absence is the setting:
+  // slim's own `117% auto` takes the layer, which is the device the cited
+  // bar uses (`.media-tabs__frieze` states `--frieze-bar-h` and lets the
+  // percentage fit follow). Over the 9px layer the pad leaves, that is
+  // 10.53px across 13 columns — ~0.81px a column, sub-pixel and soft. The
+  // 08-21 pass spent the whole post on getting those columns onto whole
+  // pixels; this ask trades that back for a denser mark and says so.
+  // ⚠ The pixel-drawn recipe is one line away and needs the pad gone WITH
+  // it: `--frieze-bar-v-fit: 13px auto` + `--frieze-bar-v-pad: 0` (the fit
+  // wants an 11px layer). See `--fhead-post-w` for the full arithmetic.
+  //
+  // The carve STAYS OFF, and now for a stronger reason than in 08-21: its
+  // black/white flanks were "poorly rendered" around whole-pixel strokes,
+  // and around 0.81px ones they would be most of what you see. The brown-2
+  // motif on the -10 plate reads by its own contrast (Material 800 under a
+  // 50) and needs no groove.
   --frieze-bar-v-carve: none;
   // `--indigo-9` SINCE 2026-08-07 (user ask, the same pass that thickened the
   // inner rules and stated their ink). The two posts and the five hairlines
@@ -1263,14 +1404,31 @@ export default defineComponent({
   // the one indigo the interior does not otherwise use. Moving them to -9
   // would put the rim on the body's own tone and it would vanish where the
   // two meet.
-  --frieze-bar-v-base: var(--indigo-10, #1a237e);
-  --frieze-bar-v-wave-one: var(--brown-2, #d7ccc8);
-  --frieze-bar-v-wave-two: var(--brown-2, #d7ccc8);
+  // ⚠ THE MOTIF IS `--light-cream` SINCE 2026-08-24 (user ask: "for the inner
+  // frieze bar, paint the brown-2 friezes light-cream"), on the same
+  // `--indigo-10` plate. It walked `--brown-1` → `--brown-2` (2026-08-08) and
+  // now leaves the brown family altogether for the platform's WARM SHEET — the
+  // tone this box's face and its talk half took in the same sitting, so the
+  // board's edges are cut from the same material as its rooms rather than from
+  // a family of their own. It is also a LIFT: #FCF3E0 (242) against brown-2's
+  // 188 on an indigo-10 plate, so the motif reads where it used to be texture.
+  --frieze-bar-v-base: var(--indigo-9, #283593);
+  --frieze-bar-v-wave-one: var(--light-cream, #FCF3E0);
+  --frieze-bar-v-wave-two: var(--light-cream, #FCF3E0);
   // ── BOTH SIDE EDGES, 1px `--indigo-8` (2026-08-07, user ask) ─────────────
   // `slim` cancels the full bar's side rims by default (`--frieze-bar-v-edge-w:
   // 0`) because at 9px every pixel of chrome comes out of the motif; the
   // component names this dial as the way back, and this is the host taking it.
-  // The width above pays for it so the pattern does not.
+  // The width above pays for it so the pattern does not — and since
+  // 2026-08-22's second pass the MOTIF pays for it: the post is 13px, the
+  // pad is back at 1px a side, and the 2px came out of the layer (11 → 9),
+  // which is why the motif is squeezed rather than pixel-drawn. That is the
+  // trade the ask chose, and it is the trade that makes these rims read:
+  // the pad puts 1px of `--indigo-10` plaque between each rim and the
+  // motif's ink, and without it (the pass before) the ink ran straight into
+  // the rim and the border stopped being visible as a border — which is what
+  // "ponle un borde delgado a los costados" was asking for. The tone was
+  // already `--indigo-8` and stays; only the ground beside it came back.
   //
   // BOTH edges means BOTH DIALS. The component draws the two long edges from
   // `--frieze-bar-v-edge`, then overrides the INWARD one from
@@ -1287,8 +1445,8 @@ export default defineComponent({
   // the smallest mark that still reads — a highlight on a dark post, not a
   // line drawn around it.
   --frieze-bar-v-edge-w: 1px;
-  --frieze-bar-v-edge: var(--indigo-8, #303f9f);
-  --frieze-bar-v-lip: var(--indigo-8, #303f9f);
+  --frieze-bar-v-edge: var(--indigo-7, #3949ab);
+  --frieze-bar-v-lip: var(--indigo-7, #3949ab);
 }
 
 .feed-head__post--l { left: var(--fhead-flare); }
@@ -1434,7 +1592,7 @@ export default defineComponent({
 // itself states `border: 0` (it lost its outline in an earlier ask) and this
 // rule only re-adds the ONE edge that is a divider rather than an outline.
 .feed-head__bar-end :deep(.feed-stream__sort) {
-  border-left: 1px solid var(--indigo-7, #3949ab);
+  border-left: 1px solid var(--indigo-6, #3f51b5);
   // The glyph would sit 0.5px left of centre inside a box whose left edge is
   // now a border; the padding hands that pixel back so the mark stays on the
   // button's own centreline.
@@ -1505,7 +1663,7 @@ export default defineComponent({
   // argument still governs anything laid on this box. `--grey-4` is what to
   // come back to if the rooms are ever unpainted and the body reads as one
   // plate again; at that point the rounding has to go with it.
-  background: var(--indigo-9, #283593);
+  background: var(--indigo-8, #303f9f);
   // The post gutter — see `--fhead-gutter`. It is this band's own ink widened,
   // not a new mark: the two rooms simply stop 3px short of each post.
   //
@@ -1626,10 +1784,52 @@ export default defineComponent({
   // The whole room is the egg: the seat's porcelain face AND the bubble
   // stand INSIDE the carve, which is the ask's "toda la burbuja … incluida
   // su foto de perfil".
-  background: var(--brown-2, #d7ccc8);
-  box-shadow:
-    inset 0 2px 6px rgba(var(--ink-rgb-deep), 0.3),
-    inset 0 -1px 0 rgba(255, 255, 255, 0.4);
+  // ── `--brown-1` SINCE 2026-08-22 (user ask: "para la sección con fondo
+  // brown-2, píntala brown-1") ────────────────────────────────────────────
+  // Back to the tone it wore before the carve arrived — the pit was given
+  // `--brown-2` on 2026-08-21 only so its shadows had a deeper floor to bite
+  // into. ⚠ THE BUBBLE INSIDE IT IS NOW THE SAME TONE (the same ask paints
+  // both `--brown-1`), so floor and object no longer separate by tone AT
+  // ALL — 1:1, not the 1.02:1 the note above measured. That is deliberate
+  // and it moves the whole job onto two devices: the bubble's `--indigo-5`
+  // rim, and its OWN carve, which runs opposite to this one (the room is a
+  // pit, the bubble is a pit inside the pit — two concavities at different
+  // depths). If the pair ever stops reading, the dial is the bubble's face,
+  // and the direction is PALER than this floor, never darker: the room is
+  // already the light thing in an `--indigo-9` body.
+  //
+  // ⚠ `--light-cream` SINCE 2026-08-24 (user ask: "please paint talavero's chat
+  // section light-cream"). Every argument above holds unchanged — still the one
+  // WARM room in a box spent on indigo and greys, still one step ABOVE the
+  // plate rather than below it — and the tone only moves along the axis it was
+  // already on: #efebe9 (236, R−B 6) → #FCF3E0 (242, R−B 28), paler and four
+  // times as warm in one edit. ⚠ AND IT PAYS OFF THE COST RECORDED ABOVE: the
+  // composer's `--grey-3` floor (238) sat at 1.02:1 on brown-1 — the same
+  // lightness in two hues, which is why the bubble had to be stated by its rim
+  // alone. Against cream it is a real step DOWN and cool against warm, so the
+  // composer reads as sunk into the room for the first time.
+  background: var(--light-cream, #FCF3E0);
+  // ── THE CARVE IS GONE, AND THE RIM IS BACK (2026-08-22, user ask: "remueve
+  // el efecto ahuevado de la seccion del chat de talavero, pero conserva el
+  // efecto ahuevado de la burbuja del chat. también ponle bordes indigo-5 a
+  // la seccion del chat") ────────────────────────────────────────────────────
+  // The room held the pit for one day (2026-08-21) and gives it back. What
+  // the ask settles is which of the two nested boxes gets to be concave, and
+  // the answer is the SMALL one: two carves inside each other read as one
+  // soft trough, and the bubble's — the object you actually type into — was
+  // the one losing. So the room becomes a PANEL again and the bubble is the
+  // only concave surface on the board.
+  //
+  // Which brings its outline back with it, and this is the 08-21 note below
+  // reversing: "a pit is stated by its SHADOW — depth is the edge — and an
+  // outline around a carve reads as a panel pretending to be a hole." Take
+  // the carve away and that sentence argues the other way — with no shadow
+  // to state it, a panel needs its line. `--indigo-5` is the ask's, and it
+  // pairs the room with the bubble inside it (`--fhead-chat-rim`, the same
+  // tone since the same day's earlier ask), so the two boxes are ONE line
+  // system at two sizes. ⚠ That pairing is now a real dependency: move one
+  // and the other looks like a mistake.
+  border: 1px solid var(--indigo-4, #7986cb);
   // ROUNDED, all four corners (2026-08-08, second attempt — see
   // `--fhead-room-r`). The room is a warm panel in the body's `--indigo-9`
   // field — a PIT in it, since the carve — and the curve is what makes the
@@ -1637,15 +1837,29 @@ export default defineComponent({
   // A LITTLE MORE than its siblings (13px vs 7px): see `--fhead-talk-r` for
   // why the biggest container takes the bigger corner.
   border-radius: var(--fhead-talk-r);
-  // ⚠ NO RIM ANY MORE (2026-08-21). The room wore the four containers' 1px
-  // `--indigo-7` outline from 2026-08-08; a pit is stated by its SHADOW —
-  // depth is the edge — and an outline around a carve reads as a panel
-  // pretending to be a hole. The other warm containers (the manual band's
-  // trays, the stream's label bar) keep theirs: they are still panels.
-  // 4px/5px since the carve (from 2px/3px): the inset shade needs a little
-  // floor to fall on above the bubble, or the concavity is invisible — the
-  // top 2-3px of the pit ARE the texture.
-  padding: 4px 5px;
+  // (HISTORY: the room wore the four containers' 1px `--indigo-7` outline from
+  // 2026-08-08, lost it on 2026-08-21 when it became a pit, and has an
+  // `--indigo-5` one again since 2026-08-22 — see the border above. The
+  // reasoning that took it away is kept there because it is what predicts
+  // when it must come back.)
+  // ── UNIFORM 3px SINCE 2026-08-22 (user ask: "comprímela alrededor de la
+  // foto de perfil de talavero y de la burbuja del chat de manera que el
+  // padding interno alrededor de la foto y la burbuja sea muy reducido y
+  // uniforme") ────────────────────────────────────────────────────────────
+  // ONE number on all four sides, from `4px 5px`. The room is a gasket
+  // around its two objects now, not a panel they sit in.
+  // ⚠ UNIFORM PADDING IS ONLY HALF OF "UNIFORM" — the other half is that the
+  // two objects be the SAME HEIGHT, or the shorter one gets padding on top
+  // and slack underneath. That is why the same ask sets `--fhead-chat-h` to
+  // the face's 28px and why the seat column had to give up the 11px its
+  // handle was adding: 3 + 28 + 3 = a 34px room with a 3px reveal on every
+  // side of both objects. Change any one of those three numbers and the
+  // other two are wrong.
+  // (It was 4px/5px from the carve, 2px/3px before it. The old reason for
+  // the extra top px still holds and is now paid by the 3: the inset shade
+  // needs a little floor to fall on above the bubble, or the concavity is
+  // invisible — the top 2-3px of the pit ARE the texture.)
+  padding: 3px;
   // TIGHTER THAN ITS SIBLING (2026-08-08, user ask: less space between the
   // face and the bubble) — 2px against `.feed-head__half`'s 5. The gap was
   // set when the seat was a 36px face with a name beside it and the row
@@ -1707,7 +1921,7 @@ export default defineComponent({
   // the hairline: **28**. Redo it after any change to the bundle's density,
   // the tray rims or the chip padding.
   height: 28px;
-  background: var(--indigo-9, #283593);
+  background: var(--indigo-8, #303f9f);
   padding: var(--fhead-gutter);
   border-top: var(--fhead-lane-rule-w) solid var(--fhead-lane-rule);
   min-width: 0;
@@ -1756,7 +1970,15 @@ export default defineComponent({
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 2px;
+  // ── NO GAP, AND A POSITIONING CONTEXT, SINCE 2026-08-22 ──────────────────
+  // The column IS the face now: its only in-flow child is
+  // `.feed-head__seat-face`, because the handle below went absolute in the
+  // compressed-room pass (see its rule). The 2px gap went with it — it
+  // separated the face from a handle that no longer takes flow space, and
+  // left on its own it would have made the column 30px against a 28px face,
+  // which is exactly the kind of stray pixel the room's uniform padding
+  // renders visible.
+  gap: 0;
 }
 
 .feed-head__seat-face {
@@ -1789,11 +2011,39 @@ export default defineComponent({
 //    room's own padding, inside its rim; the ellipsis the straight caption
 //    needed is retired — `seatArc` shortens the TEXT instead, because a
 //    textPath drops glyphs past the path's end mid-letter.
+// ── IN FLOW, AND IT NOW RESERVES THE CAPTION'S WHOLE INK (2026-08-22) ─────
+// 24×11, from 28×9, and the 11 is not a guess: the scaled arc's ink measures
+// ~10.7px and ALL of it now falls below the face. That is the ask —
+// "do not make tala's name overlay on his face! make sure it fits below the
+// profile pic" — and it is a real change of arrangement, not a nudge.
+//
+// The arc was drawn to hug the face's lower-left curve from OUTSIDE, which
+// means it always crossed the face's own box: ink ran +21.7…+34.2 of a 28px
+// face, so 6.3px of the caption sat ON the porcelain and 6.15px below it. The
+// column got away with 39px for 40.4px of content because of that overlap.
+// Take the overlap away and the column wants 28 + 12.4 = 40.4px — TALLER than
+// the 39 it replaced, which would have undone the room's compression
+// entirely. So the face pays for it: 28 → 24 (the ask's "you can reduce the
+// pic's size a little"), the svg scales with it, and the column lands at
+// 24 + 11 = 35px against the 47px the room started the day at.
+//
+// ⚠ THREE NUMBERS MOVE TOGETHER, in two files' worth of places: the avatar's
+// `:size` prop in the template, this box, and the svg's scale below. The
+// column's height is their sum and the BUBBLE is dialled to that sum
+// (`--fhead-chat-h`), because the room's uniform padding only looks uniform
+// if its two objects are the same height.
+// (It spent one pass ABSOLUTE, overlapping the face on purpose to keep the
+// column at 28. That is the arrangement this ask rejected by name.)
 .feed-head__seat-handle {
   position: relative;
   display: block;
   width: 28px;
-  height: 9px;
+  // 6px, from 11 — the concentric arc is much shallower than the tilted one
+  // it replaced: its baseline bottoms out at y=32.45 of the face's frame and
+  // the descender reaches ~35.2, i.e. 7.2px below a 28px face. Touching the
+  // rim COST nothing and SAVED three pixels, which the column and the bubble
+  // both give back.
+  height: 8px;
   text-decoration: none;
   cursor: pointer;
   // The stub install's legend: same mark, no destination, and saying so.
@@ -1802,10 +2052,54 @@ export default defineComponent({
 
 .feed-head__seat-arc {
   position: absolute;
-  left: -4px;
-  top: -30px;
-  width: 34px;
-  height: 34px;
+  // ── SCALED WITH THE FACE, AND MOVED FULLY BELOW IT (2026-08-22, user ask:
+  // "make sure it fits below the profile pic") ────────────────────────────
+  // The svg carries `viewBox="0 0 28 40"` — 1:1 with CSS px since 2026-08-22,
+  // origin on the FACE's own top-left — so every number in this rule and in
+  // the path is in the face's own coordinates and can be re-derived by hand.
+  //
+  // The offset is derived, not tuned. In the scaled svg the ink runs
+  // +18.6…+29.3 from the svg's top, the handle's box begins at the face's
+  // bottom edge (the column's gap is 0), and the caption must START there:
+  //     top = face_bottom − ink_top_in_svg = 0 − 18.6  → −18.6px
+  // measured from the handle's own top, which IS the face's bottom. Ink then
+  // runs 0…10.7 below the face, inside the handle's 11px box.
+  // ⚠ Re-derive all three if the face's size moves again. The failure mode is
+  // silent and it is the one this ask named: the caption creeps back up onto
+  // the porcelain, where it reads as a smudge rather than as a handle.
+  // ── REBUILT 2026-08-22 AS A TRUE CONCENTRIC ARC (user ask: "quiero que el
+  // texto de @tala esté literalmente pegado al borde de la foto de perfil.
+  // tocándolo, sin espacio en medio de los dos") ────────────────────────────
+  // Three passes of nudging an offset could not do this, and the reason is
+  // worth keeping: the caption's topmost ink is at the string's ENDS, while
+  // the eye reads the MIDDLE — and the middle of a bowed arc falls away from
+  // the face. Any offset that touched at the ends left a gap at the centre;
+  // any offset that touched at the centre printed the ends on the porcelain.
+  // Flattening the arc (r18 → r34 → r48) only traded one for the other more
+  // slowly. There is no offset that solves it, because the two curves were
+  // not the same curve.
+  //
+  // So the baseline is now CONCENTRIC WITH THE FACE, which makes "touching"
+  // STRUCTURAL rather than tuned — every glyph is equidistant from the rim by
+  // construction, so the string touches everywhere or nowhere:
+  //     the face      a circle, centre (14,14), r = 14
+  //     the baseline  an arc on the SAME centre, r = 19.15
+  //     19.15 − 14  = 5.15 = the MEASURED ascender at 6.2px, so the GLYPH
+  //                   TOPS land exactly on the rim
+  // ⚠ 5.15, not the 4.45 that "0.72em cap height" predicts: the ink measured
+  // 0.7px taller than the rule of thumb in this face, and at r=18.45 the
+  // glyphs bit that far INTO the porcelain. Measure, do not assume — the
+  // whole point of a concentric arc is that this one number decides whether
+  // the string touches or overlaps, along its entire length at once.
+  // The path runs 150°→30° (sweep 0, so "up" points at the centre and the
+  // text reads upright, as it always has); the string, centred at
+  // `startOffset: 50%`, occupies the middle of it.
+  // ⚠ If the avatar's `:size` moves, THREE numbers move with it: the centre,
+  // r=14, and the baseline radius (= 14 + cap height).
+  left: 0;
+  top: -28px;
+  width: 28px;
+  height: 40px;
   overflow: visible;
   // The face and its two live signals stay the pointer's business; the arc is
   // a caption. The LINK's own 28×9 flow box is the click target, exactly the
@@ -1815,17 +2109,21 @@ export default defineComponent({
 
 .feed-head__seat-arc-text {
   font-family: var(--font-display);
-  font-size: 7.5px;
+  // 6.2px, 1:1 with CSS px since the viewBox went 1:1 (it was 7.5 user units
+  // in a box scaled 28/34 — 6.18px rendered, the same mark stated honestly).
+  // ⚠ The arc's radius is DERIVED from this: cap height ≈ 0.72em = 4.45px,
+  // and the baseline sits exactly that far outside the face's rim.
+  font-size: 6.2px;
   font-weight: 700;
   letter-spacing: 0.02em;
-  fill: var(--indigo-8, #303f9f);
+  fill: var(--indigo-7, #3949ab);
 }
 
 // The hover answer the underline used to give — an underline on a curve is
 // not a thing CSS draws, so the ink LIFTS instead, three steps, the same
 // direction every lit mark on this surface moves.
 .feed-head__seat-handle:hover .feed-head__seat-arc-text {
-  fill: var(--indigo-5, #5c6bc0);
+  fill: var(--indigo-4, #7986cb);
 }
 
 // ROUNDER, HERE ONLY (2026-08-08, user ask). `EntityAvatar` draws every face
@@ -1915,7 +2213,60 @@ export default defineComponent({
   // navigable inner scroll section"). The BAND's height is the seat column's
   // 39px until the bubble outgrows it; the box's ResizeObserver carries
   // either case up to the well.
-  --fhead-chat-h: 22px;
+  // ── 28px SINCE 2026-08-22 — THE SEAT FACE'S OWN HEIGHT (user ask: "adapta
+  // la altura de la burbuja del chat para que la burbuja sea del mismo
+  // tamaño que la foto de perfil de talavero … asegúrate de que dos líneas
+  // de texto sean mostrables dentro de la burbuja por defecto") ────────────
+  // The bubble stops being sized by its text and starts being sized by the
+  // OBJECT BESIDE IT — and "the object" is the whole SEAT COLUMN, not the
+  // face alone: 35 = the 24px avatar + the 11px box holding its `@tala`
+  // caption. It is what makes the room's uniform 3px padding actually look
+  // uniform — two equal blocks in a gasket, rather than a tall seat beside a
+  // short pill.
+  // ⚠ It began this day as the FACE's height (28) and moved when the caption
+  // was told to stop overlapping the porcelain and stand below it; the
+  // column grew a caption box, the face shrank to pay for it, and this
+  // followed the sum. Anything that changes the avatar's `:size` prop or the
+  // handle's height changes this number too — there is no CSS link between
+  // them, because the avatar is sized by a JS prop.
+  //
+  // ⚠ THE THREE NUMBERS BELOW ARE ONE SUM WITH THIS ONE. Touch the rim
+  // width, the leading or either padding and re-run it, or the second line
+  // stops fitting and the bubble silently scrolls instead — the one failure
+  // this ask was raised to prevent, and it is invisible until someone types.
+  //
+  // It was 22 (one line) on 2026-08-21 and 34 (two lines, roomy) from
+  // 2026-08-08, so 35 is very nearly the 08-08 box — but it is NOT a return
+  // to it. 34 was "whatever two lines need"; 35 is "whatever the seat column
+  // is", and the two agreeing to within a pixel is a coincidence worth
+  // naming so nobody re-derives this number from the text again.
+  --fhead-chat-h: 36px;
+  // ── THE REST OF THAT SUM, published for the same reason the face and the
+  // rim are: the bubble has THREE faces (the field, the transient say-line,
+  // Talavero's standing text) and they must not disagree about how much text
+  // fits. Stating the budget here makes it checkable in one place instead of
+  // in three rules that happen to have matching numbers.
+  //     3 (rim) + 3.5 (top) + 2 (foot) + 2 × 8.96 × 1.35 = 32.7 ≤ 35
+  // — 2.3px of slack, which is the difference between this arrangement and
+  // the 28px one it replaced. THAT one had 0.14px of slack and only reached
+  // two lines by cutting the leading to 1.22; at 35 the type goes back to its
+  // own 1.35 and the second line fits with room to spare. Height bought the
+  // typography back.
+  //
+  // ⚠ THE TOP AND FOOT ARE DELIBERATELY UNEQUAL (user ask: "please add a
+  // little padding at the top of the contained text inside the chat bubble").
+  // 3.5 over 2, and the asymmetry is not only the ask — it is what the carve
+  // needs: the inset shade falls from the TOP edge, so a first line set 2px
+  // under it reads as text in shadow. The extra 1.5px is the line clearing
+  // the groove. Same argument the room makes for its own top padding.
+  //
+  // ⚠ The LEADING is read by the two 0.64em faces only. The standing text
+  // keeps its own 1.5 — it carries inline chips and they need the leading to
+  // stand in — and it is also the face allowed to GROW (to
+  // `--fhead-chat-max`), so it is not on this budget at all.
+  --fhead-chat-pad-t: 3.5px;
+  --fhead-chat-pad-b: 2px;
+  --fhead-chat-lead: 1.35;
   // The growth cap — a little over three chip rows of standing lens. Past
   // it the bubble stops paying height and starts scrolling: the board must
   // never let a talkative lens push the stream off the screen.
@@ -1962,7 +2313,21 @@ export default defineComponent({
   // containers still wear), so the bubble's edge is a clearly-indigo line in
   // the family the board already draws — the porcelain object in the pit,
   // outlined in the frame's own hand.
-  --fhead-chat-rim: var(--indigo-7, #3949ab);
+  //
+  // ── AND BACK TO `--indigo-5` ON 2026-08-22 (user ask: "pinta sus bordes
+  // indigo-5") ─────────────────────────────────────────────────────────────
+  // The seventh setting of this dial, and the walk's second visit here. What
+  // makes it land THIS time is the same thing that made it fail on 08-21:
+  // the FLOOR. -5 went faint when the room dropped to a shaded `--brown-2`
+  // pit; the room is `--brown-1` again in this ask AND the bubble is that
+  // same tone, so the rim is no longer a line between two tones — it is the
+  // ONLY thing drawing the bubble's shape, together with its carve. A lighter
+  // indigo is the right choice for that job: at -7 the outline read as a
+  // second box inside the room, which is exactly what an object that shares
+  // its floor's tone must not do.
+  // ⚠ This is the one dial holding the bubble's silhouette now. Do not thin
+  // it and do not darken it past -6 without re-checking against the floor.
+  --fhead-chat-rim: var(--indigo-4, #7986cb);
   // ── 1px SINCE 2026-08-08 (user ask: thinner) ────────────────────────────
   // It had been 2px since the day the composer was told to read in the same
   // language as the lens bars — but those bars are `--indigo-9` on a deep
@@ -2015,7 +2380,39 @@ export default defineComponent({
   // for ~6s both read it, for the same reason they both read `--fhead-chat-h`
   // — the bubble must not change colour when its content is swapped for a
   // sentence from the seat.
-  --fhead-chat-face: var(--indigo-1, #e8eaf6);
+  // ── `--brown-1` SINCE 2026-08-22 (user ask: "Pinta la burbuja del chat
+  // brown-1 con ese efecto ahuevado") ──────────────────────────────────────
+  // The composer LEAVES THE INDIGOS and joins its room's material. Every
+  // argument in the note above was about how to separate a pale object from
+  // a warm floor — by hue when tone failed — and this ask retires the
+  // question by making them the SAME tone and moving the separation onto
+  // DEPTH: the bubble is a carve inside a carve (see `--fhead-chat-carve`).
+  // That is the platform's oldest device for exactly this — the label
+  // maker's pit, the stack wells — and the one thing a shared tone cannot
+  // defeat, because a groove reads by its shadow, not by its colour.
+  // ⚠ The measured consequence: bubble and room are now 1:1, so if the carve
+  // is ever removed the bubble loses its face entirely and only the
+  // `--indigo-5` rim is left holding it. Carve and rim are a PAIR here.
+  --fhead-chat-face: var(--brown-1, #efebe9);
+  // ── THE BUBBLE'S OWN CARVE (2026-08-22, user ask: "para la sección
+  // ahuevada con fondo brown-2, ayúdame a poner ese efecto en la burbuja
+  // del chat") ─────────────────────────────────────────────────────────────
+  // The room's own recipe, one size down. Same two statements — a top inset
+  // shade with a white lip at the foot — retuned for a box that is 28px
+  // instead of 34 and rimmed rather than open: the shade drops 2px/6px →
+  // 1.5px/4px so it stays a lip rather than washing the first line of text,
+  // and the white foot keeps its 0.4.
+  // ⚠ ONE DIAL, THREE FACES, exactly like the rim and the radius above: the
+  // field, the transient say-line and Talavero's standing text all restate
+  // it, or the bubble changes DEPTH when its content is swapped — which
+  // would read as the box moving.
+  // ⚠ An inset shadow paints under a child's background: these three faces
+  // each carry it themselves for that reason, rather than it sitting once on
+  // `.feed-head__chat` where the field's own face would cover it. (The same
+  // trap `TalaveraToggle`'s sleeve documents from the other side.)
+  --fhead-chat-carve:
+    inset 0 1.5px 4px rgba(var(--ink-rgb-deep), 0.3),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.4);
   // ROUNDER AGAIN (2026-08-08, user ask) — 4px → `--radius-sm` → 12px, stated
   // as a dial so the field and the reply line that stands in for it can never
   // disagree about the shape of the same box. It is off the platform's radius
@@ -2055,10 +2452,11 @@ export default defineComponent({
   min-width: 0;
   height: 100%;
   min-height: var(--fhead-chat-h);
-  padding: 3px calc(var(--fhead-send) + 6px) 3px 6px;
+  padding: var(--fhead-chat-pad-t) calc(var(--fhead-send) + 6px) var(--fhead-chat-pad-b) 6px;
   border: var(--fhead-chat-rim-w) solid var(--fhead-chat-rim);
   border-radius: var(--fhead-chat-r);
   background: var(--fhead-chat-face);
+  box-shadow: var(--fhead-chat-carve);
   color: var(--fhead-ink);
   // NASALIZATION (2026-08-08, user ask) — stated, not `inherit`. The whole
   // filtering section beside it went to the display face a day earlier, and
@@ -2069,7 +2467,7 @@ export default defineComponent({
   // headings with room, and this is a 9px field.
   font-family: var(--font-display);
   font-size: 0.64em;
-  line-height: 1.35;
+  line-height: var(--fhead-chat-lead);
   text-align: left;
   overflow: hidden;
   display: -webkit-box;
@@ -2100,10 +2498,11 @@ export default defineComponent({
   max-height: var(--fhead-chat-max);
   overflow-y: auto;
   scrollbar-width: thin;
-  padding: 3px calc(var(--fhead-send) + 6px) 3px 6px;
+  padding: var(--fhead-chat-pad-t) calc(var(--fhead-send) + 6px) var(--fhead-chat-pad-b) 6px;
   border: var(--fhead-chat-rim-w) solid var(--fhead-chat-rim);
   border-radius: var(--fhead-chat-r);
   background: var(--fhead-chat-face);
+  box-shadow: var(--fhead-chat-carve);
   color: var(--fhead-ink);
   font-family: var(--font-display);
   font-size: 0.64em;
@@ -2157,10 +2556,11 @@ export default defineComponent({
   min-width: 0;
   height: 100%;
   min-height: var(--fhead-chat-h);
-  padding: 3px calc(var(--fhead-send) + 6px) 3px 6px;
+  padding: var(--fhead-chat-pad-t) calc(var(--fhead-send) + 6px) var(--fhead-chat-pad-b) 6px;
   border: var(--fhead-chat-rim-w) solid var(--fhead-chat-rim);
   border-radius: var(--fhead-chat-r);
   background: var(--fhead-chat-face);
+  box-shadow: var(--fhead-chat-carve);
   color: var(--fhead-ink);
   // NASALIZATION (2026-08-08, user ask) — stated, not `inherit`. The whole
   // filtering section beside it went to the display face a day earlier, and
@@ -2171,7 +2571,7 @@ export default defineComponent({
   // headings with room, and this is a 9px field.
   font-family: var(--font-display);
   font-size: 0.64em;
-  line-height: 1.35;
+  line-height: var(--fhead-chat-lead);
   resize: none;
   &:disabled { cursor: not-allowed; }
   &::placeholder { color: rgba(var(--ink-rgb), 0.4); }
@@ -2285,7 +2685,7 @@ export default defineComponent({
   // had the problem — which is exactly how the pair drifted apart in size
   // while both were declared 24.
   padding: 0;
-  background: var(--indigo-9, #283593);
+  background: var(--indigo-8, #303f9f);
   color: var(--brown-1, #efebe9);
 }
 
@@ -2312,7 +2712,7 @@ export default defineComponent({
   cursor: pointer;
   // A step LIGHTER on hover, the same -8 the posts are rimmed in — a plate
   // cannot brighten by losing opacity without showing the lane through it.
-  &:hover { background: var(--indigo-8, #303f9f); }
+  &:hover { background: var(--indigo-7, #3949ab); }
 }
 
 // ── IT IS A REAL TRAY NOW (2026-08-08, user ask) ────────────────────────

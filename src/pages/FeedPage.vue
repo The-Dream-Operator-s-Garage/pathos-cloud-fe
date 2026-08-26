@@ -459,15 +459,25 @@ export default defineComponent({
 // bottom") ────────────────────────────────────────────────────────────────
 // The page grows to the full viewport and pulls itself up over
 // `q-page-container`'s top padding, so the container — and both its frieze
-// bars with it — starts at y=0 and ends on the window floor. The two bars of
-// chrome it now crosses do not move; they STEP UNDER it on this route
-// (`.nav-footer--underlaid` in NavigationBar.vue, `.media-tabs--underlaid` in
-// MediaTabsBar.vue, both z 2999 under the container's 3001). The bar gives
-// way rather than the container climbing, and it is the SECOND time this
-// surface learns that lesson (2026-08-02 → 08-12, the first run of this exact
-// block): anything over the nav bar's 3110 is over every dock too, and the
-// maker/chat/flyout windows (3010+) would open BEHIND the feed on the one
-// page they are most used on.
+// bars with it — starts at y=0 and ends on the window floor.
+//
+// ⚠ AND IS DRAWN BEHIND THE TWO BARS IT CROSSES, SINCE 2026-08-24 (user ask:
+// "make the main public feed container be drawn behind the top navigation
+// header and the footer navigation bar"). THE GROWTH IS NOT THE SAME QUESTION
+// AS THE PAINT ORDER, which is the thing to keep straight in this file: the
+// span above is untouched, and what the ask settled is who wins where the
+// column and the chrome overlap. For three days the CHROME gave way — both
+// bars stepping down to z 2999 on this route (`.nav-footer--underlaid`,
+// `.media-tabs--underlaid`) under the container's 3001 — and both of those
+// classes are now DELETED. The container simply lies under the footer's 3110
+// and the rail's 3125.
+//
+// What has NOT changed, and must not be "fixed" by raising the container: the
+// lesson those eras were built around. Anything over the nav bar's 3110 is over
+// every dock too, and the maker/chat/flyout windows (3010+) would open BEHIND
+// the feed on the one page they are most used on. If a future ask wants the
+// column on top again, LOWER THE BAR ON THE ROUTE — the mechanism is in git
+// twice over — never raise this container.
 //
 // The two negative margins are the scroll arithmetic, not decoration: the
 // page container pads top by `--media-tabs-h` and bottom by the footer, so a
@@ -477,9 +487,24 @@ export default defineComponent({
 // the burger lives in the bar's left cluster, and a container over the bar
 // would bury it (see gotchas).
 @media (min-width: 1024px) {
+  // ⚠ THE TOP HALF OF THIS BLOCK IS GONE (2026-08-24, user ask: "make the main
+  // feed container start drawing right at the bottom edge of the top header bar
+  // instead of behind"). It carried `margin-top: calc(-1 * --media-tabs-h)`,
+  // which cancelled the page container's top padding so the column began at
+  // y=0 and ran UNDER the silver rail; the height then has to stop naming a
+  // full `100vh` or the column overflows by exactly that padding and hands the
+  // window a scrollbar. So the two lines are one edit: drop the negative
+  // margin, subtract the rail from the height.
+  //
+  // ⚠ THE BOTTOM HALF STAYS — the column still runs past the nav bar to the
+  // window floor, behind it. The two ends were separated on 2026-08-24 and this
+  // is what that costs to keep straight: TOP edge = the rail's underside,
+  // BOTTOM edge = the window floor. (Since 2026-08-24 the chrome paints over
+  // the column at both crossings, so "behind" is the only arrangement either
+  // end can be in — what this ask changes is where the column BEGINS, not who
+  // wins where they overlap.)
   .feed-page {
-    height: 100vh;
-    margin-top: calc(-1 * var(--media-tabs-h, 0px));
+    height: calc(100vh - var(--media-tabs-h, 0px));
     margin-bottom: calc(-1 * var(--nav-footer-h));
   }
 }
@@ -532,8 +557,191 @@ export default defineComponent({
 // meander into a texture (see gotchas.md); `slim` — half the full bar — is
 // where these bars stop being a pattern, and it exists for the head box's 9px
 // posts, which carry a motif chosen to survive it.
+// ── THE TWO WAVES, REPAINTED AT THE MOUNT (2026-08-24, user ask: "for the
+// vertical friezes from the main feed container, help me re-painting the clearer
+// SVG to light-cream too, and for the other one, the darker one, paint it
+// indigo-2") ──────────────────────────────────────────────────────────────
+// These bars had taken the component's DEFAULT mapping since the surface was
+// built — plate `--indigo-8`, warm wave `--brown-1`, dark wave `--grey-5` — so
+// these are the first wave dials this host has ever stated. Stating them HERE
+// rather than editing the defaults is the point: the family's own mapping stays
+// what `FriezeBarVertical.vue` documents, and the feed's choice is visible at
+// the mount, exactly as the board's two posts state theirs in FeedHeadBox.
+//
+// ⚠ AND THEN INVERTED, AN ASK LATER THE SAME DAY: "let's invert the color
+// pallette: use the background color on the light-cream frieze bar, make the
+// background light-cream, and for the other svg and the borders. use indigo-8".
+// So the plate and the motif TRADE PLACES — `--light-cream` plate,
+// `--indigo-8` on BOTH waves and on both edges — where the pass an hour earlier
+// had put cream on the clearer wave and `--indigo-2` on the darker one over an
+// `--indigo-8` plate. Three consequences, all load-bearing:
+//
+//  · ⚠ THE CARVE HAD TO GO OFF (`--frieze-bar-v-carve: none`). FriezeBar's
+//    groove reads as relief ONLY when the ink is LIGHTER than the plate it is
+//    cut into — the whole family is a light motif on a dark one — so an
+//    inverted band wearing the carve is lit from the wrong side. This is the
+//    same law the nav bar's trail hit the day it spent an hour inverted, and it
+//    is a LAW here, not a preference: do not restore this filter while the
+//    plate is the pale one.
+//  · ONE TONE FOR BOTH WAVES, so the interleave reads as a single meander
+//    rather than two waves at two depths. That is what the ask says, and it is
+//    what the board's `slim` posts already do — the two surfaces now differ
+//    only in which way round the pair is.
+//  · THE EDGES JOIN THE MOTIF. `--frieze-bar-v-edge` already defaulted to
+//    `--indigo-8`; what moves is the INWARD `--frieze-bar-v-lip`, `--indigo-5`
+//    by default, so both sides of each bar are now drawn in the same ink as
+//    the meander inside them and the bar reads as one indigo drawing on a cream
+//    strip rather than as a plate with a frame of its own.
+//
+// WHICH DIAL IS WHICH, since the names do not say and a guess from the suffix
+// is wrong: `--frieze-bar-v-wave-two` is the one the component documents as the
+// CLEARER (it defaults to `--brown-1`), `--frieze-bar-v-wave-one` the DARKER
+// (`--grey-5`). Both are `--indigo-8` now, so the distinction sleeps — it wakes
+// the moment anyone gives the pair two tones again, and the mapping has already
+// TURNED OVER once (wave one was the LIT face at `--grey-4`, `--indigo-1`
+// before that). Read the component's comments, never the number.
 .feed-container__edge {
   --frieze-bar-v-w: var(--feed-edge-w);
+  // ⚠ AND INVERTED BACK, THICKER, ONE ASK LATER (2026-08-24: "make them a
+  // little thicker since they've shrinked on last changes … make their borders
+  // thick and light-cream and then make their background color indigo-8 and
+  // then make the friezes light-cream. Make sure the frieze patterns are not so
+  // distorted"). So the plate returns to `--indigo-8` and BOTH waves AND both
+  // edges are `--light-cream` — the family's normal orientation (light motif on
+  // a dark plate) with the frame now in the motif's own ink rather than the
+  // plate's.
+  // ⚠ `--indigo-9` SINCE 2026-08-24's last pass (user ask: "paint the frieze
+  // bar's background indigo-9") — one step deeper than the `--indigo-8` it had
+  // held for the day, and the step is what the new PAD below is drawn in, so
+  // the plate is doing a second job now: it is the gap between the cream frame
+  // and the cream motif as well as the ground under the meander.
+  --frieze-bar-v-base: var(--indigo-9, #283593);
+  --frieze-bar-v-wave-one: var(--light-cream, #FCF3E0);
+  --frieze-bar-v-wave-two: var(--light-cream, #FCF3E0);
+  --frieze-bar-v-edge: var(--light-cream, #FCF3E0);
+  // ── THE INWARD LIP MATCHES THE OUTWARD EDGE (2026-08-24, user ask: "make the
+  // inner-facing borders of the main container vertical frieze bars the same as
+  // the outer facing ones, thick and clearer") ────────────────────────────
+  // What the two sides actually looked like before this, measured, is the whole
+  // explanation for why "the same" needed a change at all when both were
+  // already 1px `--indigo-8`: OUTWARD, the bar's edge is backed by
+  // `.feed-container`'s own 1px `--indigo-4` rim immediately outside it, so the
+  // two stack and read as one thicker, LIGHTER line. INWARD, the lip had
+  // nothing behind it but the field — `--grey-8` since this same sitting — so
+  // one dark hairline on a dark plate read as thin and almost absent. Matching
+  // the APPEARANCE therefore means matching what the outer side composites to:
+  // the clearer tone (`--indigo-4`, the container rim's own) at twice the
+  // weight.
+  // ⚠ `--frieze-bar-v-edge-w` IS SHARED BY BOTH SIDES — the component states
+  // the lip's width from that same dial — so 2px lands on the outward edge too.
+  // That is deliberate here (a symmetric pair is what "the same as" asks for,
+  // and the outward side has the container rim to carry the tone), but it is
+  // the thing to know if a future ask wants ONLY the inner one thicker: that
+  // needs a new `--frieze-bar-v-lip-w` dial, added to `FriezeBarVertical` AND
+  // `FriezeBarVerticalB` together — a dial added to A alone is a recorded trap
+  // (see gotchas; `--frieze-bar-v-fit` was A-only for a day and the two posts
+  // drew differently).
+  // ⚠ 1px, THIRD SETTING OF THE DAY (3 → 2 → 1), and each step was the only
+  // move available: the layer is fixed at 11px, so `--feed-edge-w` and this
+  // dial and the pad are three terms of one equation and thinning the BAR can
+  // only come out of the frame or the pad. 3 → 2 paid for the pad ("add a
+  // little padding … also make the borders slightly thinner", one breath);
+  // 2 → 1 is "make the main feed container frieze bars slightly thinner" and
+  // takes the bar 17px → 15px. ⚠ THE OTHER 15px TRIPLE — 2px edges with `pad:
+  // 0` — was rejected on the previous ask's own terms: it puts the cream frame
+  // back against the cream motif with nothing between them, which is exactly
+  // what the padding was asked for to prevent. A hairline frame that still
+  // reads is worth more here than a thicker one that disappears into the
+  // pattern it is framing.
+  --frieze-bar-v-edge-w: 1px;
+  --frieze-bar-v-lip: var(--light-cream, #FCF3E0);
+  --frieze-bar-v-carve: none;
+  // ── ⚠ PIXEL-DRAWN, WHICH IS WHAT "not so distorted" MEANS IN NUMBERS ─────
+  // The bar had been sized off the viewport (`--feed-edge-w` = 0.8 × the frieze
+  // family's vh height, ~15.1px at 900px tall) and the mask fitted by
+  // percentage, which can never land the 13-COLUMN grid on the pixel grid: each
+  // column came out ~1.16px and every stroke anti-aliased. Worse, the 2px edges
+  // added an ask earlier ate the plate from the same box (border-box), which is
+  // the "they've shrinked" in the ask — the bar kept its width and the DRAWING
+  // inside it lost 4px.
+  //
+  // The cure is arithmetic, not tone, and it is the recipe the board's own
+  // posts have used since 2026-08-21: state the mask at its NATURAL size and
+  // size the bar around the drawing. `--frieze-bar-v-fit: 13px auto` puts the
+  // 231×143 file's 13 columns at exactly 1px each; the layer is 11px wide, so
+  // the mask overflows it by 1px a side and the file's two EMPTY edge columns
+  // fall outside — trimmed to its ink, nothing squeezed. Then
+  // 11px of layer + 3px + 3px of edge = the 17px stated below.
+  //
+  // ⚠ THE THREE NUMBERS MOVE TOGETHER OR NOT AT ALL — `--feed-edge-w`,
+  // `--frieze-bar-v-edge-w` and the fit. Thicker edges with the same width take
+  // the difference out of the motif (that is exactly what just happened); a
+  // wider bar without a wider fit leaves the mask floating in it. The next
+  // clean step up is `26px auto` at 2px a column, which wants a 24px layer.
+  // "It's ok if they lose a little detail but make sure they render well" is
+  // precisely this trade: 1px a column loses the sub-pixel modelling and gains
+  // a meander whose every stroke lands on a whole pixel.
+  --frieze-bar-v-fit: 13px auto;
+  // ── ⚠ THE RULE IS THE LAYER'S WIDTH, NOT THE PAD'S VALUE ────────────────
+  // A 13px fixed fit wants an ELEVEN-pixel layer, always: the mask then
+  // overflows by 1px a side and the file's two EMPTY edge columns fall outside,
+  // trimming to the ink exactly. Everything else on this bar is arithmetic
+  // around that one number —
+  //
+  //     layer = --feed-edge-w − 2×(--frieze-bar-v-edge-w) − 2×(--frieze-bar-v-pad)
+  //     11    = 15            − 2×1                       − 2×1
+  //
+  // — and any triple that lands on 11 is correct. The day ran three of them:
+  // 17/3/0, then 17/2/1 when visible padding was asked for, then 15/1/1 when
+  // the bar was asked to thin; the layer never noticed any of it, which is the
+  // point of stating the rule this way. ⚠ 15px IS THE FLOOR while both a frame
+  // and a pad are wanted — the only thinner crisp triples give one of them up.
+  // ⚠ A layer
+  // UNDER 11 clips inked columns (9px cuts one a side — that is a real bug and
+  // reads only as "the pattern is wrong"); a layer OVER 11 leaves the mask
+  // floating with plate showing past its empty columns.
+  //
+  // What the pad BUYS, and why it was worth an ask: the frame and the motif are
+  // both `--light-cream`, so with `pad: 0` they touched and the border stopped
+  // reading as a border. 1px of `--indigo-9` plate between them is the whole
+  // difference — the same device the board's own posts use, and the reason the
+  // plate tone matters more now than it did.
+  --frieze-bar-v-pad: 1px;
+}
+
+// ── A SECOND, FINER RULE ON THE INNER FACE (2026-08-24, user ask: "for the
+// inner-facing side of the main feed container frieze bars, help me adding a
+// very thin indigo-7 inner border after the light-cream one") ───────────────
+// Read from the outside in, each bar's inner edge is now: 2px `--light-cream`
+// lip, then this 1px `--indigo-7` hairline, then the feed's content. So the
+// frame states itself twice at two weights, the way the container's own graded
+// side frame always has (its `--indigo-4` rim outside, the well's line inside).
+//
+// ⚠ IT IS A `box-shadow`, NOT A BORDER, and that is the whole trick: the bar's
+// 17px is arithmetic — 2px edge + 1px pad + 11px layer + 1px pad + 2px edge —
+// and a second border would take its width out of the LAYER (border-box) and
+// clip an inked column, which is the trap recorded in gotchas. A shadow draws
+// outside the box and reserves no space, so the bar's five numbers are
+// untouched and the line lands on the field beside it.
+// ⚠ AND IT NEEDS THE LIFT. The bar and `.feed-container__body` are siblings
+// that meet exactly (measured: bar ends at x 94, body begins at 94), and the
+// body paints later — so without `position: relative; z-index: 1` the body's
+// own opaque bed covers the hairline and the rule is true in the stylesheet and
+// invisible on screen, which is this surface's most-repeated bug.
+// ⚠ MIRRORED BY MODIFIER, never by assuming a side: the INNER face is the RIGHT
+// of the left bar and the LEFT of the right one, and the two components even
+// have different root classes (`frieze-bar-v` / `frieze-bar-v-b`).
+.feed-container__edge {
+  position: relative;
+  z-index: 1;
+}
+
+.feed-container__edge.frieze-bar-v--lip-right {
+  box-shadow: 1px 0 0 0 var(--indigo-7, #3949ab);
+}
+
+.feed-container__edge.frieze-bar-v-b--lip-left {
+  box-shadow: -1px 0 0 0 var(--indigo-7, #3949ab);
 }
 
 // ── THE RAILS (2026-08-18, user ask) ─────────────────────────────────────
@@ -620,7 +828,17 @@ export default defineComponent({
   // 13-row grid read across the thickness, so a row is ~1.16px here — above
   // the ~0.7px line where the meander stops being a pattern (0.95 gave
   // ~1.38px; the detail survives the trim with room to spare).
-  --feed-edge-w: calc(var(--frieze-h) * 0.8);
+  // ⚠ A FIXED 15px SINCE 2026-08-24's last ask ("slightly thinner"; 17px for
+  // the two asks before it), and FIXED on purpose — it was
+  // `calc(var(--frieze-h) * 0.8)`, ~15.1px at a 900px window, and a
+  // viewport-derived width is exactly what leaves the mask's 13 columns
+  // fractional. The number lands within a pixel of where it started, which is
+  // the joke worth recording: the bar looked the same size all along and the
+  // difference was never the width, it was whether the drawing inside it was on
+  // the pixel grid. 15px is 11px of layer (the pixel-exact fit's own size, see
+  // `.feed-container__edge`) plus two 1px edges and two 1px pads. Move it only
+  // with those two, in 13px steps of mask.
+  --feed-edge-w: 15px;
 
   flex: 0 0 45%;
   height: 100%;
@@ -695,7 +913,52 @@ export default defineComponent({
   // lying on it. This tone puts the card back above its bed — the reading its
   // whole tone stack was built for — and takes the step between them from three
   // levels to thirteen. See the scroll bed's note for the walk.
-  background: var(--grey-4, #e0e0e0);
+  //
+  // **`--indigo-1` SINCE 2026-08-22** (user ask) — WHICH IS WHERE THIS LINE
+  // STARTED. It is the tone the container wore from the day it was built
+  // (2026-07-25) until 2026-08-05 took the whole surface neutral, so the field
+  // has come home after seventeen days and a walk that crossed the entire
+  // scale in one sitting: `--grey-4` (held since 08-07) → `--grey-8` →
+  // `--grey-7` → `--grey-6` → `--brown-1` → here. Only -6 and brown-1 of those
+  // deployed; the rest were seen and passed over. Keep the walk, not the
+  // settings — what it establishes is which arrangements this surface can hold,
+  // and it has now been all the way dark and all the way warm.
+  //
+  // ⚠ AND IT IS THE BEST-SEPARATED SETTING OF THE WHOLE SITTING, which is worth
+  // stating because it is not obvious from the tokens. Measured at the seam:
+  // field rgb(232,234,246) against the card's veiled rgb(241,239,234). The card
+  // is LIGHTER in red and green (+9, +5) and DARKER in blue (−12) — so the pair
+  // separates on TWO axes at once, a warm sheet on a COOL plate, where every
+  // other setting today had them both neutral or both warm and leaning on
+  // lightness alone. `--brown-1` immediately before this ran two levels of red
+  // with both tones warm, the closest the pair has ever been; this opens it
+  // back up without going dark to do it.
+  //
+  // That is the surface's oldest device, read the way round it was originally
+  // written: the platform note on `--light-cream` records "an `--indigo-1` card
+  // on a `--grey-4` bed" as the pre-neutral arrangement, with the OBJECT
+  // carrying the hue. Here the FIELD carries a cool one and the object a warm
+  // one, so they separate by opposition rather than by one of them being tinted
+  // at all. ⚠ The card's coat may not follow the field back into indigo — that
+  // is what `--light-cream` was minted to prevent (a card in the field's own
+  // family reads as the plaque BORROWED), and it is why the warm/cool split is
+  // the thing to protect here rather than either token.
+  // ⚠ `--grey-8` SINCE 2026-08-24 (user ask: "please paint the background of
+  // the feed container grey-8"). The field crosses to the DARK half of the
+  // scale for the first time — it has been light since the surface was built
+  // (`--indigo-1` from 2026-08-22, `--grey-4` and `--grey-2` before that, with
+  // `--brown-1` holding it for one setting) — and that inverts the surface's
+  // whole figure/ground: the post cards are the PALE things lying on a dark
+  // plate now, where the rule until today was a light box with slightly lighter
+  // sheets on it. It also settles the wash rule that governed every earlier
+  // pick — "a wash may not be, or approach, the bed's tone" — by putting 97
+  // levels between the bed and the cards' veiled cream, the widest that gap has
+  // ever been.
+  // The two frieze bars edging it are the pale things now (a `--light-cream`
+  // plate, inverted in the same message), so the field is the darkest element
+  // on the surface and its edges the lightest — the exact reverse of the
+  // arrangement this file described for two weeks.
+  background: var(--grey-8, #616161);
 
   // ── THE BOX'S SIDE BORDERS (2026-08-07, user ask) — 1px `--indigo-4` down
   // each side and NOTHING on the ends, which is the same shape as the bars'
@@ -730,14 +993,29 @@ export default defineComponent({
 
   // Slight side shadows — cast off each vertical frieze edge so the box reads
   // as standing above the page rather than being inlaid in it. The negative
-  // spread keeps them tight to the edges; the track's `overflow-y: hidden`
-  // trims whatever would bleed past the top and bottom, so the effect stays
-  // strictly lateral. The alpha is high for a "slight" shadow on purpose: it
-  // falls on the page's near-black canvas, where anything under ~0.4 darkens
-  // by too few levels to be seen at all.
+  // spread keeps them tight to the edges AND is what makes them lateral at
+  // all — see the ⚠ below, which corrects the overflow claim this note used
+  // to make.
+  // ── ⚠ THE SPREAD IS `-blur/2`, AND THAT IS WHAT MAKES IT LATERAL
+  // (2026-08-22, user ask: "remueve el efecto de sombra que el contenedor
+  // proyecta sobre el header de navegación y el footer de navegación") ──────
+  // The note above claimed the effect "stays strictly lateral" because the
+  // track's `overflow-y: hidden` trims the bleed. It does not — the shadow is
+  // painted by THIS element, not clipped by an ancestor's overflow the way
+  // its content is, so at `-4` the two casts reached `18/2 − 4 = 5px` above
+  // and below the box and landed on the silver rail and the nav bar.
+  // At `-9` the shadow rect is inset by exactly the blur radius, so the
+  // vertical reach is ZERO — the blur spends itself getting back to the box's
+  // own top and bottom edges and never crosses them — while the lateral reach
+  // is unchanged at 8px, the offset. The effect the note describes is finally
+  // the effect the code produces.
+  // ⚠ The two numbers are BOUND: change the blur and the spread must stay
+  // `-blur/2`, or the bleed comes back. Alpha is high (0.55) for a "slight"
+  // shadow on purpose — it falls on the page's near-black canvas, where
+  // anything under ~0.4 darkens by too few levels to be seen at all.
   box-shadow:
-    -8px 0 18px -4px rgba(0, 0, 0, 0.55),
-    8px 0 18px -4px rgba(0, 0, 0, 0.55);
+    -8px 0 18px -9px rgba(0, 0, 0, 0.55),
+    8px 0 18px -9px rgba(0, 0, 0, 0.55);
 }
 
 // The field between the two frieze edges — it holds the feed content

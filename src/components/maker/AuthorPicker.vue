@@ -22,7 +22,10 @@
       <template #selected-item="{ opt }">
         <div v-if="opt && opt.display_name" class="selected-row row items-center no-wrap"
           :title="opt.display_name">
-          <q-icon :name="iconFor(opt.kind)" size="13px" class="kind-icon" />
+          <!-- 15px, not 13 (2026-08-26, user ask: thick icons) — an inline
+               size beats MakerHeader's 18px field rule, so this glyph is the
+               one in the row that has to be stepped up here. -->
+          <q-icon :name="iconFor(opt.kind)" size="15px" class="kind-icon" />
           <span class="display-name">{{ opt.display_name }}</span>
           <q-chip dense outline size="xs" :color="colorFor(opt.kind)"
             class="q-ma-none q-ml-xs kind-chip">
@@ -133,8 +136,15 @@ export default defineComponent({
 .author-picker.is-compact {
   gap: 0;
   .picker-select { font-size: 0.78em; }
-  :deep(.q-field--dense .q-field__control) { height: 30px; min-height: 30px; }
-  :deep(.q-field__marginal)                { height: 30px; }
+  // ⚠ THE CONTROL'S BOX IS NOT STATED HERE ANY MORE (2026-08-26, user ask).
+  // It carried `height/min-height: 30px` on the dense control and a matching
+  // `.q-field__marginal`, from the pass that squeezed the pickers into a
+  // shared row. The field aesthetic — 26px box, 13px corners, `--blue-grey-1`
+  // fill, 2px `--maker-contrast` rim, thick icons — is stated ONCE in
+  // `MakerHeader.vue` (`.row-field :deep(.q-field--outlined)`), for the title
+  // input and both pickers together. Restating a height here would win on
+  // specificity (four classes against three) and silently undo it.
+
   // The NAME wins the narrow control — a long kind chip (ORG_ALTER_EGO)
   // was crushing it to nothing. The kind still reads in the dropdown rows.
   .kind-chip { display: none; }
