@@ -1250,9 +1250,12 @@ $warning:   #F2C037;
   // ⚠ THAT INVERSION IS THE POINT and it is what any future ask on this bar has
   // to respect: the TOTAL is the pinned quantity, the PADDINGS are the dial, and
   // the band takes what they leave. Write it the other way round — a band with a
-  // height of its own, a face summed from it — and the trio match becomes an
-  // arithmetic coincidence that the next trim silently breaks. The rail covers
-  // the drawer's and the stack's top frieze bands EXACTLY, edge to edge, again.
+  // height of its own, a face summed from it — and the total becomes an
+  // arithmetic coincidence that the next trim silently breaks. (The quantity
+  // that inversion protected in 08-21's era was the TRIO MATCH — the rail
+  // covering the side bands edge to edge at their own 15px; ⚠ SUPERSEDED
+  // 2026-08-27, see the 18px note below: the rail overhangs them by 3px of
+  // click-through paint now, and what the rule protects is the total itself.)
   //
   // THE LEAD (above the band) and THE PAD (below it) are down from 5px/3px to
   // 1px each — everything the 15px face has left over a band that wants ~12 of
@@ -1261,8 +1264,24 @@ $warning:   #F2C037;
   // pixel a side, "low in the bar" is not a thing the bar can express, and a
   // hairline of coat on each edge is what keeps the plate from reading as the
   // face's own top and bottom.
-  --media-tabs-lead: 1px;
-  --media-tabs-frieze-pad: 1px;
+  // ⭐ 2px EACH SINCE 2026-08-27's LIP ASK ("the bottom light-cream lip looks
+  // thinner than the top lip. Help me making both slightly thicker and making
+  // sure they are both the same thickness"). They were 1px 1px — EQUAL
+  // already; what read as thinner below was the company the bottom lip keeps
+  // (the dark rim under it plus the rail's 22% cast, pinching one light pixel
+  // between two dark things, where the top lip has the open window edge
+  // above). At 2px each the pinch is a fraction of the strip instead of the
+  // whole of it — the same answer, for the same reason, as the feed rails'
+  // coat going 2px the same day. ⚠ The ask's second half — a pair of
+  // `--grey-5` hairlines hugging the lips' inner edges — was CANCELLED by
+  // the user mid-pass ("cancel the lip hairline. it is already there"): the
+  // band's own two `--grey-6` rules ARE the dark lines under the top lip and
+  // over the bottom one, and a second pair a step lighter would have doubled
+  // them. If it is ever wanted anyway, the recipe that costs the motif
+  // nothing is a box-shadow pair on the band, never a border (border-box
+  // would take it out of the 11px layer).
+  --media-tabs-lead: 2px;
+  --media-tabs-frieze-pad: 2px;
   // THE BAND = the face minus its two margins. ~12px here, against the ~12.4px
   // the post card ran it at, so the motif barely moved: `border-box` takes the
   // band's own two 1px rules and the component's 1px pads out of it, leaving an
@@ -1277,7 +1296,39 @@ $warning:   #F2C037;
   --media-tabs-frieze-h: calc(
     var(--media-tabs-band) - var(--media-tabs-lead) - var(--media-tabs-frieze-pad)
   );
-  --media-tabs-band: calc(15px - var(--media-tabs-rim));
+  // ── ⭐ 18px TOTAL SINCE 2026-08-27 (user ask: "the frieze pattern on the
+  // header bar looks very distorted … adjust the header's height so we can fit
+  // a clean svg pattern inside, while keeping the bar as thin as possible") ──
+  // The same day's pattern EXCHANGE put the full two-wave motif in this band,
+  // and at the old 15px total the band was 12px — an ~8px inner, ~0.72px a
+  // row, exactly the sub-pixel smear the ask names. The clean fix is the
+  // platform's own law (the side trio, the feed's bands): draw the mask at its
+  // NATURAL 13px — 1px a row — and size the bar AROUND the drawing. That
+  // wants an 11px ink layer. The band's own anatomy then walked twice more
+  // the same day: the LIP ASK took the lead and the pad to 2px each, and the
+  // PAD-REMOVAL ask ("removing the inner padding between the svg and the top
+  // and bottom borders of the friezebar") zeroed `--frieze-bar-pad` and took
+  // the band 15 → **13px** (1 rule + 11 ink + 1 rule — the mask overhangs
+  // the 11px inner by 1px each side, so the file's empty edge rows fall
+  // outside and the INK stands directly on the rules). Total **18**:
+  // lead 2 + band 13 + pad 2 + rim 1.
+  // ⚠ THE BAND MAY NOT BE 15 WITH PAD 0 — that leaves a 13px inner the 13px
+  // mask fits exactly, which puts the empty rows back INSIDE the layer and
+  // redraws the very gap the ask removed, in the plate's own paint. 13 with
+  // the overhang, or 15 with 1px pads: those are the two honest states.
+  // ⚠ THE TRIO MATCH IS SUPERSEDED, deliberately: 2026-08-21's "same height
+  // as the drawer's top frieze bar" pinned the total to the side bands' 15px,
+  // and this rail now overhangs them by 3px (they are still fully covered —
+  // the rail is click-through paint, so the 3px lands on the columns' plaque
+  // as paint alone). What survives of that ask is its SHAPE: the total is
+  // still the pin and the band still takes what is left.
+  // ⚠ ONE FOOTPRINT, TWO SPLITS — this rail reads coat 2 · [1+11+1] ·
+  // coat 2 · rim 1 = 18px, the feed's rails (the same day's thinning +
+  // coat asks) coat 2 · [1+1+9+1+1] · coat 2 · rim 1 = 18px: same total,
+  // same 2px lips, and the split states each band's own choice — the header
+  // spends its two spare pixels on pixel-drawn ink against its rules, the
+  // feed on a padded plate around a softer meander.
+  --media-tabs-band: calc(18px - var(--media-tabs-rim));
   // ⚠ THE `+ Npx` IS THE RIM, and the two must move together. The band is
   // `border-box`, so its `height` has to carry the rim's own pixels or the
   // FACE thins by exactly what the rim gains; and this token is what every

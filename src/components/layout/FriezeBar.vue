@@ -112,7 +112,18 @@ export default defineComponent({
   // different question: past `--frieze-h` the band wants the full recipe (two
   // waves, the wider carve) rather than a stretched slim one.
   height: var(--frieze-bar-h, var(--frieze-h));
-  padding: 1px 0;
+  // ── THE PAD IS A DIAL since 2026-08-27 (`--frieze-bar-pad`) — the
+  // horizontal reading of the vertical family's `--frieze-bar-v-pad`
+  // (2026-08-22), published for the same kind of host: the top rail's band
+  // went pixel-drawn at `auto 13px` and was asked to lose "the inner padding
+  // between the svg and the top and bottom borders" — on a fixed-px fit the
+  // mask's own empty edge rows already reserve the margin, so this 1px is a
+  // second margin paid twice, and zeroing it (with the band sized so the
+  // mask overhangs, layer = ink) puts the ink against the rules without
+  // touching the drawing. Unset, nothing changes anywhere.
+  // ⚠ Only safe to zero ALONGSIDE a fixed fit — under `auto 99%`/`117%` the
+  // mask follows the padded box and the motif would land on the band's edge.
+  padding: var(--frieze-bar-pad, 1px) 0;
   pointer-events: none;
   // flat Quasar brown-4 plaque — darker inversion of the header's brown-1.
   // The base was the band's ONE dial (2026-07-26): a host box that is not in

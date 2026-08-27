@@ -85,7 +85,15 @@
           :title="railTitle"
           @pointerdown="onRailDown($event, 'l')"
         >
-          <FriezeBarVertical lip="right" class="feed-container__edge" />
+          <!-- ⭐ `slim` SINCE 2026-08-27 (user ask: "exchange the frieze
+               patterns … I want the thin one on the feed and the thick one
+               on the header. Do not exchange the coloring style") — the
+               one-wave pattern the header band gave up in the same pass:
+               layer two alone, mask `b`, the wave that carries the
+               full-width centre rule. Coloring and geometry both stay — see
+               `.feed-container__edge` for the two dials slim makes the host
+               restate (width and the rules' 1px). -->
+          <FriezeBarVertical lip="right" slim class="feed-container__edge" />
         </div>
         <div class="feed-container__body">
           <!-- `pins-changed` is a PASS-THROUGH, not this page's business: a
@@ -109,7 +117,10 @@
           :title="railTitle"
           @pointerdown="onRailDown($event, 'r')"
         >
-          <FriezeBarVerticalB lip="left" class="feed-container__edge" />
+          <!-- slim WITH its mirror — the pattern exchange never touches the
+               A/B pair: B's slim wave is `b-rot90-mirror`, A's is `b-rot90`,
+               so the two edges still reflect (the ask's standing constraint). -->
+          <FriezeBarVerticalB lip="left" slim class="feed-container__edge" />
         </div>
       </div>
     </div>
@@ -609,6 +620,33 @@ export default defineComponent({
 // before that). Read the component's comments, never the number.
 .feed-container__edge {
   --frieze-bar-v-w: var(--feed-edge-w);
+  // ── ⭐ THE PATTERN IS `slim` SINCE 2026-08-27 (the exchange — the header
+  // rail took the two-wave pattern, these bars took its one-wave one; the
+  // template note carries the ask). Slim is a RECIPE and two of its moves
+  // must be answered here, both through published dials and both the exact
+  // pattern the head box's own posts proved:
+  //  · WIDTH — slim halves `--frieze-bar-v-w` through its own element-level
+  //    rule, so the host's copy above is in a source-order race with it.
+  //    `--frieze-bar-v-slim-w` is the dial MADE for this; state it and the
+  //    race is moot.
+  //  · THE RULES — slim zeroes `--frieze-bar-v-edge-w` (on a 9px post the
+  //    frame eats the motif). This host's 1px BEATS that zero because a
+  //    page's scoped style injects after its imported components' (the
+  //    board's posts ride the same fact for fit/carve/pad), and the frame is
+  //    wanted here: the band's two `--grey-6` rules are half of the header
+  //    composition. ⚠ If these bars ever draw frameless, THIS is the seam
+  //    that broke — check injection order before anything else.
+  // Wave ONE's dials below go DORMANT under slim (layer one is v-if'd out,
+  // not hidden) and stay stated on purpose: they wake the moment the full
+  // pattern comes back, in the right color instead of the default grey-5.
+  // ⭐ AND THE BAND SHRANK AN ASK LATER (the "svg slightly smaller … bar
+  // thinner" ask — the walk is on `--feed-edge-w`): 13px band, 9px layer,
+  // and NO fixed fit any more — slim's own `117% auto` squeezes the motif,
+  // which is the board's posts' exact arrangement, soft on purpose. So for
+  // one pass this band was the posts' PIXEL-DRAWN recipe and now it is
+  // their SQUEEZED one; the pair of recipes and the trade between them are
+  // both recorded on those posts (FeedHeadBox) and in the codemap.
+  --frieze-bar-v-slim-w: var(--feed-edge-w);
   // ⚠ AND INVERTED BACK, THICKER, ONE ASK LATER (2026-08-24: "make them a
   // little thicker since they've shrinked on last changes … make their borders
   // thick and light-cream and then make their background color indigo-8 and
@@ -733,7 +771,11 @@ export default defineComponent({
   // "It's ok if they lose a little detail but make sure they render well" is
   // precisely this trade: 1px a column loses the sub-pixel modelling and gains
   // a meander whose every stroke lands on a whole pixel.
-  --frieze-bar-v-fit: 13px auto;
+  // ⚠ THE FIXED FIT CAME OFF 2026-08-27 ("make the svg slightly smaller") —
+  // no declaration here is DELIBERATE: slim's default `117% auto` now sizes
+  // the mask off the 9px layer, ~0.81px a column, the softness bought
+  // knowingly. Everything above stays as the pixel-drawn recipe's record;
+  // restoring it is `13px auto` here + `--feed-edge-w: 15px`, one edit.
   // ── ⚠ THE RULE IS THE LAYER'S WIDTH, NOT THE PAD'S VALUE ────────────────
   // A 13px fixed fit wants an ELEVEN-pixel layer, always: the mask then
   // overflows by 1px a side and the file's two EMPTY edge columns fall outside,
@@ -811,15 +853,28 @@ export default defineComponent({
 // prop where it is. The rim faces the content by MODIFIER, one side each, so
 // the two rails reflect exactly as the mirrored masks inside them do.
 //
-// THE RAIL IS CONTENT-SIZED, deliberately: 1px lead + 15px band + 1px pad +
-// 1px rim = 18px, and nothing anywhere states 18. The header pins its TOTAL
-// and lets the band be the remainder; this surface pins the BAND (the
-// pixel-drawn 11px layer is the thing four asks fought for) and lets the rail
-// be the sum. Same dependency, the way round that protects the fragile term.
+// THE RAIL IS CONTENT-SIZED, deliberately: lead + band + pad + rim, and
+// nothing anywhere states the total. The header pins its TOTAL and lets the
+// band be the remainder; this surface pins the BAND and lets the rail be the
+// sum. Same dependency, the way round that protects the fragile term.
 //
 // The grip is unchanged — the coat is paint on the same strip of space that
 // has taken the resize drag since 2026-08-18, and the hover glow now lights a
 // cream bar instead of a naked plate.
+//
+// ── ⭐ THE COAT IS 2px A SIDE (2026-08-27, the same day's later ask: "the
+// inner-facing light-creams of both friezebars are too thin compared to the
+// outer-facing ones. make them both slightly thicker and make sure they're
+// both the same size") ─────────────────────────────────────────────────────
+// They were 1px 1px — EQUAL in the stylesheet already, which is the note
+// worth keeping: what read as "thinner inside" was one CSS pixel landing on
+// the device grid differently on the two sides of a percentage-positioned,
+// drag-resized box (the container's x is fractional, so a 1px strip rounds
+// to 1 device px on one side and 2 on the other, and WHICH side alternates
+// as the box moves). At 2px the rounding is a fraction of the strip instead
+// of the whole of it, so the two sides finally LOOK like the same number
+// they always were. Total now: 2 + 13 + 2 + 1 = 18px — the band's shrink
+// (see `--feed-edge-w`) paid for the coat's growth and the footprint held.
 .feed-container__rail {
   flex: 0 0 auto;
   display: flex;
@@ -827,7 +882,7 @@ export default defineComponent({
   position: relative;
   cursor: col-resize;
   background: var(--plaque-coat);
-  padding: 0 1px;
+  padding: 0 2px;
   // The glow is a box-shadow rather than a filter: a `drop-shadow` would
   // follow the bar's own alpha mask (the motif is cut out of the plate) and
   // light every wave crest individually instead of the bar's silhouette.
@@ -908,10 +963,21 @@ export default defineComponent({
   // `.feed-container__edge`) plus two 1px edges and two 1px pads. Move it only
   // with those two, in 13px steps of mask.
   // ⚠ SINCE 2026-08-27 THIS IS THE BAND, NOT THE CHROME: the rail wraps it in
-  // 1px of coat each side plus a 1px rim (the header composition — see the
-  // rail's note), so the container's visible edge is 18px a side, content-sized
-  // off this number rather than stated anywhere.
-  --feed-edge-w: 15px;
+  // coat plus a 1px rim (the header composition — see the rail's note), so the
+  // container's visible edge is content-sized off this number rather than
+  // stated anywhere.
+  // ⭐ 13px LATER THE SAME DAY (user ask: "help me making the svg slightly
+  // smaller. I want the bar to look thinner") — the BOARD'S POSTS' own
+  // arrangement, adopted whole: 13 = 1 rule + 1 pad + 9 LAYER + 1 pad +
+  // 1 rule, the fixed fit REMOVED so slim's `117% auto` draws the meander at
+  // ~10.5px over 13 columns — ~0.81px a column, sub-pixel and SOFT, the
+  // trade those posts made deliberately ("no importa si se deforman un poco")
+  // and the direct price of "slightly smaller": there is no pixel-exact size
+  // under 13px/column-1px, so smaller MEANS squeezed. The 11px-layer law
+  // above still governs the pixel-drawn recipe — it simply is not the recipe
+  // in force; put `--frieze-bar-v-fit: 13px auto` back and this number must
+  // return to 15 in the same edit.
+  --feed-edge-w: 13px;
 
   flex: 0 0 45%;
   height: 100%;
