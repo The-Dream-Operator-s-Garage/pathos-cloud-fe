@@ -42,7 +42,14 @@
            plaque tone, so frame and field are one continuous material, and
            casts a soft shadow off each side so it reads as standing above
            the page. They are THINNER than the crown strip since 2026-08-07
-           (user ask) — see `.feed-container__edge`. -->
+           (user ask) — see `.feed-container__edge`.
+           ⭐ SINCE 2026-08-27 EACH BAR IS INLAID IN ITS RAIL — the top header
+           rail's composition (coat bar + rim + inlaid band) turned 90°, the
+           band's plate `--indigo-7` under a flat `--plaque-flat` motif. The
+           A/B mirroring above is untouched by it. The two style blocks
+           (`.feed-container__rail`, `.feed-container__edge`) carry the
+           recipe; the "one continuous material" claim two sentences up has
+           been history since 08-07 and stays as the record. -->
       <div
         ref="boxEl"
         class="feed-container"
@@ -615,10 +622,51 @@ export default defineComponent({
   // held for the day, and the step is what the new PAD below is drawn in, so
   // the plate is doing a second job now: it is the gap between the cream frame
   // and the cream motif as well as the ground under the meander.
-  --frieze-bar-v-base: var(--indigo-9, #283593);
-  --frieze-bar-v-wave-one: var(--light-cream, #FCF3E0);
-  --frieze-bar-v-wave-two: var(--light-cream, #FCF3E0);
-  --frieze-bar-v-edge: var(--light-cream, #FCF3E0);
+  //
+  // ── ⭐ THE BAR IS THE HEADER'S BAND NOW (2026-08-27, user ask: "take the top
+  // header frieze bar and the whole header structure and … replace the friezes
+  // from the main feed container with the same kind of composed component") ──
+  // The top rail (`MediaTabsBar`) is a COMPOSITION: a `--plaque-coat` bar with
+  // a `--grey-6` rim on its exposed edge, and the frieze INLAID in it — a
+  // hairline of coat each side of a plate framed by its own two 1px rules in
+  // the HOST's line ink. This surface now runs that composition turned 90°:
+  // the RAIL below became the coat-bar (see `.feed-container__rail`) and this
+  // element is only the INLAID BAND — so every dial here is the band's half of
+  // the header's recipe, restated in the ask's palette:
+  //
+  //  · PLATE `--indigo-7` (the ask: "make the inner background of the frieze
+  //    bars indigo-7") — two steps up from the -9 it held since 08-24. The
+  //    header's band runs `--grey-8` here; the hue is this surface's own, the
+  //    RELATION (a dark plate, the only dark thing on a light coat, stating
+  //    itself without a frame of its own) is the header's.
+  //  · MOTIF `--plaque-flat`, FLAT — no gradient (the ask: "remove the
+  //    gradient and use the same color as the side bars, using the light-cream
+  //    with a veil from the header's background color"). `--plaque-flat` IS
+  //    exactly that: the header's `--plaque-coat` (a `--light-cream` sheet
+  //    under the 30% `--grey-3` veil — also the drawer's and the stack
+  //    column's coat, which is the "side bars" reading) as the flat `<color>`
+  //    these layers' `background-color` needs, minted for the places the
+  //    coat's layer list is illegal. The header's band paints a teal→indigo
+  //    ramp through its `-paint` dial; the vertical family has no such dial
+  //    and none is set — the "remove the gradient" is deliberate, not a gap.
+  //  · THE TWO RULES `--grey-6` (from `--light-cream`) — the header band's own
+  //    device restated: the plate is framed in its HOST bar's line ink (the
+  //    rail's new rim is the same ink at the same 1px), so each rail's three
+  //    long lines are one ink at one weight. The cream frame was the
+  //    frame-in-the-motif's-ink arrangement and left with the composition.
+  //  · THE MASKS DO NOT MOVE: A on the left, B on the right — the horizontally
+  //    mirrored pair (the ask's own closing constraint: "the original friezes
+  //    are horizontally mirrored … make sure this pattern remains"). The
+  //    composition never touches the masks, so the pair keeps reflecting.
+  //  · THE GEOMETRY DOES NOT MOVE EITHER — everything below this comment
+  //    (edge-w, fit, pad, the 11px-layer law) is the pixel-drawn recipe that
+  //    survived 08-24 verbatim. The coat and the rim are the RAIL's pixels,
+  //    OUTSIDE this bar's border-box, which is the whole reason the wrapper
+  //    carries them: 15px of band stays 1+1+11+1+1 exactly.
+  --frieze-bar-v-base: var(--indigo-7, #3949ab);
+  --frieze-bar-v-wave-one: var(--plaque-flat, #f8f2e4);
+  --frieze-bar-v-wave-two: var(--plaque-flat, #f8f2e4);
+  --frieze-bar-v-edge: var(--grey-6, #9e9e9e);
   // ── THE INWARD LIP MATCHES THE OUTWARD EDGE (2026-08-24, user ask: "make the
   // inner-facing borders of the main container vertical frieze bars the same as
   // the outer facing ones, thick and clearer") ────────────────────────────
@@ -654,7 +702,11 @@ export default defineComponent({
   // reads is worth more here than a thicker one that disappears into the
   // pattern it is framing.
   --frieze-bar-v-edge-w: 1px;
-  --frieze-bar-v-lip: var(--light-cream, #FCF3E0);
+  // `--grey-6` WITH THE OUTWARD EDGE (2026-08-27): the header's band draws its
+  // two rules in ONE ink, so the lip stopped being a separate decision the day
+  // the composition arrived. The dial stays stated because the component's
+  // default is `--indigo-5` and a host that says nothing gets a two-tone frame.
+  --frieze-bar-v-lip: var(--grey-6, #9e9e9e);
   --frieze-bar-v-carve: none;
   // ── ⚠ PIXEL-DRAWN, WHICH IS WHAT "not so distorted" MEANS IN NUMBERS ─────
   // The bar had been sized off the viewport (`--feed-edge-w` = 0.8 × the frieze
@@ -701,48 +753,34 @@ export default defineComponent({
   // reads only as "the pattern is wrong"); a layer OVER 11 leaves the mask
   // floating with plate showing past its empty columns.
   //
-  // What the pad BUYS, and why it was worth an ask: the frame and the motif are
-  // both `--light-cream`, so with `pad: 0` they touched and the border stopped
-  // reading as a border. 1px of `--indigo-9` plate between them is the whole
-  // difference — the same device the board's own posts use, and the reason the
-  // plate tone matters more now than it did.
+  // What the pad BUYS, and why it was worth an ask: the frame and the motif
+  // were both `--light-cream`, so with `pad: 0` they touched and the border
+  // stopped reading as a border. 1px of plate between them is the whole
+  // difference — the same device the board's own posts use.
+  // ⚠ 2026-08-27 CHANGED THE ARGUMENT AND KEPT THE PIXEL: the rules are
+  // `--grey-6` now and the motif cream, so contrast tells them apart without
+  // help — but the header band this composition copies runs exactly this
+  // hairline of plate between rule and ink (`FriezeBar`'s own `padding: 1px 0`,
+  // turned), so the pad stays as the composition's pixel rather than the old
+  // legibility rescue. Zeroing it would also move the layer off 11 — see the
+  // rule above this comment — which is the real reason it may not move alone.
   --frieze-bar-v-pad: 1px;
 }
 
-// ── A SECOND, FINER RULE ON THE INNER FACE (2026-08-24, user ask: "for the
-// inner-facing side of the main feed container frieze bars, help me adding a
-// very thin indigo-7 inner border after the light-cream one") ───────────────
-// Read from the outside in, each bar's inner edge is now: 2px `--light-cream`
-// lip, then this 1px `--indigo-7` hairline, then the feed's content. So the
-// frame states itself twice at two weights, the way the container's own graded
-// side frame always has (its `--indigo-4` rim outside, the well's line inside).
-//
-// ⚠ IT IS A `box-shadow`, NOT A BORDER, and that is the whole trick: the bar's
-// 17px is arithmetic — 2px edge + 1px pad + 11px layer + 1px pad + 2px edge —
-// and a second border would take its width out of the LAYER (border-box) and
-// clip an inked column, which is the trap recorded in gotchas. A shadow draws
-// outside the box and reserves no space, so the bar's five numbers are
-// untouched and the line lands on the field beside it.
-// ⚠ AND IT NEEDS THE LIFT. The bar and `.feed-container__body` are siblings
-// that meet exactly (measured: bar ends at x 94, body begins at 94), and the
-// body paints later — so without `position: relative; z-index: 1` the body's
-// own opaque bed covers the hairline and the rule is true in the stylesheet and
-// invisible on screen, which is this surface's most-repeated bug.
-// ⚠ MIRRORED BY MODIFIER, never by assuming a side: the INNER face is the RIGHT
-// of the left bar and the LEFT of the right one, and the two components even
-// have different root classes (`frieze-bar-v` / `frieze-bar-v-b`).
-.feed-container__edge {
-  position: relative;
-  z-index: 1;
-}
-
-.feed-container__edge.frieze-bar-v--lip-right {
-  box-shadow: 1px 0 0 0 var(--indigo-7, #3949ab);
-}
-
-.feed-container__edge.frieze-bar-v-b--lip-left {
-  box-shadow: -1px 0 0 0 var(--indigo-7, #3949ab);
-}
+// ── THE INDIGO-7 HAIRLINE IS GONE (2026-08-27) — it lived here 08-24 → 08-27
+// (user ask then: "a very thin indigo-7 inner border after the light-cream
+// one"): a 1px `--indigo-7` box-shadow just inboard of each bar's cream lip,
+// with a `position: relative; z-index: 1` lift so `.feed-container__body`'s
+// later paint could not cover it. The header composition SUPERSEDES both
+// halves of its job: the inner seam now states itself twice as rim (`--grey-6`
+// on the rail) · coat · rule (`--grey-6` on the band) — the header's own
+// underside, turned — and the indigo-7 did not leave the surface, it moved
+// INTO the bar as its plate. The box-shadow trick (a border would eat the
+// layer under border-box and clip an inked column) and the lift's
+// paint-order lesson are recorded in gotchas and in git under 2026-08-24 if a
+// free-floating second line is ever wanted again; the lift itself left with
+// the shadow, since the rail's rim is inside the rail's own box and needs no
+// help against the body.
 
 // ── THE RAILS (2026-08-18, user ask) ─────────────────────────────────────
 // A wrapper round each frieze bar, and the wrapper is the whole of what is
@@ -760,18 +798,49 @@ export default defineComponent({
 // 08-21) and stays as an unstacked relative for whatever ever needs a frame
 // here — it changes nothing about how the bars rank inside `.feed-container`'s
 // 3001, the same note the bar's own `position: relative` carries.
+//
+// ── ⭐ THE RAIL IS THE HEADER'S BAR NOW (2026-08-27, user ask — the other half
+// of the composition described at `.feed-container__edge`) ──────────────────
+// `.media-tabs` turned 90°: the rail wears the chrome's `--plaque-coat` face,
+// keeps a 1px hairline of that coat on EACH side of the band (the header's
+// `--media-tabs-lead` / `--media-tabs-frieze-pad`, turned — what makes the
+// band INLAID rather than laid on: coat shows outboard of the plate and a
+// little coat shows inboard of it, and the plate never touches the rail's own
+// edges), and draws a 1px `--grey-6` rim on its INNER-facing edge — the
+// header's `border-bottom` under the same 90° turn that put the old bars' lip
+// prop where it is. The rim faces the content by MODIFIER, one side each, so
+// the two rails reflect exactly as the mirrored masks inside them do.
+//
+// THE RAIL IS CONTENT-SIZED, deliberately: 1px lead + 15px band + 1px pad +
+// 1px rim = 18px, and nothing anywhere states 18. The header pins its TOTAL
+// and lets the band be the remainder; this surface pins the BAND (the
+// pixel-drawn 11px layer is the thing four asks fought for) and lets the rail
+// be the sum. Same dependency, the way round that protects the fragile term.
+//
+// The grip is unchanged — the coat is paint on the same strip of space that
+// has taken the resize drag since 2026-08-18, and the hover glow now lights a
+// cream bar instead of a naked plate.
 .feed-container__rail {
   flex: 0 0 auto;
   display: flex;
   align-items: stretch;
   position: relative;
   cursor: col-resize;
+  background: var(--plaque-coat);
+  padding: 0 1px;
   // The glow is a box-shadow rather than a filter: a `drop-shadow` would
   // follow the bar's own alpha mask (the motif is cut out of the plate) and
   // light every wave crest individually instead of the bar's silhouette.
   transition: box-shadow 0.14s;
   touch-action: none; // or a phone claims the drag for a pan and the stream dies mid-gesture
 }
+
+// The rim, mirrored by modifier — the INNER face is the RIGHT edge of the
+// left rail and the LEFT edge of the right one (the same never-assume-a-side
+// note the old hairline carried). One ink, one weight with the band's two
+// rules: `--grey-6` at 1px, the header's three-lines-one-ink reading, turned.
+.feed-container__rail--l { border-right: 1px solid var(--grey-6, #9e9e9e); }
+.feed-container__rail--r { border-left: 1px solid var(--grey-6, #9e9e9e); }
 
 // LIT — hovered, or held while the pointer has run off it (which it will for
 // most of any real drag). `rgba(140, 158, 255, …)` is `--indigo-11`, and it is
@@ -838,6 +907,10 @@ export default defineComponent({
   // the pixel grid. 15px is 11px of layer (the pixel-exact fit's own size, see
   // `.feed-container__edge`) plus two 1px edges and two 1px pads. Move it only
   // with those two, in 13px steps of mask.
+  // ⚠ SINCE 2026-08-27 THIS IS THE BAND, NOT THE CHROME: the rail wraps it in
+  // 1px of coat each side plus a 1px rim (the header composition — see the
+  // rail's note), so the container's visible edge is 18px a side, content-sized
+  // off this number rather than stated anywhere.
   --feed-edge-w: 15px;
 
   flex: 0 0 45%;
