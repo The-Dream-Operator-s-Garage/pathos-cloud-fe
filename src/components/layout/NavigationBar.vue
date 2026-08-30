@@ -1061,17 +1061,31 @@ export default defineComponent({
   // and both greys still DARKER than the coat plate, so the
   // value-inverted relation holds for both waves and the carve stays
   // forbidden by law.
-  // "Well drawn instead of the single tiny one": the fixed `auto 13px`
-  // fit below draws both masks at their natural 1px-a-row grid in the
-  // 19px layer, the drawer's own crispness — nothing is squeezed.
+  // "Well drawn instead of the single tiny one": the fixed fit below
+  // draws both masks whole — nothing is squeezed. (It sat at the drawer's
+  // own `auto 13px` for one pass; the thickening ask below took it to
+  // `auto 17px` on a padless band.)
   --frieze-bar-wave-one: var(--grey-6, #9e9e9e);
   --frieze-bar-wave-two: var(--grey-7, #757575);
-  // Kept from the trio deliberately: the pixel-exact fit is what makes the
-  // meander crisp at 1px a row, and the carve stays off — for the grime
-  // reason above AND, since the swap re-inverted the band, by the
-  // lighter-ink law again. Both reach through `slim` since 2026-08-30 — the
-  // same pass taught the variant to read them.
-  --frieze-bar-fit: auto 13px;
+  // The carve stays off — for the grime reason above AND, since the swap
+  // re-inverted the band, by the lighter-ink law again.
+  // ── ⭐ THE PATTERN GREW OFF THE PIXEL GRID (2026-08-30, the ask after the
+  // two waves landed: "make the pattern slightly thicker by reducing
+  // padding and size of outer components from the frieze bar") ──────────
+  // Two moves, exactly the levers the ask names: the component's 1px pads
+  // go to 0 through `--frieze-bar-pad` (the dial published for the header's
+  // identical ask), opening the layer from 19px to the band's full 21px,
+  // and the fit rises `auto 13px` → `auto 17px` — the masks draw ~1.31px a
+  // row, centered by the component's own `mask-position: center`. ⚠ This
+  // knowingly leaves the trio's 1px-per-row pixel grid: an upscale
+  // antialiases stroke edges (soft, not the sub-pixel mush the squeezes
+  // made — thickening is the ask, softness is its price). The crisp rungs
+  // remain 13n: `auto 13px` to return, `auto 26px` if the band ever has
+  // ~28px to spend. The band itself did NOT grow: `--nav-trail-h` is also
+  // every chip's height, so growing the band grows the buttons — the
+  // pattern takes its room from the pads instead.
+  --frieze-bar-pad: 0;
+  --frieze-bar-fit: auto 17px;
   --frieze-bar-carve: none;
 }
 
