@@ -31,13 +31,23 @@
            standing ON the trail. The empty middle is deliberately NOT lifted:
            the trail crosses it.
 
-           ⭐ IT WEARS THE HEADER BAND SINCE 2026-08-30 (user ask: "put the
-           same inner friezebar of the top header bar on the footer bar inner
-           friezebar") — `slim`, one wave, mask `b`, under the top rail's own
-           cyan→indigo ramp on the same grey-8 plate, so the window's two
-           horizontal chrome edges now draw ONE band (see the style block for
-           what moved and what deliberately did not). ── -->
-      <FriezeBar slim class="nav-frieze" />
+           ⭐ 2026-08-30 WALKED THIS BAND THREE TIMES IN ONE DAY: it wore the
+           HEADER BAND first ("put the same inner friezebar of the top header
+           bar on the footer bar inner friezebar" — `slim`, one wave, the
+           cyan→indigo ramp on the grey-8 plate), the SWAP then traded it the
+           header's recolor (the bar's own coat as plate, flat grey-6 wave),
+           and the day's LAST ask brought THE DRAWER'S OWN PATTERN BACK
+           ("changing the svg-pattern to the one on the inner friezebars from
+           the left drawer, with the 2 svgs well drawn instead of the single
+           tiny one") — `slim` OFF, exactly the route the style block always
+           named for the second depth's return: BOTH waves draw again, mask
+           `a` + mask `b`, at the pixel-drawn `auto 13px`, inked grey-6 (wave
+           one) and grey-7 (wave two) on the coat plate (the follow-up ask's
+           inversion — grey-8/grey-6 held one pass). The trail is
+           literally the drawer's element again for the first time since the
+           morning — same two masks, same fit — differing in its height and
+           in wearing its bar's own coat under darker inks. ── -->
+      <FriezeBar class="nav-frieze" />
 
       <!-- ── LEFT: the drawer column continued down through the bar — but
            ONLY WHILE THERE IS NO DRAWER (2026-08-02). The drawer runs to the
@@ -1035,9 +1045,27 @@ export default defineComponent({
   // FriezeBar's groove reads only when the ink is lighter than its plate.
   // ⚠ The grey-8 plate-ties argument in the colorway block above (one plate
   // with the side trio) is SUPERSEDED with the plate; the block stands as
-  // the record of how the band got here.
+  // the record of how the band got here. (The swap's ONE-wave half lasted
+  // one ask — the block below returns the pattern to the drawer's two.)
   --frieze-bar-base: var(--plaque-coat);
-  --frieze-bar-wave-two: var(--grey-6, #9e9e9e);
+  // ── ⭐ THE SECOND DEPTH CAME BACK (2026-08-30, the day's last ask:
+  // "changing the svg-pattern to the one on the inner friezebars from the
+  // left drawer, with the 2 svgs well drawn instead of the single tiny
+  // one. For the first SVG, use grey-8 and for the other grey-6") ───────
+  // `slim` came OFF the mount — the exact route the note below always
+  // named — so layer ONE renders again and takes its first dial here.
+  // The asked-for grey-8/grey-6 pair held one pass; the follow-up ask
+  // ("invert the colors on each svg and use grey-7 instead of grey-8")
+  // settled it: wave one (mask `a`) grey-6, wave two (mask `b`) grey-7 —
+  // the LIGHTER ink on the thick wave, one step apart instead of two,
+  // and both greys still DARKER than the coat plate, so the
+  // value-inverted relation holds for both waves and the carve stays
+  // forbidden by law.
+  // "Well drawn instead of the single tiny one": the fixed `auto 13px`
+  // fit below draws both masks at their natural 1px-a-row grid in the
+  // 19px layer, the drawer's own crispness — nothing is squeezed.
+  --frieze-bar-wave-one: var(--grey-6, #9e9e9e);
+  --frieze-bar-wave-two: var(--grey-7, #757575);
   // Kept from the trio deliberately: the pixel-exact fit is what makes the
   // meander crisp at 1px a row, and the carve stays off — for the grime
   // reason above AND, since the swap re-inverted the band, by the
