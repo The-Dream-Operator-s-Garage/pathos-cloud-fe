@@ -48,22 +48,25 @@
          than the card's (see the style block).
          Decorative: `pointer-events: none` from the component, on a parent
          that is already `none`.
-         ⭐ FULL PATTERN SINCE 2026-08-27 (user ask: "exchange the frieze
-         patterns between the top header bar and the main feed container
-         frieze bars … the thick one on the header. Do not exchange the
-         coloring style") — `slim` came OFF: both waves draw now, the dense
-         two-wave interleave the feed's bars carried, while those bars took
-         the one-wave slim pattern this band gives up. The COLORING stayed
-         exactly where it was, per the ask: grey-8 plaque, the cyan→indigo
-         ramp — now on BOTH waves, since one gradient across the whole
-         meander IS this band's coloring style and a second tone would have
-         been a new style, not the old one on more ink. The full pattern was
-         squeezed into the old 12px band for one pass ("very distorted") and
-         the ask after paid HEIGHT for a clean drawing instead: the band is
-         15px now, pixel-drawn at `auto 13px`, the rail 18px total — the
-         arithmetic lives on `--media-tabs-band` in _tokens.scss and the two
-         dials in the style block. -->
-    <FriezeBar class="media-tabs__frieze" />
+         ⭐ SINGLE WAVE AGAIN SINCE 2026-08-30 (user ask: "change the double
+         svg pattern to the single-SVG one. You can copy the friezes on the
+         main feed container") — `slim` is BACK ON, which UNDOES the
+         2026-08-27 exchange's header half: that pass took `slim` off so
+         both waves drew (the dense interleave the feed's bars had carried)
+         while the feed's bands took the one-wave pattern in trade. Both
+         surfaces now run the SAME single-wave pattern — layer two alone,
+         mask `b`, the wave with the full-width centre rule, exactly what
+         `.feed-container__edge` draws — so the exchange is superseded, not
+         half-reverted: nothing went back to the feed. The COLORING stays
+         put, as it has through every pattern move: grey-8 plaque, the one
+         cyan→indigo ramp down the wave. The pixel-drawn geometry the
+         exchange paid height for survives too — band 13px, `auto 13px`, 1px
+         a row, rail 18px total — because `slim` reads the fit/carve dials
+         since this same ask (it hardcoded `auto 117%` + its halved carve
+         before, which would have squeezed the mask and grimed the band; see
+         FriezeBar's slim block). The arithmetic lives on `--media-tabs-band`
+         in _tokens.scss and the dials in the style block. -->
+    <FriezeBar slim class="media-tabs__frieze" />
     <TransitionGroup ref="rowEl" tag="div" name="mtab" class="media-tabs__row nasalization" appear>
       <button
         v-for="t in tabs"
@@ -356,10 +359,12 @@ export default defineComponent({
   --frieze-bar-base: var(--grey-8, #616161);
   border-top: 1px solid var(--grey-6, #9e9e9e);
   border-bottom: 1px solid var(--grey-6, #9e9e9e);
-  // ── ⭐ THE FULL PATTERN IS PIXEL-DRAWN (2026-08-27, the ask after the
-  // exchange: "the frieze pattern on the header bar looks very distorted …
-  // adjust the header's height so we can fit a clean svg pattern inside,
-  // while keeping the bar as thin as possible") ─────────────────────────
+  // ── ⭐ THE BAND IS PIXEL-DRAWN (2026-08-27, the ask after the exchange:
+  // "the frieze pattern on the header bar looks very distorted … adjust the
+  // header's height so we can fit a clean svg pattern inside, while keeping
+  // the bar as thin as possible" — earned by the FULL pattern, KEPT by the
+  // slim one when 2026-08-30 took the band back to a single wave: these two
+  // dials reach through `slim` since that day, see FriezeBar) ───────────
   // The exchange's first cut kept the 12px band and squeezed the two-wave
   // motif into it at `auto 117%` under a halved carve — ~0.72px a row, which
   // held for a SLIM band and smears for a full one (twice the ink at the
@@ -389,65 +394,34 @@ export default defineComponent({
   // file's empty edge rows back INSIDE the layer and redraws the removed gap
   // in plate paint. At 13 the mask overhangs and the ink meets the rules.
   --frieze-bar-pad: 0;
-  // The two lips cast onto the band (same ask, second half: "a grey-6 shadow
-  // from the top lip onto the frieze section and also from the bottom lip").
-  // Drawn by the ::after overlay below, NOT here: an inset box-shadow on
-  // this element would paint UNDER the wave layers (background level), and a
-  // cast that stops at every meander stroke reads as a stencil, not a shadow.
-  position: relative;
+  // ── ⭐ THE LIPS' CAST IS GONE (2026-08-30, user ask: "there is a grey veil
+  // on top of the inner frieze bar … removing it") ──────────────────────────
+  // An `::after` overlay stood here from 2026-08-27 — `inset: 0` + an inset
+  // box-shadow PAIR, grey-6 at 0.75 (a tone a seven-ask walk settled on),
+  // washing the lips' edges onto plate and motif alike — and the veil the
+  // ask names IS that wash: on the `--grey-8` plate a lighter tone renders
+  // as bloom across the whole band, not as two edge shadows. DELETED, with
+  // the `position: relative` that existed only to anchor it. If a cast over
+  // the band is ever wanted again, the recipe that matters is the overlay
+  // itself: an inset shadow on THIS element paints under the wave layers
+  // (background level) and stencils at every meander stroke.
+  //
   // The flat tone under the paint — never seen while the gradient draws, and
   // stated anyway so a fallback lands in the same family rather than on the
   // component's default brown. ⚠ IT FOLLOWS THE RAMP'S TOP END, so it moved
   // with the inversion: teal now, indigo before 2026-08-24. Keep the two in
   // step or a paint-less fallback lands on the wrong end of the ramp.
-  // ⭐ WAVE ONE JOINED ON 2026-08-27 (the exchange brought the second wave):
-  // SAME ramp, SAME flat fallback — one gradient across the whole meander is
-  // this band's coloring style, and the ask was explicit that the style does
-  // not move with the pattern. Two waves at two tones would be the vertical
-  // family's OLD device, not this band dressed thicker.
-  --frieze-bar-wave-one: var(--teal-11, #a7ffeb);
-  --frieze-bar-wave-one-paint: linear-gradient(
-    to bottom,
-    var(--teal-11, #a7ffeb) 0%,
-    var(--indigo-11, #8c9eff) 100%
-  );
+  // ⭐ WAVE ONE'S DIALS LEFT WITH THE PATTERN (2026-08-30): they joined on
+  // 2026-08-27 when the exchange brought the second wave, and `slim` v-ifs
+  // that layer out of the DOM — dials on a band that isn't drawn are the
+  // exact trap FriezeBar's slim notes warn about, so they go rather than
+  // stand as dead state. Wave two is the slim pattern's one wave (mask `b`).
   --frieze-bar-wave-two: var(--teal-11, #a7ffeb);
   --frieze-bar-wave-two-paint: linear-gradient(
     to bottom,
     var(--teal-11, #a7ffeb) 0%,
     var(--indigo-11, #8c9eff) 100%
   );
-}
-
-// ── ⭐ THE LIPS' CAST (2026-08-27, with the pad removal above) ─────────────
-// A pseudo-element OVER the band, not a shadow on it: `inset:0` + the two
-// inset box-shadows, so the wash falls across plate and motif alike — the
-// lips reading as raised edges the frieze is set below. Spelled as an rgba
-// because a box-shadow color wants a <color> and the wash needs its own
-// alpha. ⚠ THE TONE WALKED SEVEN ASKS IN ONE SITTING AND LANDED WHERE IT
-// STARTED — `--grey-6` ("a grey-6 shadow from the top lip") → `--grey-8` →
-// `--grey-4` → `--grey-9` → `--grey-7` → `--grey-5` → **`--grey-6`**
-// (rgba(158,158,158,…), settled "ok no, grey-6") — so the whole scale was
-// seen before the first pick held, and the map the walk drew is the note
-// worth keeping: tones LIGHTER than the `--grey-8` plate render as the
-// lips' pale material blooming onto the dark band, stronger the lighter
-// the tone; tones AT or UNDER it (-8, -9) are invisible on the plate and
-// read only where they cross the MOTIF — a true dark shadow. -6 is the
-// bloom side at the RULES' OWN INK: the cast reads as the two grey-6 rules
-// softening into the band, one ink doing line and shade, which is likely
-// why the eye kept coming back to it. (The settled pass runs 0.75 alpha —
-// the walk's constant — where the first -6 pass ran 0.6; the comparison was
-// made at 0.75, so 0.75 is what "grey-6" means here.)
-// `pointer-events` is moot (the whole rail is `none`) and the overlay needs
-// no z-index: it paints after `.frieze-bar__inner` in tree order, which is
-// exactly "over the frieze section".
-.media-tabs__frieze::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  box-shadow:
-    inset 0 2px 3px rgba(158, 158, 158, 0.75),
-    inset 0 -2px 3px rgba(158, 158, 158, 0.75);
 }
 
 // ── …ON EVERY ROUTE, /feed INCLUDED AGAIN (2026-08-24, user ask: "make the

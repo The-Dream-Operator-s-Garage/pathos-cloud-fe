@@ -1312,6 +1312,11 @@ $warning:   #F2C037;
   // the 11px inner by 1px each side, so the file's empty edge rows fall
   // outside and the INK stands directly on the rules). Total **18**:
   // lead 2 + band 13 + pad 2 + rim 1.
+  // ⭐ THE GEOMETRY OUTLIVED THE PATTERN THAT EARNED IT (2026-08-30, user
+  // ask): the band is `slim` again — ONE wave, the feed bands' own pattern —
+  // and every number here holds, because slim reads the fit/carve dials
+  // since that ask (FriezeBar's slim block). At 1px a row the single wave
+  // is if anything crisper; nothing in this arithmetic knows the wave count.
   // ⚠ THE BAND MAY NOT BE 15 WITH PAD 0 — that leaves a 13px inner the 13px
   // mask fits exactly, which puts the empty rows back INSIDE the layer and
   // redraws the very gap the ask removed, in the plate's own paint. 13 with

@@ -161,9 +161,9 @@ export default defineComponent({
 // no groove — and at band scale the carve's black/white flanks around
 // low-contrast waves read as noise rather than relief. A host states
 // `--frieze-bar-carve: none` on the element it mounts the bar on; unset, the
-// default below IS the recipe, unchanged. (`slim` still states its own
-// halved carve and does not read this dial — no flat host runs slim today,
-// and a slim bar without its carve is a smear by that variant's own notes.)
+// default below IS the recipe, unchanged. (`slim` reads BOTH dials too since
+// 2026-08-30 — with its own values as the defaults, so a host that sets
+// neither gets the variant exactly as it always was; see the slim block.)
 // THE MASK FIT IS A DIAL TOO (`--frieze-bar-fit`, same ask): `auto 99%`
 // scales the motif to whatever box the band has, which is right for every
 // viewport-relative band and guarantees sub-pixel rows — 99% of a vh-derived
@@ -321,17 +321,28 @@ export default defineComponent({
 // which are orthogonal to the recipe and set by the host. (One interaction to
 // know: slim drops layer one, so a host that dials only `--frieze-bar-wave-one`
 // dresses a band that isn't drawn.)
+// ⭐ SLIM READS THE FIT AND CARVE DIALS SINCE 2026-08-30 (the top rail's ask:
+// its band went back to slim while keeping the pixel-drawn `auto 13px` fit
+// and `carve: none` the 08-27 height was paid for — hardcoded values here
+// would have squeezed the mask back to 117% and grimed the band the moment
+// `slim` returned). The variant's own numbers are the DEFAULTS, so the
+// hosts that dial neither (auth page, chat dock, the flyouts) render to the
+// pixel as before; a host that sets the dials gets them under slim exactly
+// as it would on a full bar. The height already worked this way
+// (`--frieze-bar-h` since 2026-08-07).
 .frieze-bar--slim {
   height: var(--frieze-bar-h, calc(var(--frieze-h) / 2));
 
   .frieze-bar__layer {
-    mask-size: auto 117%;
-    -webkit-mask-size: auto 117%;
-    filter:
+    mask-size: var(--frieze-bar-fit, auto 117%);
+    -webkit-mask-size: var(--frieze-bar-fit, auto 117%);
+    filter: var(
+      --frieze-bar-carve,
       drop-shadow(-0.5px -0.5px 0 #0b0c10)
       drop-shadow(-0.3px -0.3px 0 #0b0c10)
       drop-shadow(0.5px 0.5px 0 #ffffff)
-      drop-shadow(0.3px 0.3px 0 #ffffff);
+      drop-shadow(0.3px 0.3px 0 #ffffff)
+    );
   }
 }
 </style>
