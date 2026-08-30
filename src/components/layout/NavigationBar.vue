@@ -41,9 +41,11 @@
            the left drawer, with the 2 svgs well drawn instead of the single
            tiny one") — `slim` OFF, exactly the route the style block always
            named for the second depth's return: BOTH waves draw again, mask
-           `a` + mask `b`, at the pixel-drawn `auto 13px`, inked grey-6 (wave
-           one) and grey-7 (wave two) on the coat plate (the follow-up ask's
-           inversion — grey-8/grey-6 held one pass). The trail is
+           `a` + mask `b`, inked grey-5 (wave one) and grey-6 (wave two) on
+           the coat under a 60% grey-4 veil (the walk: grey-8/grey-6 one
+           pass, inverted to grey-6/grey-7, then the veil ask stepped both
+           lighter and greyed the plate — the style block has each stage).
+           The trail is
            literally the drawer's element again for the first time since the
            morning — same two masks, same fit — differing in its height and
            in wearing its bar's own coat under darker inks. ── -->
@@ -1047,7 +1049,35 @@ export default defineComponent({
   // with the side trio) is SUPERSEDED with the plate; the block stands as
   // the record of how the band got here. (The swap's ONE-wave half lasted
   // one ask — the block below returns the pattern to the drawer's two.)
-  --frieze-bar-base: var(--plaque-coat);
+  // ── ⭐ THE BAND TOOK A GREY VEIL AND STEPPED ITS INKS LIGHTER (2026-08-30,
+  // the ask after the thickening: "add to its background a grey-4 60% veil
+  // for a grey effect and for the svg patterns use grey-5 and grey-6") ───
+  // The plate is the coat UNDER a 60% `--grey-4` wash now — one more
+  // gradient layer stacked over `--plaque-coat` (var substitution splices
+  // the coat's own two layers in after it, all in `background:` where a
+  // layer list is legal; the rgba is grey-4's literal, the same way the
+  // coat states its grey-3 veil). Composite ≈ rgb(234,231,226): the band
+  // READS AGAIN — a soft grey stripe on the cream bar, the "grey effect" —
+  // ending the vanished-plate hour (the swap's "band and bar composite to
+  // the same rgb" below is that hour's record). The waves stepped one
+  // lighter with it, grey-5/grey-6 over grey-6/grey-7, keeping the one-step
+  // interleave; both still darker than the veiled plate, so the
+  // value-inverted relation and the carve ban hold.
+  --frieze-bar-base:
+    linear-gradient(rgba(224, 224, 224, 0.6), rgba(224, 224, 224, 0.6)),
+    var(--plaque-coat);
+  // ── ⭐ AND TWO RULES FRAME IT (2026-08-30, the next two asks: "put a thin
+  // grey-4 border on the top and bottom borders of this inner friezebar",
+  // then "pls make the new borders grey-5"): 1px each, the platform's line
+  // weight, settled on `--grey-5` — WAVE ONE'S OWN INK, so the frame and
+  // the lighter half of the interleave are one tone and the band adds no
+  // new ink (grey-4, the veil's tone, held one pass — at ~10 levels off
+  // the veiled plate it barely drew). ⚠ `border-box` pays them out of the
+  // 21px band: the layer is 19px now and the `auto 17px` mask keeps 1px of
+  // air each side — nothing clips, nothing else moves (the centring
+  // formula reads the band's OUTER box, unchanged).
+  border-top: 1px solid var(--grey-5, #bdbdbd);
+  border-bottom: 1px solid var(--grey-5, #bdbdbd);
   // ── ⭐ THE SECOND DEPTH CAME BACK (2026-08-30, the day's last ask:
   // "changing the svg-pattern to the one on the inner friezebars from the
   // left drawer, with the 2 svgs well drawn instead of the single tiny
@@ -1065,8 +1095,10 @@ export default defineComponent({
   // draws both masks whole — nothing is squeezed. (It sat at the drawer's
   // own `auto 13px` for one pass; the thickening ask below took it to
   // `auto 17px` on a padless band.)
-  --frieze-bar-wave-one: var(--grey-6, #9e9e9e);
-  --frieze-bar-wave-two: var(--grey-7, #757575);
+  // (grey-6/grey-7 held from the inversion ask until the veil ask stepped
+  // both one lighter — the walk lives on the veil note above.)
+  --frieze-bar-wave-one: var(--grey-5, #bdbdbd);
+  --frieze-bar-wave-two: var(--grey-6, #9e9e9e);
   // The carve stays off — for the grime reason above AND, since the swap
   // re-inverted the band, by the lighter-ink law again.
   // ── ⭐ THE PATTERN GREW OFF THE PIXEL GRID (2026-08-30, the ask after the
