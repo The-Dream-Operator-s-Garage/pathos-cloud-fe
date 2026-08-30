@@ -29,8 +29,15 @@
            takes `z-index: 0` and the two edge sections are lifted to 1 — the
            only z-pair on this bar, and the whole reason the buttons read as
            standing ON the trail. The empty middle is deliberately NOT lifted:
-           the trail crosses it. ── -->
-      <FriezeBar class="nav-frieze" />
+           the trail crosses it.
+
+           ⭐ IT WEARS THE HEADER BAND SINCE 2026-08-30 (user ask: "put the
+           same inner friezebar of the top header bar on the footer bar inner
+           friezebar") — `slim`, one wave, mask `b`, under the top rail's own
+           cyan→indigo ramp on the same grey-8 plate, so the window's two
+           horizontal chrome edges now draw ONE band (see the style block for
+           what moved and what deliberately did not). ── -->
+      <FriezeBar slim class="nav-frieze" />
 
       <!-- ── LEFT: the drawer column continued down through the bar — but
            ONLY WHILE THERE IS NO DRAWER (2026-08-02). The drawer runs to the
@@ -945,7 +952,10 @@ export default defineComponent({
   // is deleted, not merely equal to the inherited value.)
   --frieze-bar-h: var(--nav-trail-h);
 
-  // ── ITS OWN COLORWAY — GREY-8 PLATE, CREAM MOTIF (2026-08-23, three asks:
+  // ── ITS OWN COLORWAY — GREY-8 PLATE, CREAM MOTIF (⚠ the CREAM half is
+  // HISTORY since 2026-08-30 — the plate argument below still stands, the
+  // motif is the header's ramp now; see the ⭐ block at the dials) (2026-08-23,
+  // three asks:
   // "make the frieze bar's from the footer bar background color light-cream
   // and paint the inner friezes grey-3 and grey-4", then "make the footer
   // bar's inner frieze bar's background grey-6 and the inner friezes
@@ -983,21 +993,38 @@ export default defineComponent({
   //    were one tone and the chip's edge fell entirely to its cream face. Each
   //    chip is now outlined rather than merely cut out.
   //
-  // ⚠ BOTH WAVES TAKE ONE TONE, which is new for this component. Everywhere
-  // else the two masks are told apart by VALUE as well as by shape (that is
-  // the whole point of `--frieze-bar-wave-one` and `-two` being separate
-  // dials, and why the trio picks grey-4 for `a` and grey-2 for the thick `b`).
-  // The ask names one colour for "the inner friezes", so the interleave now
-  // reads as a SINGLE meander rather than two waves at two depths — flatter,
-  // and the right answer for a band this size. If it should ever gain that
-  // second depth back, the dial to move is wave ONE (mask `a`, the thinner
-  // pair of spirals) a step off the cream, never the thick `b`.
+  // ⚠ BOTH WAVES TOOK ONE TONE for the cream era (2026-08-23 → 08-30), which
+  // was new for this component then. Everywhere else the two masks are told
+  // apart by VALUE as well as by shape; the ask named one colour for "the
+  // inner friezes", so the interleave read as a SINGLE meander — flatter, and
+  // the right answer for a band this size.
+  // ⭐ THE TOP RAIL'S BAND, SINCE 2026-08-30 (user ask: "put the same inner
+  // friezebar of the top header bar on the footer bar inner friezebar") —
+  // the same sitting that took the header back to `slim` put this trail in
+  // the same dress: ONE wave (mask `b`, the template's `slim`), `--teal-11`
+  // flat fallback, and the header's own cyan→indigo `-paint` ramp down the
+  // wave. What moves is the BAND'S LOOK; what deliberately does not is this
+  // bar's ARCHITECTURE: the 21px trail height (buttons ride inside it — the
+  // header band is 13px between two rules, a composition this bar has no
+  // room for), the `auto 13px` fit and the carve staying off. Wave ONE's
+  // dial LEFT with the layer (slim v-ifs it out — the dressed-but-undrawn
+  // trap); if the second depth ever comes back, it starts by taking `slim`
+  // off the template, not by re-dialling here. One ramp spans the layer box
+  // (19px inner against the header's 11px), so the 11px of ink samples the
+  // ramp's middle rather than its full run — the shared thing is the recipe
+  // and the two A100 accents, exactly the relation the header band already
+  // has with the post card's pair.
   --frieze-bar-base: var(--grey-8);
-  --frieze-bar-wave-one: var(--light-cream);
-  --frieze-bar-wave-two: var(--light-cream);
+  --frieze-bar-wave-two: var(--teal-11, #a7ffeb);
+  --frieze-bar-wave-two-paint: linear-gradient(
+    to bottom,
+    var(--teal-11, #a7ffeb) 0%,
+    var(--indigo-11, #8c9eff) 100%
+  );
   // Kept from the trio deliberately: the pixel-exact fit is what makes the
   // meander crisp at 1px a row, and the carve stays off for the grime reason
-  // above (no longer for the inversion's).
+  // above (no longer for the inversion's). Both reach through `slim` since
+  // 2026-08-30 — the same pass taught the variant to read them.
   --frieze-bar-fit: auto 13px;
   --frieze-bar-carve: none;
 }
