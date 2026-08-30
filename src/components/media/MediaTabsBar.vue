@@ -57,9 +57,15 @@
          surfaces now run the SAME single-wave pattern — layer two alone,
          mask `b`, the wave with the full-width centre rule, exactly what
          `.feed-container__edge` draws — so the exchange is superseded, not
-         half-reverted: nothing went back to the feed. The COLORING stays
-         put, as it has through every pattern move: grey-8 plaque, the one
-         cyan→indigo ramp down the wave. The pixel-drawn geometry the
+         half-reverted: nothing went back to the feed. The COLORING held
+         through every pattern move — grey-8 plaque, the one cyan→indigo
+         ramp — until the SAME DAY'S LATER ASK finally moved it ("making
+         its background color the same as the bar, and re-painting the
+         gradient part with grey-4", then "pls try grey-6 and remove the
+         top and bottom borders"): the plaque is the rail's own
+         `--plaque-coat` now, the wave is flat `--grey-6`, no gradient, and
+         the band's two 1px rules are GONE — a bare meander floating on the
+         chrome (see the style block). The pixel-drawn geometry the
          exchange paid height for survives too — band 13px, `auto 13px`, 1px
          a row, rail 18px total — because `slim` reads the fit/carve dials
          since this same ask (it hardcoded `auto 117%` + its halved carve
@@ -306,59 +312,84 @@ export default defineComponent({
 }
 
 // ── THE INLAID BAND'S DIALS (2026-08-22, user ask) ────────────────────────
-// Everything here except the two rules is the POST CARD'S recipe carried over
-// letter for letter, and that is the point of the move: the ask was to take
-// THAT band and set it into this bar, not to draw a second one in the same
-// family. So the plaque, the paint and the height all read exactly as they did
-// on `.post-square__frieze`, and the notes that earned those numbers live in
-// _tokens.scss (the height) and in FeedStream's tombstone (the walk).
+// Everything here except the two rules ARRIVED as the POST CARD'S recipe
+// carried over letter for letter, and that was the point of the move: the ask
+// was to take THAT band and set it into this bar, not to draw a second one in
+// the same family. The notes that earned the height live in _tokens.scss and
+// in FeedStream's tombstone (the walk). ⚠ THE COLORING PARTED WAYS 2026-08-30
+// (the recolor ask, below): plaque and ink are the rail's own now, and what
+// this band still shares with the card's is the recipe, not one pixel of
+// paint.
 //
-// THE PLAQUE, `--grey-8`: two steps under this bar's line ink, which is the
-// same relation it had to the card's. It is not a tone chosen for cream — it
-// is chosen for the CARVE. The waves are two very light accents and a groove
-// only reads as a groove when the plate is well under what is cut into it
-// (3.5:1 here, against 1.7:1 at the ink's own level). On this surface it also
-// does a second job the card's did not need: it is the only DARK thing on a
-// light-cream rail, so the band states itself without a frame around it.
+// THE PLAQUE — THE RAIL'S OWN COAT SINCE 2026-08-30 (the day's later ask:
+// "making its background color the same as the bar"): `--frieze-bar-base:
+// var(--plaque-coat)`, the very layer list `.media-tabs` itself paints —
+// legal in this dial because FriezeBar spends it in a `background:`
+// shorthand, the token's ONE permitted slot (_tokens.scss's own warning:
+// a layer list is not a `<color>`). Plate and rail composite to the same
+// rgb, so the plate VANISHES into the bar and the band stops being a dark
+// object laid on the chrome: what states it now is its ink, nothing else
+// (the two rules went in the follow-up ask — their tombstone below).
+// It was `--grey-8` from the card era to this ask — two steps under the
+// line ink, a tone chosen for the CARVE (a groove only reads when the
+// plate is well under what is cut into it) and, on this surface, for being
+// the only DARK thing on a light-cream rail. Neither job survives the ask:
+// the carve has been `none` since the band went pixel-drawn, and no dark
+// thing is exactly what the ask wants.
 //
-// THE PAINT, indigo→cyan down the wave: `--frieze-bar-wave-two-paint`, the two
-// families' A100 accents. It reaches the MOTIF and nothing else — the layer is
-// a mask over a painted box, so a gradient fills the meander exactly as a flat
-// colour would and the plaque under it stays flat. It spans the BAND, once: a
-// gradient has no intrinsic size, so one ramp runs the full 1440px however
-// many times the 231px mask repeats across it. ⚠ Give the layer a
-// `background-size` and you get one ramp per tile, which reads as banding.
-// ⚠ IT RUNS CYAN DOWN TO INDIGO SINCE 2026-08-24 (user ask: "invert the inner
-// color gradient from the top header's bar inner frieze. instead of goin indigo
-// to cyan, make it cyan to indigo"). The other direction — indigo at the top —
-// is what the POST CARD's pair settled on 2026-08-10 and still runs, so the two
-// surfaces now ramp OPPOSITE ways, and that is the thing to know before
-// touching either: this band was built as the card's device moved onto chrome,
-// and the shared part is the recipe (one ramp per band, the paint reaching the
-// motif alone, the two A100 accents) rather than the direction. `--teal-11`
-// leading also puts the LIGHTER accent (#a7ffeb) at the top, where the carve
-// lights every frieze on the platform from the top left — so the ramp and the
-// light now agree, which the old direction had backwards.
+// THE MOTIF — FLAT SINCE 2026-08-30 (the recolor ask: "re-painting the
+// gradient part with grey-4"; `--grey-4` held one pass and the follow-up —
+// "pls try grey-6" — settled it on the rail's own line ink, so meander and
+// rim are ONE tone and the deleted rules' "one ink at one weight" reading
+// survives them in the motif itself): the wave is a `background-color` again and
+// the `-paint` dial is DELETED, not blanked — FriezeBar's
+// `background-image: var(--frieze-bar-wave-two-paint, none)` falls back to
+// `none`, so the flat dial is the drawn ink itself rather than the
+// never-seen fallback it had been since 2026-08-22.
+// What ended here: the cyan→indigo ramp the band brought from the post
+// cards — the two families' A100 accents, one gradient spanning the full
+// 1440px however many times the mask tiled (indigo-led on 08-22, inverted
+// 08-24 so the lighter accent sat where the carve's light comes from). The
+// POST CARD's pair still runs its own indigo-led ramp, so what the two
+// surfaces share now is only the band recipe, not any of the coloring.
+// ⚠ Note the VALUE INVERSION the new pair makes: `--grey-6` (#9e9e9e) is
+// well DARKER than the coat it sits on (#f8f2e4 composite) — dark ink cut
+// into a light plate, the direction the footer's cream hour proved a carve
+// can never wear (the groove reads only when the ink is lighter than its
+// plate). Harmless today because the carve is off under the pixel-drawn
+// law; it is the constraint to check before ever turning the carve back on.
 //
-// THE TWO RULES are the one thing restated: `--grey-6`, this bar's own ink —
-// the same the rim under them is drawn in — where the card ran them in its
-// `--grey-5`. Same argument either way: two greys under its host's line ink
-// the plate is its own dark object laid across the surface, and framing it in
-// the surface's ink BINDS it rather than leaving it a stripe floating on the
-// sheet. Inner weight, 1px, matching the rim exactly, so the bar's three
-// horizontal lines are one ink at one weight.
-// ⚠ THE HEIGHT DIAL PAYS FOR THEM — `border-box` means a border eats the
-// plate, and `--media-tabs-frieze-h` carries a `+ 2px` for exactly this. Move
-// these rules and move that term.
+// THE TWO RULES — DELETED 2026-08-30 (the recolor's follow-up ask; the note
+// at their old declaration below has the geometry). They came with the band
+// from the card (`--grey-6` here where the card ran `--grey-5`, framing the
+// dark plate in its host's line ink so it read as BOUND rather than as a
+// stripe floating on the sheet), and the recolor had already changed their
+// job: with the plate vanished into the coat they were the band's only
+// drawn edges. The follow-up ask deleted exactly that — the bar's chrome is
+// down to ONE horizontal line, the rim, and the meander floats free. The
+// `+ 2px` the band's height dial once carried for their border-box cost now
+// buys the mask's two empty edge rows instead; the arithmetic never moved.
 //
 // `flex: 0 0 auto` is load-bearing: the bar states a height, and in a flex
 // column an item that MAY shrink will.
 .media-tabs__frieze {
   flex: 0 0 auto;
   --frieze-bar-h: var(--media-tabs-frieze-h);
-  --frieze-bar-base: var(--grey-8, #616161);
-  border-top: 1px solid var(--grey-6, #9e9e9e);
-  border-bottom: 1px solid var(--grey-6, #9e9e9e);
+  --frieze-bar-base: var(--plaque-coat);
+  // ── ⭐ THE TWO RULES ARE GONE (2026-08-30, the recolor's follow-up ask:
+  // "remove the top and bottom borders of the inner frieze bar") ─────────
+  // The 1px grey-6 border-top/-bottom pair stood here from the band's card
+  // days. With the plate already vanished into the coat they had become the
+  // band's only drawn edges — and the ask deletes exactly that: the band is
+  // a bare meander floating on the rail now, no plate, no frame. ⚠ The
+  // GEOMETRY deliberately did not move: band stays 13px, so the layer is
+  // 13px (border-box no longer loses 2px) and the `auto 13px` mask fits it
+  // EXACTLY — the file's two empty edge rows render INSIDE the layer, in
+  // plate paint that IS the coat, so they read as 1px more lip on each side
+  // and the ink stays 11px, centered. The old "no third state" warning
+  // (13-with-overhang or 15-with-pads) was about a DARK plate gapping
+  // between ink and rules; with plate = coat and no rules, a plate-painted
+  // row is indistinguishable from the lip, and the state is legal.
   // ── ⭐ THE BAND IS PIXEL-DRAWN (2026-08-27, the ask after the exchange:
   // "the frieze pattern on the header bar looks very distorted … adjust the
   // header's height so we can fit a clean svg pattern inside, while keeping
@@ -373,13 +404,15 @@ export default defineComponent({
   // for it (`--media-tabs-band` walked 14 → 17px face, total 15 → 18px —
   // the arithmetic and the floor argument live on that token):
   //  · FIT `auto 13px` — the 231×143 file at its natural grid, 1px per row,
-  //    tiling at exactly 21×13. The band's inner is 11px (13 − 2 rules since
-  //    the pad-removal ask; it was 15 − 2 rules − 2 pads for one pass), so
-  //    the mask overhangs 1px each side and the file's two EMPTY edge rows
-  //    fall outside — trimmed to its ink, nothing squeezed.
+  //    tiling at exactly 21×13. The band's inner is the full 13px since the
+  //    rules left (2026-08-30; it was 11px between the pad-removal ask and
+  //    that one, 15 − 2 rules − 2 pads for one pass before), so the mask
+  //    fits EXACTLY — the file's two empty edge rows render inside the
+  //    layer in coat paint, invisible lip — and nothing is squeezed.
   //  · CARVE OFF — the pixel-drawn law (side trio 2026-08-21, feed bands
   //    08-24): black/white flanks around 1px strokes read as grime, not
-  //    relief. The gradient does the modelling on this band.
+  //    relief. (The gradient did the modelling here until 2026-08-30's
+  //    recolor; the band draws flat now, like the feed's.)
   // ⚠ The three numbers move together or not at all: this fit, the 11px
   // inner, and the band height that yields it. The next clean step is
   // `auto 26px` (2px a row) in a 30px band.
@@ -392,7 +425,10 @@ export default defineComponent({
   // this ask, WITH the band at 13px — the pair is one edit: at 15px a zeroed
   // pad leaves a 13px inner the 13px mask fits exactly, which puts the
   // file's empty edge rows back INSIDE the layer and redraws the removed gap
-  // in plate paint. At 13 the mask overhangs and the ink meets the rules.
+  // in plate paint. At 13 the mask overhung and the ink met the rules —
+  // until the rules left (2026-08-30): the inner is 13px now, the mask fits
+  // exactly, and the redrawn-gap objection is void with plate = coat (see
+  // the rules' tombstone above).
   --frieze-bar-pad: 0;
   // ── ⭐ THE LIPS' CAST IS GONE (2026-08-30, user ask: "there is a grey veil
   // on top of the inner frieze bar … removing it") ──────────────────────────
@@ -406,22 +442,19 @@ export default defineComponent({
   // itself: an inset shadow on THIS element paints under the wave layers
   // (background level) and stencils at every meander stroke.
   //
-  // The flat tone under the paint — never seen while the gradient draws, and
-  // stated anyway so a fallback lands in the same family rather than on the
-  // component's default brown. ⚠ IT FOLLOWS THE RAMP'S TOP END, so it moved
-  // with the inversion: teal now, indigo before 2026-08-24. Keep the two in
-  // step or a paint-less fallback lands on the wrong end of the ramp.
+  // The wave's INK, drawn flat since 2026-08-30's recolor. This dial spent
+  // 2026-08-22 → 08-30 as the ramp's never-seen fallback (tracking the
+  // ramp's top end so a paint-less render landed on the right accent); with
+  // the `-paint` dial deleted it is the ink itself — see THE MOTIF above.
+  // `--grey-4` for one pass, then `--grey-6` in the follow-up ask ("pls try
+  // grey-6") — the rail's own line ink, so the meander and the rim beneath
+  // it are one tone and the bar's chrome is a single ink again.
   // ⭐ WAVE ONE'S DIALS LEFT WITH THE PATTERN (2026-08-30): they joined on
   // 2026-08-27 when the exchange brought the second wave, and `slim` v-ifs
   // that layer out of the DOM — dials on a band that isn't drawn are the
   // exact trap FriezeBar's slim notes warn about, so they go rather than
   // stand as dead state. Wave two is the slim pattern's one wave (mask `b`).
-  --frieze-bar-wave-two: var(--teal-11, #a7ffeb);
-  --frieze-bar-wave-two-paint: linear-gradient(
-    to bottom,
-    var(--teal-11, #a7ffeb) 0%,
-    var(--indigo-11, #8c9eff) 100%
-  );
+  --frieze-bar-wave-two: var(--grey-6, #9e9e9e);
 }
 
 // ── …ON EVERY ROUTE, /feed INCLUDED AGAIN (2026-08-24, user ask: "make the
