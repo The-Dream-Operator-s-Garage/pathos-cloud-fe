@@ -952,10 +952,11 @@ export default defineComponent({
   // is deleted, not merely equal to the inherited value.)
   --frieze-bar-h: var(--nav-trail-h);
 
-  // ── ITS OWN COLORWAY — GREY-8 PLATE, CREAM MOTIF (⚠ the CREAM half is
-  // HISTORY since 2026-08-30 — the plate argument below still stands, the
-  // motif is the header's ramp now; see the ⭐ block at the dials) (2026-08-23,
-  // three asks:
+  // ── ITS OWN COLORWAY — GREY-8 PLATE, CREAM MOTIF (⚠ BOTH halves are
+  // HISTORY since 2026-08-30 — the cream motif went in the morning, the
+  // grey-8 plate with the evening's SWAP; the band wears the bar's own coat
+  // under a flat grey-6 meander now — see the ⭐ block at the dials)
+  // (2026-08-23, three asks:
   // "make the frieze bar's from the footer bar background color light-cream
   // and paint the inner friezes grey-3 and grey-4", then "make the footer
   // bar's inner frieze bar's background grey-6 and the inner friezes
@@ -998,8 +999,10 @@ export default defineComponent({
   // apart by VALUE as well as by shape; the ask named one colour for "the
   // inner friezes", so the interleave read as a SINGLE meander — flatter, and
   // the right answer for a band this size.
-  // ⭐ THE TOP RAIL'S BAND, SINCE 2026-08-30 (user ask: "put the same inner
-  // friezebar of the top header bar on the footer bar inner friezebar") —
+  // ⭐ THE TOP RAIL'S BAND, FOR PART OF 2026-08-30 (user ask: "put the same
+  // inner friezebar of the top header bar on the footer bar inner
+  // friezebar"; ⚠ SUPERSEDED the same day by the SWAP — the ⭐ block at the
+  // dials below) —
   // the same sitting that took the header back to `slim` put this trail in
   // the same dress: ONE wave (mask `b`, the template's `slim`), `--teal-11`
   // flat fallback, and the header's own cyan→indigo `-paint` ramp down the
@@ -1014,17 +1017,32 @@ export default defineComponent({
   // ramp's middle rather than its full run — the shared thing is the recipe
   // and the two A100 accents, exactly the relation the header band already
   // has with the post card's pair.
-  --frieze-bar-base: var(--grey-8);
-  --frieze-bar-wave-two: var(--teal-11, #a7ffeb);
-  --frieze-bar-wave-two-paint: linear-gradient(
-    to bottom,
-    var(--teal-11, #a7ffeb) 0%,
-    var(--indigo-11, #8c9eff) 100%
-  );
+  // ── ⭐ THE SWAP (2026-08-30, the sitting's last ask: "invert the frieze
+  // pattern on the top nav bar with the bottom footer nav bar one") ──────
+  // This trail had preserved the header's OLD dress (the ⭐ block above);
+  // the swap hands it back upstairs and takes the header's recolor in
+  // trade: plate = THE BAR'S OWN `--plaque-coat` (the very layer list
+  // `.nav-bar` paints — legal in this dial because FriezeBar spends it in a
+  // `background:` shorthand, the one slot a layer list may fill), wave =
+  // flat `--grey-6`, the ramp deleted with its `-paint` dial. The plate
+  // composites to the bar's exact rgb, so the band VANISHES into the bar
+  // and the buttons ride a bare meander — no plate stripe, no frame, the
+  // bar's top lip its one structural line, exactly the presentation the
+  // header wore between the recolor and this ask.
+  // ⚠ VALUE-INVERTED AGAIN (ink darker than plate) — the second time this
+  // band has drawn that relation (the cream hour was the first) — so THE
+  // CARVE IS FORBIDDEN BY LAW AGAIN, not just by the trio's grime reason:
+  // FriezeBar's groove reads only when the ink is lighter than its plate.
+  // ⚠ The grey-8 plate-ties argument in the colorway block above (one plate
+  // with the side trio) is SUPERSEDED with the plate; the block stands as
+  // the record of how the band got here.
+  --frieze-bar-base: var(--plaque-coat);
+  --frieze-bar-wave-two: var(--grey-6, #9e9e9e);
   // Kept from the trio deliberately: the pixel-exact fit is what makes the
-  // meander crisp at 1px a row, and the carve stays off for the grime reason
-  // above (no longer for the inversion's). Both reach through `slim` since
-  // 2026-08-30 — the same pass taught the variant to read them.
+  // meander crisp at 1px a row, and the carve stays off — for the grime
+  // reason above AND, since the swap re-inverted the band, by the
+  // lighter-ink law again. Both reach through `slim` since 2026-08-30 — the
+  // same pass taught the variant to read them.
   --frieze-bar-fit: auto 13px;
   --frieze-bar-carve: none;
 }

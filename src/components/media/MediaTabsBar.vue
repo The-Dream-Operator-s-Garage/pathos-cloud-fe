@@ -62,10 +62,14 @@
          ramp — until the SAME DAY'S LATER ASK finally moved it ("making
          its background color the same as the bar, and re-painting the
          gradient part with grey-4", then "pls try grey-6 and remove the
-         top and bottom borders"): the plaque is the rail's own
-         `--plaque-coat` now, the wave is flat `--grey-6`, no gradient, and
-         the band's two 1px rules are GONE — a bare meander floating on the
-         chrome (see the style block). The pixel-drawn geometry the
+         top and bottom borders"): that pass coated the plate, greyed the
+         wave and deleted the band's two 1px rules — and the SITTING'S LAST
+         ASK ("invert the frieze pattern on the top nav bar with the bottom
+         footer nav bar one") swapped colorings with the footer trail, which
+         had preserved this band's old dress: grey-8 plate, teal-11 flat,
+         the cyan→indigo ramp — BACK, unframed (the rules stayed gone), the
+         quiet grey-6-on-coat moving downstairs (see the style block). The
+         pixel-drawn geometry the
          exchange paid height for survives too — band 13px, `auto 13px`, 1px
          a row, rail 18px total — because `slim` reads the fit/carve dials
          since this same ask (it hardcoded `auto 117%` + its halved carve
@@ -375,7 +379,21 @@ export default defineComponent({
 .media-tabs__frieze {
   flex: 0 0 auto;
   --frieze-bar-h: var(--media-tabs-frieze-h);
-  --frieze-bar-base: var(--plaque-coat);
+  // ── ⭐ THE SWAP (2026-08-30, the sitting's last ask: "invert the frieze
+  // pattern on the top nav bar with the bottom footer nav bar one") ──────
+  // The two bands exchanged COLORINGS. The footer's trail had taken this
+  // band's pre-recolor dress earlier in the day and preserved it, so the
+  // swap is a RESTORATION here — grey-8 plate, teal-11 flat, the cyan→indigo
+  // ramp — while the recolor's quiet grey-6-on-coat moved downstairs to
+  // `.nav-frieze`. What did NOT come back: the two 1px rules (deleted by the
+  // recolor's follow-up ask and absent on the footer too, so the swap has no
+  // frame to carry) — the plate is a bare dark stripe on the cream rail now,
+  // exactly the presentation the trail had. Geometry untouched: band 13px,
+  // layer 13px, `auto 13px` exact fit — the mask's two empty edge rows show
+  // plate, which against a grey-8 plate is simply more plate. The recolor's
+  // paragraphs below stand as that sitting's record; the dials here are the
+  // law.
+  --frieze-bar-base: var(--grey-8, #616161);
   // ── ⭐ THE TWO RULES ARE GONE (2026-08-30, the recolor's follow-up ask:
   // "remove the top and bottom borders of the inner frieze bar") ─────────
   // The 1px grey-6 border-top/-bottom pair stood here from the band's card
@@ -447,14 +465,21 @@ export default defineComponent({
   // ramp's top end so a paint-less render landed on the right accent); with
   // the `-paint` dial deleted it is the ink itself — see THE MOTIF above.
   // `--grey-4` for one pass, then `--grey-6` in the follow-up ask ("pls try
-  // grey-6") — the rail's own line ink, so the meander and the rim beneath
-  // it are one tone and the bar's chrome is a single ink again.
+  // grey-6") — then the SWAP (the sitting's last ask, the ⭐ note at the
+  // plaque dial) took the greys downstairs and brought the ramp back: teal
+  // flat under the cyan→indigo `-paint`, the flat dial a never-seen fallback
+  // again, tracking the ramp's TOP end as it did 08-22 → 08-30.
   // ⭐ WAVE ONE'S DIALS LEFT WITH THE PATTERN (2026-08-30): they joined on
   // 2026-08-27 when the exchange brought the second wave, and `slim` v-ifs
   // that layer out of the DOM — dials on a band that isn't drawn are the
   // exact trap FriezeBar's slim notes warn about, so they go rather than
   // stand as dead state. Wave two is the slim pattern's one wave (mask `b`).
-  --frieze-bar-wave-two: var(--grey-6, #9e9e9e);
+  --frieze-bar-wave-two: var(--teal-11, #a7ffeb);
+  --frieze-bar-wave-two-paint: linear-gradient(
+    to bottom,
+    var(--teal-11, #a7ffeb) 0%,
+    var(--indigo-11, #8c9eff) 100%
+  );
 }
 
 // ── …ON EVERY ROUTE, /feed INCLUDED AGAIN (2026-08-24, user ask: "make the
