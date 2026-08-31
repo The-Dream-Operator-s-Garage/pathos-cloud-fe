@@ -11,14 +11,20 @@ import { defineStore } from 'pinia'
 //
 // The stack/pins side bars are each ONE element with two presentations
 // (2026-07-24, third pass — the separate rail tree is gone): expanded = the
-// 300px panel at the right edge, parked = the SAME element narrowed to a thin
-// icon column, its one list scroller persisting through the morph. The two
-// widgets SHARE that right-edge column — the stack hangs from the top half,
-// pins rises from the bottom half — so they never overlap and both stay flush
-// against the edge. `railWidth` is the parked column's width — kept as a
-// PERMANENT reserve (the page content pads right by it, and `dockRight` shifts
-// the OTHER bottom docks left beside it) so nothing reflows when a panel
-// expands; the expanded panels are transient overlays above everything anyway.
+// 300px panel, parked = the SAME element flattened to a thin icon rail, its
+// one list scroller persisting through the morph. They bounded the right edge
+// together (stack top half, pins bottom half) until 2026-08-30, when the
+// STACK MOVED ONTO the footer bar's inner frieze band (three user asks one
+// sitting) — a dense chip row riding the trail's own box beside the
+// burger's rail slot when parked, the panel rising from that seat to the
+// window floor expanded — so the right-edge column is the PINS widget's
+// alone now.
+// `railWidth` is that parked column's width — kept as a PERMANENT reserve
+// (the page content pads right by it, and `dockRight` shifts the OTHER
+// bottom docks left beside it) so nothing reflows when a panel expands; the
+// expanded panels are transient overlays above everything anyway. Nothing
+// reserves for the stack: parked it lives inside chrome the layout already
+// pays for (the bar), and expanded it is a transient overlay like the rest.
 
 // The docks' z floor sits ABOVE the feed page's opaque surfaces and BELOW
 // every piece of chrome that must stay reachable (2026-07-27). The feed
@@ -26,8 +32,10 @@ import { defineStore } from 'pinia'
 // its flyout 3002, and at the old 2400 floor every dock opened UNDER them —
 // triggering the maker on /feed drew it behind the feed box, unusable. The
 // sandwich, bottom to top: feed container 3001 / flyout 3002 → THESE DOCKS
-// 3010+ → drawer 3050 → stack/pins widgets 3100 (the side bars stay above
-// every dock, parked or expanded, by their own fixed EDGE_Z).
+// 3010+ → minitab strip 3045 → nav bar 3110 → drawer + pins widget 3120 →
+// stack widget 3130 (its bottom-left strip contests the drawer's corner
+// since 2026-08-30 and must out-paint it; the side widgets stay above every
+// dock, parked or expanded, by their own fixed EDGE_Z constants).
 const Z_BASE = 3010
 // One parked-column slot: 42px column + 4px gap. Keep in sync with
 // --dock-rail-w in css/_tokens.scss (the parked panels' width).
@@ -43,10 +51,11 @@ const STORAGE_KEY = 'pathos_windows'
 function defaultPanels () {
   return {
     // Neither the stack nor the pins panel has a nav-bar toggle anymore, so
-    // both default to their parked icon column — always reachable at the
-    // right edge, expanding on hover (head glyph taps for touch) — instead of
-    // starting fully closed (which, with no opener left, would strand them).
-    // The parked pins widget hangs just above the footer, right over the tack.
+    // both default to their parked rail — always reachable at their edge
+    // (pins: the right column over the tack; stack: the chip row riding the
+    // footer trail's left run since 2026-08-30), expanding on hover (head
+    // glyph taps for touch) — instead of starting fully closed (which, with
+    // no opener left, would strand them).
     stack: { open: true, minimized: true },
     pins: { open: true, minimized: true }
   }
@@ -100,9 +109,10 @@ export const useWindowsStore = defineStore('windows', {
       return i < 0 ? Z_BASE : Z_BASE + 1 + i
     },
 
-    // Open side panels — drives the permanent right-edge column's presence
-    // (both panels are always open; only their presentation flips).
-    railKeys: (s) => ['stack', 'pins'].filter((k) => s.panels[k].open),
+    // Open side panels at the RIGHT edge — drives the permanent column's
+    // presence. Pins only since the stack moved to the bottom-left corner
+    // (2026-08-30); the panel is always open, only its presentation flips.
+    railKeys: (s) => ['pins'].filter((k) => s.panels[k].open),
 
     // One permanent column reserve — kept even while a panel is expanded (the
     // expanded panel is a transient overlay; a constant pad avoids page

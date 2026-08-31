@@ -1,25 +1,37 @@
 <template>
-  <!-- The navigation stack as a docked right side panel that hangs from the
-       screen's very TOP-RIGHT corner (top: 0, 2026-07-24 — it now overlays
-       the frieze header rather than starting below it) and grows downward
-       toward the middle (mirror of the pinned list, which rises from the nav
-       bar). TWO mirrored FriezeBar bands bracket the scroll well — the same
-       divider block the drawer uses between sections, at the same size: one at
-       the widget's top edge, which REPLACES the crown strip across this column
-       instead of dividing the list from it, and one between the well and the
-       header / stack glyph at the bottom (2026-07-24). ONE
-       element with two presentations
-       (2026-07-24, third pass): expanded = the 300px panel, parked
-       (win.minimized) = the SAME element narrowed to the thin icon column
-       (`is-parked`), each item collapsed to its icon face. The list below is
-       the ONE and only scroller — it persists through the park/expand morph,
-       so the scroll position carries across (there is no separate rail tree
-       anymore). The header/controls box sits at the BOTTOM, with the list
-       above it ordered OLDEST→NEWEST top-to-bottom so the newest step lands
-       at the bottom right beside it. Both presentations shrink to fit the
-       steps they hold (the list scrolls once they would pass --dock-stack-h,
-       the stack's 70% share of the side band), so unravelling covers exactly
-       the band the parked chips sat on. -->
+  <!-- The navigation stack, RIDING THE FOOTER BAR'S INNER FRIEZE BAR at its
+       very LEFT (2026-08-30, three user asks one sitting — "place it on the
+       bottom footer bar, at the very left … items at the left, icon at the
+       right" → "*inside* the footer bar … occupy the whole available
+       height" → "remove the top and bottom padding … place the whole thing
+       inside the footer nav bar's inner frieze bar. Make the tiny item
+       elements way denser"; it hung from the top-right corner from
+       2026-07-24 until then). ONE element with two presentations
+       (2026-07-24, third pass), and the RELOCATION ROTATED THE PARKED AXIS:
+       · parked (win.minimized) = a dense horizontal chip row INSIDE THE
+         TRAIL — the strip sits on `.nav-frieze`'s very box (--nav-trail-h,
+         promoted to :root for this), wearing the bar's own coat with a
+         grey-4 item lane inset in it (the fourth ask; it rode the band
+         bare-transparent for one ask) — beside the 42px left rail slot (the
+         burger's — never covered), chips ordered OLDEST→NEWEST
+         left-to-right with the stack's head glyph at the strip's RIGHT END —
+         the newest step lands beside the glyph exactly as it landed beside
+         the header before;
+       · expanded = the 300px panel RISING from that same seat to the window
+         floor (the pins column's posture mirrored leftward — its bottom
+         --nav-bar-h lies over the bar strip it owns), header/controls box at
+         the BOTTOM with the list above it ordered OLDEST→NEWEST top-to-bottom.
+       The list is the ONE and only scroller in both faces — it persists
+       through the park/expand morph and the scroll position carries across as
+       a ratio, horizontal axis parked, vertical expanded. The TWO mirrored
+       FriezeBar bands that bracket the well render in the expanded panel only
+       now: they are horizontal wave blocks, and the parked strip is itself a
+       horizontal sliver with no room to stack them (the top band's old
+       crown-strip stand-in role died with the top-right anchor). Both
+       presentations shrink to fit the steps they hold — the expanded list
+       scrolls past its cap, the parked strip past its share of the bar (the
+       docks' half starts at 50vw and the strip outranks their z, so it must
+       stop short of them). -->
   <section
     v-if="win.open"
     class="stack-window dock-window"
@@ -28,20 +40,22 @@
     @mouseenter="onHoverEnter"
     @mouseleave="onHoverLeave"
   >
-    <!-- Mirrored frieze band at the top edge — same block as the drawer's
-         section dividers. The widget sits ON TOP of the crown strip, so this
-         band STANDS IN for it across the stack's column (matched to
-         FriezeHeader's exact box in the styles below). Rendered in both
-         presentations (at rail width it shows a small wave slice). -->
-    <FriezeBar flip class="stack-frieze" />
+    <!-- Mirrored frieze band at the expanded panel's top edge — same block as
+         the drawer's section dividers, the panel's free edge toward the middle
+         of the screen. EXPANDED ONLY since the bottom-left move (2026-08-30):
+         the parked face is a horizontal strip now, and a horizontal wave band
+         has no place inside a 42px-tall row. (It stood in for the crown strip
+         while the widget owned the top-right corner; that role is over.) -->
+    <FriezeBar v-if="!win.minimized" flip class="stack-frieze" />
 
     <div v-if="history.length === 0 && !win.minimized" class="stack-empty">No visits yet.</div>
 
     <div v-else ref="listEl" class="stack-list" :class="{ 'is-parked': win.minimized }">
-      <!-- Ordered OLDEST→NEWEST top-to-bottom (the natural history order): the
-           oldest step sits at the top and the NEWEST lands at the bottom just
-           above the header/head glyph, so the list reads most-recent-nearest-
-           the-controls in BOTH presentations. The natural index `i` IS the
+      <!-- Ordered OLDEST→NEWEST along the flow axis (the natural history
+           order): top-to-bottom expanded, LEFT-TO-RIGHT parked — either way
+           the NEWEST step lands at the end nearest the header / head glyph,
+           so the list reads most-recent-nearest-the-controls in BOTH
+           presentations. The natural index `i` IS the
            real history index. Each row is the one mutating side-bar item
            (SidePanelItem): expanded face = micro chip · title · visited-x-ago
            · author with the kind button palette-inverted on the right; parked
@@ -76,10 +90,11 @@
     </div>
 
     <!-- Second mirrored frieze band, INSIDE the widget (2026-07-24): the same
-         block at the same size, dividing the scroll well from the header /
-         head glyph below it — so the well sits between two identical bands and
-         the stack icon reads as its own strip of chrome. Both presentations. -->
-    <FriezeBar flip class="stack-frieze stack-frieze--inner" />
+         block at the same size, dividing the scroll well from the header below
+         it — so the well sits between two identical bands and the stack icon
+         reads as its own strip of chrome. Expanded only since the bottom-left
+         move (2026-08-30), same reason as its twin above. -->
+    <FriezeBar v-if="!win.minimized" flip class="stack-frieze stack-frieze--inner" />
 
     <!-- Header/controls box at the BOTTOM of the expanded panel (below the
          list), so it sits right beside the newest step. The traffic light is
@@ -105,12 +120,17 @@
       </button>
     </header>
 
-    <!-- Parked replacement for the header: the tiny head glyph at the same
-         BOTTOM spot. Hovering anywhere on the column expands the panel; the
-         tap stays for touch screens, where hover doesn't exist. -->
+    <!-- Parked replacement for the header: the tiny head glyph at the strip's
+         RIGHT END (the flex row puts the DOM's last child there — the same
+         list-then-controls order that put it at the column's bottom before).
+         Hovering anywhere on the strip expands the panel; the tap stays for
+         touch screens, where hover doesn't exist. -->
+    <!-- 15px, not the side widgets' 20px: the glyph rides inside the 21px
+         trail band now (third ask), the same glyph-in-band chain the nav
+         buttons obey. -->
     <button v-else type="button" class="dock-side-head stack-side-head"
       @click="windows.restorePanel('stack')">
-      <q-icon name="layers" size="20px" />
+      <q-icon name="layers" size="15px" />
     </button>
   </section>
 </template>
@@ -144,13 +164,18 @@ export default defineComponent({
     const historyIndex = computed(() => navStore.historyIndex)
     const checkpointIndices = computed(() => navStore.checkpointIndices)
 
-    // Bottom-anchored list: pin the scroll to the BOTTOM (newest) whenever a
-    // new step is pushed, so the latest activity — at the bottom — stays
-    // visible even when history overflows the half-height cap.
+    // End-anchored list: pin the scroll to the NEWEST end whenever a new step
+    // is pushed — the bottom expanded, the RIGHT end parked (the strip flows
+    // left-to-right since the bottom-left move) — so the latest activity stays
+    // visible even when history overflows the cap. Setting both axes is
+    // cheaper than branching: each face has exactly one live scroll axis and
+    // the other assignment is a no-op.
     const listEl = ref(null)
     const scrollToNewest = () => {
       const el = listEl.value
-      if (el) el.scrollTop = el.scrollHeight
+      if (!el) return
+      el.scrollTop = el.scrollHeight
+      el.scrollLeft = el.scrollWidth
     }
     watch(
       () => history.value.length,
@@ -158,18 +183,25 @@ export default defineComponent({
       { immediate: true }
     )
 
-    // ONE scroller across both presentations: the park/expand morph swaps the
-    // item faces (different heights), so carry the relative scroll position —
-    // not the raw pixel offset — through the flip.
+    // ONE scroller across both presentations — and since the bottom-left move
+    // the morph is an AXIS ROTATION, not just a face swap: expanded scrolls
+    // vertically, parked horizontally. Carry the relative position through the
+    // flip by reading the OLD face's axis (the watcher runs pre-flush, so the
+    // DOM still holds the old geometry) and applying the ratio to the NEW
+    // face's axis after the patch.
     watch(
       () => win.value.minimized,
-      () => {
+      (parked) => {
         const el = listEl.value
         if (!el) return
-        const max = el.scrollHeight - el.clientHeight
-        const ratio = max > 0 ? el.scrollTop / max : 1
+        const oldMax = parked
+          ? el.scrollHeight - el.clientHeight // was expanded: vertical
+          : el.scrollWidth - el.clientWidth //  was parked:   horizontal
+        const oldPos = parked ? el.scrollTop : el.scrollLeft
+        const ratio = oldMax > 0 ? oldPos / oldMax : 1
         nextTick(() => {
-          el.scrollTop = ratio * (el.scrollHeight - el.clientHeight)
+          if (parked) el.scrollLeft = ratio * (el.scrollWidth - el.clientWidth)
+          else el.scrollTop = ratio * (el.scrollHeight - el.clientHeight)
         })
       }
     )
@@ -248,10 +280,15 @@ export default defineComponent({
       } catch (_) { /* leave the stack as is */ }
     }
 
-    // The widget hangs from the screen's top-right corner (top: 0); z 3100
-    // keeps it above the crown strip (3000) it now overlays, and above the
-    // rest of the chrome.
-    const EDGE_Z = 3100
+    // The widget stands inside the footer bar's left run (2026-08-30). 3130
+    // clears the LEFT DRAWER's 3120 — the two contest this corner, and at
+    // the widget's old 3100 the open drawer's rail buried its leftmost chips
+    // (caught on the relocation day's first screenshot) — plus everything
+    // under it: the pins widget (3120), the nav bar (3110), the docks
+    // (3010+) and the minitab strip (3045). The bar's 42px left rail slot —
+    // the burger's, whichever surface owns it — is never covered: the widget
+    // starts BESIDE it at left: var(--dock-rail-w).
+    const EDGE_Z = 3130
 
     return {
       EDGE_Z,
@@ -278,81 +315,130 @@ export default defineComponent({
 // .dock-window / .dock-side-head styles in src/css/_components.scss —
 // only the stack's own dimensions and list styling live here.
 //
-// Anchored at the screen's TOP-RIGHT corner (top: 0, 2026-07-24) ON TOP of the
-// crown strip, whose place its own mirrored FriezeBar band (`.stack-frieze`)
-// takes across this column. ONE element with two presentations
-// (2026-07-24, third pass): `.is-parked` narrows it to the icon column
-// (--dock-rail-w). BOTH presentations SHRINK TO FIT their item bundle
-// (2026-07-24, 7th pass — expanded used to take its full cap with the steps
-// bottom-aligned, which left a dead field between the frieze band and the
-// items): the panel is only as tall as its steps need and stops growing at
-// --dock-stack-h, where the list starts scrolling instead. The
-// shared .dock-window width/height transition animates the morph. The top,
-// left (toward the page) and bottom (leading edge toward the middle gap) edges
-// wear a thin classic 1px `--grey-6` border (brown-4 until 2026-08-18's
-// palette ask — the trio's rim ink now, the same line the frieze bands and the
-// media tabs rail wear); the right sits bare at the screen edge. Rounded
-// bottom-left corner kept.
+// Riding the footer bar's inner frieze bar at its very left since
+// 2026-08-30 (three user asks one sitting: bottom-left seated ON the bar's
+// top edge, then sunk onto the bar's own rows at its full height, then —
+// "inside the footer nav bar's inner frieze bar … way denser" — onto the
+// TRAIL's very box; top-right from 2026-07-24 until then). ONE element with
+// two presentations (2026-07-24, third pass), the parked axis ROTATED by
+// the move: `.is-parked` flattens it to a dense horizontal chip row at the
+// band's --nav-trail-h, items left, head glyph at the right end.
+// BOTH presentations SHRINK TO FIT their item bundle (2026-07-24, 7th
+// pass): the expanded panel is only as tall as its steps need and stops
+// growing at its cap, where the list starts scrolling; the parked strip is
+// only as wide as its chips need and stops short of the creation docks'
+// 50vw half (this widget's z outranks their 3010+ — the strip must run out
+// of road before it runs over them). The shared .dock-window width/height
+// transition still animates what it can; the park⇄expand morph is an axis
+// rotation now, so it snaps where auto-sizes meet. The chrome is per face
+// (see the two blocks below): the parked strip is the bar's own
+// `--plaque-coat` plate with a `--grey-4` item lane, framed on all four
+// sides by the trail chips' own 1px `--grey-5` rim (2026-08-30's
+// borders-on-all-sides ask; the band's own rule ink — see `.nav-btn`'s
+// ink note in _components.scss) and still castless, while the expanded panel
+// wears the same coat plus 1px `--grey-6` rims on its three exposed edges
+// and the rounded top-right free corner.
 .stack-window {
-  // THE WINDOW'S VERY TOP EDGE (2026-08-18, user ask: the left drawer and this
-  // column both "start drawing at the very top of the screen", and the thin
-  // header bar draws on top of both, partially covering the frieze bar). It
-  // stepped down by `--media-tabs-h` from 2026-08-05, when the media tabs rail
-  // became the top chrome. Now the two columns bounding the window run to y=0
-  // and each carries its own FriezeBar there — this band standing in for the
-  // deleted crown strip at this corner exactly as it always did — while the
-  // rail lies ACROSS the top of both bands from z 3125 (it was 3105, under
-  // this widget's 3100 sibling ordering and under the drawer; see
-  // MediaTabsBar). Nothing here reserves space for the rail any more: it
-  // OVERLAPS this column rather than sitting above it.
-  top: 0;
-  bottom: auto;
-  right: 0;
-  // NO top border: the widget starts at the screen's top-right corner ON TOP
-  // of the crown strip (z 3100 > the frieze's 3000), so its own frieze band —
-  // not a hairline — is what meets that edge, exactly as the strip does
-  // everywhere else.
-  border-top: none;
-  border-right: none;
-  border-bottom: 1px solid var(--grey-6);
-  border-left: 1px solid var(--grey-6);
-  border-top-left-radius: 0;
-  border-bottom-left-radius: var(--radius-lg);
+  // INSIDE the footer bar (the sitting's second ask — the first pass seated
+  // the widget ON the bar's top edge): `bottom: 0` puts the parked strip on
+  // the bar's own rows, filling its whole `--nav-bar-h`. It starts at
+  // `left: var(--dock-rail-w)`, BESIDE the bar's 42px left rail slot rather
+  // than over it — that slot is the burger's (the drawer toggle when the
+  // drawer is closed, the drawer's own footer block when open), chrome that
+  // must stay reachable, so the strip owns the bar's left run from the
+  // slot's edge on. The expanded panel rises from the same seat and its
+  // bottom `--nav-bar-h` lies over the bar strip beneath it — the header
+  // bar at its bottom IS this widget's bar row, the pins column's
+  // own-the-strip arrangement without the rebuild.
+  top: auto;
+  bottom: 0;
+  left: var(--dock-rail-w);
+  right: auto;
+  border-bottom: none;
   // The shared `--plaque-coat` since 2026-08-17 (user ask) — a --light-cream
   // sheet under a 30% --grey-3 veil, the same two layers the nav bar, the left
   // drawer and the pins widget took that session, so the window's chrome edges
-  // stay ONE material. It was a flat brown-1 plaque before, and the rest of
-  // the recipe is unchanged: no sheen gradients, both presentations, opaque
-  // (no backdrop blur). Shadow drops downward (the widget hangs from the top)
-  // PLUS the shared left-edge cast (`--shadow-side-edge`, 2026-07-24) that the
-  // pins widget and the nav bar's pin-tack slot also wear — the right-edge
-  // column lies on top of the page as one raised strip, in BOTH presentations
-  // (this rule is state-agnostic). The panel's borders and its inset well
-  // JOINED IT in the grey family on 2026-08-18 (user ask) — `--grey-6` rims,
-  // `--grey-4` wells, tone-for-tone with the brown-4/brown-2 pair they
-  // replace — so the well still reads as a step sunk under the paler coat.
-  background: var(--plaque-coat);
+  // The chrome is PER FACE since the strip moved into the trail (the
+  // sitting's third ask): the EXPANDED panel keeps the shared
+  // `--plaque-coat` (2026-08-17 — a --light-cream sheet under a 30% --grey-3
+  // veil, the coat the nav bar, drawer and pins widget wear, so the chrome
+  // edges stay ONE material; no sheen gradients, opaque), its `--grey-6`
+  // rims and its raised casts; the PARKED strip wears that same coat with
+  // no lines and no cast (the fourth ask — "the same as the footer nav
+  // bar"; it was fully transparent for one ask, the band's pattern showing
+  // between the chips), its grey-4 item lane inset in the plate. Both faces
+  // stay blur-free.
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
-  box-shadow:
-    0 10px 40px rgba(var(--ink-rgb-deep), 0.18),
-    var(--shadow-side-edge);
 
-  // Height is shrink-to-fit in BOTH presentations — the panel hugs its item
-  // bundle and only starts scrolling once the bundle would pass its cap. That
-  // cap is the STACK's 70% share of the 90vh side band (--dock-stack-h, 63vh)
-  // — the history is the long list of the pair, so it takes the lion's share
-  // and the pinned widget keeps 30% (2026-07-24; both were an even 45vh).
-  height: auto;
-  max-height: var(--dock-stack-h);
-
+  // Shrink-to-fit in BOTH presentations — the widget hugs its item bundle and
+  // only starts scrolling once the bundle would pass its cap. Expanded that
+  // cap is still the stack's --dock-stack-h (63vh — the 70% share struck when
+  // the two side widgets split the right-edge band; the pins widget keeps its
+  // 27vh and nothing collides now that the stack lives at the other corner).
+  // Parked, the cap is horizontal: 48vw, stopping short of the creation
+  // docks' 50vw half (see the note at the top of this block).
   &:not(.is-parked) {
     width: 300px;
     max-width: 96vw;
+    height: auto;
+    bottom: 0;
+    // The cap grows by the bar's own height, exactly as the pins column's
+    // did when it took `bottom: 0`: the last --nav-footer-h is bar chrome
+    // the widget lies over, not space taken from the list.
+    max-height: calc(var(--dock-stack-h) + var(--nav-footer-h));
+    background: var(--plaque-coat);
+    // Rims on the three exposed edges (the floor stays bare); the free
+    // top-right corner keeps the panel's rounding. Shadow rises (the widget
+    // grows from the bar) plus a RIGHT-edge cast — `--shadow-side-edge`
+    // with the x-offset sign flipped, the same mirroring the burger slot
+    // once did with that token at this corner.
+    border-top: 1px solid var(--grey-6);
+    border-right: 1px solid var(--grey-6);
+    border-left: 1px solid var(--grey-6);
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+    border-top-right-radius: var(--radius-lg);
+    box-shadow:
+      0 -10px 40px rgba(var(--ink-rgb-deep), 0.18),
+      5px 0 12px rgba(var(--ink-rgb-deep), 0.16);
   }
 
   &.is-parked {
-    width: var(--dock-rail-w);
+    // INSIDE THE TRAIL (the sitting's third ask: "place the whole thing
+    // inside the footer nav bar's inner frieze bar"): the strip sits on the
+    // band's VERY BOX — height is the band's own `--nav-trail-h` and the
+    // bottom offset is `.nav-frieze`'s centring formula mirrored (the band
+    // is centred in the bar's 31px padding box, so its gap below equals its
+    // `top` above — the odd-parity note on both declarations is why the
+    // arithmetic lands on whole pixels). The strip wears THE BAR'S OWN COAT
+    // (`--plaque-coat`, the fourth ask — it was a bare transparent box for
+    // one ask, the trail's pattern running between the chips): a cream
+    // plate standing on the band exactly as the nav bar's own buttons do,
+    // with the grey-4 item lane inset in it (on `.stack-list` below).
+    // FRAMED since 2026-08-30's borders-on-all-sides ask: the same 1px
+    // `--grey-5` rim the trail chips wear (the band's own rule ink — the
+    // follow-up ask's alignment fix, see `.nav-btn` in _components.scss),
+    // on all four edges — the strip was
+    // paint-only for a pass (the seam against the band was the coat's bare
+    // edge), and once the chips beside it closed their boxes the strip had
+    // to close its own or read as the one unbounded object on the band.
+    // Still no cast. `border-box` pays the two horizontal rims out of the
+    // band-height box, so the item lane's vertical arithmetic moved inside
+    // with it (see `.stack-list.is-parked`).
+    // The row shrink-fits its chips + head glyph up to the
+    // cap (48vw less the rail-slot offset — the creation docks' half starts
+    // at 50vw and this widget's z outranks theirs).
+    flex-direction: row;
+    align-items: center;
+    height: var(--nav-trail-h);
+    bottom: calc((var(--nav-bar-h) - 1px - var(--nav-trail-h)) / 2);
+    width: auto;
+    max-width: calc(48vw - var(--dock-rail-w));
+    background: var(--plaque-coat);
+    border: 1px solid var(--grey-5, #bdbdbd);
+    border-radius: 0;
+    box-shadow: none;
   }
 }
 
@@ -372,15 +458,34 @@ export default defineComponent({
 // 2026-07-24 8th pass) — the old ink-2 tint on this glyph is gone, the info
 // box reads as one consistent piece of chrome.
 
-// Parked head glyph sits at the bottom, exactly where the header goes when
-// expanded and exactly as tall as it (--dock-bar-h, shared chrome) — no extra
-// margin, or the list box above it would shift between presentations.
-.stack-side-head { margin: 0; }
+// Parked head glyph stands at the strip's RIGHT END (last flex child of the
+// row), riding the band at its full height like the nav bar's own bare
+// "looker" glyphs — a narrow 20px seat, dense to match the chips beside it
+// (the shared .dock-side-head's --dock-bar-h box is overridden here: a 30px
+// box cannot stand inside a 21px band).
+.stack-side-head {
+  margin: 0;
+  align-self: stretch;
+  width: 20px;
+  height: 100%;
+}
+
+// The parked chips narrowed to match the trail's density (the third ask:
+// "way denser, with minimum padding and smaller") — SidePanelItem's rail
+// face takes its height from the strip-scoped --side-item-h above; the
+// width is stated here because the component fixes it at 32px for the pins
+// column's geometry, which this strip no longer shares.
+.stack-list.is-parked :deep(.side-item__btn--rail) {
+  width: 20px;
+  min-width: 20px;
+}
 
 // The top-edge frieze band must keep its full height in the flex column (the
-// list below it is the shrinking scroller). Since the widget now overlaps the
-// crown strip, this band REPLACES it across the stack's column, so it wears
-// FriezeHeader's box at the trio's `--frieze-bar-h` (= 0.96 × `--frieze-h`
+// list below it is the shrinking scroller). EXPANDED ONLY since 2026-08-30's
+// bottom-left move (a horizontal band has no seat in the parked strip), and
+// no longer a crown-strip stand-in — the panel's free top edge wears a
+// `--grey-6` rim above it now, like the pins widget's. The box stays
+// FriezeHeader's at the trio's `--frieze-bar-h` (= 0.96 × `--frieze-h`
 // since 2026-08-17's trim walk — this scoped height reads that dial). Only
 // the palette differs — and since 2026-08-17 (user ask) it is not
 // FriezeBar's default brown-4 but the SIDE CHROME TRIO rule in
@@ -437,13 +542,13 @@ export default defineComponent({
   // 2026-08-18's palette ask; the floor went a step lighter than the rim on
   // 2026-07-24 so the well reads as a soft recess under the plaque rather than
   // a dark trough, and that step is what the grey pair preserves.)
-  // The well is BRACKETED BY TWO FRIEZE BANDS now, so it gets a wider **8px**
-  // reveal top and bottom (2026-07-24 — the bottom was 3px when a bare header
-  // sat under it): a carved wave band needs more air than a flat plaque edge,
-  // and equal gaps keep the well centred between its two bands. Whatever the
-  // number, it must be the SAME in BOTH faces — an asymmetric margin would
-  // move the list box between presentations and break the in-place unravel
-  // once the history overflows the cap.
+  // The well is BRACKETED BY TWO FRIEZE BANDS (expanded), so it gets a wider
+  // **8px** reveal top and bottom (2026-07-24 — the bottom was 3px when a bare
+  // header sat under it): a carved wave band needs more air than a flat plaque
+  // edge, and equal gaps keep the well centred between its two bands. (The old
+  // same-in-both-faces margin law is retired with the 2026-08-30 axis
+  // rotation — the parked face is a horizontal strip now and states its own
+  // arithmetic below.)
   margin: 8px 6px;
   padding: 4px 6px;
   background: var(--grey-4);
@@ -465,16 +570,53 @@ export default defineComponent({
   &::-webkit-scrollbar-track { background: var(--grey-4); border-radius: 999px; }
   &::-webkit-scrollbar-thumb { background: var(--grey-6); border-radius: 999px; }
 
-  // Parked face of the SAME scroller: narrowed to the icon column, chips
-  // centered, same vertical padding + gap as above so the items keep their
-  // levels, scrollbar hidden (scrollbar-width: none makes Chrome 121+ skip
-  // the ::-webkit-scrollbar styling above and hide it too).
-  // Side margins tighten to 2px here so the chips sit closer to the column's
-  // edges; the vertical margins stay exactly as above.
+  // Parked face of the SAME scroller, ROTATED (2026-08-30) and RIDING THE
+  // TRAIL since the sitting's third ask: a horizontal row of chips inside
+  // the footer's 21px inner frieze band, scrolling on the x axis (the one
+  // live axis of this face — the y overflow is hidden, and scrollbar-width:
+  // none makes Chrome 121+ skip the ::-webkit-scrollbar styling above and
+  // hide the bar too). NO vertical margin and no rim — the lane
+  // has a FLOOR since the fourth ask ("grey-4 for the items scroll
+  // container"): the expanded well's own `--grey-4`, sunk into the strip's
+  // `--plaque-coat` plate exactly as the expanded well sinks into the
+  // panel's — the widget's two faces state one material story at two
+  // scales. TRULY full-bleed since the fifth ask ("remove that padding …
+  // add a little to the inner top and bottom"): `align-self: stretch`
+  // overrides the strip's own `align-items: center`, which was sizing this
+  // lane to its 17px content and leaving 2px of COAT showing above and
+  // below it — that air lives INSIDE the container now, so the grey-4 spans
+  // the strip's full content height. The chips don't move: since the
+  // strip's 2026-08-30 frame, border-box hands this lane a 19px stretch, so
+  // 1px padding + 17px chip (`--side-item-h`, which SidePanelItem's rail
+  // face reads) + 1px = the 19px box between the strip's two rims — rim +
+  // pad still reads as 2px of air over each chip, the band's shoulders now
+  // half line, half coat. Chips narrowed to 20px wide by the :deep rule
+  // below, 2px gaps. The old
+  // faces' matched-margins invariant (Δtop = 0 through the morph) is
+  // retired — the morph is an axis rotation now, so items trade a vertical
+  // level for a horizontal one by design. min-width lets the row shrink
+  // under its cap and hand the rest to the scroll.
+  // The lane's RIGHT END alone is rounded (sixth ask, 2026-08-30: "rounded
+  // corners on the right side only"): the left edge stays square against the
+  // strip's own left edge, and the right corners curve into the coat before
+  // the head glyph — 7px, the bar's own small-chip radius (the minitab meta
+  // chip's), a visible round on a 21px band without capping it into a pill.
+  // The radius also clips the scrolling chips at that end (overflow is
+  // auto), the same soft-clip the expanded well's radius performs.
   &.is-parked {
-    margin: 8px 2px;
-    padding: 4px 0;
+    --side-item-h: 17px;
+    --side-item-gap: 2px;
+    flex-direction: row;
     align-items: center;
+    align-self: stretch;
+    min-width: 0;
+    margin: 0;
+    padding: 1px 2px;
+    background: var(--grey-4);
+    border: none;
+    border-radius: 0 7px 7px 0;
+    overflow-x: auto;
+    overflow-y: hidden;
     scrollbar-width: none;
   }
 }

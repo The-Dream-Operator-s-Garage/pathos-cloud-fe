@@ -1,7 +1,9 @@
 <template>
   <!-- The pinned list as a docked right side panel that RISES from the nav bar
-       and grows upward toward the middle (mirror of the navigation stack, which
-       hangs from below the frieze). One mirrored FriezeBar band sits INSIDE it,
+       and grows upward toward the middle (it mirrored the navigation stack
+       across the right edge until 2026-08-30, when the stack moved into the
+       footer bar's left run — this column is the right edge's only widget
+       now). One mirrored FriezeBar band sits INSIDE it,
        between the header / pin glyph and the scroll well — the same divider
        block the drawer uses between sections, mirroring the band the stack
        carries between its own well and header. Its old bottom-edge band

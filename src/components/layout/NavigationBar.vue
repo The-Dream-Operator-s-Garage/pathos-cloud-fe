@@ -86,7 +86,9 @@
            the checkpoint trio, the step + current-title readout and the
            checkpoint dropdown all lived here; they are gone. Navigation
            history is reached through the drawer's Back button and the stack
-           widget on the right edge, and the current element names itself on
+           widget — inside this bar's own left run since 2026-08-30 (its
+           parked strip stands OVER this bar's left region from z 3130,
+           beside the burger slot) — and the current element names itself on
            the page. What is left is the slack that pushes the right cluster
            to its edge. ── -->
       <div class="nav-center" />
@@ -184,13 +186,16 @@
                user ask: "only from messages and dashboard ones, remove their
                inner text and leave the big icons only. make the icons as big
                as possible inside their containeres, removing inner padding on
-               top and bottom"). MESSAGES lasted a day. 21px is not a taste
-               pick — it is `--nav-trail-h`, i.e. the chip's whole CONTENT
-               height now that the top and bottom rims are gone, so the glyph
-               fills the chip corner to corner with nothing left to remove. The
-               four MAKERS keep their words; these two are the LOOKERS, and the
-               row now says four labelled makers, two bare windows. -->
-          <q-icon name="forum" size="21px" />
+               top and bottom"). MESSAGES lasted a day. The size is not a
+               taste pick — it is the chip's whole CONTENT height: 21px while
+               the top and bottom rims were gone, 19px again since 2026-08-30
+               put the full frame back (`.nav-btn` in _components.scss;
+               border-box pays the two rims out of the 21px box), so the glyph
+               still fills the chip corner to corner with nothing left to
+               remove. The four MAKERS keep their words; these two are the
+               LOOKERS, and the row now says four labelled makers, two bare
+               windows. -->
+          <q-icon name="forum" size="19px" />
           <q-badge
             v-if="events.unreadCount > 0"
             floating color="amber-9" text-color="black"
@@ -207,7 +212,8 @@
              when the row was two single pebbles and a fused four-button slab
              and the lines were the only thing saying which was which. Both
              premises are gone: the group was dissolved into six identical
-             chips, and the chips' own side rims now state every edge. What
+             chips, and the chips' own rims (side rims then; full frames
+             since 2026-08-30) now state every edge. What
              was left was a full-bar-height brown-3 line cutting across the
              band and its cream margins between two of the six pairs and not
              the other three — a section marker with no sections to mark.
@@ -246,8 +252,9 @@
           @click="toggleDashboard"
         >
           <!-- Glyph only and chip-height, same ask as the chat button beside
-               it — 21px = `--nav-trail-h`, the full content box. -->
-          <q-icon name="sym_o_empty_dashboard" size="21px" />
+               it — 19px, the full content box inside the chip's restored
+               top and bottom rims (2026-08-30). -->
+          <q-icon name="sym_o_empty_dashboard" size="19px" />
         </q-btn>
 
         <div v-if="showTack" class="nav-divider" />
@@ -318,9 +325,10 @@
        the bar's top edge with a z that clears the band AND the expanded
        docks (taskbar semantics: a parked tab stays clickable under an open
        window). The footer outranks the band now (3110), but the strip stays
-       lifted: 3045 is what keeps it over every dock and under the drawer. The stack/pins side
-       panels narrow to thin icon columns on the right edge instead
-       (StackPanel/PinsDrawer `is-parked`). ── -->
+       lifted: 3045 is what keeps it over every dock and under the drawer.
+       The stack/pins side panels park to thin icon rails instead — pins a
+       column on the right edge, the stack a chip strip inside this bar's
+       left run since 2026-08-30 (StackPanel/PinsDrawer `is-parked`). ── -->
   <div class="minitab-strip" :style="{ right: minitabRight }">
     <TransitionGroup name="minitab-pop">
       <button
@@ -838,19 +846,19 @@ export default defineComponent({
   // this bar was the only surface wearing it; the drawer and the two
   // right-edge widgets took the same coat the same session, so the veil's
   // strength is one edit for all four now.
-  // ⭐ THE TRAIL'S HEIGHT IS ONE NUMBER FOR TWO OBJECTS (2026-08-23, the day's
-  // last ask: "touch the bar, but within the frieze bar" — the chips fill the
-  // band edge to edge and stop there). It is declared HERE, on the bar, rather
-  // than on either of them, because both read it and custom properties
-  // inherit: `.nav-frieze` takes it as `--frieze-bar-h` two rules down, and
-  // `.nav-btn` takes it as its own height from `_components.scss`, a different
-  // file entirely. Six settings of this pair across one day were six chances
-  // for two numbers to drift; there is only one number now, and moving it
-  // moves the band and every chip in it together.
-  // ⚠ ODD ON PURPOSE — see the centring note on `.nav-frieze`: the formula
-  // there is the ODD-parity one, and an even value silently lands this band on
-  // half pixels.
-  --nav-trail-h: 21px;
+  // ⭐ THE TRAIL'S HEIGHT IS ONE NUMBER — `--nav-trail-h` — FOR THREE OBJECTS
+  // NOW, AND IT MOVED TO `:root` (_tokens.scss) ON 2026-08-30: it was
+  // declared HERE, on the bar (2026-08-23, "touch the bar, but within the
+  // frieze bar"), because its two consumers — `.nav-frieze`, which takes it
+  // as `--frieze-bar-h` two rules down, and `.nav-btn` in `_components.scss`
+  // — both live in this bar's subtree and custom properties inherit. The
+  // STACK WIDGET'S PARKED STRIP became the third consumer when it moved
+  // inside this band (its height AND its bottom-centring formula both read
+  // the dial), and it is a `position: fixed` element OUTSIDE this subtree —
+  // the one place a bar-scoped declaration cannot reach. Same law, wider
+  // scope: there is still only one number, and moving it moves the band,
+  // every chip in it and the stack strip together. The odd-parity warning
+  // travelled with the declaration.
   background: var(--plaque-coat);
   // ── Top lip --grey-6 (2026-08-17, user ask) ──
   // It was --brown-3 from the end of 2026-07-25 (brown-4 for one day before

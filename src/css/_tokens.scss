@@ -841,11 +841,14 @@ $warning:   #F2C037;
   --shadow-soft:    0 2px 6px  rgba(var(--ink-rgb-deep), 0.06);
   --shadow-raised:  #{$ink-glow} 1px 1px 0;
 
-  // Left-edge shadow of the RIGHT-EDGE COLUMN (2026-07-24) — the stack/pins
-  // side widgets in BOTH presentations plus the nav bar's pin-tack slot, which
-  // continues that column down through the footer. A slight leftward cast, no
-  // vertical offset, so the whole column reads as one raised strip lying on
-  // top of the page and the nav bar.
+  // Left-edge shadow of the RIGHT-EDGE COLUMN (2026-07-24) — the pins widget
+  // in BOTH presentations (the nav bar's pin-tack slot wore it too until the
+  // rail slots went flat, 2026-08-02). A slight leftward cast, no vertical
+  // offset, so the column reads as one raised strip lying on top of the page
+  // and the nav bar. The STACK widget wore it until its 2026-08-30 move to
+  // the footer's bottom-left, where it casts this value's MIRROR — the
+  // x-offset sign flipped, stated as a literal in StackPanel.vue (the same
+  // mirroring the burger slot once did at that corner).
   --shadow-side-edge: -5px 0 12px rgba(var(--ink-rgb-deep), 0.16);
 
   // ── THE PLAQUE COAT — the platform's chrome surface (2026-08-17) ──
@@ -1148,6 +1151,22 @@ $warning:   #F2C037;
   // bottom — the same proportion the 28px chip had in the 48px bar.
   --nav-bar-h: 32px;
 
+  // ⭐ THE FOOTER TRAIL'S HEIGHT — one number for THREE objects (2026-08-23
+  // as a `.nav-bar`-scoped declaration for two; HERE since 2026-08-30, when
+  // the third consumer arrived): `.nav-frieze` takes it as `--frieze-bar-h`
+  // (the band's own box), `.nav-btn` takes it as every trail chip's height
+  // (`_components.scss` — the chip IS the band, exactly), and the STACK
+  // WIDGET'S PARKED STRIP (`StackPanel.vue`) reads it twice — its height and
+  // its bottom-centring formula — to sit ON the band's very box from a
+  // `position: fixed` element outside the bar's subtree, which is why the
+  // declaration had to leave the bar: a scoped custom property cannot reach
+  // it there. Moving this number moves the band, every chip in it and the
+  // stack strip together; that is the whole point of it being one number.
+  // ⚠ ODD ON PURPOSE — the centring formula on `.nav-frieze` (and the
+  // strip's mirror of it) is the ODD-parity one: an even value silently
+  // lands the band on half pixels.
+  --nav-trail-h: 21px;
+
   // TOTAL height of the bottom chrome — the bar's row PLUS the floor frieze
   // band standing under it (2026-08-02, user ask: "a dark brown frieze bar
   // below the nav footer bar, the ones from inside the left drawer"). That
@@ -1409,24 +1428,30 @@ $warning:   #F2C037;
   // sums those two out of that file and compares the total here.
   --media-tabs-park-h: 14px;
 
-  // Mirrored side widgets (StackPanel drops from the very top over the
-  // frieze, PinsDrawer rises from the very bottom over the nav footer), both
-  // presentations (expanded panel + parked icon column). Together they may use
-  // at most a 90vh BAND — the ~10vh left over (minus the nav footer the pins
-  // widget stands on) is the breathing gap in the middle that keeps them from
-  // ever touching; past their cap the content scrolls inside instead of
-  // expanding into each other.
-  //
-  // That band is split **70/30 in the stack's favour** (2026-07-24 — it was an
-  // even 45/45 half each): navigation history is the long, fast-growing list,
-  // the pinned set is a short curated one. Keep the two adding up to 90vh.
-  --dock-stack-h: 63vh; // 70% of the 90vh side band
-  --dock-pins-h:  27vh; // 30% of the 90vh side band
+  // The two edge widgets' expanded-height caps, both presentations. They were
+  // minted as a 70/30 split of one 90vh right-edge BAND (2026-07-24 — an even
+  // 45/45 before that): StackPanel hung from the top, PinsDrawer rose from
+  // the bottom, and the split kept them from ever touching. ⚠ SINCE
+  // 2026-08-30 (user ask) THE STACK LIVES AT THE FOOTER'S BOTTOM-LEFT CORNER,
+  // so the band-sharing rationale is history: nothing collides at either
+  // value anymore. Each dial is simply its widget's own expanded cap now —
+  // the stack's kept at its 63vh (a corner panel can afford the lion's
+  // share), pins at its 27vh; grow either on its own merits, not to keep a
+  // sum.
+  // (Both widgets run to the window floor now, so each SFC caps at
+  // `calc(<dial> + var(--nav-footer-h))` — the last bar-height is bar chrome
+  // the widget lies over, not space taken from its list.)
+  --dock-stack-h: 63vh; // StackPanel's expanded cap (ex-70% of the dead band)
+  --dock-pins-h:  27vh; // PinsDrawer's expanded cap (ex-30% of the dead band)
 
-  // Width of the stack/pins side widgets while PARKED — the same panel
-  // element narrowed to a thin icon column at the right edge (`is-parked` in
-  // StackPanel/PinsDrawer). Keep in sync with RAIL_W (42 + 4 gap) in
-  // stores/windows.js, which reserves the column for the page + other docks.
+  // The parked rail's THIN dimension — the pins widget's icon-column WIDTH
+  // at the right edge. Since 2026-08-30 it is ALSO the stack widget's LEFT
+  // OFFSET: the stack rides the footer trail beside the bar's 42px left
+  // rail slot (the burger's — this token is that slot's width too), so
+  // `left: var(--dock-rail-w)` starts the strip exactly at the slot's edge;
+  // the strip's own height is the trail's `--nav-trail-h`, not this. Keep
+  // in sync with RAIL_W (42 + 4 gap) in stores/windows.js, which reserves
+  // the pins column for the page + docks.
   --dock-rail-w: 42px;
 
   // EXACT height of the dock header bar (.dock-bar) — and of the parked side

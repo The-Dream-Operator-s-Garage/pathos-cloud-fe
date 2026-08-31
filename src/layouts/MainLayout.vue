@@ -250,8 +250,9 @@
     <!-- The eight docked windows (maker, uploader, skeleton builder, label
          maker, chat, DASHBOARD since 2026-08-10, stack, pins) — always
          mounted; their stores decide whether each renders open, minimized
-         (maker/uploader/chat → minitab on the nav bar, stack/pins → icon
-         rail on the right edge) or not at all, and stores/windows.js
+         (maker/uploader/chat → minitab on the nav bar, pins → icon rail on
+         the right edge, stack → chip strip inside the footer bar's left
+         run since 2026-08-30) or not at all, and stores/windows.js
          z-orders them so a newly opened window covers the previous one and
          closing/minimizing it brings that one back. In-progress maker/
          uploader/chat work survives close/reload via localStorage (staged

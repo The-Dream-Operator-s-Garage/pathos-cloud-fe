@@ -169,23 +169,33 @@
   height: var(--nav-trail-h, 21px);
   padding: 0 5px;
   border-radius: 0;
-  // ── SIDES ONLY (2026-08-23, user ask: "remove their top and bottom borders
-  // so they blend smoothly with the bar"). The chip is exactly the band's
-  // height, so those two rims were the only thing between its cream face and
-  // the band's own top and bottom edges — a line drawn across a joint that has
-  // nothing to join. Gone, the face runs to the band's edges and the chip
-  // reads as a section of the trail repainted rather than a tile laid on it.
-  // ⚠ NO LAYOUT MOVED: `box-sizing: border-box` means the 21px box is 21px
-  // either way — what grew is the CONTENT height, 19px → 21px, which is why
-  // the 19px glyph still has a pixel of slack top and bottom and why the
-  // `chip − 2 = glyph` chain now holds on the sides alone.
-  // The SIDES stay, and are load-bearing twice over: they separate adjacent
-  // chips across `.nav-right`'s 6px gap, and they state each chip's own edges
-  // against the plate. `--grey-6` on the `--grey-8` plate is a LIGHTER hairline
-  // on a darker ground — see the plate note in NavigationBar.
-  border: 1px solid var(--grey-6);
-  border-top: 0;
-  border-bottom: 0;
+  // ── A FULL FRAME AGAIN (2026-08-30, user ask: "adding to them borders on
+  // all sides. some of the buttons currently have, but not all of them" — the
+  // round chips at the bar's two ends kept their closed rims all along, so
+  // the six trail chips were the odd ones out). This reverses 2026-08-23's
+  // sides-only ask ("remove their top and bottom borders so they blend
+  // smoothly with the bar"): that blending argument was struck against a flat
+  // band, and the trail has since walked to the drawer's two-wave pattern —
+  // on a drawn band a chip wants its own closed box to read as a chip and
+  // not as a gap in the motif.
+  // ⚠ NO LAYOUT MOVED, exactly as when the rims left: `box-sizing:
+  // border-box` keeps the 21px box 21px — the CONTENT height went back
+  // 21 → 19px, so the `chip − 2 = glyph` chain holds on all four edges again
+  // and the two bare "looker" glyphs return to 19px alongside the makers'
+  // (see NavigationBar's chat/dashboard notes).
+  // The rims are load-bearing twice over: they separate adjacent chips across
+  // `.nav-right`'s 6px gap, and they close each chip's own box against the
+  // band it rides.
+  // ⚠ THE INK IS THE BAND'S OWN RULE INK — `--grey-5`, exactly what
+  // `.nav-frieze` draws its top and bottom borders in — and that choice IS
+  // the alignment fix (2026-08-30, follow-up ask: "they look slightly below
+  // the top border and overlapping on top of the bottom one"). The boxes
+  // were already pixel-coincident — chip and band paint their rules on the
+  // very same rows, verified by pixel sampling — but a DARKER grey-6
+  // segment breaking the band's lighter line read as a second line sitting
+  // lower. One ink, and the trail's two rules run unbroken through every
+  // chip.
+  border: 1px solid var(--grey-5, #bdbdbd);
   background: var(--plaque-flat);
   color: var(--ink-1);
   font-family: var(--font-display);
@@ -214,15 +224,17 @@
 .dock-window {
   position: fixed;
   // Bottom docks (maker/uploader/chat/label/skeleton) shift left of the
-  // stack/pins side column (--dock-right = windows.dockRight) so they render
-  // BESIDE that column, never on top. The mirrored pins/stack panels opt
-  // out (they don't set --dock-right) — they stay flush to the right edge and,
-  // being split across the top/bottom halves, never collide with a rail.
+  // pins side column (--dock-right = windows.dockRight) so they render
+  // BESIDE that column, never on top. The pins panel opts out (it doesn't
+  // set --dock-right) — it stays flush to the right edge under the column it
+  // owns — and the stack widget overrides the whole side (`left:
+  // var(--dock-rail-w)`, inside the footer bar's left run beside the burger
+  // slot, since 2026-08-30).
   right: var(--dock-right, 0px);
   // The bar's top edge (2026-08-04) — a sane default nothing currently reads:
   // every one of the seven docks overrides `bottom` itself (the five
-  // `.dock-window--creation` docks restate this same value; `.stack-window`
-  // and `.pins-drawer` want `top: 0`/`bottom: 0` instead). Used to read
+  // `.dock-window--creation` docks and `.stack-window` restate this same
+  // value; `.pins-drawer` wants `bottom: 0` instead). Used to read
   // `--dock-bottom`, one --frieze-h taller, to clear FriezeFooter — the pale
   // band that used to stand on this edge; that band (and the token) is gone
   // now that the floor frieze wears its palette instead.
@@ -826,18 +838,30 @@
 
 // ── PARKED SIDE-BAR CHROME — the stack/pins widgets are each ONE element
 // with two presentations (2026-07-24, third pass — the separate rail tree is
-// gone): expanded = the 300px panel, parked = the SAME element narrowed to
-// the thin icon column (`is-parked` on the panel root, width --dock-rail-w),
-// its ONE list scroller persisting through the morph with every SidePanelItem
-// flipped to its collapsed icon face. Both widgets share one right-edge
-// column — the stack hangs from the top, pins rises from the bottom — and cap
-// at their share of the 90vh side band (--dock-stack-h 63vh / --dock-pins-h
-// 27vh, a 70/30 split since 2026-07-24), so they never overlap. Each also
-// carries a FriezeBar band at BOTH ends of its list well: at the widget's
-// outer edge (stack top / pins bottom) and between the well and its own
-// header/head glyph. The page content
-// pads right by railWidth (stores/windows.js) so the parked column never
-// covers it, and the other bottom docks shift left beside it via --dock-right.
+// gone): expanded = the 300px panel, parked = the SAME element flattened to
+// a thin icon rail (`is-parked` on the panel root, --dock-rail-w across its
+// thin dimension), its ONE list scroller persisting through the morph with
+// every SidePanelItem flipped to its collapsed icon face. They bounded the
+// right edge together (stack top / pins bottom, the 90vh band split
+// --dock-stack-h 63vh / --dock-pins-h 27vh) until 2026-08-30, when the STACK
+// moved ONTO the footer bar's inner frieze band (four asks — bottom-left,
+// then inside the bar at full height, then "inside the footer nav bar's
+// inner frieze bar … way denser", then the paints): parked it is a
+// `--plaque-coat` plate riding `.nav-frieze`'s very box (--nav-trail-h,
+// :root since the same sitting) beside the burger's 42px rail slot — a
+// full-bleed `--grey-4` items lane holding dense 20×17 chips on the band's
+// 2px shoulders via a strip-scoped --side-item-h, head glyph on the coat
+// at the right end, a 1px --grey-5 frame on all four sides (2026-08-30's
+// borders-on-all-sides ask — the trail chips' own rim, in the band's own
+// rule ink), no cast; expanded it rises from that seat to
+// the window floor adding the rims/casts (expanded-only chrome), and its
+// two FriezeBar well-bracket bands render expanded only (the parked face
+// rides a band already). Pins keeps the
+// right-edge grammar unchanged: its band between well and header, the page
+// content padding right by railWidth (stores/windows.js) so the parked column
+// never covers it, the other bottom docks shifting left beside it via
+// --dock-right. Nothing reserves for the stack's strip — it overlays the
+// page's bottom-left corner from its fixed EDGE_Z.
 //
 // The morph is IN PLACE (2026-07-24, 7th pass): both faces of an item share
 // --side-item-h / --side-item-gap, both lists carry the same padding + gap,
@@ -1312,7 +1336,8 @@
 //     the left edge, dots grown 13px → 17px.
 // ═══════════════════════════════════════════════════════════════════
 @media (max-width: 600px) {
-  // The right-edge widgets: hover-driven, permanent-column fixtures — both
+  // The edge widgets (pins at the right column, the stack on the footer's
+  // bottom-left since 2026-08-30): hover-driven permanent fixtures — both
   // presentations meaningless on a 375px touch screen. windows.railWidth
   // already reads 0 here, so nothing pads for them.
   .stack-window,
