@@ -92,28 +92,72 @@
                apply to whichever button fires. ── -->
           <div class="method-stack">
 
-            <!-- NOTE — 45%. A SIMPLE WRITING BOX (user ask: "no special
-                 formatting"): a bare textarea where NoteEditor's
-                 edit/split/preview machinery used to mount. The text still
-                 lands as a .md FILE node exactly as before — what left is
-                 the preview chrome, not the format. -->
-            <section class="method method--note">
+            <!-- NOTE — 45%. A WRITING BOX FOR COMPLEX NOTES (2026-08-31,
+                 user ask: "turn complex notes into posts easily"): still a
+                 plain textarea, but files pasted or dragged INTO it upload
+                 immediately as FILE nodes and land at the caret as mini
+                 ![[pathos:nodes/…]] refs — the post editor's own reference
+                 grammar. The head grew a minimalist cut of NoteEditor's
+                 machinery (one edit⇄preview pill pair, MarkdownBody pane —
+                 no format bar, no split) and a Post plate that hands the
+                 note to the maker as a draft-in-progress. Save note still
+                 lands the text as a .md FILE node exactly as before. -->
+            <section
+              class="method method--note"
+              @dragover.prevent="noteDragOver = true"
+              @dragleave.prevent="noteDragOver = false"
+              @drop.prevent="onNoteDrop"
+            >
               <div class="method__head">
                 <span class="method__label">Note</span>
+                <div class="note-mode" role="group" aria-label="Note view">
+                  <button
+                    type="button" class="note-mode__btn"
+                    :class="{ 'is-on': !notePreview }" title="Markdown"
+                    @click="notePreview = false"
+                  ><q-icon name="edit" size="12px" /></button>
+                  <button
+                    type="button" class="note-mode__btn"
+                    :class="{ 'is-on': notePreview }" title="Preview"
+                    @click="notePreview = true"
+                  ><q-icon name="visibility" size="12px" /></button>
+                </div>
+                <span v-if="noteUploading" class="method__hint">
+                  uploading {{ noteUploading }} file{{ noteUploading > 1 ? 's' : '' }}…
+                </span>
                 <q-space />
+                <q-btn
+                  unelevated dense no-caps size="sm" icon="post_add"
+                  class="method__submit" label="Post"
+                  title="Turn this note into a post draft and open it in the post window"
+                  :disable="!canSubmit('note') || noteUploading > 0"
+                  @click="toPost"
+                />
                 <q-btn
                   unelevated dense no-caps size="sm" icon="note_add"
                   class="method__submit" label="Save note"
-                  :loading="isBusy('note')" :disable="!canSubmit('note')"
+                  :loading="isBusy('note')" :disable="!canSubmit('note') || noteUploading > 0"
                   @click="submit('note')"
                 />
               </div>
               <textarea
+                v-show="!notePreview"
+                ref="noteBox"
                 class="note-box"
+                :class="{ 'is-over': noteDragOver }"
                 :value="upload.noteText"
-                placeholder="Write a note — it uploads as a markdown file."
+                placeholder="Write a note — it uploads as a markdown file. Paste or drag images/files to reference them."
                 @input="patch({ noteText: $event.target.value })"
+                @paste="onNotePaste"
               ></textarea>
+              <div v-show="notePreview" class="note-preview">
+                <MarkdownBody
+                  v-if="(upload.noteText || '').trim()"
+                  class="md-rendered"
+                  :text="upload.noteText"
+                />
+                <div v-else class="note-preview__empty">Nothing to preview yet…</div>
+              </div>
             </section>
 
             <!-- LINK — 15%: one input, its button in the head row. The URL
@@ -234,16 +278,19 @@
 </template>
 
 <script>
-import { defineComponent, ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
+import { defineComponent, ref, computed, watch, nextTick, onMounted, onBeforeUnmount } from 'vue'
 import { useQuasar } from 'quasar'
 import MakerHeader from './MakerHeader.vue'
 import FileExplorer from './FileExplorer.vue'
+import MarkdownBody from 'src/components/shared/MarkdownBody.vue'
 import { useUploaderStore, uploadLabel } from 'src/stores/uploader'
+import { useMakerStore } from 'src/stores/maker'
 import { useWindowsStore } from 'src/stores/windows'
 import { nodeService } from 'src/services/node.service'
 import { labelService } from 'src/services/label.service'
 import { embedService } from 'src/services/embed.service'
 import { formatBytes } from 'src/utils/nodeContent'
+import { extractPathosRefs } from 'src/utils/pathosRefs'
 
 const KIND_BY_EXT = {
   md: 'text',
@@ -266,7 +313,7 @@ const KIND_ICON = { text: 'notes', image: 'image', video: 'movie', audio: 'music
 
 export default defineComponent({
   name: 'UploaderDock',
-  components: { MakerHeader, FileExplorer },
+  components: { MakerHeader, FileExplorer, MarkdownBody },
   emits: ['created'],
 
   setup (props, { emit }) {
@@ -412,6 +459,189 @@ export default defineComponent({
       patch({ staged: next })
     }
 
+    // ── note media (2026-08-31, user ask: "paste images and drag files …
+    // automatically uploaded as a node, and then auto-referenced in mini
+    // formatting inside the note") — a paste/drop lands the files through
+    // the SAME /nodes/upload seam as the files section, but instead of
+    // staging it drops a placeholder token at the caret and swaps it for
+    // the minted node's ![[pathos:nodes/…]] mini ref when the answer
+    // comes back. The swap is a string replace against a UNIQUE token, so
+    // the author can keep typing while the bytes travel. ──
+    const notePreview = ref(false)
+    const noteDragOver = ref(false)
+    const noteUploading = ref(0)
+    const noteBox = ref(null)
+    let noteSeq = 0
+
+    // A parked preview is per-look, not per-draft: switching tabs lands on
+    // the writing side.
+    watch(() => store.activeId, () => { notePreview.value = false })
+
+    // The API's own multer caps on POST /nodes/upload — restated here so an
+    // oversize paste fails with a sentence instead of a 500.
+    const NOTE_FILE_CAP = 25 * 1024 * 1024
+    const NOTE_BATCH_CAP = 10
+
+    // The ref grammar forbids ']' and newlines in the label arm (and '|'
+    // would end it early) — a filename wearing one still gets a label.
+    const refLabelOf = (name) =>
+      String(name || '').replace(/[|\]\n]/g, ' ').trim().slice(0, 80) || 'file'
+
+    // Every clipboard image arrives named "image.png" — stamp pastes so two
+    // of them don't read as the same file in the explorer.
+    const dePasteName = (f) => {
+      if (!/^image\.[a-z0-9]+$/i.test(f.name || '')) return f
+      const ext = f.name.split('.').pop()
+      const ts = new Date().toISOString().replace(/\D/g, '').slice(0, 14)
+      return new File([f], `pasted-${ts}-${++noteSeq}.${ext}`, { type: f.type })
+    }
+
+    const insertAtNoteCaret = (text) => {
+      const u = upload.value
+      if (!u) return
+      const el = notePreview.value ? null : noteBox.value
+      const cur = u.noteText || ''
+      const start = el ? el.selectionStart : cur.length
+      const end = el ? el.selectionEnd : cur.length
+      patch({ noteText: cur.slice(0, start) + text + cur.slice(end) })
+      nextTick(() => {
+        if (!el) return
+        el.focus()
+        el.setSelectionRange(start + text.length, start + text.length)
+      })
+    }
+
+    const uploadIntoNote = async (list) => {
+      const u = upload.value
+      if (!u) return
+      const id = u.id
+      const all = Array.from(list || [])
+      if (!all.length) return
+
+      const errors = []
+      for (const f of all.filter(x => x.size > NOTE_FILE_CAP)) {
+        errors.push({ filename: f.name, message: `over the ${formatBytes(NOTE_FILE_CAP)} upload cap` })
+      }
+      let batch = all.filter(x => x.size <= NOTE_FILE_CAP)
+      if (batch.length > NOTE_BATCH_CAP) {
+        errors.push({ message: `only the first ${NOTE_BATCH_CAP} files were taken (the upload batch cap)` })
+        batch = batch.slice(0, NOTE_BATCH_CAP)
+      }
+      if (errors.length) store.patchUpload(id, { errors: [...u.errors, ...errors] })
+      if (!batch.length) return
+
+      const jobs = batch.map(f => {
+        const file = dePasteName(f)
+        return { file, mark: `⟪uploading ${file.name} #${++noteSeq}⟫` }
+      })
+      // Own line each — a mini ref reads as a block, and the token should
+      // sit where the ref will.
+      insertAtNoteCaret(jobs.map(j => j.mark).join('\n'))
+
+      const fd = new FormData()
+      for (const j of jobs) fd.append('files', j.file, j.file.name)
+      if (u.authorEntityId) fd.append('authorEntityId', u.authorEntityId)
+      fd.append('labelIds', JSON.stringify(u.labelIds))
+
+      noteUploading.value += jobs.length
+      const tabNow = () => store.uploads.find(x => x.id === id)
+      try {
+        const r = await nodeService.upload(fd)
+        // Successes come back in file order with failures skipped, so walk
+        // the jobs with one pointer into nodes and let the per-file errors
+        // name their own casualties.
+        const nodes = [...(r.nodes || [])]
+        const failed = r.errors || []
+        for (const j of jobs) {
+          const err = failed.find(e => e.filename === j.file.name)
+          const node = err ? null : nodes.shift()
+          const t = tabNow()
+          if (!t) continue
+          const ref = node
+            ? `![[pathos:${node.path}|${refLabelOf(node.file?.name || j.file.name)}]]`
+            : ''
+          store.patchUpload(id, { noteText: (t.noteText || '').replace(j.mark, ref) })
+        }
+        const t = tabNow()
+        if (t && failed.length) store.patchUpload(id, { errors: [...t.errors, ...failed] })
+        // NOT emitted as 'created' on purpose: the layout answers a lone
+        // created node by navigating to its viewer (and an armed builder
+        // capture by consuming it) — both wrong for a paste whose node
+        // exists to be referenced HERE. The explorer still learns of it.
+        if (r.nodes?.length) refreshKey.value++
+      } catch (e) {
+        const msg = e?.response?.data?.error?.message || e?.message || 'Upload failed'
+        const t = tabNow()
+        if (t) {
+          let text = t.noteText || ''
+          for (const j of jobs) text = text.replace(j.mark, '')
+          store.patchUpload(id, { noteText: text, errors: [...t.errors, { message: msg }] })
+        }
+      } finally {
+        noteUploading.value -= jobs.length
+      }
+    }
+
+    const onNotePaste = (e) => {
+      const files = Array.from(e.clipboardData?.files || [])
+      if (!files.length) return
+      e.preventDefault()
+      uploadIntoNote(files)
+    }
+
+    // Drops carrying no files (dragged text) are simply ignored — the
+    // section-level .prevent already ate the default, and the note's drop
+    // story is files.
+    const onNoteDrop = (e) => {
+      noteDragOver.value = false
+      const files = e.dataTransfer?.files
+      if (files?.length) uploadIntoNote(files)
+    }
+
+    // ── Post — the note becomes a POST DRAFT (2026-08-31 ask: "turns the
+    // node into a post … creates a post in progress and redirects me
+    // there"). Nothing is minted here: the body, author and labels move
+    // into a fresh maker draft, the note's inline [[pathos:]] refs are
+    // staged on it (already in the body, so the maker appends nothing —
+    // they just show in its References rail), and the maker dock opens on
+    // it while the uploader steps aside. ──
+    const toPost = () => {
+      const u = upload.value
+      if (!u || !(u.noteText || '').trim() || noteUploading.value) return
+      const body = u.noteText
+      const seen = new Set()
+      const references = []
+      for (const r of extractPathosRefs(body).refs) {
+        if (seen.has(r.address)) continue
+        seen.add(r.address)
+        references.push({
+          address: r.address,
+          primary: r.label || `${r.prefix}/${r.hash.slice(0, 8)}…`,
+          // The draft's display stamps are auto|micro|mini; the parser
+          // calls the '!' sigil 'embed'.
+          display: r.display === 'embed' ? 'mini' : r.display
+        })
+      }
+      const maker = useMakerStore()
+      maker.load()
+      const d = maker.addDraft()
+      maker.patchDraft(d.id, {
+        content: body,
+        authorEntityId: u.authorEntityId,
+        labelIds: [...u.labelIds],
+        labels: u.labels.map(l => ({ ...l })),
+        references
+      })
+      // The note moved houses — clear it, retire the tab if nothing else
+      // is drafted in it, and park the dock (removeUpload may already have
+      // closed it) so the post window takes the stage.
+      store.patchUpload(u.id, { noteText: '' })
+      const t = store.uploads.find(x => x.id === u.id)
+      if (t && !hasWork(t)) store.removeUpload(u.id)
+      if (store.isOpen) store.minimize()
+      maker.open()
+    }
+
     // ── submit — per-SECTION now ('files' | 'link' | 'note'), still
     // per-tab in flight state, so other tabs stay editable while one is
     // busy; state lands in the store keyed by the upload's id. ──
@@ -539,6 +769,13 @@ export default defineComponent({
       onDrop,
       onBrowse,
       unstage,
+      notePreview,
+      noteDragOver,
+      noteUploading,
+      noteBox,
+      onNotePaste,
+      onNoteDrop,
+      toPost,
       extOf,
       iconFor,
       prettySize,
@@ -738,7 +975,7 @@ export default defineComponent({
   :deep(.q-icon) { font-size: 13px; }
 }
 
-// ── NOTE — the simple writing box. ──
+// ── NOTE — the writing box. ──
 .note-box {
   flex: 1;
   min-height: 0;
@@ -754,6 +991,78 @@ export default defineComponent({
 
   &::placeholder { color: var(--ink-mute); }
   &:focus { outline: none; border-color: var(--teal-8); }
+
+  // Files dragged over the note light it as a drop target — the drop
+  // zone's own live-edge grammar (the wash restates $teal-6's channels,
+  // as there).
+  &.is-over {
+    border-color: var(--uploader-contrast);
+    background: rgba(0, 150, 136, 0.06);
+  }
+}
+
+// The edit⇄preview pills — NoteEditor's mode toggle at its smallest: two
+// icon segments in one hairline pill, the active one filled with the
+// window's contrast.
+.note-mode {
+  display: inline-flex;
+  border: 1px solid rgba(var(--ink-rgb), 0.25);
+  border-radius: 5px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.note-mode__btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 7px;
+  border: none;
+  background: transparent;
+  color: var(--ink-mute);
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+
+  & + & { border-left: 1px solid rgba(var(--ink-rgb), 0.18); }
+  &:hover { color: var(--uploader-contrast); }
+  &.is-on {
+    background: var(--uploader-contrast);
+    color: #fff;
+  }
+}
+
+// The preview pane wears the note box's frame and MarkdownBody's global
+// .md-rendered colors; sizing steps down like NoteEditor's proof pane —
+// a full-scale h1 would eat half of a 45%-height section.
+.note-preview {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 8px 10px;
+  border: 1px solid var(--uploader-contrast);
+  border-radius: var(--radius-sm);
+  background: #fff;
+  font-size: 0.82em;
+  line-height: 1.55;
+
+  :deep(h1) { font-size: 1.45em; margin: 0.5em 0 0.35em; }
+  :deep(h2) { font-size: 1.28em; margin: 0.5em 0 0.3em; }
+  :deep(h3) { font-size: 1.12em; margin: 0.45em 0 0.25em; }
+  :deep(h4), :deep(h5), :deep(h6) { font-size: 1em; margin: 0.4em 0 0.2em; }
+  :deep(h1:first-child), :deep(h2:first-child), :deep(h3:first-child) { margin-top: 0; }
+  :deep(p)  { margin: 0 0 0.6em; }
+  :deep(ul), :deep(ol) { margin: 0 0 0.6em; padding-left: 1.4em; }
+
+  scrollbar-width: thin;
+  scrollbar-color: rgba(var(--ink-rgb), 0.3) transparent;
+  &::-webkit-scrollbar       { width: 4px; }
+  &::-webkit-scrollbar-track { background: transparent; }
+  &::-webkit-scrollbar-thumb { background: rgba(var(--ink-rgb), 0.3); border-radius: 2px; }
+}
+
+.note-preview__empty {
+  padding: 4px 2px;
+  font-size: 0.85em;
+  color: var(--ink-mute);
 }
 
 // ── FILES ──
@@ -991,8 +1300,12 @@ export default defineComponent({
   .method--files { grid-column: 2; grid-row: 1; }
   .method--link  { grid-column: 1 / -1; grid-row: 2; }
 
-  // Half-width cells: quieter type, slimmer drop zone.
-  .note-box { font-size: 0.8em; }
+  // Half-width cells: quieter type, slimmer drop zone. The note head now
+  // carries the mode pills and TWO plates (Post + Save note) — more than a
+  // half-width cell's single line holds, so it wraps.
+  .note-box,
+  .note-preview { font-size: 0.8em; }
+  .method--note .method__head { flex-wrap: wrap; }
   .drop-zone { padding: 8px; }
   .drop-zone__hint { font-size: 0.68em; }
 }
