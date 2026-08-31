@@ -6,7 +6,7 @@
       v-if="store.isOpen && !store.isMinimized"
       class="maker-dock dock-window dock-window--creation"
       :class="{ 'is-max': store.isMaximized, 'is-split-right': windows.splitSideOf('maker') === 'right' }"
-      :style="{ zIndex: windows.zOf('maker'), '--dock-right': windows.dockRight + 'px' }"
+      :style="{ zIndex: windows.zOf('maker'), '--dock-right': windows.dockRight + 'px', '--trail-shift': windows.trailShiftOf('maker') + 'px' }"
     >
       <!-- ── Thin header: title left, Mac-style traffic lights right ──
            THE NAME IS A PLATE (2026-08-26, user ask) — the window states

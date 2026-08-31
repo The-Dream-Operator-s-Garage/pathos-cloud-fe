@@ -26,7 +26,7 @@
       v-if="store.isOpen && !store.isMinimized"
       class="chat-dock dock-window dock-window--creation dock-window--chat"
       :class="{ 'is-max': store.isMaximized, 'is-faces': facesOnly, 'is-list-open': listOverlay }"
-      :style="{ zIndex: windows.zOf('chat'), '--dock-right': windows.dockRight + 'px' }"
+      :style="{ zIndex: windows.zOf('chat'), '--dock-right': windows.dockRight + 'px', '--trail-shift': windows.trailShiftOf('chat') + 'px' }"
     >
       <header class="dock-bar">
         <div class="dock-bar__left">

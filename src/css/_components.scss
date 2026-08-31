@@ -254,6 +254,41 @@
   // q-btn lays its icon/label row out inside .q-btn__content.
   .q-btn__content { gap: 2px; }
 
+  // ── THE GRIP (2026-08-30, user ask: "to each button, add a 'drag'-like
+  // material icon at the left, separated by a hairline" — the trail became a
+  // SLIDER the same ask: grab a chip by this handle and walk it along the
+  // band; NavigationBar owns the pointer logic). Two flex items inside the
+  // q-btn's own content row: the `drag_indicator` glyph, then a 1px rule.
+  // The grip is a DRAG-ONLY zone — NavigationBar swallows its clicks, so the
+  // chip's window opens from the body beside the rule, never from the handle.
+  .nav-btn__grip {
+    display: inline-flex;
+    align-items: center;
+    align-self: stretch;
+    flex: 0 0 auto;
+    // A handle, not content: the glyph takes the bar's structural grey, a
+    // step under the chip's own ink, so six chips with six inks still show
+    // ONE row of identical handles.
+    color: var(--grey-6, #9e9e9e);
+    cursor: grab;
+    // Pointer-events drive the drag on touch screens too — without this the
+    // browser claims a horizontal swipe for scrolling before the chip moves.
+    touch-action: none;
+
+    &:active { cursor: grabbing; }
+  }
+  // The hairline between handle and body — `--grey-5`, the bar's
+  // vertical-line ink (grey-6 owns every horizontal line on this bar,
+  // grey-5 every vertical one — the closing-ask law). `align-self: stretch`
+  // runs it the full 19px content box, band rule to band rule, exactly like
+  // the chip's own side rims.
+  .nav-btn__grip-rule {
+    width: 1px;
+    align-self: stretch;
+    flex: 0 0 auto;
+    background: var(--grey-5, #bdbdbd);
+  }
+
   &:hover:not(.disabled) {
     background: var(--grey-3);
     color: var(--ink-1);
@@ -542,6 +577,20 @@
   --dock-rule: var(--brown-3);
   left: 50vw;
   right: calc(var(--dock-right, 0px) + var(--dock-gap));
+  // ── THE WINDOW RIDES ITS BUTTON (2026-08-30, the slider pass: the bar's
+  // six chips drag along the footer trail, and "the content from the windows
+  // opened by the bars … is moved along the buttons"). Each dock binds
+  // `--trail-shift` inline from `windows.trailShiftOf(<its key>)`, so the
+  // whole window tracks its chip live, mid-drag included.
+  // ⚠ The CSS `translate` PROPERTY, deliberately NOT `transform`: the
+  // dock-slide enter/leave animation above animates `transform`, and the two
+  // properties COMPOSE — an inline transform would silently kill the slide.
+  // clamp() keeps the box on screen when the button walks further than the
+  // window can follow: the left edge may not cross x=0 (the box starts at
+  // `left: 50vw`, so the floor is -50vw) and the right edge may not pass the
+  // daylight it normally keeps off the pins column (`--dock-right` +
+  // `--dock-gap` is exactly that reserve).
+  translate: clamp(-50vw, var(--trail-shift, 0px), calc(var(--dock-right, 0px) + var(--dock-gap))) 0;
   // ── DAYLIGHT OFF THE TOP CHROME, INCLUDING WHAT HANGS OFF IT (2026-08-24,
   // user ask: "make sure they leave a little space between their top border
   // and the header nav bar tabs") ──
@@ -777,6 +826,9 @@
   border-right: none;
   border-top-left-radius: 0;
   border-top-right-radius: 0;
+  // Full-bleed like the maximize states: the button-follow shift stands
+  // down here too, or a dragged dashboard chip bleeds the desk off an edge.
+  translate: none;
 }
 
 // Maximize fills the whole slot from the screen's left edge to the side
@@ -857,6 +909,18 @@
   top: auto;
 }
 
+// ── THE BUTTON-SHIFT STANDS DOWN where there is no half-width box left to
+// align (2026-08-30, the slider pass): a MAXIMIZED window spans the full
+// slot and the split halves tile it — shifting either just bleeds it off an
+// edge — and under 901px the rule below already runs every dock edge to
+// edge. `translate: none`, not `0px`: the inline `--trail-shift` keeps
+// updating underneath, and the property simply stops reading it.
+.dock-window--creation.is-max,
+.dock-window--creation.is-split-left,
+.dock-window--creation.is-split-right {
+  translate: none;
+}
+
 // Narrow screens: the right half is too little window — take the full width
 // and give up the left daylight, exactly as the old per-dock media rules did.
 @media (max-width: 900px) {
@@ -864,6 +928,7 @@
     left: 0;
     border-left: none;
     border-top-left-radius: 0;
+    translate: none;
   }
 }
 

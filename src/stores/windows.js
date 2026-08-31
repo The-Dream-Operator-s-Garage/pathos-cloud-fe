@@ -48,6 +48,36 @@ const PANEL_W = 300
 
 const STORAGE_KEY = 'pathos_windows'
 
+// ── The trail slider (2026-08-30, user ask: "transform the frieze bar …
+// into a horizontal sliding bar … I want to grab a button and move it
+// horizontally across the footer") ──────────────────────────────────────
+// One horizontal offset per trail chip, in px off its flow seat. The bar
+// owns the DRAG (NavigationBar measures, clamps against neighbours and the
+// two rail flanks, and writes here); the six docks each READ their own
+// key so the window a button opens rides along with it (`--trail-shift`
+// on the dock root → the `translate` in `.dock-window--creation`). Living
+// HERE rather than in a store of their own because every consumer — the
+// bar and all six docks — already holds this store, and the offsets are
+// window geometry exactly the way `dockRight` is.
+const TRAIL_KEY = 'pathos_nav_trail'
+// The six draggable chips, keyed by the window each one opens. The two
+// rail-slot chips (burger, tack) and the stack strip are NOT here — they
+// are the trail's fixed flanks, the walls the drag clamps against.
+const TRAIL_CHIPS = ['maker', 'skeletonBuilder', 'labelMaker', 'uploader', 'chat', 'dashboard']
+
+function loadTrailOffsets () {
+  const out = {}
+  for (const k of TRAIL_CHIPS) out[k] = 0
+  try {
+    const saved = JSON.parse(localStorage.getItem(TRAIL_KEY))
+    for (const k of TRAIL_CHIPS) {
+      const v = saved?.[k]
+      if (typeof v === 'number' && isFinite(v)) out[k] = Math.round(v)
+    }
+  } catch (_) { /* storage unreadable — chips rest on their flow seats */ }
+  return out
+}
+
 function defaultPanels () {
   return {
     // Neither the stack nor the pins panel has a nav-bar toggle anymore, so
@@ -94,6 +124,9 @@ export const useWindowsStore = defineStore('windows', {
     // a slot. { left: <window key>, right: <window key> } or null. Not
     // persisted — a reload lands back in normal stacking.
     split: null,
+    // Per-chip horizontal offsets along the footer trail (px off each chip's
+    // flow seat; persisted). See the TRAIL_KEY note above.
+    trailOffsets: loadTrailOffsets(),
     // True under MOBILE_MQ — flips the rail reserves off. Kept live by
     // initViewportWatch() (called once from MainLayout).
     isMobile: typeof window !== 'undefined' && window.matchMedia
@@ -131,6 +164,13 @@ export const useWindowsStore = defineStore('windows', {
       return p.minimized ? RAIL_W : PANEL_W
     },
 
+    // How far a trail chip stands off its flow seat — and, one binding away,
+    // how far the window it opens rides with it. 0 on mobile: the chips
+    // lose their grips there and the docks go edge to edge.
+    trailShiftOf () {
+      return (key) => (this.isMobile ? 0 : this.trailOffsets[key] || 0)
+    },
+
     // Which side of the split a window sits on: 'left' | 'right' | null.
     splitSideOf: (s) => (key) => {
       if (!s.split) return null
@@ -145,6 +185,20 @@ export const useWindowsStore = defineStore('windows', {
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(this.panels))
       } catch (_) { /* storage blocked — panels just won't survive reload */ }
+    },
+
+    // Write one chip's trail offset. Deliberately does NOT persist — a drag
+    // writes on every pointermove and the bar calls persistTrail() once on
+    // release (and after a reconcile pass).
+    setTrailOffset (key, px) {
+      if (!(key in this.trailOffsets)) return
+      this.trailOffsets[key] = Math.round(px)
+    },
+
+    persistTrail () {
+      try {
+        localStorage.setItem(TRAIL_KEY, JSON.stringify(this.trailOffsets))
+      } catch (_) { /* storage blocked — offsets just won't survive reload */ }
     },
 
     // Keep isMobile live across resizes/orientation flips. Idempotent —

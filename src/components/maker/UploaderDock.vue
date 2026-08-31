@@ -6,7 +6,7 @@
       v-if="store.isOpen && !store.isMinimized"
       class="uploader-dock dock-window dock-window--creation"
       :class="{ 'is-max': store.isMaximized, 'is-split-right': windows.splitSideOf('uploader') === 'right' }"
-      :style="{ zIndex: windows.zOf('uploader'), '--dock-right': windows.dockRight + 'px' }"
+      :style="{ zIndex: windows.zOf('uploader'), '--dock-right': windows.dockRight + 'px', '--trail-shift': windows.trailShiftOf('uploader') + 'px' }"
     >
       <!-- ── Thin header: title left, Mac-style traffic lights right ──
            THE NAME IS A PLATE (2026-08-26, user ask: the uploader repaints

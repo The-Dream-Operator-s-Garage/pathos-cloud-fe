@@ -6,7 +6,7 @@
       v-if="store.isOpen && !store.isMinimized"
       class="skeleton-dock dock-window dock-window--creation"
       :class="{ 'is-max': store.isMaximized }"
-      :style="{ zIndex: windows.zOf('skeletonBuilder'), '--dock-right': windows.dockRight + 'px' }"
+      :style="{ zIndex: windows.zOf('skeletonBuilder'), '--dock-right': windows.dockRight + 'px', '--trail-shift': windows.trailShiftOf('skeletonBuilder') + 'px' }"
     >
       <!-- ── Thin header: title left, Mac-style traffic lights right ── -->
       <header class="dock-bar">

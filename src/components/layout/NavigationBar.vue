@@ -123,23 +123,61 @@
              `.create-btn` is kept purely as a NAME: no rule reads it (the aqua
              hover it used to carry went when the bar took one shared hover),
              but the witness flow and the docs address these four by it. ── -->
+
+        <!-- ── ⭐ THE TRAIL IS A SLIDER (2026-08-30, user ask: "transform the
+             frieze bar … into a horizontal sliding bar … I want to grab a
+             button and move it horizontally across the footer. When I'm
+             blocked by another button, then I shouldn't be able to move
+             forward"). Every trail chip now leads with a GRIP — a
+             `drag_indicator` handle behind a hairline (`.nav-btn__grip` /
+             `__grip-rule`, in `.nav-btn`'s block in _components.scss) — and
+             dragging that grip walks the chip along the band via a
+             `translate` offset (windows.trailOffsets, persisted). The drag
+             clamps ONCE at pointer-down against the other five chips and the
+             trail's two fixed flanks (the parked stack strip / burger slot on
+             the left, the tack divider or the railed reserve on the right),
+             so a chip STOPS at whatever it meets — no pushing, no tunneling,
+             no reordering. The grip swallows its own clicks (a handle is not
+             an opener); the chip's body keeps the window toggle, and the
+             window each chip opens rides the same offset live — see
+             `--trail-shift` in `.dock-window--creation`. Layout never moves:
+             `translate` paints the chip off its flow seat, so the grid
+             equalisation, gaps and section tracks underneath are untouched.
+             Desktop-only: mobile hides the grips (the mobile block below) and
+             `trailShiftOf` reads 0 there. ── -->
         <div class="create-row">
-        <q-btn unelevated class="nav-btn create-btn" @click="$emit('open-maker')">
+        <q-btn unelevated class="nav-btn create-btn" :ref="setChip('maker')" :style="chipStyle('maker')" @click="$emit('open-maker')">
+          <span class="nav-btn__grip" @pointerdown="startChipDrag('maker', $event)" @click.stop>
+            <q-icon name="drag_indicator" size="11px" />
+          </span>
+          <span class="nav-btn__grip-rule" />
           <q-icon name="add_circle_outline" size="17px" />
           <span class="nav-btn__label">POST</span>
           <q-tooltip>Make post</q-tooltip>
         </q-btn>
-        <q-btn unelevated class="nav-btn create-btn" @click="$emit('open-skeleton-builder')">
+        <q-btn unelevated class="nav-btn create-btn" :ref="setChip('skeletonBuilder')" :style="chipStyle('skeletonBuilder')" @click="$emit('open-skeleton-builder')">
+          <span class="nav-btn__grip" @pointerdown="startChipDrag('skeletonBuilder', $event)" @click.stop>
+            <q-icon name="drag_indicator" size="11px" />
+          </span>
+          <span class="nav-btn__grip-rule" />
           <q-icon name="schema" size="17px" />
           <span class="nav-btn__label">SKELETONS</span>
           <q-tooltip>Build skeletons — define templates, populate and edit instances</q-tooltip>
         </q-btn>
-        <q-btn unelevated class="nav-btn create-btn" @click="$emit('open-label-maker')">
+        <q-btn unelevated class="nav-btn create-btn" :ref="setChip('labelMaker')" :style="chipStyle('labelMaker')" @click="$emit('open-label-maker')">
+          <span class="nav-btn__grip" @pointerdown="startChipDrag('labelMaker', $event)" @click.stop>
+            <q-icon name="drag_indicator" size="11px" />
+          </span>
+          <span class="nav-btn__grip-rule" />
           <q-icon name="label_important" size="17px" />
           <span class="nav-btn__label">LABELS</span>
           <q-tooltip>Label maker — grow, fork and reorganize label trees</q-tooltip>
         </q-btn>
-        <q-btn unelevated class="nav-btn create-btn" @click="$emit('open-uploader')">
+        <q-btn unelevated class="nav-btn create-btn" :ref="setChip('uploader')" :style="chipStyle('uploader')" @click="$emit('open-uploader')">
+          <span class="nav-btn__grip" @pointerdown="startChipDrag('uploader', $event)" @click.stop>
+            <q-icon name="drag_indicator" size="11px" />
+          </span>
+          <span class="nav-btn__grip-rule" />
           <q-icon name="upload" size="17px" />
           <span class="nav-btn__label">UPLOADS</span>
           <q-tooltip>Upload files, links or notes</q-tooltip>
@@ -170,6 +208,8 @@
           unelevated no-caps
           class="nav-btn chat-btn"
           :class="{ 'is-active': chatExpanded }"
+          :ref="setChip('chat')"
+          :style="chipStyle('chat')"
           title="Chats — private conversations"
           @click="toggleChat"
         >
@@ -195,6 +235,10 @@
                remove. The four MAKERS keep their words; these two are the
                LOOKERS, and the row now says four labelled makers, two bare
                windows. -->
+          <span class="nav-btn__grip" @pointerdown="startChipDrag('chat', $event)" @click.stop>
+            <q-icon name="drag_indicator" size="11px" />
+          </span>
+          <span class="nav-btn__grip-rule" />
           <q-icon name="forum" size="17px" />
           <q-badge
             v-if="events.unreadCount > 0"
@@ -248,9 +292,15 @@
           unelevated no-caps
           class="nav-btn dashboard-btn"
           :class="{ 'is-active': dashboardExpanded }"
+          :ref="setChip('dashboard')"
+          :style="chipStyle('dashboard')"
           title="Dashboard — the panel rising from this bar"
           @click="toggleDashboard"
         >
+          <span class="nav-btn__grip" @pointerdown="startChipDrag('dashboard', $event)" @click.stop>
+            <q-icon name="drag_indicator" size="11px" />
+          </span>
+          <span class="nav-btn__grip-rule" />
           <!-- Glyph only and chip-height, same ask as the chat button beside
                it — 19px, the full content box inside the chip's restored
                top and bottom rims (2026-08-30). -->
@@ -349,7 +399,7 @@
 </template>
 
 <script>
-import { defineComponent, ref, computed, watch, onMounted } from 'vue'
+import { defineComponent, ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
 import { useRoute } from 'vue-router'
 import { useWindowsStore } from 'src/stores/windows'
 import { useMakerStore, draftLabel } from 'src/stores/maker'
@@ -431,6 +481,137 @@ export default defineComponent({
       else dashboardStore.close()
     }
 
+    // ── THE TRAIL IS A SLIDER (2026-08-30) — the drag machinery ──────────
+    // Six draggable chips; state (one px offset each) lives in the windows
+    // store so the docks can ride it. This component owns everything
+    // geometric: measuring, clamping, reconciling. See the template note.
+    const TRAIL_CHIPS = ['maker', 'skeletonBuilder', 'labelMaker', 'uploader', 'chat', 'dashboard']
+    const chipEls = {}
+    const setChip = (key) => (inst) => {
+      chipEls[key] = inst ? (inst.$el || inst) : null
+    }
+    // `translate`, not `transform`: it never collides with a transition class,
+    // and it does not disturb the flex/grid layout the chips are seated in.
+    const chipStyle = (key) => ({ translate: windows.trailShiftOf(key) + 'px 0' })
+
+    // The slider's two fixed flanks. LEFT: the burger's 42px rail slot — or
+    // the parked stack strip riding the band beside it, whose z 3130 would
+    // bury any chip dragged beneath it. RIGHT: the tack's divider when the
+    // tack is in the bar, else the cluster's right edge less the railed
+    // reserve (the parked pins column is opaque at 3120 for the same reason).
+    const trailBounds = () => {
+      let left = 42
+      const strip = document.querySelector('.stack-window.is-parked')
+      if (strip) {
+        const r = strip.getBoundingClientRect()
+        if (r.width > 0) left = Math.max(left, r.right)
+      }
+      let right = window.innerWidth
+      const divider = document.querySelector('.nav-bar .nav-divider')
+      if (divider) {
+        right = divider.getBoundingClientRect().left
+      } else {
+        const nr = document.querySelector('.nav-bar .nav-right')
+        if (nr) right = nr.getBoundingClientRect().right - parseFloat(getComputedStyle(nr).paddingRight || '0')
+      }
+      return { left, right }
+    }
+
+    const startChipDrag = (key, e) => {
+      if (windows.isMobile) return
+      e.preventDefault()
+      e.stopPropagation()
+      const el = chipEls[key]
+      if (!el) return
+      const grip = e.currentTarget
+      // Capture retargets every later pointer event — and the trailing
+      // click — onto the grip, whose @click.stop swallows it: releasing a
+      // drag over the chip's own body must not toggle its window.
+      try { grip.setPointerCapture(e.pointerId) } catch (_) { /* older engines — window listeners still work */ }
+      const startX = e.clientX
+      const startOffset = windows.trailShiftOf(key)
+      const rect = el.getBoundingClientRect()
+      const bounds = trailBounds()
+      // Clamp the WHOLE GESTURE once, at pointer-down: the other five chips
+      // and the two flanks are walls that do not move during this drag, so a
+      // min/max pair per direction blocks at contact and a fast pointer
+      // cannot tunnel through a chip between two move events.
+      let minD = bounds.left - rect.left
+      let maxD = bounds.right - rect.right
+      for (const k of TRAIL_CHIPS) {
+        if (k === key || !chipEls[k]) continue
+        const o = chipEls[k].getBoundingClientRect()
+        if (!o.width) continue
+        if (o.left >= rect.right) maxD = Math.min(maxD, o.left - rect.right)
+        else if (o.right <= rect.left) minD = Math.max(minD, o.right - rect.left)
+        // A chip already overlapping (a stale persisted state) is no wall —
+        // the drag is exactly how the user frees it.
+      }
+      const move = (ev) => {
+        const d = Math.min(Math.max(ev.clientX - startX, minD), maxD)
+        windows.setTrailOffset(key, startOffset + d)
+      }
+      const up = () => {
+        grip.removeEventListener('pointermove', move)
+        grip.removeEventListener('pointerup', up)
+        grip.removeEventListener('pointercancel', up)
+        windows.persistTrail()
+      }
+      grip.addEventListener('pointermove', move)
+      grip.addEventListener('pointerup', up)
+      grip.addEventListener('pointercancel', up)
+    }
+
+    // Persisted offsets were measured against SOME OTHER layout — another
+    // viewport width, another word gate, a longer stack strip. Reconcile
+    // walks the chips in visual order and shoves any that landed out of
+    // bounds or into each other back to legality: one left-to-right pass off
+    // the left flank, one right-to-left pass off the right. Runs after
+    // mount, on resize, and whenever the parked strip grows a step.
+    let reconcileTimer = null
+    let stripObserver = null
+    const reconcileTrail = () => {
+      if (windows.isMobile) return
+      const bounds = trailBounds()
+      const entries = TRAIL_CHIPS
+        .filter((k) => chipEls[k])
+        .map((k) => {
+          const r = chipEls[k].getBoundingClientRect()
+          return { k, left: r.left, right: r.right, w: r.width }
+        })
+        .filter((x) => x.w > 0)
+        .sort((a, b) => a.left - b.left)
+      let moved = false
+      let edge = bounds.left
+      for (const it of entries) {
+        if (it.left < edge - 0.5) {
+          const d = edge - it.left
+          windows.setTrailOffset(it.k, windows.trailShiftOf(it.k) + d)
+          it.left += d
+          it.right += d
+          moved = true
+        }
+        edge = it.right
+      }
+      edge = bounds.right
+      for (let i = entries.length - 1; i >= 0; i--) {
+        const it = entries[i]
+        if (it.right > edge + 0.5) {
+          const d = it.right - edge
+          windows.setTrailOffset(it.k, windows.trailShiftOf(it.k) - d)
+          it.left -= d
+          it.right -= d
+          moved = true
+        }
+        edge = it.left
+      }
+      if (moved) windows.persistTrail()
+    }
+    const queueReconcile = () => {
+      clearTimeout(reconcileTimer)
+      reconcileTimer = setTimeout(reconcileTrail, 150)
+    }
+
     // ── PIN state ────────────────────────────────────────────
     // Parse the current route to determine what (if anything) is pinnable.
     // /nodes/:id, /nodes/:id/edit, /posts/:id, /labels/:id, /skeletons/:id
@@ -475,7 +656,33 @@ export default defineComponent({
       } catch (_) { /* ignore — surface via tooltip later */ }
     }
 
-    onMounted(refreshPinState)
+    onMounted(() => {
+      refreshPinState()
+      // The slider's housekeeping: re-clamp restored offsets once the bar
+      // (and the stack strip beside it) have painted, again on every
+      // resize, and again whenever the PARKED strip changes size — it grows
+      // a chip per visited element, and a grown strip can bury a chip that
+      // was parked legally beside it (the is-parked guard keeps the
+      // hover-EXPANDED panel, a 300px transient, from shoving chips around).
+      window.addEventListener('resize', queueReconcile)
+      setTimeout(reconcileTrail, 400)
+      if (window.ResizeObserver) {
+        setTimeout(() => {
+          const strip = document.querySelector('.stack-window')
+          if (strip) {
+            stripObserver = new ResizeObserver(() => {
+              if (strip.classList.contains('is-parked')) queueReconcile()
+            })
+            stripObserver.observe(strip)
+          }
+        }, 600)
+      }
+    })
+    onBeforeUnmount(() => {
+      window.removeEventListener('resize', queueReconcile)
+      if (stripObserver) stripObserver.disconnect()
+      clearTimeout(reconcileTimer)
+    })
     // Re-check whenever the route changes (so the tack reflects the new page).
     watch(() => route.path, refreshPinState)
     // Re-check when parent signals a pin-list mutation (e.g. unpin from drawer).
@@ -599,7 +806,10 @@ export default defineComponent({
       dashboardExpanded,
       toggleDashboard,
       events,
-      parkedTabs
+      parkedTabs,
+      setChip,
+      chipStyle,
+      startChipDrag
     }
   }
 })
@@ -1187,7 +1397,15 @@ export default defineComponent({
 // Tighter with the shortened bar (2026-08-02: gap 8 → 6, inset 6 → 5) — the
 // cluster keeps the same proportion of air around 24px buttons that it had
 // around 30px ones.
-.nav-right { gap: 6px; padding-left: 5px; border-left:  1px solid var(--brown-3); }
+// ⚠ NO `border-left` SINCE THE SLIDER PASS (2026-08-30): the section's
+// closing hairline stood exactly where the first chip began, and the chips
+// ROVE now — one drag and the line is a full-height brown-3 stroke cutting
+// the trail in the middle of nowhere, the very reading that deleted the
+// cluster's two `.nav-divider`s on 08-24 (a section marker with no section
+// to mark). `.nav-left`'s survives: it is the burger rail's closing edge —
+// arithmetic (41px block + 1px line = --dock-rail-w), not sectioning — and
+// it is one of the two flanks the drag clamps against.
+.nav-right { gap: 6px; padding-left: 5px; }
 
 // When the tack is NOT in this bar, the pinned column standing over the bar's
 // right end is what holds it — and that column is OPAQUE at z 3120, so the
@@ -1607,6 +1825,15 @@ export default defineComponent({
     min-width: 28px;
     padding: 0 4px;
   }
+
+  // No grips on a phone (2026-08-30, the slider pass): six handles+hairlines
+  // cost ~90px this bar does not have at 375px, the docks run edge to edge
+  // here (`translate: none` in the ≤900px block — there is no half-width
+  // window left to align with a button), and `trailShiftOf` reads 0 on
+  // mobile so the chips sit on their flow seats regardless of what a desktop
+  // session persisted.
+  .nav-bar .nav-btn .nav-btn__grip,
+  .nav-bar .nav-btn .nav-btn__grip-rule { display: none; }
 
   // (The four create buttons were the widest thing in the cluster and took
   // their own mobile rule through `.nav-bundle` until 2026-08-23 — they wear
