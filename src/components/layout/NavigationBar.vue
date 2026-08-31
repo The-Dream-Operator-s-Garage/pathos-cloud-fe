@@ -125,22 +125,22 @@
              but the witness flow and the docs address these four by it. ── -->
         <div class="create-row">
         <q-btn unelevated class="nav-btn create-btn" @click="$emit('open-maker')">
-          <q-icon name="add_circle_outline" size="19px" />
+          <q-icon name="add_circle_outline" size="17px" />
           <span class="nav-btn__label">POST</span>
           <q-tooltip>Make post</q-tooltip>
         </q-btn>
         <q-btn unelevated class="nav-btn create-btn" @click="$emit('open-skeleton-builder')">
-          <q-icon name="schema" size="19px" />
+          <q-icon name="schema" size="17px" />
           <span class="nav-btn__label">SKELETONS</span>
           <q-tooltip>Build skeletons — define templates, populate and edit instances</q-tooltip>
         </q-btn>
         <q-btn unelevated class="nav-btn create-btn" @click="$emit('open-label-maker')">
-          <q-icon name="label_important" size="19px" />
+          <q-icon name="label_important" size="17px" />
           <span class="nav-btn__label">LABELS</span>
           <q-tooltip>Label maker — grow, fork and reorganize label trees</q-tooltip>
         </q-btn>
         <q-btn unelevated class="nav-btn create-btn" @click="$emit('open-uploader')">
-          <q-icon name="upload" size="19px" />
+          <q-icon name="upload" size="17px" />
           <span class="nav-btn__label">UPLOADS</span>
           <q-tooltip>Upload files, links or notes</q-tooltip>
         </q-btn>
@@ -195,7 +195,7 @@
                remove. The four MAKERS keep their words; these two are the
                LOOKERS, and the row now says four labelled makers, two bare
                windows. -->
-          <q-icon name="forum" size="19px" />
+          <q-icon name="forum" size="17px" />
           <q-badge
             v-if="events.unreadCount > 0"
             floating color="amber-9" text-color="black"
@@ -254,7 +254,7 @@
           <!-- Glyph only and chip-height, same ask as the chat button beside
                it — 19px, the full content box inside the chip's restored
                top and bottom rims (2026-08-30). -->
-          <q-icon name="sym_o_empty_dashboard" size="19px" />
+          <q-icon name="sym_o_empty_dashboard" size="17px" />
         </q-btn>
 
         <div v-if="showTack" class="nav-divider" />
@@ -851,7 +851,13 @@ export default defineComponent({
   // declared HERE, on the bar (2026-08-23, "touch the bar, but within the
   // frieze bar"), because its two consumers — `.nav-frieze`, which takes it
   // as `--frieze-bar-h` two rules down, and `.nav-btn` in `_components.scss`
-  // — both live in this bar's subtree and custom properties inherit. The
+  // — both live in this bar's subtree and custom properties inherit.
+  // ⚠ THE CHIPS READ IT THROUGH `--nav-chip-h` NOW (trail − 2px, declared
+  // beside it), not directly: since the day's closing ask they fill the
+  // band's INTERIOR — touching its two rules from inside — instead of
+  // covering the rules themselves. Still ONE authored number; the derived
+  // dial keeps the fit from drifting.
+  // The
   // STACK WIDGET'S PARKED STRIP became the third consumer when it moved
   // inside this band (its height AND its bottom-centring formula both read
   // the dial), and it is a `position: fixed` element OUTSIDE this subtree —
@@ -911,7 +917,7 @@ export default defineComponent({
 // arithmetic exists to prevent. Two formulas land on whole pixels, one per
 // parity, and they differ by exactly the lip:
 //
-//   ODD  height → `(--nav-bar-h - 1px - --frieze-bar-h) / 2`   ← today's, 17px
+//   ODD  height → `(--nav-bar-h - 1px - --frieze-bar-h) / 2`   ← today's, 21px
 //        centres the band in the bar's FIELD: equal cream above and below,
 //        with the lip drawn on top of the upper margin. An odd band fits an
 //        odd box exactly; it cannot centre on the 32px outer box at all.
@@ -929,7 +935,12 @@ export default defineComponent({
   // Under the button row, over the empty middle. THE one z-pair on this bar.
   z-index: 0;
 
-  // ── 21px ON `auto 13px` — THE BAND THAT CONTAINS ITS BUTTONS (2026-08-23,
+  // ── 21px ON `auto 19px` — THE BAND THAT CONTAINS ITS BUTTONS (⚠ THE FIT
+  // IS FROM 2026-08-30's CLOSING ASK, the height is the block below's own;
+  // that ask moved the CHIP, not the band — `--nav-chip-h` = band − 2px,
+  // the interior, so the rung arithmetic here is untouched and the cream
+  // margins are still 5px a side. A 25px pass was tried and rejected the
+  // same sitting.) 2026-08-23,
   // two asks: "considerably more padding … between the top and bottom edges of
   // the footer bar and the frieze bar. Also inside the frieze bar, between the
   // top and bottom edges and the friezes … kind of the same height as the left
@@ -1074,18 +1085,33 @@ export default defineComponent({
   --frieze-bar-base:
     linear-gradient(rgba(224, 224, 224, 0.6), rgba(224, 224, 224, 0.6)),
     var(--plaque-coat);
-  // ── ⭐ AND TWO RULES FRAME IT (2026-08-30, the next two asks: "put a thin
-  // grey-4 border on the top and bottom borders of this inner friezebar",
-  // then "pls make the new borders grey-5"): 1px each, the platform's line
-  // weight, settled on `--grey-5` — WAVE ONE'S OWN INK, so the frame and
-  // the lighter half of the interleave are one tone and the band adds no
-  // new ink (grey-4, the veil's tone, held one pass — at ~10 levels off
-  // the veiled plate it barely drew). ⚠ `border-box` pays them out of the
-  // 21px band: the layer is 19px now and the `auto 17px` mask keeps 1px of
-  // air each side — nothing clips, nothing else moves (the centring
-  // formula reads the band's OUTER box, unchanged).
-  border-top: 1px solid var(--grey-5, #bdbdbd);
-  border-bottom: 1px solid var(--grey-5, #bdbdbd);
+  // ── ⭐ AND TWO RULES FRAME IT (2026-08-30, two asks: "put a thin grey-4
+  // border on the top and bottom borders of this inner friezebar", then
+  // "pls make the new borders grey-5"): 1px each, the platform's line
+  // weight. Grey-4, the veil's own tone, held one pass — at ~10 levels off
+  // the veiled plate it barely drew — and grey-5 stood for the hour after,
+  // WAVE ONE's ink, matching the chips that shared these very rows.
+  // ⚠ `--grey-6` SINCE THE CLOSING ASK ("they don't look like they're
+  // inside the frieze bar section"), and the tone change is half of that
+  // fix: the chips gave up a row at each end (--nav-chip-h, _tokens.scss),
+  // so these two rows are the band's ALONE now — no longer shared, no
+  // longer obliged to match the chips' ink, and free to be the STRONGER
+  // line, which is what makes the band read as the thing the chips sit in.
+  // Grey-6 is this bar's own top-lip ink, so the bar's three structural
+  // lines are one tone, and it is already wave two's, so the band still
+  // adds no ink of its own. ~2.4:1 on the veiled plate, the same reading
+  // the lip gets on the coat. ⚠ THESE TWO ROWS ARE THE ONLY HORIZONTAL
+  // LINES ON THE BAND, and the chips depend on it: since the gap-closing
+  // ask they draw no horizontal rims of their own, so this rule IS every
+  // chip's top and bottom edge and it has to stay a uniform 1px end to
+  // end. Giving the chips their rims back (in any ink) re-opens the seam
+  // the ask closed.
+  // ⚠ `border-box` pays them out of the 21px band: the layer (padless —
+  // `--frieze-bar-pad: 0` below) is 19px, exactly what the `auto 19px` mask
+  // fills and exactly the chip height — nothing clips, nothing else moves
+  // (the centring formula reads the band's OUTER box).
+  border-top: 1px solid var(--grey-6, #9e9e9e);
+  border-bottom: 1px solid var(--grey-6, #9e9e9e);
   // ── ⭐ THE SECOND DEPTH CAME BACK (2026-08-30, the day's last ask:
   // "changing the svg-pattern to the one on the inner friezebars from the
   // left drawer, with the 2 svgs well drawn instead of the single tiny
@@ -1121,11 +1147,22 @@ export default defineComponent({
   // antialiases stroke edges (soft, not the sub-pixel mush the squeezes
   // made — thickening is the ask, softness is its price). The crisp rungs
   // remain 13n: `auto 13px` to return, `auto 26px` if the band ever has
-  // ~28px to spend. The band itself did NOT grow: `--nav-trail-h` is also
-  // every chip's height, so growing the band grows the buttons — the
-  // pattern takes its room from the pads instead.
+  // ~28px to spend. (The last line of this note used to read "the band
+  // itself did NOT grow, because `--nav-trail-h` is also every chip's
+  // height, so growing the band grows the buttons" — that constraint is
+  // GONE: the chip height split off into the derived `--nav-chip-h` on
+  // 2026-08-30's closing ask, and the band grew to 25px the same edit.)
+  //
+  // ⭐ `auto 17px` → `auto 19px` WITH THE CLOSING ASK, and the number is not
+  // free-hand: the padless layer is the band less its two rules, 19px, and
+  // that is EXACTLY the chip height too — so the mask fills its layer edge
+  // to edge and the meander running through the 6px gaps starts and stops
+  // on the very rows the chips do. The motif and the chips read as one row
+  // of objects lying in the band rather than two things of different sizes.
+  // (Same ~1.31px-a-row upscale as before, same softness, same escape hatch
+  // at 13n.)
   --frieze-bar-pad: 0;
-  --frieze-bar-fit: auto 17px;
+  --frieze-bar-fit: auto 19px;
   --frieze-bar-carve: none;
 }
 

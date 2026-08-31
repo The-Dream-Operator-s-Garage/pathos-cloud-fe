@@ -1165,7 +1165,41 @@ $warning:   #F2C037;
   // ⚠ ODD ON PURPOSE — the centring formula on `.nav-frieze` (and the
   // strip's mirror of it) is the ODD-parity one: an even value silently
   // lands the band on half pixels.
+  // ⚠ 21px HELD THROUGH 2026-08-30's CLOSING ASK — what moved that day was
+  // the CHIP, not the band. (It spent one pass at 25px: the first reading of
+  // "the buttons … don't look like they're inside the frieze bar section"
+  // was a 2px shoulder of plate above and below each chip, which the ask's
+  // follow-up rejected on sight — "you put it literally inside. What we want
+  // is the buttons touching the very frieze bar borders from inside". The
+  // band went back to 21px with the shoulder; the cream margins are 5px a
+  // side again.)
   --nav-trail-h: 21px;
+
+  // ⭐ THE CHIP HEIGHT — the trail's height LESS its two 1px rules, i.e. the
+  // band's INTERIOR exactly (2026-08-30's closing ask, second reading: "the
+  // buttons touching the very frieze bar borders from inside … not on top or
+  // below"). It was `--nav-trail-h` itself from 08-23 until then, and that
+  // is the bug the ask names: a chip congruent with the band paints its own
+  // rules ON the band's two rows, so its cream face ran rule to rule, the
+  // plate showed only in the 6px gaps, and those rules read as the CHIP's
+  // box floating under the bar's darker lip rather than as the band's frame.
+  // Nothing was ever a pixel off — sampling the composited bar row by row
+  // put every edge on the same row, which IS the fault. One pixel of height
+  // each side buys the whole reading: the band's two rules are now the only
+  // thing drawn on those rows, uniform from end to end, and each chip's own
+  // rim starts where the band's frame stops.
+  // ⚠ DERIVED, not authored, so the "one number" law the block above states
+  // survives the split: move `--nav-trail-h` and the band, every chip in it
+  // and the stack strip move together, still flush inside. Consumers are
+  // `.nav-btn` (`_components.scss`) and the stack widget's parked strip
+  // (`StackPanel.vue` — its height AND its bottom-centring formula).
+  // ⚠ PARITY RIDES ALONG: −2 keeps an odd trail odd, so both centring
+  // formulas ((31px − h) / 2) still land on whole pixels.
+  // ⚠ THE GLYPHS FOLLOW IT: chip − 2px of rim = content, so a 19px chip
+  // carries a 17px icon (19px while the chip was 21px). That chain is
+  // written out in `.nav-btn`; an icon bigger than the chip's content box is
+  // clipped in silence.
+  --nav-chip-h: calc(var(--nav-trail-h) - 2px);
 
   // TOTAL height of the bottom chrome — the bar's row PLUS the floor frieze
   // band standing under it (2026-08-02, user ask: "a dark brown frieze bar
@@ -1449,7 +1483,7 @@ $warning:   #F2C037;
   // OFFSET: the stack rides the footer trail beside the bar's 42px left
   // rail slot (the burger's — this token is that slot's width too), so
   // `left: var(--dock-rail-w)` starts the strip exactly at the slot's edge;
-  // the strip's own height is the trail's `--nav-trail-h`, not this. Keep
+  // the strip's own height is `--nav-chip-h`, not this. Keep
   // in sync with RAIL_W (42 + 4 gap) in stores/windows.js, which reserves
   // the pins column for the page + docks.
   --dock-rail-w: 42px;

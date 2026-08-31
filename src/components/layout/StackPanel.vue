@@ -9,7 +9,7 @@
        2026-07-24 until then). ONE element with two presentations
        (2026-07-24, third pass), and the RELOCATION ROTATED THE PARKED AXIS:
        · parked (win.minimized) = a dense horizontal chip row INSIDE THE
-         TRAIL — the strip sits on `.nav-frieze`'s very box (--nav-trail-h,
+         TRAIL — the strip stands INSIDE `.nav-frieze`'s box (--nav-chip-h,
          promoted to :root for this), wearing the bar's own coat with a
          grey-4 item lane inset in it (the fourth ask; it rode the band
          bare-transparent for one ask) — beside the 42px left rail slot (the
@@ -322,7 +322,7 @@ export default defineComponent({
 // TRAIL's very box; top-right from 2026-07-24 until then). ONE element with
 // two presentations (2026-07-24, third pass), the parked axis ROTATED by
 // the move: `.is-parked` flattens it to a dense horizontal chip row at the
-// band's --nav-trail-h, items left, head glyph at the right end.
+// band's --nav-chip-h, items left, head glyph at the right end.
 // BOTH presentations SHRINK TO FIT their item bundle (2026-07-24, 7th
 // pass): the expanded panel is only as tall as its steps need and stops
 // growing at its cap, where the list starts scrolling; the parked strip is
@@ -407,7 +407,8 @@ export default defineComponent({
   &.is-parked {
     // INSIDE THE TRAIL (the sitting's third ask: "place the whole thing
     // inside the footer nav bar's inner frieze bar"): the strip sits on the
-    // band's VERY BOX — height is the band's own `--nav-trail-h` and the
+    // band — height is `--nav-chip-h`, the band's INTERIOR (it WAS the
+    // band's very box, `--nav-trail-h`, until 2026-08-30's closing ask), and the
     // bottom offset is `.nav-frieze`'s centring formula mirrored (the band
     // is centred in the bar's 31px padding box, so its gap below equals its
     // `top` above — the odd-parity note on both declarations is why the
@@ -431,12 +432,31 @@ export default defineComponent({
     // at 50vw and this widget's z outranks theirs).
     flex-direction: row;
     align-items: center;
-    height: var(--nav-trail-h);
-    bottom: calc((var(--nav-bar-h) - 1px - var(--nav-trail-h)) / 2);
+    // ⚠ `--nav-chip-h`, NOT `--nav-trail-h`, SINCE 2026-08-30's closing ask
+    // ("the buttons and the bar … don't look like they're inside the frieze
+    // bar section", then "the buttons touching the very frieze bar borders
+    // from inside"): the strip is the "bar" in that sentence and it took the
+    // same correction the chips beside it did. It COVERED the band's two
+    // rules before, so nothing of the band was left around it; now it is the
+    // band's interior — one row in at each end, touching both rules from
+    // inside, level with every chip to the pixel. Both numbers still come
+    // off ONE authored dial — `--nav-chip-h` is `calc(--nav-trail-h - 2px)`
+    // at `:root` — so the strip still moves with the band.
+    height: var(--nav-chip-h);
+    bottom: calc((var(--nav-bar-h) - 1px - var(--nav-chip-h)) / 2);
     width: auto;
     max-width: calc(48vw - var(--dock-rail-w));
     background: var(--plaque-coat);
+    // ⚠ SIDES ONLY, like the trail chips beside it (2026-08-30, the ask
+    // after the flush fit: "there is still a gap on the top … Close it").
+    // A grey-5 rim under the band's grey-6 rule read as a pale seam rather
+    // than as the strip's edge; the band's rules are the strip's top and
+    // bottom edges now, and its `--grey-4` items lane runs straight up to
+    // them (`.stack-list.is-parked` stretches into the 19px the rims freed,
+    // which is why its chips went back to 17px).
     border: 1px solid var(--grey-5, #bdbdbd);
+    border-top-width: 0;
+    border-bottom-width: 0;
     border-radius: 0;
     box-shadow: none;
   }
@@ -462,7 +482,7 @@ export default defineComponent({
 // row), riding the band at its full height like the nav bar's own bare
 // "looker" glyphs — a narrow 20px seat, dense to match the chips beside it
 // (the shared .dock-side-head's --dock-bar-h box is overridden here: a 30px
-// box cannot stand inside a 21px band).
+// box cannot stand inside a 19px strip).
 .stack-side-head {
   margin: 0;
   align-self: stretch;
@@ -588,9 +608,13 @@ export default defineComponent({
   // the strip's full content height. The chips don't move: since the
   // strip's 2026-08-30 frame, border-box hands this lane a 19px stretch, so
   // 1px padding + 17px chip (`--side-item-h`, which SidePanelItem's rail
-  // face reads) + 1px = the 19px box between the strip's two rims — rim +
-  // pad still reads as 2px of air over each chip, the band's shoulders now
-  // half line, half coat. Chips narrowed to 20px wide by the :deep rule
+  // face reads) + 1px = the strip's full 19px, because the strip has no
+  // horizontal rims to pay for any more — the band's own rules are its top
+  // and bottom edges, and this lane runs straight up to them. ⚠ The chip
+  // took a 17 → 15 → 17px round trip across 2026-08-30's closing asks,
+  // purely as arithmetic: 15px while the strip still spent 2px of its 19px
+  // on rims of its own, 17px again once those came off. The air over a chip
+  // is this lane's 1px of padding now, and nothing else. Chips narrowed to 20px wide by the :deep rule
   // below, 2px gaps. The old
   // faces' matched-margins invariant (Δtop = 0 through the morph) is
   // retired — the morph is an axis rotation now, so items trade a vertical
@@ -600,7 +624,7 @@ export default defineComponent({
   // corners on the right side only"): the left edge stays square against the
   // strip's own left edge, and the right corners curve into the coat before
   // the head glyph — 7px, the bar's own small-chip radius (the minitab meta
-  // chip's), a visible round on a 21px band without capping it into a pill.
+  // chip's), a visible round on a 19px strip without capping it into a pill.
   // The radius also clips the scrolling chips at that end (overflow is
   // auto), the same soft-clip the expanded well's radius performs.
   &.is-parked {

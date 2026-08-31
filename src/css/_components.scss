@@ -126,26 +126,49 @@
 // trail anymore, it is SET INTO it: 17px in a 21px band leaves a 2px shoulder
 // of plate above and below every button, and the meander runs on in the gaps.
 //
-// ⚠ THE CHIP IS THE BAND, EXACTLY — `--nav-trail-h`, THE SAME DECLARATION THE
-// TRAIL READS (2026-08-23, the day's last two asks: "the buttons still hold a
-// gap between them and the top and bottom edges of the friezebar", then, after
-// one pass that reached all the way to the bar's own edges, "nooo… touch the
-// bar, but within the frieze bar"). So the chips fill the band edge to edge
-// and stop there: no shoulder above or below, and no reaching past it either.
+// ⚠ THE CHIP IS THE BAND'S INTERIOR — 19px inside a 21px trail, TOUCHING
+// its two rules from the inside (2026-08-30, the day's closing ask: the
+// chips "don't look like they're inside the frieze bar section … like they
+// are being drawn slightly off, a little below from where they should",
+// then, against a first pass that floated them on a 2px shoulder, "you put
+// it literally inside. What we want is the buttons touching the very frieze
+// bar borders from inside — not on top or below").
+// ⚠ SO IT IS ONE PIXEL OF HEIGHT, NOT FOUR OF BAND: the band stayed 21px
+// and the chip gave up a row at each end. That is the whole correction, and
+// it is worth stating plainly because the diagnosis is counter-intuitive —
+// from 2026-08-23 to that ask the chip WAS the band exactly, one height
+// (`--nav-trail-h`) for both, which was itself an ask ("the buttons still
+// hold a gap between them and the top and bottom edges of the friezebar",
+// then "nooo… touch the bar, but within the frieze bar"). What made that
+// arrangement fail is what the band gained AFTER it: its own 1px top and
+// bottom rules. Chip and band then drew their rules on the very same two
+// rows — verified by sampling the composited pixels, they were never a pixel
+// apart — so a chip's cream face ran from the band's top rule clean down to
+// its bottom rule, the band's plate showed only in the 6px gaps, and the two
+// rules read as the CHIP's box rather than the band's. A box with none of the
+// band around it cannot look like it is in the band, and its top line, 6px
+// below the bar's darker lip, reads as "slightly below" something. One row
+// at each end fixes it: the band's rules are now the only thing drawn there,
+// uniform from end to end, and each chip's own rim begins where the band's
+// frame stops. (⚠ The first pass over-corrected to a 2px shoulder in a 25px
+// band — plate and meander visibly above and below each chip — and was
+// rejected on sight. "Inside" here means flush, not floating.)
 //
-// THIS IS ONE NUMBER, NOT TWO IN STEP. `--nav-trail-h` is declared on
-// `.nav-bar` in NavigationBar.vue and inherits down to both objects — the band
-// reads it as `--frieze-bar-h`, this rule reads it as its height — because the
-// pair was reset six times in one day (RIDING the band 22-in-28, COVERING it
-// 24-in-24, OVERHANGING it 24-over-17, FLOATING in it 17-in-21, SET NEAT on a
-// 1px shoulder 19-in-21, and reaching the bar's edges at 31) and every one of
-// those was a chance for two files to disagree.
+// STILL ONE AUTHORED NUMBER, NOT TWO IN STEP — `--nav-chip-h` is
+// `calc(var(--nav-trail-h) - 2px)` at `:root` (_tokens.scss), so the band
+// still moves everything at once and the fit cannot drift out of it.
+// That mattered enough to keep: the pair was reset six times in one day
+// (RIDING the band 22-in-28, COVERING it 24-in-24, OVERHANGING it 24-over-17,
+// FLOATING in it 17-in-21, SET NEAT on a 1px shoulder 19-in-21, and reaching
+// the bar's edges at 31), and every one of those was a chance for two files
+// to disagree.
 //
-// The GLYPH is the chip less its two 1px rims (border-box): 21 → 19px, the
-// "very tiny padding … big icons" ask carried to its end — vertically the
-// chip is now ALL glyph. The band survives in `.nav-right`'s 6px gaps between
-// chips and across the empty middle, which is where its meander and its 5px of
-// cream margin are read.
+// The GLYPH is the chip less its two 1px rims (border-box): 19 → 17px, one
+// step down from the 19px the band-height chip carried, and still the "very tiny
+// padding … big icons" ask carried to its end — vertically the chip is ALL
+// glyph. ⚠ THE ICONS ARE STATED IN NavigationBar's TEMPLATE, not here: a
+// glyph bigger than the content box is clipped in silence (q-btn is
+// `overflow: hidden`), so this chain has to be walked by hand at both ends.
 //
 // The corners are square for a reason that survived the height changing twice:
 // a radius on a tile lying in a band leaves four dark notches where the band
@@ -165,8 +188,8 @@
 // one object with one box.
 .nav-btn {
   min-width: 32px;
-  min-height: var(--nav-trail-h, 21px);
-  height: var(--nav-trail-h, 21px);
+  min-height: var(--nav-chip-h, 19px);
+  height: var(--nav-chip-h, 19px);
   padding: 0 5px;
   border-radius: 0;
   // ── A FULL FRAME AGAIN (2026-08-30, user ask: "adding to them borders on
@@ -186,16 +209,44 @@
   // The rims are load-bearing twice over: they separate adjacent chips across
   // `.nav-right`'s 6px gap, and they close each chip's own box against the
   // band it rides.
-  // ⚠ THE INK IS THE BAND'S OWN RULE INK — `--grey-5`, exactly what
-  // `.nav-frieze` draws its top and bottom borders in — and that choice IS
-  // the alignment fix (2026-08-30, follow-up ask: "they look slightly below
-  // the top border and overlapping on top of the bottom one"). The boxes
-  // were already pixel-coincident — chip and band paint their rules on the
-  // very same rows, verified by pixel sampling — but a DARKER grey-6
-  // segment breaking the band's lighter line read as a second line sitting
-  // lower. One ink, and the trail's two rules run unbroken through every
-  // chip.
+  // ⚠ THE INK NOW SITS ONE STEP UNDER THE BAND'S — `--grey-5` here against
+  // the trail's `--grey-6` rules (2026-08-30, the closing ask). It ran the
+  // other way for the hour between: chip and band shared `--grey-5` because
+  // they shared ROWS, and a darker rim breaking the band's lighter line read
+  // as a second line sitting lower. Giving the chip its own row ended that
+  // tie, and the two SHOULD differ now — they are adjacent, not coincident,
+  // and the outer frame of an inset composition wants to be the stronger
+  // line. So the band's rules went to grey-6, the bar's own top-lip ink (the
+  // three structural lines of this bar are one tone again), and the chips
+  // keep the lighter grey-5 — on their VERTICALS only, since the ask right
+  // after took the horizontal halves off (see just below). So the two inks
+  // never meet on the same edge any more: grey-6 draws every horizontal
+  // line on this bar, grey-5 every vertical one. No new ink either way —
+  // grey-6 is already the trail's second wave.
   border: 1px solid var(--grey-5, #bdbdbd);
+  // ── ⭐ AND THE HORIZONTAL RIMS CAME OFF AGAIN (2026-08-30, the ask after
+  // the flush fit: "there is still a gap on the top, between the top border
+  // of the frieze bar and the buttons and the bar. Close it"). The chip and
+  // the band were already adjacent to the pixel — rule on row N, rim on row
+  // N+1 — but a grey-5 rim tucked directly under a grey-6 rule doesn't read
+  // as the chip's edge, it reads as a paler SEAM between the band's line and
+  // the chip's cream body: a gap. There is nothing to move (the chip cannot
+  // go higher without covering the rule it is supposed to touch), so the
+  // seam itself goes. THE BAND'S RULE IS EACH CHIP'S TOP AND BOTTOM EDGE
+  // NOW — the chip's face runs straight up to it — and the chips draw only
+  // the verticals that separate them from each other.
+  // ⚠ `border-box` keeps the box 19px, so NOTHING MOVES: the content height
+  // goes 17 → 19px and the 17px glyphs simply gain a pixel of face above
+  // and below (that 1px is the chip's own cream, not band — it does not
+  // re-open the seam). Grow the glyphs to 19px and they will touch the
+  // band's rules directly.
+  // ⚠ AND THE BAND'S HAIRLINE IS NOW UNIFORM END TO END — 1px of grey-6
+  // across chips, strip and the gaps between them alike. That is the
+  // property to protect: give these rims their horizontal halves back and
+  // the line draws 2px over a chip and 1px in the gaps, which is the
+  // unevenness this whole thread of asks has been about.
+  border-top-width: 0;
+  border-bottom-width: 0;
   background: var(--plaque-flat);
   color: var(--ink-1);
   font-family: var(--font-display);
@@ -847,13 +898,16 @@
 // moved ONTO the footer bar's inner frieze band (four asks — bottom-left,
 // then inside the bar at full height, then "inside the footer nav bar's
 // inner frieze bar … way denser", then the paints): parked it is a
-// `--plaque-coat` plate riding `.nav-frieze`'s very box (--nav-trail-h,
-// :root since the same sitting) beside the burger's 42px rail slot — a
-// full-bleed `--grey-4` items lane holding dense 20×17 chips on the band's
-// 2px shoulders via a strip-scoped --side-item-h, head glyph on the coat
-// at the right end, a 1px --grey-5 frame on all four sides (2026-08-30's
-// borders-on-all-sides ask — the trail chips' own rim, in the band's own
-// rule ink), no cast; expanded it rises from that seat to
+// `--plaque-coat` plate standing INSIDE `.nav-frieze` on a 2px shoulder
+// (--nav-chip-h = --nav-trail-h − 6px, both at :root; it rode the band's
+// very box until 2026-08-30's closing ask) beside the burger's 42px rail
+// slot — a full-bleed `--grey-4` items lane holding dense 20×17 chips via
+// a strip-scoped --side-item-h, head glyph on the coat
+// at the right end, 1px --grey-5 rims on its VERTICALS ONLY (a full frame
+// from 2026-08-30's borders-on-all-sides ask until that day's gap-closing
+// one took the horizontal halves off — the band's grey-6 rules are the
+// strip's top and bottom edges now, and the lane runs edge to edge up to
+// them), no cast; expanded it rises from that seat to
 // the window floor adding the rims/casts (expanded-only chrome), and its
 // two FriezeBar well-bracket bands render expanded only (the parked face
 // rides a band already). Pins keeps the
