@@ -332,9 +332,11 @@ export default defineComponent({
 // transition still animates what it can; the park⇄expand morph is an axis
 // rotation now, so it snaps where auto-sizes meet. The chrome is per face
 // (see the two blocks below): the parked strip is the bar's own
-// `--plaque-coat` plate with a `--grey-4` item lane, framed on all four
-// sides by the trail chips' own 1px `--grey-5` rim (2026-08-30's
-// borders-on-all-sides ask; the band's own rule ink — see `.nav-btn`'s
+// `--plaque-coat` plate with a `--grey-4` item lane rimmed in `--grey-6`
+// (2026-08-31), framed on its own two verticals
+// by the trail chips' 1px `--grey-5` rim (2026-08-30's
+// borders-on-all-sides ask, less the horizontals its gap-closing ask took
+// back off; the band's own rule ink — see `.nav-btn`'s
 // ink note in _components.scss) and still castless, while the expanded panel
 // wears the same coat plus 1px `--grey-6` rims on its three exposed edges
 // and the rounded top-right free corner.
@@ -595,26 +597,31 @@ export default defineComponent({
   // the footer's 21px inner frieze band, scrolling on the x axis (the one
   // live axis of this face — the y overflow is hidden, and scrollbar-width:
   // none makes Chrome 121+ skip the ::-webkit-scrollbar styling above and
-  // hide the bar too). NO vertical margin and no rim — the lane
+  // hide the bar too). NO vertical margin; the lane
   // has a FLOOR since the fourth ask ("grey-4 for the items scroll
-  // container"): the expanded well's own `--grey-4`, sunk into the strip's
+  // container") and a RIM since 2026-08-31: the expanded well's own
+  // `--grey-4` under its own `--grey-6` line, sunk into the strip's
   // `--plaque-coat` plate exactly as the expanded well sinks into the
   // panel's — the widget's two faces state one material story at two
-  // scales. TRULY full-bleed since the fifth ask ("remove that padding …
+  // scales, and since the rim came back that story is COMPLETE (it was
+  // floor-only, the law's half-stated half, from the fourth ask until
+  // then). TRULY full-bleed since the fifth ask ("remove that padding …
   // add a little to the inner top and bottom"): `align-self: stretch`
   // overrides the strip's own `align-items: center`, which was sizing this
   // lane to its 17px content and leaving 2px of COAT showing above and
   // below it — that air lives INSIDE the container now, so the grey-4 spans
   // the strip's full content height. The chips don't move: since the
   // strip's 2026-08-30 frame, border-box hands this lane a 19px stretch, so
-  // 1px padding + 17px chip (`--side-item-h`, which SidePanelItem's rail
+  // 1px rim + 17px chip (`--side-item-h`, which SidePanelItem's rail
   // face reads) + 1px = the strip's full 19px, because the strip has no
   // horizontal rims to pay for any more — the band's own rules are its top
   // and bottom edges, and this lane runs straight up to them. ⚠ The chip
   // took a 17 → 15 → 17px round trip across 2026-08-30's closing asks,
   // purely as arithmetic: 15px while the strip still spent 2px of its 19px
-  // on rims of its own, 17px again once those came off. The air over a chip
-  // is this lane's 1px of padding now, and nothing else. Chips narrowed to 20px wide by the :deep rule
+  // on rims of its own, 17px again once those came off — and the 2026-08-31
+  // rim did NOT restart that walk, because it was paid for out of the
+  // PADDING rather than out of the chip. The air over a chip is this lane's
+  // own 1px LINE now, and nothing else. Chips narrowed to 20px wide by the :deep rule
   // below, 2px gaps. The old
   // faces' matched-margins invariant (Δtop = 0 through the morph) is
   // retired — the morph is an axis rotation now, so items trade a vertical
@@ -635,9 +642,29 @@ export default defineComponent({
     align-self: stretch;
     min-width: 0;
     margin: 0;
-    padding: 1px 2px;
+    // ⚠ THE 1px OF AIR BECAME THE RIM (2026-08-31, user ask: "add a thin
+    // border to the inner rounded border of the inner scroll"). The lane was
+    // the ONE place the widget's own two-face law — floor `--grey-4`, rim
+    // `--grey-6`, stated at `.stack-list` above — was false: the expanded well
+    // has worn that pair since 2026-08-18 and the parked face was paint only,
+    // so its rounded right end read as a tone change rather than as a
+    // container. Same ink, same floor, one scale down.
+    // The strip is ZERO-SUM in 19px, so this is a SUBSTITUTION, not an
+    // addition: `border-box` would have taken the rim out of the chip (17 →
+    // 15px, the round trip this lane already made once), so the padding pays
+    // for it instead — 1px pad → 1px rim top and bottom, 2px pad → 1px rim +
+    // 1px pad left and right. Every chip stays at 20×17 on the same pixel, the
+    // lane still runs edge to edge of the strip, and the air over a chip is the
+    // rim now rather than the padding.
+    // The rim DOUBLES on the three flush edges by construction — grey-6 under
+    // the band's own grey-6 rules top and bottom, grey-6 beside the strip's
+    // grey-5 rim at the left — because the lane is flush on all three. That is
+    // the cost of stating the container at this size and it is deliberate:
+    // the RIGHT end, the only edge standing free in the coat, is where the
+    // line has to draw, and a rounded box cannot be outlined on one edge alone.
+    padding: 0 1px;
     background: var(--grey-4);
-    border: none;
+    border: 1px solid var(--grey-6);
     border-radius: 0 7px 7px 0;
     overflow-x: auto;
     overflow-y: hidden;

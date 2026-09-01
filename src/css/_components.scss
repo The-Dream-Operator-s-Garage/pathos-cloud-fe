@@ -170,6 +170,19 @@
 // glyph bigger than the content box is clipped in silence (q-btn is
 // `overflow: hidden`), so this chain has to be walked by hand at both ends.
 //
+// ⚠ SINCE 2026-08-31 THAT IS THE LOOKERS' NUMBER ONLY (user ask: "for the
+// post, skeletons, labels and uploads buttons, please make the icons slightly
+// smaller"). THE SPLIT IS BY ROLE AND THE ROLE ARGUMENT IS OLD — a maker's
+// chip holds a WORD beside its glyph, a looker's chip holds nothing else — it
+// simply had no arithmetic behind it until now, because both roles happened to
+// land on the same 17px. They no longer do: the four makers step to 15px so
+// the glyph reads as the word's mark rather than competing with it, and chat +
+// dashboard keep 17px, which is still the whole content box and still the "as
+// big as possible inside their containers" ask they were given on 2026-08-24.
+// So the paragraph above describes the LOOKERS; the makers sit one step under
+// it. Both numbers are witnessed (`flow-nav-trail.mjs`) precisely because
+// there is no single dial to move — six `size=` attributes in the template.
+//
 // The corners are square for a reason that survived the height changing twice:
 // a radius on a tile lying in a band leaves four dark notches where the band
 // shows through the cut, which reads as damage rather than as a rounded button.
@@ -252,7 +265,40 @@
   font-family: var(--font-display);
 
   // q-btn lays its icon/label row out inside .q-btn__content.
-  .q-btn__content { gap: 2px; }
+  //
+  // ── ⭐ THE RUN STARTS AT THE LEFT RIM ON ALL SIX (2026-08-31, user ask:
+  // "homogenize their look and make the drag icon section dense for them all.
+  // The chat and dashboard ones have a decent look on the drag icon section.
+  // Copy them please"). Quasar centres this row, and until today the four
+  // MAKER chips paid for that: `.create-row`'s `1fr` columns size them all to
+  // SKELETONS' natural width, and a centred row SPLITS the leftover EVENLY —
+  // so the handle drifted INTO the chip by half the slack. Measured before the
+  // change, the grip's x inside its chip read 6 · 6 · 6 (skeletons/chat/
+  // dashboard) against 12.5 · 16.7 · 23.5 (uploads/labels/post): the same
+  // handle at four different insets, in a row that is supposed to read as one
+  // object repeated six times.
+  //
+  // The two "decent" chips were never styled differently — their content
+  // simply FILLS their box, so there was no slack to split and centring landed
+  // them flush at 6px anyway. This declaration makes that structural accident
+  // the rule: pack from the start edge, and let the slack fall AFTER the run
+  // (`.nav-btn__label` takes it and centres its word inside it — NavigationBar).
+  //
+  // ⚠ NOTHING ELSE MOVED, and that is checkable arithmetic rather than luck:
+  // the old layout split slack S evenly before and after the children, the new
+  // one hands all of S to the label and centres the word in it — S/2 either
+  // way — so POST · LABELS · UPLOADS keep their words at 58.5 · 51.7 · 47.5
+  // exactly. The ONLY pixels that changed are the grip and its hairline
+  // sliding left to the rim.
+  //
+  // 2px is the row's one rhythm now: grip · 2 · rule · 2 · glyph · 2 · word,
+  // so the six drag sections are byte-identical (grip at 6, rule at 19, glyph
+  // at 22). The chat chip carried `gap: 4px` of its own until this ask — see
+  // its note in NavigationBar.
+  .q-btn__content {
+    gap: 2px;
+    justify-content: flex-start;
+  }
 
   // ── THE GRIP (2026-08-30, user ask: "to each button, add a 'drag'-like
   // material icon at the left, separated by a hairline" — the trail became a

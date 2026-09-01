@@ -151,7 +151,7 @@
             <q-icon name="drag_indicator" size="11px" />
           </span>
           <span class="nav-btn__grip-rule" />
-          <q-icon name="add_circle_outline" size="17px" />
+          <q-icon name="add_circle_outline" size="15px" />
           <span class="nav-btn__label">POST</span>
           <q-tooltip>Make post</q-tooltip>
         </q-btn>
@@ -160,7 +160,7 @@
             <q-icon name="drag_indicator" size="11px" />
           </span>
           <span class="nav-btn__grip-rule" />
-          <q-icon name="schema" size="17px" />
+          <q-icon name="schema" size="15px" />
           <span class="nav-btn__label">SKELETONS</span>
           <q-tooltip>Build skeletons — define templates, populate and edit instances</q-tooltip>
         </q-btn>
@@ -169,7 +169,7 @@
             <q-icon name="drag_indicator" size="11px" />
           </span>
           <span class="nav-btn__grip-rule" />
-          <q-icon name="label_important" size="17px" />
+          <q-icon name="label_important" size="15px" />
           <span class="nav-btn__label">LABELS</span>
           <q-tooltip>Label maker — grow, fork and reorganize label trees</q-tooltip>
         </q-btn>
@@ -178,7 +178,7 @@
             <q-icon name="drag_indicator" size="11px" />
           </span>
           <span class="nav-btn__grip-rule" />
-          <q-icon name="upload" size="17px" />
+          <q-icon name="upload" size="15px" />
           <span class="nav-btn__label">UPLOADS</span>
           <q-tooltip>Upload files, links or notes</q-tooltip>
         </q-btn>
@@ -1498,12 +1498,33 @@ export default defineComponent({
   align-items: center;
 }
 
-@media (min-width: 1024px) {
-  // Equal columns, sized to the widest. Desktop only, and for the same reason
-  // the words are: below the gate there are no words to equalise, only glyphs,
-  // and four equal glyph chips is what they already are.
-  .create-row { grid-auto-columns: 1fr; }
-}
+// ── ⭐ AND THE EQUAL-WIDTH OVERRIDE IS GONE (2026-08-31, user ask: "the post
+// button has an ugly gap between the icon and the text. Homogenize the inner
+// spacing of the post/skeletons/labels/uploads buttons so they have the same
+// spacing between text and icon and also on the sides") ─────────────────────
+// `.create-row { grid-auto-columns: 1fr }` stood here from 2026-08-24 ("help
+// me making them all have the same width on desktop") and it is the direct
+// cause of the gap the ask names. THE TWO PROPERTIES CANNOT BOTH HOLD, and
+// the arithmetic is short enough to settle it: a chip is
+// `pad + grip + gap + rule + gap + glyph + gap + WORD + pad`, and the four
+// words measure 26.5 · 61.4 · 40 · 48.3px. Fix every gap and both pads and
+// the four widths MUST differ by exactly the word widths; force the four
+// widths equal instead and that difference has to be dumped somewhere inside
+// the chip. There is no third option, only a choice of where the slack goes,
+// and the row has now tried all three places:
+//   · split around the whole run (08-24 → 08-31 morning) — pushed the DRAG
+//     HANDLE off the left rim by half the slack, which was that ask.
+//   · handed to the label, word centred in it (08-31 morning → this ask) —
+//     handle flush, but the slack reappeared as a hole between glyph and
+//     word, worst on the shortest word. That is the "ugly gap" on POST.
+//   · trailing after the word — never shipped; it just moves the same hole
+//     to the right rim, where "the same spacing on the sides" forbids it.
+// So the ask is really "stop equalising", and the chips size to their content
+// now: identical inner spacing on all four, four different outer widths.
+// ⚠ `.create-row` STAYS — it still owns the 6px gap and `align-items`, and
+// `grid-auto-columns: auto` is what shrink-to-fit already meant below 1024px.
+// If the equal measure is ever wanted back, it comes back WITH a decision
+// about where the slack lives, not instead of one.
 
 .nav-btn__label { display: none; }
 
@@ -1514,24 +1535,126 @@ export default defineComponent({
     line-height: 1;
     letter-spacing: 0.05em;   // the `.nasalization` utility's own tracking
     // The words are the chip's ink, not a second colour on the bar: they take
-    // whatever `color` the button states, so the dashboard chip's `--grey-9`
-    // and the chat chip's `--ink-2` reach the word without a rule each.
+    // whatever `color` the button states. (Until 2026-08-31 that sentence had
+    // two exceptions worth naming — the dashboard chip's `--grey-9` and the
+    // chat chip's `--ink-2` reached their glyphs through this same seam; both
+    // chips are wordless, and both now rest in the bar's one ink anyway.)
     color: inherit;
     white-space: nowrap;
+
+    // ⚠ THE WORD DOES NOT STRETCH. It carried `flex: 1 1 auto; text-align:
+    // center` for one pass this same day — the way the `1fr` grid's slack was
+    // kept off the drag handle — and the very next ask was about what that
+    // did: a stretched label centres its word in a run wider than the word,
+    // so POST showed ~35px of daylight between its glyph and its letters. The
+    // grid stopped equalising instead (see `.create-row` below), which leaves
+    // no slack for anyone to absorb and lets this element be what it reads
+    // as: a word, sized by its own letters, sitting one 2px gap from the
+    // glyph like every other item in the chip's content row.
+
+    // ── ⭐ THE WORDS ARE CARVED INTO THE CHIP (2026-08-31, user ask: "add to
+    // the font a subtle shadow that makes the font (not the button) look like
+    // it's been carved on a surface … a very subtle depth effect") ──────────
+    // LETTERPRESS, the two-lip form: a light lip BELOW the glyph and a faint
+    // dark one ABOVE. That order is the whole illusion and it is not
+    // interchangeable — this platform lights everything from the top-left
+    // (the post flyout's well bevel is built on the same assumption), so a
+    // groove cut into the plaque has its FAR wall catching the light at the
+    // bottom of each stroke and its NEAR wall in shadow at the top. Flip the
+    // two offsets and the same declaration reads as RAISED type instead.
+    //
+    // ⚠ THE SHADOW IS ON THE WORD, NOT THE CHIP — which is the ask's own
+    // parenthesis ("the font (not the button)"). No `box-shadow` went near
+    // `.nav-btn`: the chip stays the flat cream tile the bar's doctrine wants,
+    // and the depth lives entirely inside the letterforms.
+    //
+    // BOTH OFFSETS ARE 1px BECAUSE 1px IS ALL THERE IS. The word sets at 9px,
+    // so a lip is already a ninth of the cap height — there is no smaller step
+    // available, and no blur either: at this size a blurred lip spreads across
+    // two or three rows and silts up Nasalization's already-tight counters.
+    //
+    // ⚠ THE ALPHAS ARE MEASURED, NOT PICKED, AND THE FIRST PAIR WAS A NO-OP.
+    // This shipped for one pass at white 0.75 / ink 0.08 — the numbers a
+    // letterpress wants on a WHITE page — and rendering it beside a plain
+    // `text-shadow: none` at 3× showed the two were indistinguishable. The
+    // reason is the surface: `--plaque-flat` is #f8f2e4, so the brightest
+    // possible light lip is +7 red, +13 green, +27 blue over the chip's own
+    // face. There is no headroom to spend, which means the light lip must run
+    // at FULL white to register at all, and the depth cue that actually does
+    // the work here is the DARK one. Hence 1.0 / 0.25, and the whole reason
+    // the second number looks unsubtle written down: on a cream plaque an ink
+    // lip at 0.25 lands about where a white lip at 0.75 would on paper.
+    // (Two variants that DID carve harder were rejected for how: both bleached
+    // the word to rgba(ink, .70–.78) so the groove could show through it. That
+    // buys depth with legibility at 9px, and it would re-break the one-ink row
+    // this same sitting just closed — the four words are `color: inherit` off
+    // `.nav-btn` precisely so they cannot drift.)
+    //
+    // ⚠ MAKERS ONLY, for free: chat and dashboard have no label element, so
+    // this rule cannot reach them. And it lives inside the 1024px gate with
+    // the words themselves — below that there is nothing to carve.
+    // The value itself now lives on `.create-btn` as `--chip-carve`, so the
+    // word and the glyph beside it cannot drift apart (they are one surface,
+    // and their two rules sit either side of the 1024px gate).
+    text-shadow: var(--chip-carve);
+
+    // ── ⭐ SLIGHTLY BOLDER, AND NOT VIA `font-weight` (2026-08-31, same ask:
+    // "the font of these buttons slightly bolder") ─────────────────────────
+    // Nasalization ships as ONE WEIGHT — a single `.otf` declared
+    // `font-weight: normal` in app.scss — so there is no bold face to switch
+    // to. `font-weight: 500` therefore renders identical to 400 (verified: it
+    // still maps to the normal face), and 600/700 make the browser SYNTHESISE
+    // bold, which on a geometric display face means smearing each glyph
+    // horizontally. Rendered side by side at 3× the faux weights are visibly
+    // wider and softer than the stroked ones.
+    //
+    // ⚠ AND FAUX BOLD WOULD NOW MOVE LAYOUT. Since the equal-width grid went
+    // (see `.create-row`), these words SET their chips' widths — synthetic
+    // bold changes each glyph's advance, so "make it bolder" would silently
+    // re-measure all four chips and the trail's clamp arithmetic with them.
+    // `-webkit-text-stroke` thickens the outline symmetrically and touches no
+    // metric at all: same advance, same chip, heavier stroke.
+    //
+    // 0.3px is the "slightly": 0.2 was indistinguishable from plain at this
+    // size and 0.4 lands on 600-faux's weight, which is past what was asked.
+    // `currentColor` keeps it on the chip's own ink, so this cannot become a
+    // second colour on a bar that just went to one.
+    -webkit-text-stroke: 0.3px currentColor;
   }
 }
 
 // Chat — the conversation window's button. Aqua treatment on purpose:
 // this is where entities talk, not another maker pebble.
 .nav-bar .chat-btn {
-  font-family: var(--font-display);
-  font-size: 0.7em;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--ink-2);
   flex-shrink: 0;
 
-  :deep(.q-btn__content) { gap: 4px; }
+  // ── ⭐ THE LAST THREE THINGS THAT MADE THIS CHIP ITS OWN OBJECT ARE GONE
+  // (2026-08-31, "homogenize their look"). All three were the ghost of the
+  // WORD this button carried until 2026-08-24:
+  //
+  //  · `gap: 4px` on its content row — the ONE chip on the bar not on the
+  //    shared 2px rhythm, and the reason its hairline stood at x=19 on five
+  //    chips and x=21 on this one. Two pixels, but they landed inside the
+  //    "drag icon section" the ask is about: the six handles now measure
+  //    identically (grip 6, rule 19, glyph 22) and the row reads as one part
+  //    repeated, which is the whole point of a slider's grips.
+  //  · `font-size: 0.7em` + `letter-spacing` + `text-transform` — typography
+  //    for text that no longer exists. Harmless today ONLY because the glyph
+  //    states its own `size="17px"` inline; put a label back on this chip and
+  //    it would have set in 9.8px against the makers' authored 9px, which is
+  //    exactly the kind of silent drift this bar keeps getting caught by.
+  //    `font-family: var(--font-display)` went with them — `.nav-btn` has
+  //    carried it since the bar was built, so the line was a restatement.
+  //  · `color: var(--ink-2)` — the resting ink. It was the visible one: at
+  //    #3f506a against the makers' #1f2a38 this glyph read a step PALER than
+  //    the four beside it, on a bar whose own doctrine is that every chip is
+  //    one flat cream face answering the pointer in one grey. The bar's ink
+  //    is `.nav-btn`'s `--ink-1` and this chip takes it like the rest.
+  //
+  // WHAT SURVIVES IS THE ONLY THING THAT WAS EVER LOAD-BEARING: the aqua
+  // `is-active` below. Homogenising the REST state is what makes that accent
+  // legible — six identical chips and one of them lit says "the chat dock is
+  // standing" far louder than it could from a row of six different inks.
 
   // THE HOVER LEFT THE ACCENT ON 2026-08-23 and the ACTIVE STATE KEPT IT —
   // one rule split in two, which is the whole shape of that day's repaint.
@@ -1561,10 +1684,22 @@ export default defineComponent({
 // That reading is if anything cleaner now, because the darker grey it steps to
 // is the trail's own family showing through the chip.
 .nav-bar .dashboard-btn {
-  color: var(--grey-9);
   flex-shrink: 0;
 
-  .q-icon { color: var(--grey-9); }
+  // ── THE RESTING GREY WENT TO THE BAR'S INK (2026-08-31, "homogenize their
+  // look") AND THE ARGUMENT DID NOT DIE WITH IT. `--grey-9` rested here so
+  // the pebble would wear the tone of the board it opens; that tie has been
+  // half true since 2026-08-26 (the board's coat left for `--plaque-coat`)
+  // and it was the last per-chip resting ink on a row of six chips otherwise
+  // sharing one face. Three inks at rest — ink-1 · ink-2 · grey-9 — is not a
+  // system, it is three leftovers.
+  //
+  // The tie now lives entirely in `is-active`, which is where it always did
+  // the work: this is still the one chip whose standing state is a DARKER
+  // GREY rather than an accent — the pressed state of a grey object, in the
+  // board's own `--grey-4` lines-and-well family, which did not move. If the
+  // pebble is ever re-toned at rest, `--grey-4` is still the tone to walk to;
+  // the bar's own cream never is (a button in its bar's coat disappears).
 
   &.is-active {
     background: var(--grey-4);
@@ -1749,9 +1884,39 @@ export default defineComponent({
 // permanently pale chip on the left would break the twinning the whole block
 // exists for. The glyph alone says which way the toggle goes.
 
-// (The create buttons' own aqua hover lived here until 2026-08-23 — see the
-// note where `.nav-bundle` was. `.create-btn` survives as a NAME with no rule
-// behind it: the witness flow and the docs address those four by it.)
+// ── ⭐ `.create-btn` HAS A RULE AGAIN (2026-08-31, user ask: "please make the
+// icons carved-looking too and the font of these buttons slightly bolder") ──
+// It had been a NAME with nothing behind it since 2026-08-23, when its aqua
+// hover went and the four chips took `.nav-btn` whole (see the note where
+// `.nav-bundle` was). It earns a rule now because this is the first thing in
+// months that is true of these FOUR and not of the six: the two lookers are
+// wordless, so "carve the glyph the way the word is carved" has no meaning on
+// them, and their 17px glyph is the whole chip where these are 15px marks
+// beside a word.
+//
+// `--chip-carve` IS THE DIAL AND IT IS DECLARED ONCE. The word's carve and the
+// glyph's have to move together or the chip stops reading as one surface, and
+// the two live in different blocks (the word's is inside the 1024px gate with
+// the words themselves; the glyph's is not, because the glyph is there at
+// every width). A shared custom property is the only way to keep one number
+// in one place across that split — the same trick `--nav-trail-h` plays for
+// the band and its chips. Anything nested in a `.create-btn` inherits it, so
+// the label rule below just reads `var(--chip-carve)`.
+//
+// ⚠ THE `>` IS LOAD-BEARING: the grip's handle is a `.q-icon` too, one level
+// deeper inside `.nav-btn__grip`. The direct-child combinator reaches the
+// BODY glyph and misses the handle, which is exactly right — the handle is
+// chrome shared with chat and dashboard, and carving it on four chips only
+// would break the one-part-repeated row the previous ask just bought. (The
+// witness reads its glyphs the same structural way, for the same reason.)
+.nav-bar .create-btn {
+  --chip-carve:
+    0 1px 0 rgba(255, 255, 255, 1),
+    0 -1px 0 rgba(var(--ink-rgb-deep), 0.25);
+
+  :deep(.q-btn__content) > .q-icon { text-shadow: var(--chip-carve); }
+}
+
 .pins-count-badge {
   font-size: 0.62em !important;
   padding: 0 4px !important;
@@ -1834,6 +1999,17 @@ export default defineComponent({
   // session persisted.
   .nav-bar .nav-btn .nav-btn__grip,
   .nav-bar .nav-btn .nav-btn__grip-rule { display: none; }
+
+  // ── AND THE ROW RE-CENTRES WHEN THE HANDLE GOES (2026-08-31, the
+  // homogenize ask). `.q-btn__content` packs from the start edge on the
+  // desktop so the six grips line up at the left rim — but with the grips
+  // hidden here, a phone chip is a lone 17px glyph in the 18px content box
+  // that `min-width: 28px` floors it to, and start-packing leaves that 1px of
+  // slack all on the right (measured: 5px left, 6px right). Nothing to anchor
+  // to and no word to absorb it, so the glyph goes back to the middle. It is
+  // the same argument as upstairs read from the other side: pack left when a
+  // handle starts the run, centre when the chip is only its glyph.
+  .nav-bar .nav-btn :deep(.q-btn__content) { justify-content: center; }
 
   // (The four create buttons were the widest thing in the cluster and took
   // their own mobile rule through `.nav-bundle` until 2026-08-23 — they wear
