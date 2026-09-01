@@ -78,18 +78,22 @@
          in _tokens.scss and the dials in the style block. -->
     <FriezeBar slim class="media-tabs__frieze" />
     <!-- ── THE BACK BUTTON (2026-08-31, user ask: "relocate the back button
-         from the left drawer into the top header nav bar") — the drawer is
-         hidden the same day, and its pinned-top Back affordance lands HERE,
-         at the rail's LEFT end, in the strip's own grammar: a tab hanging
-         from the band (the parked tabs' material, rim and flares — a piece
-         of the band pulled downward), mirrored to the end the parked row
-         never reaches (tabs fill from the RIGHT edge leftward and cap at
-         50vw). `pointer-events: auto` because the band itself is
-         click-through paint; disabled on the history stack's first entry,
-         exactly as the drawer button was. -->
+         from the left drawer into the top header nav bar"; the drawer is
+         hidden the same day) — INSIDE the rail since the follow-up ask
+         ("place the back button inside the header, not like a tab. Make it
+         occupy all the available height of the bar"): a full-height block
+         at the rail's LEFT end, seated on the bar's own box the way the
+         identity section seats on the footer — an opaque plate over the
+         inlaid band (paint cannot carry a control), closed by the rail's
+         own rim ink on its right edge, the bar's bottom rim running
+         unbroken beneath it. It spent its first hour as a `.media-tabs__tab`
+         hanging BELOW the band at this end. `pointer-events: auto` because
+         the band itself is click-through paint; disabled on the history
+         stack's first entry it stays visible but mutes — an affordance
+         that vanishes teaches nothing. -->
     <button
       type="button"
-      class="media-tabs__tab media-tabs__back nasalization"
+      class="media-tabs__back nasalization"
       :class="{ 'is-disabled': !canGoBack }"
       :disabled="!canGoBack"
       title="Back"
@@ -97,6 +101,25 @@
     >
       <q-icon name="arrow_back" size="12px" class="media-tabs__glyph" />
       <span class="media-tabs__name">back</span>
+    </button>
+    <!-- FORWARD — the pair's other half at the rail's RIGHT end (the ask
+         that followed the in-bar move: "add a forward one at the right end
+         of the header too"). Mirrored composition: the word leads, the
+         glyph closes, so each button's arrow points at the screen edge it
+         walks toward. Forward regains a surface here for the first time
+         since the bar's console was emptied on 2026-08-02 — enablement is
+         the pair's OWN traversal ledger (`forwardDepth`; the script's note
+         walks the three ready-made truths that each failed first). -->
+    <button
+      type="button"
+      class="media-tabs__forward nasalization"
+      :class="{ 'is-disabled': !canGoForward }"
+      :disabled="!canGoForward"
+      title="Forward"
+      @click="goForward"
+    >
+      <span class="media-tabs__name">forward</span>
+      <q-icon name="arrow_forward" size="12px" class="media-tabs__glyph" />
     </button>
     <TransitionGroup ref="rowEl" tag="div" name="mtab" class="media-tabs__row nasalization" appear>
       <button
@@ -115,7 +138,7 @@
 </template>
 
 <script>
-import { defineComponent, computed } from 'vue'
+import { defineComponent, computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useFlyoutViewersStore } from 'src/stores/flyoutViewers'
 import FriezeBar from 'src/components/layout/FriezeBar.vue'
@@ -129,16 +152,64 @@ export default defineComponent({
     const route = useRoute()
     const router = useRouter()
 
-    // ── The BACK control (2026-08-31) — relocated from the hidden drawer.
-    // `window.history.state.position` is 0 on the stack's first entry, the
-    // same test the drawer's button ran; it is not reactive on its own, so
-    // the computed reads `route.fullPath` purely as a dependency — every
-    // navigation re-evaluates it.
+    // ── The BACK + FORWARD pair (2026-08-31) — Back relocated from the
+    // hidden drawer, Forward re-surfaced with it (its last surface was the
+    // nav bar's console, emptied 2026-08-02).
+    // BACK keeps the drawer button's own test: `history.state.position` is
+    // 0 on the tab stack's first entry (not reactive on its own, so the
+    // computed takes `route.fullPath` as a dependency).
+    //
+    // FORWARD'S TRUTH IS THE PAIR'S OWN LEDGER — `forwardDepth`, a counter
+    // of browser entries THIS pair left ahead: goBack arms an expectation
+    // and the route change it causes increments the depth, goForward
+    // decrements it, and ANY navigation these buttons did not cause resets
+    // it to zero (a push truncates the browser's forward run; a traversal
+    // from browser chrome leaves one we simply do not claim to know
+    // about). The button therefore arms exactly when a forward entry is
+    // GUARANTEED, and never no-ops.
+    //
+    // ⚠ Three sources of ready-made truth were tried first, each
+    // witness-caught the hour it shipped, and the failures are the spec:
+    //  · `history.state.forward` — stamped only on the router's OWN
+    //    pushes, null after backing across an absorbed hash navigation
+    //    (address bar, `location.hash` from a script): Forward stayed dead.
+    //  · bare `position < history.length − 1` — a reload GROWS
+    //    `history.length` without moving position (measured: pos 1 / len 2
+    //    → reload → pos 1 / len 3), so a fresh landing false-armed.
+    //  · `navStore.canGoForward` — the platform's history is SEMANTIC and
+    //    restored across sessions: with allegue's server-side stack ending
+    //    […feed, labels], a fresh hash walk TO feed matched the entry
+    //    behind and read as "back detected", arming Forward while the
+    //    browser had nothing ahead. That model is the stack widget's, not
+    //    the browser's.
+    // The browser deliberately hides its stack index, so certainty only
+    // exists about traversals we perform ourselves — hence the ledger.
     const canGoBack = computed(() => {
       void route.fullPath
       return (window.history.state?.position ?? 0) > 0
     })
-    const goBack = () => { router.back() }
+    const forwardDepth = ref(0)
+    // 'back' | 'forward' | null — set just before router.back()/forward()
+    // and consumed by the route change it causes. The timer clears a stale
+    // expectation if the traversal silently no-ops (a boundary click), so
+    // the NEXT unrelated navigation cannot be mis-read as ours.
+    let expecting = null
+    let expectTimer = null
+    const arm = (dir) => {
+      expecting = dir
+      clearTimeout(expectTimer)
+      expectTimer = setTimeout(() => { expecting = null }, 800)
+    }
+    watch(() => route.fullPath, () => {
+      if (expecting === 'back') forwardDepth.value++
+      else if (expecting === 'forward') forwardDepth.value = Math.max(0, forwardDepth.value - 1)
+      else forwardDepth.value = 0
+      expecting = null
+      clearTimeout(expectTimer)
+    })
+    const goBack = () => { arm('back'); router.back() }
+    const canGoForward = computed(() => forwardDepth.value > 0)
+    const goForward = () => { arm('forward'); router.forward() }
     // ── NO ROUTE THE RAIL GIVES WAY TO ANY MORE (2026-08-24, user ask: "make
     // the main public feed container be drawn behind the top navigation header
     // and the footer navigation bar"). `underlaid` and
@@ -175,7 +246,7 @@ export default defineComponent({
     // The first pass had this component claim and release the space as it
     // mounted, which worked and made the whole page hop 4px whenever a
     // viewer parked — a band that is permanent has no such moment.
-    return { tabs, canGoBack, goBack }
+    return { tabs, canGoBack, goBack, canGoForward, goForward }
   }
 })
 </script>
@@ -554,18 +625,22 @@ export default defineComponent({
 .media-tabs__row {
   position: absolute;
   top: 100%;
-  // ── CLEAR OF THE STACK COLUMN (2026-08-24, user ask: "make the first tab on
-  // the right appear a little away from the stack sidebar, leave a little
-  // space") ──
-  // This offset is the row's PADDING box, so the outermost flare paints out to
-  // exactly this line and the tab's own edge stands 9px further in. At the old
-  // flat `31px` (written as "40px minus the fillet padding", i.e. aimed at the
-  // TAB landing 40px in) that flare crossed 11px INTO the parked stack rail,
-  // which is what made the first tab read as stuck to that column. Stated
-  // against the rail's OWN width now, so a wider rail carries the gap with it:
-  // 10px of daylight past `--dock-rail-w`, a little over the row's own 6px
-  // between tabs, which is the reading — the stack column is not another tab.
-  right: calc(var(--dock-rail-w, 42px) + 10px);
+  // ── CLEAR OF THE FORWARD BUTTON (2026-08-31 — the pair moved INTO the
+  // bar and Forward took the right end, so the corner this offset clears
+  // changed hands again) ──
+  // This offset is the row's PADDING box, so the outermost flare paints out
+  // to exactly this line and the tab's own edge stands 9px further in.
+  // History of the corner: a flat `31px` aimed at the parked STACK rail
+  // (2026-08-24, "a little away from the stack sidebar"), restated against
+  // `--dock-rail-w + 10px` the same day — and the stack left the top-right
+  // corner on 2026-08-30, which made that formula a reservation for
+  // nothing. It now clears `.media-tabs__forward`: 90px = the block's
+  // measured ~76px (word + glyph + pads at 0.62em) plus daylight a little
+  // over the row's own 6px tab gap — the same "not another tab" reading the
+  // stack got. ⚠ A static number because CSS cannot measure a sibling:
+  // if the Forward block ever grows (a longer word, a bigger glyph), this
+  // moves with it or the rightmost tab slides underneath.
+  right: 90px;
   max-width: 50vw;
   display: flex;
   gap: 6px;
@@ -747,28 +822,71 @@ export default defineComponent({
   white-space: nowrap;
 }
 
-// ── THE BACK TAB (2026-08-31) — the drawer's Back button in this strip's
-// grammar. It IS a `.media-tabs__tab` (material, rim, flares — everything
-// above applies), so this block states only what differs: its ADDRESS
-// (absolute at the rail's left end, hanging from the band's underside the
-// way the row's tabs hang at the right — `top: 100%` off the padding box,
-// so the rim breaks under it exactly as it does under a parked tab), a
-// fixed 10px inset mirroring the row's own edge padding, and the DISABLED
-// state the parked tabs never need: on the history stack's first entry the
-// tab stays visible — an affordance that vanishes teaches nothing — but
-// mutes to the band's own quiet and gives up its hover reach.
-.media-tabs__back {
+// ── THE BACK BUTTON, IN THE BAR (2026-08-31; the follow-up ask the same
+// sitting: "place the back button inside the header, not like a tab. Make
+// it occupy all the available height of the bar" — it hung below the band
+// as a `.media-tabs__tab` for its first hour). Anatomy is the identity
+// section's argument at the window's other edge:
+//  · FULL AVAILABLE HEIGHT: absolute `top: 0; bottom: 0` against the
+//    rail's PADDING box, i.e. the whole face above the rim — the bar's
+//    `border-bottom` is its closing edge and runs UNBROKEN beneath this
+//    block (the tab form deliberately broke it; a control inside the bar
+//    must not).
+//  · AN OPAQUE PLATE at `left: 0`: the inlaid frieze band runs the rail's
+//    full width under every child, and a control cannot read on a meander
+//    — same reason the identity chip and the stack strip wear the footer
+//    bar's coat. `--plaque-flat`, the rail's own coat as a flat colour
+//    (the composite exists as a token precisely for places like this).
+//  · CLOSED by the rail's own line ink: a 1px `--grey-6` right edge — the
+//    rim's tone, so the bar's two drawn lines are one ink — separating the
+//    plate from the band it interrupts.
+//  · Absolute children paint over unpositioned flex content, so no
+//    z-index is needed over the band; `pointer-events: auto` re-arms the
+//    block on a click-through bar.
+// Hover lifts the veil (bare `--light-cream`), press lays more on
+// (`--grey-3`) — the parked tabs' own two moves on this coat. DISABLED
+// (history's first entry) stays visible but mutes and gives up both.
+// FORWARD shares every declaration but its ADDRESS and its closing edge:
+// each button stands at its own end of the bar, closed toward the band by
+// ONE vertical line in the rail's rim ink — so the bar's drawn lines stay
+// one tone, and each block's outer edge is the screen's.
+.media-tabs__back,
+.media-tabs__forward {
+  pointer-events: auto;
   position: absolute;
-  top: 100%;
-  left: 10px;
-  flex: none;
-  min-width: 0;
+  top: 0;
+  bottom: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 9px;
+  border: none;
+  background: var(--plaque-flat, #f8f2e4);
+  color: var(--grey-8, #616161);
+  font-size: 0.62em;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.12s;
+
+  &:hover { background: var(--light-cream, #fcf3e0); }
+  &:active { background: var(--grey-3, #eeeeee); }
 
   &.is-disabled {
     cursor: default;
     color: rgba(97, 97, 97, 0.4);
-    &:hover { --mtab-face: var(--plaque-flat, #f8f2e4); padding-bottom: 2px; }
+    &:hover { background: var(--plaque-flat, #f8f2e4); }
+    &:active { background: var(--plaque-flat, #f8f2e4); }
   }
+}
+
+.media-tabs__back {
+  left: 0;
+  border-right: 1px solid var(--grey-6, #9e9e9e);
+}
+
+.media-tabs__forward {
+  right: 0;
+  border-left: 1px solid var(--grey-6, #9e9e9e);
 }
 
 // Park/restore choreography: a tab slides down out of the band when a

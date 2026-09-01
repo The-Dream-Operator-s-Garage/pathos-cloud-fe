@@ -27,8 +27,8 @@
          it"). `drawerEnabled` is a hard false — everything below survives
          for the resurrection, unrendered: flip the flag and the column comes
          back. What does NOT come back with it left for good the same day:
-         the BACK button (relocated to the top header rail — MediaTabsBar's
-         left-anchored tab) and the IDENTITY section (profile / organizations
+         the BACK button (now INSIDE the top header bar — MediaTabsBar's
+         full-height Back/Forward pair) and the IDENTITY section (profile / organizations
          / logout — relocated to the footer bar's identity chip + window,
          components/identity/). The burger follows the flag: NavigationBar's
          showBurger is pinned false below, so neither surface draws it. -->
@@ -81,8 +81,8 @@
           <FriezeBar class="drawer-frieze" />
 
           <!-- ⚠ THE BACK BUTTON LEFT THIS DRAWER FOR GOOD (2026-08-31, user
-               ask): it lives on the TOP HEADER RAIL now — MediaTabsBar's
-               left-anchored tab — so a resurrection of this column does not
+               ask): it lives INSIDE the TOP HEADER BAR now — MediaTabsBar's
+               full-height Back/Forward pair — so a resurrection of this column does not
                bring it back. One of its two bracketing friezes went with it
                (a pair around nothing is a doubled divider). -->
 
