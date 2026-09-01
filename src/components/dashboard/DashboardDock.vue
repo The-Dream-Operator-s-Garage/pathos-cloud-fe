@@ -435,14 +435,12 @@ export default defineComponent({
   }
 }
 
-@media (min-width: 1024px) {
-  .dashboard-dock.is-edit {
-    padding-left: calc(
-      var(--dock-rail-w) +
-      (100vw - var(--dock-rail-w) - var(--dock-right, 0px)) * 0.025
-    );
-  }
-}
+// ⚠ THE ≥1024px LEFT-INSET RESTATEMENT IS GONE (2026-08-31): it added
+// `--dock-rail-w` to the padding because from 1024px the drawer stood as a
+// mini rail and the feed's own left edge included Quasar's drawer pad. The
+// drawer is hidden now (user ask), q-page-container pads nothing on the
+// left at any width, and the 601px block above IS the feed's edge formula
+// everywhere. Resurrect this with the drawer if the drawer comes back.
 
 // The strip sits on the plaque between the frieze band and the well — the
 // mobile dock-tab skin (well-toned tabs in rule-colored rims) is right for

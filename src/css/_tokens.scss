@@ -409,6 +409,22 @@ $teal-4: #4DB6AC;   // the MUTE — the uploader's meta line and the resting mod
 $teal-6: #009688;   // ⭐ THE CONTRAST — `--uploader-contrast` points here. 4.0:1 white-on-fill, a half step under blue-grey-6's 4.4:1 and the closest the teal ramp comes to it. NOT `#00829c`, the shared dock chrome's cyan-teal: that tone is the OTHER FIVE windows' tab accent, and the whole point of this window's dial is to stop reading it.
 $teal-8: #00796B;   // the DEEP step — the strong edge, the hover that must out-read a surface already drawn in the contrast, and this window's `--q-primary`. `$blue-grey-8`'s counterpart.
 $teal-10: #004d40;
+
+// ── THE IDENTITY WINDOW'S ORANGE (2026-08-31, user ask: the relocated
+// profile/organizations window on "a quasar orange color pallette") —
+// Quasar's own orange scale at the levels the identity chrome reads,
+// declared here like every other family (this file never imports Quasar's
+// palette; a family is minted when a window earns it). Chat's lime ladder
+// one hue over: pale wells at -1/-2, hairlines -3, strong rims -4, the
+// contrast at -8 (Material 700), ink at the deep -10 end (900 — like lime,
+// this family's 700 is too pale to read as text on cream). Read the
+// `--orange-*` tokens in `:root`, never these levels directly.
+$orange-1: #fff3e0;
+$orange-2: #ffe0b2;
+$orange-3: #ffcc80;
+$orange-4: #ffb74d;
+$orange-8: #f57c00;
+$orange-10: #e65100;
 // The CHIP'S OWN INK, and the one place on the panel that is not written in the
 // colorway (2026-07-26). The chip is a NEUTRAL object — a `$grey-3` pill drawn
 // in `$grey-5` — so it is lettered in a neutral too: ONE tone for all four
@@ -1014,6 +1030,27 @@ $warning:   #F2C037;
   --teal-6: #{$teal-6};
   --teal-8: #{$teal-8};
 
+  // ── THE IDENTITY WINDOW'S ORANGE MAP (2026-08-31, user ask: the
+  // profile/organizations window's "users will be on a quasar orange color
+  // pallette") — chat's lime construction one family over, same Quasar
+  // indices for the same roles:
+  //   -1/-2 the pale steps — section wells and the chip's/rows' resting fills.
+  //   -3  every hairline of the identity chrome (⇔ lime-3).
+  //   -4  the strong rims — active rows, badge pills (⇔ lime-4).
+  //   -8  the contrast — buttons, the shown-badge accent (Material 700).
+  //   -10 the colorway's INK (Material 900) — like lime, the family's 700 is
+  //       too pale to read as text on cream, so ink sits at the deep end.
+  // Worn by IdentityDock + IdentityChip (components/identity/) and nothing
+  // else. NO COAT: the window keeps the shared `--plaque-coat` sheet — a
+  // colorway is its lines, wells and ink, never its sheet (the dock-coat
+  // witness's law; maker/uploader are the only sanctioned exceptions).
+  --orange-1: #{$orange-1};
+  --orange-2: #{$orange-2};
+  --orange-3: #{$orange-3};
+  --orange-4: #{$orange-4};
+  --orange-8: #{$orange-8};
+  --orange-10: #{$orange-10};
+
   // ── THE POST WINDOW'S CONTRAST, AS A DIAL (2026-08-26) ───────────────────
   // Everything in the maker family that is not paper reads THIS, not a level:
   // `--q-primary` on `.maker-surface`, the draft tabs' lit lip, the ref
@@ -1479,14 +1516,31 @@ $warning:   #F2C037;
   --dock-pins-h:  27vh; // PinsDrawer's expanded cap (ex-30% of the dead band)
 
   // The parked rail's THIN dimension — the pins widget's icon-column WIDTH
-  // at the right edge. Since 2026-08-30 it is ALSO the stack widget's LEFT
-  // OFFSET: the stack rides the footer trail beside the bar's 42px left
-  // rail slot (the burger's — this token is that slot's width too), so
-  // `left: var(--dock-rail-w)` starts the strip exactly at the slot's edge;
-  // the strip's own height is `--nav-chip-h`, not this. Keep
-  // in sync with RAIL_W (42 + 4 gap) in stores/windows.js, which reserves
-  // the pins column for the page + docks.
+  // at the right edge. It WAS also the stack widget's left offset and the
+  // bar's left rail slot (the burger's) from 2026-08-30 until 2026-08-31,
+  // when the LEFT DRAWER WAS HIDDEN (user ask) and the identity section took
+  // that end of the bar — the stack now starts at `--nav-id-w` instead, and
+  // no left-edge surface reads this token anymore. Keep in sync with RAIL_W
+  // (42 + 4 gap) in stores/windows.js, which reserves the pins column for
+  // the page + docks.
   --dock-rail-w: 42px;
+
+  // ── THE IDENTITY SECTION'S WIDTH (2026-08-31, user ask: relocate the
+  // drawer's profile/organizations sections "inside the footer nav bar, on
+  // its left end, before the stack bar, making the section occupy the whole
+  // available height of the bar") ─────────────────────────────────────────
+  // One number for THREE objects, exactly the `--nav-trail-h` law one dial
+  // up: `.nav-left` (NavigationBar) sizes the section box with it, the
+  // IdentityChip inside fills it, and the STACK WIDGET'S strip
+  // (StackPanel.vue) starts BESIDE it — `left: var(--nav-id-w)` — the same
+  // never-covered bargain the burger's 42px slot used to strike. The
+  // trail-slider's left flank (NavigationBar.trailBounds) measures the live
+  // `.nav-left` box rather than reading this, so it follows for free.
+  // Below 1024px the section collapses to the avatar alone — the same gate
+  // the six trail words use ("desktop" = the width that can spend the
+  // pixels) — and every consumer follows through the dial.
+  --nav-id-w: 220px;
+  @media (max-width: 1023px) { --nav-id-w: 34px; }
 
   // EXACT height of the dock header bar (.dock-bar) — and of the parked side
   // widgets' head glyph (.dock-side-head), which stands in for it. Equal

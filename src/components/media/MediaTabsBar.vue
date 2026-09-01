@@ -77,6 +77,27 @@
          FriezeBar's slim block). The arithmetic lives on `--media-tabs-band`
          in _tokens.scss and the dials in the style block. -->
     <FriezeBar slim class="media-tabs__frieze" />
+    <!-- ── THE BACK BUTTON (2026-08-31, user ask: "relocate the back button
+         from the left drawer into the top header nav bar") — the drawer is
+         hidden the same day, and its pinned-top Back affordance lands HERE,
+         at the rail's LEFT end, in the strip's own grammar: a tab hanging
+         from the band (the parked tabs' material, rim and flares — a piece
+         of the band pulled downward), mirrored to the end the parked row
+         never reaches (tabs fill from the RIGHT edge leftward and cap at
+         50vw). `pointer-events: auto` because the band itself is
+         click-through paint; disabled on the history stack's first entry,
+         exactly as the drawer button was. -->
+    <button
+      type="button"
+      class="media-tabs__tab media-tabs__back nasalization"
+      :class="{ 'is-disabled': !canGoBack }"
+      :disabled="!canGoBack"
+      title="Back"
+      @click="goBack"
+    >
+      <q-icon name="arrow_back" size="12px" class="media-tabs__glyph" />
+      <span class="media-tabs__name">back</span>
+    </button>
     <TransitionGroup ref="rowEl" tag="div" name="mtab" class="media-tabs__row nasalization" appear>
       <button
         v-for="t in tabs"
@@ -95,6 +116,7 @@
 
 <script>
 import { defineComponent, computed } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { useFlyoutViewersStore } from 'src/stores/flyoutViewers'
 import FriezeBar from 'src/components/layout/FriezeBar.vue'
 import { iconFor, titleOf } from 'src/utils/mediaKind'
@@ -104,6 +126,19 @@ export default defineComponent({
   components: { FriezeBar },
   setup () {
     const store = useFlyoutViewersStore()
+    const route = useRoute()
+    const router = useRouter()
+
+    // ── The BACK control (2026-08-31) — relocated from the hidden drawer.
+    // `window.history.state.position` is 0 on the stack's first entry, the
+    // same test the drawer's button ran; it is not reactive on its own, so
+    // the computed reads `route.fullPath` purely as a dependency — every
+    // navigation re-evaluates it.
+    const canGoBack = computed(() => {
+      void route.fullPath
+      return (window.history.state?.position ?? 0) > 0
+    })
+    const goBack = () => { router.back() }
     // ── NO ROUTE THE RAIL GIVES WAY TO ANY MORE (2026-08-24, user ask: "make
     // the main public feed container be drawn behind the top navigation header
     // and the footer navigation bar"). `underlaid` and
@@ -140,7 +175,7 @@ export default defineComponent({
     // The first pass had this component claim and release the space as it
     // mounted, which worked and made the whole page hop 4px whenever a
     // viewer parked — a band that is permanent has no such moment.
-    return { tabs }
+    return { tabs, canGoBack, goBack }
   }
 })
 </script>
@@ -710,6 +745,30 @@ export default defineComponent({
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+// ── THE BACK TAB (2026-08-31) — the drawer's Back button in this strip's
+// grammar. It IS a `.media-tabs__tab` (material, rim, flares — everything
+// above applies), so this block states only what differs: its ADDRESS
+// (absolute at the rail's left end, hanging from the band's underside the
+// way the row's tabs hang at the right — `top: 100%` off the padding box,
+// so the rim breaks under it exactly as it does under a parked tab), a
+// fixed 10px inset mirroring the row's own edge padding, and the DISABLED
+// state the parked tabs never need: on the history stack's first entry the
+// tab stays visible — an affordance that vanishes teaches nothing — but
+// mutes to the band's own quiet and gives up its hover reach.
+.media-tabs__back {
+  position: absolute;
+  top: 100%;
+  left: 10px;
+  flex: none;
+  min-width: 0;
+
+  &.is-disabled {
+    cursor: default;
+    color: rgba(97, 97, 97, 0.4);
+    &:hover { --mtab-face: var(--plaque-flat, #f8f2e4); padding-bottom: 2px; }
+  }
 }
 
 // Park/restore choreography: a tab slides down out of the band when a

@@ -285,9 +285,10 @@ export default defineComponent({
     // the widget's old 3100 the open drawer's rail buried its leftmost chips
     // (caught on the relocation day's first screenshot) — plus everything
     // under it: the pins widget (3120), the nav bar (3110), the docks
-    // (3010+) and the minitab strip (3045). The bar's 42px left rail slot —
-    // the burger's, whichever surface owns it — is never covered: the widget
-    // starts BESIDE it at left: var(--dock-rail-w).
+    // (3010+) and the minitab strip (3045). The bar's left flank — the
+    // IDENTITY SECTION since 2026-08-31 (the burger's 42px slot before the
+    // drawer was hidden) — is never covered: the widget starts BESIDE it at
+    // left: var(--nav-id-w).
     const EDGE_Z = 3130
 
     return {
@@ -344,17 +345,18 @@ export default defineComponent({
   // INSIDE the footer bar (the sitting's second ask — the first pass seated
   // the widget ON the bar's top edge): `bottom: 0` puts the parked strip on
   // the bar's own rows, filling its whole `--nav-bar-h`. It starts at
-  // `left: var(--dock-rail-w)`, BESIDE the bar's 42px left rail slot rather
-  // than over it — that slot is the burger's (the drawer toggle when the
-  // drawer is closed, the drawer's own footer block when open), chrome that
-  // must stay reachable, so the strip owns the bar's left run from the
-  // slot's edge on. The expanded panel rises from the same seat and its
-  // bottom `--nav-bar-h` lies over the bar strip beneath it — the header
-  // bar at its bottom IS this widget's bar row, the pins column's
-  // own-the-strip arrangement without the rebuild.
+  // `left: var(--nav-id-w)` — BESIDE the IDENTITY SECTION since 2026-08-31
+  // (user ask: the drawer's profile/organizations block took the bar's left
+  // end, "before the stack bar"; the flank was the burger's 42px
+  // `--dock-rail-w` slot until the drawer was hidden the same day). Chrome
+  // that must stay reachable, so the strip owns the bar's left run from
+  // that section's closing hairline on. The expanded panel rises from the
+  // same seat and its bottom `--nav-bar-h` lies over the bar strip beneath
+  // it — the header bar at its bottom IS this widget's bar row, the pins
+  // column's own-the-strip arrangement without the rebuild.
   top: auto;
   bottom: 0;
-  left: var(--dock-rail-w);
+  left: var(--nav-id-w, var(--dock-rail-w));
   right: auto;
   border-bottom: none;
   // The shared `--plaque-coat` since 2026-08-17 (user ask) — a --light-cream
@@ -447,7 +449,11 @@ export default defineComponent({
     height: var(--nav-chip-h);
     bottom: calc((var(--nav-bar-h) - 1px - var(--nav-chip-h)) / 2);
     width: auto;
-    max-width: calc(48vw - var(--dock-rail-w));
+    // The cap subtracts the LEFT FLANK's width — the identity section's
+    // `--nav-id-w` since 2026-08-31 (the burger's `--dock-rail-w` before) —
+    // so the strip's right edge still stops at 48vw, short of the creation
+    // docks' 50vw half.
+    max-width: calc(48vw - var(--nav-id-w, var(--dock-rail-w)));
     background: var(--plaque-coat);
     // ⚠ SIDES ONLY, like the trail chips beside it (2026-08-30, the ask
     // after the flush fit: "there is still a gap on the top … Close it").

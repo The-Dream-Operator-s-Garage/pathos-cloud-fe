@@ -22,7 +22,17 @@
          bar's, whenever the drawer is gone) continues this exact column down
          through the bar's row — several surfaces on one number, so the number
          is fetched once instead of typed each time. -->
-    <q-drawer v-if="!hideDrawer" v-model="drawer" show-if-above :mini="mini" :width="220" :mini-width="drawerRailW"
+    <!-- ⚠ THE DRAWER IS HIDDEN (2026-08-31, user ask: "help me hiding the
+         left drawer. We may resucitate it later, but by now, please remove
+         it"). `drawerEnabled` is a hard false — everything below survives
+         for the resurrection, unrendered: flip the flag and the column comes
+         back. What does NOT come back with it left for good the same day:
+         the BACK button (relocated to the top header rail — MediaTabsBar's
+         left-anchored tab) and the IDENTITY section (profile / organizations
+         / logout — relocated to the footer bar's identity chip + window,
+         components/identity/). The burger follows the flag: NavigationBar's
+         showBurger is pinned false below, so neither surface draws it. -->
+    <q-drawer v-if="drawerEnabled && !hideDrawer" v-model="drawer" show-if-above :mini="mini" :width="220" :mini-width="drawerRailW"
       bordered class="pathos-drawer" @mouseover="mini = false" @mouseout="mini = true">
 
       <!-- The drawer's own top band went with the crown strip (2026-08-12):
@@ -70,26 +80,11 @@
                same class, same recipe, just no gap above it. -->
           <FriezeBar class="drawer-frieze" />
 
-          <!-- Distinctive Back button — pinned at the very top of the drawer
-               so every viewer can reclaim its top bar. Disabled on the very
-               first entry of the history stack. Since 2026-08-17 it is
-               BRACKETED by friezes, one above and one below, which is what
-               makes it read as its own section rather than as the first item
-               of the list under it. -->
-          <q-item
-            clickable
-            v-ripple
-            class="drawer-back-item"
-            :disable="!canGoBack"
-            @click="goBack"
-          >
-            <q-item-section avatar>
-              <q-icon name="arrow_back" class="drawer-back-icon" />
-            </q-item-section>
-            <q-item-section class="drawer-back-label">Back</q-item-section>
-          </q-item>
-
-          <FriezeBar class="drawer-frieze" />
+          <!-- ⚠ THE BACK BUTTON LEFT THIS DRAWER FOR GOOD (2026-08-31, user
+               ask): it lives on the TOP HEADER RAIL now — MediaTabsBar's
+               left-anchored tab — so a resurrection of this column does not
+               bring it back. One of its two bracketing friezes went with it
+               (a pair around nothing is a doubled divider). -->
 
           <q-item clickable v-ripple :to="'/feed'" active-class="my-menu-link" exact>
             <q-item-section avatar><q-icon name="dynamic_feed" /></q-item-section>
@@ -124,53 +119,12 @@
             <q-item-section>Files</q-item-section>
           </q-item>
 
-          <FriezeBar class="drawer-frieze" />
-          <q-item-label header class="drawer-section-header">IDENTITY</q-item-label>
-
-          <!-- PROFILE — a dense identity block, not a menu word (2026-08-02).
-               The nav bar's person/mask button and its logout button are gone;
-               this row is where the acting identity lives now, so it states
-               WHO you are with the same facts the feed card's author section
-               states: the face, the display name, the @handle underneath it.
-               Adapted to the drawer's cream `--plaque-coat` (and, since
-               2026-08-18, its grey ink) rather than the feed's indigo card.
-
-               COLLAPSED (the 42px mini rail) Quasar keeps only the avatar
-               section, which is exactly the right reduction — the face IS the
-               identity at rail scale. Which is also why the mask chip floats
-               on the AVATAR and not beside the name: acting as an alter-ego
-               has to be visible in both drawer states. -->
-          <q-item clickable v-ripple class="drawer-profile-item" @click="goToProfile">
-            <q-item-section avatar>
-              <span class="drawer-profile-face">
-                <EntityAvatar :entity="user" :size="28" />
-                <span v-if="isAlterEgo" class="drawer-profile-mask">
-                  <q-icon name="theater_comedy" size="10px" />
-                  <q-tooltip anchor="center right" self="center left">
-                    Wearing a mask — acting as {{ profileName }}
-                  </q-tooltip>
-                </span>
-              </span>
-            </q-item-section>
-            <q-item-section class="drawer-profile-text">
-              <span class="drawer-profile-name">{{ profileName }}</span>
-              <span class="drawer-profile-handle mono">{{ profileHandle }}</span>
-            </q-item-section>
-          </q-item>
-
-          <q-item clickable v-ripple :to="'/organizations'" active-class="my-menu-link">
-            <q-item-section avatar><q-icon name="reduce_capacity" /></q-item-section>
-            <q-item-section>Organizations</q-item-section>
-          </q-item>
-
-          <!-- Logout followed the profile button off the nav bar: an action
-               belongs with the identity it ends — and it CLOSES the section,
-               below the destinations, so it is never something you land on
-               while scanning the list. -->
-          <q-item clickable v-ripple class="drawer-logout-item" @click="handleLogout">
-            <q-item-section avatar><q-icon name="logout" /></q-item-section>
-            <q-item-section>Log out</q-item-section>
-          </q-item>
+          <!-- ⚠ THE IDENTITY SECTION LEFT THIS DRAWER FOR GOOD (2026-08-31,
+               user ask): the profile block, the Organizations item and
+               Log out are the footer bar's IDENTITY CHIP + WINDOW now
+               (components/identity/IdentityChip.vue + IdentityDock.vue —
+               the section's own frieze + header went with them). A
+               resurrection of this column does not bring them back. -->
         </q-list>
       </q-scroll-area>
 
@@ -270,6 +224,11 @@
          from the bar like the other creative windows rather than floating in
          the feed's right-hand slot, which is where its first pass put it). -->
     <DashboardDock />
+    <!-- The identity window (2026-08-31) — the drawer's profile/organizations
+         features, rising from the bar's LEFT end over the identity chip that
+         opens it (NavigationBar's .nav-left section), on the quasar orange
+         colorway. -->
+    <IdentityDock />
   </q-layout>
 </template>
 
@@ -277,7 +236,6 @@
 import { defineComponent, ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useNavStore } from 'src/stores/navigation'
-import { useAuthStore } from 'src/stores/auth'
 import { useWindowsStore } from 'src/stores/windows'
 import MakerDock from 'src/components/maker/MakerDock.vue'
 import UploaderDock from 'src/components/maker/UploaderDock.vue'
@@ -285,12 +243,12 @@ import SkeletonBuilderDock from 'src/components/maker/SkeletonBuilderDock.vue'
 import LabelMakerDock from 'src/components/maker/LabelMakerDock.vue'
 import ChatDock from 'src/components/chat/ChatDock.vue'
 import DashboardDock from 'src/components/dashboard/DashboardDock.vue'
+import IdentityDock from 'src/components/identity/IdentityDock.vue'
 import ElementFlyoutHost from 'src/components/shared/ElementFlyoutHost.vue'
 import FriezeBar from 'src/components/layout/FriezeBar.vue'
 import NavigationBar from 'src/components/layout/NavigationBar.vue'
 import PinsDrawer from 'src/components/layout/PinsDrawer.vue'
 import StackPanel from 'src/components/layout/StackPanel.vue'
-import EntityAvatar from 'src/components/entities/EntityAvatar.vue'
 import { useMakerStore } from 'src/stores/maker'
 import { useUploaderStore } from 'src/stores/uploader'
 import { useSkeletonBuilderStore } from 'src/stores/skeletonBuilder'
@@ -300,16 +258,19 @@ import { useEventsStore } from 'src/stores/events'
 
 export default defineComponent({
   name: 'MainLayout',
-  components: { MakerDock, UploaderDock, SkeletonBuilderDock, LabelMakerDock, ChatDock, DashboardDock, ElementFlyoutHost, FriezeBar, NavigationBar, PinsDrawer, StackPanel, EntityAvatar },
+  components: { MakerDock, UploaderDock, SkeletonBuilderDock, LabelMakerDock, ChatDock, DashboardDock, IdentityDock, ElementFlyoutHost, FriezeBar, NavigationBar, PinsDrawer, StackPanel },
   setup () {
     const router = useRouter()
     const navStore = useNavStore()
-    const authStore = useAuthStore()
     const makerStore = useMakerStore()
     const uploaderStore = useUploaderStore()
     const skeletonBuilderStore = useSkeletonBuilderStore()
     const labelMakerStore = useLabelMakerStore()
     const windows = useWindowsStore()
+    // ⚠ THE DRAWER IS HIDDEN (2026-08-31, user ask) — this flag is the
+    // resurrection switch: everything below it (model, mini state, rail
+    // width, the whole q-drawer template) is kept alive but unrendered.
+    const drawerEnabled = false
     // Mobile pass (Thread H): below q-drawer's breakpoint the drawer is an
     // OVERLAY, and a `true` model at boot drops its fullscreen backdrop over
     // the whole page — every tap then dies on `.q-drawer__backdrop`. Start
@@ -330,7 +291,10 @@ export default defineComponent({
     // Never both, so the two can never disagree about the column's posture.
     // On a hideDrawer route there is no drawer to summon, so the bar keeps
     // its bare left end rather than a button that would do nothing.
-    const showBurger = computed(() => !drawer.value && !hideDrawer.value)
+    // ⚠ PINNED FALSE while the drawer is disabled (2026-08-31): with no
+    // drawer to summon, a burger is a button that does nothing — the bar's
+    // left end belongs to the identity section instead.
+    const showBurger = computed(() => drawerEnabled && !drawer.value && !hideDrawer.value)
     // Bumped by the drawer when it unpins something — NavigationBar watches
     // this to refresh the tack indicator state.
     const pinsRefreshKey = ref(0)
@@ -361,35 +325,11 @@ export default defineComponent({
       if (nodes?.length === 1 && nodes[0]?.id) router.push('/nodes/' + nodes[0].id)
     }
 
-    // ── The drawer's identity block ──────────────────────────
-    // Same two facts the feed card's author section states: `display_name`
-    // is what the USER_PROFILE says to call you, `username` is the handle
-    // underneath it — the address you can type back. Either may be missing,
-    // so each falls back to the other and finally to the entity id.
-    const user = computed(() => authStore.user)
-    const isAlterEgo = computed(() => authStore.isActingAsAlterEgo)
-    const profileName = computed(() =>
-      authStore.user?.display_name || authStore.user?.username || `entity #${authStore.user?.id}`)
-    const profileHandle = computed(() =>
-      authStore.user?.username ? `@${authStore.user.username}` : `entity #${authStore.user?.id}`)
-
-    // The profile row resolves to the logged-in user's entity view.
-    const goToProfile = () => {
-      const id = authStore.user?.id
-      if (id) router.push('/entities/' + id)
-    }
-
-    // Logout moved off the nav bar into the drawer's IDENTITY section.
-    const handleLogout = () => {
-      authStore.logout()
-      router.push('/auth')
-    }
-
-    // Back button at the top of the drawer. window.history.state.position
-    // is 0 for the first entry — fall back to router.back() and let the
-    // browser no-op when there's nowhere to go.
-    const canGoBack = computed(() => (window.history.state?.position ?? 0) > 0)
-    const goBack = () => { router.back() }
+    // ── The identity block LEFT this layout (2026-08-31, user ask) ──
+    // Profile facts, goToProfile, logout: the footer bar's IdentityChip +
+    // IdentityDock own them now (components/identity/). The Back button's
+    // canGoBack/goBack pair moved to MediaTabsBar with the button. The
+    // auth store went with them — nothing in this layout reads it anymore.
 
     // ── The dashboard panel is a DOCK since 2026-08-10 ───────
     // It spent one pass as a floating flyout with its window state in two
@@ -412,7 +352,7 @@ export default defineComponent({
       useEventsStore().connect()
     })
 
-    return { drawer, mini, drawerRailW, hideDrawer, showBurger, makerStore, uploaderStore, skeletonBuilderStore, labelMakerStore, windows, pinsRefreshKey, onPostCreated, onUploaded, user, isAlterEgo, profileName, profileHandle, goToProfile, handleLogout, canGoBack, goBack }
+    return { drawerEnabled, drawer, mini, drawerRailW, hideDrawer, showBurger, makerStore, uploaderStore, skeletonBuilderStore, labelMakerStore, windows, pinsRefreshKey, onPostCreated, onUploaded }
   }
 })
 </script>
@@ -681,118 +621,12 @@ aside.q-drawer {
     font-family: var(--font-display);
   }
 
-  // ── Profile — the identity block (2026-08-02) ────────────
-  // The feed card's author section, re-coated for the drawer: the same
-  // face-over-two-lines figure, the same "name over @handle" rhythm, but
-  // drawn in brown-8 on the brown-1 plaque instead of the card's plum on
-  // indigo. It is a row of DATA that happens to be clickable, so it sits
-  // a hair taller than the menu rows around it and takes no active-class —
-  // there is no route it can be "on".
-  .drawer-profile-item {
-    min-height: 46px;
-  }
-
-  // The face + its mask chip. `position: relative` is the chip's anchor;
-  // the avatar's own rounded-square tile does the rest.
-  .drawer-profile-face {
-    position: relative;
-    display: inline-flex;
-    line-height: 0;
-  }
-
-  // MASK CHIP — floating on the face's bottom-right corner, the same corner
-  // a badge takes everywhere else on the platform. Inverted GREY (grey-9 fill,
-  // grey-3 glyph, since 2026-08-18's palette ask — brown-8/brown-1 before) so
-  // it reads at 14px against any generated avatar, with a grey-3 ring
-  // separating it from the tile underneath.
-  .drawer-profile-mask {
-    position: absolute;
-    right: -4px;
-    bottom: -4px;
-    width: 15px;
-    height: 15px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%;
-    background: var(--grey-9);
-    border: 1.5px solid var(--grey-3);
-    .q-icon { color: var(--grey-3) !important; opacity: 1; }
-  }
-
-  // Two stacked lines read as ONE stamp at 1.15 leading — any more and they
-  // break apart into two separate facts (the same figure the feed card's
-  // identity block is set at).
-  .drawer-profile-text {
-    line-height: 1.15;
-    min-width: 0;
-  }
-
-  .drawer-profile-name {
-    font-size: 0.92em;
-    font-weight: 700;
-    color: var(--grey-9);
-    max-width: 100%;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  // The handle is the address you can type back — mono, quieter, never
-  // wider than the name above it.
-  .drawer-profile-handle {
-    font-size: 0.78em;
-    color: rgba(66, 66, 66, 0.62);   // grey-9 at reading-quiet strength
-    max-width: 100%;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  // Logout — an action, not a destination, so it takes the Back button's
-  // muted register rather than a navigation row's. No inverted chip: one
-  // loud affordance per drawer, and that one is Back.
-  .drawer-logout-item {
-    color: rgba(66, 66, 66, 0.72);
-    .q-icon { opacity: 0.7; }
-    &:hover { color: var(--grey-9); .q-icon { opacity: 1; } }
-  }
-
-  // ── Back button — distinctive, pinned-top affordance ─────
-  // Inverted GREY chip (solid grey-9 fill, grey-3 ink — brown-8/brown-1 until
-  // 2026-08-18's palette ask) so it visually pops out of the grey-9-on-cream
-  // navigation list and reads as an action (not a destination), with a small
-  // inward arrow shift on hover so the gesture echoes the direction.
-  .drawer-back-item {
-    background: var(--grey-9);
-    border: 1px solid var(--grey-9);
-    color: var(--grey-3);
-    margin: 4px 5px 5px;
-    font-weight: 600;
-    letter-spacing: 0.04em;
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25);
-
-    .drawer-back-icon {
-      color: var(--grey-3) !important;
-      opacity: 1;
-      transition: transform 0.12s;
-    }
-    .drawer-back-label { color: var(--grey-3); }
-
-    &:hover {
-      background: var(--grey-8); // one step LIGHTER — a dark chip lifts
-      border-color: var(--grey-8);
-      .drawer-back-icon { transform: translateX(-2px); }
-    }
-
-    &.q-item--disabled {
-      background: var(--smoke);
-      border-color: rgba(66, 66, 66, 0.20);
-      color: rgba(66, 66, 66, 0.40);
-      .drawer-back-icon { color: rgba(66, 66, 66, 0.40) !important; }
-      .drawer-back-label { color: rgba(66, 66, 66, 0.40); }
-    }
-  }
+  // ── The identity block + Back button styles are GONE (2026-08-31) ──
+  // `.drawer-profile-*`, `.drawer-logout-item` and `.drawer-back-item`
+  // left with their template rows: profile/organizations/logout live in the
+  // footer bar's identity chip + window (components/identity/), Back on the
+  // top header rail (MediaTabsBar). A resurrection of this drawer does not
+  // bring them back — their history is in git.
 }
 
 </style>

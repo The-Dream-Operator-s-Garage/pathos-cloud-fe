@@ -63,7 +63,12 @@
            surface owns it. Identity actions (profile, logout) are GONE from
            the bar: the drawer's own profile block is where the acting
            identity lives now. ── -->
-      <div class="nav-left" :class="{ 'nav-left--bare': !showBurger }">
+      <div class="nav-left">
+        <!-- ⚠ THE BURGER IS DORMANT (2026-08-31, user ask: hide the left
+             drawer — "we may resucitate it later"). MainLayout's showBurger
+             is pinned false while the drawer is disabled, so this block
+             never renders; it stays in the template because the drawer's
+             resurrection is one flag away and the button belongs with it. -->
         <div v-if="showBurger" class="burger-slot">
           <q-btn
             round unelevated no-caps
@@ -79,6 +84,18 @@
             <q-icon name="menu" size="13px" class="burger-glyph--upright" />
             <q-tooltip>Show the menu</q-tooltip>
           </q-btn>
+        </div>
+        <!-- ── THE IDENTITY SECTION (2026-08-31, user ask) — the drawer's
+             profile/organizations block relocated to the bar's very left
+             end, BEFORE the stack strip, standing the bar's WHOLE height
+             (the stack strip rides the 21px trail; this section owns the
+             full row the way the burger/tack slots do). The chip is the
+             identity window's opener and parked face at once; the stack
+             strip starts BESIDE it at `left: var(--nav-id-w)` — the
+             never-covered bargain the burger's 42px slot used to strike
+             with it. -->
+        <div class="identity-slot">
+          <IdentityChip />
         </div>
       </div>
 
@@ -411,10 +428,11 @@ import { useDashboardStore } from 'src/stores/dashboard'
 import { useEventsStore } from 'src/stores/events'
 import { pinService } from 'src/services/pin.service'
 import FriezeBar from './FriezeBar.vue'
+import IdentityChip from 'src/components/identity/IdentityChip.vue'
 
 export default defineComponent({
   name: 'NavigationBar',
-  components: { FriezeBar },
+  components: { FriezeBar, IdentityChip },
   emits: ['toggle-drawer', 'open-maker', 'open-uploader', 'open-skeleton-builder', 'open-label-maker', 'pins-changed'],
   props: {
     // Increment to force a pin-state refresh from the parent (e.g. after the
@@ -494,13 +512,21 @@ export default defineComponent({
     // and it does not disturb the flex/grid layout the chips are seated in.
     const chipStyle = (key) => ({ translate: windows.trailShiftOf(key) + 'px 0' })
 
-    // The slider's two fixed flanks. LEFT: the burger's 42px rail slot — or
-    // the parked stack strip riding the band beside it, whose z 3130 would
-    // bury any chip dragged beneath it. RIGHT: the tack's divider when the
-    // tack is in the bar, else the cluster's right edge less the railed
-    // reserve (the parked pins column is opaque at 3120 for the same reason).
+    // The slider's two fixed flanks. LEFT: the identity section at the bar's
+    // left end (2026-08-31 — it replaced the burger's 42px rail slot when
+    // the drawer was hidden; measured live rather than read off --nav-id-w
+    // so the media override follows for free) — or the parked stack strip
+    // riding the band beside it, whose z 3130 would bury any chip dragged
+    // beneath it. RIGHT: the tack's divider when the tack is in the bar,
+    // else the cluster's right edge less the railed reserve (the parked
+    // pins column is opaque at 3120 for the same reason).
     const trailBounds = () => {
       let left = 42
+      const idSection = document.querySelector('.nav-bar .nav-left')
+      if (idSection) {
+        const r = idSection.getBoundingClientRect()
+        if (r.width > 0) left = Math.max(left, r.right)
+      }
       const strip = document.querySelector('.stack-window.is-parked')
       if (strip) {
         const r = strip.getBoundingClientRect()
@@ -1393,7 +1419,24 @@ export default defineComponent({
   position: relative;
   z-index: 1;
 }
-.nav-left  { gap: 0; padding: 0;         border-right: 1px solid var(--brown-3); }
+// ── SINCE 2026-08-31 THIS CELL IS THE IDENTITY SECTION (user ask: the
+// drawer's profile/organizations block moved "inside the footer nav bar, on
+// its left end, before the stack bar", full bar height) — sized by the
+// `--nav-id-w` dial (:root, _tokens.scss; 34px avatar-only below 1024px),
+// with the same closing-hairline arithmetic the burger's slot used: content
+// + 1px border = the dial, so the stack strip's `left: var(--nav-id-w)`
+// lands exactly on this line. The `border-right` is that arithmetic, not a
+// section marker — it is one of the two flanks the chip drag clamps against.
+.nav-left  { gap: 0; padding: 0; width: var(--nav-id-w); border-right: 1px solid var(--brown-3); }
+
+// The chip's seat: whatever the (dormant) burger leaves, the whole cell today.
+.identity-slot {
+  flex: 1 1 auto;
+  min-width: 0;
+  align-self: stretch;
+  display: flex;
+  align-items: stretch;
+}
 // Tighter with the shortened bar (2026-08-02: gap 8 → 6, inset 6 → 5) — the
 // cluster keeps the same proportion of air around 24px buttons that it had
 // around 30px ones.
@@ -1418,12 +1461,11 @@ export default defineComponent({
 // same bargain the left drawer strikes with this bar's empty left end.
 .nav-right--railed { padding-right: var(--dock-rail-w); }
 
-// While the drawer stands it owns this end of the bar (its own footer block
-// draws the rail block + hairline on these very pixels), so the section keeps
-// its grid track but renders NOTHING: no block, and no closing hairline either
-// — a lone brown-3 line at x=0 under the drawer's shadow reads as a seam in a
-// surface that is supposed to be continuous.
-.nav-left--bare { border-right: none; }
+// ⚠ `.nav-left--bare` IS DELETED (2026-08-31): it existed for the drawer
+// standing over this end of the bar — the section kept its grid track but
+// rendered nothing, hairline included. The drawer is hidden now (user ask)
+// and the identity section owns this cell at every width, so there is no
+// bare state left to draw.
 
 // The middle is still pure slack — no content, no padding, just the 1fr track
 // that holds the two edge clusters apart. Since 2026-08-23 it is also the one

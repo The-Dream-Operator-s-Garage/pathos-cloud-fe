@@ -939,12 +939,13 @@
   }
 }
 
-@media (min-width: 1024px) {
-  .dock-window--dashboard.is-max:not(.is-edit) {
-    left: var(--dock-rail-w);
-    border-left: 1px solid var(--dock-rule);
-  }
-}
+// ⚠ THE ≥1024px LEFT JOIN IS GONE (2026-08-31): it read
+// `left: var(--dock-rail-w); border-left: 1px solid var(--dock-rule)` — the
+// maximized board stopping at the drawer's standing mini column — and the
+// drawer is hidden now (user ask), so the column the join stopped at is not
+// on screen at any width. `left: 0` from the shared is-max rule is honest
+// everywhere, exactly as it already was below 1024px. Resurrect it with the
+// drawer if the drawer comes back.
 
 // The 50/50 capture split pre-dates this geometry and keeps its own
 // bottom-anchored 80vh panes: un-setting top lets the split rules' height
