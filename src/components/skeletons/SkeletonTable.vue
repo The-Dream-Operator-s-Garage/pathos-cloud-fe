@@ -76,13 +76,11 @@
           <td class="skel-table__type">
             <!-- The kind pill shows for BOTH bound and unbound rows — a
                  data table states its column types; the compact Mini only
-                 hints them on empties. The unit symbol stands beside it
-                 (phase 6) — a measured column says what it measures. -->
+                 hints them on empties. (The unit symbol stood beside it
+                 from phase 6 until 2026-09-01 — units left every generic
+                 skeleton surface; they remain the expense/receipt backend.) -->
             <span class="skel-table__kind" :style="kindStyle(row.expectedKind)">
               {{ row.expectedKind || 'any' }}
-            </span>
-            <span v-if="row.unit" class="skel-table__unit" :title="row.unit.label + ' · step ' + row.unit.step">
-              {{ row.unit.symbol || row.unit.label }}
             </span>
           </td>
           <td class="skel-table__data">
@@ -97,29 +95,22 @@
               </div>
             </div>
 
-            <!-- Inline editor (phase 6): tap-to-edit on editable tables.
-                 Unit cells get a numeric input with STEP steppers; plain
-                 textable cells a bare input. Enter/✓ commits (the host
-                 owns the setSlot), Esc cancels. -->
+            <!-- Inline editor (phase 6): tap-to-edit on editable tables —
+                 a bare text input for every textable cell (the STEP
+                 steppers and number-typed input left with the units on
+                 2026-09-01; a unit-declared slot still refuses off-STEP
+                 text server-side and the host shows the 40010 message).
+                 Enter/✓ commits (the host owns the setSlot), Esc cancels. -->
             <div v-if="editing === row.slotName" class="skel-table__edit" @click.stop>
-              <button
-                v-if="row.unit" type="button" class="skel-table__step"
-                @click.stop.prevent="stepEdit(-row.unit.step)"
-              >−</button>
               <input
                 ref="editInput"
                 v-model="editText"
-                :type="row.unit ? 'number' : 'text'"
-                :step="row.unit ? row.unit.step : undefined"
+                type="text"
                 class="skel-table__input mono"
                 @keydown.enter.prevent="commitEdit(row)"
                 @keydown.esc="cancelEdit"
                 @click.stop
               >
-              <button
-                v-if="row.unit" type="button" class="skel-table__step"
-                @click.stop.prevent="stepEdit(row.unit.step)"
-              >+</button>
               <button type="button" class="skel-table__ok" title="Save (Enter)" @click.stop.prevent="commitEdit(row)">
                 <q-icon name="check" size="12px" />
               </button>
@@ -181,9 +172,9 @@ export default defineComponent({
     // Labels the failure chip when resolution dies.
     name: { type: String, default: '' },
     // Phase 6 — the mutation surface: textable cells (unconstrained /
-    // nodes) become tap-to-edit, unit cells get steppers, rows grow the
-    // history glyph. The HOST decides (RESOURCE-labeled + unlocked +
-    // owner-viewed) and owns the actual setSlot on `edit`.
+    // nodes) become tap-to-edit and rows grow the history glyph. The HOST
+    // decides (unlocked + owner-viewed since 2026-09-01 — the RESOURCE
+    // badge no longer gates) and owns the actual setSlot on `edit`.
     editable: { type: Boolean, default: false }
   },
   // resolved: what the walk found ({ id, name, path, is_schema }) — hosts
@@ -265,12 +256,6 @@ export default defineComponent({
       editing.value = null
       emit('edit', { slotName: row.slotName, text })
     }
-    const stepEdit = (delta) => {
-      const cur = Number(editText.value)
-      const next = (Number.isFinite(cur) ? cur : 0) + delta
-      // Trim float dust so 0.1+0.2 never lands in a NOTE.
-      editText.value = String(Math.round(next * 1e9) / 1e9)
-    }
 
     // ── per-slot history popover (phase 6) ─────────────────────────
     const historyOpen = ref(null)
@@ -310,7 +295,6 @@ export default defineComponent({
       beginEdit,
       cancelEdit,
       commitEdit,
-      stepEdit,
       historyOpen,
       historyLoading,
       historyRows,
@@ -431,20 +415,6 @@ export default defineComponent({
 }
 
 // ── phase 6: the mutation surface, in the same grey family ──────────
-.skel-table__unit {
-  display: inline-block;
-  margin-left: 4px;
-  padding: 0 5px;
-  height: 16px;
-  line-height: 14px;
-  border: 1px solid var(--st-rule);
-  border-radius: var(--radius-pill);
-  background: rgba(255, 255, 255, 0.55);
-  font-family: var(--font-mono);
-  font-size: 0.58em;
-  color: var(--skel-table-ink, var(--brown-8));
-}
-
 .skel-table__hist {
   display: inline-flex;
   align-items: center;
@@ -525,14 +495,8 @@ export default defineComponent({
   color: var(--skel-table-ink, var(--brown-8));
   outline: none;
 
-  // The steppers ARE the spinner for unit cells.
-  &::-webkit-outer-spin-button,
-  &::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-  -moz-appearance: textfield;
-  appearance: textfield;
 }
 
-.skel-table__step,
 .skel-table__ok,
 .skel-table__cancel {
   display: inline-flex;

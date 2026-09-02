@@ -142,7 +142,7 @@ import { defineComponent, computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useFlyoutViewersStore } from 'src/stores/flyoutViewers'
 import FriezeBar from 'src/components/layout/FriezeBar.vue'
-import { iconFor, titleOf } from 'src/utils/mediaKind'
+import { iconForTarget, titleOfTarget } from 'src/utils/mediaKind'
 
 export default defineComponent({
   name: 'MediaTabsBar',
@@ -231,12 +231,13 @@ export default defineComponent({
     // header resolved (`store.describe`) — same seam, so a tab and the
     // window it restores are never called two different things. The
     // mediaKind fallbacks catch a window parked before its first
-    // describe landed (node targets only — the others are born named).
+    // describe landed — kind-aware since 2026-09-01 (a ref window used to
+    // park as a blank paperclip).
     const tabs = computed(() => {
       return [...store.parked].reverse().map((v) => ({
         key: v.id,
-        icon: v.icon || iconFor(v.target?.node),
-        name: v.label || titleOf(v.target?.node),
+        icon: v.icon || iconForTarget(v.target),
+        name: v.label || titleOfTarget(v.target),
         restore: () => store.restore(v.id)
       }))
     })

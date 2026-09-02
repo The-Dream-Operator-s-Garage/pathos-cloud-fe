@@ -52,11 +52,12 @@
             {{ head.schema.name || ('#' + head.schema.id) }}
           </span>
           <q-space />
-          <!-- The LOCK (phase 6): owner-only on RESOURCE instances. A
-               locked table refuses every field write (403 40303) — flips
-               are versioned NOTEs on the element header, receipts. -->
+          <!-- The LOCK (phase 6; every owned instance since 2026-09-01 —
+               the RESOURCE badge stopped gating). A locked skeleton
+               refuses every field write (403 40303) — flips are versioned
+               NOTEs on the element header, receipts. -->
           <button
-            v-if="head.is_resource && isOwner"
+            v-if="isOwner && !head.is_schema"
             type="button"
             class="resource-mini__lock"
             :class="{ 'is-locked': head.locked }"
@@ -246,15 +247,16 @@ export default defineComponent({
 
     const skeletonKind = kindFor('skeletons')
 
-    // ── the mutation surface (phase 6) ─────────────────────────────
-    // Editable = a RESOURCE-labeled, unlocked instance the ACTING entity
-    // owns. The walk carries all three facts; the server re-checks every
-    // one on write (40300/40303/40010 — the UI is a convenience, never
-    // the gate).
+    // ── the mutation surface (phase 6; gate widened 2026-09-01) ──────
+    // Editable = an unlocked instance the ACTING entity owns. Mutability
+    // is the lock's business alone — the RESOURCE classification stopped
+    // gating with the skeletons plan (it survives as information on the
+    // expense cost tables). The server re-checks on write (40300/40303/
+    // 40010 — the UI is a convenience, never the gate).
     const auth = useAuthStore()
     const isOwner = computed(() => head.value.owner_id === auth.entityId)
     const editable = computed(() =>
-      !!head.value.is_resource && !head.value.locked && isOwner.value
+      !head.value.is_schema && !head.value.locked && isOwner.value
     )
 
     const editError = ref('')

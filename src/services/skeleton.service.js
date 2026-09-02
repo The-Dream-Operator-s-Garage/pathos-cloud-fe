@@ -112,21 +112,16 @@ export const skeletonService = {
     return data
   },
 
-  // ── Resource machinery (dashboards phase 6, 2026-08-10) ─────────
+  // ── The lock (dashboards phase 6, 2026-08-10) ───────────────────
   // Lock flips are versioned NOTEs on the element header (receipts);
-  // a locked skeleton refuses every field write (403 40303).
+  // a locked skeleton refuses every field write (403 40303). Any owned
+  // instance locks since 2026-09-01 (was RESOURCE-only).
   async lock (id) {
     const { data } = await api.post(`/skeletons/${id}/lock`)
     return data
   },
   async unlock (id) {
     const { data } = await api.post(`/skeletons/${id}/unlock`)
-    return data
-  },
-  // Derived sums over paths-bound unit slots:
-  // { slots: [{ slotName, derived: { op:'sum', unit, members, total } }] }.
-  async resourceView (id) {
-    const { data } = await api.get(`/skeletons/${id}/resource-view`)
     return data
   },
 

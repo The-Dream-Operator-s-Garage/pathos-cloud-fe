@@ -93,6 +93,33 @@ function webNameOf (embed) {
   return name.replace(/_/g, ' ').replace(/\.(html?|php)$/i, '')
 }
 
+// ── TARGETS ─────────────────────────────────────────────────────────────
+// A flyout window's target is a node, a post, or a bare ref (skeletons —
+// the `?flyout=` door and, since 2026-09-01, the skeleton mini's corner).
+// The parked tab needs a glyph and a name BEFORE the window's own header
+// has resolved (`store.describe` overwrites both the moment it does), and
+// the node-only fallbacks drew a blank paperclip for every other kind —
+// the "attach_file + empty name" tab of the skeletons plan audit (A4).
+export function iconForTarget (target) {
+  if (!target) return FACE_ICON.card
+  if (target.kind === 'node') return iconFor(target.node)
+  if (target.kind === 'post') return 'sym_o_post'
+  if (target.kind === 'ref') return String(target.ref).includes('nodes/') ? FACE_ICON.card : 'schema'
+  return FACE_ICON.card
+}
+
+export function titleOfTarget (target) {
+  if (!target) return ''
+  if (target.kind === 'node') return titleOf(target.node)
+  if (target.kind === 'post') return target.item?.title || ('post #' + target.item?.skeleton_id)
+  if (target.kind === 'ref') {
+    const ref = String(target.ref).replace(/^pathos:/, '')
+    const hash = ref.split('/').pop() || ''
+    return (ref.startsWith('nodes/') ? 'node ' : 'skeleton ') + hash.slice(0, 8)
+  }
+  return ''
+}
+
 export function titleOf (node) {
   if (!node) return ''
   const e = node.embed
