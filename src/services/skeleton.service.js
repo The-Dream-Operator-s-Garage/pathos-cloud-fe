@@ -100,6 +100,40 @@ export const skeletonService = {
     return data
   },
 
+  // ── Structure writes (skeletons plan phase 1, 2026-09-01) ────────
+  // Keys are labels: rename rebinds the head's K link to an EXISTING
+  // label (history = the K ancestor chain), remove splices the key off
+  // the head. Owner-only + lock-gated (403 40303); instances follow the
+  // head through its key ancestry.
+  async renameSlot (headId, slotName, labelId) {
+    const { data } = await api.put(`/skeletons/${headId}/slots/${encodeURIComponent(slotName)}`, { labelId })
+    return data
+  },
+  async removeSlot (headId, slotName) {
+    const { data } = await api.delete(`/skeletons/${headId}/slots/${encodeURIComponent(slotName)}`)
+    return data
+  },
+  // AXIS ('col' | 'row') on the skeleton's own header; ORDER (label ids)
+  // on its head's — both versioned NOTEs, like the lock.
+  async setAxis (id, axis) {
+    const { data } = await api.put(`/skeletons/${id}/axis`, { axis })
+    return data
+  },
+  async setOrder (id, labelIds) {
+    const { data } = await api.put(`/skeletons/${id}/order`, { labelIds })
+    return data
+  },
+  // The name is data: skeleton.name + the header's NAME field.
+  async rename (id, name) {
+    const { data } = await api.put(`/skeletons/${id}/name`, { name })
+    return data
+  },
+  // Batch cells: { SLOT: { text } | 'kind/hash' } → { success, results }.
+  async setCells (id, cells) {
+    const { data } = await api.put(`/skeletons/${id}/cells`, { cells })
+    return data
+  },
+
   // Bind a slot on an instance. `value` is either a '<kind>/<hash>' ref
   // string or { text: '…' } — literal text mints a real NOTE node.
   // slotName is a label name (fields ARE labels) — encode it: user labels
