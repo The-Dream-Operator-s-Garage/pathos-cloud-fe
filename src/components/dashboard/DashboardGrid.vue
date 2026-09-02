@@ -82,8 +82,21 @@
           <q-icon name="close" size="12px" />
         </button>
 
+        <!-- Edit mode's second per-cell door (skeletons plan phase 2):
+             the cell's skeleton in its own floating window, beside the
+             remove cross — a board is a desk, the window is the reading
+             copy you drag off it. -->
+        <button
+          v-if="editing && cell.type === 'skeleton' && cell.ref"
+          type="button"
+          class="dash-cell__open"
+          title="open in the flyout viewer"
+          @click="openCell(cell)"
+        >
+          <q-icon name="open_in_full" size="11px" />
+        </button>
         <SessionActivityCard v-if="cell.type === 'virtual' && cell.virtual === 'session-activity'" />
-        <ResourceSkeletonMini
+        <SkeletonMini
           v-else-if="cell.type === 'skeleton' && cell.walk"
           :skeleton="cell.walk.skeleton"
           :slots="cell.walk.slots"
@@ -99,7 +112,8 @@
 
 <script>
 import { defineComponent, ref, computed, onMounted, watch } from 'vue'
-import ResourceSkeletonMini from 'src/components/skeletons/ResourceSkeletonMini.vue'
+import SkeletonMini from 'src/components/skeletons/SkeletonMini.vue'
+import { useFlyoutViewersStore } from 'src/stores/flyoutViewers'
 import ElementMini from 'src/components/shared/ElementMini.vue'
 import InfoChip from 'src/components/shared/InfoChip.vue'
 import LockedChip from 'src/components/shared/LockedChip.vue'
@@ -114,7 +128,7 @@ import { leafRefs } from 'src/utils/splitTree'
 export default defineComponent({
   name: 'DashboardGrid',
   components: {
-    ResourceSkeletonMini,
+    SkeletonMini,
     ElementMini,
     InfoChip,
     LockedChip,
@@ -278,7 +292,10 @@ export default defineComponent({
       exporting.value = false
     }
 
-    return { loading, cells, load, onPick, onRemove, splitTree, seedSplit, onSplitChanged, exporting, exportLayout }
+    const flyouts = useFlyoutViewersStore()
+    const openCell = (cell) => { if (cell?.ref) flyouts.spawnRef(cell.ref) }
+
+    return { loading, cells, load, onPick, onRemove, openCell, splitTree, seedSplit, onSplitChanged, exporting, exportLayout }
   }
 })
 </script>
@@ -362,23 +379,47 @@ export default defineComponent({
   // The HOUSE CONTRACTS a cell publishes to what it mounts:
   // - media NodeMinis size against --media-max-h (silence = 180px
   //   thumbnails; a dashboard cell is a tile, so state a tile's worth);
-  // - ResourceSkeletonMini's body scrolls at --resource-mini-max-h
-  //   (its bodyFit trade — see the component).
+  // - SkeletonMini's body scrolls at --skel-mini-max-h (its bodyFit
+  //   trade — see the component; was --resource-mini-max-h until the
+  //   2026-09-01 rename).
   --media-max-h: 240px;
-  --resource-mini-max-h: 300px;
+  --skel-mini-max-h: 300px;
 }
 
 // A board with ONE thing on it gives that thing the whole width.
 .dash-cell--wide {
   grid-column: 1 / -1;
   --media-max-h: 420px;
-  --resource-mini-max-h: 60vh;
+  --skel-mini-max-h: 60vh;
 }
 
 .dash-cell__remove {
   position: absolute;
   top: -6px;
   right: -6px;
+  z-index: 5;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1px solid var(--dock-rule-strong, var(--grey-5));
+  background: #fff;
+  color: var(--dock-ink-mute, var(--brown-4));
+  cursor: pointer;
+
+  &:hover {
+    background: rgba(var(--coral-rgb), 0.12);
+    color: var(--coral-deep);
+    border-color: var(--coral-deep);
+  }
+}
+
+.dash-cell__open {
+  position: absolute;
+  top: -6px;
+  right: 16px;
   z-index: 5;
   display: inline-flex;
   align-items: center;

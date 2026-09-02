@@ -576,6 +576,9 @@ export default defineComponent({
     const pinTarget = computed(() => {
       if (targetNode.value) return { type: 'node', id: targetNode.value.id }
       if (targetItem.value) return { type: 'skeleton', id: targetItem.value.skeleton_id }
+      // A bare skeleton window pins its skeleton once the walk has named
+      // it (skeletons plan phase 2 — the door used to offer no tack).
+      if (resolvedInfo.value?.id != null) return { type: 'skeleton', id: resolvedInfo.value.id }
       return null
     })
     const votable = computed(() => !!targetNode.value || !!targetItem.value)

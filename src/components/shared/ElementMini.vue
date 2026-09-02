@@ -4,8 +4,9 @@
        path|skeleton|entity } from pathService.resolveLinkTarget) and it
        renders the matching Mini panel. Skeleton refs split on the summary
        route: POST instances render PostMini, every other skeleton (schema
-       or populated instance) renders ResourceSkeletonMini's embeddable
-       table (2026-08-10; SkeletonMini's field summary before). Kinds
+       or populated instance) renders SkeletonMini's embeddable grid
+       (2026-08-10 as ResourceSkeletonMini; the 2026-07 SkeletonMini field
+       summary before that). Kinds
        without a Mini (secrets) degrade to an InfoChip; so do
        unresolvable refs.
        Used by post content-element rails, by MarkdownBody's inline
@@ -23,13 +24,14 @@
     <EntityMini v-else-if="shape.kind === 'entity' && shape.entity" :entity="shape.entity" />
     <MomentMini v-else-if="shape.kind === 'moment' && shape.moment" :moment="shape.moment" :human="shape.human" />
     <LinkMini v-else-if="shape.kind === 'link' && shape.link" :link="shape.link" :target="shape.target" :parent-path="shape.parentPath" />
-    <!-- Non-POST skeletons wear the embeddable mini TABLE (dashboards
-         phase 2, 2026-08-10) — ResourceSkeletonMini resolves the walk
-         itself and blooms GITHUB_PR instances into their native card, so
-         this branch needs no name pre-check. depth/visited thread the
-         recursion guards through: a table nested in a table arrives here
+    <!-- Non-POST skeletons wear the skeleton mini (dashboards phase 2,
+         2026-08-10 as ResourceSkeletonMini; SkeletonMini since the
+         skeletons plan phase 2, 2026-09-01) — it resolves the walk itself
+         and blooms GITHUB_PR instances into their native card, so this
+         branch needs no name pre-check. depth/visited thread the
+         recursion guards through: a grid nested in a grid arrives here
          with its ancestors' refs on the list. -->
-    <ResourceSkeletonMini
+    <SkeletonMini
       v-else-if="shape.kind === 'skeleton'"
       :ref-or-id="shape.skeletonId"
       :name="label || shape.skeletonName"
@@ -51,7 +53,7 @@ import LabelMini from 'src/components/labels/LabelMini.vue'
 import EntityMini from 'src/components/entities/EntityMini.vue'
 import MomentMini from 'src/components/moments/MomentMini.vue'
 import LinkMini from 'src/components/links/LinkMini.vue'
-import ResourceSkeletonMini from 'src/components/skeletons/ResourceSkeletonMini.vue'
+import SkeletonMini from 'src/components/skeletons/SkeletonMini.vue'
 import InfoChip from './InfoChip.vue'
 import LockedChip from './LockedChip.vue'
 import { nodeService } from 'src/services/node.service'
@@ -66,7 +68,7 @@ import { bodyOf } from 'src/utils/nodeContent'
 
 export default defineComponent({
   name: 'ElementMini',
-  components: { NodeMini, PathMini, PostMini, LabelMini, EntityMini, MomentMini, LinkMini, ResourceSkeletonMini, InfoChip, LockedChip },
+  components: { NodeMini, PathMini, PostMini, LabelMini, EntityMini, MomentMini, LinkMini, SkeletonMini, InfoChip, LockedChip },
   props: {
     // '<kind>/<hash>' reference (optionally owner-scoped) — self-resolves.
     address: { type: String, default: '' },
@@ -75,7 +77,7 @@ export default defineComponent({
     element: { type: Object, default: null },
     // Optional headline override for the InfoChip fallback.
     label: { type: String, default: '' },
-    // Recursion guards, threaded through to ResourceSkeletonMini (a
+    // Recursion guards, threaded through to SkeletonMini (a
     // skeleton table nested in a skeleton table re-enters this dispatcher
     // conceptually — the guards ride the props either way).
     depth: { type: Number, default: 0 },
