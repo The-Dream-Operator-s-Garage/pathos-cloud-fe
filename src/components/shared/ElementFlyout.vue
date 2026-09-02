@@ -206,6 +206,71 @@
         >
           <q-icon name="push_pin" size="13px" />
         </button>
+
+        <!-- The SKELETON's own cluster (skeletons plan phase 4, 2026-09-01):
+             what a post's foot offers, a skeleton's offers too — comment
+             (a comment draft whose parent is the skeleton; it lands on
+             the skeleton's element header), fork (deep: the forker's own
+             head), share to a conversation (the OWNER shares a SEALED
+             SNAPSHOT — the version handed over never moves; a sealed or
+             foreign skeleton shares as it is), seal a version (owner,
+             unsealed), and the versions list (the header's VERSIONS —
+             every sealed snapshot, each openable in its own window). -->
+        <template v-if="isSkeletonTarget">
+          <span class="element-flyout__act-rule" aria-hidden="true" />
+          <button
+            type="button" class="dock-bar__action element-flyout__act"
+            title="Comment on this skeleton" @click.stop="commentOnSkeleton"
+          >
+            <q-icon name="chat_bubble_outline" size="13px" />
+          </button>
+          <button
+            type="button" class="dock-bar__action element-flyout__act"
+            :title="skelBusy === 'fork' ? 'Forking…' : 'Fork — a working copy with your own keys'"
+            :disabled="!!skelBusy" @click.stop="forkSkeleton"
+          >
+            <q-icon name="call_split" size="13px" />
+          </button>
+          <button
+            type="button" class="dock-bar__action element-flyout__act"
+            :title="skelBusy === 'share' ? 'Sealing…' : (canSeal ? 'Share to a conversation — seals a snapshot first' : 'Share to a conversation')"
+            :disabled="!!skelBusy" @click.stop="shareSkeleton"
+          >
+            <q-icon name="forum" size="13px" />
+          </button>
+          <button
+            v-if="canSeal"
+            type="button" class="dock-bar__action element-flyout__act"
+            :title="skelBusy === 'seal' ? 'Sealing…' : 'Seal a version — a frozen snapshot listed under versions'"
+            :disabled="!!skelBusy" @click.stop="sealSkeleton"
+          >
+            <q-icon name="verified" size="13px" />
+          </button>
+          <span class="element-flyout__versions-host">
+            <button
+              type="button" class="dock-bar__action element-flyout__act"
+              :class="{ 'is-on': versionsOpen }"
+              title="Versions — sealed snapshots of this skeleton" @click.stop="toggleVersions"
+            >
+              <q-icon name="history" size="13px" />
+            </button>
+            <div v-if="versionsOpen" class="element-flyout__versions" @click.stop>
+              <div class="element-flyout__versions-title">sealed versions</div>
+              <div v-if="versionsLoading" class="element-flyout__versions-line"><q-spinner size="10px" /></div>
+              <div v-else-if="!versions.length" class="element-flyout__versions-line">(none sealed yet)</div>
+              <button
+                v-for="v in versions" :key="v.ref || v.address || v.id"
+                type="button" class="element-flyout__versions-line element-flyout__versions-item"
+                :title="'open ' + (v.ref || v.address)"
+                @click.stop="openVersion(v)"
+              >
+                <q-icon name="verified" size="10px" />
+                <span class="mono">{{ String(v.ref || v.address || '').split('/').pop().slice(0, 10) }}</span>
+                <span v-if="v.primary" class="element-flyout__versions-name">{{ v.primary }}</span>
+              </button>
+            </div>
+          </span>
+        </template>
       </div>
 
       <div v-if="votable" class="element-flyout__votes">
@@ -227,6 +292,11 @@
         </button>
       </div>
     </footer>
+
+    <!-- Share-to-conversation picker (skeletons plan phase 4) — the chat
+         drafts seam: prefills the picked conversation with the ref chip;
+         the send flow's access tree turns it into grants. -->
+    <ConversationPicker v-if="isSkeletonTarget" v-model="shareOpen" :share-ref="shareRef" />
 
     <!-- Resize rims — eight invisible hit strips kept just INSIDE the
          edges (overflow: hidden would eat anything outside the rounded
@@ -260,6 +330,10 @@ import { useWindowsStore } from 'src/stores/windows'
 import { useNavStore } from 'src/stores/navigation'
 import { pinService } from 'src/services/pin.service'
 import { nodeInteractionService } from 'src/services/nodeInteraction.service'
+import { skeletonService } from 'src/services/skeleton.service'
+import { useMakerStore } from 'src/stores/maker'
+import { useAuthStore } from 'src/stores/auth'
+import ConversationPicker from 'src/components/chat/ConversationPicker.vue'
 import { postService } from 'src/services/post.service'
 import { feedService } from 'src/services/feed.service'
 import { nodeService } from 'src/services/node.service'
@@ -283,7 +357,7 @@ const TABLE_BOX = { w: 3, h: 4 }
 
 export default defineComponent({
   name: 'ElementFlyout',
-  components: { FriezeBar, MediaViewerBody, FeedStream, SkeletonTable, InfoChip },
+  components: { ConversationPicker, FriezeBar, MediaViewerBody, FeedStream, SkeletonTable, InfoChip },
   props: {
     viewerId: { type: String, required: true }
   },
@@ -581,7 +655,10 @@ export default defineComponent({
       if (resolvedInfo.value?.id != null) return { type: 'skeleton', id: resolvedInfo.value.id }
       return null
     })
-    const votable = computed(() => !!targetNode.value || !!targetItem.value)
+    // A bare skeleton window is a full citizen of the foot since the
+    // skeletons plan phase 4: votes, comment, fork, share, seal, versions.
+    const isSkeletonTarget = computed(() => !targetNode.value && !targetItem.value && resolvedInfo.value?.id != null)
+    const votable = computed(() => !!targetNode.value || !!targetItem.value || isSkeletonTarget.value)
 
     const targetMeta = () => {
       const t = pinTarget.value
@@ -638,6 +715,91 @@ export default defineComponent({
       } catch (e) { /* refuse quietly; the state simply does not flip */ }
     }
 
+    // ── the skeleton cluster (skeletons plan phase 4) ─────────────────
+    const auth = useAuthStore()
+    const maker = useMakerStore()
+    const skelBusy = ref('')
+    const isSkelOwner = computed(() => isSkeletonTarget.value && resolvedInfo.value?.owner_id === auth.entityId)
+    const canSeal = computed(() => isSkelOwner.value && resolvedInfo.value?.lock_state !== 'sealed' && resolvedInfo.value?.lock_state !== 'unproven')
+    const skelName = computed(() => resolvedInfo.value?.name || ('skeleton #' + resolvedInfo.value?.id))
+
+    const commentOnSkeleton = () => {
+      const i = resolvedInfo.value
+      if (!i?.id) return
+      maker.openCommentDraft({
+        kind: 'skeleton',
+        id: i.id,
+        hash: String(i.path || '').split('/').pop(),
+        route: '/skeletons/' + i.id,
+        label: skelName.value
+      })
+      maker.open()
+    }
+    const forkSkeleton = async () => {
+      const i = resolvedInfo.value
+      if (!i?.id || skelBusy.value) return
+      skelBusy.value = 'fork'
+      try {
+        const r = await skeletonService.forkOf(i.id, {})
+        if (r.success && r.skeleton?.path) store.spawnRef(r.skeleton.path)
+      } catch (e) { /* the window stays; the server said no */ }
+      skelBusy.value = ''
+    }
+    const sealSkeleton = async () => {
+      const i = resolvedInfo.value
+      if (!i?.id || skelBusy.value) return null
+      skelBusy.value = 'seal'
+      let snap = null
+      try {
+        const r = await skeletonService.snapshot(i.id)
+        if (r.success && r.skeleton?.path) { snap = r.skeleton; store.spawnRef(r.skeleton.path) }
+      } catch (e) { /* refused — nothing sealed */ }
+      skelBusy.value = ''
+      if (versionsOpen.value) loadVersions()
+      return snap
+    }
+    // Share = a sealed snapshot when the OWNER shares a live skeleton (the
+    // version handed over must never move); sealed/foreign share as is.
+    const shareOpen = ref(false)
+    const shareRef = ref('')
+    const shareSkeleton = async () => {
+      const i = resolvedInfo.value
+      if (!i?.id || skelBusy.value) return
+      let ref = String(i.path || refString.value || '')
+      if (canSeal.value) {
+        skelBusy.value = 'share'
+        try {
+          const r = await skeletonService.snapshot(i.id)
+          if (r.success && r.skeleton?.path) ref = r.skeleton.path
+        } catch (e) { /* share the live one rather than nothing */ }
+        skelBusy.value = ''
+      }
+      shareRef.value = ref
+      shareOpen.value = true
+    }
+    const versionsOpen = ref(false)
+    const versionsLoading = ref(false)
+    const versions = ref([])
+    const loadVersions = async () => {
+      const i = resolvedInfo.value
+      if (!i?.path) return
+      versionsLoading.value = true
+      try {
+        const r = await refService.surround(i.path, 20)
+        const sec = r?.sections?.versions
+        versions.value = (sec?.items || []).map(v => ({ ...v, ref: v.ref || v.address || v.path }))
+      } catch (e) { versions.value = [] }
+      versionsLoading.value = false
+    }
+    const toggleVersions = async () => {
+      versionsOpen.value = !versionsOpen.value
+      if (versionsOpen.value) await loadVersions()
+    }
+    const openVersion = (v) => {
+      const ref = v.ref || v.address
+      if (ref) store.spawnRef(String(ref))
+    }
+
     const viewerVote = computed(() => {
       const v = votes.value.viewer_vote
       return v === 1 ? 'UP' : v === -1 ? 'DOWN' : v
@@ -657,6 +819,9 @@ export default defineComponent({
         } else if (targetItem.value) {
           const r = await postService.getVotes(targetItem.value.skeleton_id)
           if (r.success && r.votes && targetItem.value) votes.value = r.votes
+        } else if (isSkeletonTarget.value) {
+          const r = await skeletonService.getVotes(resolvedInfo.value.id)
+          if (r.success && r.votes && isSkeletonTarget.value) votes.value = r.votes
         }
       } catch (e) { /* the tally stays seeded rather than blocking the view */ }
     }
@@ -673,7 +838,9 @@ export default defineComponent({
       const held = viewerVote.value
       const svc = targetNode.value
         ? { vote: (d) => nodeInteractionService.vote(t.id, d), unvote: () => nodeInteractionService.unvote(t.id) }
-        : { vote: (d) => postService.vote(t.id, d), unvote: () => postService.unvote(t.id) }
+        : (targetItem.value
+            ? { vote: (d) => postService.vote(t.id, d), unvote: () => postService.unvote(t.id) }
+            : { vote: (d) => skeletonService.vote(t.id, d), unvote: () => skeletonService.unvote(t.id) })
       try {
         if (held === direction) {
           await svc.unvote()
@@ -742,6 +909,20 @@ export default defineComponent({
       copyPath,
       pinned,
       togglePin,
+      isSkeletonTarget,
+      canSeal,
+      skelBusy,
+      commentOnSkeleton,
+      forkSkeleton,
+      sealSkeleton,
+      shareSkeleton,
+      shareOpen,
+      shareRef,
+      versionsOpen,
+      versionsLoading,
+      versions,
+      toggleVersions,
+      openVersion,
       votes,
       viewerVote,
       castVote
@@ -1032,4 +1213,48 @@ export default defineComponent({
   &--ne { top: 0; right: 0; cursor: nesw-resize; }
   &--sw { bottom: 0; left: 0; cursor: nesw-resize; }
 }
+
+// ── the skeleton cluster's versions popover (phase 4) ────────────────
+.element-flyout__versions-host { position: relative; display: inline-flex; }
+.element-flyout__versions {
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  z-index: 3;
+  min-width: 200px;
+  max-width: 320px;
+  margin-bottom: 4px;
+  padding: 6px;
+  border: 1px solid var(--grey-6, #9e9e9e);
+  border-radius: 6px;
+  background: var(--grey-3, #eeeeee);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
+  font-size: 0.7em;
+  color: var(--grey-9, #212121);
+}
+.element-flyout__versions-title {
+  font-size: 0.85em;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  opacity: 0.7;
+  margin-bottom: 3px;
+}
+.element-flyout__versions-line {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 0;
+  min-width: 0;
+}
+.element-flyout__versions-item {
+  width: 100%;
+  border: none;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+  &:hover { color: var(--coral-deep, #c05a4e); }
+}
+.element-flyout__versions-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 </style>

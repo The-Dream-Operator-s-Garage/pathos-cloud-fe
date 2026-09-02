@@ -185,7 +185,7 @@ import { skeletonService } from 'src/services/skeleton.service'
 import { labelService } from 'src/services/label.service'
 import { gotoCommentThread } from 'src/utils/threadNav'
 
-const PARENT_ICONS = { post: 'article', comment: 'chat_bubble_outline', node: 'adjust' }
+const PARENT_ICONS = { post: 'article', comment: 'chat_bubble_outline', node: 'adjust', skeleton: 'schema' }
 
 export default defineComponent({
   name: 'PostMakerSurface',

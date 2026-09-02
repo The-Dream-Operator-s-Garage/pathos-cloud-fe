@@ -123,6 +123,12 @@ export const skeletonService = {
     const { data } = await api.put(`/skeletons/${id}/order`, { labelIds })
     return data
   },
+  // A sealed snapshot (skeletons plan phase 4): deep fork + permanent
+  // lock, listed on the source header's VERSIONS. Sharing shares one.
+  async snapshot (id) {
+    const { data } = await api.post(`/skeletons/${id}/snapshot`)
+    return data
+  },
   // The name is data: skeleton.name + the header's NAME field.
   async rename (id, name) {
     const { data } = await api.put(`/skeletons/${id}/name`, { name })

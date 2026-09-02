@@ -342,7 +342,7 @@ export default defineComponent({
         if (!r.success) throw new Error('walk failed')
         walked.value = r.skeleton
         walkedSlots.value = r.slots || []
-        emit('resolved', { id: r.skeleton.id, name: r.skeleton.name, path: r.skeleton.path, is_schema: r.skeleton.is_schema })
+        emit('resolved', { id: r.skeleton.id, name: r.skeleton.name, path: r.skeleton.path, is_schema: r.skeleton.is_schema, owner_id: r.skeleton.owner_id, locked: r.skeleton.locked, lock_state: r.skeleton.lock_state })
       } catch (_) {
         failed.value = true
         walked.value = null

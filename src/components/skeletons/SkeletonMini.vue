@@ -41,7 +41,7 @@
        double-frame a card that is already one. -->
   <SkeletonTable v-else-if="isGithubPr" :skeleton="head" :slots="slotRows" />
 
-  <div v-else class="skel-mini" :class="{ 'is-locked': head.locked, 'is-schema': head.is_schema }">
+  <div v-else class="skel-mini" :class="{ 'is-locked': head.locked, 'is-sealed': sealed, 'is-schema': head.is_schema }">
     <MiniPanel body-fit>
       <template #head>
         <!-- The address chip + its copy button: WHAT IT IS first. -->
@@ -93,10 +93,10 @@
           :disabled="lockBusy"
           @click.stop.prevent="toggleLock"
         >
-          <q-icon :name="head.lock_state === 'unproven' ? 'gpp_maybe' : (head.locked ? 'lock' : 'lock_open')" size="11px" />
+          <q-icon :name="lockGlyph" size="11px" />
         </button>
         <span v-else-if="head.locked" class="skel-mini__zone skel-mini__lock is-locked" :title="lockTitle">
-          <q-icon name="lock" size="11px" />
+          <q-icon :name="lockGlyph" size="11px" />
         </span>
 
         <!-- THE CORNER: this skeleton in its own floating window (the
@@ -138,7 +138,7 @@
           </template>
           <template v-if="head.locked">
             <span class="skel-mini__foot-dot">·</span>
-            <span class="skel-mini__foot-lock">{{ head.lock_state === 'unproven' ? 'lock unproven' : 'locked' }}</span>
+            <span class="skel-mini__foot-lock">{{ head.lock_state === 'unproven' ? 'lock unproven' : (head.lock_state === 'sealed' ? 'sealed version' : 'locked') }}</span>
           </template>
         </span>
       </template>
@@ -308,12 +308,20 @@ export default defineComponent({
       await load()
     }
     const lockBusy = ref(false)
+    const sealed = computed(() => head.value.lock_state === 'sealed')
+    const lockGlyph = computed(() => {
+      if (head.value.lock_state === 'unproven') return 'gpp_maybe'
+      if (sealed.value) return 'verified'
+      return head.value.locked ? 'lock' : 'lock_open'
+    })
     const lockTitle = computed(() => {
       if (head.value.lock_state === 'unproven') return 'Lock unproven — the LOCK node is violated; see the integrity incident'
+      if (sealed.value) return 'A sealed version — seals never open; fork it to work on a copy'
       if (head.value.locked) return isOwner.value ? 'Locked — click to unlock' : 'Locked'
       return 'Unlocked — click to lock (freezes keys and cells)'
     })
     const toggleLock = async () => {
+      if (sealed.value) return
       lockBusy.value = true
       try {
         const r = head.value.locked
@@ -354,6 +362,8 @@ export default defineComponent({
       refresh,
       lockBusy,
       lockTitle,
+      lockGlyph,
+      sealed,
       toggleLock,
       shortHash
     }
@@ -466,6 +476,7 @@ export default defineComponent({
   &.is-locked { color: var(--coral-deep, #c05a4e); }
   &:disabled { opacity: 0.5; cursor: default; }
 }
+.skel-mini.is-sealed .skel-mini__lock { color: #2e8b57; cursor: default; }
 .skel-mini__zone--open {
   flex: 0 0 auto;
   &:hover { color: var(--coral-deep, #d35f5f); }
