@@ -42,24 +42,52 @@
       <div v-else-if="results.length === 0" class="ref-results__state">
         {{ query ? 'No ' + kindLabel + ' matches.' : 'Newest ' + kindLabel + ' appear here.' }}
       </div>
-      <button
-        v-else
-        v-for="r in results"
-        :key="r.address"
-        type="button"
-        class="ref-result"
-        :class="{ 'is-added': isAdded(r.address) }"
-        :title="isAdded(r.address) ? 'Already referenced' : 'Add to references'"
-        @click="add(r)"
-      >
-        <q-icon :name="iconFor(r.kind)" size="13px" class="ref-result__icon"
-          :style="{ color: colorFor(r.kind) }" />
-        <span class="ref-result__lines">
-          <span class="ref-result__primary">{{ r.primary }}</span>
-          <span v-if="r.secondary" class="ref-result__secondary">{{ r.secondary }}</span>
-        </span>
-        <q-icon :name="isAdded(r.address) ? 'check' : 'add'" size="14px" class="ref-result__add" />
-      </button>
+      <template v-else>
+        <template v-for="r in results" :key="r.address">
+          <!-- Skeleton results wear the SkeletonMini itself (skeletons plan
+               phase 3, 2026-09-01: "display a list of tables on the new
+               nice mini viewer format") — the grid is the preview, the
+               + adds it (mini tier), and the row DRAGS as a pathos ref so
+               it can drop straight into another skeleton's cell. -->
+          <div
+            v-if="kind === 'skeletons'"
+            class="ref-result ref-result--mini"
+            :class="{ 'is-added': isAdded(r.address) }"
+            draggable="true"
+            @dragstart="onResultDragStart(r, $event)"
+          >
+            <div class="ref-result__mini">
+              <SkeletonMini :ref-or-id="r.address" :name="r.primary" />
+            </div>
+            <button
+              type="button"
+              class="ref-result__pick"
+              :title="isAdded(r.address) ? 'Already referenced' : 'Add to references (renders as its grid)'"
+              @click="add(r)"
+            >
+              <q-icon :name="isAdded(r.address) ? 'check' : 'add'" size="14px" />
+            </button>
+          </div>
+          <button
+            v-else
+            type="button"
+            class="ref-result"
+            :class="{ 'is-added': isAdded(r.address) }"
+            :title="isAdded(r.address) ? 'Already referenced' : 'Add to references'"
+            draggable="true"
+            @dragstart="onResultDragStart(r, $event)"
+            @click="add(r)"
+          >
+            <q-icon :name="iconFor(r.kind)" size="13px" class="ref-result__icon"
+              :style="{ color: colorFor(r.kind) }" />
+            <span class="ref-result__lines">
+              <span class="ref-result__primary">{{ r.primary }}</span>
+              <span v-if="r.secondary" class="ref-result__secondary">{{ r.secondary }}</span>
+            </span>
+            <q-icon :name="isAdded(r.address) ? 'check' : 'add'" size="14px" class="ref-result__add" />
+          </button>
+        </template>
+      </template>
     </div>
 
     <!-- Direct address fallback -->
@@ -141,6 +169,7 @@
 <script>
 import { defineComponent, ref, computed, onMounted } from 'vue'
 import InfoChip from 'src/components/shared/InfoChip.vue'
+import SkeletonMini from 'src/components/skeletons/SkeletonMini.vue'
 import { refService } from 'src/services/ref.service'
 import { kindFor } from 'src/utils/kinds'
 
@@ -161,7 +190,7 @@ const KIND_TABS = [
 
 export default defineComponent({
   name: 'RefBrowser',
-  components: { InfoChip },
+  components: { InfoChip, SkeletonMini },
   props: {
     // [{ address, primary }] — v-model:references
     references: { type: Array, default: () => [] }
@@ -214,7 +243,24 @@ export default defineComponent({
 
     const add = (r) => {
       if (isAdded(r.address)) return
-      emitRefs([...props.references, { address: r.address, primary: r.primary || '' }])
+      // A skeleton reads as its grid: the mini tier is its default stamp
+      // (the `auto` tier is node-only — a bare skeleton ref stays a chip).
+      const mini = String(r.address || '').startsWith('skeletons/')
+      emitRefs([...props.references, { address: r.address, primary: r.primary || '', ...(mini ? { display: 'mini' } : {}) }])
+    }
+
+    // Results and staged rows both drag as a pathos ref (the house MIME,
+    // `application/x-pathos-ref`) — so the grid's cells, the dashboard's
+    // inputs and the agent row all accept them.
+    const refPayload = (e, r) => {
+      try {
+        e.dataTransfer.setData('application/x-pathos-ref', JSON.stringify({ address: r.address, primary: r.primary || '' }))
+        e.dataTransfer.setData('text/plain', `[[pathos:${r.address}]]`)
+      } catch (_) { /* older engines */ }
+    }
+    const onResultDragStart = (r, e) => {
+      refPayload(e, r)
+      e.dataTransfer.effectAllowed = 'copyMove'
     }
 
     const removeAt = (i) => {
@@ -249,7 +295,8 @@ export default defineComponent({
     const dragIndex = ref(null)
     const onDragStart = (i, e) => {
       dragIndex.value = i
-      e.dataTransfer.effectAllowed = 'move'
+      refPayload(e, props.references[i])
+      e.dataTransfer.effectAllowed = 'copyMove'
     }
     const onDragOver = (i) => {
       if (dragIndex.value === null || dragIndex.value === i) return
@@ -294,6 +341,7 @@ export default defineComponent({
     const colorFor = (k) => kindFor(k).color
 
     return {
+      onResultDragStart,
       kindTabs: KIND_TABS,
       kind,
       kindLabel,
@@ -626,5 +674,31 @@ export default defineComponent({
     background: rgba(var(--coral-rgb), 0.14);
     color: var(--coral-deep);
   }
+}
+
+// ── skeleton results as minis (phase 3) ─────────────────────────────
+.ref-result--mini {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 4px;
+  cursor: grab;
+  --skel-mini-max-h: 160px;
+}
+.ref-result__mini {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.ref-result__pick {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  padding: 2px;
+  border: none;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+  opacity: 0.7;
+  &:hover { opacity: 1; }
 }
 </style>

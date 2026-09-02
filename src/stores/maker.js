@@ -34,6 +34,11 @@ const blankDraft = () => ({
   labels: [],
   // [{ address, primary }] — appended to the CONTENT path after the body
   references: [],
+  // Skeletons-to-be (skeletons plan phase 3): [{ id, keys: [{id,name}|null],
+  // cells: [''], axis }] — a grid the author is filling that mints the
+  // moment every key is set; its placeholder token ⟪skeleton:<id>⟫ sits
+  // in the body until then. Persisted with the draft.
+  grids: [],
   // Comment drafts: the element this post will belong to on submit.
   // { kind: 'post'|'comment'|'node', id, hash, route, label } — null for
   // ordinary posts. Persisted so a parked comment tab survives reloads.

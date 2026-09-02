@@ -69,15 +69,40 @@
           :initial-mode="embed || isMobile ? 'edit' : 'split'"
           :height="embed ? '200px' : '100%'"
           @update:model-value="patch({ content: $event })"
+          @insert-skeleton="addDraftGrid"
         />
+
+        <!-- Skeletons-to-be (skeletons plan phase 3, D10): the grids the
+             Table/skeleton button dropped in, editable right here, each
+             minting the moment every key is set — then the body's
+             placeholder token becomes the live mini ref and the grid
+             leaves this band for the preview. -->
+        <div v-if="draftGrids.length" class="maker-surface__grids">
+          <div class="maker-surface__grids-label">
+            Skeletons in this post
+            <span class="mono">{{ draftGrids.length }}</span>
+            <span class="maker-surface__grids-hint">— pick every key of a grid to create it; the ⟪skeleton⟫ token in the body marks where it goes</span>
+          </div>
+          <DraftSkeletonGrid
+            v-for="g in draftGrids"
+            :key="g.id"
+            :grid="g"
+            :title-hint="draft.title"
+            @update:grid="patchGrid"
+            @minted="onMinted"
+            @discard="discardGrid(g.id)"
+          />
+        </div>
 
         <footer class="maker-surface__foot">
           <!-- One line of hint, the full doctrine behind the help glyph —
                the instructions must never crowd the writing room (#675). -->
-          <span class="maker-surface__hint">
-            {{ draft.parent
-              ? 'The comment is a full post — markdown, [[pathos:…]] chips and all.'
-              : 'Markdown body — [[pathos:…]] chips render inline.' }}
+          <span class="maker-surface__hint" :class="{ 'is-blocking': hasUnminted }">
+            {{ hasUnminted
+              ? 'A skeleton below still has unset keys — pick them to create it before posting.'
+              : (draft.parent
+                ? 'The comment is a full post — markdown, [[pathos:…]] chips and all.'
+                : 'Markdown body — [[pathos:…]] chips render inline.') }}
           </span>
           <q-icon v-if="!draft.parent" name="help_outline" size="14px" class="maker-surface__help">
             <q-tooltip class="maker-surface__help-tip" max-width="340px" :delay="150">
@@ -113,7 +138,7 @@
             :icon="draft.parent ? 'send' : 'add'"
             :label="draft.parent ? 'Post comment' : 'Post'"
             :loading="posting"
-            :disable="!draft.content || !draft.content.trim()"
+            :disable="!draft.content || !draft.content.trim() || hasUnminted"
             @click="submit"
           />
         </footer>
@@ -151,6 +176,7 @@ import MakerHeader from './MakerHeader.vue'
 import RefBrowser from './RefBrowser.vue'
 import AccessTreeDialog from './AccessTreeDialog.vue'
 import NoteEditor from 'src/components/nodes/NoteEditor.vue'
+import DraftSkeletonGrid from './DraftSkeletonGrid.vue'
 import { useMakerStore } from 'src/stores/maker'
 import { useWindowsStore } from 'src/stores/windows'
 import { postService } from 'src/services/post.service'
@@ -163,7 +189,7 @@ const PARENT_ICONS = { post: 'article', comment: 'chat_bubble_outline', node: 'a
 
 export default defineComponent({
   name: 'PostMakerSurface',
-  components: { MakerHeader, RefBrowser, AccessTreeDialog, NoteEditor },
+  components: { MakerHeader, RefBrowser, AccessTreeDialog, NoteEditor, DraftSkeletonGrid },
   props: {
     draftId: { type: String, default: null },
     // Embedded density: compact header, fixed-height editor, Close button.
@@ -205,6 +231,47 @@ export default defineComponent({
         ? `${sigilOf(r)}[[pathos:${r.address}|${label}]]`
         : `${sigilOf(r)}[[pathos:${r.address}]]`
       editorRef.value?.insertText(chip)
+    }
+
+    // ── Skeletons-to-be (skeletons plan phase 3, D10) ─────────────
+    // The Table/skeleton button drops a 2-key draft grid into the draft
+    // and a placeholder token at the caret. The grid mints itself the
+    // moment every key is set; `onMinted` swaps the token for the live
+    // mini ref, stages the reference (mini tier) and retires the grid.
+    const tokenOf = (id) => `⟪skeleton:${id}⟫`
+    const draftGrids = computed(() => draft.value?.grids || [])
+    const hasUnminted = computed(() => draftGrids.value.length > 0)
+    const addDraftGrid = () => {
+      if (!draft.value) return
+      const id = Date.now().toString(36) + Math.random().toString(36).slice(2, 6)
+      const grid = { id, keys: [null, null], cells: ['', ''], axis: 'col' }
+      patch({ grids: [...draftGrids.value, grid] })
+      editorRef.value?.insertText(tokenOf(id))
+    }
+    const patchGrid = (g) => {
+      patch({ grids: draftGrids.value.map(x => (x.id === g.id ? g : x)) })
+    }
+    const discardGrid = (id) => {
+      const d = draft.value
+      if (!d) return
+      patch({
+        grids: draftGrids.value.filter(x => x.id !== id),
+        content: (d.content || '').split(tokenOf(id)).join('')
+      })
+    }
+    const onMinted = ({ id, hash, name }) => {
+      const d = draft.value
+      if (!d) return
+      const label = (name || '').replace(/[[\]|]/g, '').trim()
+      const chip = label ? `![[pathos:${hash}|${label}]]` : `![[pathos:${hash}]]`
+      const token = tokenOf(id)
+      const content = (d.content || '').includes(token)
+        ? d.content.split(token).join(chip)
+        : ((d.content || '').trimEnd() + '\n\n' + chip)
+      const references = d.references.some(r => r.address === hash)
+        ? d.references
+        : [...d.references, { address: hash, primary: label, display: 'mini' }]
+      patch({ content, references, grids: draftGrids.value.filter(x => x.id !== id) })
     }
 
     // Canonic chips: the backend attaches POST + provenance on submit —
@@ -348,6 +415,12 @@ export default defineComponent({
       draft,
       patch,
       invokeRef,
+      draftGrids,
+      hasUnminted,
+      addDraftGrid,
+      patchGrid,
+      discardGrid,
+      onMinted,
       canonicLabels,
       editorRef,
       posting,
@@ -625,4 +698,28 @@ export default defineComponent({
   .maker-surface__note { min-height: 48vh; }
   .maker-surface__hint { display: none; }
 }
+
+// ── skeletons-to-be (phase 3) ────────────────────────────────────────
+.maker-surface__grids {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 6px;
+}
+.maker-surface__grids-label {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  font-size: 0.68em;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--maker-deep, var(--blue-grey-8, #37474f));
+  .mono { opacity: 0.7; }
+}
+.maker-surface__grids-hint {
+  text-transform: none;
+  letter-spacing: 0;
+  opacity: 0.7;
+}
+.maker-surface__hint.is-blocking { color: var(--coral-deep, #c05a4e); }
 </style>

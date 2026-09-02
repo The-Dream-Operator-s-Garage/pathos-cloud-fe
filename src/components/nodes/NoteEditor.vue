@@ -66,6 +66,14 @@
       <div class="format-sep" />
       <q-btn flat dense round size="sm" @click="insertLink"  title="Link">  <q-icon name="link" size="14px" /> </q-btn>
       <q-btn flat dense round size="sm" @click="insertHR"    title="Divider"> <q-icon name="horizontal_rule" size="14px" /> </q-btn>
+      <div class="format-sep" />
+      <!-- Table / skeleton (skeletons plan phase 3, 2026-09-01): the host
+           owns what happens — the post maker drops a draft grid into the
+           draft and a placeholder token at the caret; the editor itself
+           knows nothing about skeletons. -->
+      <q-btn flat dense round size="sm" title="Table / skeleton — keys are labels, cells are content" @click="$emit('insert-skeleton')">
+        <q-icon name="table_chart" size="14px" />
+      </q-btn>
     </div>
 
     <!-- Panes -->
@@ -109,7 +117,7 @@ import MarkdownBody from 'src/components/shared/MarkdownBody.vue'
 export default defineComponent({
   name: 'NoteEditor',
   components: { MarkdownBody },
-  emits: ['update:modelValue', 'save'],
+  emits: ['update:modelValue', 'save', 'insert-skeleton'],
 
   props: {
     modelValue: { type: String, default: '' },
