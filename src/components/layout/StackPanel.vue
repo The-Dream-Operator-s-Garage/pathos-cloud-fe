@@ -8,7 +8,8 @@
        elements way denser"; it hung from the top-right corner from
        2026-07-24 until then). ONE element with two presentations
        (2026-07-24, third pass), and the RELOCATION ROTATED THE PARKED AXIS:
-       · parked (win.minimized) = a dense horizontal chip row INSIDE THE
+       · parked (win.minimized) = a row of UP TO THREE TITLED TILES (2026-09-02;
+         a dense shrink-fit chip row before) INSIDE THE
          TRAIL — the strip stands INSIDE `.nav-frieze`'s box (--nav-chip-h,
          promoted to :root for this), wearing the bar's own coat with a
          grey-4 item lane inset in it (the fourth ask; it rode the band
@@ -17,7 +18,9 @@
          left-to-right with the stack's head glyph at the strip's RIGHT END —
          the newest step lands beside the glyph exactly as it landed beside
          the header before;
-       · expanded = the 300px panel RISING from that same seat to the window
+       · expanded = the `--stack-w` panel (240px since 2026-09-02 — the strip's
+         own width, so the morph is height alone; 300px before) RISING from
+         that same seat to the window
          floor (the pins column's posture mirrored leftward — its bottom
          --nav-bar-h lies over the bar strip it owns), header/controls box at
          the BOTTOM with the list above it ordered OLDEST→NEWEST top-to-bottom.
@@ -28,10 +31,10 @@
        now: they are horizontal wave blocks, and the parked strip is itself a
        horizontal sliver with no room to stack them (the top band's old
        crown-strip stand-in role died with the top-right anchor). Both
-       presentations shrink to fit the steps they hold — the expanded list
-       scrolls past its cap, the parked strip past its share of the bar (the
-       docks' half starts at 50vw and the strip outranks their z, so it must
-       stop short of them). -->
+       presentations hold ONE width (`--stack-w`, 2026-09-02): the expanded
+       list scrolls past its cap, the parked strip shows the newest three
+       steps (sliding back only to keep the current one in view) and never
+       scrolls. -->
   <section
     v-if="win.open"
     class="stack-window dock-window"
@@ -40,13 +43,19 @@
     @mouseenter="onHoverEnter"
     @mouseleave="onHoverLeave"
   >
-    <!-- Mirrored frieze band at the expanded panel's top edge — same block as
-         the drawer's section dividers, the panel's free edge toward the middle
-         of the screen. EXPANDED ONLY since the bottom-left move (2026-08-30):
-         the parked face is a horizontal strip now, and a horizontal wave band
-         has no place inside a 42px-tall row. (It stood in for the crown strip
-         while the widget owned the top-right corner; that role is over.) -->
-    <FriezeBar v-if="!win.minimized" flip class="stack-frieze" />
+    <!-- Frieze band at the expanded panel's top edge — THE FLYOUT'S BAND since
+         2026-09-02 (user ask: "change the friezebar [to] match the thin
+         friezebars on the node flyout viewers"): `slim`, no `flip`, dialled
+         in the style block exactly as `ElementFlyout.vue` dials its own.
+         (Full-height, flipped, in the side-chrome trio's three greys from
+         2026-08-21 until then.) EXPANDED ONLY since the bottom-left move
+         (2026-08-30): the parked face is a horizontal strip now, and a
+         horizontal wave band has no place inside a band-height row. (It
+         stood in for the crown strip while the widget owned the top-right
+         corner; that role is over.) The shared shell's `overflow: hidden`
+         clips this band INTO the panel's two rounded top corners, the same
+         load-bearing rule the flyout leans on. -->
+    <FriezeBar v-if="!win.minimized" slim class="stack-frieze" />
 
     <div v-if="history.length === 0 && !win.minimized" class="stack-empty">No visits yet.</div>
 
@@ -62,8 +71,14 @@
            face = the flat kind-colored icon chip. The step you are AT wraps
            in the kind-colored bubble (expanded) / inverts to a solid fill
            (parked). -->
+      <!-- `rows` is the WHOLE history expanded and a THREE-SLOT WINDOW of it
+           parked (2026-09-02, user ask: "shows up to 3 elements") — each
+           row carries its REAL history index `i`, so the tints, the
+           current-step mark and click-to-jump never see the slice. The
+           parked tile letters its title (`label`) — a strip that shows three
+           steps can afford to say WHICH three. -->
       <SidePanelItem
-        v-for="(entry, i) in history"
+        v-for="{ entry, i } in rows"
         :key="i"
         class="stack-item"
         :class="{
@@ -72,6 +87,7 @@
           'is-future':     i >  historyIndex
         }"
         :collapsed="win.minimized"
+        :label="win.minimized"
         :kind="entry.id ? chipKind(entry.type) : null"
         :icon="entry.id ? null : typeIcon(entry.type)"
         :hash="entry.hash || ''"
@@ -89,12 +105,15 @@
       </SidePanelItem>
     </div>
 
-    <!-- Second mirrored frieze band, INSIDE the widget (2026-07-24): the same
-         block at the same size, dividing the scroll well from the header below
-         it — so the well sits between two identical bands and the stack icon
-         reads as its own strip of chrome. Expanded only since the bottom-left
-         move (2026-08-30), same reason as its twin above. -->
-    <FriezeBar v-if="!win.minimized" flip class="stack-frieze stack-frieze--inner" />
+    <!-- Second frieze band, INSIDE the widget (2026-07-24): the same block at
+         the same size, dividing the scroll well from the header below it —
+         so the well sits between two identical bands and the stack icon
+         reads as its own strip of chrome. This one is the flyout's band in
+         the flyout's own POSITION too: the one line between a box's bar and
+         its well (the stack's bar is at the bottom, so the band is above it).
+         Expanded only since the bottom-left move (2026-08-30), same reason
+         as its twin above. -->
+    <FriezeBar v-if="!win.minimized" slim class="stack-frieze stack-frieze--inner" />
 
     <!-- Header/controls box at the BOTTOM of the expanded panel (below the
          list), so it sits right beside the newest step. The traffic light is
@@ -163,6 +182,33 @@ export default defineComponent({
     const history = computed(() => navStore.history)
     const historyIndex = computed(() => navStore.historyIndex)
     const checkpointIndices = computed(() => navStore.checkpointIndices)
+
+    // ── THE PARKED STRIP SHOWS UP TO THREE STEPS (2026-09-02, user ask) ──
+    // A sliding window over the history, three wide, that ENDS AT THE
+    // NEWEST step — the strip's standing law ("the newest step lands beside
+    // the head glyph") kept — and slides back only as far as it must to keep
+    // the step you are AT inside it: walk Back past the last three and the
+    // window follows you, the current step taking the left slot with the
+    // two steps ahead of it (the Forward ones) beside it. Rows carry their
+    // REAL index so nothing downstream (tints, `current`, jumpToIndex)
+    // knows about the slice. Expanded, `rows` is the whole history — the
+    // panel's list is still the ONE scroller for every step.
+    const PARKED_SLOTS = 3
+    const parkedRows = computed(() => {
+      const h = history.value
+      let end = h.length
+      let start = Math.max(0, end - PARKED_SLOTS)
+      if (historyIndex.value < start) {
+        start = Math.max(0, historyIndex.value)
+        end = Math.min(h.length, start + PARKED_SLOTS)
+      }
+      return h.slice(start, end).map((entry, k) => ({ entry, i: start + k }))
+    })
+    const rows = computed(() => (
+      win.value.minimized
+        ? parkedRows.value
+        : history.value.map((entry, i) => ({ entry, i }))
+    ))
 
     // End-anchored list: pin the scroll to the NEWEST end whenever a new step
     // is pushed — the bottom expanded, the RIGHT end parked (the strip flows
@@ -297,6 +343,7 @@ export default defineComponent({
       win,
       windows,
       history,
+      rows,
       historyIndex,
       checkpointIndices,
       listEl,
@@ -324,12 +371,16 @@ export default defineComponent({
 // two presentations (2026-07-24, third pass), the parked axis ROTATED by
 // the move: `.is-parked` flattens it to a dense horizontal chip row at the
 // band's --nav-chip-h, items left, head glyph at the right end.
-// BOTH presentations SHRINK TO FIT their item bundle (2026-07-24, 7th
-// pass): the expanded panel is only as tall as its steps need and stops
-// growing at its cap, where the list starts scrolling; the parked strip is
-// only as wide as its chips need and stops short of the creation docks'
-// 50vw half (this widget's z outranks their 3010+ — the strip must run out
-// of road before it runs over them). The shared .dock-window width/height
+// ⭐ ONE WIDTH, BOTH FACES — `--stack-w` (240px, _tokens.scss) SINCE
+// 2026-09-02 (user ask: "make the window thinner and the bar wider so
+// they're the same width on the bar and when the window is extended"): the
+// expanded panel came down from 300px, the parked strip stopped shrink-
+// fitting its chips (it ran to 48vw at most, 20px a chip), and the two meet
+// at the dial — same left edge, same right edge, the panel rises straight
+// out of the strip's footprint, so the morph is HEIGHT ALONE. Expanded still
+// shrink-fits VERTICALLY (2026-07-24, 7th pass): only as tall as its steps
+// need, up to its cap, where the list starts scrolling. The strip holds UP
+// TO THREE steps (same ask), each a titled tile a third of the lane wide. The shared .dock-window width/height
 // transition still animates what it can; the park⇄expand morph is an axis
 // rotation now, so it snaps where auto-sizes meet. The chrome is per face
 // (see the two blocks below): the parked strip is the bar's own
@@ -383,7 +434,7 @@ export default defineComponent({
   // Parked, the cap is horizontal: 48vw, stopping short of the creation
   // docks' 50vw half (see the note at the top of this block).
   &:not(.is-parked) {
-    width: 300px;
+    width: var(--stack-w);
     max-width: 96vw;
     height: auto;
     bottom: 0;
@@ -392,15 +443,20 @@ export default defineComponent({
     // the widget lies over, not space taken from the list.
     max-height: calc(var(--dock-stack-h) + var(--nav-footer-h));
     background: var(--plaque-coat);
-    // Rims on the three exposed edges (the floor stays bare); the free
-    // top-right corner keeps the panel's rounding. Shadow rises (the widget
-    // grows from the bar) plus a RIGHT-edge cast — `--shadow-side-edge`
-    // with the x-offset sign flipped, the same mirroring the burger slot
-    // once did with that token at this corner.
+    // Rims on the three exposed edges (the floor stays bare); BOTH top
+    // corners rounded since 2026-09-02 (user ask: "make sure the top edges
+    // of the window are rounded" — the left one was square from the days
+    // the strip abutted the burger's slot; it stands free beside the
+    // identity section now). The shared `.dock-window` shell's `overflow:
+    // hidden` clips the top frieze band into the curve — the flyout's own
+    // load-bearing rule. Shadow rises (the widget grows from the bar) plus
+    // a RIGHT-edge cast — `--shadow-side-edge` with the x-offset sign
+    // flipped, the same mirroring the burger slot once did with that token
+    // at this corner.
     border-top: 1px solid var(--grey-6);
     border-right: 1px solid var(--grey-6);
     border-left: 1px solid var(--grey-6);
-    border-top-left-radius: 0;
+    border-top-left-radius: var(--radius-lg);
     border-bottom-left-radius: 0;
     border-top-right-radius: var(--radius-lg);
     box-shadow:
@@ -448,7 +504,11 @@ export default defineComponent({
     // at `:root` — so the strip still moves with the band.
     height: var(--nav-chip-h);
     bottom: calc((var(--nav-bar-h) - 1px - var(--nav-chip-h)) / 2);
-    width: auto;
+    // FIXED at the widget's one width since 2026-09-02 (`width: auto` —
+    // shrink-to-fit — from the relocation until then): the strip is exactly
+    // as wide as the panel that rises out of it. The 48vw cap below stays
+    // as the guard it always was.
+    width: var(--stack-w);
     // The cap subtracts the LEFT FLANK's width — the identity section's
     // `--nav-id-w` since 2026-08-31 (the burger's `--dock-rail-w` before) —
     // so the strip's right edge still stops at 48vw, short of the creation
@@ -498,54 +558,49 @@ export default defineComponent({
   height: 100%;
 }
 
-// The parked chips narrowed to match the trail's density (the third ask:
-// "way denser, with minimum padding and smaller") — SidePanelItem's rail
-// face takes its height from the strip-scoped --side-item-h above; the
-// width is stated here because the component fixes it at 32px for the pins
-// column's geometry, which this strip no longer shares.
+// THE THREE TILES (2026-09-02, user ask: "shows up to 3 elements") — each
+// parked item is SidePanelItem's LABELLED rail face (glyph + title) and
+// takes exactly A THIRD of the lane's content box, gaps paid first:
+// `(100% − 2 gaps) / 3`, flex-basis percentages resolving against the lane.
+// At `--stack-w` 240: 240 − 2 strip rims − 20 glyph − 2 lane rims − 2 lane
+// pad = 214 of lane, less 2 × 2px gaps = 210 → 70px a tile. Fixed thirds,
+// not `flex: 1` — one step alone takes one slot, not the whole lane, so the
+// strip reads as three seats whatever the count. Height still comes from
+// the strip-scoped `--side-item-h: 17px` the rail face reads. (20px glyph-
+// only chips, shrink-fit, from 2026-08-30 until this.)
 .stack-list.is-parked :deep(.side-item__btn--rail) {
-  width: 20px;
-  min-width: 20px;
+  flex: 0 0 calc((100% - 2 * var(--side-item-gap)) / 3);
+  width: auto;
+  min-width: 0;
 }
 
-// The top-edge frieze band must keep its full height in the flex column (the
-// list below it is the shrinking scroller). EXPANDED ONLY since 2026-08-30's
-// bottom-left move (a horizontal band has no seat in the parked strip), and
-// no longer a crown-strip stand-in — the panel's free top edge wears a
-// `--grey-6` rim above it now, like the pins widget's. The box stays
-// FriezeHeader's at the trio's `--frieze-bar-h` (= 0.96 × `--frieze-h`
-// since 2026-08-17's trim walk — this scoped height reads that dial). Only
-// the palette differs — and since 2026-08-17 (user ask) it is not
-// FriezeBar's default brown-4 but the SIDE CHROME TRIO rule in
-// `_components.scss`: `--grey-8` plate, `--grey-2` thick wave, `--grey-4`
-// other wave, carve off — three paints and nothing else since 2026-08-21's
-// from-scratch ask; an orange↔teal gradient weave 08-17 → 08-21, a rimmed
-// grey pass for part of that last sitting. (The rule was a QUARTET for half
-// of 2026-08-23: the nav bar's trail wore these three paints and this
-// `auto 13px` fit on the window's floor at its own 21px box, then left when a
-// later ask gave it its own palette — a `--grey-6` plate under one
-// `--light-cream` tone, after an inverted cream-plate hour. The fit and the
-// carve-off argument went with it; the paints did not.)
-// ⚠ THE 1px BOTTOM LIP IS GONE with the trio's rims (same ask): it was the
-// crown strip's own edge, brown-3 from birth, `--grey-6` after the rim ask —
-// the last line standing on any trio band, and "three paints" ended it. Its
-// history stays in git; do not re-add it without re-adding the trio's rims,
-// or this one band steps at the widget's left edge again.
+// ── THE BANDS ARE THE FLYOUT'S SINCE 2026-09-02 (user ask: "change the
+// friezebar [to] match the thin friezebars on the node flyout viewers") —
+// `FriezeBar slim` with `ElementFlyout.vue`'s `.element-flyout__frieze`
+// dials VERBATIM: a `--grey-8` plate under the one `--brown-1` wave, and
+// NOTHING ELSE. No scoped height (slim's own `calc(--frieze-h / 2)` IS the
+// flyout's box), no fixed fit (`auto 117%`, slim's), the carve ON (slim's
+// half-offsets — the flyout's band is grooved), no `flip` (the flyout's
+// band runs the default way, and the widget stands at the LEFT now, where
+// the drawer's un-flipped bands stood; the flip was minted for the RIGHT
+// edge). Both bands wear it: the top edge's and the inner one between the
+// well and the header — the inner one being the flyout's band in the
+// flyout's own POSITION, the one line between a box's bar and its well.
+// For this `.stack-frieze` LEFT the side-chrome trio rule in
+// `_components.scss` (drawer + pins keep it — a duo now): that rule's
+// `--frieze-bar-h: 15px` / `auto 13px` / carve-off / grey-2+grey-4 waves were
+// the 2026-08-21 → 09-02 dress.
+// ⚠ DO NOT RESTATE `height:` HERE. What stood on this rule from 2026-07-24
+// until today — `height: var(--frieze-bar-h, var(--frieze-h))` — silently
+// DEFEATS `slim`, whose half height lives in the component's own
+// `.frieze-bar--slim` rule: a host-side height with a full-`--frieze-h`
+// fallback wins the cascade and the "slim" band renders at full height with
+// the slim mask fit, i.e. a stretched motif. The flyout states `flex` and the
+// two paint dials and lets the component size itself; so does this.
 .stack-frieze {
-  flex-shrink: 0;
-  height: var(--frieze-bar-h, var(--frieze-h));
-}
-
-// The INNER band (2026-07-24) — same block, same total size, sitting between
-// the scroll well and the header / head glyph. It never stood in for the
-// crown strip and never carried a lip of its own (it wore the trio's rims
-// for the 2026-08-17 → 08-21 window like every band; all lines are off
-// since the three-paints ask, so the pair bracketing the well is matched by
-// construction again). Full bleed like its twin: the band spans
-// the widget's width while the well inside keeps its margins.
-.stack-frieze--inner {
-  flex-shrink: 0;
-  height: var(--frieze-bar-h, var(--frieze-h));
+  flex: 0 0 auto;
+  --frieze-bar-base: var(--grey-8, #616161);
+  --frieze-bar-wave-two: var(--brown-1, #efebe9);
 }
 
 .stack-empty {
@@ -646,6 +701,10 @@ export default defineComponent({
     flex-direction: row;
     align-items: center;
     align-self: stretch;
+    // The lane FILLS the strip since the strip stopped shrink-fitting
+    // (2026-09-02): it grows to everything left of the head glyph, and the
+    // three tiles take their thirds of that.
+    flex: 1 1 auto;
     min-width: 0;
     margin: 0;
     // ⚠ THE 1px OF AIR BECAME THE RIM (2026-08-31, user ask: "add a thin

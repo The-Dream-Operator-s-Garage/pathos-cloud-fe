@@ -1124,8 +1124,10 @@
 // ── THE SIDE CHROME'S FRIEZES — FLAT GREYS, NOTHING ELSE (2026-08-21, two
 // user asks the same sitting) — ONE palette rule for the three side surfaces'
 // bands: the left drawer's section dividers (`.drawer-frieze`, MainLayout ×4)
-// and the stack/pins widgets' bracket bands (`.stack-frieze` ×2,
-// `.pins-frieze`).
+// and the pins widget's bracket band (`.pins-frieze`). ⚠ A DUO SINCE
+// 2026-09-02: the stack's two bands (`.stack-frieze` ×2) LEFT for the
+// flyout's `slim` recipe (user ask: match "the thin friezebars on the node
+// flyout viewers") — see StackPanel.vue's `.stack-frieze` note.
 //
 // ⚠ IT WAS A QUARTET FOR HALF A DAY ON 2026-08-23 and is a trio again. The nav
 // bar's trail (`.nav-frieze`) joined by name — the user asked for "a frieze bar
@@ -1183,7 +1185,6 @@
 // The hosts keep their own geometry in their own files (the drawer's margins,
 // both widgets' --frieze-h heights); only the palette and the rims live here.
 .drawer-frieze,
-.stack-frieze,
 .pins-frieze {
   // ── PIXEL-DRAWN, NOT SCALED (2026-08-21, the "supreme care … well drawn"
   // ask) ──────────────────────────────────────────────────────────────────
@@ -1203,9 +1204,10 @@
   // device px per row; on DPR 1, on 1. Change the height ONLY together with
   // the fit, in 13px steps of mask: the next clean size up is
   // `auto 26px` in a 28px band.)
-  // The stack/pins scoped heights read this same dial, so ONE number moves
-  // all seven bands; the drawer's bands take it straight off the component's
-  // own height rule.
+  // The pins scoped height reads this same dial, so ONE number moves all
+  // FIVE bands (drawer ×4 + pins; the stack's two left this rule on
+  // 2026-09-02 for the flyout's slim band); the drawer's bands take it
+  // straight off the component's own height rule.
   // (The nav bar's trail read this pair for half of 2026-08-23 at its own
   // 21px height — three more pixels of plate around the same ink, room its
   // buttons sit inside, which is what a band on a floor needs and a divider

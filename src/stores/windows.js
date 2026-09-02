@@ -40,10 +40,12 @@ const Z_BASE = 3010
 // One parked-column slot: 42px column + 4px gap. Keep in sync with
 // --dock-rail-w in css/_tokens.scss (the parked panels' width).
 const RAIL_W = 46
-// Expanded pins/stack panel width — keep in sync with the 300px in
-// StackPanel/PinsDrawer. The pins panel/rail sits just above the footer's
-// right end, so the minitab strip (which shares that band) insets by this much
-// to stay clear of it.
+// Expanded PINS panel width — keep in sync with the 300px in PinsDrawer.
+// (The stack's panel read this number too until 2026-09-02; it has its own
+// dial now — `--stack-w` in css/_tokens.scss, 240px, shared by BOTH its
+// faces — and nothing in this store reserves for it.) The pins panel/rail
+// sits just above the footer's right end, so the minitab strip (which shares
+// that band) insets by this much to stay clear of it.
 const PANEL_W = 300
 
 const STORAGE_KEY = 'pathos_windows'

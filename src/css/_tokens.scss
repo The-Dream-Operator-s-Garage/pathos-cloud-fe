@@ -1513,6 +1513,19 @@ $warning:   #F2C037;
   // `calc(<dial> + var(--nav-footer-h))` — the last bar-height is bar chrome
   // the widget lies over, not space taken from its list.)
   --dock-stack-h: 63vh; // StackPanel's expanded cap (ex-70% of the dead band)
+  // ⭐ THE STACK WIDGET'S ONE WIDTH (2026-09-02, user ask: "make the window
+  // thinner and the bar wider so they're the same width on the bar and when
+  // the window is extended"). BOTH faces of StackPanel read it — the parked
+  // strip riding the footer trail (which shrink-fit its chips until then,
+  // 20px a chip) and the expanded panel rising out of it (300px until then,
+  // PinsDrawer's number) — so the park⇄expand morph is a HEIGHT change and
+  // nothing else: same left edge, same right edge, the panel grows straight
+  // up out of the strip's footprint. The strip lettered its parked chips the
+  // same day (up to THREE titled tiles, thirds of the lane), which is what
+  // a 240px strip is for — 3 × ~70px reads a title beside each glyph.
+  // Keep the pins column's 300px where it is (windows.js PANEL_W); this
+  // dial is the stack's alone.
+  --stack-w: 240px;
   --dock-pins-h:  27vh; // PinsDrawer's expanded cap (ex-30% of the dead band)
 
   // The parked rail's THIN dimension — the pins widget's icon-column WIDTH
