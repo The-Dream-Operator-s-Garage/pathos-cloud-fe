@@ -1520,9 +1520,10 @@ $warning:   #F2C037;
   // 20px a chip) and the expanded panel rising out of it (300px until then,
   // PinsDrawer's number) — so the park⇄expand morph is a HEIGHT change and
   // nothing else: same left edge, same right edge, the panel grows straight
-  // up out of the strip's footprint. The strip lettered its parked chips the
-  // same day (up to THREE titled tiles, thirds of the lane), which is what
-  // a 240px strip is for — 3 × ~70px reads a title beside each glyph.
+  // up out of the strip's footprint. The strip holds UP TO THREE glyph
+  // tiles since the same day, each a third of the lane (~70px seats around
+  // a 15px glyph — a lettered title rode them for one deploy and overlapped;
+  // "the text overlaps … just display the icon").
   // Keep the pins column's 300px where it is (windows.js PANEL_W); this
   // dial is the stack's alone.
   --stack-w: 240px;

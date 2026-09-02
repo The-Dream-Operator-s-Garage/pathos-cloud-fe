@@ -23,19 +23,12 @@
   <q-btn
     v-if="collapsed"
     flat
-    no-wrap
     class="side-item__btn side-item__btn--rail"
-    :class="{ 'is-current': current, 'is-labelled': label }"
+    :class="{ 'is-current': current }"
     :style="accentVars"
     @click="$emit('activate')"
   >
     <q-icon :name="displayIcon" size="15px" />
-    <!-- The LABELLED rail face (2026-09-02, the stack's footer strip): the
-         step's title lettered beside the glyph, ellipsized inside whatever
-         width the host hands the tile (the stack's lane gives each of its
-         three slots a third). Off by default — the pins column's 32px keys
-         stay glyph-only. -->
-    <span v-if="label" class="side-item__rail-title">{{ title }}</span>
     <q-tooltip anchor="center left" self="center right">{{ tooltip || title }}</q-tooltip>
   </q-btn>
 
@@ -113,10 +106,10 @@ export default defineComponent({
     current: { type: Boolean, default: false },
     // Which face to render: rail button (true) or informative row (false).
     collapsed: { type: Boolean, default: false },
-    // Letter the TITLE on the rail face too (2026-09-02, user ask — the
-    // footer stack strip "shows up to 3 elements", each a titled tile rather
-    // than a bare glyph). Rail-face only; the expanded row always has it.
-    label: { type: Boolean, default: false },
+    // (A `label` prop lettering the title on the rail face too existed for
+    // ONE deploy on 2026-09-02 — the stack's footer tiles — and was removed
+    // the same day: "the text overlaps … just display the icon". The rail
+    // face is glyph-only, in every host; the width of its seat is the host's.)
     tooltip: { type: String, default: '' }
   },
   emits: ['activate'],
@@ -185,46 +178,12 @@ export default defineComponent({
     min-height: var(--side-item-h);
   }
 
-  // The LABELLED rail face (2026-09-02): a TILE, not a key — glyph at the
-  // left, the title running right behind it and ellipsizing. Width is the
-  // HOST'S to state (the stack's strip hands each of its three slots a third
-  // of the lane via a `:deep` rule); this face only unfixes the 32px key
-  // width and makes the button's content a nowrap row that can shrink
-  // (QBtn's `.q-btn__content` is a flex row of its own — `min-width: 0` on
-  // it is what lets the title ellipsize instead of pushing the tile wide).
-  // `text-transform: none` because QBtn uppercases its content and a title
-  // is a title, not a button label.
-  &--rail.is-labelled {
-    width: auto;
-    min-width: 0;
-    padding: 0 4px 0 3px;
-    justify-content: flex-start;
-    text-transform: none;
-
-    :deep(.q-btn__content) {
-      min-width: 0;
-      flex-wrap: nowrap;
-      justify-content: flex-start;
-      gap: 3px;
-    }
-  }
-}
-
-// The tile's lettering: 10px at `line-height: 1`, the one size that reads
-// inside a 17px tile and still leaves the glyph its 15px; ellipsis on the
-// span itself so the glyph is never the thing that gets truncated (the
-// flyout's name rule, one scale down).
-.side-item__rail-title {
-  flex: 1 1 auto;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  text-align: left;
-  font-size: 10px;
-  line-height: 1;
-  font-weight: 500;
-  letter-spacing: 0;
+  // ⚠ The rail face is GLYPH-ONLY. A labelled variant (`.is-labelled` +
+  // `.side-item__rail-title`, glyph + ellipsized title) lived here for one
+  // deploy on 2026-09-02 for the stack's footer tiles and was removed the
+  // same day — "the text overlaps … just display the icon". A host that
+  // wants a wider seat states the WIDTH (the stack's strip gives each of
+  // its three slots a third of the lane) and the glyph centres in it.
 }
 
 // ── The expanded informative row ──

@@ -8,8 +8,9 @@
        elements way denser"; it hung from the top-right corner from
        2026-07-24 until then). ONE element with two presentations
        (2026-07-24, third pass), and the RELOCATION ROTATED THE PARKED AXIS:
-       · parked (win.minimized) = a row of UP TO THREE TITLED TILES (2026-09-02;
-         a dense shrink-fit chip row before) INSIDE THE
+       · parked (win.minimized) = a row of UP TO THREE GLYPH TILES (2026-09-02;
+         a dense shrink-fit chip row before — and a lettered title rode
+         each tile for ONE deploy that day, until "the text overlaps … just display the icon") INSIDE THE
          TRAIL — the strip stands INSIDE `.nav-frieze`'s box (--nav-chip-h,
          promoted to :root for this), wearing the bar's own coat with a
          grey-4 item lane inset in it (the fourth ask; it rode the band
@@ -75,8 +76,9 @@
            parked (2026-09-02, user ask: "shows up to 3 elements") — each
            row carries its REAL history index `i`, so the tints, the
            current-step mark and click-to-jump never see the slice. The
-           parked tile letters its title (`label`) — a strip that shows three
-           steps can afford to say WHICH three. -->
+           parked tile is the GLYPH ALONE — a title was lettered beside it
+           for one deploy (2026-09-02) and overlapped its neighbours; the
+           same day's next ask: "the text overlaps … just display the icon". -->
       <SidePanelItem
         v-for="{ entry, i } in rows"
         :key="i"
@@ -87,7 +89,6 @@
           'is-future':     i >  historyIndex
         }"
         :collapsed="win.minimized"
-        :label="win.minimized"
         :kind="entry.id ? chipKind(entry.type) : null"
         :icon="entry.id ? null : typeIcon(entry.type)"
         :hash="entry.hash || ''"
@@ -380,7 +381,8 @@ export default defineComponent({
 // out of the strip's footprint, so the morph is HEIGHT ALONE. Expanded still
 // shrink-fits VERTICALLY (2026-07-24, 7th pass): only as tall as its steps
 // need, up to its cap, where the list starts scrolling. The strip holds UP
-// TO THREE steps (same ask), each a titled tile a third of the lane wide. The shared .dock-window width/height
+// TO THREE steps (same ask), each a GLYPH-ONLY tile a third of the lane wide
+// (a lettered title rode them for one deploy — "the text overlaps … just display the icon"). The shared .dock-window width/height
 // transition still animates what it can; the park⇄expand morph is an axis
 // rotation now, so it snaps where auto-sizes meet. The chrome is per face
 // (see the two blocks below): the parked strip is the bar's own
@@ -559,8 +561,11 @@ export default defineComponent({
 }
 
 // THE THREE TILES (2026-09-02, user ask: "shows up to 3 elements") — each
-// parked item is SidePanelItem's LABELLED rail face (glyph + title) and
-// takes exactly A THIRD of the lane's content box, gaps paid first:
+// parked item is SidePanelItem's rail face, THE GLYPH ALONE, centred in a
+// seat that takes exactly A THIRD of the lane's content box, gaps paid
+// first (a title was lettered beside the glyph for ONE deploy that day and
+// overlapped — "the text overlaps … just display the icon" — so the seats are wide and the mark is small, by
+// choice; the width law is the strip's, not the tile's):
 // `(100% − 2 gaps) / 3`, flex-basis percentages resolving against the lane.
 // At `--stack-w` 240: 240 − 2 strip rims − 20 glyph − 2 lane rims − 2 lane
 // pad = 214 of lane, less 2 × 2px gaps = 210 → 70px a tile. Fixed thirds,
