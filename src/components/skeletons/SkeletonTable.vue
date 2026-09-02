@@ -206,6 +206,48 @@
                 </span>
               </template>
 
+              <!-- A LIST in a cell (phase 6): a paths-kind slot renders its
+                   members — skeletons as nested grids, the rest as chips —
+                   with a drop zone that appends and a × that splices. An
+                   EMPTY paths-kind cell offers the drop zone too: the first
+                   drop makes it a list. -->
+              <div v-else-if="c.row.refKind === 'paths' || (c.row.expectedKind === 'paths' && !c.row.ref)" class="skel-table__list" :class="{ 'is-dragover': listDragOver === c.row.slotName }"
+                @dragover="canEditCells && onListDragOver(c.row, $event)"
+                @dragleave="listDragOver = null"
+                @drop="canEditCells && onListDrop(c.row, $event)"
+              >
+                <div v-if="listOf(c.row).loading" class="skel-table__list-line"><q-spinner size="10px" /></div>
+                <div v-else-if="!listOf(c.row).steps.length" class="skel-table__list-line skel-table__empty">{{ canEditCells ? 'drop a skeleton here' : '(empty list)' }}</div>
+                <div v-for="st in listOf(c.row).steps" :key="st.link.id" class="skel-table__member">
+                  <template v-if="st.target?.kind === 'skeleton' && st.target.skeleton?.path">
+                    <InfoChip
+                      v-if="visited.includes(st.target.skeleton.path)"
+                      dense kind="skeletons" :address="st.target.skeleton.path"
+                    />
+                    <SkeletonTable
+                      v-else-if="depth < 2 || expanded.includes(st.target.skeleton.path)"
+                      :ref-or-id="st.target.skeleton.path"
+                      :depth="depth + 1"
+                      :visited="visitedNext"
+                      :readonly="readonly"
+                    />
+                    <span v-else class="skel-table__strip">
+                      <InfoChip dense kind="skeletons" :address="st.target.skeleton.path" />
+                      <button type="button" class="skel-table__unfold" title="unfold" @click.stop.prevent="expand(st.target.skeleton.path)"><q-icon name="unfold_more" size="12px" /></button>
+                    </span>
+                  </template>
+                  <InfoChip v-else dense :kind="memberKind(st)" :address="memberAddress(st)" />
+                  <button
+                    v-if="canEditCells"
+                    type="button"
+                    class="skel-table__member-x"
+                    title="remove from the list"
+                    @click.stop.prevent="removeMember(c.row, st)"
+                  ><q-icon name="close" size="10px" /></button>
+                </div>
+                <div v-if="canEditCells && listOf(c.row).steps.length" class="skel-table__list-line skel-table__list-drop">drop a skeleton to add</div>
+              </div>
+
               <span
                 v-else-if="c.row.textValue"
                 class="skel-table__text"
@@ -269,6 +311,7 @@ import GithubPrCard from 'src/components/dev/GithubPrCard.vue'
 import LabelPicker from 'src/components/maker/LabelPicker.vue'
 import { skeletonService } from 'src/services/skeleton.service'
 import { refService } from 'src/services/ref.service'
+import { pathService } from 'src/services/path.service'
 import { useAuthStore } from 'src/stores/auth'
 import { kindFor } from 'src/utils/kinds'
 
@@ -558,6 +601,69 @@ export default defineComponent({
       await bind(row, String(ref).replace(/^pathos:/, '').toLowerCase())
     }
 
+    // ── lists (phase 6) ──────────────────────────────────────────────
+    // One read per list-cell (`GET /paths/by-hash`, forward = list order),
+    // keyed by the slot; re-read after every append / splice.
+    const lists = ref({})
+    const listOf = (row) => {
+      const key = row.slotName
+      const cur = lists.value[key]
+      if (!cur || cur.ref !== (row.ref || '')) {
+        lists.value[key] = { loading: !!row.ref, steps: [], ref: row.ref || '' }
+        if (row.ref) loadList(row)
+      }
+      return lists.value[key]
+    }
+    const loadList = async (row) => {
+      const key = row.slotName
+      try {
+        const r = await pathService.byHash(row.ref, 'forward')
+        const steps = (r?.steps || []).filter(st => st.link)
+        lists.value[key] = { loading: false, steps, ref: row.ref || '' }
+      } catch (_) {
+        lists.value[key] = { loading: false, steps: [], ref: row.ref || '' }
+      }
+    }
+    const memberKind = (st) => {
+      const k = st.target?.kind || st.link?.target_type || 'unknown'
+      return ({ skeleton: 'skeletons', node: 'nodes', label: 'labels', entity: 'entities', path: 'paths' })[k] || k
+    }
+    const memberAddress = (st) => {
+      const t = st.target || {}
+      return t.skeleton?.path || t.node?.path || t.label?.path || t.entity?.path || t.path?.path || ''
+    }
+    const listDragOver = ref(null)
+    const onListDragOver = (row, ev) => { ev.preventDefault(); listDragOver.value = row.slotName }
+    const refFromDrag = (ev) => {
+      try {
+        const raw = ev.dataTransfer.getData('application/x-pathos-ref')
+        if (raw) { const j = JSON.parse(raw); return String(j.address || j.ref || '') }
+        const t = ev.dataTransfer.getData('text/plain') || ''
+        const m = t.match(REF_IN_TEXT) || t.match(BARE_REF)
+        return m ? m[1] : ''
+      } catch (_) { return '' }
+    }
+    const onListDrop = async (row, ev) => {
+      listDragOver.value = null
+      const ref = refFromDrag(ev)
+      if (!ref) return
+      ev.preventDefault()
+      try {
+        const r = await skeletonService.addSlotMember(head.value.id, row.slotName, ref.replace(/^pathos:/, '').toLowerCase())
+        if (!r.success) { flash(errOf(r, null, 'Could not add to the list')); return }
+        delete lists.value[row.slotName]
+        await refresh()
+      } catch (e) { flash(errOf(null, e, 'Could not add to the list')) }
+    }
+    const removeMember = async (row, st) => {
+      try {
+        const r = await skeletonService.removeSlotMember(head.value.id, row.slotName, st.link.id)
+        if (!r.success) { flash(errOf(r, null, 'Could not remove')); return }
+        delete lists.value[row.slotName]
+        await refresh()
+      } catch (e) { flash(errOf(null, e, 'Could not remove')) }
+    }
+
     // ── nesting ──────────────────────────────────────────────────────
     const expanded = ref([])
     const expand = (r) => { if (!expanded.value.includes(r)) expanded.value.push(r) }
@@ -630,6 +736,13 @@ export default defineComponent({
       expanded,
       expand,
       visitedNext,
+      listOf,
+      memberKind,
+      memberAddress,
+      listDragOver,
+      onListDragOver,
+      onListDrop,
+      removeMember,
       historyOpen,
       historyLoading,
       historyRows,
@@ -800,6 +913,48 @@ export default defineComponent({
   font-size: 0.74em;
   font-style: italic;
   color: var(--st-ink-mute);
+}
+
+// ── lists (phase 6) ──────────────────────────────────────────────────
+.skel-table__list {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  border-radius: 4px;
+  &.is-dragover { outline: 2px dashed var(--st-hover); outline-offset: 1px; }
+}
+.skel-table__list-line { font-size: 0.9em; }
+.skel-table__list-drop {
+  font-size: 0.8em;
+  font-style: italic;
+  color: var(--st-ink-mute);
+  border: 1px dashed var(--st-rule);
+  border-radius: 4px;
+  padding: 2px 6px;
+  text-align: center;
+  opacity: 0.7;
+  .skel-table__list:hover & { opacity: 1; }
+}
+.skel-table__member {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+  min-width: 0;
+  > :first-child { flex: 1 1 auto; min-width: 0; }
+}
+.skel-table__member-x {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 2px;
+  border: none;
+  background: none;
+  color: var(--st-ink-mute);
+  cursor: pointer;
+  opacity: 0.55;
+  &:hover { color: var(--coral-deep, #c05a4e); opacity: 1; }
 }
 
 // ── the corner ───────────────────────────────────────────────────────

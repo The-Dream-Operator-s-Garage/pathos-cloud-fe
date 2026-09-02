@@ -140,6 +140,18 @@ export const skeletonService = {
     return data
   },
 
+  // Lists (skeletons plan phase 6): a paths-kind cell grows and prunes
+  // in place — append a ref (the path materializes on first append) or
+  // splice a member link out. Owner-or-member, lock-gated.
+  async addSlotMember (id, slotName, ref) {
+    const { data } = await api.post(`/skeletons/${id}/slot/${encodeURIComponent(slotName)}/members`, { ref })
+    return data
+  },
+  async removeSlotMember (id, slotName, linkId) {
+    const { data } = await api.delete(`/skeletons/${id}/slot/${encodeURIComponent(slotName)}/members/${linkId}`)
+    return data
+  },
+
   // Bind a slot on an instance. `value` is either a '<kind>/<hash>' ref
   // string or { text: '…' } — literal text mints a real NOTE node.
   // slotName is a label name (fields ARE labels) — encode it: user labels
