@@ -370,10 +370,14 @@ export default defineComponent({
       const n = String(head.value.name || '')
       return n.startsWith('ELEMENT:') || PLUMBING.has(n)
     })
+    // Who may write (skeletons plan phase 5): the owner, or — for a
+    // skeleton on an organization's RESOURCES path — any current member
+    // MASK; the walk says so in `can_write` (viewer-dependent, attached
+    // by the controller). Keys follow the HEAD's own grant.
     const ownsHead = computed(() => {
       const h = head.value
-      const ownerId = h.is_schema ? h.owner_id : h.schema?.owner_id
-      return ownerId != null && ownerId === auth.entityId
+      if (h.is_schema) return h.owner_id === auth.entityId || !!h.can_write
+      return (h.schema?.owner_id != null && h.schema.owner_id === auth.entityId) || !!h.schema?.can_write
     })
     const headLocked = computed(() => {
       const h = head.value
@@ -386,9 +390,10 @@ export default defineComponent({
       !props.readonly && !isPlumbing.value && head.value.id != null &&
       ownsHead.value && !headLocked.value && !head.value.locked
     )
+    const canWrite = computed(() => head.value.owner_id === auth.entityId || !!head.value.can_write)
     const canEditCells = computed(() =>
       !props.readonly && !isPlumbing.value && head.value.id != null &&
-      !head.value.is_schema && !head.value.locked && head.value.owner_id === auth.entityId
+      !head.value.is_schema && !head.value.locked && canWrite.value
     )
     const headId = computed(() => head.value.is_schema ? head.value.id : head.value.schema?.id)
 
@@ -399,7 +404,7 @@ export default defineComponent({
     const flipAxis = async () => {
       const next = axis.value === 'col' ? 'row' : 'col'
       axisLocal.value = next
-      if (props.readonly || head.value.owner_id !== auth.entityId || head.value.locked || head.value.id == null) return
+      if (props.readonly || !canWrite.value || head.value.locked || head.value.id == null) return
       try {
         const r = await skeletonService.setAxis(head.value.id, next)
         if (!r.success) flash(errOf(r, null, 'Could not save the axis'))

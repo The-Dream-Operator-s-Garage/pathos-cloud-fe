@@ -274,7 +274,9 @@ export default defineComponent({
     }
 
     // ── name (data) ───────────────────────────────────────────────────
-    const isOwner = computed(() => head.value.owner_id != null && head.value.owner_id === auth.entityId)
+    // Owner, or a member mask of an organization holding this skeleton on
+    // its RESOURCES path (phase 5 — `can_write` off the walk).
+    const isOwner = computed(() => (head.value.owner_id != null && head.value.owner_id === auth.entityId) || !!head.value.can_write)
     const canRename = computed(() => isOwner.value && !head.value.locked && head.value.id != null && !String(head.value.name || '').startsWith('ELEMENT:'))
     const renameHint = computed(() => canRename.value ? 'double-click to rename' : headline.value)
     const renaming = ref(false)
@@ -328,6 +330,7 @@ export default defineComponent({
           ? await skeletonService.unlock(head.value.id)
           : await skeletonService.lock(head.value.id)
         if (!r.success) flashError(r.error?.message || 'Lock flip failed')
+        else if (r.pending) flashError('Asked your manager — the flip lands once the poll in your conversation is approved; click again then.')
         await refresh()
       } catch (e) {
         flashError(e?.response?.data?.error?.message || 'Lock flip failed')
