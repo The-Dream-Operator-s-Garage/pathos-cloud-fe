@@ -1022,12 +1022,17 @@
 // them), no cast; expanded it rises from that seat to
 // the window floor adding the rims/casts (expanded-only chrome), and its
 // two FriezeBar well-bracket bands render expanded only (the parked face
-// rides a band already). Pins keeps the
-// right-edge grammar unchanged: its band between well and header, the page
-// content padding right by railWidth (stores/windows.js) so the parked column
-// never covers it, the other bottom docks shifting left beside it via
-// --dock-right. Nothing reserves for the stack's strip — it overlays the
-// page's bottom-left corner from its fixed EDGE_Z.
+// rides a band already). ⭐ PINS FOLLOWED ON 2026-09-02 (user ask): it is
+// the stack strip's MIRROR at the trail's RIGHT run — `right:
+// var(--nav-dash-w)`, beside the full-height dashboard block — reflected
+// end to end: head glyph at the strip's LEFT end, the lane ROW-REVERSED so
+// the newest pin lands beside the glyph and older pins scroll off to the
+// right, the expanded panel casting LEFTWARD, the tack in its header. The
+// right-edge column is gone with it: `railWidth`, `dockRight` and
+// `footerPanelInset` (stores/windows.js) all read 0. Nothing reserves for
+// either strip — each overlays the bar from its fixed EDGE_Z, and
+// `.nav-right` pads for the pins strip by `--stack-w` the way the trail
+// chips stop at the stack strip's edge.
 //
 // The morph is IN PLACE (2026-07-24, 7th pass): both faces of an item share
 // --side-item-h / --side-item-gap, both lists carry the same padding + gap,
@@ -1124,10 +1129,14 @@
 // ── THE SIDE CHROME'S FRIEZES — FLAT GREYS, NOTHING ELSE (2026-08-21, two
 // user asks the same sitting) — ONE palette rule for the three side surfaces'
 // bands: the left drawer's section dividers (`.drawer-frieze`, MainLayout ×4)
-// and the pins widget's bracket band (`.pins-frieze`). ⚠ A DUO SINCE
-// 2026-09-02: the stack's two bands (`.stack-frieze` ×2) LEFT for the
-// flyout's `slim` recipe (user ask: match "the thin friezebars on the node
-// flyout viewers") — see StackPanel.vue's `.stack-frieze` note.
+// ⚠ THE DRAWER'S ALONE SINCE 2026-09-02: the stack's two bands
+// (`.stack-frieze` ×2) LEFT for the flyout's `slim` recipe in the morning
+// (user ask: match "the thin friezebars on the node flyout viewers") and
+// the pins widget's two (`.pins-frieze` ×2) followed that afternoon, when
+// it became the stack strip's mirror on the footer trail — see the two
+// SFCs' frieze notes. The selector list is one name; the rule stays a
+// RULE (not inlined into MainLayout) because it is the drawer's palette
+// by name, resurrectable with the drawer.
 //
 // ⚠ IT WAS A QUARTET FOR HALF A DAY ON 2026-08-23 and is a trio again. The nav
 // bar's trail (`.nav-frieze`) joined by name — the user asked for "a frieze bar
@@ -1184,8 +1193,7 @@
 // a shared treatment is shared by NAME, not by three copies drifting apart.
 // The hosts keep their own geometry in their own files (the drawer's margins,
 // both widgets' --frieze-h heights); only the palette and the rims live here.
-.drawer-frieze,
-.pins-frieze {
+.drawer-frieze {
   // ── PIXEL-DRAWN, NOT SCALED (2026-08-21, the "supreme care … well drawn"
   // ask) ──────────────────────────────────────────────────────────────────
   // These bands OPT OUT of the frieze family's viewport-relative sizing.
@@ -1204,10 +1212,9 @@
   // device px per row; on DPR 1, on 1. Change the height ONLY together with
   // the fit, in 13px steps of mask: the next clean size up is
   // `auto 26px` in a 28px band.)
-  // The pins scoped height reads this same dial, so ONE number moves all
-  // FIVE bands (drawer ×4 + pins; the stack's two left this rule on
-  // 2026-09-02 for the flyout's slim band); the drawer's bands take it
-  // straight off the component's own height rule.
+  // ONE number moves the drawer's FOUR bands (the stack's two and the
+  // pins' two left this rule on 2026-09-02 for the flyout's slim band),
+  // taken straight off the component's own height rule.
   // (The nav bar's trail read this pair for half of 2026-08-23 at its own
   // 21px height — three more pixels of plate around the same ink, room its
   // buttons sit inside, which is what a band on a floor needs and a divider
@@ -1504,12 +1511,13 @@
 //     the left edge, dots grown 13px → 17px.
 // ═══════════════════════════════════════════════════════════════════
 @media (max-width: 600px) {
-  // The edge widgets (pins at the right column, the stack on the footer's
-  // bottom-left since 2026-08-30): hover-driven permanent fixtures — both
-  // presentations meaningless on a 375px touch screen. windows.railWidth
-  // already reads 0 here, so nothing pads for them.
+  // The two footer strips (the stack at the trail's left run since
+  // 2026-08-30, the pins at its right run since 2026-09-02): hover-driven
+  // permanent fixtures — both presentations meaningless on a 375px touch
+  // screen. NavigationBar drops `.nav-right`'s `--stack-w` reserve here
+  // for the same reason, and its fallback tack renders in the bar.
   .stack-window,
-  .pins-drawer { display: none; }
+  .pins-window { display: none; }
 
   // Creation docks — CHAT INCLUDED since 2026-08-03 (it carries
   // `.dock-window--creation` now, so these five docks are one footprint on

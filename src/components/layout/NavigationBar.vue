@@ -110,14 +110,18 @@
            to its edge. ── -->
       <div class="nav-center" />
 
-      <!-- ── RIGHT: chat · create bundle · pin tack. The tack anchors the far
-           corner directly BENEATH the pinned-list side panel (which now docks
-           on top of the bar's top edge in both its expanded and rail states),
-           so the tack + the pinned column read as one right-edge stack. There
-           is no separate pinned-list toggle anymore — the panel is reached via
-           its own rail head (it defaults to that rail and is minimize-only).
-           The navigation-stack panel likewise has no button here. ── -->
-      <div class="nav-right" :class="{ 'nav-right--railed': !showTack }">
+      <!-- ── RIGHT: the five trail chips (four makers · chat) — and, on
+           MOBILE only, the fallback pin tack. ⭐ SINCE 2026-09-02 (user ask)
+           THIS CLUSTER ENDS `--stack-w` SHORT OF THE DASHBOARD BLOCK: the
+           PINS STRIP rides the trail there (PinsDrawer — the stack strip's
+           mirror, a fixed overlay at z 3120), so the cell pads right by the
+           strip's own width the way the trail stops at the stack strip's
+           edge on the left; the trail drag's right flank is that strip's
+           left edge. The DASHBOARD BUTTON LEFT this cluster the same day
+           for its own full-height end cell (`.nav-end`, below). Neither
+           the pins nor the stack panel has a toggle here — each is reached
+           through its strip (hover / head-glyph tap). ── -->
+      <div class="nav-right">
         <!-- Chat: the conversation window (distinctive teal treatment —
              chats are where entities meet, not another maker). The UNREAD
              BADGE (Thread A) rides it: the event spine's live unread count
@@ -209,8 +213,9 @@
              in 2026-08-10; both now sit AFTER the makers, so the row reads
              make · make · make · make | look · look, with the two
              window-openers hard against the bar's right end (or against
-             `.nav-right--railed`'s 42px reserve, which is as far right as
-             anything on this bar may go while the pinned column stands).
+             the PINS STRIP's left edge — `.nav-right`'s `--stack-w` reserve
+             since 2026-09-02; `.nav-right--railed`'s 42px was the pinned
+             COLUMN's, gone with it).
              They are also the two chips with NO WORD — see their notes. ── -->
 
 <!-- ── NO SEARCH BUTTON SINCE 2026-08-23 (user ask: "remove the
@@ -280,49 +285,15 @@
              the other three — a section marker with no sections to mark.
              `.nav-divider` survives for the TACK alone; see below. ── -->
 
-        <!-- ── DASHBOARD (2026-08-10, user ask) — its OWN section between the
-             chat button and the blue create bundle, hairlined on both sides
-             so it reads as a third thing rather than as a pale member of
-             either group. That is what the position is for: chat is where
-             entities meet and the bundle is where elements are made, and this
-             opens a box that only LOOKS at the platform.
-
-             GREY on purpose, and the one grey control on this bar: it is the
-             tone of the box it opens — where the chat pebble answers in aqua
-             and the bundle in light-blue. A button and the window it summons
-             wearing one colorway is the same trick the minitab strip plays
-             with its per-dock icon tints.
-             ⚠ THAT TIE IS NOW HALF TRUE (2026-08-26): the board's COAT left
-             the flyout family for this bar's own `--plaque-coat`, so the
-             pebble no longer matches the window's sheet. What it still
-             matches — and what the tie now rests on — is the board's LINES
-             and WELL, `--grey-4`, which did not move. If the pebble is ever
-             re-toned, `--grey-4` is the tone to walk to, not the cream: a
-             button in the coat of the bar it sits on would disappear.
-
-             `sym_o_` prefixed — Material SYMBOLS, not Material Icons.
-             `empty_dashboard` exists only in the symbols font, and a name the
-             loaded font has no ligature for renders as the literal WORD at
-             full width (see specs/gotchas.md; the feed's cap glyphs hit this
-             first). Both fonts are loaded in quasar.config.js's `extras`. -->
-        <q-btn
-          unelevated no-caps
-          class="nav-btn dashboard-btn"
-          :class="{ 'is-active': dashboardExpanded }"
-          :ref="setChip('dashboard')"
-          :style="chipStyle('dashboard')"
-          title="Dashboard — the panel rising from this bar"
-          @click="toggleDashboard"
-        >
-          <span class="nav-btn__grip" @pointerdown="startChipDrag('dashboard', $event)" @click.stop>
-            <q-icon name="drag_indicator" size="11px" />
-          </span>
-          <span class="nav-btn__grip-rule" />
-          <!-- Glyph only and chip-height, same ask as the chat button beside
-               it — 19px, the full content box inside the chip's restored
-               top and bottom rims (2026-08-30). -->
-          <q-icon name="sym_o_empty_dashboard" size="17px" />
-        </q-btn>
+        <!-- ── THE DASHBOARD CHIP LEFT THIS CLUSTER ON 2026-09-02 (user ask:
+             "remove the draggable properties from the dashboard button and
+             make the button occupy the whole height like the identity section
+             on the left. Then, place the dashboards section on the right end
+             of the footer nav bar") — it is the `.nav-end` cell after this
+             cluster now, the identity section's mirror. Its record as a trail
+             chip (2026-08-10 → 09-02: the grey looker, hairlined into "its own
+             section" for a fortnight, glyph-only and chip-height since
+             08-24, a slider chip with a grip since 08-30) is in git. ── -->
 
         <div v-if="showTack" class="nav-divider" />
 
@@ -358,6 +329,30 @@
         </div>
       </div>
 
+      <!-- ── ⭐ THE DASHBOARD BLOCK — the bar's RIGHT END (2026-09-02, user
+           ask). The IDENTITY SECTION'S MIRROR: a fourth grid cell standing
+           the bar's WHOLE content height, `--nav-dash-w` wide (42px, the
+           rail-slot width), its `border-left` the closing hairline the pins
+           strip stops against (`right: var(--nav-dash-w)` — the same
+           never-covered bargain `.nav-left`'s `border-right` strikes with the
+           stack strip). The button fills the cell: NO grip, NO hairline, NO
+           `translate` — it left the trail's slider; a window that opens at
+           the bar's end has nothing to ride. Coat = the bar's own
+           `--plaque-coat` like the identity chip; the pressed state keeps
+           the grey argument the chip carried (`--grey-4` face, `--grey-10`
+           ink — the board's lines-and-well family). `sym_o_` = Material
+           SYMBOLS (see the gotchas note on missing ligatures). ── -->
+      <div class="nav-end">
+        <q-btn
+          unelevated no-caps
+          class="dashboard-btn"
+          :class="{ 'is-active': dashboardExpanded }"
+          title="Dashboard — the panel rising from this bar"
+          @click="toggleDashboard"
+        >
+          <q-icon name="sym_o_empty_dashboard" size="21px" />
+        </q-btn>
+      </div>
     </div>
 
     <!-- ── NO FLOOR BAND SINCE 2026-08-12 (user ask: "remove the brown
@@ -500,10 +495,12 @@ export default defineComponent({
     }
 
     // ── THE TRAIL IS A SLIDER (2026-08-30) — the drag machinery ──────────
-    // Six draggable chips; state (one px offset each) lives in the windows
-    // store so the docks can ride it. This component owns everything
-    // geometric: measuring, clamping, reconciling. See the template note.
-    const TRAIL_CHIPS = ['maker', 'skeletonBuilder', 'labelMaker', 'uploader', 'chat', 'dashboard']
+    // FIVE draggable chips (six until 2026-09-02, when the dashboard chip
+    // became the bar's full-height end block); state (one px offset each)
+    // lives in the windows store so the docks can ride it. This component
+    // owns everything geometric: measuring, clamping, reconciling. See the
+    // template note.
+    const TRAIL_CHIPS = ['maker', 'skeletonBuilder', 'labelMaker', 'uploader', 'chat']
     const chipEls = {}
     const setChip = (key) => (inst) => {
       chipEls[key] = inst ? (inst.$el || inst) : null
@@ -517,9 +514,10 @@ export default defineComponent({
     // the drawer was hidden; measured live rather than read off --nav-id-w
     // so the media override follows for free) — or the parked stack strip
     // riding the band beside it, whose z 3130 would bury any chip dragged
-    // beneath it. RIGHT: the tack's divider when the tack is in the bar,
-    // else the cluster's right edge less the railed reserve (the parked
-    // pins column is opaque at 3120 for the same reason).
+    // beneath it. RIGHT (mirrored since 2026-09-02): the parked PINS strip
+    // riding the band before the dashboard block, opaque at z 3120 for the
+    // same reason — else the cluster's content edge (its `--stack-w`
+    // padding is that strip's reserve), or the tack's divider on mobile.
     const trailBounds = () => {
       let left = 42
       const idSection = document.querySelector('.nav-bar .nav-left')
@@ -539,6 +537,11 @@ export default defineComponent({
       } else {
         const nr = document.querySelector('.nav-bar .nav-right')
         if (nr) right = nr.getBoundingClientRect().right - parseFloat(getComputedStyle(nr).paddingRight || '0')
+      }
+      const pinsStrip = document.querySelector('.pins-window.is-parked')
+      if (pinsStrip) {
+        const r = pinsStrip.getBoundingClientRect()
+        if (r.width > 0) right = Math.min(right, r.left)
       }
       return { left, right }
     }
@@ -685,21 +688,21 @@ export default defineComponent({
     onMounted(() => {
       refreshPinState()
       // The slider's housekeeping: re-clamp restored offsets once the bar
-      // (and the stack strip beside it) have painted, again on every
-      // resize, and again whenever the PARKED strip changes size — it grows
-      // a chip per visited element, and a grown strip can bury a chip that
-      // was parked legally beside it (the is-parked guard keeps the
-      // hover-EXPANDED panel, a 300px transient, from shoving chips around).
+      // (and the two strips flanking the trail) have painted, again on
+      // every resize, and again whenever a PARKED strip changes size (both
+      // are fixed `--stack-w` since 2026-09-02, so this fires only when the
+      // dial moves; the is-parked guard keeps a hover-EXPANDED panel, a
+      // transient, from shoving chips around).
       window.addEventListener('resize', queueReconcile)
       setTimeout(reconcileTrail, 400)
       if (window.ResizeObserver) {
         setTimeout(() => {
-          const strip = document.querySelector('.stack-window')
-          if (strip) {
-            stripObserver = new ResizeObserver(() => {
-              if (strip.classList.contains('is-parked')) queueReconcile()
+          const strips = [...document.querySelectorAll('.stack-window, .pins-window')]
+          if (strips.length) {
+            stripObserver = new ResizeObserver((entries) => {
+              if (entries.some((e) => e.target.classList.contains('is-parked'))) queueReconcile()
             })
-            stripObserver.observe(strip)
+            strips.forEach((el) => stripObserver.observe(el))
           }
         }, 600)
       }
@@ -722,15 +725,13 @@ export default defineComponent({
     // read here anymore. ──
 
     // ── Pins/stack windows live in the windows store and have NO footer
-    // button anymore — both dock flush to the top edge and are reached via
-    // their own rail chrome + persisted state. The pins panel (expanded or
-    // parked) sits ON TOP of the bar and covers no buttons; the bar itself now
-    // runs edge to edge with NO side padding, so the tack's 42px slot lands
-    // exactly under the parked pinned column. ──
+    // button anymore — both ride this bar's trail as strips (stack at the
+    // left run since 2026-08-30, pins at the right run beside the dashboard
+    // block since 2026-09-02) and are reached through them. ──
 
-    // The minitab strip hugs the footer's top-right edge — the same band the
-    // expanded pins panel (and its rail) occupy. Slide it left by
-    // footerPanelInset so parked maker/uploader tabs stay clear of either.
+    // The minitab strip hugs the footer's top-right edge. `footerPanelInset`
+    // reads 0 since 2026-09-02 (no side widget stands at the right edge any
+    // more); the seam is kept so a future right-edge widget insets it again.
     const minitabRight = computed(() => `${10 + windows.footerPanelInset}px`)
 
     // ── Minitab strip — one folder tab per minimized dock. Only the maker
@@ -814,10 +815,11 @@ export default defineComponent({
 
     // ── Does the TACK belong to this bar right now? ──────────
     // Mirror of `showBurger` at the other end (which MainLayout owns): the
-    // pinned column carries the tack in its own footer block while it stands,
-    // so the bar renders one only when that column is absent — on mobile,
-    // where both side widgets hide, or if the panel is ever closed. Exactly
-    // one of the two is on screen at any moment.
+    // pins widget carries the tack in its EXPANDED HEADER while it stands
+    // (in its rebuilt bar row until 2026-09-02, when its column became the
+    // trail strip), so the bar renders one only when that widget is absent
+    // — on mobile, where both strips hide, or if the panel is ever closed.
+    // Exactly one of the two is on screen at any moment.
     const showTack = computed(() => windows.isMobile || !windows.panels.pins?.open)
 
     return {
@@ -1032,7 +1034,13 @@ export default defineComponent({
   // would let the middle claim its content's min-width and squeeze the two
   // edge clusters — the rail blocks at the ends are the last thing on this
   // bar allowed to move (2026-08-02, mobile pass).
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  // FOUR tracks since 2026-09-02: identity · slack · the trail cluster ·
+  // the DASHBOARD BLOCK (`.nav-end`, the identity section's mirror at the
+  // bar's right end — user ask). ⚠ Where the long note below says the right
+  // cluster's "last 42px (hairline + tack) lands under the parked pinned
+  // column", read: the cluster ends `--stack-w` short of the dashboard
+  // block, and the PINS STRIP rides the trail in that reserve.
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
   // STRETCH, not center — each section fills the bar's full height so its
   // hairline (section border or `.nav-divider`) touches the top and bottom
   // edges with no vertical inset. The sections center their own buttons.
@@ -1408,7 +1416,7 @@ export default defineComponent({
 // section carries an outside inset anymore: the tack sits flush against the
 // right screen edge under the parked pinned column, and the burger sits flush
 // against the left one under the drawer's mini rail.
-.nav-left, .nav-right {
+.nav-left, .nav-right, .nav-end {
   display: flex;
   align-items: center;
   // ON the trail (2026-08-23). These are unpositioned grid cells by default,
@@ -1448,18 +1456,29 @@ export default defineComponent({
 // to mark). `.nav-left`'s survives: it is the burger rail's closing edge —
 // arithmetic (41px block + 1px line = --dock-rail-w), not sectioning — and
 // it is one of the two flanks the drag clamps against.
-.nav-right { gap: 6px; padding-left: 5px; }
+// ⭐ `padding-right: var(--stack-w)` SINCE 2026-09-02: the PINS STRIP rides
+// the trail at this cluster's end (PinsDrawer, `right: var(--nav-dash-w)`,
+// `--stack-w` wide, opaque at z 3120), so the cluster keeps its chips out
+// from under it by exactly the strip's width — the chat chip, dragged all the
+// way right, stops ON the strip's left rim, as POST dragged left stops on the
+// stack strip's right one. It replaces `.nav-right--railed`'s 42px reserve
+// for the parked pins COLUMN (2026-08-02 → 09-02; a covered create button
+// was what minted it). The mobile block zeroes it — both strips hide there.
+.nav-right { gap: 6px; padding-left: 5px; padding-right: var(--stack-w); }
 
-// When the tack is NOT in this bar, the pinned column standing over the bar's
-// right end is what holds it — and that column is OPAQUE at z 3120, so the
-// cluster has to keep out from under it or the last create button is simply
-// covered (2026-08-02: it was, for the length of one screenshot). The reserve
-// is exactly `--dock-rail-w`, the same 42px the tack's own slot + hairline
-// took, so the cluster does not move when the two arrangements swap. An
-// EXPANDED pins panel (300px) still overlays more of the bar — that state is
-// a transient hover overlay that parks itself on mouse-leave, and it is the
-// same bargain the left drawer strikes with this bar's empty left end.
-.nav-right--railed { padding-right: var(--dock-rail-w); }
+// ── ⭐ THE DASHBOARD BLOCK (2026-09-02, user ask) — `.nav-left`'s MIRROR at
+// the bar's right end: a full-height grid cell `--nav-dash-w` wide whose
+// `border-left` is the closing hairline the pins strip stops against
+// (content + 1px = the dial, the identity section's arithmetic reflected),
+// in the bar's inner-hairline ink. Lifted to z 1 with the other two edge
+// cells (the trail crosses only the empty middle).
+.nav-end {
+  width: var(--nav-dash-w);
+  padding: 0;
+  gap: 0;
+  align-items: stretch;
+  border-left: 1px solid var(--brown-3);
+}
 
 // ⚠ `.nav-left--bare` IS DELETED (2026-08-31): it existed for the drawer
 // standing over this end of the bar — the section kept its grid track but
@@ -1726,26 +1745,35 @@ export default defineComponent({
 // That reading is if anything cleaner now, because the darker grey it steps to
 // is the trail's own family showing through the chip.
 .nav-bar .dashboard-btn {
-  flex-shrink: 0;
+  // THE BLOCK'S BUTTON (2026-09-02): fills the `.nav-end` cell — the whole
+  // 31px content row, like the identity chip beside the stack strip — in
+  // the bar's own `--plaque-coat`, no rim (the cell's hairline is its edge),
+  // no radius, no grip, no translate. It wore `.nav-btn` as a trail chip
+  // from 2026-08-23 to 09-02; every chip declaration is gone with the class.
+  flex: 1 1 auto;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: var(--plaque-coat);
+  color: var(--ink-1);
 
-  // ── THE RESTING GREY WENT TO THE BAR'S INK (2026-08-31, "homogenize their
-  // look") AND THE ARGUMENT DID NOT DIE WITH IT. `--grey-9` rested here so
-  // the pebble would wear the tone of the board it opens; that tie has been
-  // half true since 2026-08-26 (the board's coat left for `--plaque-coat`)
-  // and it was the last per-chip resting ink on a row of six chips otherwise
-  // sharing one face. Three inks at rest — ink-1 · ink-2 · grey-9 — is not a
-  // system, it is three leftovers.
-  //
-  // The tie now lives entirely in `is-active`, which is where it always did
-  // the work: this is still the one chip whose standing state is a DARKER
-  // GREY rather than an accent — the pressed state of a grey object, in the
-  // board's own `--grey-4` lines-and-well family, which did not move. If the
-  // pebble is ever re-toned at rest, `--grey-4` is still the tone to walk to;
-  // the bar's own cream never is (a button in its bar's coat disappears).
+  .q-icon { color: var(--ink-1); }
 
+  // The bar's one shared hover, `.nav-btn`'s.
+  &:hover { background: var(--grey-3); }
+
+  // ── THE PRESSED STATE KEEPS THE GREY ARGUMENT the chip carried since
+  // 2026-08-10: this is the one control whose standing state is a DARKER
+  // GREY rather than an accent — the board's own `--grey-4` lines-and-well
+  // family showing through. If it is ever re-toned, `--grey-4` is the tone
+  // to walk to; the bar's own cream never is (a button in its bar's coat
+  // disappears).
   &.is-active {
     background: var(--grey-4);
-    border-color: var(--grey-6);
     color: var(--grey-10);
 
     .q-icon { color: var(--grey-10); }
@@ -2010,6 +2038,9 @@ export default defineComponent({
   .nav-right {
     gap: 4px;
     padding-left: 3px;
+    // No pins strip on a phone (both footer strips hide ≤600px), so no
+    // `--stack-w` reserve either — the fallback tack takes the cluster's end.
+    padding-right: 0;
   }
 
   // The ONE remaining `.nav-divider` is the tack slot's, and mobile is exactly

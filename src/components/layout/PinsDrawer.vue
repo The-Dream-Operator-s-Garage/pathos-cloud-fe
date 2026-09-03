@@ -1,72 +1,53 @@
 <template>
-  <!-- The pinned list as a docked right side panel that RISES from the nav bar
-       and grows upward toward the middle (it mirrored the navigation stack
-       across the right edge until 2026-08-30, when the stack moved into the
-       footer bar's left run — this column is the right edge's only widget
-       now). One mirrored FriezeBar band sits INSIDE it,
-       between the header / pin glyph and the scroll well — the same divider
-       block the drawer uses between sections, mirroring the band the stack
-       carries between its own well and header. Its old bottom-edge band
-       (dividing the list from the footer) was removed 2026-07-24: the pinned
-       column and the tack in the bar below read as ONE strip, so nothing cuts
-       across it there. ONE element with two presentations (2026-07-24,
-       third pass): expanded = the 300px panel, parked (win.minimized) = the
-       SAME element narrowed to the thin icon column (`is-parked`), each pin
-       collapsed to its icon face. The list below is the ONE and only scroller
-       — it persists through the park/expand morph, so the scroll position
-       carries across (there is no separate rail tree anymore). The header sits
-       at the TOP (traffic light at the corner, icon to its right) — parked, the
-       tiny head glyph takes its spot — and the list stacks below it ordered
-       OLDEST→NEWEST, the newest pin at the bottom nearest the tack. Capped at
-       --dock-pins-h (30% of the shared side band) so the two side widgets
-       never collide. -->
+  <!-- The pinned list, RIDING THE FOOTER BAR'S INNER FRIEZE BAR at its RIGHT
+       RUN since 2026-09-02 — THE STACK STRIP'S MIRROR (user ask: "help me
+       taking the pin side bar on the right of the screen and help me making
+       its style the same as the stack bar on the footer nav bar, except the
+       pin bar should be now inserted into the footer friezebar, with the
+       scroll directed from right to left and placed to the left of the
+       dashboard button. For the extended version of the pin bar, copy the
+       style that the stack bar already has"). It was the right edge's
+       vertical column from 2026-07-24 (running to the window floor over the
+       bar's right end since 2026-08-02, the tack in a rebuilt bar row at its
+       foot) until then; that column's record is in git.
+       ONE element with two presentations — StackPanel's, REFLECTED:
+       · parked (win.minimized) = a `--stack-w` strip standing INSIDE the
+         trail band at `right: var(--nav-dash-w)` — beside the full-height
+         DASHBOARD BLOCK at the bar's right end, never covering it (the
+         identity section's bargain with the stack strip, mirrored) — the
+         head glyph at the strip's LEFT END and the items lane to its right,
+         both ROW-REVERSED: the NEWEST pin lands beside the glyph and older
+         pins flow rightward, scrolling off past the strip's end ("the
+         scroll directed from right to left"). Three glyph seats a third of
+         the lane each — the stack's own tiles.
+       · expanded = the `--stack-w` panel rising from that same seat to the
+         window floor — the stack's expanded face reflected: rims on its
+         three exposed edges, both top corners round, the cast thrown
+         LEFTWARD, the flyout's slim band at its top edge and again between
+         the well and the header; the header at the BOTTOM holding the
+         count, THE TACK and the history control; the list above it
+         OLDEST→NEWEST top-to-bottom.
+       The list is the ONE scroller in both faces; its position carries
+       through the morph as a ratio — x parked (negative: row-reverse's own
+       coordinate, see scrollToNewest), y expanded.
+       ⚠ THE TACK LIVES IN THE EXPANDED HEADER NOW: the `.pins-footer` row the
+       column rebuilt around it (2026-08-02) went with the column. The bar
+       keeps its fallback tack for mobile (NavigationBar `showTack`), where
+       both strips hide. -->
   <aside
     v-if="win.open"
-    class="pins-drawer dock-window"
+    class="pins-window dock-window"
     :class="{ 'is-parked': win.minimized }"
     :style="{ zIndex: EDGE_Z }"
     @mouseenter="onHoverEnter"
     @mouseleave="onHoverLeave"
   >
-    <!-- The traffic light is gone (2026-07-24, 7th pass) — the header bar
-         ITSELF parks the widget, which is only a touch-screen affordance
-         anyway (hover already parks it on the way out). Minimize-only: the
-         pins panel has no nav-bar button and docks as a permanent fixture
-         right above the tack, so it parks to the icon column instead of
-         closing (a full close would strand it). -->
-    <header v-if="!win.minimized" class="dock-bar dock-bar--park"
-      title="Park to the icon column" @click="windows.minimizePanel('pins')">
-      <q-icon name="push_pin" size="14px" class="dock-bar__icon dock-bar__icon--pins" />
-      <span class="dock-bar__title nasalization">Pinned</span>
-      <q-space />
-      <span class="dock-bar__meta mono">
-        {{ pins.length }} pin{{ pins.length === 1 ? '' : 's' }}
-      </span>
-      <!-- History control at the very right end of the info box: the clock
-           glyph standing for "the pinned list's own history". Stops the click
-           from reaching the bar (which parks the widget). -->
-      <button type="button" class="dock-bar__action" @click.stop="onHistory">
-        <q-icon name="history" size="15px" />
-        <q-tooltip anchor="top middle" self="bottom middle">Pinned list history</q-tooltip>
-      </button>
-    </header>
-
-    <!-- Parked replacement for the header: the tiny head glyph at the same
-         TOP spot. Hovering anywhere on the column expands the panel; the
-         tap stays for touch screens, where hover doesn't exist. -->
-    <button v-else type="button" class="dock-side-head pins-side-head"
-      @click="windows.restorePanel('pins')">
-      <q-icon name="push_pin" size="20px" />
-    </button>
-
-    <!-- The widget's ONE mirrored FriezeBar band (2026-07-24): it sits INSIDE,
-         between the header / pin glyph above and the scroll well below — the
-         mirror of the band the stack carries between its well and its own
-         header. The band that used to divide the well from the nav footer at
-         the widget's bottom edge is GONE: the pinned column and the tack in
-         the bar below read as one continuous strip, so nothing should cut
-         across it there. Both presentations. -->
-    <FriezeBar flip class="pins-frieze" />
+    <!-- The flyout's band at the panel's top edge — StackPanel's, verbatim
+         (`slim`, unflipped, the grey-8 plate under the brown-1 wave; see the
+         style block). EXPANDED ONLY: the parked face is a band-height strip
+         with no seat for a horizontal wave. The shared shell's `overflow:
+         hidden` clips it into the two rounded top corners. -->
+    <FriezeBar v-if="!win.minimized" slim class="pins-frieze" />
 
     <div v-if="loading && !win.minimized" class="pins-loading">
       <q-spinner color="red-6" size="22px" />
@@ -79,17 +60,23 @@
     </div>
 
     <div v-else ref="listEl" class="pins-list" :class="{ 'is-parked': win.minimized }">
-      <!-- Each pin is the one mutating side-bar item (SidePanelItem):
-           expanded face = micro chip · title · pinned-x-ago · author, the
-           kind button palette-inverted on the right, copy/unpin riding the
-           actions slot; parked face = the flat kind-colored icon chip. The
-           pin you are currently VIEWING wraps in the kind-colored bubble
-           (expanded) / inverts to a solid fill (parked). Activating opens
-           the element's viewer; an expanded row also parks the panel so the
-           destination lands in full view. -->
+      <!-- Ordered OLDEST→NEWEST in the DOM (the spine's append order), which
+           the two faces read differently by construction: the expanded
+           column runs it top-to-bottom, the newest pin at the bottom beside
+           the header; the parked lane is `row-reverse`, so the DOM's last
+           item — the newest — is the one that lands at the LEFT beside the
+           head glyph. Each pin is the one mutating side-bar item
+           (SidePanelItem): expanded face = micro chip · title · pinned-x-ago
+           · author, the kind button palette-inverted on the right, copy/unpin
+           riding the actions slot; parked face = the flat kind-colored glyph
+           tile. The pin you are currently VIEWING wraps in the kind-colored
+           bubble (expanded) / inverts to a solid fill (parked). Activating
+           opens the element's viewer; an expanded row also parks the panel so
+           the destination lands in full view. -->
       <SidePanelItem
         v-for="p in listPins"
         :key="p.pin_link_id"
+        class="pins-item"
         :collapsed="win.minimized"
         :kind="kindKeyOf(p)"
         :hash="hashOf(p.target_ref)"
@@ -116,41 +103,58 @@
       </SidePanelItem>
     </div>
 
-    <!-- ── THE TACK LIVES HERE NOW (2026-08-02, user ask: "make sure the pin
-         button is contained inside [the pinned side bar], and that the
-         sidebar is on top of the footer"). The column runs to the WINDOW
-         FLOOR and lies over the nav bar, so its last `--nav-bar-h` IS the
-         bar's row — and this block rebuilds that row inside the widget,
-         exactly as the left drawer's `.drawer-footer` rebuilds it around the
-         burger: the shared `--plaque-coat`, a `--grey-6` `border-top` landing
-         on the same pixel as the bar's own, and the 41px grey-6 rail slot +
-         1px hairline at the end that faces the page, holding the inverted
-         grey chip (all four were browns until 2026-08-18's palette ask). The
-         two mirror each other across the window — the drawer's slot sits at
-         its LEFT end, this one at its RIGHT, both flush to their screen edge.
-         The bar keeps a tack of its own for the one case this column is
-         absent (mobile, where both side widgets hide) — see NavigationBar. -->
-    <div class="pins-footer">
-      <div class="pins-footer-hairline" />
-      <div class="tack-slot">
+    <!-- The second band, INSIDE the panel between the well and the header —
+         the flyout's band in the flyout's own position (the one line between
+         a box's bar and its well; this box's bar is at the bottom). Expanded
+         only, like its twin above. -->
+    <FriezeBar v-if="!win.minimized" slim class="pins-frieze pins-frieze--inner" />
+
+    <!-- Header/controls box at the BOTTOM of the expanded panel (the stack's
+         arrangement): the bar ITSELF parks the widget (a touch affordance —
+         hover already parks it on the way out). Minimize-only: the pins
+         panel has no nav-bar button, so it parks to the strip instead of
+         closing (a full close would strand it). Holds, right to left: the
+         history control, THE TACK (moved in from the column's rebuilt bar
+         row, 2026-09-02 — its skin unchanged), the count. -->
+    <header v-if="!win.minimized" class="dock-bar dock-bar--park"
+      title="Park to the strip" @click="windows.minimizePanel('pins')">
+      <q-icon name="push_pin" size="14px" class="dock-bar__icon dock-bar__icon--pins" />
+      <span class="dock-bar__title nasalization">Pinned</span>
+      <q-space />
+      <span class="dock-bar__meta mono">
+        {{ pins.length }} pin{{ pins.length === 1 ? '' : 's' }}
+      </span>
+      <!-- The tack's seat swallows the click even when the pill is disabled
+           (a disabled q-btn is pointer-transparent — without this seat the
+           tap would fall through to the bar and park the widget). -->
+      <span class="pins-tack-seat" @click.stop>
         <q-btn
           round unelevated no-caps
-          class="tack-btn"
+          class="tack-btn pins-tack"
           :class="{ 'is-pinned': isCurrentPinned }"
           :disable="!pinnable"
-          @click="onTack"
+          @click.stop="onTack"
         >
           <q-icon name="push_pin" size="12px" :class="{ 'tack-filled': isCurrentPinned }" />
-          <q-tooltip>{{ pinnable ? (isCurrentPinned ? 'Unpin this' : 'Pin this') : 'Open a node, post, label or skeleton to pin it' }}</q-tooltip>
+          <q-tooltip anchor="top middle" self="bottom middle">{{ pinnable ? (isCurrentPinned ? 'Unpin this' : 'Pin this') : 'Open a node, post, label or skeleton to pin it' }}</q-tooltip>
         </q-btn>
-      </div>
-    </div>
+      </span>
+      <button type="button" class="dock-bar__action" @click.stop="onHistory">
+        <q-icon name="history" size="15px" />
+        <q-tooltip anchor="top middle" self="bottom middle">Pinned list history</q-tooltip>
+      </button>
+    </header>
 
-    <!-- The floor band that closed this column is gone (2026-08-12, user
-         ask): it only existed to continue the nav bar's own band across the
-         pixels this column owns past the footer, and the band itself left
-         with the crown strip. The rebuilt bar ROW above stays — the widget
-         still owns the bar's right end down to the window floor. -->
+    <!-- Parked replacement for the header: the head glyph — the DOM's last
+         child, which `row-reverse` puts at the strip's LEFT END (the stack's
+         glyph stands at its strip's right end; the two strips reflect each
+         other across the bar). Hovering anywhere on the strip expands the
+         panel; the tap stays for touch screens. 15px: the glyph rides inside
+         the 21px trail band, the nav buttons' own glyph-in-band chain. -->
+    <button v-else type="button" class="dock-side-head pins-side-head"
+      @click="windows.restorePanel('pins')">
+      <q-icon name="push_pin" size="15px" />
+    </button>
   </aside>
 </template>
 
@@ -169,8 +173,8 @@ export default defineComponent({
   name: 'PinsDrawer',
   components: { SidePanelItem, FriezeBar },
   props: {
-    // Bumped by the parent when pins mutate elsewhere (the nav bar's tack)
-    // so the widget stays in sync.
+    // Bumped by the parent when pins mutate elsewhere (the nav bar's fallback
+    // tack, a page's own cap) so the widget stays in sync.
     refreshKey: { type: Number, default: 0 }
   },
   emits: ['changed'],
@@ -184,10 +188,10 @@ export default defineComponent({
     const pins = ref([])
     const loading = ref(false)
     // Order explicitly oldest→newest by pin_skeleton_id (append order) so the
-    // ordering never rides on the API's response order. This widget rises from
-    // the nav bar and grows upward, so BOTH presentations render this order
-    // top→bottom: the NEWEST pin lands at the BOTTOM nearest the bar (and the
-    // tack right below it), older ones trailing UP toward the middle gap.
+    // ordering never rides on the API's response order. ONE order for both
+    // faces: the expanded column reads it top→bottom (newest at the bottom
+    // beside the header), the parked lane is row-reversed and reads it
+    // right→left (newest at the left beside the head glyph).
     const listPins = computed(() =>
       [...pins.value].sort((a, b) => (a.pin_skeleton_id || 0) - (b.pin_skeleton_id || 0)))
     // target_ref → refs summary ({ primary, route, … }): real titles for the
@@ -227,13 +231,19 @@ export default defineComponent({
       { immediate: true }
     )
 
-    // Bottom-anchored list: pin the scroll to the bottom (newest) whenever the
-    // pins change, so the latest pin shows first even when the list overflows
-    // the half-height cap.
+    // End-anchored list: pin the scroll to the NEWEST end whenever the pins
+    // change — the bottom expanded, the LEFT end parked. ⚠ ROW-REVERSE'S
+    // COORDINATE: a `flex-direction: row-reverse` scroller puts its origin at
+    // the RIGHT edge (main-start) and counts scrollLeft NEGATIVE leftward, so
+    // "the left end" is the most negative value, and assigning a number past
+    // the range simply clamps to it. Setting both axes is cheaper than
+    // branching: each face has one live axis and the other is a no-op.
     const listEl = ref(null)
     const scrollToNewest = () => {
       const el = listEl.value
-      if (el) el.scrollTop = el.scrollHeight
+      if (!el) return
+      el.scrollTop = el.scrollHeight
+      el.scrollLeft = -el.scrollWidth
     }
     watch(
       () => pins.value.length,
@@ -241,19 +251,27 @@ export default defineComponent({
       { immediate: true }
     )
 
-    // ONE scroller across both presentations: the park/expand morph swaps the
-    // item faces (different heights), so carry the relative scroll position —
-    // not the raw pixel offset — through the flip.
+    // ONE scroller across both presentations, and the morph is an AXIS
+    // ROTATION (the stack's own law since 2026-08-30): expanded scrolls
+    // vertically, parked horizontally — in the negative coordinate, so the
+    // ratio is taken on magnitudes. Read the OLD face's axis pre-flush (the
+    // watcher runs before the DOM patches) and apply the ratio to the NEW
+    // face's axis after.
     watch(
       () => win.value.minimized,
-      () => {
+      (parked) => {
         const el = listEl.value
         if (!el) return
-        const max = el.scrollHeight - el.clientHeight
-        const ratio = max > 0 ? el.scrollTop / max : 1
+        const oldMax = parked
+          ? el.scrollHeight - el.clientHeight // was expanded: vertical
+          : el.scrollWidth - el.clientWidth //  was parked:   horizontal
+        const oldPos = parked ? el.scrollTop : Math.abs(el.scrollLeft)
+        const ratio = oldMax > 0 ? oldPos / oldMax : 1
         nextTick(() => {
-          const target = listEl.value
-          if (target) target.scrollTop = ratio * (target.scrollHeight - target.clientHeight)
+          const t = listEl.value
+          if (!t) return
+          if (parked) t.scrollLeft = -(ratio * (t.scrollWidth - t.clientWidth))
+          else t.scrollTop = ratio * (t.scrollHeight - t.clientHeight)
         })
       }
     )
@@ -281,11 +299,11 @@ export default defineComponent({
       return !!(t && p.target_type === t.targetType && Number(p.target_id) === t.targetId)
     }
 
-    // ── The TACK, moved in from the nav bar (2026-08-02) ─────────
-    // Everything it needs is already here, so the move cost NO new request:
-    // `currentTarget` is the same route parse the bar did, and the pinned
-    // state is an O(pins) match against the rows this widget already holds —
-    // where the bar had to ask `GET /pins/check` on every route change.
+    // ── The TACK (in the bar until 2026-08-02, in the column's rebuilt bar
+    // row until 2026-09-02, in the expanded header since) ─────────
+    // Everything it needs is already here, so it costs NO request:
+    // `currentTarget` is the same route parse the bar does, and the pinned
+    // state is an O(pins) match against the rows this widget already holds.
     const pinnable = computed(() => !!currentTarget.value)
     const isCurrentPinned = computed(() => pins.value.some(isCurrent))
 
@@ -310,9 +328,10 @@ export default defineComponent({
       (p.target_id ? kindFor(p.target_type).route?.(p.target_id) : null)
 
     // Opens the pinned element's viewer. Expanded rows also park the widget so
-    // the destination lands in full view (the list stays one tap away); parked
-    // chips keep the presentation as-is. A parked chip with no resolvable
-    // route expands the panel instead, so the row face can show what it is.
+    // the destination lands in full view (the list stays one hover away);
+    // parked tiles keep the presentation as-is. A parked tile with no
+    // resolvable route expands the panel instead, so the row face can show
+    // what it is.
     const openPin = (p) => {
       const target = routeOf(p)
       if (!target) {
@@ -324,10 +343,9 @@ export default defineComponent({
     }
 
     // Hover-driven presentation (2026-07-24): resting the pointer on the
-    // parked column expands the panel after a short intent delay (so a
-    // pointer flung at the screen edge doesn't pop it open), and leaving
-    // parks it back. The head glyph / amber dot keep their taps for touch
-    // screens, where hover doesn't exist.
+    // parked strip expands the panel after a short intent delay (so a
+    // pointer crossing the bar doesn't pop it open), and leaving parks it
+    // back. The head glyph keeps its tap for touch screens.
     let hoverTimer = null
     const onHoverEnter = () => {
       if (!win.value.minimized) return
@@ -374,11 +392,11 @@ export default defineComponent({
       } catch (_) { /* leave the pins as is */ }
     }
 
-    // The widget runs to the WINDOW FLOOR and lies OVER the nav bar since
-    // 2026-08-02 (it stopped at the bar's top edge before), so it has to
-    // outrank that bar — which went topmost at 3110 the same week. 3120 is the
-    // left drawer's own number, the other column that deliberately covers the
-    // bar's end; the two never overlap, so they can share it.
+    // The widget stands inside the footer bar's right run (2026-09-02): 3120
+    // clears the bar's own 3110 and every dock under it, and stays under the
+    // stack strip's 3130 at the other end — the two never overlap, so the
+    // order between them is moot. (3120 was the number it took on 2026-08-02
+    // to lie over the bar's right end as a column; nothing changed.)
     const EDGE_Z = 3120
 
     return { win, windows, pins, listPins, summaries, loading, copiedId, listEl, kindKeyOf, hashOf, isCurrent, openPin, onHoverEnter, onHoverLeave, railTitle, onUnpin, onCopy, onHistory, pinnable, isCurrentPinned, onTack, EDGE_Z }
@@ -387,193 +405,157 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-// Shell, header bar, traffic lights and head glyph come from the shared
-// .dock-window / .dock-side-head styles in src/css/_components.scss —
-// only the drawer's own dimensions and list styling live here.
-//
-// Anchored to sit directly ON TOP of the nav bar (bottom: --nav-footer-h) so
-// the pinned list and the nav bar's pin tack read as one blended right-edge
-// column. ONE element with two presentations (2026-07-24, third pass):
-// `.is-parked` narrows it to the icon column (--dock-rail-w); both grow UP to
-// at most `--dock-pins-h` (27vh — the pinned set's 30% share of the 90vh side
-// band, against the stack's 70%) and shrink to fit when there are only a few
-// pins. The shared .dock-window width transition animates the
-// morph. Only the top (leading edge toward the middle gap) and left (toward
-// the page) edges wear a thin classic 1px `--grey-6` border; the bottom (flush
-// with the bar) and the right (screen edge) meet bare. Rounded top-left corner
-// kept (free corner).
-// ── AND SINCE 2026-08-02 IT RUNS TO THE WINDOW FLOOR (user ask) ──
-// `bottom: 0`, not the bar's top edge: the column lies OVER the nav bar's
-// right end and its last `--nav-footer-h` IS that bar's chrome, rebuilt inside
-// the widget by `.pins-footer` (the row, around the tack — the
-// `.pins-floor-frieze` band under it left with the crown strip). This is the exact
-// arrangement the left drawer took the same day — two columns bounding the
-// window, each owning the strip of bar under it. The cap grows by the same
-// token so the LIST keeps its `--dock-pins-h` share of the side band: the
-// footer is chrome the widget gained, not space taken from the pins.
-.pins-drawer {
+// Shell, header bar and head glyph come from the shared .dock-window /
+// .dock-side-head styles in src/css/_components.scss — only the pins
+// widget's own dimensions and list styling live here, and since 2026-09-02
+// they are STACKPANEL'S, REFLECTED (user ask: "the same style as the stack
+// bar … the extended version … copy the style that the stack bar already
+// has"). Read StackPanel.vue's style block for the arguments behind each
+// number; this file states only where the mirror differs: `right` for
+// `left`, `row-reverse` for `row`, the lane's LEFT end rounded, the cast
+// thrown leftward, the head glyph at the left. The right-edge column's own
+// styles (2026-07-24 → 09-02: the `--dock-rail-w` parked column, the
+// `.pins-footer` rebuilt bar row around the tack, the top-left free corner)
+// are in git.
+.pins-window {
+  // The mirror seat: INSIDE the footer bar, `right: var(--nav-dash-w)` —
+  // BESIDE the dashboard block at the bar's right end (never covered, as
+  // the stack strip never covers the identity section at `left:
+  // var(--nav-id-w)`). The expanded panel rises from the same seat; the
+  // header at its bottom IS this widget's bar row.
   top: auto;
   bottom: 0;
-  right: 0;
-  max-height: calc(var(--dock-pins-h) + var(--nav-footer-h));
-  // 1px `--grey-6` edges since 2026-08-18's palette ask (brown-4 before) — the
-  // trio's rim ink, the same line the stack widget, the frieze bands and the
-  // media tabs rail wear.
-  border-top: 1px solid var(--grey-6);
-  border-right: none;
+  left: auto;
+  right: var(--nav-dash-w);
   border-bottom: none;
-  border-left: 1px solid var(--grey-6);
-  border-top-left-radius: var(--radius-lg);
-  border-bottom-left-radius: 0;
-  // The shared `--plaque-coat` since 2026-08-17 (user ask) — a --light-cream
-  // sheet under a 30% --grey-3 veil, the same two layers the nav bar, the left
-  // drawer and the stack widget took that session, so the window's chrome
-  // edges stay ONE material. It was a flat brown-1 plaque before, and the rest
-  // of the recipe is unchanged: no sheen gradients, both presentations, opaque
-  // (no backdrop blur). Shadow drops upward (the widget rises from the bottom)
-  // PLUS the shared left-edge cast (`--shadow-side-edge`, 2026-07-24) that the
-  // stack widget and the nav bar's pin-tack slot also wear — the right-edge
-  // column lies on top of the page as one raised strip, in BOTH presentations
-  // (this rule is state-agnostic). The panel's borders and its inset well
-  // JOINED IT in the grey family on 2026-08-18 (user ask) — `--grey-6` rims,
-  // `--grey-4` wells, tone-for-tone with the brown-4/brown-2 pair they
-  // replace — so the well still reads as a step sunk under the paler coat.
-  background: var(--plaque-coat);
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
-  box-shadow:
-    0 -10px 40px rgba(var(--ink-rgb-deep), 0.18),
-    var(--shadow-side-edge);
 
+  // ONE WIDTH, BOTH FACES — `--stack-w`, the stack's own dial (the two
+  // strips and the two panels are one number apart from nothing). Expanded
+  // shrink-fits vertically up to the stack's cap; the last --nav-footer-h is
+  // bar chrome the widget lies over, not space taken from the list.
   &:not(.is-parked) {
-    width: 300px;
+    width: var(--stack-w);
     max-width: 96vw;
+    height: auto;
+    bottom: 0;
+    max-height: calc(var(--dock-stack-h) + var(--nav-footer-h));
+    background: var(--plaque-coat);
+    // Rims on the three exposed edges (the floor stays bare), BOTH top
+    // corners rounded; the shared shell's `overflow: hidden` clips the top
+    // band into the curve. Shadow rises plus a LEFT-edge cast — the stack's
+    // rightward `5px 0 12px` with its x-offset sign flipped, which is
+    // `--shadow-side-edge` itself: the token this widget wore as a column.
+    border-top: 1px solid var(--grey-6);
+    border-right: 1px solid var(--grey-6);
+    border-left: 1px solid var(--grey-6);
+    border-top-left-radius: var(--radius-lg);
+    border-top-right-radius: var(--radius-lg);
+    border-bottom-left-radius: 0;
+    box-shadow:
+      0 -10px 40px rgba(var(--ink-rgb-deep), 0.18),
+      -5px 0 12px rgba(var(--ink-rgb-deep), 0.16);
   }
 
   &.is-parked {
-    width: var(--dock-rail-w);
+    // INSIDE THE TRAIL: the band's interior (`--nav-chip-h`, one row in from
+    // each of its rules), the bar's odd-parity centring formula mirrored for
+    // `bottom`, the bar's own coat, the trail chips' grey-5 rim on the
+    // VERTICALS ONLY (the band's rules are the strip's top and bottom
+    // edges), no radius, no cast — StackPanel's `.is-parked`, to the pixel.
+    // ROW-REVERSE is the one line that differs: the DOM's last child (the
+    // head glyph) stands at the LEFT END and the lane fills rightward from
+    // it, so the two strips reflect each other across the bar.
+    flex-direction: row-reverse;
+    align-items: center;
+    height: var(--nav-chip-h);
+    bottom: calc((var(--nav-bar-h) - 1px - var(--nav-chip-h)) / 2);
+    width: var(--stack-w);
+    // The guard the stack's 48vw cap is, mirrored: never into the docks'
+    // left half — moot at `--stack-w` 240px, stated for the day the dial
+    // moves.
+    max-width: calc(48vw - var(--nav-dash-w));
+    background: var(--plaque-coat);
+    border: 1px solid var(--grey-5, #bdbdbd);
+    border-top-width: 0;
+    border-bottom-width: 0;
+    border-radius: 0;
+    box-shadow: none;
   }
 }
 
-// Header bar lives at the TOP of the expanded panel; shares the panel's
-// `--plaque-coat` with NO bottom border or hairline so it merges seamlessly
-// into the list body below (one uniform plaque — it followed the panel out of
-// brown-1 on 2026-08-17, and has to: a header row is the one place a coat
-// mismatch would draw a line where the whole point is that there is none).
-.pins-drawer .dock-bar {
+// Header bar at the BOTTOM of the expanded panel, sharing the plaque with no
+// top or bottom line so it merges into the list body above it (the stack's
+// own header rule).
+.pins-window .dock-bar {
   background: var(--plaque-coat);
   border-top: none;
   border-bottom: none;
+  gap: 6px;
 }
 
-// Icon + title ink comes from the shared `.dock-bar--park` rule (--grey-9,
-// 2026-07-24 8th pass) — the old coral tint on this glyph is gone, the info
-// box reads as one consistent piece of chrome.
+// Parked head glyph at the strip's LEFT END (the DOM's last flex child under
+// `row-reverse`), riding the band at its full height — the stack's 20px
+// seat, the shared .dock-side-head's --dock-bar-h box overridden (a 30px box
+// cannot stand inside a 19px strip).
+.pins-side-head {
+  margin: 0;
+  align-self: stretch;
+  width: 20px;
+  height: 100%;
+}
 
-// Parked head glyph sits at the top, exactly where the header goes when
-// expanded and exactly as tall as it (--dock-bar-h, shared chrome) — no extra
-// margin, or the list box below it would shift between presentations.
-.pins-side-head { margin: 0; }
+// THE THREE TILES — the stack's: each parked pin is SidePanelItem's rail
+// face, the glyph alone, in a seat exactly a third of the lane's content box
+// (gaps paid first; 70px at `--stack-w` 240). More than three pins scroll
+// the lane, newest first from the left.
+.pins-list.is-parked :deep(.side-item__btn--rail) {
+  flex: 0 0 calc((100% - 2 * var(--side-item-gap)) / 3);
+  width: auto;
+  min-width: 0;
+}
 
-// The frieze band under the header / pin glyph must keep its full height in
-// the flex column (the list below it is the shrinking scroller). Same box as
-// the stack's inner band — plain `--frieze-bar-h` (0.96 × `--frieze-h` via
-// the trio rule since the same sitting's trim walk), no crown lip of its own: neither
-// of them stands in for the crown strip, so the pair reads identically across
-// the two widgets. Palette: the SIDE CHROME TRIO rule in `_components.scss`
-// since 2026-08-17 (user ask) — three paints and nothing else since
-// 2026-08-21's from-scratch ask: `--grey-8` plate, `--grey-2` thick wave,
-// `--grey-4` other wave, carve and rims off (an orange↔teal gradient weave
-// 08-17 → 08-21, then one rimmed grey pass, before it) — shared by name
-// with the stack's pair and the drawer's bands. (The nav bar's trail wore these
-// same three paints on the window's FLOOR for half of 2026-08-23 and left the
-// rule when a later ask gave it its own palette — a `--grey-6` plate under one
-// `--light-cream` tone, by way of an inverted cream-plate hour; it keeps the
-// fit and the carve-off argument and states its paints itself.)
+// ── THE BANDS ARE THE FLYOUT'S (2026-09-02) — StackPanel's `.stack-frieze`
+// rule verbatim: `FriezeBar slim` with `ElementFlyout.vue`'s two paint dials
+// and NOTHING ELSE — no scoped height (slim's own `calc(--frieze-h / 2)` is
+// the flyout's box), no fixed fit, the carve on, no `flip` (the flip was
+// minted for THIS widget's right-edge days; it stands on the bar now, where
+// the un-flipped bands stood). `.pins-frieze` LEFT the side-chrome rule in
+// `_components.scss` for it (the drawer's alone now).
+// ⚠ DO NOT RESTATE `height:` HERE — a host-side height with a full
+// `--frieze-h` fallback defeats `slim` (specs/gotchas.md, 2026-09-02).
 .pins-frieze {
-  flex-shrink: 0;
-  height: var(--frieze-bar-h, var(--frieze-h));
+  flex: 0 0 auto;
+  --frieze-bar-base: var(--grey-8, #616161);
+  --frieze-bar-wave-two: var(--brown-1, #efebe9);
 }
 
-// ── The widget's own nav-bar row (2026-08-02) ───────────────
-// The column reaches the floor now, so its last --nav-footer-h lands exactly
-// on the bar underneath. Rather than hide the bar there, this block REBUILDS
-// that row inside the widget — the mirror image of MainLayout's
-// `.drawer-footer` at the other end of the window: the same `--plaque-coat`
-// (both surfaces took it on 2026-08-17, so this block still agrees with the
-// widget it lives in AND the bar it stands on), a top lip on the same pixel as
-// the bar's `border-top` — `--grey-6`, THE SAME INK as the bar's since the
-// palette ask later that day walked this line (the note here had predicted it:
-// for a few hours two different inks landed on one pixel) — and
-// the same 41px rail block, here at the RIGHT end (flush to the screen
-// edge, under the parked column's own body) with its closing hairline facing
-// the page. Whatever the widget's width — 42px parked, 300px expanded — the
-// bar reads as continuous; the column just owns those pixels.
-//
-// --nav-bar-h, the ROW. That was a real distinction in the two-band era
-// (2026-08-02 → 08-12): the chrome was this row PLUS a --frieze-h floor band
-// and the column rebuilt both. The band is gone and --nav-footer-h IS the row
-// now, so the two agree; the row is what this block rebuilds either way.
-.pins-footer {
-  flex: 0 0 auto;
-  display: flex;
-  align-items: stretch;
-  justify-content: flex-end;         // the slot hugs the screen edge
-  height: var(--nav-bar-h);
-  background: var(--plaque-coat);
-  // `--grey-6`, the nav bar's own `border-top` ink, since 2026-08-17's palette
-  // ask (brown-3 before): the bar's border and this column's rebuild of it land
-  // on the same pixel, so they must be the same line.
-  border-top: 1px solid var(--grey-6);
-  overflow: hidden;                  // clips the hairline in the 42px parked state
-}
-
-.pins-footer-hairline {
-  flex: 0 0 auto;
-  width: 1px;
-  background: var(--grey-6);
-}
-
-// NavigationBar's `.tack-slot` to the pixel: the column's darker rail coat
-// (`--grey-6` since 2026-08-18's palette ask, brown-4 before — this slot KEEPS
-// its coat; only the left drawer's twin went transparent, by its own ask),
-// --dock-rail-w less the hairline that closes it, the chip floating centred.
-.pins-footer .tack-slot {
-  flex: 0 0 auto;
-  width: calc(var(--dock-rail-w) - 1px);
-  display: flex;
+// ── THE TACK, in the header (2026-09-02) ───────────────────
+// The seat is a plain inline box so its `@click.stop` (template) keeps a
+// tap on a DISABLED pill from falling through to the bar underneath, which
+// would park the widget.
+.pins-tack-seat {
+  display: inline-flex;
   align-items: center;
-  justify-content: center;
-  background: var(--grey-6);
+  flex: 0 0 auto;
 }
 
-// The chip: NavigationBar's tack, and since 2026-08-22 (user ask) that is
-// NodeMini's ROUND PILL — the rounded button with the kind glyph at the top-left
-// corner of a node quoted inside a post card, lifted whole onto the pin button
-// with its one coloured line swapped from teal to `--red-13`. `--grey-3` fill,
-// a `--grey-5` hairline RING outside the box and SEAM inside its bottom edge,
-// a 2px red BASE curving along the bottom arc, `--grey-8` ink with the glyph's
-// hairline stroke. PINNED closes that base into a full 2px ring and hands the
-// pushpin the same red; hover lifts the pale face to `--grey-1` and never
-// borrows the base's colour (--teal-12/-13's rule: an object's own mark and the
-// pointer's are never the same at once).
-//
-// It was a flat inverted circle before — grey-9 face + rim, grey-3 pushpin,
-// inset top highlight, one step LIGHTER at grey-8 on hover since a dark chip
-// lifts, inverting to a grey-3 face with a grey-9 rim while the element you are
-// looking at was pinned; brown-8 / brown-1 / brown-7 before 2026-08-18's palette
-// ask. Every one of those states spoke in VALUE, which a pale-throughout pill
-// cannot, and that is why the pinned state moved onto the mark.
-//
-// This block and NavigationBar's are kept identical BY HAND — one of the two
-// stands at a time (the bar keeps its copy for mobile and for a closed pins
-// panel, this one for every arrangement where the column is up), so a drift here
-// shows up as the same corner changing skin when a panel opens.
-.pins-footer .tack-btn {
-  width: 24px;
-  height: 24px;
-  min-width: 24px;
-  min-height: 24px;
+// The pill: NodeMini's ROUND PILL on the pin button (2026-08-22, user ask),
+// its skin unchanged by the move — `--grey-3` fill, a `--grey-5` hairline
+// RING outside the box and SEAM inside its bottom edge, a 2px `--red-13`
+// BASE curving along the bottom arc, `--grey-8` ink with the glyph's
+// hairline stroke. PINNED closes that base into a full 2px ring and hands
+// the pushpin the same red; hover lifts the pale face to `--grey-1` and
+// never borrows the base's colour. 22px here (24 in the bar's slot): the
+// header is a 30px row and the pill wants air above and below its ring.
+// This block and NavigationBar's `.tack-btn` are kept identical BY HAND but
+// for the diameter — one of the two stands at a time (the bar's on mobile).
+.pins-window .tack-btn {
+  width: 22px;
+  height: 22px;
+  min-width: 22px;
+  min-height: 22px;
   padding: 0;
   border-radius: 50%;
   background: var(--grey-3, #eeeeee);
@@ -590,18 +572,14 @@ export default defineComponent({
     transition: transform 0.14s ease;
   }
 
-  // A pale chip lifts by going PALER — the mirror of the rule the dark chip
-  // that stood here used to follow.
   &:hover:not(.q-btn--disable) { background: var(--grey-1, #fafafa); }
 
   &.is-pinned {
     border: 2px solid var(--red-13, #ff1744);
-    box-shadow: none;                // the ring takes the rim's job; no doubling
+    box-shadow: none;
     color: var(--red-13, #ff1744);
 
     .q-icon { color: var(--red-13, #ff1744); }
-    // 22° rotation to mimic a pushpin pressed in — the bar's own tack tips
-    // the same way, since this is that button moved, not a new one.
     .q-icon.tack-filled { transform: rotate(-22deg); }
 
     &:hover { background: var(--grey-1, #fafafa); }
@@ -627,57 +605,50 @@ export default defineComponent({
   .pins-empty-hint  { margin-top: 6px; font-size: 0.78em; line-height: 1.4; }
 }
 
+// The list — StackPanel's `.stack-list` reflected. Expanded: the inset
+// `--grey-4` well under a `--grey-6` rim, 8px of reveal all round (it meets a
+// band above AND below now — the two-band bracket the stack has), a flex
+// column with the shared gap, the one scroller. Parked: the SAME scroller
+// rotated onto the x axis and REVERSED.
 .pins-list {
-  // Inset scroll well: a margin all around keeps a reveal of the plaque, and
-  // the rounded corners keep the well's edges soft — the border-radius also
-  // clips the scrolling rows, so nothing pokes out square.
-  // Floor is **grey-4** and the rim **grey-6**, in BOTH presentations; the rim
-  // matches the widget's own outer border. (brown-2 / brown-4 until
-  // 2026-08-18's palette ask; the floor went a step lighter than the rim on
-  // 2026-07-24 so the well reads as a soft recess under the plaque rather than
-  // a dark trough, and that step is what the grey pair preserves.)
-  // The rows themselves are SidePanelItems.
-  // The well's TOP now meets a frieze band, so that edge gets the wider **8px**
-  // reveal the stack uses against its own bands (2026-07-24 — it was 3px when a
-  // bare header sat there): a carved wave band needs more air than a flat
-  // plaque edge. The bottom keeps 6px — it meets the widget's own edge on the
-  // nav bar, not a band. Whatever the numbers, they must be the SAME in BOTH
-  // faces, since an asymmetric margin would move the list box between
-  // presentations and break the in-place unravel once the pins overflow the cap.
-  margin: 8px 6px 6px;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  margin: 8px 6px;
   padding: 4px 6px;
   background: var(--grey-4);
   border: 1px solid var(--grey-6);
   border-radius: var(--radius-md);
-  overflow-y: auto;
-  overflow-x: hidden; // rows ellipsize — never show a horizontal scrollbar
-  min-height: 0; // let the list shrink + scroll once the panel hits its cap
-  // Flex column in BOTH presentations (never block flow): the shared
-  // --side-item-gap must land between every pair of pins identically, and
-  // block-flow margins would collapse where flex gaps do not. The vertical
-  // padding above/below matches the parked face exactly, so every pin keeps
-  // its level through the morph.
   display: flex;
   flex-direction: column;
   gap: var(--side-item-gap);
-  // No scrollbar-width/color here: any non-auto value makes Chrome 121+ ignore
-  // the ::-webkit-scrollbar-* styling below (square grey thumb, no radius).
-  // Track matches the well floor (`--grey-4` since 2026-08-18, brown-2 before)
-  // so only the thumb reads; the thumb keeps the well's rim ink, `--grey-6`.
   &::-webkit-scrollbar       { width: 5px; }
   &::-webkit-scrollbar-track { background: var(--grey-4); border-radius: 999px; }
   &::-webkit-scrollbar-thumb { background: var(--grey-6); border-radius: 999px; }
 
-  // Parked face of the SAME scroller: narrowed to the icon column, chips
-  // centered, same vertical padding + gap as above so the pins keep their
-  // levels, scrollbar hidden (scrollbar-width: none makes Chrome 121+ skip
-  // the ::-webkit-scrollbar styling above and hide it too).
-  // Side margins tighten to 2px here so the chips sit closer to the column's
-  // edges; the vertical margins stay exactly as above.
+  // Parked face: the stack's lane, reflected — full-bleed `--grey-4` under
+  // its `--grey-6` rim, zero margin, the 1px horizontal pad that pays for the
+  // rim (17px tiles on the same pixel as the stack's), `flex: 1 1 auto` to
+  // fill the fixed strip up to the head glyph, `row-reverse` so the newest
+  // pin (DOM-last) lands at the LEFT beside the glyph and older ones flow
+  // right and scroll off, and the LEFT end alone rounded — 7px curving into
+  // the coat before the glyph, the right edge square against the strip's
+  // own edge (the stack rounds its right end; same radius, other side).
   &.is-parked {
-    margin: 8px 2px 6px;
-    padding: 4px 0;
+    --side-item-h: 17px;
+    --side-item-gap: 2px;
+    flex-direction: row-reverse;
     align-items: center;
+    align-self: stretch;
+    flex: 1 1 auto;
+    min-width: 0;
+    margin: 0;
+    padding: 0 1px;
+    background: var(--grey-4);
+    border: 1px solid var(--grey-6);
+    border-radius: 7px 0 0 7px;
+    overflow-x: auto;
+    overflow-y: hidden;
     scrollbar-width: none;
   }
 }

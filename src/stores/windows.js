@@ -11,20 +11,22 @@ import { defineStore } from 'pinia'
 //
 // The stack/pins side bars are each ONE element with two presentations
 // (2026-07-24, third pass — the separate rail tree is gone): expanded = the
-// 300px panel, parked = the SAME element flattened to a thin icon rail, its
+// `--stack-w` panel, parked = the SAME element flattened to a strip, its
 // one list scroller persisting through the morph. They bounded the right edge
 // together (stack top half, pins bottom half) until 2026-08-30, when the
 // STACK MOVED ONTO the footer bar's inner frieze band (three user asks one
-// sitting) — a dense chip row riding the trail's own box beside the
-// burger's rail slot when parked, the panel rising from that seat to the
-// window floor expanded — so the right-edge column is the PINS widget's
-// alone now.
-// `railWidth` is that parked column's width — kept as a PERMANENT reserve
-// (the page content pads right by it, and `dockRight` shifts the OTHER
-// bottom docks left beside it) so nothing reflows when a panel expands; the
-// expanded panels are transient overlays above everything anyway. Nothing
-// reserves for the stack: parked it lives inside chrome the layout already
-// pays for (the bar), and expanded it is a transient overlay like the rest.
+// sitting) — a chip row riding the trail's own box beside the bar's left
+// end when parked, the panel rising from that seat to the window floor
+// expanded — and ⭐ ON 2026-09-02 THE PINS WIDGET FOLLOWED (user ask): it is
+// the stack strip's MIRROR at the trail's RIGHT run, beside the full-height
+// dashboard block at the bar's right end. THE RIGHT-EDGE COLUMN IS GONE:
+// `railKeys` is empty, `railWidth` / `dockRight` / `footerPanelInset` all
+// read 0 (kept as getters so their consumers — MainLayout's page padding,
+// every dock's `--dock-right`, the minitab strip — need no rewiring), and
+// nothing reserves for either strip: parked, each lives inside chrome the
+// layout already pays for (the bar — `.nav-right` pads for the pins strip
+// by `--stack-w` the way the trail stops at the stack strip's edge), and
+// expanded each is a transient overlay like the rest.
 
 // The docks' z floor sits ABOVE the feed page's opaque surfaces and BELOW
 // every piece of chrome that must stay reachable (2026-07-27). The feed
@@ -37,16 +39,11 @@ import { defineStore } from 'pinia'
 // since 2026-08-30 and must out-paint it; the side widgets stay above every
 // dock, parked or expanded, by their own fixed EDGE_Z constants).
 const Z_BASE = 3010
-// One parked-column slot: 42px column + 4px gap. Keep in sync with
-// --dock-rail-w in css/_tokens.scss (the parked panels' width).
-const RAIL_W = 46
-// Expanded PINS panel width — keep in sync with the 300px in PinsDrawer.
-// (The stack's panel read this number too until 2026-09-02; it has its own
-// dial now — `--stack-w` in css/_tokens.scss, 240px, shared by BOTH its
-// faces — and nothing in this store reserves for it.) The pins panel/rail
-// sits just above the footer's right end, so the minitab strip (which shares
-// that band) insets by this much to stay clear of it.
-const PANEL_W = 300
+// (RAIL_W 46 — the parked right-edge column + its gap — and PANEL_W 300 —
+// the expanded pins column — are RETIRED as of 2026-09-02: the pins widget
+// rides the footer trail now, sized by `--stack-w` like the stack, and no
+// layout reserve is left to compute. The getters below state 0 in their
+// place.)
 
 const STORAGE_KEY = 'pathos_windows'
 
@@ -62,10 +59,15 @@ const STORAGE_KEY = 'pathos_windows'
 // bar and all six docks — already holds this store, and the offsets are
 // window geometry exactly the way `dockRight` is.
 const TRAIL_KEY = 'pathos_nav_trail'
-// The six draggable chips, keyed by the window each one opens. The two
-// rail-slot chips (burger, tack) and the stack strip are NOT here — they
-// are the trail's fixed flanks, the walls the drag clamps against.
-const TRAIL_CHIPS = ['maker', 'skeletonBuilder', 'labelMaker', 'uploader', 'chat', 'dashboard']
+// The FIVE draggable chips, keyed by the window each one opens. The bar's
+// two end blocks (the identity section, the dashboard block — ⭐ the
+// dashboard chip LEFT the trail on 2026-09-02, user ask: "remove the
+// draggable properties from the dashboard button and make the button occupy
+// the whole height like the identity section") and the two strips (stack at
+// the left run, pins at the right) are NOT here — they are the trail's
+// fixed flanks, the walls the drag clamps against. A stale persisted
+// `dashboard` key is simply not read.
+const TRAIL_CHIPS = ['maker', 'skeletonBuilder', 'labelMaker', 'uploader', 'chat']
 
 function loadTrailOffsets () {
   const out = {}
@@ -83,11 +85,11 @@ function loadTrailOffsets () {
 function defaultPanels () {
   return {
     // Neither the stack nor the pins panel has a nav-bar toggle anymore, so
-    // both default to their parked rail — always reachable at their edge
-    // (pins: the right column over the tack; stack: the chip row riding the
-    // footer trail's left run since 2026-08-30), expanding on hover (head
-    // glyph taps for touch) — instead of starting fully closed (which, with
-    // no opener left, would strand them).
+    // both default to their parked strip — always reachable on the footer
+    // trail (stack: its left run since 2026-08-30; pins: its right run,
+    // beside the dashboard block, since 2026-09-02), expanding on hover
+    // (head glyph taps for touch) — instead of starting fully closed
+    // (which, with no opener left, would strand them).
     stack: { open: true, minimized: true },
     pins: { open: true, minimized: true }
   }
@@ -144,27 +146,17 @@ export const useWindowsStore = defineStore('windows', {
       return i < 0 ? Z_BASE : Z_BASE + 1 + i
     },
 
-    // Open side panels at the RIGHT edge — drives the permanent column's
-    // presence. Pins only since the stack moved to the bottom-left corner
-    // (2026-08-30); the panel is always open, only its presentation flips.
-    railKeys: (s) => ['pins'].filter((k) => s.panels[k].open),
-
-    // One permanent column reserve — kept even while a panel is expanded (the
-    // expanded panel is a transient overlay; a constant pad avoids page
-    // reflow on every expand/collapse).
-    railWidth () { return (!this.isMobile && this.railKeys.length) ? RAIL_W : 0 },
-    dockRight () { return this.railWidth },
-
-    // The minitab strip shares the band just above the bar where the pins
-    // widget sits, so it clears the widget's current footprint: the parked
-    // icon column, or the full panel width when expanded. On mobile the
-    // widgets are hidden, so nothing insets.
-    footerPanelInset () {
-      if (this.isMobile) return 0
-      const p = this.panels.pins
-      if (!p.open) return 0
-      return p.minimized ? RAIL_W : PANEL_W
-    },
+    // ⭐ NO SIDE PANEL STANDS AT THE RIGHT EDGE SINCE 2026-09-02 — the pins
+    // widget rides the footer trail beside the dashboard block, as the stack
+    // has since 2026-08-30. The column reserve these four getters drove
+    // (page padding, the docks' `--dock-right`, the minitab inset) is
+    // therefore ZERO everywhere; they stay as getters so MainLayout, the six
+    // docks and NavigationBar keep reading one seam, and so a future
+    // right-edge widget has its wiring waiting.
+    railKeys: () => [],
+    railWidth () { return 0 },
+    dockRight () { return 0 },
+    footerPanelInset () { return 0 },
 
     // How far a trail chip stands off its flow seat — and, one binding away,
     // how far the window it opens rides with it. 0 on mobile: the chips
