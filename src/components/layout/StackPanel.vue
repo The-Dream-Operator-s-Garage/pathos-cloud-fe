@@ -98,6 +98,8 @@
         :author="authorOf(entry)"
         :current="i === historyIndex"
         :tooltip="entry.title + (i === historyIndex ? ' — you are here' : '')"
+        rail-icon-size="12px"
+        wide-current
         @activate="jumpToIndex(i)"
       >
         <template v-if="entry.isCheckpoint" #badges>
@@ -466,6 +468,14 @@ export default defineComponent({
       5px 0 12px rgba(var(--ink-rgb-deep), 0.16);
   }
 
+    // THE COAT'S NEGATIVE (2026-09-03, user ask: "invert the color palette
+    // for the stack bar and the pin bar inside the frieze bar so they look
+    // darker … a dark gray as main background and the light-cream as main
+    // contrasting color"): the parked strip alone leaves `--plaque-coat` for
+    // the `--strip-*` dials (_tokens.scss § THE FOOTER STRIPS' NIGHT COAT) —
+    // grey-8 plaque, grey-9 lane under a grey-7 rim, light-cream head glyph
+    // and tile faces. The verticals stay the band's grey-5: the trail's frame
+    // law, unchanged. The expanded panel above keeps the coat.
   &.is-parked {
     // INSIDE THE TRAIL (the sitting's third ask: "place the whole thing
     // inside the footer nav bar's inner frieze bar"): the strip sits on the
@@ -516,7 +526,7 @@ export default defineComponent({
     // so the strip's right edge still stops at 48vw, short of the creation
     // docks' 50vw half.
     max-width: calc(48vw - var(--nav-id-w, var(--dock-rail-w)));
-    background: var(--plaque-coat);
+    background: var(--strip-coat);
     // ⚠ SIDES ONLY, like the trail chips beside it (2026-08-30, the ask
     // after the flush fit: "there is still a gap on the top … Close it").
     // A grey-5 rim under the band's grey-6 rule read as a pale seam rather
@@ -558,6 +568,7 @@ export default defineComponent({
   align-self: stretch;
   width: 20px;
   height: 100%;
+  color: var(--strip-ink); // the head glyph on the dark strip (2026-09-03)
 }
 
 // THE THREE TILES (2026-09-02, user ask: "shows up to 3 elements") — each
@@ -573,10 +584,27 @@ export default defineComponent({
 // strip reads as three seats whatever the count. Height still comes from
 // the strip-scoped `--side-item-h: 17px` the rail face reads. (20px glyph-
 // only chips, shrink-fit, from 2026-08-30 until this.)
+// TWO PILLS + ONE WIDE (2026-09-03, user ask: "make its inner buttons less
+// wide too, and displaying up to 3 on the footer bar, except 2 should look
+// like tiny icon buttons and one of them should be a wide version where the
+// current place you're in, the last item information is displayed
+// gracefully (the node title and the hash, for example)"): every parked step
+// is a `--strip-tile-w` 20×17 capsule with a 12px glyph — the pins strip's
+// pill — EXCEPT the current one, which takes the rest of the lane (214 − 2×20
+// − 2×2 = 170px at `--stack-w`) as the LETTERED face (SidePanelItem
+// `wide-current`: glyph · title · hash). Three equal thirds (~70px) from
+// 2026-09-02 until this ask.
 .stack-list.is-parked :deep(.side-item__btn--rail) {
-  flex: 0 0 calc((100% - 2 * var(--side-item-gap)) / 3);
+  flex: 0 0 var(--strip-tile-w);
+  width: var(--strip-tile-w);
+  min-width: var(--strip-tile-w);
+  border-radius: 999px;
+}
+.stack-list.is-parked :deep(.side-item__btn--rail.is-current) {
+  flex: 1 1 auto;
   width: auto;
   min-width: 0;
+  padding: 0 7px 0 4px;
 }
 
 // ── THE BANDS ARE THE FLYOUT'S SINCE 2026-09-02 (user ask: "change the
@@ -701,6 +729,7 @@ export default defineComponent({
   // The radius also clips the scrolling chips at that end (overflow is
   // auto), the same soft-clip the expanded well's radius performs.
   &.is-parked {
+    --side-item-face: var(--strip-ink); // the tiles' cream face (2026-09-03)
     --side-item-h: 17px;
     --side-item-gap: 2px;
     flex-direction: row;
@@ -733,8 +762,8 @@ export default defineComponent({
     // the RIGHT end, the only edge standing free in the coat, is where the
     // line has to draw, and a rounded box cannot be outlined on one edge alone.
     padding: 0 1px;
-    background: var(--grey-4);
-    border: 1px solid var(--grey-6);
+    background: var(--strip-well);
+    border: 1px solid var(--strip-rule);
     border-radius: 0 7px 7px 0;
     overflow-x: auto;
     overflow-y: hidden;

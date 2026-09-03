@@ -85,6 +85,7 @@
         :author="summaries[p.target_ref]?.author?.username || null"
         :current="isCurrent(p)"
         :tooltip="railTitle(p)"
+        rail-icon-size="12px"
         @activate="openPin(p)"
       >
         <template #actions>
@@ -458,6 +459,14 @@ export default defineComponent({
       -5px 0 12px rgba(var(--ink-rgb-deep), 0.16);
   }
 
+    // THE COAT'S NEGATIVE (2026-09-03, user ask: "invert the color palette
+    // for the stack bar and the pin bar inside the frieze bar so they look
+    // darker … a dark gray as main background and the light-cream as main
+    // contrasting color"): the parked strip alone leaves `--plaque-coat` for
+    // the `--strip-*` dials (_tokens.scss § THE FOOTER STRIPS' NIGHT COAT) —
+    // grey-8 plaque, grey-9 lane under a grey-7 rim, light-cream head glyph
+    // and tile faces. The verticals stay the band's grey-5: the trail's frame
+    // law, unchanged. The expanded panel above keeps the coat.
   &.is-parked {
     // INSIDE THE TRAIL: the band's interior (`--nav-chip-h`, one row in from
     // each of its rules), the bar's odd-parity centring formula mirrored for
@@ -471,12 +480,12 @@ export default defineComponent({
     align-items: center;
     height: var(--nav-chip-h);
     bottom: calc((var(--nav-bar-h) - 1px - var(--nav-chip-h)) / 2);
-    width: var(--stack-w);
+    width: var(--pins-strip-w); // three pills + glyph (2026-09-03; --stack-w until then)
     // The guard the stack's 48vw cap is, mirrored: never into the docks'
     // left half — moot at `--stack-w` 240px, stated for the day the dial
     // moves.
     max-width: calc(48vw - var(--nav-dash-w));
-    background: var(--plaque-coat);
+    background: var(--strip-coat);
     border: 1px solid var(--grey-5, #bdbdbd);
     border-top-width: 0;
     border-bottom-width: 0;
@@ -504,16 +513,26 @@ export default defineComponent({
   align-self: stretch;
   width: 20px;
   height: 100%;
+  color: var(--strip-ink); // the head glyph on the dark strip (2026-09-03)
 }
 
 // THE THREE TILES — the stack's: each parked pin is SidePanelItem's rail
 // face, the glyph alone, in a seat exactly a third of the lane's content box
 // (gaps paid first; 70px at `--stack-w` 240). More than three pins scroll
 // the lane, newest first from the left.
+// THREE PILLS (2026-09-03, user ask: "less wide, almost circular … making sure
+// the icon looks good, even if it is smaller … up to three under its
+// constrained space"): each parked pin is a `--strip-tile-w` 20×17 capsule —
+// `border-radius` 999px on a 17px-tall face reads as a circle a hair wide —
+// around a 12px glyph (`rail-icon-size`, the template). Three of them + the
+// two 2px gaps ARE the lane's 64px content box at `--pins-strip-w`; every
+// pin past the third still scrolls in (row-reverse, the newest by the glyph).
+// A third of the lane each (70px at `--stack-w`) until this ask.
 .pins-list.is-parked :deep(.side-item__btn--rail) {
-  flex: 0 0 calc((100% - 2 * var(--side-item-gap)) / 3);
-  width: auto;
-  min-width: 0;
+  flex: 0 0 var(--strip-tile-w);
+  width: var(--strip-tile-w);
+  min-width: var(--strip-tile-w);
+  border-radius: 999px;
 }
 
 // ── THE BANDS ARE THE FLYOUT'S (2026-09-02) — StackPanel's `.stack-frieze`
@@ -635,6 +654,7 @@ export default defineComponent({
   // the coat before the glyph, the right edge square against the strip's
   // own edge (the stack rounds its right end; same radius, other side).
   &.is-parked {
+    --side-item-face: var(--strip-ink); // the tiles' cream face (2026-09-03)
     --side-item-h: 17px;
     --side-item-gap: 2px;
     flex-direction: row-reverse;
@@ -644,8 +664,8 @@ export default defineComponent({
     min-width: 0;
     margin: 0;
     padding: 0 1px;
-    background: var(--grey-4);
-    border: 1px solid var(--grey-6);
+    background: var(--strip-well);
+    border: 1px solid var(--strip-rule);
     border-radius: 7px 0 0 7px;
     overflow-x: auto;
     overflow-y: hidden;

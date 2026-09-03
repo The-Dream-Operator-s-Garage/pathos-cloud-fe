@@ -112,7 +112,8 @@
 
       <!-- ── RIGHT: the five trail chips (four makers · chat) — and, on
            MOBILE only, the fallback pin tack. ⭐ SINCE 2026-09-02 (user ask)
-           THIS CLUSTER ENDS `--stack-w` SHORT OF THE DASHBOARD BLOCK: the
+           THIS CLUSTER ENDS `--pins-strip-w` (90px since 2026-09-03 — three
+           pills; `--stack-w` before) SHORT OF THE DASHBOARD BLOCK: the
            PINS STRIP rides the trail there (PinsDrawer — the stack strip's
            mirror, a fixed overlay at z 3120), so the cell pads right by the
            strip's own width the way the trail stops at the stack strip's
@@ -213,7 +214,8 @@
              in 2026-08-10; both now sit AFTER the makers, so the row reads
              make · make · make · make | look · look, with the two
              window-openers hard against the bar's right end (or against
-             the PINS STRIP's left edge — `.nav-right`'s `--stack-w` reserve
+             the PINS STRIP's left edge — `.nav-right`'s `--pins-strip-w` reserve
+             (`--stack-w` until 2026-09-03)
              since 2026-09-02; `.nav-right--railed`'s 42px was the pinned
              COLUMN's, gone with it).
              They are also the two chips with NO WORD — see their notes. ── -->
@@ -1464,7 +1466,7 @@ export default defineComponent({
 // stack strip's right one. It replaces `.nav-right--railed`'s 42px reserve
 // for the parked pins COLUMN (2026-08-02 → 09-02; a covered create button
 // was what minted it). The mobile block zeroes it — both strips hide there.
-.nav-right { gap: 6px; padding-left: 5px; padding-right: var(--stack-w); }
+.nav-right { gap: 6px; padding-left: 5px; padding-right: var(--pins-strip-w); } // the pins strip's own width since 2026-09-03 (--stack-w before)
 
 // ── ⭐ THE DASHBOARD BLOCK (2026-09-02, user ask) — `.nav-left`'s MIRROR at
 // the bar's right end: a full-height grid cell `--nav-dash-w` wide whose

@@ -976,6 +976,44 @@ $warning:   #F2C037;
   // material carved into an `--indigo-7` plate.
   --plaque-flat: #f8f2e4;
 
+  // ── THE FOOTER STRIPS' NIGHT COAT (2026-09-03, user ask: "invert the color
+  // palette for the stack bar and the pin bar inside the frieze bar so they
+  // look darker. use a dark gray as main background and the light-cream as
+  // main contrasting color") ─────────────────────────────────────────────
+  // The PARKED stack + pins strips — the two `--stack-w` boxes standing
+  // INSIDE the footer trail band — are the ONE piece of fixed chrome that
+  // does NOT wear `--plaque-coat`: they are the coat's NEGATIVE. Four dials,
+  // each the light face's value INVERTED rather than a fresh tone, so the
+  // strip's construction (coat › sunk well › raised tile) survives the flip:
+  //   · `--strip-coat` = `--grey-8`  — the strip's plaque, where the bar
+  //                      around it wears the cream coat (the dark-grey ground);
+  //   · `--strip-well` = `--grey-9`  — the items lane, sunk INTO the coat as
+  //                      `--grey-4` sinks into the cream (darker still);
+  //   · `--strip-rule` = `--grey-7`  — the well's 1px rim, LIGHTER than both
+  //                      floor and coat where the light face's `--grey-6` is
+  //                      darker than both (a recess's lit edge, seen from the
+  //                      other side);
+  //   · `--strip-ink`  = `--light-cream` — the contrasting color: the head
+  //                      glyph, and the TILES' FACE through `--side-item-face`
+  //                      (SidePanelItem's dial — `--grey-3` on the light face;
+  //                      the kind color stays on a tile's rim and glyph, and
+  //                      the current tile keeps its solid kind fill with the
+  //                      glyph in this ink).
+  // What does NOT flip: the strip's two vertical rims stay the band's own
+  // rule ink, `--grey-5` — the TRAIL's frame law (every chip in the band
+  // draws the band's ink; flow-stack-footer.mjs holds all three equal), so a
+  // dark block framed in it reads as one more chip in the row. And the
+  // EXPANDED panel keeps the plaque coat: the ask named the bars INSIDE the
+  // frieze bar, and the morph is the strip rising OUT of the bar into the
+  // chrome's own light.
+  // Tone: the day's first pass sat a step darker (grey-9 / grey-10 / grey-8);
+  // the follow-up ask — "make the grey tone lighter" — moved all three up one
+  // Quasar step together, the construction (coat › well › rim) unchanged.
+  --strip-coat: var(--grey-8);
+  --strip-well: var(--grey-9);
+  --strip-rule: var(--grey-7);
+  --strip-ink:  var(--light-cream);
+
   // ── THE POST CARD'S SURFACE, as one background value (2026-08-23) ────────
   // `--plaque-coat`'s construction one veil-strength up: a `--light-cream`
   // sheet under a `--grey-3` wash, at **75%** here where the fixed chrome's
@@ -1527,13 +1565,35 @@ $warning:   #F2C037;
   // up out of the strip's footprint. The strip holds UP TO THREE glyph
   // tiles since the same day, each a third of the lane (~70px seats around
   // a 15px glyph — a lettered title rode them for one deploy and overlapped;
-  // "the text overlaps … just display the icon").
+  // "the text overlaps … just display the icon"). ⭐ 2026-09-03 PM: TWO of the
+  // three are `--strip-tile-w` 20×17 pills now and the CURRENT step is a WIDE
+  // lettered capsule (glyph · title · hash) over the other 170px — the
+  // width stays; the morph stays height alone.
   // ⭐ AND THE PINS WIDGET'S SINCE LATER THE SAME DAY (user ask): it left the
   // right edge for the trail's RIGHT run as the stack strip's mirror, and
   // reads this dial for both its faces too — one number, two strips, two
   // panels, the bar's two ends reflecting each other. (windows.js PANEL_W,
   // the pins column's 300px, is retired with the column.)
   --stack-w: 240px;
+  // ⭐ THE PINS STRIP LEFT THIS DIAL ON 2026-09-03 (user ask: "make the pin bar
+  // buttons less wide, almost circular … Make the pin bar smaller if
+  // necessary" → "it is a scroll, but … for the bar, it should display up to
+  // three under its constrained space"): its PARKED face is `--pins-strip-w`
+  // — THREE `--strip-tile-w` pills (20×17, `border-radius` 999px, a 12px glyph
+  // through SidePanelItem's `railIconSize`) + two 2px gaps = 64px of lane
+  // content, + the lane's 1px pads and 1px rims (68) + the 20px head glyph
+  // (88) + the strip's two 1px verticals = 90px. The lane still SCROLLS every
+  // pin (row-reverse, newest by the glyph); three is what the window shows.
+  // Its EXPANDED panel keeps `--stack-w`, so the pins morph is width AND
+  // height — the stack's height-alone law is the stack's alone now.
+  // `.nav-right` reserves THIS dial (not `--stack-w`) for the strip.
+  // `--strip-tile-w` is the BOTH strips' pill since the same afternoon: the
+  // stack's two non-current steps wear it too (user ask: "make its inner
+  // buttons less wide too … 2 should look like tiny icon buttons and one of
+  // them should be a wide version where the current place you're in"), its
+  // current step taking the lane's remaining 170px as the LETTERED face.
+  --strip-tile-w: 20px;
+  --pins-strip-w: 90px;
 
   // The parked rail's THIN dimension — the pins widget's icon-column WIDTH
   // at the right edge. It WAS also the stack widget's left offset and the
