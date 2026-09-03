@@ -876,9 +876,9 @@ $warning:   #F2C037;
   //
   // WHO WEARS IT, all asked for in one session: the bottom nav bar
   // (`.nav-bar`), the LEFT DRAWER (`.pathos-drawer`), the two RIGHT-EDGE
-  // widgets (`.stack-window`, `.pins-drawer`) — panels, their `.dock-bar`
+  // widgets (`.stack-window`, `.pins-window`) — panels, their `.dock-bar`
   // header rows and the two blocks that rebuild the nav bar's row inside the
-  // drawer and the pinned column (`.drawer-footer`, `.pins-footer`) — and
+  // drawer and the pinned column (`.drawer-footer`, `.pins-footer` — gone 2026-09-02) — and
   // `MediaTabsBar`'s TOP RAIL (`.media-tabs`), which has been the window's
   // whole top chrome since the crown strip was deleted on 2026-08-12 and
   // which came here from `--grey-4` rather than from brown-1. That set is the

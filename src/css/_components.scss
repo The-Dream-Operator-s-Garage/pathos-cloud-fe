@@ -366,7 +366,7 @@
   // The bar's top edge (2026-08-04) — a sane default nothing currently reads:
   // every one of the seven docks overrides `bottom` itself (the five
   // `.dock-window--creation` docks and `.stack-window` restate this same
-  // value; `.pins-drawer` wants `bottom: 0` instead). Used to read
+  // value; `.pins-window` wants `bottom: 0` instead). Used to read
   // `--dock-bottom`, one --frieze-h taller, to clear FriezeFooter — the pale
   // band that used to stand on this edge; that band (and the token) is gone
   // now that the floor frieze wears its palette instead.
