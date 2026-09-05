@@ -993,10 +993,14 @@ export default defineComponent({
 }
 
 // Distinctive icon tint per window, mirroring each window's header icon.
+// The two windows with a colorway of their own read their contrast DIAL
+// (2026-09-04, the labels window's purple pass — the uploader's tab had kept
+// a purple literal from before its 2026-08-26 teal repaint, and a purple
+// uploader tab beside a purple labels tab would have named the wrong window).
 .minitab__icon--maker           { color: #00829c; }
-.minitab__icon--uploader        { color: #7b52ab; }
+.minitab__icon--uploader        { color: var(--uploader-contrast); }
 .minitab__icon--skeletonBuilder { color: #5b6c82; }
-.minitab__icon--labelMaker      { color: #00829c; }
+.minitab__icon--labelMaker      { color: var(--labels-contrast); }
 // The dashboard's tab is the only GREY mark in the strip, matching its button
 // four pixels above it and the coat of the window it restores — `--grey-9`,
 // the same #424242 the pebble letters its glyph in (2026-08-10).

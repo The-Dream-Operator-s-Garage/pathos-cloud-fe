@@ -147,6 +147,8 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
+// ⚠ THE ACCENT IS A DIAL (2026-09-04): `--ltm-accent` / `--ltm-accent-rgb`
+// with the shared chrome's `#00829c` as fallback — see LabelTreeMini.vue.
 .lmm {
   display: flex;
   flex-direction: column;
@@ -173,8 +175,8 @@ export default defineComponent({
   gap: 4px;
   font-size: 0.72em;
   font-weight: 700;
-  color: #00829c;
-  background: rgba(0, 130, 156, 0.1);
+  color: var(--ltm-accent, #00829c);
+  background: rgba(var(--ltm-accent-rgb, 0, 130, 156), 0.1);
   border-radius: var(--radius-pill);
   padding: 1px 9px;
 

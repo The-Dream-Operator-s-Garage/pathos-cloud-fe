@@ -183,6 +183,8 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
+// ⚠ THE ACCENT IS A DIAL (2026-09-04): `--ltm-accent` / `--ltm-accent-rgb`
+// with the shared chrome's `#00829c` as fallback — see LabelTreeMini.vue.
 // Row grammar shared with LabelTreeMini's flat search rows.
 .ltm-row {
   display: flex;
@@ -198,8 +200,8 @@ export default defineComponent({
 
   &:hover { background: rgba(255, 255, 255, 0.75); }
   &.is-selected {
-    background: rgba(0, 130, 156, 0.12);
-    border-color: rgba(0, 130, 156, 0.4);
+    background: rgba(var(--ltm-accent-rgb, 0, 130, 156), 0.12);
+    border-color: rgba(var(--ltm-accent-rgb, 0, 130, 156), 0.4);
   }
 }
 
@@ -227,7 +229,7 @@ export default defineComponent({
   color: rgba(var(--ink-rgb), 0.4);
   flex-shrink: 0;
   &.is-system { color: #c79a00; }
-  &.is-mine   { color: #00829c; }
+  &.is-mine   { color: var(--ltm-accent, #00829c); }
 }
 
 .ltm-row__name {
@@ -251,7 +253,7 @@ export default defineComponent({
   padding: 0 6px;
 
   &--sys  { color: #8a6200; background: rgba(255, 200, 0, 0.18); }
-  &--mine { color: #00829c; background: rgba(0, 130, 156, 0.12); }
+  &--mine { color: var(--ltm-accent, #00829c); background: rgba(var(--ltm-accent-rgb, 0, 130, 156), 0.12); }
 }
 
 // Layer-end add rows.
@@ -278,7 +280,7 @@ export default defineComponent({
   color: rgba(var(--ink-rgb), 0.55);
   cursor: pointer;
 
-  &:hover { border-color: rgba(0, 130, 156, 0.55); color: #00829c; }
+  &:hover { border-color: rgba(var(--ltm-accent-rgb, 0, 130, 156), 0.55); color: var(--ltm-accent, #00829c); }
 
   &--foreign:hover { border-color: rgba(255, 180, 0, 0.7); color: #8a6200; }
 }
@@ -308,7 +310,7 @@ export default defineComponent({
   color: var(--ink-soft);
   cursor: pointer;
 
-  &:hover:not(:disabled) { color: #00829c; border-color: rgba(0, 130, 156, 0.5); }
+  &:hover:not(:disabled) { color: var(--ltm-accent, #00829c); border-color: rgba(var(--ltm-accent-rgb, 0, 130, 156), 0.5); }
   &:disabled { opacity: 0.35; cursor: not-allowed; }
 }
 

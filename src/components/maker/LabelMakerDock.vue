@@ -10,8 +10,13 @@
     >
       <!-- ── Thin header: title left, Mac-style traffic lights right ── -->
       <header class="dock-bar">
-        <q-icon name="label_important" size="14px" class="dock-bar__icon" />
-        <span class="dock-bar__title nasalization">Label maker</span>
+        <!-- THE NAME IS A PLATE (2026-09-04) — the maker's and the uploader's
+             device: glyph + name in one hairline box, so the window states
+             itself the way the feed's post cards do. -->
+        <span class="dock-bar__plate">
+          <q-icon name="label_important" size="13px" class="dock-bar__icon" />
+          <span class="dock-bar__title nasalization">Label maker</span>
+        </span>
         <span class="dock-bar__meta mono">
           {{ selected ? selected.name : 'the vocabulary workshop' }}
         </span>
@@ -459,9 +464,67 @@ export default defineComponent({
 
 <style lang="scss" scoped>
 // Shell, header bar, traffic lights come from the shared .dock-window
-// chrome in src/css/_components.scss; the footprint and the brown plaque
-// come from .dock-window--creation there (so does maximize and the
-// narrow-screen fallback).
+// chrome in src/css/_components.scss; the footprint comes from
+// .dock-window--creation there (so does maximize and the narrow-screen
+// fallback). The window's body layout and its COLORWAY live here.
+
+// ── THE WINDOW'S COAT AND DIALS (2026-09-04, user ask: the label maker
+// window gets "overtones all over" the way the uploader wears teal, "but
+// in quasar purple") ──
+//
+// UploaderDock's block verbatim, one family over: the uploader reads the
+// teals at 50/300/500/700 and this window reads the purples standing at
+// the SAME indices (`_tokens.scss` § THE LABELS WINDOW'S FOUR). Same five
+// `--dock-*` dials, same one-contrast-everywhere rule.
+//
+// ⚠ `--dock-coat` here is the THIRD sanctioned break in the one-plaque law
+// — `fsck --static`'s `dock-coat` witness knows this file by name
+// (`LabelMakerDock.vue` → `--labels-coat`), as it knows the maker's and
+// the uploader's. Same two standing rules: the value is a background LAYER
+// LIST legal only in a `background:` shorthand, and a fourth window
+// wanting its own sheet gets added to the witness on purpose.
+//
+// The tree on the left and the mini-makers are SHARED components
+// (LabelTreeMini / LabelTreeMiniNode / LabelMiniMaker also mount inside
+// the skeleton builder's LabelFieldPicker). They read ONE dial pair,
+// `--ltm-accent` / `--ltm-accent-rgb`, with the shared chrome's `#00829c`
+// as the fallback — so turning the pair here re-tones the forest inside
+// this window and nowhere else. Same mechanism as MakerHeader's
+// `--maker-*` dials under the uploader. `--q-primary` repaints the Quasar
+// buttons (`color="primary"`), spinners and field focus rings inside;
+// `--q-secondary` is the mini-maker's "Fork … tree" button (the shared
+// chrome's teal `secondary`), which here takes the DEEP step so primary
+// and secondary stand side by side as two steps of one hue.
+.label-dock {
+  --dock-coat: var(--labels-coat);
+  --dock-rule: var(--labels-contrast);
+  --dock-rule-strong: var(--purple-8);
+  --dock-ink: var(--labels-contrast);
+  --dock-ink-mute: var(--purple-4);
+  --dock-well: var(--purple-1);
+  --ltm-accent: var(--labels-contrast);
+  --ltm-accent-rgb: var(--purple-6-rgb);
+  --q-primary: var(--labels-contrast);
+  --q-secondary: var(--purple-8);
+}
+
+// ── THE HEADER PLATE — the maker's `.dock-bar__plate`, dial for dial, in
+// this window's contrast. Stated at the window, never on the shared
+// `.dock-bar`; its rim is SOLID because up here the plate is the window's
+// one NAME. ──
+.dock-bar__plate {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 8px;
+  border: 1px solid var(--labels-contrast);
+  border-radius: 4px;
+  background: rgba(var(--ink-rgb), 0.04);
+  transition: background 0.12s, border-color 0.12s;
+
+  .dock-bar__icon { color: var(--labels-contrast); opacity: 0.85; }
+  .dock-bar__title { color: var(--labels-contrast); }
+}
 
 .dock-body {
   display: grid;
@@ -476,7 +539,7 @@ export default defineComponent({
   font-size: 0.7em;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: var(--ink-soft);
+  color: var(--labels-contrast);
   font-family: var(--font-mono);
 }
 
@@ -498,7 +561,7 @@ export default defineComponent({
   min-height: 0;
   overflow-y: auto;
   background: var(--paper-card);
-  border: 1px solid rgba(var(--ink-rgb), 0.16);
+  border: 1px solid var(--labels-contrast);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-soft);
   padding: 10px 12px;
@@ -539,8 +602,8 @@ export default defineComponent({
   color: var(--ink-soft);
   cursor: pointer;
 
-  &:hover { color: #00829c; background: rgba(0, 130, 156, 0.1); }
-  &.is-current { color: #fff; background: #00829c; }
+  &:hover { color: var(--labels-contrast); background: rgba(var(--purple-6-rgb), 0.1); }
+  &.is-current { color: #fff; background: var(--labels-contrast); }
 }
 
 .label-dock__badges {
@@ -561,7 +624,7 @@ export default defineComponent({
   background: rgba(var(--ink-rgb), 0.08);
 
   &--sys  { color: #8a6200; background: rgba(255, 200, 0, 0.18); }
-  &--mine { color: #00829c; background: rgba(0, 130, 156, 0.12); }
+  &--mine { color: var(--labels-contrast); background: rgba(var(--purple-6-rgb), 0.12); }
 }
 
 .label-dock__open {
@@ -575,7 +638,7 @@ export default defineComponent({
   color: var(--ink-soft);
   text-decoration: none;
 
-  &:hover { color: #00829c; }
+  &:hover { color: var(--labels-contrast); }
 }
 
 .label-dock__actions {
@@ -590,7 +653,7 @@ export default defineComponent({
   gap: 4px;
   height: 26px;
   padding: 0 10px;
-  border: 1px solid rgba(var(--ink-rgb), 0.18);
+  border: 1px solid var(--dock-ink-mute);
   border-radius: var(--radius-pill);
   background: rgba(255, 255, 255, 0.7);
   color: var(--ink-soft);
@@ -601,13 +664,13 @@ export default defineComponent({
   cursor: pointer;
   transition: border-color 0.12s, color 0.12s, background 0.12s;
 
-  &:hover:not(:disabled) { border-color: rgba(0, 130, 156, 0.5); color: #00829c; }
+  &:hover:not(:disabled) { border-color: var(--labels-contrast); color: var(--labels-contrast); }
   &:disabled { opacity: 0.35; cursor: not-allowed; }
 
   &.is-on {
     color: #fff;
-    background: #00829c;
-    border-color: #00829c;
+    background: var(--labels-contrast);
+    border-color: var(--labels-contrast);
   }
 
   &--fork:hover:not(:disabled) { border-color: rgba(255, 180, 0, 0.7); color: #8a6200; }
@@ -625,9 +688,9 @@ export default defineComponent({
   flex-direction: column;
   gap: 8px;
   padding: 10px;
-  border: 1px solid rgba(var(--ink-rgb), 0.12);
+  border: 1px solid var(--labels-contrast);
   border-radius: var(--radius-sm);
-  background: rgba(var(--ink-rgb), 0.03);
+  background: var(--dock-well);
 }
 
 .label-dock__mode--move { min-height: 0; }

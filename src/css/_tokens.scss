@@ -425,6 +425,19 @@ $orange-3: #ffcc80;
 $orange-4: #ffb74d;
 $orange-8: #f57c00;
 $orange-10: #e65100;
+// ── THE LABELS WINDOW'S FOUR (2026-09-04, user ask: the label maker window
+// wears "overtones all over" the way the uploader wears teal, "in quasar
+// purple") — Quasar's own purple scale at the FOUR indices the uploader's
+// teal map reads, so the two windows are one construction in two hues and
+// every tone has an exact address in the other: -1 the pale/veil (Material
+// 50), -4 the mute (300), -6 the contrast (500 — `$purple`, Quasar's named
+// purple), -8 the deep step (700). Hand-minted like every family here (this
+// file never imports Quasar's palette). Read the `--labels-*` dials in
+// `:root`, never these levels directly.
+$purple-1: #f3e5f5;   // the PALE — the veil in `--labels-coat`, the wells (mode boxes), the resting tab face if the window ever grows tabs.
+$purple-4: #ba68c8;   // the MUTE — the bar's meta line and the resting action-pill rims, `$teal-4`'s counterpart.
+$purple-6: #9c27b0;   // ⭐ THE CONTRAST — `--labels-contrast` points here. 6.3:1 white-on-fill (teal-6 is 4.0:1), ~5.5:1 on the window's coat. It is `$purple` itself — Quasar's named purple — which is what "quasar purple" asked for.
+$purple-8: #7b1fa2;   // the DEEP step — the strong edge, the hover that must out-read a surface already drawn in the contrast, `$teal-8`'s counterpart.
 // The CHIP'S OWN INK, and the one place on the panel that is not written in the
 // colorway (2026-07-26). The chip is a NEUTRAL object — a `$grey-3` pill drawn
 // in `$grey-5` — so it is lettered in a neutral too: ONE tone for all four
@@ -1081,13 +1094,29 @@ $warning:   #F2C037;
   // Worn by IdentityDock + IdentityChip (components/identity/) and nothing
   // else. NO COAT: the window keeps the shared `--plaque-coat` sheet — a
   // colorway is its lines, wells and ink, never its sheet (the dock-coat
-  // witness's law; maker/uploader are the only sanctioned exceptions).
+  // witness's law; maker/uploader — and the labels window since 2026-09-04 — are the only
+  // sanctioned exceptions).
   --orange-1: #{$orange-1};
   --orange-2: #{$orange-2};
   --orange-3: #{$orange-3};
   --orange-4: #{$orange-4};
   --orange-8: #{$orange-8};
   --orange-10: #{$orange-10};
+
+  // ── THE LABELS WINDOW'S PURPLE MAP (2026-09-04, user ask) — the
+  // uploader's teal map one family over, same four indices for the same
+  // roles (see `$purple-*` above):
+  //   -8  the deep step — the strong edge, the tab-hover ink.
+  //   -6  the contrast — every accent, via `--labels-contrast`.
+  //   -4  the mute — the meta line, the resting pill rims.
+  //   -1  the pale — the wells, the veil.
+  // `--purple-6-rgb` is the contrast as a triple, for the window's alpha
+  // washes (`rgba(var(--purple-6-rgb), .12)`) — same device as `--ink-rgb`.
+  --purple-1: #{$purple-1};
+  --purple-4: #{$purple-4};
+  --purple-6: #{$purple-6};
+  --purple-8: #{$purple-8};
+  --purple-6-rgb: 156, 39, 176;
 
   // ── THE POST WINDOW'S CONTRAST, AS A DIAL (2026-08-26) ───────────────────
   // Everything in the maker family that is not paper reads THIS, not a level:
@@ -1174,6 +1203,39 @@ $warning:   #F2C037;
   --uploader-veil: rgba(224, 242, 241, 0.4);
   --uploader-coat:
     linear-gradient(var(--uploader-veil), var(--uploader-veil)),
+    var(--light-cream);
+
+  // ── THE LABELS WINDOW'S CONTRAST, AS A DIAL (2026-09-04, user ask: the
+  // label maker window gets "overtones all over" like the uploader's teal,
+  // "but in quasar purple") ───────────────────────────────────────────────
+  // The uploader's construction verbatim, one family over: everything in
+  // the labels window that is not paper reads THIS — the window's inner
+  // borders (`--dock-rule`) and titles (`--dock-ink`), the bar plate, the
+  // action panel's rim and section labels, the mode boxes' rims, the
+  // pressed action pills, the breadcrumb's current link, the tree's
+  // selected row / "mine" marks (via `--ltm-accent`, the shared tree
+  // components' dial, re-pointed under `.label-dock`), and `--q-primary`
+  // (the Quasar buttons and spinners inside the window; `--q-secondary`
+  // takes `--purple-8`, the deep step, for the mini-maker's fork button).
+  --labels-contrast: var(--purple-6);
+
+  // ── THE LABELS WINDOW'S COAT (2026-09-04, user ask — the repaint above) ─
+  // `--uploader-coat`'s construction with the veil's FAMILY turned: the
+  // sheet is still `--light-cream`, the veil is `$purple-1` (243,229,245)
+  // instead of `$teal-1` (224,242,241), still at the maker's 40%. Composite
+  // ~rgb(248,237,232) — the same few-points-deeper step off the bar the
+  // other two take, pulled toward lavender where those pull blue and green.
+  //
+  // ⚠ THE THIRD SANCTIONED BREAK IN THE ONE-PLAQUE LAW. The `dock-coat`
+  // witness (`api/scripts/fsck.js`) names it — `LabelMakerDock.vue` →
+  // `--labels-coat` — exactly as it names the maker's and the uploader's.
+  //
+  // ⚠ The `--plaque-coat` trap applies unchanged: a `background` SHORTHAND
+  // value, never a `<color>`. The flat composite for those places is
+  // ~`#f8ede8`.
+  --labels-veil: rgba(243, 229, 245, 0.4);
+  --labels-coat:
+    linear-gradient(var(--labels-veil), var(--labels-veil)),
     var(--light-cream);
 
   --border-ink:     1px solid rgba(var(--ink-rgb), 0.18);
