@@ -178,6 +178,7 @@ import AccessTreeDialog from './AccessTreeDialog.vue'
 import NoteEditor from 'src/components/nodes/NoteEditor.vue'
 import DraftSkeletonGrid from './DraftSkeletonGrid.vue'
 import { useMakerStore } from 'src/stores/maker'
+import { useNavStore } from 'src/stores/navigation'
 import { useWindowsStore } from 'src/stores/windows'
 import { postService } from 'src/services/post.service'
 import { nodeService } from 'src/services/node.service'
@@ -247,6 +248,9 @@ export default defineComponent({
       const grid = { id, keys: [null, null], cells: ['', ''], axis: 'col' }
       patch({ grids: [...draftGrids.value, grid] })
       editorRef.value?.insertText(tokenOf(id))
+      // THE SUB-STACK (2026-09-06 PM): "Drafted a skeleton" — the grid is
+      // in the body now; the mint below is the act that puts it on the chain.
+      try { useNavStore().recordAction('SKELETON_DRAFT', { targetType: 'window', targetId: null, targetLabel: 'draft grid' }) } catch (_) { /* cosmetic */ }
     }
     const patchGrid = (g) => {
       patch({ grids: draftGrids.value.map(x => (x.id === g.id ? g : x)) })
@@ -259,9 +263,16 @@ export default defineComponent({
         content: (d.content || '').split(tokenOf(id)).join('')
       })
     }
-    const onMinted = ({ id, hash, name }) => {
+    const onMinted = ({ id, skeletonId, hash, name }) => {
       const d = draft.value
       if (!d) return
+      // THE SUB-STACK (2026-09-06 PM): the grid's keys are all set and a
+      // real schema + instance exist — "Created schema", targeting it.
+      try {
+        useNavStore().recordAction('SKELETON_CREATE', {
+          targetType: 'skeleton', targetId: skeletonId ?? null, targetLabel: name || 'skeleton', targetPath: hash || null
+        })
+      } catch (_) { /* a mint must never fail because its log did */ }
       const label = (name || '').replace(/[[\]|]/g, '').trim()
       const chip = label ? `![[pathos:${hash}|${label}]]` : `![[pathos:${hash}]]`
       const token = tokenOf(id)
@@ -397,6 +408,23 @@ export default defineComponent({
         successMsg.value = 'Posted!'
         const id = d.id
         const parent = d.parent
+
+        // ── THE SUB-STACK (2026-09-06) ────────────────────────────
+        // Both doors land here — `doSubmit`'s comment and `doPost`'s new
+        // post — so ONE hook records both, told apart by whether the draft
+        // had a parent. The act goes onto the trail stop the user is
+        // standing in, which is what makes the footer's wide tile able to
+        // say "Commented" under the title of the thing commented on.
+        try {
+          const created = r.post || r.skeleton
+          useNavStore().recordAction(parent ? 'COMMENT' : 'CREATE_POST', {
+            targetType: parent ? parent.kind : 'post',
+            targetId: parent ? parent.id : (created?.id ?? null),
+            targetLabel: d.title || (parent ? 'comment' : 'post'),
+            targetPath: created?.path || null
+          })
+        } catch (_) { /* a post must never fail because its log did */ }
+
         setTimeout(() => {
           store.removeDraft(id)
           successMsg.value = ''
@@ -713,7 +741,7 @@ export default defineComponent({
   font-size: 0.68em;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: var(--maker-deep, var(--blue-grey-8, #37474f));
+  color: var(--maker-deep, var(--cyan-10, #006064));
   .mono { opacity: 0.7; }
 }
 .maker-surface__grids-hint {

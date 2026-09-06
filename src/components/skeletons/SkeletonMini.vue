@@ -119,6 +119,9 @@
             :slots="slotRows"
             :depth="depth"
             :visited="visited"
+            :layout="layout"
+            :readonly="readonly"
+            :enriched="enriched"
             @changed="refresh"
           />
         </div>
@@ -174,7 +177,15 @@ export default defineComponent({
     name: { type: String, default: '' },
     // Recursion guards, passed through to the grid.
     depth: { type: Number, default: 0 },
-    visited: { type: Array, default: () => [] }
+    visited: { type: Array, default: () => [] },
+    // Passed through to the grid (2026-09-06 PM): the flyout's layout
+    // ('vertical' | 'horizontal' | null = the skeleton's own axis), a host
+    // that shows the grid as evidence only, and `enriched` — skeletons
+    // inside this one render as minis too, so the whole tree reads the
+    // same way (the NAVIGATION skeleton's stops and their sub-stacks).
+    layout: { type: String, default: null },
+    readonly: { type: Boolean, default: false },
+    enriched: { type: Boolean, default: false }
   },
   // resolved mirrors SkeletonTable's emit; changed tells a pre-walked
   // host (the dashboard grid) its batch data went stale after a write.
@@ -277,7 +288,7 @@ export default defineComponent({
     // Owner, or a member mask of an organization holding this skeleton on
     // its RESOURCES path (phase 5 — `can_write` off the walk).
     const isOwner = computed(() => (head.value.owner_id != null && head.value.owner_id === auth.entityId) || !!head.value.can_write)
-    const canRename = computed(() => isOwner.value && !head.value.locked && head.value.id != null && !String(head.value.name || '').startsWith('ELEMENT:'))
+    const canRename = computed(() => !props.readonly && isOwner.value && !head.value.locked && head.value.id != null && !String(head.value.name || '').startsWith('ELEMENT:'))
     const renameHint = computed(() => canRename.value ? 'double-click to rename' : headline.value)
     const renaming = ref(false)
     const renameText = ref('')

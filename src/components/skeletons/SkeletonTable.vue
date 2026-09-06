@@ -39,8 +39,9 @@
 
   <div
     v-else
+    ref="rootEl"
     class="skel-table"
-    :class="['is-' + axis, { 'is-nested': depth > 0, 'is-editable': canEditCells, 'is-keys-editable': canEditKeys }]"
+    :class="['is-' + axis, { 'is-nested': depth > 0, 'is-editable': canEditCells, 'is-keys-editable': canEditKeys, 'is-horizontal': layout === 'horizontal' }]"
   >
     <div v-if="error" class="skel-table__error">{{ error }}</div>
 
@@ -48,6 +49,16 @@
       <colgroup v-if="axis === 'col'">
         <col class="skel-table__col-key">
         <col class="skel-table__col-cell">
+      </colgroup>
+      <!-- Keys ACROSS THE TOP (2026-09-06 PM): a key whose list HAS MEMBERS
+           weighs 8× a plain one, so the lane a horizontal stack flows along
+           (the NAVIGATION skeleton's PATH_REF) is not one eleventh of the
+           window — an empty list (VERSIONS) stays a plain share.
+           `table-layout: fixed` reads these widths; the ghost column, when
+           the keys are editable, takes one plain share. -->
+      <colgroup v-else>
+        <col v-for="(w, i) in rowColWidths" :key="'w' + i" :style="{ width: w }">
+        <col v-if="canEditKeys">
       </colgroup>
       <tbody>
         <tr v-if="!rows.length && !canEditKeys">
@@ -181,11 +192,24 @@
                   title="already open above — a cycle"
                 />
                 <div v-else-if="depth < 2 || expanded.includes(c.row.ref)" class="skel-table__nest">
-                  <SkeletonTable
+                  <!-- `enriched` (2026-09-06 PM): the SKELETON MINI — chrome,
+                       name, provenance foot — instead of the bare grid. -->
+                  <SkeletonMini
+                    v-if="enriched"
                     :ref-or-id="c.row.ref"
                     :depth="depth + 1"
                     :visited="visitedNext"
                     :readonly="readonly"
+                    :layout="layout"
+                    enriched
+                  />
+                  <SkeletonTable
+                    v-else
+                    :ref-or-id="c.row.ref"
+                    :depth="depth + 1"
+                    :visited="visitedNext"
+                    :readonly="readonly"
+                    :layout="layout"
                   />
                   <button
                     v-if="canEditCells"
@@ -211,27 +235,51 @@
                    with a drop zone that appends and a × that splices. An
                    EMPTY paths-kind cell offers the drop zone too: the first
                    drop makes it a list. -->
-              <div v-else-if="c.row.refKind === 'paths' || (c.row.expectedKind === 'paths' && !c.row.ref)" class="skel-table__list" :class="{ 'is-dragover': listDragOver === c.row.slotName }"
+              <div v-else-if="isListRow(c.row)" :data-list="c.row.slotName" class="skel-table__list" :class="{ 'is-dragover': listDragOver === c.row.slotName }"
                 @dragover="canEditCells && onListDragOver(c.row, $event)"
                 @dragleave="listDragOver = null"
                 @drop="canEditCells && onListDrop(c.row, $event)"
               >
                 <div v-if="listOf(c.row).loading" class="skel-table__list-line"><q-spinner size="10px" /></div>
                 <div v-else-if="!listOf(c.row).steps.length" class="skel-table__list-line skel-table__empty">{{ canEditCells ? 'drop a skeleton here' : '(empty list)' }}</div>
-                <div v-for="st in listOf(c.row).steps" :key="st.link.id" class="skel-table__member">
+                <!-- MEMBERS (2026-09-06 PM): a skeleton member UNFOLDS into
+                     the SKELETON MINI when `enriched` (the flyout) — the
+                     newest LIST_UNFOLD_MAX of a depth-0 list, since the
+                     NAVIGATION skeleton's PATH_REF holds hundreds of stops
+                     and each mini is a walk — or into a bare nested grid
+                     otherwise (the dashboards' 2026-09-01 face, unchanged).
+                     Every member past the budget, and every member of a
+                     deeper list, is a NAMED STRIP: the skeleton's own NAME
+                     (a stop's title, an act's "Uploaded image" — free, it
+                     rode the path walk), its chip, and an unfold. -->
+                <div v-for="(st, idx) in listOf(c.row).steps" :key="st.link.id" class="skel-table__member">
                   <template v-if="st.target?.kind === 'skeleton' && st.target.skeleton?.path">
                     <InfoChip
                       v-if="visited.includes(st.target.skeleton.path)"
                       dense kind="skeletons" :address="st.target.skeleton.path"
                     />
-                    <SkeletonTable
-                      v-else-if="depth < 2 || expanded.includes(st.target.skeleton.path)"
-                      :ref-or-id="st.target.skeleton.path"
-                      :depth="depth + 1"
-                      :visited="visitedNext"
-                      :readonly="readonly"
-                    />
-                    <span v-else class="skel-table__strip">
+                    <template v-else-if="memberUnfolds(c.row, idx, st)">
+                      <SkeletonMini
+                        v-if="enriched"
+                        :ref-or-id="st.target.skeleton.id"
+                        :depth="depth + 1"
+                        :visited="visitedNext"
+                        :readonly="readonly"
+                        :layout="layout"
+                        enriched
+                      />
+                      <SkeletonTable
+                        v-else
+                        :ref-or-id="st.target.skeleton.path"
+                        :depth="depth + 1"
+                        :visited="visitedNext"
+                        :readonly="readonly"
+                        :layout="layout"
+                      />
+                    </template>
+                    <span v-else class="skel-table__strip" :class="{ 'skel-table__strip--named': enriched }">
+                      <q-icon v-if="enriched" name="schema" size="11px" class="skel-table__strip-glyph" />
+                      <span v-if="enriched" class="skel-table__strip-name" :title="st.target.skeleton.name">{{ st.target.skeleton.name }}</span>
                       <InfoChip dense kind="skeletons" :address="st.target.skeleton.path" />
                       <button type="button" class="skel-table__unfold" title="unfold" @click.stop.prevent="expand(st.target.skeleton.path)"><q-icon name="unfold_more" size="12px" /></button>
                     </span>
@@ -284,7 +332,7 @@
       <button
         type="button"
         class="skel-table__axis"
-        :title="axis === 'col' ? 'keys down the first column — flip to a top row' : 'keys across the top row — flip to a first column'"
+        :title="(axis === 'col' ? 'keys down the first column — flip to a top row' : 'keys across the top row — flip to a first column') + (layout ? ' (the viewer\'s layout; the stored axis is untouched)' : '')"
         @click.stop.prevent="flipAxis"
       >
         <q-icon :name="axis === 'col' ? 'view_column' : 'table_rows'" size="11px" />
@@ -305,7 +353,7 @@
 </template>
 
 <script>
-import { defineComponent, ref, computed, onMounted, watch, nextTick } from 'vue'
+import { defineComponent, defineAsyncComponent, ref, computed, onMounted, watch, nextTick } from 'vue'
 import InfoChip from 'src/components/shared/InfoChip.vue'
 import GithubPrCard from 'src/components/dev/GithubPrCard.vue'
 import LabelPicker from 'src/components/maker/LabelPicker.vue'
@@ -317,8 +365,22 @@ import { kindFor } from 'src/utils/kinds'
 
 // Schemas whose instances are platform plumbing: their cells are written
 // by their own seams (posting, chatting, pinning, navigating), never by
-// hand in a grid. Element headers (`ELEMENT:*`) likewise.
-const PLUMBING = new Set(['POST', 'CHAT', 'MESSAGE', 'POLL', 'PINS', 'NAVIGATION', 'PATH_VIEW', 'DASHBOARD', 'USER_HOME', 'PATHOS_DOCS'])
+// hand in a grid. Element headers (`ELEMENT:*`) likewise. NAV_STOP and
+// NAV_ACTION (2026-09-06 PM) are the navigation trail's stops and acts —
+// matched on the SCHEMA's name too, because their instances are NAMED
+// after the stop's title / the act's label ("Feed", "Uploaded image").
+const PLUMBING = new Set(['POST', 'CHAT', 'MESSAGE', 'POLL', 'PINS', 'NAVIGATION', 'PATH_VIEW', 'DASHBOARD', 'USER_HOME', 'PATHOS_DOCS', 'NAV_STOP', 'NAV_ACTION'])
+
+// The enriched face of a nested skeleton (2026-09-06 PM). SkeletonMini
+// imports THIS component for its body, so the import here has to be async
+// or the two modules deadlock at evaluation (whichever loads first sees the
+// other as undefined in its `components` map).
+const SkeletonMini = defineAsyncComponent(() => import('src/components/skeletons/SkeletonMini.vue'))
+
+// How many skeleton members of a depth-0 list unfold into minis on their
+// own when `enriched` — the NEWEST ones (a nav ledger's tail is the part
+// being read). Older members are named strips, one click to unfold.
+const LIST_UNFOLD_MAX = 24
 
 // A pasted reference in a cell binds the element instead of minting a
 // NOTE that says `[[pathos:…]]`. Both dresses: the chip grammar (with or
@@ -328,7 +390,7 @@ const BARE_REF = /^\s*([a-z]+\/[0-9a-f]{16,})\s*$/i
 
 export default defineComponent({
   name: 'SkeletonTable',
-  components: { InfoChip, GithubPrCard, LabelPicker },
+  components: { InfoChip, GithubPrCard, LabelPicker, SkeletonMini },
   props: {
     // Pre-walked mode: the walk's `skeleton` head + `slots` array, handed
     // down by a host that already batched the read.
@@ -344,13 +406,28 @@ export default defineComponent({
     depth: { type: Number, default: 0 },
     visited: { type: Array, default: () => [] },
     // A host that shows a grid as evidence only (never as a desk).
-    readonly: { type: Boolean, default: false }
+    readonly: { type: Boolean, default: false },
+    // THE VIEWER'S LAYOUT (2026-09-06 PM, user ask: "display skeletons
+    // vertically or horizontally, like at the user's will"): null = the
+    // skeleton's own stored AXIS (the pre-existing behaviour); 'vertical' =
+    // keys down the first column and lists as columns; 'horizontal' = keys
+    // across the top and lists flowing left → right. A VIEW override — the
+    // corner's flip then asks the host to change it (`update:layout`)
+    // instead of writing AXIS. Handed down to every nested grid and mini.
+    layout: { type: String, default: null },
+    // Nested skeletons — a cell's, a list's members — render as the
+    // SKELETON MINI (chrome + name + provenance foot) instead of a bare
+    // grid; and long lists unfold their newest LIST_UNFOLD_MAX only. The
+    // flyout viewer sets it; the dashboards keep their bare nesting.
+    enriched: { type: Boolean, default: false }
   },
   // resolved: what the walk found ({ id, name, path, is_schema }) — hosts
   // that frame this grid title themselves after it.
   // changed: a write landed; a pre-walked host reloads its batch and hands
   // fresh `slots` down (the self-resolving mode re-walks on its own).
-  emits: ['resolved', 'changed'],
+  // update:layout: the corner asked for the other layout while the host
+  // owns the layout (see the `layout` prop).
+  emits: ['resolved', 'changed', 'update:layout'],
   setup (props, { emit }) {
     const auth = useAuthStore()
     const loading = ref(false)
@@ -385,7 +462,11 @@ export default defineComponent({
         if (!r.success) throw new Error('walk failed')
         walked.value = r.skeleton
         walkedSlots.value = r.slots || []
-        emit('resolved', { id: r.skeleton.id, name: r.skeleton.name, path: r.skeleton.path, is_schema: r.skeleton.is_schema, owner_id: r.skeleton.owner_id, locked: r.skeleton.locked, lock_state: r.skeleton.lock_state })
+        // `title` (2026-09-06 PM): the TITLE slot's text when the skeleton
+        // carries one (a PATH_VIEW's "My navigation path") — the flyout
+        // names its window after it rather than after the schema.
+        const titleRow = (r.slots || []).find(s => s.slotName === 'TITLE')
+        emit('resolved', { id: r.skeleton.id, name: r.skeleton.name, path: r.skeleton.path, is_schema: r.skeleton.is_schema, owner_id: r.skeleton.owner_id, locked: r.skeleton.locked, lock_state: r.skeleton.lock_state, title: titleRow?.textValue || null })
       } catch (_) {
         failed.value = true
         walked.value = null
@@ -411,7 +492,8 @@ export default defineComponent({
     // ── who may do what ──────────────────────────────────────────────
     const isPlumbing = computed(() => {
       const n = String(head.value.name || '')
-      return n.startsWith('ELEMENT:') || PLUMBING.has(n)
+      const s = String(head.value.schema?.name || '')
+      return n.startsWith('ELEMENT:') || PLUMBING.has(n) || PLUMBING.has(s)
     })
     // Who may write (skeletons plan phase 5): the owner, or — for a
     // skeleton on an organization's RESOURCES path — any current member
@@ -442,10 +524,21 @@ export default defineComponent({
 
     // ── the axes ─────────────────────────────────────────────────────
     const axisLocal = ref(null)
-    const axis = computed(() => axisLocal.value || head.value.axis || 'col')
+    // The host's layout wins over the stored axis when it is set (the
+    // flyout's toggle); otherwise the pre-existing rule.
+    const axis = computed(() => {
+      if (props.layout === 'horizontal') return 'row'
+      if (props.layout === 'vertical') return 'col'
+      return axisLocal.value || head.value.axis || 'col'
+    })
     watch(head, () => { axisLocal.value = null })
     const flipAxis = async () => {
       const next = axis.value === 'col' ? 'row' : 'col'
+      // A host-owned layout flips the VIEW and writes nothing.
+      if (props.layout) {
+        emit('update:layout', next === 'row' ? 'horizontal' : 'vertical')
+        return
+      }
       axisLocal.value = next
       if (props.readonly || !canWrite.value || head.value.locked || head.value.id == null) return
       try {
@@ -454,6 +547,19 @@ export default defineComponent({
         else await refresh()
       } catch (e) { flash(errOf(null, e, 'Could not save the axis')) }
     }
+
+    // A paths-kind cell — bound to a path, or declared `paths` and still
+    // empty (the first drop makes it a list).
+    const isListRow = (row) => row.refKind === 'paths' || (row.expectedKind === 'paths' && !row.ref)
+    // Column shares for the row axis (see the <colgroup> note): a POPULATED
+    // list weighs 8, everything else 1, the ghost key 1 when it stands. Read
+    // off the loaded lists map (reactive), never through listOf — a computed
+    // must not start a fetch.
+    const rowColWidths = computed(() => {
+      const ws = rows.value.map(r => (isListRow(r) && (lists.value[r.slotName]?.steps?.length || 0) > 0 ? 8 : 1))
+      const total = ws.reduce((a, b) => a + b, 0) + (canEditKeys.value ? 1 : 0)
+      return total ? ws.map(w => (100 * w / total).toFixed(2) + '%') : []
+    })
 
     // The one matrix both layouts draw from: lines of typed cells.
     const keyId = (row) => row.slotLabelId || row.slotName
@@ -620,9 +726,47 @@ export default defineComponent({
         const r = await pathService.byHash(row.ref, 'forward')
         const steps = (r?.steps || []).filter(st => st.link)
         lists.value[key] = { loading: false, steps, ref: row.ref || '' }
+        nextTick(() => scrollListToEnd(key))
       } catch (_) {
         lists.value[key] = { loading: false, steps: [], ref: row.ref || '' }
       }
+    }
+    // A HORIZONTAL list rests scrolled to its newest end (2026-09-06 PM) —
+    // the footer strip's own law ("the newest step lands beside the glyph"):
+    // a navigation ledger read left → right has its present at the right,
+    // and a lane that opened on its oldest member would show the wrong end.
+    // The list element is looked up by its `data-list` attribute at pin time
+    // — an axis flip re-creates the cells, and a function ref can be nulled
+    // for the old element after it was set for the new one.
+    const rootEl = ref(null)
+    const listElOf = (key) => rootEl.value?.querySelector(`.skel-table__list[data-list="${key}"]`) || null
+    // ⚠ The members ARRIVE AFTER the list does — each mini walks its own
+    // skeleton — so one scroll at load lands mid-row once they widen it.
+    // Re-pin as the members resize, for the first seconds only, then let go
+    // so a user's own scroll is never fought.
+    const scrollListToEnd = (key) => {
+      const el = listElOf(key)
+      if (!el || props.layout !== 'horizontal') return
+      el.scrollLeft = el.scrollWidth
+      if (typeof ResizeObserver === 'undefined') return
+      const ro = new ResizeObserver(() => { el.scrollLeft = el.scrollWidth })
+      for (const m of el.children) ro.observe(m)
+      setTimeout(() => ro.disconnect(), 3500)
+    }
+    watch(() => props.layout, (v) => {
+      if (v === 'horizontal') nextTick(() => { for (const r of rows.value) if (isListRow(r)) scrollListToEnd(r.slotName) })
+    })
+    // Which skeleton members unfold on their own (see the template note):
+    // anything the user unfolded; every member at depth < 2 when the grid is
+    // bare (the 2026-09-01 rule); when `enriched`, the newest
+    // LIST_UNFOLD_MAX of a depth-0 list only.
+    const memberUnfolds = (row, idx, st) => {
+      const path = st.target?.skeleton?.path
+      if (path && expanded.value.includes(path)) return true
+      if (!props.enriched) return props.depth < 2
+      if (props.depth !== 0) return false
+      const n = listOf(row).steps.length
+      return idx >= n - LIST_UNFOLD_MAX
     }
     const memberKind = (st) => {
       const k = st.target?.kind || st.link?.target_type || 'unknown'
@@ -737,6 +881,10 @@ export default defineComponent({
       expand,
       visitedNext,
       listOf,
+      isListRow,
+      rowColWidths,
+      rootEl,
+      memberUnfolds,
       memberKind,
       memberAddress,
       listDragOver,
@@ -925,6 +1073,48 @@ export default defineComponent({
   &.is-dragover { outline: 2px dashed var(--st-hover); outline-offset: 1px; }
 }
 .skel-table__list-line { font-size: 0.9em; }
+
+// THE HORIZONTAL LAYOUT (2026-09-06 PM): a list flows left → right — the
+// footer strip's own direction, oldest at the left — and scrolls on the x
+// axis inside its cell; members take a card's width so a mini reads.
+.is-horizontal .skel-table__list {
+  flex-direction: row;
+  align-items: flex-start;
+  overflow-x: auto;
+  overflow-y: hidden;
+  max-width: 100%;
+  padding-bottom: 2px;
+  scrollbar-width: thin;
+}
+.is-horizontal .skel-table__member {
+  flex: 0 0 auto;
+  min-width: 180px;
+  max-width: 320px;
+}
+.is-horizontal .skel-table__list-line { flex: 0 0 auto; }
+
+// THE NAMED STRIP (2026-09-06 PM, `enriched` lists): the member's own
+// NAME leads — a stop's title, an act's past-tense label — with the chip
+// and the unfold after it.
+.skel-table__strip--named {
+  align-items: center;
+  gap: 5px;
+  padding: 2px 4px;
+  border: 1px solid var(--st-rule);
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.35);
+}
+.skel-table__strip-glyph { flex: 0 0 auto; color: var(--st-ink-mute); }
+.skel-table__strip-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.92em;
+  font-weight: 600;
+  color: var(--st-ink);
+}
 .skel-table__list-drop {
   font-size: 0.8em;
   font-style: italic;

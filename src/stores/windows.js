@@ -90,8 +90,11 @@ function defaultPanels () {
     // beside the dashboard block, since 2026-09-02), expanding on hover
     // (head glyph taps for touch) — instead of starting fully closed
     // (which, with no opener left, would strand them).
-    stack: { open: true, minimized: true },
-    pins: { open: true, minimized: true }
+    // `maximized` (2026-09-06 PM — the thin header's GREEN light): the
+    // expanded panel's height cap flips from --dock-stack-h to the full
+    // window under the top tabs band. Persisted like `minimized`.
+    stack: { open: true, minimized: true, maximized: false },
+    pins: { open: true, minimized: true, maximized: false }
   }
 }
 
@@ -108,6 +111,8 @@ function loadPanels () {
       // closed.
       const savedMin = saved?.[key]?.minimized
       if (savedMin !== undefined) out[key].minimized = !!savedMin
+      const savedMax = saved?.[key]?.maximized
+      if (savedMax !== undefined) out[key].maximized = !!savedMax
     }
   } catch (_) { /* storage unreadable — keep the defaults */ }
   return out
@@ -246,6 +251,16 @@ export const useWindowsStore = defineStore('windows', {
     restorePanel (key) {
       this.panels[key].minimized = false
       this.focus(key)
+      this.persist()
+    },
+
+    // The thin header's green light (2026-09-06 PM): full height ⇄ the
+    // widget's own cap. A preference, not a posture — it survives parking,
+    // so the panel comes back as tall as it was left.
+    toggleMaximizePanel (key) {
+      const p = this.panels[key]
+      if (!p) return
+      p.maximized = !p.maximized
       this.persist()
     },
 

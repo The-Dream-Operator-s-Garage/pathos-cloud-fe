@@ -95,24 +95,47 @@
         <span class="element-flyout__label">{{ title }}</span>
       </span>
 
-      <!-- THE VIEW SWITCH — the fused window's one new bar control, at the
-           right edge where the media bar kept nothing (its actions live in
-           the foot). Wears the glyph of the face it OFFERS: `schema` while
-           the element is up, the element's own glyph while the skeleton
-           is; lit while the skeleton face is out. Only when the target has
-           two faces. @pointerdown.stop — the bar is the drag surface, and
-           a press on the switch must never start a drag. -->
-      <button
-        v-if="hasElementFace"
-        type="button"
-        class="element-flyout__swap"
-        :class="{ 'is-on': view === 'skeleton' }"
-        :title="swapTitle"
-        @pointerdown.stop
-        @click.stop="swapView"
-      >
-        <q-icon :name="swapIcon" size="13px" />
-      </button>
+      <!-- THE BAR'S RIGHT CLUSTER — two controls at the edge where the
+           media bar kept nothing (its actions live in the foot); both
+           @pointerdown.stop — the bar is the drag surface, and a press on a
+           control must never start a drag.
+           · THE LAYOUT TOGGLE (2026-09-06 PM, user ask: "adapt the skeleton
+             viewer to either display skeletons vertically or horizontally,
+             like at the user's will so I can properly navigate the
+             navigation stack"). Skeleton face only. Wears the glyph of the
+             layout it OFFERS: swap_horiz while the grid stands vertical
+             (keys down the first column, lists as columns), swap_vert while
+             it lies horizontal (keys across the top, lists flowing left →
+             right — the footer strip's own direction). A VIEW setting, never
+             a write: the skeleton's stored AXIS is untouched, and the choice
+             is remembered per browser (localStorage) so every window opens
+             the way the last one was left.
+           · THE VIEW SWITCH — wears the glyph of the face it OFFERS:
+             `schema` while the element is up, the element's own glyph while
+             the skeleton is; lit while the skeleton face is out. Only when
+             the target has two faces. -->
+      <span class="element-flyout__controls" @pointerdown.stop>
+        <button
+          v-if="showing === 'skeleton'"
+          type="button"
+          class="element-flyout__layout"
+          :class="{ 'is-on': layout === 'horizontal' }"
+          :title="layoutTitle"
+          @click.stop="toggleLayout"
+        >
+          <q-icon :name="layout === 'horizontal' ? 'swap_vert' : 'swap_horiz'" size="13px" />
+        </button>
+        <button
+          v-if="hasElementFace"
+          type="button"
+          class="element-flyout__swap"
+          :class="{ 'is-on': view === 'skeleton' }"
+          :title="swapTitle"
+          @click.stop="swapView"
+        >
+          <q-icon :name="swapIcon" size="13px" />
+        </button>
+      </span>
     </header>
 
     <FriezeBar slim class="element-flyout__frieze" />
@@ -144,15 +167,27 @@
            for nodes (the surround read), self-resolving for posts and
            refs (`resolved` reports back so a ref window can title itself
            and a POST instance can step forward to its card). -->
+      <!-- `layout` + `enriched` (2026-09-06 PM): the toggle above lays the
+           grid out; `enriched` makes every skeleton INSIDE it — a cell-bound
+           one, a list member — render as the SKELETON MINI (chrome, name,
+           provenance foot) rather than a bare nested grid, which is what
+           lets the NAVIGATION skeleton's stops and their sub-stacks be read
+           one unfold at a time. -->
       <div v-else class="element-flyout__generic">
         <SkeletonTable
           v-if="nodeWalk"
           :skeleton="nodeWalk.skeleton"
           :slots="nodeWalk.slots"
+          :layout="layout"
+          enriched
+          @update:layout="setLayout"
         />
         <SkeletonTable
           v-else-if="tableRef != null"
           :ref-or-id="tableRef"
+          :layout="layout"
+          enriched
+          @update:layout="setLayout"
           @resolved="onResolved"
         />
         <InfoChip
@@ -438,6 +473,26 @@ export default defineComponent({
     const view = ref('element')
     const userToggled = ref(false)
 
+    // ── THE LAYOUT (2026-09-06 PM) — vertical | horizontal, a view
+    // setting for the skeleton face (see the bar note). Remembered per
+    // browser; the grid's own corner flips it too (`update:layout`).
+    const LAYOUT_KEY = 'pathos_skeleton_layout'
+    const loadLayout = () => {
+      try {
+        const v = localStorage.getItem(LAYOUT_KEY)
+        return v === 'horizontal' ? 'horizontal' : 'vertical'
+      } catch (_) { return 'vertical' }
+    }
+    const layout = ref(loadLayout())
+    const setLayout = (v) => {
+      layout.value = v === 'horizontal' ? 'horizontal' : 'vertical'
+      try { localStorage.setItem(LAYOUT_KEY, layout.value) } catch (_) { /* preference only */ }
+    }
+    const toggleLayout = () => setLayout(layout.value === 'horizontal' ? 'vertical' : 'horizontal')
+    const layoutTitle = computed(() => layout.value === 'horizontal'
+      ? 'Lay the skeleton out vertically — keys down the first column, lists as columns'
+      : 'Lay the skeleton out horizontally — keys across the top, lists flowing left to right')
+
     const resolvedInfo = ref(null) // ref-door walk answer
     const refFailed = ref(false) // nodes/ ref that would not enrich
     const nodeWalk = ref(null) // the node's OWN skeleton { skeleton, slots }
@@ -567,6 +622,10 @@ export default defineComponent({
     const title = computed(() => {
       if (targetNode.value) return titleOf(targetNode.value)
       if (targetItem.value) return targetItem.value.title || ('post #' + targetItem.value.skeleton_id)
+      // A skeleton that carries a TITLE note is named by it (the NAVIGATION
+      // PATH_VIEW reads "My navigation path", not "PATH_VIEW Skeleton" —
+      // 2026-09-06 PM, the stack's skeleton door).
+      if (resolvedInfo.value?.title) return resolvedInfo.value.title
       const name = resolvedInfo.value?.name
       return name ? `${name} Skeleton` : 'Skeleton'
     })
@@ -883,6 +942,10 @@ export default defineComponent({
       swapView,
       swapIcon,
       swapTitle,
+      layout,
+      setLayout,
+      toggleLayout,
+      layoutTitle,
       headIcon,
       title,
       tableRef,
@@ -992,7 +1055,7 @@ export default defineComponent({
   position: relative;
   flex: 0 0 auto;
   justify-content: center;
-  padding: 0 40px 0 70px;
+  padding: 0 66px 0 70px; // 40px until the layout toggle joined the switch (2026-09-06 PM)
   background: var(--grey-4, #e0e0e0); // the box's own coat — no cap
   border-bottom: none; // the frieze band is the divider
   cursor: grab;
@@ -1037,15 +1100,23 @@ export default defineComponent({
   text-overflow: ellipsis;
 }
 
-// THE VIEW SWITCH — pinned to the bar's right edge, mirroring the
-// traffic cluster; the window's inks (grey-8 resting, grey-10 press),
-// a hairline + a lift of white while the skeleton face is out.
-.element-flyout__swap {
+// THE RIGHT CLUSTER — pinned to the bar's right edge, mirroring the
+// traffic cluster: the layout toggle (skeleton face only, 2026-09-06 PM)
+// then the view switch. Both wear the window's inks (grey-8 resting,
+// grey-10 press), a hairline + a lift of white while ON.
+.element-flyout__controls {
   position: absolute;
   right: 8px;
   top: 50%;
   transform: translateY(-50%);
-  z-index: 6; // above the NE resize corner — the switch keeps its taps
+  z-index: 6; // above the NE resize corner — the controls keep their taps
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.element-flyout__swap,
+.element-flyout__layout {
   display: inline-flex;
   align-items: center;
   justify-content: center;

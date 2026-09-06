@@ -29,13 +29,27 @@
     @click="$emit('activate')"
   >
     <q-icon :name="displayIcon" :size="railIconSize" />
-    <!-- THE LETTERED FACE (2026-09-03): the current item's rail face when the
-         host passes `wide-current` — glyph · title · 8-char hash in one
-         nowrap row on the kind fill, the title taking the ellipsis. -->
-    <template v-if="lettered">
-      <span class="side-item__rail-title">{{ title }}</span>
-      <span v-if="railHash" class="side-item__rail-hash mono">{{ railHash }}</span>
-    </template>
+    <!-- THE LETTERED FACE — TWO LINES since 2026-09-06 (user ask: "enrich
+         the larger one by displaying the item title/number in one line and
+         then the last sub-item of the last action taken on another smaller
+         line"). Line one is the stop: title · hash. Line two is its
+         SUB-STACK's newest entry — the action's own glyph and past-tense
+         label out of `utils/navActions.js` — so the wide tile answers
+         "where am I" and "what did I last do here" at once.
+         It was ONE line, glyph · title · hash, from 2026-09-03 to that ask.
+         A stop with an empty sub-stack renders line one alone and stays
+         vertically centred: an absent second line must read as nothing to
+         report, never as a blank waiting to be filled. -->
+    <span v-if="lettered" class="side-item__rail-lines">
+      <span class="side-item__rail-line">
+        <span class="side-item__rail-title">{{ title }}</span>
+        <span v-if="railHash" class="side-item__rail-hash mono">{{ railHash }}</span>
+      </span>
+      <span v-if="subLabel" class="side-item__rail-line side-item__rail-line--sub">
+        <q-icon v-if="subIcon" :name="subIcon" size="9px" class="side-item__rail-sub-icon" />
+        <span class="side-item__rail-sub">{{ subLabel }}</span>
+      </span>
+    </span>
     <q-tooltip anchor="center left" self="center right">{{ tooltip || title }}</q-tooltip>
   </q-btn>
 
@@ -111,6 +125,12 @@ export default defineComponent({
     // WIDE and lettered — glyph · title · hash — while its siblings stay
     // glyph pills. Off by default (the pins strip keeps every tile a pill).
     wideCurrent: { type: Boolean, default: false },
+    // The wide face's SECOND LINE (2026-09-06) — the newest entry in this
+    // item's sub-stack, already resolved by the host through
+    // `utils/navActions.js` (this component stays a renderer and never
+    // learns the action vocabulary). Both empty ⇒ the tile is one line.
+    subLabel: { type: String, default: '' },
+    subIcon: { type: String, default: '' },
     // Creation timestamp for the "x ago" line (visit time for stack steps,
     // pin time for pins).
     time: { type: [Number, String, Date], default: null },
@@ -164,9 +184,17 @@ export default defineComponent({
 // `--side-item-face` (2026-09-03) — the tile's FACE as a dial: its fill on
 // the plain face, its GLYPH ink once the kind color fills the current tile.
 // `--grey-3` unless the host says otherwise; the PARKED stack + pins strips
-// point it at `--strip-ink` (light-cream) — the coat's-negative pass, see
-// `_tokens.scss` § THE FOOTER STRIPS' NIGHT COAT. The kind color never moves:
-// rim + glyph on the plain face, the fill on the current one.
+// point it at `--strip-ink` (light-cream).
+// ⭐ `--side-item-rim` (2026-09-06, user ask: "ad a thin grey-6 border to the
+// items of both the [pins] and the stack bars. Make sure both item's style and
+// color are consistent, being the base color light-cream") — the tile's LINE
+// as its own dial, falling back to the kind accent so every host that does not
+// set it keeps exactly the face it had. The two parked strips point it at
+// `--grey-6`: with the lane back on `--grey-4`, a kind-coloured rim competed
+// with the lane's own `--grey-6` line and made the two strips' items differ
+// tile by tile. THE KIND COLOUR DID NOT LEAVE — it holds the GLYPH on the
+// plain face and the FILL on the current one, which is where it reads
+// loudest; what it gave up is the structural line, which is a job for one ink.
 .side-item__btn {
   width: 26px;
   height: 26px;
@@ -178,7 +206,7 @@ export default defineComponent({
   align-items: center;
   justify-content: center;
   border-radius: var(--radius-md);
-  border: 1px solid var(--item-accent, var(--ink));
+  border: 1px solid var(--side-item-rim, var(--item-accent, var(--ink)));
   background: var(--side-item-face, var(--grey-3));
   color: var(--item-accent, var(--ink));
 
@@ -301,13 +329,43 @@ export default defineComponent({
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+// THE TWO-LINE COLUMN (2026-09-06). The rail face is `--side-item-h` tall
+// and the strip's is 17px, so the pair has to fit inside it EXACTLY: 9px +
+// 1px gap + 7px = 17. Both lines are `line-height: 1` for that reason —
+// any leading at all and the second line pushes the first off its centre,
+// which reads as the tile having drifted rather than as text having grown.
+.side-item__rail-lines {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 1px;
+  min-width: 0;
+  flex: 1 1 auto;
+  overflow: hidden;
+}
+
+.side-item__rail-line {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  max-width: 100%;
+  line-height: 1;
+
+  // The sub line is the QUIETER of the two — same ink, less of it. It is a
+  // log entry under a name, and a second line at full strength would read
+  // as a second title.
+  &--sub { opacity: 0.78; }
+}
+
 .side-item__rail-title {
   flex: 0 1 auto;
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 600;
   line-height: 1;
   letter-spacing: 0.01em;
@@ -316,9 +374,24 @@ export default defineComponent({
 
 .side-item__rail-hash {
   flex: 0 0 auto;
-  font-size: 9px;
+  font-size: 8px;
   line-height: 1;
   opacity: 0.8;
+  text-transform: none;
+}
+
+.side-item__rail-sub-icon { flex: 0 0 auto; }
+
+.side-item__rail-sub {
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 8px;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: 0;
   text-transform: none;
 }
 </style>

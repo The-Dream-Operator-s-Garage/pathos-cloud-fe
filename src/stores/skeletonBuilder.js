@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { useWindowsStore } from './windows'
+import { useNavStore } from './navigation'
 
 // The skeleton builder is now a SCHEMA workshop only: every tab either
 // defines a brand-new schema (named fields, each declaring which element
@@ -95,16 +96,26 @@ export const useSkeletonBuilderStore = defineStore('skeletonBuilder', {
     open () {
       this.load()
       if (!this.drafts.length) this.addDraft()
+      // THE SUB-STACK (2026-09-06 PM): closed→open = "Opened skeleton
+      // builder" in the current stop (see stores/maker.js for the rule).
+      const wasClosed = !this.isOpen
       this.isOpen = true
       this.isMinimized = false
       useWindowsStore().focus('skeletonBuilder')
+      if (wasClosed) {
+        try { useNavStore().recordDock('skeletonBuilder', 'open') } catch (_) { /* the window opens whether or not the log does */ }
+      }
     },
 
     close () {
+      const wasOpen = this.isOpen
       this.isOpen = false
       this.isMinimized = false
       this.isMaximized = false
       useWindowsStore().release('skeletonBuilder')
+      if (wasOpen) {
+        try { useNavStore().recordDock('skeletonBuilder', 'close') } catch (_) { /* the window opens whether or not the log does */ }
+      }
     },
 
     minimize () {
@@ -127,10 +138,14 @@ export const useSkeletonBuilderStore = defineStore('skeletonBuilder', {
     },
 
     _show () {
+      const wasClosed = !this.isOpen
       this.isOpen = true
       this.isMinimized = false
       useWindowsStore().focus('skeletonBuilder')
       this.persist()
+      if (wasClosed) {
+        try { useNavStore().recordDock('skeletonBuilder', 'open') } catch (_) { /* the window opens whether or not the log does */ }
+      }
     },
 
     // Route a walked skeleton into the dock. Pure state work — callers fetch

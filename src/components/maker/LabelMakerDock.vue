@@ -251,6 +251,7 @@ import { useLabelMakerStore } from 'src/stores/labelMaker'
 import { useWindowsStore } from 'src/stores/windows'
 import { useAuthStore } from 'src/stores/auth'
 import { labelService } from 'src/services/label.service'
+import { useNavStore } from 'src/stores/navigation'
 import LabelTreeMini from 'src/components/labels/LabelTreeMini.vue'
 import LabelMiniMaker from 'src/components/labels/LabelMiniMaker.vue'
 
@@ -337,6 +338,12 @@ export default defineComponent({
 
     const onCreated = (label) => {
       flash(`Created '${label.name}'.`)
+      // THE SUB-STACK (2026-09-06 PM): every write this workshop makes is
+      // an act in the stop you stand in — created / forked / suggested /
+      // deleted / renamed / re-hung, each targeting the label it touched.
+      try {
+        useNavStore().recordAction('LABEL_CREATE', { targetType: 'label', targetId: label?.id ?? null, targetLabel: label?.name || 'label', targetPath: label?.path || null })
+      } catch (_) { /* a label write must never fail because its log did */ }
       store.select(label)
       mode.value = 'info'
       bump()
@@ -346,6 +353,9 @@ export default defineComponent({
     // the maker IS the editor, so the forked tree opens ready to grow.
     const onForked = (forkRoot) => {
       flash(`Forked into '${forkRoot.name}' — now yours.`)
+      try {
+        useNavStore().recordAction('LABEL_FORK', { targetType: 'label', targetId: forkRoot?.id ?? null, targetLabel: forkRoot?.name || 'label', targetPath: forkRoot?.path || null })
+      } catch (_) { /* a label write must never fail because its log did */ }
       store.select(forkRoot)
       mode.value = 'info'
       bump()
@@ -361,6 +371,9 @@ export default defineComponent({
         })
         if (r.success) {
           flash(`Suggestion sent — the owner of '${selected.value.name}' got a poll in your chat.`)
+          try {
+            useNavStore().recordAction('LABEL_SUGGEST', { targetType: 'label', targetId: selected.value?.id ?? null, targetLabel: suggestName.value.trim() || 'label', targetPath: selected.value?.path || null })
+          } catch (_) { /* a label write must never fail because its log did */ }
           mode.value = 'info'
         } else flash('', r.error?.message || 'Suggestion failed')
       } catch (e) {
@@ -374,6 +387,9 @@ export default defineComponent({
         const r = await labelService.remove(selected.value.id)
         if (r.success) {
           flash(`Deleted '${r.root.name}' — ${r.deleted} label${r.deleted === 1 ? '' : 's'} gone.`)
+          try {
+            useNavStore().recordAction('LABEL_DELETE', { targetType: 'label', targetId: null, targetLabel: r.root?.name || 'label', targetPath: null })
+          } catch (_) { /* a label write must never fail because its log did */ }
           store.select(null)
           mode.value = 'info'
           bump()
@@ -388,6 +404,9 @@ export default defineComponent({
       try {
         const r = await labelService.update(selected.value.id, { name: renameText.value.trim() })
         if (r.success) {
+          try {
+            useNavStore().recordAction('LABEL_RENAME', { targetType: 'label', targetId: selected.value?.id ?? null, targetLabel: renameText.value.trim(), targetPath: selected.value?.path || null })
+          } catch (_) { /* a label write must never fail because its log did */ }
           store.select({ ...selected.value, name: renameText.value.trim() })
           flash('Renamed.')
           mode.value = 'info'
@@ -404,6 +423,9 @@ export default defineComponent({
         const r = await labelService.update(selected.value.id, { ancestorId: target ? target.id : null })
         if (r.success) {
           flash(target ? `Moved under '${target.name}'.` : 'Detached into a root.')
+          try {
+            useNavStore().recordAction('LABEL_MOVE', { targetType: 'label', targetId: selected.value?.id ?? null, targetLabel: selected.value?.name || 'label', targetPath: selected.value?.path || null })
+          } catch (_) { /* a label write must never fail because its log did */ }
           mode.value = 'info'
           bump()
           loadChain()
@@ -418,6 +440,14 @@ export default defineComponent({
       try {
         const r = await labelService.fork(selected.value.id)
         if (r.success) {
+          try {
+            useNavStore().recordAction('LABEL_FORK', {
+              targetType: 'label',
+              targetId: r.label?.id ?? null,
+              targetLabel: r.label?.name || 'label',
+              targetPath: r.label?.path || null
+            })
+          } catch (_) { /* the fork stands whether or not the log does */ }
           flash(`Forked ${r.count} label${r.count === 1 ? '' : 's'} — the copy is yours.`)
           store.select(r.label)
           mode.value = 'info'
@@ -472,10 +502,21 @@ export default defineComponent({
 // window gets "overtones all over" the way the uploader wears teal, "but
 // in quasar purple") ──
 //
-// UploaderDock's block verbatim, one family over: the uploader reads the
-// teals at 50/300/500/700 and this window reads the purples standing at
-// the SAME indices (`_tokens.scss` § THE LABELS WINDOW'S FOUR). Same five
+// UploaderDock's block verbatim, one family over at the SAME four indices —
+// 50/300/500/700 (`_tokens.scss` § THE LABELS WINDOW'S THREE). Same five
 // `--dock-*` dials, same one-contrast-everywhere rule.
+//
+// ── ⚠ THE FAMILY TURNED 2026-09-05, one day old (user ask: "for labels, we
+// wanna go deep-purple instead of purple"). It is the ONLY one of that day's
+// four window repaints where the index law survived: deep-purple carries ink
+// at its Material 500 exactly as purple did, so every dial below reads the
+// rung it read yesterday and nothing but the hex moved. The window came out a
+// half-step stronger for it — 6.64:1 on the coat against 5.60:1 — which is
+// what "deep" bought and the whole of what it bought. The purple family was
+// retired from `_tokens.scss` the same hour: this window was its only wearer,
+// for one day. ⚠ Note the uploader is no longer teal either (it is lime), so
+// the "verbatim, one family over" above is a lineage, not a description of
+// two windows you can compare on screen today. ──
 //
 // ⚠ `--dock-coat` here is the THIRD sanctioned break in the one-plaque law
 // — `fsck --static`'s `dock-coat` witness knows this file by name
@@ -497,15 +538,28 @@ export default defineComponent({
 // and secondary stand side by side as two steps of one hue.
 .label-dock {
   --dock-coat: var(--labels-coat);
+  // ⚠ THE ONLY TONE IN THIS COLORWAY THAT IS NOT ONE OF THE LADDER'S FOUR
+  // RUNGS (2026-09-05, user ask: an open window "illuminates" its borders).
+  // Material 200 — the index the whole glow set is taken at, so the four
+  // windows light in four hues at ONE brightness. It draws nothing — the
+  // shell's border stays `--dock-rule` — it only feeds the three shadow
+  // layers on `.dock-window--creation`, which is also why it is safe for it
+  // to be far too pale to letter anything.
+  // ⚠ It was the family's A100 (-11) for one ask, and the walk down to -3 is
+  // a SATURATION move, not a brightness one (100% → 46-72%): at full chroma
+  // the light read as a neon sign stuck on the window, two steps down it
+  // reads as the window being lit. Same picture, sober. `_tokens.scss` §
+  // THE FOUR GLOW TONES has the numbers.
+  --dock-glow: var(--deep-purple-3);
   --dock-rule: var(--labels-contrast);
-  --dock-rule-strong: var(--purple-8);
+  --dock-rule-strong: var(--deep-purple-8);
   --dock-ink: var(--labels-contrast);
-  --dock-ink-mute: var(--purple-4);
-  --dock-well: var(--purple-1);
+  --dock-ink-mute: var(--deep-purple-4);
+  --dock-well: var(--deep-purple-1);
   --ltm-accent: var(--labels-contrast);
-  --ltm-accent-rgb: var(--purple-6-rgb);
+  --ltm-accent-rgb: var(--deep-purple-6-rgb);
   --q-primary: var(--labels-contrast);
-  --q-secondary: var(--purple-8);
+  --q-secondary: var(--deep-purple-8);
 }
 
 // ── THE HEADER PLATE — the maker's `.dock-bar__plate`, dial for dial, in
@@ -602,7 +656,7 @@ export default defineComponent({
   color: var(--ink-soft);
   cursor: pointer;
 
-  &:hover { color: var(--labels-contrast); background: rgba(var(--purple-6-rgb), 0.1); }
+  &:hover { color: var(--labels-contrast); background: rgba(var(--deep-purple-6-rgb), 0.1); }
   &.is-current { color: #fff; background: var(--labels-contrast); }
 }
 
@@ -624,7 +678,7 @@ export default defineComponent({
   background: rgba(var(--ink-rgb), 0.08);
 
   &--sys  { color: #8a6200; background: rgba(255, 200, 0, 0.18); }
-  &--mine { color: var(--labels-contrast); background: rgba(var(--purple-6-rgb), 0.12); }
+  &--mine { color: var(--labels-contrast); background: rgba(var(--deep-purple-6-rgb), 0.12); }
 }
 
 .label-dock__open {

@@ -1,6 +1,20 @@
 <template>
-  <!-- The navigation stack, RIDING THE FOOTER BAR'S INNER FRIEZE BAR at its
-       very LEFT (2026-08-30, three user asks one sitting — "place it on the
+  <!-- The navigation stack, STANDING THE FOOTER BAR'S WHOLE ROW at its very
+       LEFT — ⭐ OUT OF THE INNER FRIEZE BAR AGAIN SINCE 2026-09-05 (user
+       ask: "make the stack and pin bars inside the frieze bar be outside the
+       friezebar, like the author and dashboard buttons on the footer nav
+       bar. We want them to occupy all the available height. Also, please
+       make their background color the same as the footer bar"). The strip
+       is a BAR CELL now — the identity section's and the dashboard block's
+       sibling, 31px of content row in the bar's own `--plaque-coat`, its two
+       verticals in the bar's `--brown-3` hairline ink — and the trail band
+       simply runs behind it, interrupted at this end exactly as it is by
+       those two cells. Everything INSIDE the strip is untouched: the same
+       19px lane, the same two pills and wide current tile, now floating on a
+       6px shoulder of coat top and bottom the way the identity chip's badges
+       do. It rode INSIDE the band from 2026-08-30 to this ask; that dress is
+       in git and its arguments are kept in the style block below.
+       The band-riding record (2026-08-30, three user asks one sitting — "place it on the
        bottom footer bar, at the very left … items at the left, icon at the
        right" → "*inside* the footer bar … occupy the whole available
        height" → "remove the top and bottom padding … place the whole thing
@@ -10,11 +24,12 @@
        (2026-07-24, third pass), and the RELOCATION ROTATED THE PARKED AXIS:
        · parked (win.minimized) = a row of UP TO THREE GLYPH TILES (2026-09-02;
          a dense shrink-fit chip row before — and a lettered title rode
-         each tile for ONE deploy that day, until "the text overlaps … just display the icon") INSIDE THE
-         TRAIL — the strip stands INSIDE `.nav-frieze`'s box (--nav-chip-h,
-         promoted to :root for this), wearing the bar's own coat with a
-         grey-4 item lane inset in it (the fourth ask; it rode the band
-         bare-transparent for one ask) — beside the 42px left rail slot (the
+         each tile for ONE deploy that day, until "the text overlaps … just display the icon") ON THE
+         BAR'S OWN ROW — the strip stands OUTSIDE `.nav-frieze` since
+         2026-09-05 (`--nav-bar-h - 1px` at `bottom: 0`; it was the band's
+         interior, `--nav-chip-h`, from 2026-08-30 until then), wearing the
+         bar's own coat with a night-well item lane inset in it (the fourth
+         ask; it rode the band bare-transparent for one ask) — beside the
          burger's — never covered), chips ordered OLDEST→NEWEST
          left-to-right with the stack's head glyph at the strip's RIGHT END —
          the newest step lands beside the glyph exactly as it landed beside
@@ -39,11 +54,47 @@
   <section
     v-if="win.open"
     class="stack-window dock-window"
-    :class="{ 'is-parked': win.minimized }"
+    :class="{ 'is-parked': win.minimized, 'is-max': win.maximized }"
     :style="{ zIndex: EDGE_Z }"
     @mouseenter="onHoverEnter"
     @mouseleave="onHoverLeave"
   >
+    <!-- THE THIN HEADER (2026-09-06 PM, user ask: "add them a thin header
+         with traffic light buttons, title and add a button on the right that
+         opens up a flyout skeleton view of the stacks of items they carry").
+         Shared chrome: `.side-head` in _components.scss carries the
+         arguments. Red and yellow both PARK (the widget has no closed state
+         — its strip is always on the bar), green flips the height cap to the
+         full window (`is-max`), and the door at the right opens the user's
+         NAVIGATION skeleton in the flyout viewer: PATH_REF's list is this
+         very ledger, one NAV_STOP per stop, each stop's SUBSTACK its
+         sub-stack (navSkeletonService § THE STOP STORY). -->
+    <header v-if="!win.minimized" class="side-head stack-head">
+      <div class="traffic">
+        <button type="button" class="traffic__dot traffic__dot--red"
+          title="Close — the stack parks to its strip" @click.stop="windows.minimizePanel('stack')">
+          <q-icon name="close" />
+        </button>
+        <button type="button" class="traffic__dot traffic__dot--yellow"
+          title="Park to the strip" @click.stop="windows.minimizePanel('stack')">
+          <q-icon name="remove" />
+        </button>
+        <button type="button" class="traffic__dot traffic__dot--green"
+          :title="win.maximized ? 'Restore height' : 'Full height'" @click.stop="toggleMax">
+          <q-icon :name="win.maximized ? 'close_fullscreen' : 'open_in_full'" />
+        </button>
+      </div>
+      <span class="side-head__title nasalization">
+        <q-icon name="layers" size="12px" class="side-head__glyph" />
+        <span class="side-head__label">Navigation stack</span>
+      </span>
+      <button type="button" class="side-head__open" :disabled="skeletonOpening"
+        title="Open the stack as a skeleton — every stop and its sub-stack, in the flyout viewer"
+        @click.stop="openSkeleton">
+        <q-icon name="schema" size="13px" />
+      </button>
+    </header>
+
     <!-- Frieze band at the expanded panel's top edge — THE FLYOUT'S BAND since
          2026-09-02 (user ask: "change the friezebar [to] match the thin
          friezebars on the node flyout viewers"): `slim`, no `flip`, dialled
@@ -58,7 +109,7 @@
          load-bearing rule the flyout leans on. -->
     <FriezeBar v-if="!win.minimized" slim class="stack-frieze" />
 
-    <div v-if="history.length === 0 && !win.minimized" class="stack-empty">No visits yet.</div>
+    <div v-if="trail.length === 0 && !win.minimized" class="stack-empty">No visits yet.</div>
 
     <div v-else ref="listEl" class="stack-list" :class="{ 'is-parked': win.minimized }">
       <!-- Ordered OLDEST→NEWEST along the flow axis (the natural history
@@ -72,21 +123,27 @@
            face = the flat kind-colored icon chip. The step you are AT wraps
            in the kind-colored bubble (expanded) / inverts to a solid fill
            (parked). -->
-      <!-- `rows` is the WHOLE history expanded and a THREE-SLOT WINDOW of it
-           parked (2026-09-02, user ask: "shows up to 3 elements") — each
-           row carries its REAL history index `i`, so the tints, the
-           current-step mark and click-to-jump never see the slice. The
-           parked tile is the GLYPH ALONE — a title was lettered beside it
-           for one deploy (2026-09-02) and overlapped its neighbours; the
-           same day's next ask: "the text overlaps … just display the icon". -->
+      <!-- `rows` is the WHOLE TRAIL expanded and its LAST THREE stops parked
+           (2026-09-02, "shows up to 3 elements"). ⭐ The window now always
+           ENDS at the newest stop, so the arrangement is fixed — TWO TINY
+           PILLS THEN THE WIDE TILE (2026-09-06 ask) — instead of the wide
+           seat following a cursor around the row. Each row carries its REAL
+           ledger index `i`, so nothing downstream sees the slice.
+           The tiny tiles are the GLYPH ALONE (a title rode each of them for
+           one deploy on 2026-09-02 and overlapped its neighbours: "the text
+           overlaps … just display the icon"); the wide one letters TWO
+           LINES, the stop on top and its sub-stack's newest act beneath.
+           A stop opened in a FLOATING WINDOW (surface: 'window') is the same
+           stop as the page for that element — the trail records how you got
+           there, and the tile does not draw two different things for it. -->
       <SidePanelItem
         v-for="{ entry, i } in rows"
-        :key="i"
+        :key="entry.key + ':' + i"
         class="stack-item"
         :class="{
           'is-checkpoint': checkpointIndices.includes(i),
-          'is-past':       i <  historyIndex,
-          'is-future':     i >  historyIndex
+          'is-past':       i < currentIndex,
+          'is-window':     entry.surface === 'window'
         }"
         :collapsed="win.minimized"
         :kind="entry.id ? chipKind(entry.type) : null"
@@ -94,16 +151,26 @@
         :hash="entry.hash || ''"
         :display="entry.hash ? '' : (entry.id ? '#' + entry.id : '')"
         :title="entry.title"
-        :time="entry.timestamp"
+        :sub-label="lastActionOf(entry).label"
+        :sub-icon="lastActionOf(entry).icon"
+        :time="entry.lastAt || entry.timestamp"
         :author="authorOf(entry)"
-        :current="i === historyIndex"
-        :tooltip="entry.title + (i === historyIndex ? ' — you are here' : '')"
+        :current="i === currentIndex"
+        :tooltip="entry.title
+          + (entry.actions.length ? ' — ' + lastActionOf(entry).label : '')
+          + (i === currentIndex ? ' — you are here' : '')"
         rail-icon-size="12px"
         wide-current
         @activate="jumpToIndex(i)"
       >
-        <template v-if="entry.isCheckpoint" #badges>
-          <q-icon name="flag" size="11px" class="text-amber" />
+        <template v-if="entry.isCheckpoint || entry.actions.length" #badges>
+          <q-icon v-if="entry.isCheckpoint" name="flag" size="11px" class="text-amber" />
+          <!-- The SUB-STACK's depth, as a count beside the title: the
+               expanded row already letters the newest act on the wide face,
+               and this says how much else is under it. -->
+          <span v-if="entry.actions.length" class="stack-item__subcount mono">
+            {{ entry.actions.length }}
+          </span>
         </template>
       </SidePanelItem>
     </div>
@@ -131,7 +198,7 @@
       <span class="dock-bar__title nasalization">Navigation stack</span>
       <q-space />
       <span class="dock-bar__meta mono">
-        {{ history.length }} step{{ history.length === 1 ? '' : 's' }}
+        {{ trail.length }} stop{{ trail.length === 1 ? '' : 's' }}
       </span>
       <!-- History control at the very right end of the info box: the clock
            glyph standing for "the stack's own history". Stops the click from
@@ -163,8 +230,11 @@ import { useRouter } from 'vue-router'
 import { useNavStore } from 'src/stores/navigation'
 import { useWindowsStore } from 'src/stores/windows'
 import { typeIcon, chipKind } from './navTypeIcons'
+import { actionIcon, actionLabel } from 'src/utils/navActions'
 import { kindFor, prefixFor } from 'src/utils/kinds'
 import { refService } from 'src/services/ref.service'
+import { navService } from 'src/services/nav.service'
+import { useFlyoutViewersStore } from 'src/stores/flyoutViewers'
 import SidePanelItem from './SidePanelItem.vue'
 import FriezeBar from './FriezeBar.vue'
 
@@ -179,12 +249,33 @@ export default defineComponent({
 
     const win = computed(() => windows.panels.stack)
 
-    // Both faces render history in its NATURAL order (oldest→newest) top-to-
-    // bottom, so the newest step lands at the bottom right beside the header /
-    // head glyph. The loop index IS the real history index — no reversal needed.
-    const history = computed(() => navStore.history)
-    const historyIndex = computed(() => navStore.historyIndex)
+    // ⭐ THE WIDGET READS THE TRAIL, NOT THE CURSOR (2026-09-06, user ask:
+    // "the history should be preserved … a huge skeleton of items I've been
+    // on"). `navStore.history` is the BACK/FORWARD stack and it is allowed
+    // to forget — a visit made after a Back drops the forward branch, which
+    // is right for two arrows and wrong for a history. `navStore.trail` is
+    // the append-only ledger; on this seat the swap took the widget from 66
+    // surviving steps to 254 real ones, with the sub-stacks attached.
+    // Order is unchanged: NATURAL (oldest→newest) along the flow axis, so
+    // the newest stop still lands nearest the header / head glyph.
+    const trail = computed(() => navStore.trail)
+    // The stop you are IN is the newest one, always — a ledger has no
+    // cursor. (`historyIndex` still drives the bar's Back/Forward arrows;
+    // this widget stopped needing it.)
+    const currentIndex = computed(() => trail.value.length - 1)
     const checkpointIndices = computed(() => navStore.checkpointIndices)
+
+    // ── THE SUB-STACK, RESOLVED FOR DISPLAY ─────────────────────
+    // The wide tile's second line: the newest act performed in that stop,
+    // as a past-tense label + glyph from the action registry. The registry
+    // is consulted HERE and never inside SidePanelItem — the tile is a
+    // renderer, and teaching it the vocabulary would put the verb list in
+    // two places.
+    const lastActionOf = (stop) => {
+      const a = stop?.actions?.length ? stop.actions[stop.actions.length - 1] : null
+      if (!a) return { label: '', icon: '' }
+      return { label: actionLabel(a.code), icon: actionIcon(a.code) }
+    }
 
     // ── THE PARKED STRIP SHOWS UP TO THREE STEPS (2026-09-02, user ask) ──
     // A sliding window over the history, three wide, that ENDS AT THE
@@ -196,21 +287,24 @@ export default defineComponent({
     // REAL index so nothing downstream (tints, `current`, jumpToIndex)
     // knows about the slice. Expanded, `rows` is the whole history — the
     // panel's list is still the ONE scroller for every step.
+    // ⭐ TWO TINY, THEN THE WIDE ONE (2026-09-06, user ask: "I have like a
+    // large item and a tiny one. Put 2 tiny ones on the left and then the
+    // large one on the right"). The window is the last THREE stops of the
+    // ledger and it always ENDS at the newest — the wide tile is the last
+    // slot by construction, so the arrangement is fixed rather than
+    // depending on where a cursor happens to be. That is the change from
+    // the 09-03 dress, where the wide seat followed the current index and
+    // could land in the middle or at the left with tiny tiles after it.
     const PARKED_SLOTS = 3
     const parkedRows = computed(() => {
-      const h = history.value
-      let end = h.length
-      let start = Math.max(0, end - PARKED_SLOTS)
-      if (historyIndex.value < start) {
-        start = Math.max(0, historyIndex.value)
-        end = Math.min(h.length, start + PARKED_SLOTS)
-      }
-      return h.slice(start, end).map((entry, k) => ({ entry, i: start + k }))
+      const t = trail.value
+      const start = Math.max(0, t.length - PARKED_SLOTS)
+      return t.slice(start).map((entry, k) => ({ entry, i: start + k }))
     })
     const rows = computed(() => (
       win.value.minimized
         ? parkedRows.value
-        : history.value.map((entry, i) => ({ entry, i }))
+        : trail.value.map((entry, i) => ({ entry, i }))
     ))
 
     // End-anchored list: pin the scroll to the NEWEST end whenever a new step
@@ -227,7 +321,7 @@ export default defineComponent({
       el.scrollLeft = el.scrollWidth
     }
     watch(
-      () => history.value.length,
+      () => trail.value.length,
       () => { nextTick(scrollToNewest) },
       { immediate: true }
     )
@@ -259,8 +353,13 @@ export default defineComponent({
     // halo) and persistence both fire. Expanded rows park the panel so the
     // destination lands in full view (the stack stays one tap away for
     // history-hopping); parked chips jump without changing the presentation.
+    // A trail stop is not an index into the Back/Forward stack — most are
+    // not on it at all — so the store resolves it: on the cursor, go
+    // through `jumpTo` and keep the return halo; otherwise it is an
+    // ordinary navigation.
     const jumpToIndex = (idx) => {
-      if (idx !== historyIndex.value) navStore.jumpTo(idx, router)
+      const stop = trail.value[idx]
+      if (stop && idx !== currentIndex.value) navStore.jumpToStop(stop, router)
       if (!win.value.minimized) windows.minimizePanel('stack')
     }
 
@@ -274,11 +373,24 @@ export default defineComponent({
       if (!win.value.minimized) return
       hoverTimer = setTimeout(() => { windows.restorePanel('stack') }, 150)
     }
+    // ⚠ A HEIGHT TOGGLE CAN LEAVE THE POINTER OUTSIDE (2026-09-06 PM): the
+    // green light restores the cap, the panel SHRINKS under the pointer
+    // resting on the header at its top, and the `mouseleave` that fires
+    // is the panel leaving the pointer, not the reverse — parking it the
+    // instant the user asked for a smaller one. A short settle window after
+    // a toggle ignores that one leave (found by the witness: the door was
+    // unreachable a click after the green dot).
+    let settleUntil = 0
+    const toggleMax = () => {
+      settleUntil = Date.now() + 600
+      windows.toggleMaximizePanel('stack')
+    }
     const onHoverLeave = () => {
       if (hoverTimer) {
         clearTimeout(hoverTimer)
         hoverTimer = null
       }
+      if (Date.now() < settleUntil) return
       if (!win.value.minimized) windows.minimizePanel('stack')
     }
 
@@ -294,7 +406,7 @@ export default defineComponent({
     }
     const loadAuthors = () => {
       const wanted = new Set()
-      for (const e of history.value) {
+      for (const e of trail.value) {
         const key = summaryKeyOf(e)
         if (key && !(key in summaries)) wanted.add(key)
       }
@@ -308,7 +420,7 @@ export default defineComponent({
       })
     }
     watch(
-      () => [win.value.open, win.value.minimized, history.value.length],
+      () => [win.value.open, win.value.minimized, trail.value.length],
       () => { if (win.value.open && !win.value.minimized) loadAuthors() },
       { immediate: true }
     )
@@ -323,10 +435,28 @@ export default defineComponent({
     // (navService records every visit onto its PATH_REF path).
     const onHistory = async () => {
       try {
-        const { navService } = await import('src/services/nav.service')
         const r = await navService.getNavigationSkeleton()
         if (r.success && r.skeleton?.id) router.push(`/skeletons/${r.skeleton.id}`)
       } catch (_) { /* leave the stack as is */ }
+    }
+
+    // ── THE SKELETON DOOR (2026-09-06 PM) ────────────────────────
+    // The thin header's right control: the same NAVIGATION skeleton the
+    // clock routes to, opened IN THE FLYOUT VIEWER instead — the stack as a
+    // skeleton (PATH_REF = the ledger, one NAV_STOP per stop) with every
+    // stop's SUBSTACK one unfold in, and the flyout's layout toggle to lay
+    // it out vertically or horizontally. Spawning is a window opening, so
+    // it records itself the way any flyout does.
+    const flyouts = useFlyoutViewersStore()
+    const skeletonOpening = ref(false)
+    const openSkeleton = async () => {
+      if (skeletonOpening.value) return
+      skeletonOpening.value = true
+      try {
+        const r = await navService.getNavigationSkeleton()
+        if (r.success && r.skeleton?.path) flyouts.spawnRef(r.skeleton.path)
+      } catch (_) { /* the panel stays as it is */ }
+      skeletonOpening.value = false
     }
 
     // The widget stands inside the footer bar's left run (2026-08-30). 3130
@@ -343,16 +473,20 @@ export default defineComponent({
     return {
       EDGE_Z,
       onHistory,
+      openSkeleton,
+      skeletonOpening,
       win,
       windows,
-      history,
+      trail,
       rows,
-      historyIndex,
+      currentIndex,
+      lastActionOf,
       checkpointIndices,
       listEl,
       jumpToIndex,
       onHoverEnter,
       onHoverLeave,
+      toggleMax,
       authorOf,
       typeIcon,
       chipKind
@@ -468,6 +602,13 @@ export default defineComponent({
       5px 0 12px rgba(var(--ink-rgb-deep), 0.16);
   }
 
+  // THE GREEN LIGHT (2026-09-06 PM): the cap flips to the whole window under
+  // the top tabs band — the room a ledger of hundreds of stops wants. The
+  // panel still shrink-fits below it; only the ceiling moves.
+  &:not(.is-parked).is-max {
+    max-height: calc(100vh - var(--media-tabs-h, 0px));
+  }
+
     // THE COAT'S NEGATIVE (2026-09-03, user ask: "invert the color palette
     // for the stack bar and the pin bar inside the frieze bar so they look
     // darker … a dark gray as main background and the light-cream as main
@@ -504,18 +645,30 @@ export default defineComponent({
     // at 50vw and this widget's z outranks theirs).
     flex-direction: row;
     align-items: center;
-    // ⚠ `--nav-chip-h`, NOT `--nav-trail-h`, SINCE 2026-08-30's closing ask
-    // ("the buttons and the bar … don't look like they're inside the frieze
-    // bar section", then "the buttons touching the very frieze bar borders
-    // from inside"): the strip is the "bar" in that sentence and it took the
-    // same correction the chips beside it did. It COVERED the band's two
-    // rules before, so nothing of the band was left around it; now it is the
-    // band's interior — one row in at each end, touching both rules from
-    // inside, level with every chip to the pixel. Both numbers still come
-    // off ONE authored dial — `--nav-chip-h` is `calc(--nav-trail-h - 2px)`
-    // at `:root` — so the strip still moves with the band.
-    height: var(--nav-chip-h);
-    bottom: calc((var(--nav-bar-h) - 1px - var(--nav-chip-h)) / 2);
+    // ⭐ THE BAR'S WHOLE ROW SINCE 2026-09-05 (user ask: "make the stack and
+    // pin bars inside the frieze bar be outside the friezebar, like the
+    // author and dashboard buttons on the footer nav bar. We want them to
+    // occupy all the available height"). The strip is no longer an object
+    // ON the trail — it is a bar CELL, `.nav-left`'s and `.nav-end`'s
+    // sibling, and it takes their box: `bottom: 0` with `--nav-bar-h - 1px`
+    // of height, which is the bar's CONTENT ROW (31px — the 1px `--grey-6`
+    // lip is chrome above it, and every centring formula on this bar
+    // subtracts it for the same reason). The band now runs BEHIND the
+    // strip and is interrupted by it exactly as it is by the identity
+    // section and the dashboard block, which is what "outside the frieze
+    // bar" means on a bar whose band is a full-width absolute stripe.
+    //
+    // ⚠ IT NO LONGER READS `--nav-chip-h`, and that is the point — the two
+    // numbers it read from 2026-08-30 to today (the band's interior, and
+    // `.nav-frieze`'s centring formula mirrored for `bottom`) were what tied
+    // it to the trail. `--nav-chip-h` is the NAV CHIPS' dial now and nothing
+    // else in this file; moving the band no longer moves this strip.
+    // 31 is ODD ON PURPOSE — the lane inside is 19px (1px rim + 17px tile +
+    // 1px rim) and `align-items: center` splits the remaining 12 into whole
+    // 6px shoulders of coat. Any future lane height must stay odd or the
+    // rim lands on a half pixel.
+    height: calc(var(--nav-bar-h) - 1px);
+    bottom: 0;
     // FIXED at the widget's one width since 2026-09-02 (`width: auto` —
     // shrink-to-fit — from the relocation until then): the strip is exactly
     // as wide as the panel that rises out of it. The 48vw cap below stays
@@ -526,15 +679,25 @@ export default defineComponent({
     // so the strip's right edge still stops at 48vw, short of the creation
     // docks' 50vw half.
     max-width: calc(48vw - var(--nav-id-w, var(--dock-rail-w)));
+    // THE BAR'S OWN COAT AGAIN (2026-09-05, the same ask's second half:
+    // "make their background color the same as the footer bar"). The dial
+    // is unchanged — `--strip-coat` points at `--plaque-coat` now
+    // (_tokens.scss § THE FOOTER STRIPS' NIGHT COAT) — so the strip wears
+    // the identity chip's and the dashboard button's sheet, and the run
+    // identity › stack › trail › pins › dashboard is one material. Only the
+    // items LANE keeps the night coat, where it now reads as the expanded
+    // panel's `--grey-4` well does: a recess sunk into cream, two steps
+    // deeper.
     background: var(--strip-coat);
-    // ⚠ SIDES ONLY, like the trail chips beside it (2026-08-30, the ask
-    // after the flush fit: "there is still a gap on the top … Close it").
-    // A grey-5 rim under the band's grey-6 rule read as a pale seam rather
-    // than as the strip's edge; the band's rules are the strip's top and
-    // bottom edges now, and its `--grey-4` items lane runs straight up to
-    // them (`.stack-list.is-parked` stretches into the 19px the rims freed,
-    // which is why its chips went back to 17px).
-    border: 1px solid var(--grey-5, #bdbdbd);
+    // ⚠ SIDES ONLY STILL, but in the BAR'S INK NOW (2026-09-05): `--brown-3`,
+    // which is what `.nav-left`'s `border-right` and `.nav-end`'s
+    // `border-left` draw — the bar's inner-hairline doctrine. It was
+    // `--grey-5`, the TRAIL's frame law, for as long as the strip stood on
+    // the band and had to read as one more chip in it; a full-height cell
+    // is bounded by the bar's own lines instead. No horizontals: the bar's
+    // `--grey-6` lip closes the row above and the window floor closes it
+    // below, exactly as they do for the other two end cells.
+    border: 1px solid var(--brown-3);
     border-top-width: 0;
     border-bottom-width: 0;
     border-radius: 0;
@@ -568,7 +731,12 @@ export default defineComponent({
   align-self: stretch;
   width: 20px;
   height: 100%;
-  color: var(--strip-ink); // the head glyph on the dark strip (2026-09-03)
+  // ⭐ THE BAR'S INK SINCE 2026-09-05 — the glyph stands on the PLATE, and
+  // the plate is `--plaque-coat` again, so `--strip-ink` (light-cream) would
+  // draw nothing. `--ink-1` is what the dashboard button two cells over
+  // inks its own glyph with. `--strip-ink` still faces the TILES, which
+  // stand in the lane's night well and need the cream.
+  color: var(--ink-1);
 }
 
 // THE THREE TILES (2026-09-02, user ask: "shows up to 3 elements") — each
@@ -598,13 +766,43 @@ export default defineComponent({
   flex: 0 0 var(--strip-tile-w);
   width: var(--strip-tile-w);
   min-width: var(--strip-tile-w);
-  border-radius: 999px;
+  // ⭐ ONE CURVE WITH THE LANE (2026-09-06, user ask: "make the item's corner
+  // roundness match the roundness of their container") — `--strip-lane-radius`
+  // paints the tile and the well it stands in, so they cannot drift. The
+  // capsule (999px) is over: at 20×21 it drew a stadium inside a 7px-cornered
+  // box, two different ideas of "rounded" at 2px of separation.
+  border-radius: var(--strip-lane-radius);
 }
+// THE WIDE TILE — the last slot, always (2026-09-06: "2 tiny ones on the
+// left and then the large one on the right"). It takes whatever the two
+// pills leave, which is ~170px of the 240px lane, and its two text lines
+// ellipsize inside that. `.is-current` IS the newest stop now that the
+// widget reads the ledger rather than the cursor, so this rule can no
+// longer land in the middle of the row.
 .stack-list.is-parked :deep(.side-item__btn--rail.is-current) {
   flex: 1 1 auto;
   width: auto;
   min-width: 0;
   padding: 0 7px 0 4px;
+  border-radius: var(--strip-lane-radius); // the lane's own curve (2026-09-06); a bespoke 10px until then
+}
+
+// The glyph does not stretch with the tile: it stays a fixed 12px mark at
+// the capsule's left, and the two lines take the rest.
+.stack-list.is-parked :deep(.side-item__btn--rail.is-current .q-icon) {
+  flex: 0 0 auto;
+}
+
+// The sub-stack depth, expanded face only — a tiny count beside the title
+// saying how much is under the act the row names.
+.stack-item__subcount {
+  font-size: 8px;
+  line-height: 1;
+  padding: 1px 3px;
+  border-radius: 999px;
+  color: var(--side-item-face, var(--grey-3));
+  background: var(--item-accent, var(--ink));
+  opacity: 0.85;
 }
 
 // ── THE BANDS ARE THE FLYOUT'S SINCE 2026-09-02 (user ask: "change the
@@ -730,11 +928,46 @@ export default defineComponent({
   // auto), the same soft-clip the expanded well's radius performs.
   &.is-parked {
     --side-item-face: var(--strip-ink); // the tiles' cream face (2026-09-03)
-    --side-item-h: 17px;
+    // ⭐⭐ THE SHOULDERS WENT THIN, 2026-09-06 (user ask: "make the light-cream
+    // top and bottom borders of the pin and stack bars thinner so the inner
+    // scrolls can occupy more space"). Tile 19 → 23px, lane 21 → 25, shoulder
+    // 5 → 3px — the lane takes 19% more of the row and the coat keeps just
+    // enough to read as a plate the lane is inset IN rather than a lane
+    // running edge to edge (which is what `align-self: stretch` did before
+    // 2026-09-05, and it is why the lane's own rim could not be seen).
+    // ⚠ THE ARITHMETIC IS THE POINT, NOT THE NUMBER — the bar's content row
+    // is 31px, the LANE is the tile plus its two 1px rims, and the shoulder is
+    // what is left, HALVED. Only tile heights leaving an EVEN remainder land
+    // on whole pixels: 23 → lane 25 → 3px ✓; 22 → lane 24 → 3.5px and the
+    // lane's rim fuzzes. ⚠ AND BOTH STRIPS SHARE THE NUMBER — the pins lane
+    // had been left at 17px when the stack went to 19 on 09-06's first pass,
+    // so the two bars sat at different heights on the same row; the same ask
+    // that thinned them ("make sure both item's style and color are
+    // consistent") is what put them back in step. Move them together.
+    --side-item-h: 21px;
+    // The tile's LINE, one structural ink in both strips (SidePanelItem's
+    // dial). The kind colour keeps the glyph and the current tile's fill.
+    --side-item-rim: var(--grey-6);
+    // The two text lines still have to fit: title 9px + 1px gap + sub 8px =
+    // 18 in the 23, every `line-height` exactly 1 (see SidePanelItem — any
+    // leading at all and line one loses its centre). 17 → 19 was this same
+    // day's earlier pass, when the second line arrived.
     --side-item-gap: 2px;
     flex-direction: row;
     align-items: center;
-    align-self: stretch;
+    // ⭐ NO `align-self: stretch` SINCE 2026-09-05. It was there to spend the
+    // last 2px of a 19px strip on the lane rather than leave coat showing
+    // above and below it — a rule that only made sense while the strip WAS
+    // the lane's height. The strip is the bar's 31px row now, so the lane
+    // sizes to its own content (1px rim + 17px tile + 1px rim = 19px) and
+    // the strip's `align-items: center` seats it with a 6px shoulder of coat
+    // each side — the identity chip's construction exactly, whose 17px badge
+    // pills float the same way in the same row. The tiles do not move a
+    // pixel; what changed is what is around them.
+    // A SIDE EFFECT WORTH NAMING: the lane's rim no longer DOUBLES on its
+    // top and bottom edges (it used to sit under the band's own two grey-6
+    // rules). Those two edges stand free in the coat now, so the lane reads
+    // as one outlined box for the first time.
     // The lane FILLS the strip since the strip stopped shrink-fitting
     // (2026-09-02): it grows to everything left of the head glyph, and the
     // three tiles take their thirds of that.
@@ -761,10 +994,20 @@ export default defineComponent({
     // the cost of stating the container at this size and it is deliberate:
     // the RIGHT end, the only edge standing free in the coat, is where the
     // line has to draw, and a rounded box cannot be outlined on one edge alone.
-    padding: 0 1px;
+    // ⭐ THE ITEMS BREATHE, 2026-09-06 (user ask: "add a little padding at the
+    // top and bottom of the bar's items"). 2px of well shows above and below
+    // every tile — they sat flush against the lane's rim before, which read
+    // as a tile jammed into a slot rather than one resting in a well.
+    // ⚠ THE 31px ROW PAYS FOR IT, AND THE SPLIT IS DELIBERATE: shoulder
+    // 3 → 2px (the coat gives up half, continuing the same sitting's "make
+    // the … borders thinner" ask) and tile 23 → 21px (the item gives the
+    // other half). Full stack, and it must total 31 in whole pixels:
+    //   2 shoulder + 1 rim + 2 pad + 21 tile + 2 pad + 1 rim + 2 shoulder
+    // The two text lines still fit — title 9 + 1 gap + sub 8 = 18 of the 21.
+    padding: 2px 1px;
     background: var(--strip-well);
     border: 1px solid var(--strip-rule);
-    border-radius: 0 7px 7px 0;
+    border-radius: 0 var(--strip-lane-radius) var(--strip-lane-radius) 0;
     overflow-x: auto;
     overflow-y: hidden;
     scrollbar-width: none;
@@ -777,6 +1020,11 @@ export default defineComponent({
 // are here" kind-colored bubble / solid inverted chip + the row anatomy live
 // in the item itself.
 .stack-item.is-past   { opacity: 0.55; }
+// A stop reached through a FLOATING WINDOW rather than a page. Marked, not
+// recoloured: it is the same element and the same kind tone, and the only
+// thing that differs is the door. A dashed rim says "door" without
+// inventing a second palette.
+.stack-item.is-window :deep(.side-item__btn--rail) { border-style: dashed; }
 .stack-item.is-future { color: var(--ink-soft); font-style: italic; }
 .stack-item.is-checkpoint :deep(.side-item__title) { color: var(--coral-deep); }
 </style>

@@ -7,21 +7,66 @@
 // Both HashLink.vue and AddressChain.vue used to ship their own private map;
 // this module replaces both of them so the file tree, Micros, and Minis stay
 // in sync without manual upkeep.
-
+//
+// ⭐ THE PALETTE IS THE PLATFORM'S NOW (2026-09-06, user ask: "recolor the
+// items on the stack so they're readable and also consistent with the color
+// palette. For example, using deep-purple on labels"). Every colour here was
+// an ad-hoc hex picked kind by kind — a navy node, a teal label, two greys
+// that were the same grey, three kinds sharing one gold — chosen before the
+// platform HAD a palette. It has one now: four windows carry four sanctioned
+// colorways (`--maker-contrast` cyan, `--uploader-contrast` lime,
+// `--labels-contrast` deep-purple, `--skeletons-contrast` deep-orange), and
+// THE KIND THAT A WINDOW MAKES NOW WEARS THAT WINDOW'S TONE. A label chip and
+// the label maker are the same violet; a post chip and the post maker the same
+// cyan. The rest fill in from the same Material families at levels that carry.
+//
+// ⚠ THESE MUST STAY `#rrggbb` LITERALS, not `var(--token)`: SidePanelItem's
+// `softHex()` parses the channel bytes to derive the current row's soft fill,
+// and a CSS variable would return null there and silently drop the bubble.
+// The token each one MIRRORS is named in its comment — move them together.
+//
+// Contrast is measured against `--light-cream` (#FCF3E0), which is the tile
+// face these are drawn on in the footer strip AND the ink they invert to when
+// a tile is the current one, so one number governs both directions.
 export const KINDS = {
-  files: { kind: 'entity', icon: 'person', color: '#9b6cb0', route: (id) => `/entities/${id}` },
-  entities: { kind: 'entity', icon: 'person', color: '#9b6cb0', route: (id) => `/entities/${id}` },
-  nodes: { kind: 'node', icon: 'adjust', color: '#2C3D4E', route: (id) => `/nodes/${id}` },
-  posts: { kind: 'post', icon: 'edit_note', color: '#7d8995', route: (id) => `/posts/${id}` },
-  paths: { kind: 'path', icon: 'route', color: '#4d8a83', route: (id) => `/paths/${id}` },
-  labels: { kind: 'label', icon: 'label_important', color: '#00829c', route: (id) => `/labels/${id}` },
-  skeletons: { kind: 'skeleton', icon: 'schema', color: '#5b6c82', route: (id) => `/skeletons/${id}` },
+  // indigo-6 — the chrome/identity family. Frees the violet it used to
+  // borrow for labels, which is the family that actually names them.
+  files: { kind: 'entity', icon: 'person', color: '#3f51b5', route: (id) => `/entities/${id}` },
+  entities: { kind: 'entity', icon: 'person', color: '#3f51b5', route: (id) => `/entities/${id}` },
+  // lime-10 = `--uploader-contrast`. The uploader is the window that mints
+  // nodes, so a node chip and that window are one tone. (Was #2C3D4E navy —
+  // a beautiful 10:1 that belonged to no family on this platform.)
+  nodes: { kind: 'node', icon: 'adjust', color: '#827717', route: (id) => `/nodes/${id}` },
+  // cyan-9 = `--maker-contrast`. Same argument, one window over. (Was
+  // #7d8995, a grey it shared with links and unknown — three kinds, one
+  // colour, which is the opposite of what a kind colour is for.)
+  posts: { kind: 'post', icon: 'edit_note', color: '#00838f', route: (id) => `/posts/${id}` },
+  // teal-8 — a path is a route; teal was already reaching for this at
+  // #4d8a83, this is that intent at a level that carries text.
+  paths: { kind: 'path', icon: 'route', color: '#00796B', route: (id) => `/paths/${id}` },
+  // deep-purple-6 = `--labels-contrast`, the user's own example. The label
+  // maker went Quasar purple on 2026-09-04 and the chips stayed teal for two
+  // days — this closes that gap.
+  labels: { kind: 'label', icon: 'label_important', color: '#673ab7', route: (id) => `/labels/${id}` },
+  // deep-orange-8 = `--skeletons-contrast`.
+  skeletons: { kind: 'skeleton', icon: 'schema', color: '#e64a19', route: (id) => `/skeletons/${id}` },
+  // ⚠ CARVED GOLD IS A TRADITION — the pioneer's mark keeps it, alone. It is
+  // the one colour here that is not from a Material family and that is the
+  // point: nothing else on the platform is the pioneer.
   pioneer: { kind: 'pioneer', icon: 'star', color: '#c79a00', route: null },
-  moments: { kind: 'moment', icon: 'schedule', color: '#c79a00', route: (id) => `/moments/${id}` },
-  secrets: { kind: 'secret', icon: 'key', color: '#a06070', route: (id) => `/secrets/${id}` },
-  links: { kind: 'link', icon: 'link', color: '#7d8995', route: (id) => `/links/${id}` },
-  actions: { kind: 'action', icon: 'bolt', color: '#c79a00', route: null },
-  unknown: { kind: 'unknown', icon: 'circle', color: '#7d8995', route: null }
+  // orange-10 — the warm end for TIME. It shared the pioneer's gold before,
+  // at 2.4:1, which is a decorative contrast and not a legible one.
+  moments: { kind: 'moment', icon: 'schedule', color: '#e65100', route: (id) => `/moments/${id}` },
+  // brown-8 — the platform's own material, at its sealed end. A secret reads
+  // shut rather than coloured.
+  secrets: { kind: 'secret', icon: 'key', color: '#4e342e', route: (id) => `/secrets/${id}` },
+  // cyan-10 — a post's family one level deeper: a link and the thing it
+  // points at are kin, and the depth is what tells them apart.
+  links: { kind: 'link', icon: 'link', color: '#006064', route: (id) => `/links/${id}` },
+  // grey-8 — the sub-stack's neutral. An action is not an element with a
+  // colour of its own; it is a mark left on one.
+  actions: { kind: 'action', icon: 'bolt', color: '#616161', route: null },
+  unknown: { kind: 'unknown', icon: 'circle', color: '#757575', route: null }
 }
 
 // Look up by either the on-disk prefix ('nodes') OR the singular slug ('node').

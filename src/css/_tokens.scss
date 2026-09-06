@@ -142,6 +142,74 @@ $lime-2: #f0f4c3;
 $lime-3: #e6ee9c;
 $lime-4: #dce775;
 $lime-10: #827717;
+// ── THE UPLOADER'S TWO EXTRA LIMES (2026-09-05, user ask: the upload window
+// goes "lime instead of teal") — the levels the window's LADDER needs that
+// chat's five do not, and the reason they are minted rather than borrowed.
+//
+// The creation windows all wear one four-rung ladder — pale / mute /
+// CONTRAST / deep — and the other three state it by INDEX (50/300/500/700).
+// This family cannot. Measured on the window's own coat: lime-6 (#cddc39,
+// Material 500) reads **1.3:1**, lime-8 (#afb42b, 700) **2.0:1** — the first
+// is invisible, the second is under the 3:1 floor even for large text, which
+// is the exact finding the family note above already recorded when chat's
+// INK was pushed to -10. So the whole ladder shifts down the ramp until the
+// contrast clears ~4:1, and the ladder is stated by READING, not by index:
+//
+//   -1  the PALE — the wells and the resting tab face (1.05:1).
+//   -2  the VEIL, and the one rung that is NOT the pale — see `--lime-2`.
+//   -9  the MUTE — the meta line, the resting pill rims (2.61:1 on the coat,
+//       where `$teal-4` read 2.17:1 and `$blue-grey-4` 2.30:1).
+//   -10 ⭐ the CONTRAST (4.14:1 on the coat, 4.56:1 white-on-fill — a HALF
+//       STEP OVER the teal it replaces, which read 3.26:1 / 3.67:1). Chat's
+//       ink and this window's contrast are the same tone doing the same job;
+//       they are one level because there is only one level in this family
+//       that can do it.
+//   -deep the DEEP step — see below (named, not numbered).
+//
+// ⚠ The window will therefore read OLIVE/BRASS where the teal read blue-green.
+// That is not a compromise made quietly: the recognizable lime hue lives in
+// this window's VEIL and WELLS, which are -2 and -1, and its ink is the deep
+// end of the same family. There is no third option — a yellow-green at ink
+// contrast IS an olive.
+$lime-9:  #9e9d24;   // the MUTE (Material 800) — `$teal-4`'s counterpart by ROLE, three indices down the ramp because this family's 300 (#dce775) reads 1.19:1 and states nothing at all.
+// ⚠ THE ONE HAND-MIXED LEVEL IN ANY WINDOW LADDER IN THIS FILE. Every other
+// tone here is a Material step; this one cannot be, because the ladder's DEEP
+// rung has to out-read a contrast that already sits on the family's floor and
+// Material lime stops at 900. Quasar's lime-11..-14 are the A-accents
+// (#f4ff81 … #aeea00) and every one of them is LIGHTER than -10, so the
+// family genuinely has nowhere darker to go. This is $lime-10 continued one
+// rung at the same hue and saturation (h54 s70, l30% → l22%): 6.66:1 on the
+// coat against the contrast's 4.14, a 1.61× separation that lands inside the
+// 1.30–1.66 band the other three windows' contrast⇄deep pairs already span.
+// ⚠ IT WAS `$lime-11` FOR ONE DAY AND MOVED ON 2026-09-05, under its own
+// note's terms. That note read: "it is NOT an A100 — the `-11 = accent`
+// convention that binds `$teal-11`, `$indigo-11` and `$cyan-11` says nothing
+// about this family, which declares no accents. If lime ever earns an accent
+// ramp here, this level moves and takes a role name with it." Lime earned one
+// the next ask (the open-window glow reads every family's A100), so the index
+// went back to Quasar's own #f4ff81 and this tone took the role name.
+//
+// ⚠ NAMED, NOT NUMBERED, AND PERMANENTLY. There is no free index for it:
+// -10 is Material 900 and -11..-14 are the four accents, so any number this
+// could take is a number Quasar already means something else by. The cream
+// family two hundred lines up is the precedent and states the rule — a
+// member "arrives singly as it is needed" and is named by WORD when the
+// scale has no seat for it.
+// (`$lime-11` — A100, #f4ff81 — lived here for one ask on 2026-09-05, as the
+// open-window glow. The follow-up ask walked the whole glow set from the
+// A100s to the **-3s** ("try the -3 for the glow instead of the -11 tones for
+// a sober look") and it went with them, under the no-consumer rule. The walk
+// is worth its two lines because it is a measurement, not a taste: the A100s
+// are 100% saturation to a level, the 200s are 46-72%, and on a light chrome
+// surface the difference between those two numbers IS the difference between
+// a neon sign and a lit window. `$lime-3` carries the role now — the same
+// level chat has drawn its hairlines in since that colorway was built.)
+//
+// ⚠ WHAT DID NOT COME BACK is the index. `$lime-deep` below is still named
+// rather than numbered, because the rule that moved it out of -11 was never
+// about whether lime HAS an accent — it is that -11..-14 are the accent seats
+// in this file and a Material-900-and-darker tone may not sit in one.
+$lime-deep: #5f5710;   // the DEEP step — the strong edge, the tab-hover ink, the hover that must out-read a surface already drawn in the contrast. `$teal-8`'s counterpart by ROLE.
 
 // ── INDIGO (Quasar palette, 2026-08-05 — was BLUE-GREY until the operator's
 // hue-swap ask) — the FEED SURFACE's colorway: FriezeBarVertical's plaque +
@@ -307,6 +375,30 @@ $deep-purple-1: #ede7f6;
 $deep-purple-2: #d1c4e9;
 $deep-purple-11: #b388ff;
 
+// ── THE LABELS WINDOW'S THREE (2026-09-05, user ask: the label maker window
+// goes "deep-purple instead of purple") — the purple ladder it has worn
+// since 2026-09-04, one family over at the SAME four indices. This is the
+// only one of the day's four swaps where the index law holds unchanged,
+// because deep-purple is dark enough at 500 to carry ink; the readings come
+// out a half-step stronger than the purples at every rung, which is what
+// "deep" means and all it means here:
+//
+//   role      deep-purple              purple it replaces
+//   pale      -1  #ede7f6  1.10:1      -1  #f3e5f5  1.08:1
+//   mute      -4  #9575cd  3.34:1      -4  #ba68c8  3.16:1
+//   CONTRAST  -6  #673ab7  6.64:1      -6  #9c27b0  5.60:1
+//   deep      -8  #512da8  8.31:1      -8  #7b1fa2  7.29:1
+//
+// ⚠ `$deep-purple-1` is declared above and predates this window by a month
+// (the post card label chip's hover coat, 2026-08-10). It now also veils this
+// window's coat and floors its wells — two surfaces, one level, as with
+// `$cyan-9`. Read the `--labels-*` dials in `:root`, never these directly.
+$deep-purple-3: #b39ddb;   // Material 200 — THE GLOW (2026-09-05, the sober pass): the light an open label maker emits, and its chip's lit glyph. The biggest drop in the set — 46% saturation against `$deep-purple-11`'s 100 — and the one where the sober reading is most obvious, because a violet A100 is the most electric tone any of these four families has.
+$deep-purple-4: #9575cd;   // the MUTE — the bar's meta line and the resting action-pill rims, `$cyan-6`'s counterpart by ROLE.
+$deep-purple-6: #673ab7;   // ⭐ THE CONTRAST — `--labels-contrast` points here. It is `$deep-purple` itself, Material 500, which is what "deep-purple" asked for.
+$deep-purple-10: #311b92;  // Material 900 — THE FAMILY'S DARKEST, and the only thing it does (2026-09-05, second ask: each creation button's WORD takes "the darkest available tone of their respective quasar color"). It is deliberately NOT in the window's ladder: four rungs are what a colorway needs and a fifth would invite a fifth role. `$cyan-10` / `$lime-10` / `$deep-orange-10` carry the same job in their families — three of them already the ladder's deep step, which is why this one had to be minted alone.
+$deep-purple-8: #512da8;   // the DEEP step — the strong edge, the tab-hover ink, `--q-secondary` for the mini-maker's fork button.
+
 // ── CYAN (Quasar palette, 2026-08-07) — ONE LEVEL of a family that had never
 // been declared here, for the RGB HAIRLINE's filling (`layout/RgbHairline.vue`,
 // user ask): a `$grey-6` line, a gradient bar, a `$grey-6` line, and this is the
@@ -344,6 +436,32 @@ $cyan-11: #84ffff;
 // hard-coded value ──
 $cyan-9:  #00838f;
 $cyan-14: #00b8d4;
+
+// ── THE POST WINDOW'S FOUR (2026-09-05, user ask: the post window goes
+// "cyan instead of grey-blue") — the blue-grey ladder this window has worn
+// since 2026-08-26, restated one family over. Like lime, this family cannot
+// carry the ladder at the indices the cool families use: cyan-6 (#00bcd4,
+// Material 500) reads **2.08:1** on the window's coat, which is a MUTE's
+// contrast, not a contrast's. So the ladder is stated by READING and lands
+// two rungs deeper — and the readings then match blue-grey's almost exactly,
+// which is the whole point of a hue swap that is not also a weight change:
+//
+//   role      cyan                     blue-grey it replaces
+//   pale      -1  #e0f7fa  1.01:1      -1  #ECEFF1  1.03:1
+//   mute      -6  #00bcd4  2.08:1      -4  #90A4AE  2.30:1
+//   CONTRAST  -9  #00838f  4.10:1      -6  #607D8B  3.88:1
+//   deep      -10 #006064  6.66:1      -8  #455A64  6.43:1
+//
+// ⚠ `$cyan-9` was already declared above for the POST CARD's byline, and it
+// now does two jobs on two surfaces — the card's author name and this
+// window's contrast. That is deliberate and it is the same argument the card
+// made for choosing 800 over 900: this is the deepest cyan that still reads
+// as CYAN rather than as a blackish teal, and both surfaces want the hue to
+// be legible as a hue. If either moves, check the other.
+$cyan-3:  #80deea;   // Material 200 — THE GLOW (2026-09-05, the sober pass): the light an open post maker emits, and its chip's lit glyph. 72% saturation against `$cyan-11`'s 100, which is the whole of what the ask bought; 6.5:1 on the `--grey-8` field these windows stand over, against the A100's 8.5:1 — dimmer AND quieter, in that order.
+$cyan-1:  #e0f7fa;   // the PALE — the veil in `--maker-coat`, the field fill, the resting tab face, the label chips' ground. `$blue-grey-1`'s counterpart.
+$cyan-6:  #00bcd4;   // the MUTE — the window's meta line ("2 IN PROGRESS"), the ref browser's resting kind-pill rims, the moment chip's fill. `$blue-grey-4`'s counterpart by ROLE.
+$cyan-10: #006064;   // the DEEP step — the strong edge (an active tab's rim), the lock glyph, the tab-hover ink, the hover that has to darken a surface already drawn in the contrast. `$blue-grey-8`'s counterpart.
 
 // ── The feed post square's PIT FLOOR (Quasar palette, 2026-07-25) — the box
 // the interpreted markdown sits in. It is the ONE tone on the feed surface
@@ -395,6 +513,14 @@ $teal-1: #e0f2f1;
 // which is loud on PURPOSE and on one side only ──
 $teal-2: #b2dfdb;
 $teal-3: #80cbc4;
+// ── ⚠ THE UPLOADER'S THREE — ROLE ENDED 2026-09-05 (user ask: "for uploads,
+// we want to go lime instead of teal"). The window reads `--lime-9/-10/-11`
+// now and these three levels have no consumer; they stay declared because
+// the FAMILY is alive around them (NodeMini, ElementFlyout) and a hole in
+// the middle of a live ramp is a level a future window has to re-mint. The
+// block below is the record of what they were built for and why the indices
+// were chosen — it is also the block the lime ladder had to DEPART from,
+// so read it beside `$lime-9`'s note. Original header follows.
 // ── THE UPLOADER'S THREE (2026-08-26, user ask: the uploader window repaints
 // in the post window's style, "except instead of blue-grey on buttons and
 // borders and contrast colors, use teal instead on the approximate same
@@ -405,9 +531,9 @@ $teal-3: #80cbc4;
 // an exact address to move to in the other. Read the `--uploader-*` dials in
 // `:root`, never these levels directly (the blue-greys taught that twice in
 // one sitting).
-$teal-4: #4DB6AC;   // the MUTE — the uploader's meta line and the resting mode/kind pill rims, `$blue-grey-4`'s counterpart.
-$teal-6: #009688;   // ⭐ THE CONTRAST — `--uploader-contrast` points here. 4.0:1 white-on-fill, a half step under blue-grey-6's 4.4:1 and the closest the teal ramp comes to it. NOT `#00829c`, the shared dock chrome's cyan-teal: that tone is the OTHER FIVE windows' tab accent, and the whole point of this window's dial is to stop reading it.
-$teal-8: #00796B;   // the DEEP step — the strong edge, the hover that must out-read a surface already drawn in the contrast, and this window's `--q-primary`. `$blue-grey-8`'s counterpart.
+$teal-4: #4DB6AC;   // ⚠ NO CONSUMER since 2026-09-05 (the uploader went lime) — the MUTE — the uploader's meta line and the resting mode/kind pill rims, `$blue-grey-4`'s counterpart.
+$teal-6: #009688;   // ⚠ NO CONSUMER since 2026-09-05 (the uploader went lime) — ⭐ THE CONTRAST — `--uploader-contrast` points here. 4.0:1 white-on-fill, a half step under blue-grey-6's 4.4:1 and the closest the teal ramp comes to it. NOT `#00829c`, the shared dock chrome's cyan-teal: that tone is the OTHER FIVE windows' tab accent, and the whole point of this window's dial is to stop reading it.
+$teal-8: #00796B;   // ⚠ NO CONSUMER since 2026-09-05 (the uploader went lime) — the DEEP step — the strong edge, the hover that must out-read a surface already drawn in the contrast, and this window's `--q-primary`. `$blue-grey-8`'s counterpart.
 $teal-10: #004d40;
 
 // ── THE IDENTITY WINDOW'S ORANGE (2026-08-31, user ask: the relocated
@@ -425,19 +551,49 @@ $orange-3: #ffcc80;
 $orange-4: #ffb74d;
 $orange-8: #f57c00;
 $orange-10: #e65100;
-// ── THE LABELS WINDOW'S FOUR (2026-09-04, user ask: the label maker window
-// wears "overtones all over" the way the uploader wears teal, "in quasar
-// purple") — Quasar's own purple scale at the FOUR indices the uploader's
-// teal map reads, so the two windows are one construction in two hues and
-// every tone has an exact address in the other: -1 the pale/veil (Material
-// 50), -4 the mute (300), -6 the contrast (500 — `$purple`, Quasar's named
-// purple), -8 the deep step (700). Hand-minted like every family here (this
-// file never imports Quasar's palette). Read the `--labels-*` dials in
-// `:root`, never these levels directly.
-$purple-1: #f3e5f5;   // the PALE — the veil in `--labels-coat`, the wells (mode boxes), the resting tab face if the window ever grows tabs.
-$purple-4: #ba68c8;   // the MUTE — the bar's meta line and the resting action-pill rims, `$teal-4`'s counterpart.
-$purple-6: #9c27b0;   // ⭐ THE CONTRAST — `--labels-contrast` points here. 6.3:1 white-on-fill (teal-6 is 4.0:1), ~5.5:1 on the window's coat. It is `$purple` itself — Quasar's named purple — which is what "quasar purple" asked for.
-$purple-8: #7b1fa2;   // the DEEP step — the strong edge, the hover that must out-read a surface already drawn in the contrast, `$teal-8`'s counterpart.
+
+// ── DEEP-ORANGE, THE SCHEMA BUILDER'S FAMILY (2026-09-05, user ask: the
+// skeletons window goes deep-orange) — minted whole, because this is the
+// FIRST colorway the schema builder has ever had. Until today that window
+// wore the shared brown chrome plus three hard-coded `#00829c` accents, the
+// cyan-teal every colourless dock still lights its tabs with; the ask is to
+// stop reading it, the same move the post window made in August.
+//
+// The uploader's four roles at the indices this family can carry them. Like
+// lime and cyan it is a HOT ramp and cannot state the contrast at 500
+// (#ff5722 reads 2.81:1 on the coat, a mark not a fill), so the ladder
+// shifts down two rungs and lands on the teal it is modelled on:
+//
+//   -1  #fbe9e7  the PALE — the veil, the wells, the resting tab face (1.06:1).
+//   -4  #ff8a65  the MUTE — the meta line, the resting pill rims (2.10:1;
+//                `$teal-4` read 2.17:1 — the closest match of all four swaps).
+//   -8  #e64a19  ⭐ the CONTRAST (3.55:1 on the coat, 3.92:1 white-on-fill,
+//                against the teal's 3.26 / 3.67).
+//   -10 #bf360c  the DEEP step (5.08:1, against `$teal-8`'s 4.73:1).
+//
+// ⚠ DO NOT CONFUSE IT WITH `$orange-*` DIRECTLY ABOVE. That family is the
+// IDENTITY window's, down in the footer's left end, and it is a different
+// hue at a different job: orange-8 is #f57c00 (a signal amber) where this
+// family's contrast is #e64a19 (a red-lead). They will never meet on one
+// surface — the identity chip is fixed chrome, the schema builder is a
+// floating creation dock — but they are one grep apart in this file, so the
+// distinguishing measurement is worth stating once: 32 levels of red and 68
+// of green between the two contrasts.
+$deep-orange-1:  #fbe9e7;   // the PALE — the veil in `--skeletons-coat`, the wells, the resting tab face. `$teal-1`'s counterpart.
+$deep-orange-4:  #ff8a65;   // the MUTE — the meta line and the resting pill rims. `$teal-4`'s counterpart.
+$deep-orange-8:  #e64a19;   // ⭐ THE CONTRAST — `--skeletons-contrast` points here. `$teal-6`'s counterpart by ROLE, two indices down because this family's 500 is a mark's contrast.
+$deep-orange-10: #bf360c;   // the DEEP step — the strong edge, the tab-hover ink, the hover that must out-read a surface already drawn in the contrast. `$teal-8`'s counterpart by ROLE.
+// (`$deep-orange-11` — A100, #ff9e80 — was minted and retired the same day,
+// 2026-09-05: the glow set walked from the A100s to the -3s an ask later.
+// See `$lime-11`'s tombstone for the measurement that decided it.)
+$deep-orange-3: #ffab91;   // Material 200 — THE GLOW (2026-09-05, the sober pass): the light an open schema builder emits, and its chip's lit glyph. This family is the one whose -3 is no less saturated than its A100 — both 100% — so what "sober" buys HERE is lightness and a softer hue rather than desaturation; it is the set's outlier and the reason the set is stated by INDEX, not by a per-family judgement. — the strong edge, the tab-hover ink, the hover that must out-read a surface already drawn in the contrast. `$teal-8`'s counterpart by ROLE.
+// (The PURPLE family lived here for one day, 2026-09-04 → 2026-09-05, as the
+// LABEL MAKER WINDOW's colorway — `$purple-1/-4/-6/-8` at the four indices
+// the uploader's teal map read. The next day's ask took that window to
+// DEEP-PURPLE, one family over at the same four indices, and this one went
+// with it under the no-consumer rule. Its readings are in the table in the
+// `$deep-purple-*` block above, kept there because the two ladders are a
+// half-step apart and that gap IS what "deep" bought.)
 // The CHIP'S OWN INK, and the one place on the panel that is not written in the
 // colorway (2026-07-26). The chip is a NEUTRAL object — a `$grey-3` pill drawn
 // in `$grey-5` — so it is lettered in a neutral too: ONE tone for all four
@@ -686,22 +842,16 @@ $dark-yellow-bg:   #686147;
 $dark-red-bg:      #68474e;
 $dark-blue-bg:     rgba(71, 78, 104, 0.9);
 
-// ── BLUE-GREY (Material / Quasar), MINTED 2026-08-26 (user asks) ─────────
-// The POST MAKER WINDOW'S family, and the first hue this platform has taken
-// that is neither warm (brown/cream) nor a colorway accent (indigo, teal,
-// lime): a grey that leans cool without becoming a colour. Three levels, one
-// job each, and the reason the family arrived at all is that the window
-// needed a tone it could use as a SOLID — `--grey-6` had been carrying the
-// accents at 2.8:1 against white, which is a mark's contrast, not a fill's.
-//
-// ⚠ Only the three that do work are declared. This file's rule is that a
-// level exists because something wears it (see `--grey-6`'s note on a
-// `var()` that resolved to nothing but its own fallback); the rest of the
-// Material ramp is one line away when a role asks for it.
-$blue-grey-1: #ECEFF1;   // the VEIL and the window's PALE — the field fill and the resting tab face — grey-3's counterpart in tone (236,239,241 against 238,238,238), cool where that one is neutral. Swapping the FAMILY at the same index would have been `#B0BEC5` and a different ask: that is 30 levels of lightness down, and a veil that dark stops being a veil.
-$blue-grey-4: #90A4AE;   // the MUTE — the window's meta line ("2 IN PROGRESS"), one step off the contrast the way `--brown-4` stood off `--brown-8` in the chrome this replaced.
-$blue-grey-6: #607D8B;   // ⭐ THE CONTRAST (2026-08-26, third ask on this window: "use blue-grey-6 as contrasting color on buttons, inner borders of the window, titles, tabs, etc… instead of the remaining brown bits"). Read `--maker-contrast` in `:root`, never this level directly — the role has moved twice in one sitting and the dial is what made the second move a one-line edit. 4.4:1 white-on-fill, 3.9:1 on the window's coat.
-$blue-grey-8: #455A64;   // the DEEP step — the strong edge (an active tab's rim), a hover that has to darken a surface already drawn in the contrast, and the tab-hover ink that used to be `--brown-10`. It HELD the contrast for one pass (8.1:1 on white) before the ask above brought the whole window to -6; kept because a one-tone window still needs somewhere to go when a state has to read as MORE than the resting line.
+// (The BLUE-GREY family lived here 2026-08-26 → 2026-09-05 as the POST MAKER
+// WINDOW's colorway — `$blue-grey-1/-4/-6/-8`, the pale/mute/contrast/deep
+// ladder every creation window has worn since. A user ask moved that window
+// to CYAN and the family went with it, by the rule `$orange-11`'s tombstone
+// states further up: a token with no consumer whose comment claims a live
+// role is a stale mention waiting to be believed. Nothing else on the
+// platform ever read it. The full construction — and the argument for why a
+// window needed a tone it could use as a SOLID, which `--grey-6` at 2.8:1
+// could not be — is in the `$cyan-*` block above and in git under those
+// dates.)
 
 // ── SEMANTIC (Quasar) ──
 $positive:  #21BA45;
@@ -753,11 +903,33 @@ $warning:   #F2C037;
   // lime + squeezed lighter 2026-08-05, "even clearer tones"). The brown
   // roles above line up one to one; read by `.dock-window--chat` (the
   // chrome), ChatDock.vue and MessageBubble.vue (the interior).
-  --lime-1: #{$lime-1};              // Quasar lime-1 — the window's PLAQUE COAT (⇔ brown-1), opaque: the chat shell used to be `--surface-glass-strong` over a 12px backdrop blur, the last translucent dock on the platform
-  --lime-2: #{$lime-2};              // Quasar lime-2 — the inset WELLS (⇔ brown-2): the conversations column's floor, the message scroller's bed, MY bubble fill
+  --lime-1: #{$lime-1};              // ⚠ SECOND WINDOW since 2026-09-05 (user ask: uploads go lime): THE UPLOADER'S PALE — its field fill, resting tab face and wells. Not its veil: see `--lime-2` and the coat's own note for why this level cannot veil a cream sheet. Quasar lime-1 — the chat window's PLAQUE COAT (⇔ brown-1), opaque: the chat shell used to be `--surface-glass-strong` over a 12px backdrop blur, the last translucent dock on the platform
+  --lime-2: #{$lime-2};              // ⚠ SECOND ROLE since 2026-09-05 (user ask: uploads go lime): THE UPLOADER'S VEIL, at 40% over `--light-cream` — the only window coat on the platform that does not veil in its family's -1, because lime's 50 is LIGHTER than the sheet and would invert the step. The full measurement is at `--uploader-veil`. Quasar lime-2 — chat's inset WELLS (⇔ brown-2): the conversations column's floor, the message scroller's bed, MY bubble fill
   --lime-3: #{$lime-3};              // Quasar lime-3 — EVERY hairline of the chat chrome (⇔ brown-3): shell border, header rule, column divider, composer rule, the conversation rows' rims, OTHERS' bubble rim
   --lime-4: #{$lime-4};              // Quasar lime-4 — the active conversation row's rim and MY bubble's rim, the one place a line is allowed to be a step heavier (⇔ brown-4)
   --lime-10: #{$lime-10};            // Quasar lime-10 (Material 900) — the colorway's INK (⇔ brown-8 / indigo-8, though those sit at 700): the header's glyph + title, the column's section heading, the conversation rows' names, AND the frieze band's plaque base — see the family note above for why this family's ink sits two steps deeper than its siblings'
+
+  // ── THE UPLOADER'S LIME MAP (2026-09-05, user ask: lime instead of teal) ──
+  // The teal map this window wore since 2026-08-26, one family over — but
+  // stated by READING rather than by index, because this family's 500 and 700
+  // are 1.3:1 and 2.0:1 on the coat (see the `$lime-*` family note):
+  //   -11 the deep step — the strong edge, the tab-hover ink, `--q-primary`'s
+  //       partner. The file's one hand-mixed ladder level.
+  //   -10 the contrast — every accent, via `--uploader-contrast`. Shared with
+  //       chat, which letters its whole colorway in this tone.
+  //   -9  the mute — the meta line, the resting mode/kind pill rims.
+  //   -2  the veil in `--uploader-coat` — NOT -1, which is LIGHTER than
+  //       `--light-cream` on two channels and inverts the step every window
+  //       coat makes off the bar. Measured at the coat's declaration.
+  //   -1  the pale — the field fill, the resting tab face, the wells.
+  --lime-9: #{$lime-9};
+  --lime-deep: #{$lime-deep};  // ⚠ IT WAS `--lime-11` FOR ONE DAY (2026-09-04→05) and gave the index back to Quasar's A100 when the glow ask needed it. Named, not numbered — the scale has no free seat for a tone below Material 900. See the `$` note.
+  // The contrast as a triple, for the window's alpha washes
+  // (`rgba(var(--lime-10-rgb), .06)`) — same device as `--ink-rgb`. It exists
+  // because the uploader spelled `$teal-6`'s channels as a literal
+  // `rgba(0, 150, 136, …)` in five places, which is exactly the drift a dial
+  // is for: this repaint had to find all five by grep.
+  --lime-10-rgb: 130, 119, 23;
   // Indigo — the feed surface's colorway (2026-08-05, was blue-grey since
   // 2026-07-25 — operator hue-swap ask): FriezeHeader's OWN tone mapping
   // (base -1, waves -3 + -4, lip -3) in a different hue family. Compare the
@@ -768,17 +940,76 @@ $warning:   #F2C037;
   --indigo-4: #{$indigo-4};    // Quasar indigo-4 — ⚠ IT LOST THE MEDIA TABS STRIP ENTIRELY ON 2026-08-17 (two user asks): the band's rim went 2px `--grey-6` when the strip's face joined the chrome coat, and the tabs' border + flare arcs followed an ask later, so nothing on that strip is indigo any more — face, edges and marks all left the colorway together. The role it held reads: EVERY EDGE ON THE MEDIA TABS STRIP, and only that since 2026-08-07: it lost the vertical frieze bars' wave layer ONE to the inversion (`--indigo-1` carries the lit face on a deep plaque now) and every line on the POST CARDS to the same day's other ask (all eight went `--grey-6`). It is where the bars' waves should come back to if the pair is ever widened downward from `-1`. The strip's edges (2026-08-06, user ask): the band's 1px bottom rim, each parked tab's border, and the rim stops inside the flares' radial gradients — one continuous line, so those three always move together. That strip's edge was asked for at -6 and walked UP through -5 to here in one sitting, which is the thing to hold: a short lip read against the feed's own coat can sit at the motif's dark end, but 1px of hue laid the full width of a light `--grey-4` band at the very top of the screen RULES the page at -6 and merely states the colorway at -4. AND the DRAGGABLE FEED HEAD's two long edges (2026-08-06) — 2px there, the heaviest this tone is drawn anywhere on the surface, because the head's face is the plate's own and the line is the whole of what separates them; the same 2px is carried round its four corner sweeps by the fillets' gradients, so ring and border always move together. AND, after a walk out to the neutrals and all the way back the same day, EVERY LINE ON THE POST CARDS again: four outer edges + byline hairline and vertical rule + title plate rim + label rail and strip + trust chip + markdown pit, eight lines sharing one ink and differing only in WEIGHT. They came close to splitting — one pass had the bottom/left pair here and the top/right at `--grey-6`, a bevel standing in for the drop shadow the card lost on 2026-07-25 — and the user reunited them. The bars' LIP passed through this level the same day too and ended at `--grey-4`, drawing nothing. So on the feed this one tone now does three jobs: the motif's lit wave, the media tabs' edges, and every line on every card. Worth knowing before moving it — and note the CARD's line is the reason -4 has to stay legible on `--grey-3`, not just on the plate. ⚠ THE FEED HEAD BOX'S WHOLE INDIGO VOCABULARY STEPPED ONE TONE LIGHTER ON 2026-08-24 (user ask: "for all the indigo elements inside of talavero's board, make them one tone of indigo lighter") — 24 references, declarations only, the file's comments deliberately left naming their original tones as the design record. The map: -10→-9 (the inner frieze posts' plaque), -9→-8 (the box's plate and its five walls), -8→-7 (the handle band, control rims), -7→-6 (the four warm containers' rim ink), -5→-4 (the talk panel's rim). Because each level is one Material stop, every relation INSIDE the box holds its exact distance — the box is lighter, not rearranged. THIS TONE'S ROLE HERE: the TALK PANEL'S RIM (from -5). ⚠ ROLE ADDED 2026-08-24 (user ask: "make the inner-facing borders of the main container vertical frieze bars the same as the outer facing ones, thick and clearer"): THE FEED CONTAINER'S FRIEZE BARS' INWARD LIP, at 2px (`--frieze-bar-v-lip` + `--frieze-bar-v-edge-w` at `.feed-container__edge`, from `--indigo-8` at 1px). The ask is about APPEARANCE, not tokens: outward, the bar's edge is backed by `.feed-container`'s own 1px rim in this very tone, so the two stack and read as one thicker, lighter line; inward, a 1px `--indigo-8` hairline had nothing behind it but the `--grey-8` field and read as almost absent. Matching what the outer side composites TO is what put this tone at twice the weight on the inner side. ⚠ `--frieze-bar-v-edge-w` is shared by both sides, so the outward edge went 2px too — only a new `--frieze-bar-v-lip-w` dial (added to BOTH vertical components, never A alone) would separate them. ⚠ AND IT LOST THAT LIP ONE ASK LATER — the bars' edges are `--light-cream` at 3px now, both faces. This tone held the inward lip for a single pass; what survives of that ask is the PRINCIPLE (match what the outer side composites to, at twice the weight), which the cream now carries.
   --indigo-5: #{$indigo-5};    // Quasar indigo-5 — SINCE 2026-08-08 (user ask) ALSO THE FEED HEAD BOX'S COMPOSER RIM (`--fhead-chat-rim`), 2px round the field AND the reply line that stands in for it. It is the edge of the board's ONE PALE OBJECT: an `--indigo-1` bubble in a `--brown-1` room, at the same lightness as that room (1.01:1), so this line is doing the closing that a tonal step is not — 4.1:1 on the face, deep enough to hold the box shut and four steps lighter than the `--indigo-9` every WALL in the box is drawn in, which is what keeps a control's edge from reading as a room's. It arrived here down a six-setting walk (-8 → -7 → -6 → -9 → -6 → here), the -9 stop being the ask that took the board's inner borders to one ink; the bubble's new face is what sent it back. ⚠ This puts the composer's rim on the SAME LEVEL as the frieze-bar lips below — two roles, one tone, and NOT a pair: neither was moved to match the other and neither should be. —— THE FEED CONTAINER'S FRIEZE-BAR LIPS, the inward-facing edge the reader's side of the box faces (2026-08-07), and ONLY that: it held the FEED HEAD BOX's bottom rim for about an hour the same day — the two were put at this level deliberately as ONE MARK, "the inner line of this surface's chrome" — and the rim then walked -6 → `--indigo-9` in two later asks while the lip stayed. ⚠ Do not read them as a pair any more, and do not move one to match the other without an ask: they are three levels apart on purpose, and the lip's own argument (a real line one step off a deep plaque, facing the content) never depended on the rim. Before that it was NO ROLE, three times over. It held wave layer TWO and then wave layer ONE for the minutes between 2026-08-05's wave steps, and the level was ADDED for it (the family had stopped at -4); on 2026-08-06 it held the MEDIA TABS' edges for about as long, one stop on that line's walk from -6 up to -4 — and later that day it held the POST CARDS' lines for one more such moment, on the identical -6 → -5 → -4 walk. Twice now the answer to "how deep should this indigo line be" has come out at -4 by way of here, which is the argument for keeping the level spelled. It is what a step taken with both waves at once looks like: correct depth, no more relief than the setting before it, because the pair stayed one level apart. Kept for that, because it is where wave one lands if the spread is ever narrowed again, and because a level this often passed THROUGH is worth having spelled ⚠ IT LOST THE FEED CONTAINER'S FRIEZE BARS' INWARD LIP ON 2026-08-24 (user ask: "for the other svg and the borders. use indigo-8") — `--frieze-bar-v-lip` is `--indigo-8` at that mount now, the same ink as the motif inside the bar, so each bar reads as one indigo drawing on a cream strip rather than as a plate with a frame of its own. It remains the COMPONENT's default for that dial. ⚠ AND IT LOST THE FEED HEAD BOX'S TALK-PANEL RIM the same day (the board's wholesale one-tone-lighter pass) — `--indigo-4` now.
   --indigo-6: #{$indigo-6};    // Quasar indigo-6 — ROLELESS AGAIN as of 2026-08-08 (user ask), having been PASSED THROUGH TWICE that day: it held the FEED HEAD BOX's five inner walls (`--fhead-rule`) and its composer rim (`--fhead-chat-rim`) for one day — the setting where the walls were LIGHTER than the controls' rims, which was right while the body was one pale plate — and then the walls went back to `--indigo-9` (the box's two rooms had taken floors of their own and every structural line in it became one ink) while the composer's rim came back here for one ask and carried on up to `--indigo-5`, one step lighter, once the bubble had a pale face to be closed rather than a grey island to be outlined. The lesson that setting proved and is worth keeping: on a light body the deepest available line reads as a GAP rather than as a wall, which is why it was picked, and what changed is not that reading but the body — there is no single light body left to read through. NO current role, and now for the SECOND time in one day: it held the FEED HEAD BOX's bottom rim for the length of one ask on 2026-08-07 ("one indigo tone darker", -5 → here), and the next ask took that rim past it to `--indigo-9`. Worth the note because the hour it held was the first setting where the box's base read as the DEEPER of its two edges rather than the more lit one, which is the reading the -9 finished — this level is where that turn happened. Roleless before that since the same day's inversion, which moved the vertical bars' wave pair to `-1`/`-3` over a deep plaque; it had been wave layer TWO, the DARK of the motif, since 2026-08-05. It ALSO held the LIP — the 1px inward-facing edge that draws the feed container's side borders — for the one evening between 2026-08-05's last ask and 2026-08-06's, when the lip went back to wave ONE (`--indigo-4`, where it had been for the bar's whole history). Both settings obey the same rule, that the lip is a wave tone and not a colour of its own; what the round trip settled is the WEIGHT: a full-height hairline down both sides of the box reads at -6 as a frame drawn around the feed and at -4 as where the bar's own material stops. Which edge gets which material is still the thing to hold onto: the bar's OUTER edge faces the page and is a rolled gradient in the plate's own neutral, the INNER one faces the cards and is stated in the colorway. The family's Material 500, its PURE HUE, and the darkest thing on the feed's plate short of the ink at -8. That is also the wall: one more step and the wave and the ink are neighbours, at which point wave two reads as a written line and not as a wave. So the dial past here is the SPREAD (how far -4 sits from it) or the PLAQUE — not more depth ⚠ THE FEED HEAD BOX'S WHOLE INDIGO VOCABULARY STEPPED ONE TONE LIGHTER ON 2026-08-24 (user ask: "for all the indigo elements inside of talavero's board, make them one tone of indigo lighter") — 24 references, declarations only, the file's comments deliberately left naming their original tones as the design record. The map: -10→-9 (the inner frieze posts' plaque), -9→-8 (the box's plate and its five walls), -8→-7 (the handle band, control rims), -7→-6 (the four warm containers' rim ink), -5→-4 (the talk panel's rim). Because each level is one Material stop, every relation INSIDE the box holds its exact distance — the box is lighter, not rearranged. THIS TONE'S ROLE HERE: it is LOAD-BEARING AGAIN after being roleless since 2026-08-08 — the four warm containers' rim ink (`--fhead-room-rim`, from -7). ⚠ SECOND ROLE THE SAME DAY: THE FEED HEAD BOX'S FACE (`--fhead-face`, user ask "for the sections between the main feed container frieze bars and talavero's board inner friezes, paint it indigo-6 and make sure when the board is hovered, it remains in that color") — the two 11px strips the board's posts leave inside each end, plus the four corner fillets that read the same dial, so the sweep now carries indigo into the bars' cream plate. It took the role off `--light-cream`, which held it for one pass and failed for a structural reason worth keeping: those strips are the only pixels of the box that touch the container's own frieze bars, and those bars had inverted to a cream plate in the same sitting. ⚠ AND THE FACE NO LONGER MOVES WHEN HELD — the `.is-grabbed` step (`--grey-3`, then `--grey-2`) is deleted by the same ask, so that state is stated by its two shadows alone; a face that changes mid-drag also repainted four fillet gradients per frame.
-  --indigo-7: #{$indigo-7};    // Quasar indigo-7 (Material 600) — SINCE 2026-08-08 (user ask) THE FEED HEAD BOX'S FOUR CONTAINER RIMS — and, from a later ask the same day, the LINE UNDER ITS HEADER (`--fhead-bar-rule`, 2px), the ONE wall in that box that draws: the other three are `--indigo-9` against `--indigo-9` surfaces and state their divisions by a plate ending. Putting the visible one in this tone keeps the board's single horizontal rule in the same hand as its outlines. THE RIMS: 1px round the talk room, the lane's two chip trays and (through a direct token read in FeedStream) the label bar — every `--brown-1` rounded container on the board, outlined as one family. The level is not a new pick: it is what the box's OWN FRAME is drawn in (`--fhead-rim`), so a container is edged in the same ink as the object holding it, the same shape at two scales. `--indigo-9` was the obvious alternative and is exactly what it must not be — that tone is the board's structural ink (plates, walls, backdrops), so a -9 rim would have made each container read as another WALL rather than as a panel lying on one. ⚠ On the talk room this rim REPLACED a wall: the half's 2px -9 `border-right`, one of the box's five, which had already stopped drawing when the body went -9 under it — four walls now, not five. — ALSO THE FEED HEAD BOX'S BODY FLOOR since 2026-08-07's last ask: the whole chat + lens section, both halves at once (it was `--indigo-9` for one ask). So the box is three bands — `--indigo-8` handle, this, `--grey-4` lane — and this level now does TWO jobs on the same object, the frame around it and the floor inside it, which is worth knowing before moving either. AND the feed head box's OUTER EDGE: 2px top and bottom plus the four corner sweeps that continue it (one dial, `--fhead-rim`, so line and arcs can never disagree). Between the box's other two levels: -8 plates its inner frieze posts, -9 writes every mark and inner rule in the field between them. Also the label chip's hover, which is where this tone was already being used through a fallback before it was a token ⚠ THE FEED HEAD BOX'S WHOLE INDIGO VOCABULARY STEPPED ONE TONE LIGHTER ON 2026-08-24 (user ask: "for all the indigo elements inside of talavero's board, make them one tone of indigo lighter") — 24 references, declarations only, the file's comments deliberately left naming their original tones as the design record. The map: -10→-9 (the inner frieze posts' plaque), -9→-8 (the box's plate and its five walls), -8→-7 (the handle band, control rims), -7→-6 (the four warm containers' rim ink), -5→-4 (the talk panel's rim). Because each level is one Material stop, every relation INSIDE the box holds its exact distance — the box is lighter, not rearranged. THIS TONE'S ROLE HERE: it gained the HANDLE BAND and the control rims (from -8) and lost the four warm containers' rim ink (to -6). ⚠ ROLE ADDED 2026-08-24 (user ask: "for the inner-facing side of the main feed container frieze bars, help me adding a very thin indigo-7 inner border after the light-cream one"): THE FEED CONTAINER'S FRIEZE BARS' INNER HAIRLINE — 1px, immediately inboard of their 2px `--light-cream` lip, so each bar's inner face states itself twice at two weights. It is a `box-shadow` rather than a border on purpose: the bar's 17px is arithmetic (2 edge + 1 pad + 11 layer + 1 pad + 2 edge) and a second border would take its width out of the LAYER under border-box and clip an inked column. It also needs `position: relative; z-index: 1` on the bar — the bar and `.feed-container__body` meet exactly and the body paints later, so without the lift the line is invisible on screen. ⚠ THE HAIRLINE ROLE ENDED 2026-08-27 AND A BIGGER ONE REPLACED IT (user ask: the top header rail's composition on the container's edges): the box-shadow and its lift are DELETED — the inner seam is stated by the rail's `--grey-6` rim now — and this tone became THE CONTAINER FRIEZE BANDS' PLATE (`--frieze-bar-v-base` at `.feed-container__edge`, from `--indigo-9`): the ask's "inner background of the frieze bars", the dark plate inlaid in each `--plaque-coat` rail under a flat `--plaque-flat` motif. The indigo-7 did not leave the bars' inner edge, it moved INSIDE the bar and grew from a 1px line to the plate itself.
-  --indigo-8: #{$indigo-8};    // Quasar indigo-8 — ⚠ IT LOST THE FEED HEAD BOX'S HEADER PLATE ON 2026-08-08 (user ask: the band went `--indigo-9`, via one pass at `--indigo-10`, and its writing left `--grey-3` for `--brown-1`), which ends the "one MIDDLE step" reading below: the box is ONE ink now (-9) plus a -7 frame, and this level is left on it holding the inner posts' 1px side rims ALONE. ALSO, since 2026-08-07's chrome pass on the FEED HEAD BOX: its INNER HEADER's plate (the one plated band in the box — `--fhead-bar-face`, under `--grey-3` writing — HISTORY as of the line above) and the 1px SIDE RIMS on its two inner frieze posts. It LOST those posts' plaque in the same pass (they went `--indigo-9`, in step with the box's inner walls), which is what left the header holding this level on the box alone: -8 is now the box's one MIDDLE step, sitting between the -7 frame above the band and the -9 everything below it. The rims are the same idea one scale down — a post plated -9 needs a rim one step lighter, because a rim in its own tone is a rim you cannot see. AND: THE COLORWAY'S PLAQUE as well as its INK since 2026-08-07 (user ask): the two VERTICAL FRIEZE BARS' base AND their lip (which is the plaque's own tone by rule and travels with it), the bars having INVERTED that day — deep plate, pale `-1`/`-3` waves. It already plated the feed head box's two inner posts (2026-08-06), so one level now carries all four frieze edges on the feed surface, and the box the bars frame does NOT follow them: a dark frame standing on a `--grey-4` field. As an INK (⇔ brown-8, same Material 700 index) it kept the feed head band's "Public Feed" heading and lost the post card's TITLE text to `--grey-9` (the cards went fully neutral hours earlier the same day). Its original ink roles (end of 2026-07-25, replacing the platform `text-accent` teal — the head is the container's own material, so it takes the colorway's own ink) ⚠ ROLE ADDED 2026-08-24 (user ask: "use the background color on the light-cream frieze bar … for the other svg and the borders. use indigo-8"): THE FEED CONTAINER'S VERTICAL FRIEZE BARS' MOTIF AND EDGES — both wave layers and both side borders, on the `--light-cream` plate that took this tone's own place. It is the platform's SECOND inverted frieze (the nav bar's trail spent an hour as the first), and the inversion is why the carve is off at that mount: the groove reads as relief only when the ink is LIGHTER than the plate. This tone was that plate for two weeks, so the bar did not change families — it turned over inside one. ⚠ THE FEED HEAD BOX'S WHOLE INDIGO VOCABULARY STEPPED ONE TONE LIGHTER ON 2026-08-24 (user ask: "for all the indigo elements inside of talavero's board, make them one tone of indigo lighter") — 24 references, declarations only, the file's comments deliberately left naming their original tones as the design record. The map: -10→-9 (the inner frieze posts' plaque), -9→-8 (the box's plate and its five walls), -8→-7 (the handle band, control rims), -7→-6 (the four warm containers' rim ink), -5→-4 (the talk panel's rim). Because each level is one Material stop, every relation INSIDE the box holds its exact distance — the box is lighter, not rearranged. THIS TONE'S ROLE HERE: it gained THE BOX'S PLATE and its five walls (from -9) and lost the handle band and control rims (to -7). Note it now does double duty on the feed surface — the board's plate AND, from the same sitting, the container's frieze-bar motif and edges. ⚠ AND IT LOST THE FEED CONTAINER'S FRIEZE BARS' INWARD LIP the same day to `--indigo-4` at 2px (see that token) — it keeps their OUTWARD edges, now also 2px. ⚠ AND IT IS THE FEED CONTAINER'S FRIEZE-BAR PLATE AGAIN as of the same day's later ask ("make their background color indigo-8 and then make the friezes light-cream") — it had traded places with the cream for one pass. Both of the bar's 3px edges are cream now, so this tone is the plate alone and the frame belongs to the motif's family, not to the plate's. ⚠ AND IT LOST THAT PLATE ONE ASK LATER TO `--indigo-9` ("paint the frieze bar's background indigo-9") — one step deeper, and the step matters more than a step usually does here because the plate now shows as the 1px PAD between the bar's cream frame and its cream motif, not only as the ground under the meander.
+  --indigo-7: #{$indigo-7};    // Quasar indigo-7 (Material 600) — SINCE 2026-08-08 (user ask) THE FEED HEAD BOX'S FOUR CONTAINER RIMS — and, from a later ask the same day, the LINE UNDER ITS HEADER (`--fhead-bar-rule`, 2px), the ONE wall in that box that draws: the other three are `--indigo-9` against `--indigo-9` surfaces and state their divisions by a plate ending. Putting the visible one in this tone keeps the board's single horizontal rule in the same hand as its outlines. THE RIMS: 1px round the talk room, the lane's two chip trays and (through a direct token read in FeedStream) the label bar — every `--brown-1` rounded container on the board, outlined as one family. The level is not a new pick: it is what the box's OWN FRAME is drawn in (`--fhead-rim`), so a container is edged in the same ink as the object holding it, the same shape at two scales. `--indigo-9` was the obvious alternative and is exactly what it must not be — that tone is the board's structural ink (plates, walls, backdrops), so a -9 rim would have made each container read as another WALL rather than as a panel lying on one. ⚠ On the talk room this rim REPLACED a wall: the half's 2px -9 `border-right`, one of the box's five, which had already stopped drawing when the body went -9 under it — four walls now, not five. — ALSO THE FEED HEAD BOX'S BODY FLOOR since 2026-08-07's last ask: the whole chat + lens section, both halves at once (it was `--indigo-9` for one ask). So the box is three bands — `--indigo-8` handle, this, `--grey-4` lane — and this level now does TWO jobs on the same object, the frame around it and the floor inside it, which is worth knowing before moving either. AND the feed head box's OUTER EDGE: 2px top and bottom plus the four corner sweeps that continue it (one dial, `--fhead-rim`, so line and arcs can never disagree). Between the box's other two levels: -8 plates its inner frieze posts, -9 writes every mark and inner rule in the field between them. Also the label chip's hover, which is where this tone was already being used through a fallback before it was a token ⚠ THE FEED HEAD BOX'S WHOLE INDIGO VOCABULARY STEPPED ONE TONE LIGHTER ON 2026-08-24 (user ask: "for all the indigo elements inside of talavero's board, make them one tone of indigo lighter") — 24 references, declarations only, the file's comments deliberately left naming their original tones as the design record. The map: -10→-9 (the inner frieze posts' plaque), -9→-8 (the box's plate and its five walls), -8→-7 (the handle band, control rims), -7→-6 (the four warm containers' rim ink), -5→-4 (the talk panel's rim). Because each level is one Material stop, every relation INSIDE the box holds its exact distance — the box is lighter, not rearranged. THIS TONE'S ROLE HERE: it gained the HANDLE BAND and the control rims (from -8) and lost the four warm containers' rim ink (to -6). ⚠ ROLE ADDED 2026-08-24 (user ask: "for the inner-facing side of the main feed container frieze bars, help me adding a very thin indigo-7 inner border after the light-cream one"): THE FEED CONTAINER'S FRIEZE BARS' INNER HAIRLINE — 1px, immediately inboard of their 2px `--light-cream` lip, so each bar's inner face states itself twice at two weights. It is a `box-shadow` rather than a border on purpose: the bar's 17px is arithmetic (2 edge + 1 pad + 11 layer + 1 pad + 2 edge) and a second border would take its width out of the LAYER under border-box and clip an inked column. It also needs `position: relative; z-index: 1` on the bar — the bar and `.feed-container__body` meet exactly and the body paints later, so without the lift the line is invisible on screen. ⚠ THE HAIRLINE ROLE ENDED 2026-08-27 AND A BIGGER ONE REPLACED IT (user ask: the top header rail's composition on the container's edges): the box-shadow and its lift are DELETED — the inner seam is stated by the rail's `--grey-6` rim now — and this tone became THE CONTAINER FRIEZE BANDS' PLATE (`--frieze-bar-v-base` at `.feed-container__edge`, from `--indigo-9`): the ask's "inner background of the frieze bars", the dark plate inlaid in each `--plaque-coat` rail under a flat `--plaque-flat` motif. The indigo-7 did not leave the bars' inner edge, it moved INSIDE the bar and grew from a 1px line to the plate itself. ⚠ AND IT LOST THAT PLATE ON 2026-09-05 (user ask: "recolor the main feed frieze bar's background color so they are just one tone of indigo darker") — one step down to `--indigo-8`, the plate ALONE, with the motif, both rules, the rail's coat and every number of the 08-27 recipe untouched. So this level held the container's bands for nine days and is roleless on that surface again; its board roles (the box's four container rims, the line under its header, its body floor and outer edge) are unaffected.
+  --indigo-8: #{$indigo-8};    // Quasar indigo-8 — ⚠ IT LOST THE FEED HEAD BOX'S HEADER PLATE ON 2026-08-08 (user ask: the band went `--indigo-9`, via one pass at `--indigo-10`, and its writing left `--grey-3` for `--brown-1`), which ends the "one MIDDLE step" reading below: the box is ONE ink now (-9) plus a -7 frame, and this level is left on it holding the inner posts' 1px side rims ALONE. ALSO, since 2026-08-07's chrome pass on the FEED HEAD BOX: its INNER HEADER's plate (the one plated band in the box — `--fhead-bar-face`, under `--grey-3` writing — HISTORY as of the line above) and the 1px SIDE RIMS on its two inner frieze posts. It LOST those posts' plaque in the same pass (they went `--indigo-9`, in step with the box's inner walls), which is what left the header holding this level on the box alone: -8 is now the box's one MIDDLE step, sitting between the -7 frame above the band and the -9 everything below it. The rims are the same idea one scale down — a post plated -9 needs a rim one step lighter, because a rim in its own tone is a rim you cannot see. AND: THE COLORWAY'S PLAQUE as well as its INK since 2026-08-07 (user ask): the two VERTICAL FRIEZE BARS' base AND their lip (which is the plaque's own tone by rule and travels with it), the bars having INVERTED that day — deep plate, pale `-1`/`-3` waves. It already plated the feed head box's two inner posts (2026-08-06), so one level now carries all four frieze edges on the feed surface, and the box the bars frame does NOT follow them: a dark frame standing on a `--grey-4` field. As an INK (⇔ brown-8, same Material 700 index) it kept the feed head band's "Public Feed" heading and lost the post card's TITLE text to `--grey-9` (the cards went fully neutral hours earlier the same day). Its original ink roles (end of 2026-07-25, replacing the platform `text-accent` teal — the head is the container's own material, so it takes the colorway's own ink) ⚠ ROLE ADDED 2026-08-24 (user ask: "use the background color on the light-cream frieze bar … for the other svg and the borders. use indigo-8"): THE FEED CONTAINER'S VERTICAL FRIEZE BARS' MOTIF AND EDGES — both wave layers and both side borders, on the `--light-cream` plate that took this tone's own place. It is the platform's SECOND inverted frieze (the nav bar's trail spent an hour as the first), and the inversion is why the carve is off at that mount: the groove reads as relief only when the ink is LIGHTER than the plate. This tone was that plate for two weeks, so the bar did not change families — it turned over inside one. ⚠ THE FEED HEAD BOX'S WHOLE INDIGO VOCABULARY STEPPED ONE TONE LIGHTER ON 2026-08-24 (user ask: "for all the indigo elements inside of talavero's board, make them one tone of indigo lighter") — 24 references, declarations only, the file's comments deliberately left naming their original tones as the design record. The map: -10→-9 (the inner frieze posts' plaque), -9→-8 (the box's plate and its five walls), -8→-7 (the handle band, control rims), -7→-6 (the four warm containers' rim ink), -5→-4 (the talk panel's rim). Because each level is one Material stop, every relation INSIDE the box holds its exact distance — the box is lighter, not rearranged. THIS TONE'S ROLE HERE: it gained THE BOX'S PLATE and its five walls (from -9) and lost the handle band and control rims (to -7). Note it now does double duty on the feed surface — the board's plate AND, from the same sitting, the container's frieze-bar motif and edges. ⚠ AND IT LOST THE FEED CONTAINER'S FRIEZE BARS' INWARD LIP the same day to `--indigo-4` at 2px (see that token) — it keeps their OUTWARD edges, now also 2px. ⚠ AND IT IS THE FEED CONTAINER'S FRIEZE-BAR PLATE AGAIN as of the same day's later ask ("make their background color indigo-8 and then make the friezes light-cream") — it had traded places with the cream for one pass. Both of the bar's 3px edges are cream now, so this tone is the plate alone and the frame belongs to the motif's family, not to the plate's. ⚠ AND IT LOST THAT PLATE ONE ASK LATER TO `--indigo-9` ("paint the frieze bar's background indigo-9") — one step deeper, and the step matters more than a step usually does here because the plate now shows as the 1px PAD between the bar's cream frame and its cream motif, not only as the ground under the meander. ⚠ AND IT IS THAT PLATE AGAIN AS OF 2026-09-05 (user ask: "recolor the main feed frieze bar's background color so they are just one tone of indigo darker") — from `--indigo-7`, which had held it since 08-27's composition pass. The bars have now stood on -9 (08-24), -7 (08-27) and here, and this setting is the one BETWEEN their last two: deep enough to widen the step against the `--plaque-coat` rail the band is inlaid in (which is the effect the ask names) without taking the `--plaque-flat` motif's contrast all the way back to the 08-24 reading. The plate is the ONLY thing that moved — the motif, the two `--grey-6` rules, the rail's coat and the whole 13px pixel recipe are the 08-27 composition verbatim.
   --indigo-9: #{$indigo-9};    // Quasar indigo-9 (Material 800) — **SINCE 2026-08-08 (user asks) IT IS THE FEED HEAD BOX'S ONE STRUCTURAL INK — every plate and every line the board is built from: the INNER HEADER's plate (taken back off `--indigo-8`, after one pass at `--indigo-10`), the FIVE INNER WALLS (`--fhead-rule`, back here from `--indigo-6` and closing a four-setting walk), the LENS BARS' RIMS (FeedStream's `--lens-rim`; ⚠ the composer's `--fhead-chat-rim` came here with them for one ask and left again for `--indigo-5` when the bubble was given a pale face of its own — the two dials are no longer one decision), the LENS ROOM's floor, the BODY and the LANE as BACKDROPS (2026-08-08, the rounding pass — the board's four `--brown-1` containers are rounded, and the rule that made it work is that whatever lies BEHIND a rounded container is painted in this tone, so a corner opens onto the board's structural ink instead of onto a pale notch; the body was `--grey-4` and the lane transparent, and the first attempt at those radii over `--grey-4` was reverted on sight), the two inner posts' plaque, the lane's two key plates and the box's own 3px bottom edge. Its answer is `--brown-1` — the header's writing, the lens buttons' and lane keys' marks, and the TALK ROOM's floor — so the whole board is TWO MATERIALS: this plate and that warm pale mark, with `--grey-4` (lane) and `--grey-3` (the two LENS bars) left to do the rooms — and the COMPOSER deliberately outside both families, an `--indigo-1` face under an `--indigo-5` rim, the board's one pale object. ⚠ WHERE ONE INK MEANS LINES STOP DRAWING, by design: the handle's foot against the header plate, the talk/lens wall's lens side, the lane keys' closing walls, and the lens bundle's own dividers. Don't hunt for those borders — three of the box's five walls now state their division by two materials meeting. The two that still draw have a pale room on one side (the talk/lens rule against `--brown-1`, the lane's top against `--grey-4`). —— **THE FEED HEAD BOX'S DEEP MARKS since 2026-08-07**: the two inner frieze posts' plaque, the two 24px KEY PLATES in the lane under --brown-1 glyphs, every mark written in the box, and its own BOTTOM EDGE — the 3px foot it stands on, which walked --indigo-5 → -6 → here that day. ⚠ IT HELD THE BOX'S FIVE INNER WALLS AND ITS BODY FLOOR TOO, for the length of that day's last two asks — the walls went `--indigo-8` and the floor `--indigo-7` in the final one, on the argument that a -9 wall on a -7 floor is two steps of contrast where every other line on the surface has one. What is left here is what stands ON those surfaces rather than what divides them. It began as the PLAQUE of those two inner vertical frieze bars alone (2026-08-06, user ask), under a --brown-1 motif, and their LIP dial as well so the lip draws nothing (the same trick the outer bars play with --grey-4). The platform's first DARK frieze plate; see the SCSS note for why -9 rather than the -10 the media tabs write in, and for the walk that got here ⚠ THE FEED HEAD BOX'S WHOLE INDIGO VOCABULARY STEPPED ONE TONE LIGHTER ON 2026-08-24 (user ask: "for all the indigo elements inside of talavero's board, make them one tone of indigo lighter") — 24 references, declarations only, the file's comments deliberately left naming their original tones as the design record. The map: -10→-9 (the inner frieze posts' plaque), -9→-8 (the box's plate and its five walls), -8→-7 (the handle band, control rims), -7→-6 (the four warm containers' rim ink), -5→-4 (the talk panel's rim). Because each level is one Material stop, every relation INSIDE the box holds its exact distance — the box is lighter, not rearranged. THIS TONE'S ROLE HERE: it gained the INNER FRIEZE POSTS' PLAQUE (from `--indigo-10`, so it is the DEEPEST thing on the board now) and lost the box's plate and five walls to `--indigo-8`. ⚠ ROLE ADDED 2026-08-24 (user ask): THE FEED CONTAINER'S FRIEZE-BAR PLATE (from `--indigo-8`). It does two jobs at once there: the ground under a `--light-cream` meander, and — since the same ask added 1px of padding either side — the visible GAP between that motif and the bar's 2px `--light-cream` frame, which is what keeps a cream border from merging into a cream pattern. Note it is also the board's own inner-frieze-post plaque as of the same day's ladder shift, so the two frieze families on this surface stand on ONE plate again. ⚠ THE CONTAINER'S BARS LEFT AGAIN 2026-08-27 (user ask: the header rail's composition on the container's edges — their plate is `--indigo-7` now), so the one-plate reading lasted three days and the board's posts hold this level alone on that surface.
   --indigo-10: #{$indigo-10};  // Quasar indigo-10 (Material 900) — SINCE 2026-08-08 (user ask) THE FEED HEAD BOX'S TWO INNER FRIEZE POSTS' PLAQUE, under a `--brown-2` motif: the step BELOW the -9 that every other structural mark in that box wears (header plate, walls, control rims, lens room, bottom edge), which makes the posts the deepest object on the board. The point is the ROLE it states, not the depth — for a day the posts and the box's walls were ONE mark, and at -10 the pair reads as the FRAME's material rather than as more of the interior's, which is what two columns holding the box's sides actually are. ⚠ Their side rims stay `--indigo-8`, now two steps lighter than what they rim rather than one; -9 would put a rim on the body's own tone and it would vanish where the two meet. (This level held the head box's header plate for ONE ask the same day, under `--brown-2`, before the pair moved back up to -9/`--brown-1` — that pass is why the tone was in hand when the posts wanted it.) — — the MEDIA TABS' writing: the tab name AND its kind glyph, both at this one level (2026-08-06, user ask). The colorway's DEEPEST step, added the same day the parked-media strip left the neutral scale for indigo: the edges the band and the tabs wear are --indigo-4 and the ink inside them is this — the two moved in OPPOSITE directions from where the ask started, the line up toward the light wave and the writing down past the ink, which is what makes a 1px rim and a 12px word legible on the same light face. Note the glyph gave up its step-under-the-ink here — on the feed the pair is -8 ink over -3 lines, on the tabs it is ONE tone for word and mark, which is what the strip asked for at 12px on a light grey face ⚠ IT LEFT THE FEED HEAD BOX ENTIRELY ON 2026-08-24 (user ask: every indigo in the board one tone lighter) — the two inner frieze posts' plaque is `--indigo-9` now. Check before assuming this tone is free on that surface.
   --indigo-11: #{$indigo-11};  // Quasar indigo-11 (accent A100) — the COLD END of the POST CARD's two frieze bars (2026-08-07, user ask): their motif is painted with a vertical gradient `--teal-11` → this, mirrored on the second bar so indigo faces the label lane from both sides. The family's first accent, at the same index `--teal-11` holds in its own, which is what makes the ramp read as ONE gradient turning hue instead of a light tone fading into a dark one. It is a MARK, not a ground: it is drawn through a mask on a `--grey-6` plaque and never coats anything
-  --deep-purple-1: #{$deep-purple-1};    // Quasar deep-purple-1 (Material 50) — THE POST CARD LABEL CHIP'S HOVER COAT (2026-08-10, user ask), one hue over from the `--indigo-1` it wears at rest. The smallest move that still reads as a response, which is all a 17px chip has room for; deeper would turn paper into a coloured tag and take its `rgba(ink, .62)` 0.62em label with it. Its partners in the state are `--indigo-9` (the text, both the ancestor steps and the leaf) and `--deep-purple-11` (the glow). It held the chip's RESTING coat for an hour earlier the same day before the ask settled on `--indigo-1`
+  --deep-purple-1: #{$deep-purple-1};    // ⚠ SECOND ROLE since 2026-09-05 (user ask: the labels window goes "deep-purple instead of purple"): THE LABEL MAKER WINDOW'S PALE — the veil in `--labels-coat`, the wells, the resting tab face. Its first role is a 17px chip's hover coat and its second is a whole window's sheet; that is the range a Material 50 has. Quasar deep-purple-1 (Material 50) — THE POST CARD LABEL CHIP'S HOVER COAT (2026-08-10, user ask), one hue over from the `--indigo-1` it wears at rest. The smallest move that still reads as a response, which is all a 17px chip has room for; deeper would turn paper into a coloured tag and take its `rgba(ink, .62)` 0.62em label with it. Its partners in the state are `--indigo-9` (the text, both the ancestor steps and the leaf) and `--deep-purple-11` (the glow). It held the chip's RESTING coat for an hour earlier the same day before the ask settled on `--indigo-1`
   --deep-purple-2: #{$deep-purple-2};    // Quasar deep-purple-2 (Material 100) — MINTED 2026-08-10 (user ask) for THE MEMBER TOKEN'S INNER RING on the post card's root-label plate (`.post-square__bundle-item`, `box-shadow: inset 0 0 0 0.5px`). It is the family's first RESTING role on this rail — -1 and -11 below are both HOVER states — and it lands as the innermost of the plate's three edges: reading outward from a member, ring (this) → member border `--grey-5` → plate coat `--grey-3` → plate border `--indigo-2` → plate ring `--grey-7` → band `--grey-4`. Two colours in that stack and they are deliberately different families, one per TIER: indigo states the plate, deep purple states its members, so a glance tells which of the two nested boxes an edge belongs to — a distinction six neutral steps could not make on their own. ⚠ It is INSET, unlike the plate's ring: a member sits flush against its neighbours inside the plate, so an outward ring would collide with the next token's and read as one doubled line down the row.
-  --deep-purple-11: #{$deep-purple-11};  // Quasar deep-purple-11 (accent A100) — THE POST CARD LABEL CHIP'S HOVER RIM (2026-08-10, user ask): the chip's `0.5px` border, `--grey-2` at rest, takes this under the pointer. It arrived as a GLOW (`box-shadow: 0 0 4px`) and moved onto the border two asks later, which is where it belongs — a halo had a ceiling that was geometry rather than taste (the label rail has no vertical padding and `overflow-y: hidden`, so the chip has ~2px of centring clearance and a wider blur clips FLAT and reads as a smudge), while a border is inside the box and can be any tone it needs. It also makes the state ONE object: the edge that draws the chip at rest is the edge that answers. Its partners in that state are `--deep-purple-1` (the coat) and `--indigo-9` (the text, ancestors and leaf alike). ⚠ Unlike the file's other A100s (`--teal-11`, `--indigo-11`, `--cyan-11`) it is not half of a two-hue ramp, so the one-index law that binds those says nothing about it — this is a single accent on a line. It was briefly the warm end of a gradient on these same chips' bottom edge earlier the same day, and was retired with that edge
-  --cyan-9: #{$cyan-9};        // Quasar cyan-9 (Material 800) — THE POST CARD BYLINE'S AUTHOR NAME at rest (2026-08-09, user ask), replacing the hard-coded `#4f3e98` purple that had lettered it since the identity block was condensed. The name is the band's most authoritative text and the band is now the card's one coloured voice: everything around it is `--grey-*` neutral, so the hue IS the emphasis. This level and not -10: at 800 the name still reads as CYAN (~4.3:1 on the veiled cream coat, bold at 0.72em), where 900 goes blackish-teal and states depth instead of colour — and not -8, which is a step short of carrying small text on a pale card. Its hover partner is `--cyan-14`, the accent ramp's darkest step; see that note for why the pair is a lift rather than a swap
+  --deep-purple-11: #{$deep-purple-11};  // (It held the labels window's GLOW for one ask on 2026-09-05, between the two halves of that day's lighting pass; the set walked to the -3s the same day — see `--deep-purple-3`.) Quasar deep-purple-11 (accent A100) — THE POST CARD LABEL CHIP'S HOVER RIM (2026-08-10, user ask): the chip's `0.5px` border, `--grey-2` at rest, takes this under the pointer. It arrived as a GLOW (`box-shadow: 0 0 4px`) and moved onto the border two asks later, which is where it belongs — a halo had a ceiling that was geometry rather than taste (the label rail has no vertical padding and `overflow-y: hidden`, so the chip has ~2px of centring clearance and a wider blur clips FLAT and reads as a smudge), while a border is inside the box and can be any tone it needs. It also makes the state ONE object: the edge that draws the chip at rest is the edge that answers. Its partners in that state are `--deep-purple-1` (the coat) and `--indigo-9` (the text, ancestors and leaf alike). ⚠ Unlike the file's other A100s (`--teal-11`, `--indigo-11`, `--cyan-11`) it is not half of a two-hue ramp, so the one-index law that binds those says nothing about it — this is a single accent on a line. It was briefly the warm end of a gradient on these same chips' bottom edge earlier the same day, and was retired with that edge
+
+  // ── THE LABELS WINDOW'S DEEP-PURPLE MAP (2026-09-05, user ask) — the
+  // purple map of 2026-09-04, one family over at the same four indices (the
+  // one swap of the day where the index law holds; see the `$deep-purple-*`
+  // family note):
+  //   -8  the deep step — the strong edge, the tab-hover ink, `--q-secondary`.
+  //   -6  the contrast — every accent, via `--labels-contrast`.
+  //   -4  the mute — the meta line, the resting pill rims.
+  //   -1  the pale — the wells, and the veil in `--labels-coat`.
+  --deep-purple-4: #{$deep-purple-4};
+  --deep-purple-6: #{$deep-purple-6};
+  --deep-purple-8: #{$deep-purple-8};
+  --deep-purple-6-rgb: 103, 58, 183;
+  // ── THE FOUR GLOW TONES (2026-09-05, user ask: an open window
+  // "illuminates" its borders "as if emitting light"; and the same day's
+  // follow-up: "try the -3 for the glow instead of the -11 tones for a sober
+  // look") ─────────────────────────────────────────────────────────────────
+  // All four are their family's **Material 200**, the ONE index the set is
+  // taken at — which is what makes the effect read as a single lighting
+  // condition in four hues rather than as four separately-chosen
+  // brightnesses. `--lime-3` is declared with chat's colorway above (it draws
+  // that window's hairlines) and gains a second role here; the other three
+  // are minted for this.
+  //
+  // ⚠ THE SET WAS THE A100s (-11) FOR ONE ASK AND THE WALK IS THE ARGUMENT.
+  // Both indices are "the pale bright end", and the difference between them
+  // is SATURATION, not lightness: 100% at -11 against 46-72% at -3. At full
+  // saturation the light reads as a neon sign — a mark ON the window; two
+  // steps down it reads as the window being LIT, which is the same picture
+  // told soberly. Keep the set at one index if it ever moves again; four
+  // tones picked family by family would lose exactly the property that makes
+  // this read as one effect.
+  //
+  // ⚠ THEY ARE THE ONLY TONES IN THESE FAMILIES THAT NEVER TOUCH A WINDOW'S
+  // SURFACE. Each window's ladder is four rungs and this is not one of them:
+  // it is emitted, not painted — three `box-shadow` layers outside the
+  // border, plus the chip glyph's `color` while that window stands. Which is
+  // also why a tone this pale is safe here: it draws nothing that has to be
+  // read as a line or a letter.
+  --cyan-3: #{$cyan-3};
+  --deep-purple-3: #{$deep-purple-3};
+  --deep-orange-3: #{$deep-orange-3};
+  --deep-purple-10: #{$deep-purple-10};   // Material 900 — the LABELS button's word in the footer trail, and nothing else. See the `$` note.
+  --cyan-9: #{$cyan-9};        // ⚠ SECOND ROLE since 2026-09-05 (user ask: the post window goes "cyan instead of grey-blue"): ⭐ THE POST MAKER WINDOW'S CONTRAST, via `--maker-contrast` — its inner borders, titles, the draft tabs' lit lip, the ref browser's pressed pill, both post plates' rims, `--q-primary`. ONE LEVEL, TWO SURFACES, and the SAME argument picked it twice: 800 is the deepest cyan that still reads as cyan rather than as a blackish teal, which is what the card wanted for a name and what the window wants for a line. It replaces `--blue-grey-6` at 4.10:1 against that tone's 3.88:1 on the same coat — a hue move, not a weight move. ⚠ If either surface moves this level, check the other. Quasar cyan-9 (Material 800) — THE POST CARD BYLINE'S AUTHOR NAME at rest (2026-08-09, user ask), replacing the hard-coded `#4f3e98` purple that had lettered it since the identity block was condensed. The name is the band's most authoritative text and the band is now the card's one coloured voice: everything around it is `--grey-*` neutral, so the hue IS the emphasis. This level and not -10: at 800 the name still reads as CYAN (~4.3:1 on the veiled cream coat, bold at 0.72em), where 900 goes blackish-teal and states depth instead of colour — and not -8, which is a step short of carrying small text on a pale card. Its hover partner is `--cyan-14`, the accent ramp's darkest step; see that note for why the pair is a lift rather than a swap
   --cyan-14: #{$cyan-14};      // Quasar cyan-14 (accent A700) — THE POST CARD BYLINE'S HOVER INK (2026-08-09, user ask): the author's NAME **and** their @handle both take it under the pointer, so the whole identity link lights as ONE object rather than the name alone (which is what the old `#00829c` / 70%-alpha pair did — two inks for one target). A700 is the only accent in the family that can carry text on a pale card at all, and it is still a BRIGHT mark rather than a legible one: ~2.15:1 measured on the card's veiled coat, which is a deliberate hover register — the pointer is already on the words, so the state change is the message and the resting `--cyan-9` is what the name is READ in. ⚠ If this ever has to letter something at rest, it is the wrong end of the ramp; take `--cyan-9` or deeper
-  --cyan-11: #{$cyan-11};      // Quasar cyan-11 (accent A100) — the WARM END of the RGB HAIRLINE's gradient filling (2026-08-07, user ask, `layout/RgbHairline.vue`), running to `--indigo-11` down a 3px band held between two `--grey-6` rules. The third A100 taken into service (with `--teal-11` and `--indigo-11`): a mark made of two hues is built from accents at ONE index, so it reads as a ramp turning colour rather than as a bright tone fading into a dull one. (It was "the only level of the cyan family" when written; `--cyan-9`/`--cyan-10` arrived 2026-08-09 for the post card byline.) (It HELD the side-chrome frieze weave's cold CENTRE for part of 2026-08-17's sitting, lost the role to `--teal-11` in that sitting's hue walk, and the weave itself went sober grey on 2026-08-21 — the trio rule in `_components.scss` is flat greys now)
+  --cyan-11: #{$cyan-11};      // (It held the post window's GLOW for one ask on 2026-09-05; the set walked to the -3s the same day — see `--cyan-3`.) Quasar cyan-11 (accent A100) — the WARM END of the RGB HAIRLINE's gradient filling (2026-08-07, user ask, `layout/RgbHairline.vue`), running to `--indigo-11` down a 3px band held between two `--grey-6` rules. The third A100 taken into service (with `--teal-11` and `--indigo-11`): a mark made of two hues is built from accents at ONE index, so it reads as a ramp turning colour rather than as a bright tone fading into a dull one. (It was "the only level of the cyan family" when written; `--cyan-9`/`--cyan-10` arrived 2026-08-09 for the post card byline.) (It HELD the side-chrome frieze weave's cold CENTRE for part of 2026-08-17's sitting, lost the role to `--teal-11` in that sitting's hue walk, and the weave itself went sober grey on 2026-08-21 — the trio rule in `_components.scss` is flat greys now)
+
+  // ── THE POST WINDOW'S CYAN MAP (2026-09-05, user ask: cyan instead of
+  // grey-blue) — the blue-grey map this window wore since 2026-08-26, one
+  // family over and two rungs deeper, so the READINGS stay put while the hue
+  // moves (see the `$cyan-*` family note for the rung-by-rung table):
+  //   -10 the deep step — the strong edge, the tab-hover ink, the lock glyph.
+  //   -9  the contrast — every accent, via `--maker-contrast`. ⚠ Also the post
+  //       CARD's byline ink since 2026-08-09; one level, two surfaces.
+  //   -6  the mute — the meta line, the ref browser's resting pill rims.
+  //   -1  the pale — the field fill, the resting tab face, the veil.
+  --cyan-1: #{$cyan-1};
+  --cyan-6: #{$cyan-6};
+  --cyan-10: #{$cyan-10};
+  // The contrast as a triple, for the window's alpha washes. Same device and
+  // same reason as `--lime-10-rgb`.
+  --cyan-9-rgb: 0, 131, 143;
   // (`--indigo-3-rgb` lived here for the head band's translucent glass coat;
   //  the band went flat `--indigo-1` at the end of 2026-07-25 and the token
   //  went with its only consumer. The recipe is recorded in FeedStream.vue.)
@@ -989,7 +1220,45 @@ $warning:   #F2C037;
   // material carved into an `--indigo-7` plate.
   --plaque-flat: #f8f2e4;
 
-  // ── THE FOOTER STRIPS' NIGHT COAT (2026-09-03, user ask: "invert the color
+  // ── THE FOUR WINDOW COATS AS FLAT COLOURS (2026-09-05, user ask: the
+  // parked minitabs "match their window coloring") ────────────────────────
+  // `--plaque-flat`'s reason, four windows over. Each `--*-coat` is a
+  // background LAYER LIST — a veil gradient over `--light-cream` — and a
+  // layer list is legal ONLY in a `background` shorthand. A parked tab needs
+  // its window's coat as a real `<color>` in three places a layer list would
+  // be silently dropped: its own face (fine either way), the two flare
+  // gradients' colour stops (a gradient stop cannot be a gradient), and any
+  // future border or shadow drawn in it. These are the measured composites,
+  // the same arithmetic `--plaque-flat` records: the family's veil at 40%
+  // over `--light-cream` (#FCF3E0).
+  //
+  // ⚠ THEY ARE COMPUTED VALUES AND THEY GO STALE. If a window's veil moves,
+  // its flat moves with it or the tab and the window it restores stop being
+  // one material — a drift of a few points that nothing errors on and nobody
+  // sees until the two are open side by side. Recompute:
+  //   flat = round(veil_rgb * 0.4 + [252, 243, 224] * 0.6)
+  --maker-flat:     #f1f5ea;  // cyan-1 @40%       → rgb(241,245,234)
+  --uploader-flat:  #f7f3d4;  // ⚠ lime-**2** @40% → rgb(247,243,212) (see `--uploader-veil`)
+  --labels-flat:    #f6eee9;  // deep-purple-1 @40% → rgb(246,238,233)
+  --skeletons-flat: #fcefe3;  // deep-orange-1 @40% → rgb(252,239,227)
+
+  // ── THE FOOTER STRIPS' NIGHT COAT — ⭐ THE PLATE CAME BACK OUT OF IT
+  // ON 2026-09-05 (user ask: the two strips leave the frieze band and stand
+  // the bar's whole row, "like the author and dashboard buttons on the footer
+  // nav bar … make their background color the same as the footer bar").
+  // A strip that fills the bar's row is a bar CELL — the identity section's
+  // and the dashboard block's sibling — and those two wear `--plaque-coat`,
+  // so `--strip-coat` points at it now. The dial itself survives the repaint,
+  // which is the whole reason it was minted a dial: ONE seam, two strips, and
+  // the level behind it is free to move. THE OTHER THREE DID NOT FOLLOW —
+  // the items lane keeps the night coat, and standing in cream it reads
+  // exactly as the EXPANDED panel's `--grey-4` well does, a recess sunk into
+  // the plaque, two steps deeper.
+  // ⚠ `--strip-ink` inks THE TILES ONLY from that day. The head glyph left it
+  // in the same pass (cream on cream draws nothing) for the bar's own
+  // `--ink-1`, which is the dashboard button's ink beside it.
+  //
+  // ── The 2026-09-03 pass this replaces (user ask: "invert the color
   // palette for the stack bar and the pin bar inside the frieze bar so they
   // look darker. use a dark gray as main background and the light-cream as
   // main contrasting color") ─────────────────────────────────────────────
@@ -1022,10 +1291,29 @@ $warning:   #F2C037;
   // Tone: the day's first pass sat a step darker (grey-9 / grey-10 / grey-8);
   // the follow-up ask — "make the grey tone lighter" — moved all three up one
   // Quasar step together, the construction (coat › well › rim) unchanged.
-  --strip-coat: var(--grey-8);
-  --strip-well: var(--grey-9);
-  --strip-rule: var(--grey-7);
-  --strip-ink:  var(--light-cream);
+  // ⭐⭐ THE NIGHT WELL IS OVER, 2026-09-06 (user ask: "recolor the scroll to a
+  // light grey and also ad a thin grey-6 border to the items of both the
+  // [pins] and the stack bars. Make sure both item's style and color are
+  // consistent, being the base color light-cream"). The lane goes back to
+  // `--grey-4` under a `--grey-6` rim — which is not a fresh pick at all but
+  // THE PLATFORM'S CANONICAL WELL, the pair the EXPANDED panels of these same
+  // two widgets have worn since 2026-08-18 and the pair the post cards are
+  // drawn with. So the widget states ONE material at two scales again: the
+  // strip and the panel it morphs into are the same well, and only the axis
+  // changes. The negative (grey-9 floor, grey-7 rim) held from 2026-09-03 to
+  // today; everything below describing "the coat's negative" is that dress.
+  // ⚠ The TILES did not follow it back. `--strip-ink` stays `--light-cream`,
+  // so a tile is a cream plate on a grey-4 lane — the post card's own
+  // construction — and the kind colour, which used to draw the tile's rim,
+  // now lives in the GLYPH alone. The rim is structural ink (`--grey-6` via
+  // SidePanelItem's `--side-item-rim`) in both strips, which is what "both
+  // item's style and color are consistent" asks for: a coloured rim made the
+  // two strips' items differ tile by tile, and it competed with the lane's
+  // own line once that line stopped being dark.
+  --strip-coat: var(--plaque-coat);  // ⭐ was --grey-8 (2026-09-03 → 09-05) — the bar's own coat since the strips became full-height cells
+  --strip-well: var(--grey-4);       // ⭐ was --grey-9 (2026-09-03 → 09-06)
+  --strip-rule: var(--grey-6);       // ⭐ was --grey-7 (2026-09-03 → 09-06)
+  --strip-ink:  var(--light-cream);   // the TILES' face alone since 2026-09-05 — the head glyph wears --ink-1
 
   // ── THE POST CARD'S SURFACE, as one background value (2026-08-23) ────────
   // `--plaque-coat`'s construction one veil-strength up: a `--light-cream`
@@ -1054,29 +1342,22 @@ $warning:   #F2C037;
     linear-gradient(var(--card-veil), var(--card-veil)),
     var(--light-cream);
 
-  // ── THE BLUE-GREY FAMILY (2026-08-26, user asks) ─────────────────────────
-  // Minted for the post maker window and worn nowhere else yet. The roles
-  // are stated at the `$` declarations above; what belongs here is the
-  // WINDOW'S OWN MAP, because four surfaces read these three levels and a
-  // fifth reads the coat:
-  //   -8  the contrast — `--q-primary` on `.maker-surface` (previewer
-  //       toggle, field focus rings, spinner), the draft tabs' lit lip, the
-  //       ref browser's pressed kind pill, and the two post plates' rims.
-  //   -6  the field rim + its icons — title / publishing-as / labels.
-  //   -1  the field fill, and the veil in `--maker-coat`.
-  --blue-grey-1: #{$blue-grey-1};
-  --blue-grey-4: #{$blue-grey-4};
-  --blue-grey-6: #{$blue-grey-6};
-  --blue-grey-8: #{$blue-grey-8};
+  // (THE BLUE-GREY MAP stood here 2026-08-26 → 2026-09-05 — the post maker
+  // window's four levels. The window is CYAN now; see `--cyan-*` above, which
+  // states the same four roles at the readings these held.)
 
-  // ── THE UPLOADER'S TEAL MAP (2026-08-26, user ask) — the same four roles at
-  // the same indices, one family over. `--teal-1` is declared with its own
-  // family further down (it predates this window by a month):
-  //   -8  the deep step — `--q-primary` under `.uploader-dock`, the strong
-  //       edge, the tab-hover ink.
-  //   -6  the contrast — every accent, via `--uploader-contrast`.
-  //   -4  the mute — the meta line, the resting pill rims.
-  //   -1  the pale — the field fill, the resting tab face, the veil.
+  // ── ⚠ ROLE ENDED 2026-09-05 (user ask: the upload window goes "lime instead
+  // of teal") — THE UPLOADER'S TEAL MAP. These three levels were minted
+  // 2026-08-26 for that window alone and have no consumer today; the map
+  // survives because the FAMILY does (`--teal-1/-2/-3/-10/-11/-12/-13` are
+  // NodeMini's and the flyout's, declared with their own notes further down),
+  // and deleting three levels out of the middle of a live family would leave
+  // a hole a future window has to re-mint. The roles they held, for whoever
+  // needs the reading rather than the tone: -8 the deep step (4.73:1 on the
+  // coat), -6 the contrast (3.26:1), -4 the mute (2.17:1), -1 the pale. Their
+  // successors are `--lime-11 / -10 / -9 / -1`, which run a half-step
+  // stronger at the top because a yellow-green has to go to Material 900
+  // before it can letter anything at all.
   --teal-4: #{$teal-4};
   --teal-6: #{$teal-6};
   --teal-8: #{$teal-8};
@@ -1103,20 +1384,28 @@ $warning:   #F2C037;
   --orange-8: #{$orange-8};
   --orange-10: #{$orange-10};
 
-  // ── THE LABELS WINDOW'S PURPLE MAP (2026-09-04, user ask) — the
-  // uploader's teal map one family over, same four indices for the same
-  // roles (see `$purple-*` above):
-  //   -8  the deep step — the strong edge, the tab-hover ink.
-  //   -6  the contrast — every accent, via `--labels-contrast`.
+  // ── THE SCHEMA BUILDER'S DEEP-ORANGE MAP (2026-09-05, user ask) — the
+  // uploader's construction in the FOURTH creation-window family, and the
+  // first colorway this window has ever had. Roles as everywhere else:
+  //   -10 the deep step — the strong edge, the tab-hover ink.
+  //   -8  the contrast — every accent, via `--skeletons-contrast`. It
+  //       replaces three hard-coded `#00829c` accents, the shared chrome's
+  //       cyan-teal that every colourless dock still lights its tabs with.
   //   -4  the mute — the meta line, the resting pill rims.
-  //   -1  the pale — the wells, the veil.
-  // `--purple-6-rgb` is the contrast as a triple, for the window's alpha
-  // washes (`rgba(var(--purple-6-rgb), .12)`) — same device as `--ink-rgb`.
-  --purple-1: #{$purple-1};
-  --purple-4: #{$purple-4};
-  --purple-6: #{$purple-6};
-  --purple-8: #{$purple-8};
-  --purple-6-rgb: 156, 39, 176;
+  //   -1  the pale — the wells, the resting tab face, the veil.
+  // ⚠ NOT `--orange-*` directly above: that is the IDENTITY window's family,
+  // fixed chrome in the footer, and a different hue (#f57c00 against this
+  // family's #e64a19). See the `$deep-orange-*` note.
+  --deep-orange-1: #{$deep-orange-1};
+  --deep-orange-4: #{$deep-orange-4};
+  --deep-orange-8: #{$deep-orange-8};
+  --deep-orange-10: #{$deep-orange-10};
+  --deep-orange-8-rgb: 230, 74, 25;
+
+  // (THE PURPLE MAP stood here for one day, 2026-09-04 → 2026-09-05 — the
+  // label maker window's four levels plus the contrast triple. The window is
+  // DEEP-PURPLE now; see `--deep-purple-*` above, same four roles at the same
+  // four indices, and `--deep-purple-6-rgb` for the washes.)
 
   // ── THE POST WINDOW'S CONTRAST, AS A DIAL (2026-08-26) ───────────────────
   // Everything in the maker family that is not paper reads THIS, not a level:
@@ -1131,7 +1420,15 @@ $warning:   #F2C037;
   // states two hundred lines down in `_components.scss`: a surface with a
   // colorway names the ROLE and turns the dial, and only the dial names a
   // level.
-  --maker-contrast: var(--blue-grey-6);
+  // ⚠ IT MOVED A FOURTH TIME on 2026-09-05 (user ask: the post window goes
+  // "cyan instead of grey-blue") — `--blue-grey-6` → `--cyan-9`. The walk is
+  // now `--grey-6` → `--blue-grey-8` → `--blue-grey-6` → here, and this move
+  // is the one that vindicates the dial: it was a THREE-LINE edit across the
+  // whole platform (this, `--maker-pale`, `--maker-deep`) plus the levels the
+  // satellites still name directly, where the first move was a grep across
+  // four files. Note the INDEX jump, -6 → -9: it is not a deepening, it is
+  // the same READING in a family whose 500 is 2.08:1 (see `$cyan-*`).
+  --maker-contrast: var(--cyan-9);
 
   // ── THE FAMILY'S OTHER TWO DIALS (2026-08-26, the day's second window) ────
   // `MakerHeader` is ONE component worn by TWO colorways now — the post
@@ -1143,8 +1440,8 @@ $warning:   #F2C037;
   // levels became these, defaulting to the maker's tones; `.uploader-dock`
   // turns all three (`--maker-contrast` included) to the teal map in one
   // block, and the header follows whichever window it is mounted in.
-  --maker-pale: var(--blue-grey-1);
-  --maker-deep: var(--blue-grey-8);
+  --maker-pale: var(--cyan-1);
+  --maker-deep: var(--cyan-10);
 
   // ── THE UPLOADER'S CONTRAST, AS A DIAL (2026-08-26, user ask: repaint the
   // uploader "in the same style as the post section", teal for blue-grey "on
@@ -1155,14 +1452,23 @@ $warning:   #F2C037;
   // tabs' lit lip, the mode pills' pressed face, the drop zone's live edge,
   // the explorer card's rim and its section label, the header fields' rims
   // and icons (via `--maker-contrast`, re-pointed under `.uploader-dock`).
-  --uploader-contrast: var(--teal-6);
+  // ⚠ IT MOVED ON 2026-09-05 (user ask: "for uploads, we want to go lime
+  // instead of teal") — `--teal-6` → `--lime-10`. Read the `$lime-*` family
+  // note before touching it: this family cannot state a contrast at its
+  // Material 500 (1.3:1 on the coat) or its 700 (2.0:1), so the ladder sits
+  // three rungs deeper than the teal's did and the window reads OLIVE/BRASS
+  // where it read blue-green. The lime that is recognizably lime is in the
+  // COAT and the WELLS (`--lime-2`, `--lime-1`); a yellow-green at ink
+  // contrast is an olive, and there is no third option in this hue.
+  --uploader-contrast: var(--lime-10);
 
   // ── THE POST WINDOW'S COAT (2026-08-26, user ask: "for the grey veil on
   // top of the post window, use blue-grey instead of grey, and make the veil
   // 10% denser") ───────────────────────────────────────────────────────────
   //
   // `--plaque-coat`'s construction with BOTH dials turned: the sheet is still
-  // `--light-cream`, the veil is `--blue-grey-1` instead of `--grey-3`, and
+  // `--light-cream`, the veil is `--cyan-1` instead of `--grey-3` (it was `--blue-grey-1`
+  // until 2026-09-05), and
   // it is laid at **40%** where the fixed chrome's is 30%. Composite
   // rgb(246,241,231) against the bar's rgb(248,242,228) — two points deeper
   // and cooler on every channel, which is what "10% denser" and "blue-grey
@@ -1179,18 +1485,25 @@ $warning:   #F2C037;
   //
   // ⚠ The `--plaque-coat` trap applies unchanged: a `background` SHORTHAND
   // value, never a `<color>`. The flat composite for those places is
-  // ~`#f6f1e7`.
-  --maker-veil: rgba(236, 239, 241, 0.4);
+  // ~`#f1f5ea`.
+  // ⚠ THE VEIL'S FAMILY TURNED 2026-09-05 (user ask: cyan instead of
+  // grey-blue) — `$blue-grey-1` (236,239,241) → `$cyan-1` (224,247,250), still
+  // at 40% over the same `--light-cream` sheet. Composite rgb(241,245,234)
+  // against the bar's rgb(248,242,228): -7 red, +3 green, +6 blue, where the
+  // blue-grey's was -2/-1/+3. The step off the bar is the same KIND — a few
+  // points, cooler — and about twice as far, which is the hue arriving. Flat
+  // composite for the places that need a `<color>`: ~`#f1f5ea`.
+  --maker-veil: rgba(224, 247, 250, 0.4);
   --maker-coat:
     linear-gradient(var(--maker-veil), var(--maker-veil)),
     var(--light-cream);
 
   // ── THE UPLOADER'S COAT (2026-08-26, user ask — the repaint above) ───────
   // `--maker-coat`'s construction with the veil's FAMILY turned: the sheet is
-  // still `--light-cream`, the veil is `$teal-1` (224,242,241) instead of
-  // `$blue-grey-1` (236,239,241), still at the maker's 40%. Composite
-  // ~rgb(241,243,231) — the same few-points-deeper step off the bar the
-  // maker's takes, pulled green where that one pulls blue.
+  // still `--light-cream`, the veil is `$lime-2` (240,244,195) — since
+  // 2026-09-05; it was `$teal-1` (224,242,241) — still at the maker's 40%.
+  // Composite ~rgb(247,243,212), the same few-points-deeper step off the bar
+  // the maker's takes, pulled yellow-green where that one pulls cyan.
   //
   // ⚠ THE SECOND SANCTIONED BREAK IN THE ONE-PLAQUE LAW. The `dock-coat`
   // witness (`api/scripts/fsck.js`) names it — `UploaderDock.vue` →
@@ -1199,8 +1512,23 @@ $warning:   #F2C037;
   //
   // ⚠ The `--plaque-coat` trap applies unchanged: a `background` SHORTHAND
   // value, never a `<color>`. The flat composite for those places is
-  // ~`#f1f3e7`.
-  --uploader-veil: rgba(224, 242, 241, 0.4);
+  // ~`#f7f3d4`.
+  // ⚠ THE VEIL'S FAMILY TURNED 2026-09-05 (user ask: lime instead of teal),
+  // AND IT IS THE ONE COAT ON THE PLATFORM THAT DOES NOT VEIL IN ITS FAMILY'S
+  // -1. Every other window's is the family's Material 50 at 40%. Lime's 50
+  // (#f9fbe7) is LIGHTER than `--light-cream` on two channels: composited it
+  // lands rgb(251,246,227) against the bar's rgb(248,242,228) — +3 red, +4
+  // green, -1 blue — so the window would sit ABOVE the bar where all three of
+  // its siblings sit a few points below it, and the coat would read as a
+  // lighter plate rather than a tinted one. The step every window coat makes
+  // off the bar would be inverted, which is not a hue choice at all.
+  //
+  // `$lime-2` (240,244,195) at the same 40% composites rgb(247,243,212):
+  // -1 red, +1 green, **-16 blue**. That is a bigger move than the cool
+  // families make (their largest channel is 7) and it has to be: a yellow-
+  // green has no channel to state itself in EXCEPT the absence of blue, so a
+  // lime step that shows at all is a blue step. Flat composite ~`#f7f3d4`.
+  --uploader-veil: rgba(240, 244, 195, 0.4);
   --uploader-coat:
     linear-gradient(var(--uploader-veil), var(--uploader-veil)),
     var(--light-cream);
@@ -1217,13 +1545,21 @@ $warning:   #F2C037;
   // components' dial, re-pointed under `.label-dock`), and `--q-primary`
   // (the Quasar buttons and spinners inside the window; `--q-secondary`
   // takes `--purple-8`, the deep step, for the mini-maker's fork button).
-  --labels-contrast: var(--purple-6);
+  // ⚠ IT MOVED ON 2026-09-05, one day old (user ask: "for labels, we wanna go
+  // deep-purple instead of purple") — `--purple-6` → `--deep-purple-6`. The
+  // one swap of that day's four where the INDEX law holds: both families
+  // carry ink at 500, so this is a pure hue move and every wearer below reads
+  // the same rung it read yesterday. The window is a half-step stronger for
+  // it (6.64:1 on the coat against 5.60:1) — which is what "deep" bought and
+  // the only thing it bought. `--deep-purple-6-rgb` replaces `--purple-6-rgb`
+  // for the alpha washes.
+  --labels-contrast: var(--deep-purple-6);
 
   // ── THE LABELS WINDOW'S COAT (2026-09-04, user ask — the repaint above) ─
   // `--uploader-coat`'s construction with the veil's FAMILY turned: the
-  // sheet is still `--light-cream`, the veil is `$purple-1` (243,229,245)
-  // instead of `$teal-1` (224,242,241), still at the maker's 40%. Composite
-  // ~rgb(248,237,232) — the same few-points-deeper step off the bar the
+  // sheet is still `--light-cream`, the veil is `$deep-purple-1` (237,231,246)
+  // — since 2026-09-05; it was `$purple-1` (243,229,245) — still at the
+  // maker's 40%. Composite ~rgb(246,238,233) — the same few-points-deeper step off the bar the
   // other two take, pulled toward lavender where those pull blue and green.
   //
   // ⚠ THE THIRD SANCTIONED BREAK IN THE ONE-PLAQUE LAW. The `dock-coat`
@@ -1232,10 +1568,63 @@ $warning:   #F2C037;
   //
   // ⚠ The `--plaque-coat` trap applies unchanged: a `background` SHORTHAND
   // value, never a `<color>`. The flat composite for those places is
-  // ~`#f8ede8`.
-  --labels-veil: rgba(243, 229, 245, 0.4);
+  // ~`#f6eee9`.
+  // ⚠ THE VEIL'S FAMILY TURNED 2026-09-05 (user ask: deep-purple instead of
+  // purple) — `$purple-1` (243,229,245) → `$deep-purple-1` (237,231,246), 40%
+  // unchanged. Composite rgb(246,238,233) where the purple's was
+  // rgb(248,237,232): two points of red darker, one of green and one of blue
+  // up. It is the SMALLEST coat move of the day's four by an order of
+  // magnitude, and that is correct — at Material 50 two neighbouring families
+  // are nearly the same paper, and this window's hue was never in its sheet.
+  // It is in the ink, which went 5.60:1 → 6.64:1. Flat composite ~`#f6eee9`.
+  --labels-veil: rgba(237, 231, 246, 0.4);
   --labels-coat:
     linear-gradient(var(--labels-veil), var(--labels-veil)),
+    var(--light-cream);
+
+  // ── THE SCHEMA BUILDER'S CONTRAST, AS A DIAL (2026-09-05, user ask: "and
+  // finally, for skeletons, we'll go deep-orange") ────────────────────────
+  // The uploader's construction verbatim, one family over — and the first
+  // colorway this window has ever had. Everything in the schema builder that
+  // is not paper reads THIS: the window's inner borders (`--dock-rule`) and
+  // titles (`--dock-ink`), the bar plate, the schema tabs' lit lip, the start
+  // cards' live edge and the two picker rows' hover rims, the section labels,
+  // and `--q-primary` (the Quasar buttons, spinners and field focus rings
+  // inside the window).
+  //
+  // ⚠ It replaces THREE HARD-CODED `#00829c` LITERALS (and their
+  // `rgba(0,130,156,…)` washes) — the shared dock chrome's cyan-teal, which
+  // is what a creation dock with no colorway still lights its tabs with. That
+  // tone is the OTHER TWO windows' accent now, and a window with its own dial
+  // that still spells the shared one in three places is the exact drift every
+  // `--dock-*` note in `_components.scss` is written against.
+  --skeletons-contrast: var(--deep-orange-8);
+
+  // ── THE SCHEMA BUILDER'S COAT (2026-09-05, user ask — the repaint above) ─
+  // `--uploader-coat`'s construction with the veil's FAMILY turned: the sheet
+  // is still `--light-cream`, the veil is `$deep-orange-1` (251,233,231) at
+  // the maker's 40%. Composite ~rgb(252,239,227) against the bar's
+  // rgb(248,242,228) — +4 red, -3 green, -1 blue.
+  //
+  // ⚠ IT IS THE ONE COAT OF THE FOUR THAT STEPS *WARM*. The other three all
+  // pull the sheet toward their hue and DOWN in red; this one pulls up, which
+  // is what a hot family does to a cream that is already warm. Read on its
+  // own it is a blush-cream and unmistakably not the bar; read beside the
+  // uploader's yellow-green sheet it is the pair that tells the two apart at
+  // a glance, which matters because these two windows share a footprint.
+  //
+  // ⚠ THE FOURTH SANCTIONED BREAK IN THE ONE-PLAQUE LAW. The `dock-coat`
+  // witness (`api/scripts/fsck.js`) names it — `SkeletonBuilderDock.vue` →
+  // `--skeletons-coat` — exactly as it names the maker's, the uploader's and
+  // the labels window's. Four of the six creation docks own a sheet now; the
+  // law's argument still holds for chat and the dashboard, and a FIFTH gets
+  // added to that map on purpose or not at all.
+  //
+  // ⚠ The `--plaque-coat` trap applies unchanged: a `background` SHORTHAND
+  // value, never a `<color>`. The flat composite is ~`#fcefe3`.
+  --skeletons-veil: rgba(251, 233, 231, 0.4);
+  --skeletons-coat:
+    linear-gradient(var(--skeletons-veil), var(--skeletons-veil)),
     var(--light-cream);
 
   --border-ink:     1px solid rgba(var(--ink-rgb), 0.18);
@@ -1655,6 +2044,16 @@ $warning:   #F2C037;
   // them should be a wide version where the current place you're in"), its
   // current step taking the lane's remaining 170px as the LETTERED face.
   --strip-tile-w: 20px;
+  // ⭐ THE STRIP'S ONE CURVE (2026-09-06, user ask: "make the item's corner
+  // roundness match the roundness of their container"). The lane has rounded
+  // its free end at a hard-coded 7px since 2026-08-30's sixth ask, and the
+  // tiles inside it were capsules (999px) with the wide one at 10px — three
+  // curves in one 25px box, none of them agreeing. ONE dial now paints the
+  // lane's rounded end AND every tile in it, so "match" is by construction
+  // rather than by two numbers that happen to be close. ⚠ Both strips read
+  // it; the lane rounds one END (the stack its right, the pins its left) and
+  // the tiles round all four corners — same radius, different corners.
+  --strip-lane-radius: 7px;
   --pins-strip-w: 90px;
 
   // The parked rail's THIN dimension — the pins widget's icon-column WIDTH

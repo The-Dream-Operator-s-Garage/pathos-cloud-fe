@@ -205,6 +205,31 @@
   height: var(--nav-chip-h, 19px);
   padding: 0 5px;
   border-radius: 0;
+  // ── THE CHIP'S TWO STRUCTURAL INKS, AS DIALS (2026-09-05, user ask:
+  // "recolor the buttons borders and the drag icon just like their respective
+  // tabs") ─────────────────────────────────────────────────────────────────
+  // They were `--grey-5` and `--grey-6` written straight into the three rules
+  // below. The four CREATION chips turn them to their window's contrast in
+  // NavigationBar — the same tone their parked tab draws its rim and flares
+  // in, so chip and tab are one object read at two heights.
+  //
+  // ⚠ THIS IS A SANCTIONED BREAK IN THE BAR'S TWO-INK LAW, which is stated
+  // at `border` below and reads: grey-6 draws every HORIZONTAL line on this
+  // bar, grey-5 every VERTICAL one. It still holds everywhere the eye reads
+  // the bar as one object — the band's rules, the strips, the two "looker"
+  // chips at the ends, and the gaps between all of them. What it stops
+  // holding for is the four chips that HAVE a colorway, and the reason is the
+  // reason the law was written: the two inks exist so that adjacent lines
+  // never read as one line at two weights. A chip lettered in its window's
+  // family, standing under a tab drawn in that family, is not adjacent to the
+  // band's line in that sense — it is a different OBJECT, and the colour is
+  // what says so. Give a fifth chip a colorway and it turns these two dials;
+  // give the band a colour and the law needs rewriting, not extending.
+  //
+  // Defaults are exactly what the three rules named before, so a chip that
+  // sets nothing is byte-identical to what it was.
+  --chip-rim: var(--grey-5, #bdbdbd);    // the two VERTICAL rims + the grip's hairline
+  --chip-grip: var(--grey-6, #9e9e9e);   // the drag handle's glyph
   // ── A FULL FRAME AGAIN (2026-08-30, user ask: "adding to them borders on
   // all sides. some of the buttons currently have, but not all of them" — the
   // round chips at the bar's two ends kept their closed rims all along, so
@@ -236,7 +261,7 @@
   // never meet on the same edge any more: grey-6 draws every horizontal
   // line on this bar, grey-5 every vertical one. No new ink either way —
   // grey-6 is already the trail's second wave.
-  border: 1px solid var(--grey-5, #bdbdbd);
+  border: 1px solid var(--chip-rim);
   // ── ⭐ AND THE HORIZONTAL RIMS CAME OFF AGAIN (2026-08-30, the ask after
   // the flush fit: "there is still a gap on the top, between the top border
   // of the frieze bar and the buttons and the bar. Close it"). The chip and
@@ -312,10 +337,16 @@
     align-items: center;
     align-self: stretch;
     flex: 0 0 auto;
-    // A handle, not content: the glyph takes the bar's structural grey, a
-    // step under the chip's own ink, so six chips with six inks still show
-    // ONE row of identical handles.
-    color: var(--grey-6, #9e9e9e);
+    // A handle, not content: the glyph takes `--chip-grip`, which is the
+    // bar's structural grey by default — a step under the chip's own ink, so
+    // chips with different inks still show ONE row of identical handles.
+    // ⚠ SINCE 2026-09-05 the four creation chips turn that dial to their
+    // window's contrast (user ask). The "identical handles" argument above
+    // survives at the level that matters: all six are the same GLYPH at the
+    // same 11px in the same 6px inset, and what differs is only which family
+    // they are drawn in — which is the same thing their rim, their word and
+    // their parked tab now say.
+    color: var(--chip-grip);
     cursor: grab;
     // Pointer-events drive the drag on touch screens too — without this the
     // browser claims a horizontal swipe for scrolling before the chip moves.
@@ -332,7 +363,11 @@
     width: 1px;
     align-self: stretch;
     flex: 0 0 auto;
-    background: var(--grey-5, #bdbdbd);
+    // `--chip-rim`, not its own tone: this hairline and the chip's two side
+    // rims are the same line system (all three vertical, all three the full
+    // 19px content box), so a colorway that moves one moves all three or the
+    // chip ends up framed in its family with a grey line inside it.
+    background: var(--chip-rim);
   }
 
   &:hover:not(.disabled) {
@@ -559,6 +594,42 @@
 // modifier would have had to out-specify each of them separately, and the
 // mobile `border-left` restatement would have quietly won against it.
 .dock-window--creation {
+  // ── AN OPEN WINDOW EMITS ITS FAMILY'S LIGHT (2026-09-05, user ask: "when
+  // a window is open, illuminate their borders, as if emitting light with the
+  // 11-th color tone… the deep-purple labels window should illuminate
+  // deep-purple-11") ────────────────────────────────────────────────────────
+  //
+  // ⚠ THERE IS NO STATE CLASS AND THERE MUST NOT BE ONE. Every creation dock
+  // is `v-if="store.isOpen && !store.isMinimized"`, so the element EXISTS
+  // only while the window is standing — its presence IS the open state. A
+  // parked window is not dimmed here, it is not in the DOM; what says so is
+  // the minitab that appears on the chip below.
+  //
+  // Three layers on top of the window's own cast, in the order an emission
+  // has them: a hard 1px ring just outside the border, a hot near halo, a
+  // wide far bleed. The BORDER ITSELF stays `--dock-rule` (the window's
+  // contrast): structure has to keep reading as structure, and the light is
+  // laid ON that edge rather than replacing it — which is what "illuminate
+  // their borders" asks for and what swapping the border to an A100 would
+  // instead destroy (these accents are the palest tones in their families;
+  // `--cyan-11` is 1.1:1 on the window's own coat and would leave the box
+  // with no drawn edge at all).
+  //
+  // ⚠ IT READS BECAUSE OF WHERE THE WINDOW SITS. These docks stand over the
+  // feed's `--grey-8` field, so an A100 has something dark to be luminous
+  // against — the opposite of the footer chips, whose band is pale and whose
+  // own glow had to be rebuilt around a mid-tone bloom for that reason.
+  //
+  // `--dock-glow` is set by the four windows that have a family (in their own
+  // .vue files, beside the rest of their colorway). Chat and the dashboard
+  // set nothing and the `transparent` fallback makes all three layers
+  // no-ops — including through `color-mix`, where mixing transparent with
+  // transparent is still transparent. So this is one unconditional rule and
+  // there is no second modifier to keep in step.
+  // ⚠ THE DECLARATION IS NOT HERE — it is on the `box-shadow` further down
+  // this same rule, beside the no-downward-cast note. This rule sets
+  // `box-shadow` TWICE and the second wins; a glow written here paints
+  // nothing at all, which is exactly how this landed the first time.
   --dock-gap: 14px;
   // THE CAP RADIUS IS A DIAL TOO (2026-08-24, user ask: "make their corners a
   // little less round") — `--radius-lg` (1.25em, 17.5px measured) →
@@ -570,6 +641,13 @@
   // block are exactly the ones a later pass forgets. Applied to the shared
   // FOOTPRINT, so chat and the dashboard round the same amount — six windows
   // that are the same box in six colorways may not disagree about their shape.
+  // ⚠ ONE CORNER LEFT THAT RULE (2026-09-05, user ask): the dashboard's
+  // top-RIGHT cap is squared and its right edge joined to the screen's, in a
+  // `min-width: 601px` block below `.dock-window--dashboard`. The claim above
+  // still holds for the shape a dock has where it FLOATS — the dashboard is
+  // simply the one window anchored to an edge, so on that side it has no
+  // corner to agree about. The dial is untouched and still moves the other
+  // eleven caps together.
   --dock-radius: var(--radius-md);
   // THE COAT IS THE NAV BAR'S OWN PLAQUE (2026-08-26, user ask: the
   // dashboards, chat, post, skeletons, labels and uploads windows should
@@ -690,7 +768,54 @@
   // never out-reach the -10px offset downward (15 - 6 - 10 = -1px), and the
   // -10px x-offset does the same on the right, where the dock meets the
   // side-widget column.
-  box-shadow: -10px -10px 30px -6px rgba(0, 0, 0, 0.42);
+  //
+  // ⚠ AND THE WINDOW EMITS ITS FAMILY'S LIGHT (2026-09-05, user ask), which
+  // is why this list has four layers now: the cast above, then a hard 1px
+  // ring just outside the border, a hot near halo and a wide far bleed, all
+  // three in `--dock-glow`.
+  //
+  //  · THE BORDER ITSELF STAYS `--dock-rule`, the window's contrast.
+  //    Structure has to keep reading as structure and the light is laid ON
+  //    that edge rather than replacing it — which is what "illuminate their
+  //    borders" asks for and what swapping the border to an A100 would
+  //    destroy: these accents are the palest tones in their families
+  //    (`--cyan-11` is 1.1:1 on the window's own coat) and the box would be
+  //    left with no drawn edge at all.
+  //  · THERE IS NO STATE CLASS AND THERE MUST NOT BE ONE. Every creation dock
+  //    is `v-if="store.isOpen && !store.isMinimized"`, so the element exists
+  //    only while its window is standing — presence IS the open state. A
+  //    parked window is not dimmed, it is not in the DOM; the minitab that
+  //    appears on its chip is what says so instead.
+  //  · `--dock-glow` is set by the four windows that HAVE a family, in their
+  //    own .vue files beside the rest of their colorway. Chat and the
+  //    dashboard set nothing, and the `transparent` fallback makes all three
+  //    layers no-ops — including through `color-mix`, where transparent mixed
+  //    with transparent is still transparent. One unconditional rule, no
+  //    second modifier to keep in step.
+  //  · THE GLOW IS SYMMETRIC where the cast above is deliberately not, and
+  //    that is safe for one structural reason worth writing down: the nav bar
+  //    is z 3110 and every dock is 3010+, so whatever these layers spill
+  //    downward is painted over by the bar. The cast's careful arithmetic
+  //    (`15 - 6 - 10 = -1px`) exists because a black shadow landing on the
+  //    bar would read even at low alpha through the weld's seam; a light one
+  //    cannot land there at all.
+  //  · It reads because of WHERE these windows stand — over the feed's
+  //    `--grey-8` field, so an A100 has something dark to be luminous
+  //    against. That is the opposite of the footer chips, whose band is pale
+  //    and whose lit glyph needed a mid-tone bloom for exactly that reason.
+  //  · ⚠ THINNED 2026-09-05 (same sitting, with the walk to the -3 tones):
+  //    12px → 9px near, 30px → 20px far. The two moves are one move — a
+  //    quieter tone under a wider halo reads as a smudge rather than as a
+  //    light, because the bleed's outer third falls below what the eye
+  //    separates from the field at 42% of a 46%-saturation tone. The RING
+  //    does not thin: 1px is where a drawn edge starts, and it is the layer
+  //    that makes this read as the border emitting rather than as the box
+  //    being back-lit.
+  box-shadow:
+    -10px -10px 30px -6px rgba(0, 0, 0, 0.42),
+    0 0 0 1px var(--dock-glow, transparent),
+    0 0 9px color-mix(in srgb, var(--dock-glow, transparent) 85%, transparent),
+    0 0 20px color-mix(in srgb, var(--dock-glow, transparent) 42%, transparent);
   transition: left 0.18s ease, right 0.18s ease, top 0.18s ease;
 
   // HEADER LAYOUT — title centred, traffic lights pinned to the left edge,
@@ -836,6 +961,45 @@
   --dock-rule-strong: var(--grey-5);
   --dock-ink: var(--brown-8);
   --dock-ink-mute: var(--brown-4);
+}
+
+// THE BOARD STICKS TO THE RIGHT EDGE AT REST TOO (2026-09-05, user ask: the
+// dashboards window should be "drawn with no gap on the right side of the
+// screen", with "the top right corner not rounded so it looks good sticking
+// to the right"). The creation footprint gives every dock `--dock-gap` (14px)
+// of daylight off the right and a `--dock-radius` cap on both top corners;
+// this window gives the right pair back and keeps the left pair, so it reads
+// as a panel ANCHORED to the screen's edge rather than one floating near it.
+//
+// NOT A NEW GEOMETRY — the third statement of one that was already here
+// twice: `.is-edit` runs edge to edge with both caps square, and
+// `.is-max:not(.is-edit)` below already joins THIS EXACT RIGHT EDGE
+// (`right: var(--dock-right)`, `border-top-right-radius: 0`). Resting and
+// maximized now differ only in `top`/`left`, which is why maximizing no
+// longer slides the right edge sideways. It is also the MIRROR of the
+// ≤900px left join further down (`left: 0` + `border-left: none` +
+// square cap): a flush edge drops its border, because there is no gap left
+// for a line to divide.
+//
+// `--dock-right` rather than a literal `0`: it is the rail reserve
+// (`windows.dockRight`, 0 since the side column retired to the footer bar)
+// and every other right-edge rule in this file is written in terms of it —
+// if a standing right column ever comes back, this window lands beside it
+// with the rest instead of under it.
+//
+// ⚠ GATED ≥601px, the same gate the maximize join uses. The phone's block
+// never restates `right` — it re-points `--dock-gap` to 8px and lets the
+// creation `calc()` resolve — so an ungated rule here would silently take
+// the mobile dock's right daylight with it while leaving its left daylight
+// standing (the specificity trap this file keeps warning about; gotchas.md).
+// The board is a window you can put down on a 375px screen; it is only the
+// screen's right edge on a desk.
+@media (min-width: 601px) {
+  .dock-window--dashboard {
+    right: var(--dock-right, 0px);
+    border-right: none;
+    border-top-right-radius: 0;
+  }
 }
 
 // EDIT MODE (dashboards phase 4, 2026-08-10): arranging a board wants the
@@ -1585,4 +1749,75 @@
     height: 17px;
     .q-icon { font-size: 11px; }
   }
+}
+
+// ── THE SIDE WIDGETS' THIN HEADER (2026-09-06 PM, user ask: "to the
+// expanded version of the stack bar and the pin bars, add them a thin
+// header with traffic light buttons, title and add a button on the right
+// that opens up a flyout skeleton view of the stacks of items they carry").
+// The flyout window's own bar grammar at panel scale — the house traffic
+// cluster at the left (the shared `.traffic` dots, a size down), the name
+// centred in the display face, ONE control at the right: the skeleton door
+// (`.dock-bar__action`'s flat glyph). It stands ABOVE the panel's top band
+// — bar → band → well, the flyout's order — so the band is the line between
+// this bar and the well exactly as it is in the flyout. Both panels wear it
+// (StackPanel, PinsDrawer); expanded only — the parked strip has no room for
+// a header and its head glyph is its title.
+// ⚠ NOT a `.dock-bar`: each panel's BOTTOM controls bar keeps that class,
+// and the footer witnesses locate it with `querySelector('.dock-bar')` —
+// the FIRST match in DOM order — so this bar wears its own class.
+// The lights: on a widget that is never closed (it parks to its strip and
+// comes back on hover) CLOSE and MINIMIZE are one act — both park, and their
+// titles say so. GREEN is real: the height cap flips to the full window
+// under the top tabs band (`is-max` on the panel, windows.js `maximized`).
+.side-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 24px;
+  flex: 0 0 auto;
+  padding: 0 5px 0 8px;
+  background: var(--plaque-coat);
+  user-select: none;
+
+  .traffic { gap: 5px; }
+  .traffic__dot {
+    width: 11px;
+    height: 11px;
+    .q-icon { font-size: 8px; }
+  }
+}
+
+.side-head__title {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  font-size: 0.66em;
+  letter-spacing: 0.05em;
+  color: var(--grey-9);
+  white-space: nowrap;
+  overflow: hidden;
+}
+.side-head__glyph { flex: 0 0 auto; color: var(--grey-8); }
+.side-head__label { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+
+// The skeleton door — the flat action glyph, lit on hover.
+.side-head__open {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  background: none;
+  color: var(--grey-8);
+  cursor: pointer;
+  &:hover { color: var(--grey-10); border-color: var(--grey-6); }
+  &:disabled { opacity: 0.5; cursor: default; }
 }

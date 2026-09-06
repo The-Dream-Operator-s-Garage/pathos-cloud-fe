@@ -139,7 +139,7 @@ export default defineComponent({
   // ⚠ THE CONTROL'S BOX IS NOT STATED HERE ANY MORE (2026-08-26, user ask).
   // It carried `height/min-height: 30px` on the dense control and a matching
   // `.q-field__marginal`, from the pass that squeezed the pickers into a
-  // shared row. The field aesthetic — 26px box, 13px corners, `--blue-grey-1`
+  // shared row. The field aesthetic — 26px box, 13px corners, `--maker-pale`
   // fill, 2px `--maker-contrast` rim, thick icons — is stated ONCE in
   // `MakerHeader.vue` (`.row-field :deep(.q-field--outlined)`), for the title
   // input and both pickers together. Restating a height here would win on

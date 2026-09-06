@@ -10,8 +10,17 @@
     >
       <!-- ── Thin header: title left, Mac-style traffic lights right ── -->
       <header class="dock-bar">
-        <q-icon name="architecture" size="14px" class="dock-bar__icon" />
-        <span class="dock-bar__title nasalization">Schema builder</span>
+        <!-- THE NAME IS A PLATE (2026-09-05, with this window's colorway) —
+             the maker's, the uploader's and the labels window's device:
+             glyph + name in one hairline box, so the window states itself
+             the way the feed's post cards do. This dock was the last of the
+             four still lettering its name loose on the bar. ⚠ The glyph
+             steps 14px → 13px joining the plate: the other three are 13px
+             and the box is built around that measure. -->
+        <span class="dock-bar__plate">
+          <q-icon name="architecture" size="13px" class="dock-bar__icon" />
+          <span class="dock-bar__title nasalization">Schema builder</span>
+        </span>
         <span class="dock-bar__meta mono">
           {{ store.draftCount }} in progress
         </span>
@@ -255,6 +264,7 @@ import { useRouter } from 'vue-router'
 import { useSkeletonBuilderStore, builderLabel } from 'src/stores/skeletonBuilder'
 import { useWindowsStore } from 'src/stores/windows'
 import { useAuthStore } from 'src/stores/auth'
+import { useNavStore } from 'src/stores/navigation'
 import { skeletonService } from 'src/services/skeleton.service'
 import { kindFor } from 'src/utils/kinds'
 import LabelFieldPicker from 'src/components/labels/LabelFieldPicker.vue'
@@ -383,6 +393,13 @@ export default defineComponent({
       try {
         const r = await skeletonService.instantiateById(t.id, {})
         if (r.success) {
+          // THE SUB-STACK (2026-09-06 PM): "Instantiated", targeting the
+          // fresh instance.
+          try {
+            useNavStore().recordAction('INSTANTIATE', {
+              targetType: 'skeleton', targetId: r.skeleton.id, targetLabel: t.name || r.skeleton.name || 'skeleton', targetPath: r.skeleton.path || null
+            })
+          } catch (_) { /* a mint must never fail because its log did */ }
           router.push('/skeletons/' + r.skeleton.id)
           store.minimize()
         } else {
@@ -430,6 +447,14 @@ export default defineComponent({
               ? await skeletonService.forkTemplate(d.forkOf.id, { name: d.name, slots })
               : await skeletonService.createTemplate(d.name, slots))
         if (r.success) {
+          // THE SUB-STACK (2026-09-06 PM): one of three acts by what the
+          // submit did — fields appended to an owned schema, a schema
+          // forked under a new name, or a schema created from scratch.
+          try {
+            useNavStore().recordAction(wasExtend ? 'SLOT_DECLARE' : (wasFork ? 'SKELETON_FORK' : 'SKELETON_CREATE'), {
+              targetType: 'skeleton', targetId: r.skeleton.id, targetLabel: r.skeleton.name || d.name || 'schema', targetPath: r.skeleton.path || null
+            })
+          } catch (_) { /* a mint must never fail because its log did */ }
           const slotsOut = (r.slots || []).map(s => ({ slotName: s.slotName, kind: s.kind || null }))
           patch({
             templateId: r.skeleton.id,
@@ -492,16 +517,113 @@ export default defineComponent({
 
 <style lang="scss" scoped>
 // Shell, header bar, traffic lights and tab strip come from the shared
-// .dock-window chrome in src/css/_components.scss; the footprint and the
-// brown plaque come from .dock-window--creation there (so does maximize
-// and the narrow-screen fallback). Only the builder's body layout lives
-// here.
+// .dock-window chrome in src/css/_components.scss; the footprint comes from
+// .dock-window--creation there (so does maximize and the narrow-screen
+// fallback). The builder's body layout and its COLORWAY live here.
 
+// ── THE WINDOW'S COAT AND DIALS (2026-09-05, user ask: "and finally, for
+// skeletons, we'll go deep-orange") ──
+//
+// THE FIRST COLORWAY THIS WINDOW HAS EVER HAD. Until today it wore the
+// shared brown chrome — `--dock-rule` brown-3, `--dock-ink` brown-8,
+// `--dock-well` brown-2, the plaque coat — plus three hard-coded `#00829c`
+// accents, the cyan-teal a creation dock lights its tabs with when it has no
+// dial of its own. It was the last of the four maker-family windows still
+// dressed that way; the post window left in August, the uploader the same
+// day, the labels window on 2026-09-04.
+//
+// LabelMakerDock's block verbatim, one family over — and like lime and cyan,
+// stated by READING rather than by index, because deep-orange is a HOT ramp
+// and its Material 500 (#ff5722, 2.81:1 on this coat) is a mark, not a fill:
+//
+//   -1  the pale  — the wells, the resting tab face, the veil (1.06:1)
+//   -4  the mute  — the meta line, the resting pill rims (2.10:1)
+//   -8  ⭐ the contrast — every accent, via `--skeletons-contrast` (3.55:1)
+//   -10 the deep  — the strong edge, the tab-hover ink (5.08:1)
+//
+// It lands almost exactly on the teal the uploader used to wear (3.26 / 4.73
+// at the same two rungs), which is deliberate: this window and that one share
+// a footprint, so they should differ in HUE and match in WEIGHT.
+//
+// ⚠ `--dock-coat` here is the FOURTH sanctioned break in the one-plaque law
+// — `fsck --static`'s `dock-coat` witness knows this file by name
+// (`SkeletonBuilderDock.vue` → `--skeletons-coat`), as it knows the maker's,
+// the uploader's and the labels window's. Same two standing rules: the value
+// is a background LAYER LIST legal only in a `background:` shorthand, and a
+// FIFTH window wanting its own sheet gets added to that map on purpose. Four
+// of six now; chat and the dashboard still share the bar's plaque, and the
+// law's argument — a colorway is its lines, wells and ink, never its sheet —
+// is what those two still stand on.
+//
+// LabelFieldPicker / SlotRefPicker mount the SHARED label tree inside this
+// window (LabelTreeMini + LabelTreeMiniNode, the same components the labels
+// window fills its left half with). They read one dial pair,
+// `--ltm-accent` / `--ltm-accent-rgb`, so turning it here re-tones the forest
+// under this roof and nowhere else — the same mechanism, and the same reason,
+// as MakerHeader's `--maker-*` under the uploader.
+.skeleton-dock {
+  --dock-coat: var(--skeletons-coat);
+  // ⚠ THE ONLY TONE IN THIS COLORWAY THAT IS NOT ONE OF THE LADDER'S FOUR
+  // RUNGS (2026-09-05, user ask: an open window "illuminates" its borders).
+  // Material 200 — the index the whole glow set is taken at, so the four
+  // windows light in four hues at ONE brightness. It draws nothing — the
+  // shell's border stays `--dock-rule` — it only feeds the three shadow
+  // layers on `.dock-window--creation`, which is also why it is safe for it
+  // to be far too pale to letter anything.
+  // ⚠ It was the family's A100 (-11) for one ask, and the walk down to -3 is
+  // a SATURATION move, not a brightness one (100% → 46-72%): at full chroma
+  // the light read as a neon sign stuck on the window, two steps down it
+  // reads as the window being lit. Same picture, sober. `_tokens.scss` §
+  // THE FOUR GLOW TONES has the numbers.
+  --dock-glow: var(--deep-orange-3);
+  --dock-rule: var(--skeletons-contrast);
+  --dock-rule-strong: var(--deep-orange-10);
+  --dock-ink: var(--skeletons-contrast);
+  --dock-ink-mute: var(--deep-orange-4);
+  --dock-well: var(--deep-orange-1);
+  --ltm-accent: var(--skeletons-contrast);
+  --ltm-accent-rgb: var(--deep-orange-8-rgb);
+  --q-primary: var(--skeletons-contrast);
+}
+
+// The one brown in the shared chrome that is NOT a dial — the tab-hover ink,
+// written `var(--brown-10, #3e2723)` inline. The window's deep step, as in
+// the other three.
+.dock-tab:hover { color: var(--deep-orange-10); }
+
+// ── THE HEADER PLATE — MakerDock's `.dock-bar__plate`, dial for dial, in
+// this window's contrast. Same scoping argument: the plate is stated at the
+// window, never on the shared `.dock-bar`, and its rim is SOLID because up
+// here the plate is the window's one NAME. ──
+.dock-bar__plate {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 8px;
+  border: 1px solid var(--skeletons-contrast);
+  border-radius: 4px;
+  background: rgba(var(--ink-rgb), 0.04);
+  transition: background 0.12s, border-color 0.12s;
+
+  .dock-bar__icon { color: var(--skeletons-contrast); opacity: 0.85; }
+  .dock-bar__title { color: var(--skeletons-contrast); }
+}
+
+// ── Schema tabs — the lit lip and the new-tab glyph read the window's own
+// contrast, not the shared chrome's `#00829c` (which keeps lighting the two
+// docks that have no colorway). Scoped here, so a plain two-class rule
+// outranks the global one — no `:deep()`, as in the other three. ──
+.dock-tab.is-active { box-shadow: inset 0 2px 0 var(--skeletons-contrast); }
+.dock-tab--new:hover { color: var(--skeletons-contrast); }
+
+// A TITLE — this window's section headings letter in its contrast tone, the
+// rule RefBrowser and FileExplorer already draw in theirs: words that NAME
+// are one colour, words that ARE something are ink.
 .dock-section-label {
   font-size: 0.7em;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: var(--ink-soft);
+  color: var(--skeletons-contrast);
   font-family: var(--font-mono);
 }
 
@@ -553,7 +675,7 @@ export default defineComponent({
   text-align: left;
   transition: border-color 0.12s, box-shadow 0.12s;
 
-  &:hover { border-color: rgba(0, 130, 156, 0.5); box-shadow: var(--shadow-soft); }
+  &:hover { border-color: rgba(var(--deep-orange-8-rgb), 0.5); box-shadow: var(--shadow-soft); }
 }
 
 .start-define__title {
@@ -619,7 +741,7 @@ export default defineComponent({
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  &:hover { color: #00829c; }
+  &:hover { color: var(--skeletons-contrast); }
 }
 
 .start-tmpl__meta {
@@ -651,7 +773,7 @@ export default defineComponent({
   cursor: pointer;
   transition: border-color 0.12s, color 0.12s;
 
-  &:hover { border-color: rgba(0, 130, 156, 0.5); color: #00829c; }
+  &:hover { border-color: rgba(var(--deep-orange-8-rgb), 0.5); color: var(--skeletons-contrast); }
 }
 
 // ── Body (define mode) ──
@@ -754,7 +876,7 @@ export default defineComponent({
   color: var(--ink-soft);
   cursor: pointer;
 
-  &:hover { border-color: rgba(0, 130, 156, 0.5); color: #00829c; }
+  &:hover { border-color: rgba(var(--deep-orange-8-rgb), 0.5); color: var(--skeletons-contrast); }
 }
 
 .kind-chip {

@@ -51,7 +51,7 @@
     ref="rootEl"
     class="feed-head"
     :class="{ 'is-grabbed': dragging }"
-    :style="{ top: y + 'px' }"
+    :style="boxStyle"
   >
     <!-- The four fillets. Paint only — see the stylesheet for the geometry. -->
     <span class="feed-head__flare feed-head__flare--tl" aria-hidden="true" />
@@ -416,14 +416,29 @@ const MOBILE_Q = '(max-width: 600px)'
 // went 9 → 11 when the edge was thickened to 2px: a heavier line wants a
 // longer arc, or the sweep reads as a blunt notch). EDGE is the daylight the
 // box keeps off each end of the container, and has to CLEAR that reach or the
-// sweep is cut off by `.feed-container__body`'s `overflow: hidden`. HOME is
-// where the box rests before anyone has moved it — the old band sat flush on
-// the container's top edge, which is exactly the one position a filleted
-// corner cannot have — and the well's `padding-top` restates it, so the two
-// move together. STEP is the keyboard nudge.
+// sweep is cut off by `.feed-container__body`'s `overflow: hidden`. STEP is
+// the keyboard nudge.
+//
+// ⭐ HOME IS THE FLOOR SINCE 2026-09-05 (user ask: "make Talavero's board
+// start being rendered at the bottom of the rails instead of at the top"),
+// and the constant that named it is GONE — deliberately, because the floor
+// is not a constant: it is `parent.clientHeight − box.offsetHeight − EDGE`,
+// and BOTH terms move (the container is a percentage of a scroll track, the
+// box's height follows its arrangement — full-talavero or manual). It was
+// `HOME = EDGE`, a number, for exactly as long as the resting place was the
+// top.
+//
+// ⚠ SO THE RESTING POSITION IS NOT COMPUTED AT ALL — it is `bottom: EDGE` in
+// CSS, and `boxStyle` below is the switch. A measured `top` would be right
+// only until the next resize, would need a re-measure on every one of them,
+// and would paint one frame at the old place before the observer caught up —
+// a visible jump on every load, since the box mounts before it can be
+// measured. The browser already solves "sit EDGE off the bottom of your
+// containing block" for free and keeps solving it. What the measurement is
+// still needed for is the DRAG (see `homeY`/`onBarPointerDown`): the moment
+// the box is grabbed it becomes a `top`-placed plate and stays one.
 const FLARE = 11
 const EDGE = FLARE + 1
-const HOME = EDGE
 const STEP = 12
 
 // The stub the box falls back to when the install has no seeded seat (or
@@ -438,7 +453,10 @@ export default defineComponent({
   props: {
     // Where the box stands, in px from the container's top edge. `null` is
     // "nobody has moved it" — the box resolves that to HOME itself, so the
-    // holder above never has to know the resting geometry.
+    // holder above never has to know the resting geometry. ⚠ Since HOME went
+    // to the FLOOR (2026-09-05) `null` is not merely an unset number: it is
+    // the state in which the box is placed by CSS from the OTHER edge, which
+    // is why `placed` exists below rather than a `y ?? home` default.
     offset: { type: Number, default: null },
     // The seat's identity card (`GET /feed/lens-context` → `seat`): id,
     // display_name, photo, org. Null = stub install — field stays disabled.
@@ -465,8 +483,27 @@ export default defineComponent({
   emits: ['update:offset', 'update:height', 'ask', 'open-chat', 'sweep', 'update:manual'],
   setup (props, { emit }) {
     const rootEl = ref(null)
-    const y = ref(props.offset == null ? HOME : props.offset)
+    // `y` is only meaningful once the box is PLACED — see `boxStyle`. Until
+    // then it is a seed, and the drag overwrites it from the live position.
+    const y = ref(props.offset == null ? EDGE : props.offset)
     const dragging = ref(false)
+
+    // ⭐ HAS ANYONE PUT THIS BOX SOMEWHERE? (2026-09-05) — false is the
+    // resting state, and the two states are placed by DIFFERENT EDGES:
+    //
+    //   · unplaced → `bottom: EDGE`  — the floor, held by the browser, so it
+    //     follows the container and the box's own height with no observer and
+    //     no first-paint jump.
+    //   · placed   → `top: y`        — the dragged/restored position, in px
+    //     from the container's top edge, which is what the StateHolder
+    //     persists and what `clamp` reasons about.
+    //
+    // A stored offset means placed at mount: "where you left it" outranks the
+    // resting place, exactly as it did when the resting place was the top.
+    const placed = ref(props.offset != null)
+    const boxStyle = computed(() => (
+      placed.value ? { top: y.value + 'px' } : { bottom: EDGE + 'px' }
+    ))
 
     // The travel limits, measured rather than assumed: the container is a
     // percentage of a scroll track and the box's own height follows its
@@ -484,6 +521,11 @@ export default defineComponent({
       return Math.round(Math.min(Math.max(v, b.min), b.max))
     }
 
+    // The resting place as a `top`, for the two seams that need it as a
+    // number: the drag's seed and the End key. Identical to what CSS's
+    // `bottom: EDGE` is already drawing — `bounds().max` IS that position.
+    const homeY = () => bounds().max
+
     // Moving is one seam: it clamps, it writes, it reports. The parent hears
     // about it on RELEASE, not per frame — the offset is persisted through
     // the StateHolder up there, and a pointer drag would otherwise write a
@@ -491,7 +533,16 @@ export default defineComponent({
     const moveTo = (v) => { y.value = clamp(v) }
 
     watch(() => props.offset, (v) => {
-      if (dragging.value || v == null) return
+      if (dragging.value) return
+      // ⭐ `null` IS THE DOOR HOME (2026-09-05). It used to be an early return
+      // — with HOME at the top and `min` clamping to it, "nobody has moved it"
+      // and "put it at 12px" were the same pixel, so nothing had to happen.
+      // They are opposite ends of the run now, and the stream's expand lead
+      // (`setHeadY(null)`) needs a way to say "back to your berth" without
+      // knowing where that berth is. Unplacing is that way: CSS takes the box
+      // back to the floor, and no number crosses the boundary.
+      if (v == null) { placed.value = false; return }
+      placed.value = true
       y.value = clamp(v)
     })
 
@@ -533,6 +584,17 @@ export default defineComponent({
       if (pid != null) return // one gesture (second touch)
       if (e.button != null && e.button !== 0) return // primary only
       if (e.target.closest('button, input, a')) return
+      // ⚠ SEED FROM WHERE THE BOX ACTUALLY IS, not from `y` — while unplaced
+      // the box is drawn from the BOTTOM and `y` is a stale seed, so a drag
+      // that trusted it would teleport the plate to the top on the first
+      // pointermove. `offsetTop` is measured against `.feed-stream-pane`
+      // (the box's offsetParent — it is the `position: relative` one), which
+      // is the same origin `top` is written in. Grabbing it is what PLACES
+      // it: from here on the box is a `top` plate and stops riding the floor.
+      if (!placed.value) {
+        y.value = rootEl.value ? rootEl.value.offsetTop : homeY()
+        placed.value = true
+      }
       baseY = y.value
       originY = e.clientY
       pid = e.pointerId
@@ -549,9 +611,19 @@ export default defineComponent({
 
     const onBarKeydown = (e) => {
       const step = e.key === 'ArrowUp' ? -STEP : e.key === 'ArrowDown' ? STEP : 0
+      // Same seeding as the drag, same reason (2026-09-05): an arrow pressed
+      // on a resting box must step from where the box IS.
+      if (!placed.value && (step || e.key === 'Home' || e.key === 'End')) {
+        y.value = rootEl.value ? rootEl.value.offsetTop : homeY()
+        placed.value = true
+      }
       if (!step) {
         if (e.key !== 'Home' && e.key !== 'End') return
-        moveTo(e.key === 'Home' ? HOME : Number.MAX_SAFE_INTEGER)
+        // ⚠ THE TWO KEYS KEPT THEIR TRAVEL, NOT THEIR NAMES' OLD MEANING:
+        // Home is the top END of the run and End the bottom one, which is
+        // what they mean in every scroller. It is the RESTING place that
+        // moved, so `End` is now the key that puts the board back home.
+        moveTo(e.key === 'Home' ? EDGE : Number.MAX_SAFE_INTEGER)
       } else {
         moveTo(y.value + step)
       }
@@ -568,6 +640,11 @@ export default defineComponent({
       const el = rootEl.value
       if (!el) return
       emit('update:height', el.offsetHeight)
+      // ⚠ ONLY A PLACED BOX NEEDS RE-CLAMPING (2026-09-05). While it rests,
+      // `bottom: EDGE` is already the answer to every resize — re-clamping a
+      // seed `y` here would do nothing visible and would silently turn the
+      // resting box into a placed one the first time the window moved.
+      if (!placed.value) return
       const c = clamp(y.value)
       if (c !== y.value) y.value = c
     }
@@ -696,6 +773,7 @@ export default defineComponent({
     return {
       rootEl,
       y,
+      boxStyle,
       dragging,
       seatCard,
       seatHandle,

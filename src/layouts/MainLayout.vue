@@ -245,6 +245,7 @@ import ChatDock from 'src/components/chat/ChatDock.vue'
 import DashboardDock from 'src/components/dashboard/DashboardDock.vue'
 import IdentityDock from 'src/components/identity/IdentityDock.vue'
 import ElementFlyoutHost from 'src/components/shared/ElementFlyoutHost.vue'
+import { useFlyoutViewersStore } from 'src/stores/flyoutViewers'
 import FriezeBar from 'src/components/layout/FriezeBar.vue'
 import NavigationBar from 'src/components/layout/NavigationBar.vue'
 import PinsDrawer from 'src/components/layout/PinsDrawer.vue'
@@ -342,8 +343,15 @@ export default defineComponent({
       // Mobile pass (Thread H): keep windows.isMobile live so the rail
       // reserves flip off under 600px (the widgets hide via CSS).
       windows.initViewportWatch()
+      // The nav store restores FIRST and its `restoring` flag holds off the
+      // router's own afterEach push until this landing is recorded properly
+      // (the boot race that used to wipe the stack — see the store header).
       await navStore.restore()
       navStore.push(router.currentRoute.value)
+      // Put the floating windows back on the tab bar (2026-09-06). After
+      // the nav restore, deliberately: a rehydrated window records nothing,
+      // but it reads the trail's current stop when it later does.
+      useFlyoutViewersStore().hydrate()
       // Entering the platform: offer to anchor new moments to the user's
       // approximate city (one-time consent; see stores/geo.js).
       useGeoStore().maybeAsk()

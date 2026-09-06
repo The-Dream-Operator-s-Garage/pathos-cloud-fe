@@ -286,6 +286,8 @@ import MarkdownBody from 'src/components/shared/MarkdownBody.vue'
 import { useUploaderStore, uploadLabel } from 'src/stores/uploader'
 import { useMakerStore } from 'src/stores/maker'
 import { useWindowsStore } from 'src/stores/windows'
+import { useNavStore } from 'src/stores/navigation'
+import { uploadCodeFor } from 'src/utils/navActions'
 import { nodeService } from 'src/services/node.service'
 import { labelService } from 'src/services/label.service'
 import { embedService } from 'src/services/embed.service'
@@ -552,6 +554,19 @@ export default defineComponent({
         // name their own casualties.
         const nodes = [...(r.nodes || [])]
         const failed = r.errors || []
+        // THE SUB-STACK (2026-09-06 PM): an inline upload is quiet to the
+        // `created` emit (the note keeps the stage) but it IS an act —
+        // one per batch, verb by the batch's media kind ("Uploaded image").
+        if (nodes.length) {
+          try {
+            useNavStore().recordAction(uploadCodeFor(jobs.map(j => j.file)), {
+              targetType: 'node',
+              targetId: nodes[0]?.id ?? null,
+              targetLabel: nodes.length === 1 ? (jobs[0]?.file?.name || 'file') : `${nodes.length} files`,
+              targetPath: nodes[0]?.path || null
+            })
+          } catch (_) { /* an upload must never fail because its log did */ }
+        }
         for (const j of jobs) {
           const err = failed.find(e => e.filename === j.file.name)
           const node = err ? null : nodes.shift()
@@ -639,6 +654,15 @@ export default defineComponent({
       const t = store.uploads.find(x => x.id === u.id)
       if (t && !hasWork(t)) store.removeUpload(u.id)
       if (store.isOpen) store.minimize()
+      // THE SUB-STACK (2026-09-06 PM): the hand-off is its own act — the
+      // note left this window for the maker's draft.
+      try {
+        useNavStore().recordAction('NOTE_TO_POST', {
+          targetType: 'window',
+          targetId: null,
+          targetLabel: (body.split('\n').map(s => s.replace(/^#+\s*/, '').trim()).find(Boolean) || 'note').slice(0, 60)
+        })
+      } catch (_) { /* cosmetic */ }
       maker.open()
     }
 
@@ -705,6 +729,15 @@ export default defineComponent({
             authorEntityId: u.authorEntityId
           })
           if (r.success) {
+            // THE SUB-STACK (2026-09-06 PM): "Saved a link".
+            try {
+              useNavStore().recordAction('CREATE_LINK', {
+                targetType: 'node',
+                targetId: r.node?.id ?? null,
+                targetLabel: (() => { try { return new URL(u.linkUrl.trim()).hostname } catch (_) { return 'link' } })(),
+                targetPath: r.node?.path || null
+              })
+            } catch (_) { /* a link must never fail because its log did */ }
             store.patchUpload(id, { linkUrl: '' })
             finish(id, [r.node])
           } else {
@@ -724,6 +757,25 @@ export default defineComponent({
         const r = await nodeService.upload(fd)
         const errors = r.errors || []
         if (r.success && r.nodes?.length) {
+          // ── THE SUB-STACK (2026-09-06) — one act per submit, not per
+          // file: an upload of nine images is one thing the user did, and
+          // nine lines would bury the stop it happened in. The count rides
+          // the label; the nodes themselves are on the chain either way.
+          // The VERB names WHAT went up (2026-09-06 PM — the ask's own
+          // example, "uploaded an image"): the note section is CREATE_NOTE,
+          // a files batch is UPLOAD_IMAGE / _VIDEO / _AUDIO / _DOC by its
+          // one media kind, UPLOAD when the batch mixes kinds.
+          try {
+            const first = r.nodes[0]
+            useNavStore().recordAction(kind === 'note' ? 'CREATE_NOTE' : uploadCodeFor(files), {
+              targetType: 'node',
+              targetId: first?.id ?? null,
+              targetLabel: r.nodes.length === 1
+                ? (first?.file?.name || 'file')
+                : `${r.nodes.length} files`,
+              targetPath: first?.path || null
+            })
+          } catch (_) { /* an upload must never fail because its log did */ }
           if (kind === 'note') {
             store.patchUpload(id, { noteText: '' })
           } else {
@@ -803,10 +855,28 @@ export default defineComponent({
 // "in the same style as the post section that has a blue-grey color
 // palette, except … use teal instead on the approximate same tones") ──
 //
-// MakerDock's block verbatim, one family over: the maker reads the
-// blue-greys at 50/300/500/700 and this window reads the teals standing at
-// the SAME indices (`_tokens.scss` § THE UPLOADER'S THREE). Same five
-// `--dock-*` dials, same one-contrast-everywhere rule.
+// MakerDock's block verbatim, one family over. It used to be literally one
+// family over at the same INDICES — the maker read the blue-greys at
+// 50/300/500/700 and this window read the teals standing at each of them.
+//
+// ── ⚠ THE FAMILY TURNED 2026-09-05 (user ask: "for uploads, we want to go
+// lime instead of teal") and the index law went with it, because lime cannot
+// carry a ladder at those rungs: its 500 reads 1.3:1 on this window's own
+// coat and its 700 reads 2.0:1 — the first invisible, the second under the
+// 3:1 floor even for large text. So the ladder is stated by READING and sits
+// three rungs deeper: pale -1, mute -9, contrast -10, deep `-deep` (the file's
+// one hand-mixed level, named rather than numbered; Material lime stops at 900 and the deep rung has to
+// out-read a contrast already standing on the family's floor).
+//
+// ⚠ WHAT THIS WINDOW LOOKS LIKE NOW, stated plainly so nobody "fixes" it: it
+// reads OLIVE / BRASS, not lime green. The recognizable lime is in the COAT
+// and the WELLS — `--lime-2` veils the sheet, `--lime-1` floors the fields —
+// and the ink is the deep end of the same family, which for a yellow-green
+// IS an olive. There is no tone in this hue that is both lime and legible.
+// Full argument and measurements: `_tokens.scss` § THE UPLOADER'S TWO EXTRA
+// LIMES. ──
+//
+// Same five `--dock-*` dials, same one-contrast-everywhere rule.
 //
 // ⚠ `--dock-coat` here is the SECOND sanctioned break in the one-plaque law
 // — `fsck --static`'s `dock-coat` witness knows this file by name
@@ -826,21 +896,34 @@ export default defineComponent({
 // today's ask is this window's own colorway.)
 .uploader-dock {
   --dock-coat: var(--uploader-coat);
+  // ⚠ THE ONLY TONE IN THIS COLORWAY THAT IS NOT ONE OF THE LADDER'S FOUR
+  // RUNGS (2026-09-05, user ask: an open window "illuminates" its borders).
+  // Material 200 — the index the whole glow set is taken at, so the four
+  // windows light in four hues at ONE brightness. It draws nothing — the
+  // shell's border stays `--dock-rule` — it only feeds the three shadow
+  // layers on `.dock-window--creation`, which is also why it is safe for it
+  // to be far too pale to letter anything.
+  // ⚠ It was the family's A100 (-11) for one ask, and the walk down to -3 is
+  // a SATURATION move, not a brightness one (100% → 46-72%): at full chroma
+  // the light read as a neon sign stuck on the window, two steps down it
+  // reads as the window being lit. Same picture, sober. `_tokens.scss` §
+  // THE FOUR GLOW TONES has the numbers.
+  --dock-glow: var(--lime-3);
   --dock-rule: var(--uploader-contrast);
-  --dock-rule-strong: var(--teal-8);
+  --dock-rule-strong: var(--lime-deep);
   --dock-ink: var(--uploader-contrast);
-  --dock-ink-mute: var(--teal-4);
-  --dock-well: var(--teal-1);
+  --dock-ink-mute: var(--lime-9);
+  --dock-well: var(--lime-1);
   --maker-contrast: var(--uploader-contrast);
-  --maker-pale: var(--teal-1);
-  --maker-deep: var(--teal-8);
+  --maker-pale: var(--lime-1);
+  --maker-deep: var(--lime-deep);
   --q-primary: var(--uploader-contrast);
 }
 
 // The one brown in the shared chrome that is NOT a dial — the tab-hover ink,
 // written `var(--brown-10, #3e2723)` inline. The window's deep step, as in
 // the maker.
-.dock-tab:hover { color: var(--teal-8); }
+.dock-tab:hover { color: var(--lime-deep); }
 
 // ── THE HEADER PLATE — MakerDock's `.dock-bar__plate`, dial for dial, in
 // this window's contrast. Same scoping argument: the plate is stated at the
@@ -990,14 +1073,14 @@ export default defineComponent({
   line-height: 1.45;
 
   &::placeholder { color: var(--ink-mute); }
-  &:focus { outline: none; border-color: var(--teal-8); }
+  &:focus { outline: none; border-color: var(--lime-deep); }
 
   // Files dragged over the note light it as a drop target — the drop
-  // zone's own live-edge grammar (the wash restates $teal-6's channels,
-  // as there).
+  // zone's own live-edge grammar (the wash restates the contrast's channels
+  // through `--lime-10-rgb`, as there).
   &.is-over {
     border-color: var(--uploader-contrast);
-    background: rgba(0, 150, 136, 0.06);
+    background: rgba(var(--lime-10-rgb), 0.06);
   }
 }
 
@@ -1092,10 +1175,12 @@ export default defineComponent({
 
   &.is-over,
   &:hover {
-    // The window's contrast; the wash is `$teal-6`'s own channels (0,150,136)
+    // The window's contrast; the wash is the contrast's own channels, read
+    // through `--lime-10-rgb` since 2026-09-05 (it was a literal `0, 150, 136`,
+    // `$teal-6`'s channels, which is what made the lime repaint a grep)
     // — the dial resolves to a hex, so a live-edge wash restates them.
     border-color: var(--uploader-contrast);
-    background: rgba(0, 150, 136, 0.06);
+    background: rgba(var(--lime-10-rgb), 0.06);
   }
 }
 

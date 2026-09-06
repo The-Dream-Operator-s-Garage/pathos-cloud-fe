@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { useWindowsStore } from './windows'
+import { useNavStore } from './navigation'
 
 // The label maker dock — the end-to-end vocabulary workshop: browse/search
 // the label forest, create roots, grow owned trees (children/siblings),
@@ -21,9 +22,15 @@ export const useLabelMakerStore = defineStore('labelMaker', {
 
   actions: {
     open () {
+      // THE SUB-STACK (2026-09-06 PM): closed→open = "Opened label maker"
+      // in the current stop (see stores/maker.js for the rule).
+      const wasClosed = !this.isOpen
       this.isOpen = true
       this.isMinimized = false
       useWindowsStore().focus('labelMaker')
+      if (wasClosed) {
+        try { useNavStore().recordDock('labelMaker', 'open') } catch (_) { /* the window opens whether or not the log does */ }
+      }
     },
 
     // Open focused on a specific label (e.g. from a viewer page).
@@ -33,10 +40,14 @@ export const useLabelMakerStore = defineStore('labelMaker', {
     },
 
     close () {
+      const wasOpen = this.isOpen
       this.isOpen = false
       this.isMinimized = false
       this.isMaximized = false
       useWindowsStore().release('labelMaker')
+      if (wasOpen) {
+        try { useNavStore().recordDock('labelMaker', 'close') } catch (_) { /* the window opens whether or not the log does */ }
+      }
     },
 
     minimize () {

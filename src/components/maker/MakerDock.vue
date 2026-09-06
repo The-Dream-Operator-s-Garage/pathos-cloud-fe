@@ -62,7 +62,7 @@
           </span>
         </button>
         <button type="button" class="dock-tab dock-tab--new" title="New draft"
-          @click="store.addDraft()">
+          @click="newDraft">
           <q-icon name="add" size="14px" />
         </button>
       </div>
@@ -83,6 +83,7 @@ import { useRouter } from 'vue-router'
 import PostMakerSurface from './PostMakerSurface.vue'
 import { useMakerStore, draftLabel } from 'src/stores/maker'
 import { useWindowsStore } from 'src/stores/windows'
+import { useNavStore } from 'src/stores/navigation'
 import { gotoCommentThread } from 'src/utils/threadNav'
 
 export default defineComponent({
@@ -101,6 +102,14 @@ export default defineComponent({
     // Tab label: title, else the first line of the body, else a placeholder.
     const tabLabel = draftLabel
 
+    // THE SUB-STACK (2026-09-06 PM): the "+" tab is the act "Started a
+    // draft" — `store.addDraft()` itself stays silent because open() also
+    // calls it to seed an empty dock, which is not something the user did.
+    const newDraft = () => {
+      store.addDraft()
+      try { useNavStore().recordAction('NEW_DRAFT', { targetType: 'window', targetId: null, targetLabel: 'draft' }) } catch (_) { /* cosmetic */ }
+    }
+
     const askDiscard = (d) => {
       const hasWork = (d.title || '').trim() || (d.content || '').trim() || d.references.length
       if (!hasWork) { store.removeDraft(d.id); return }
@@ -109,7 +118,11 @@ export default defineComponent({
         message: `“${tabLabel(d)}” hasn't been posted — closing its tab throws it away.`,
         cancel: { flat: true, label: 'Keep' },
         ok: { color: 'negative', flat: true, label: 'Discard' }
-      }).onOk(() => store.removeDraft(d.id))
+      }).onOk(() => {
+        // A confirmed discard of real work is an act worth the line.
+        try { useNavStore().recordAction('DISCARD_DRAFT', { targetType: 'window', targetId: null, targetLabel: tabLabel(d) }) } catch (_) { /* cosmetic */ }
+        store.removeDraft(d.id)
+      })
     }
 
     // The surface already removed the draft. Step aside so the fresh
@@ -131,6 +144,7 @@ export default defineComponent({
       windows,
       draft,
       tabLabel,
+      newDraft,
       askDiscard,
       onPosted
     }
@@ -149,8 +163,8 @@ export default defineComponent({
 // ── THE WINDOW'S COAT (2026-08-26, user ask) ──
 //
 // `--maker-coat`: the plaque's own construction with both dials turned — the
-// `--light-cream` sheet under a `--blue-grey-1` veil at 40%, where the fixed
-// chrome's is `--grey-3` at 30%. The shell and the header bar both read
+// `--light-cream` sheet under a `--cyan-1` veil at 40% (it was `--blue-grey-1`
+// until 2026-09-05), where the fixed chrome's is `--grey-3` at 30%. The shell and the header bar both read
 // `--dock-coat`, so one declaration on the window's root re-coats both.
 //
 // ⚠ THIS IS THE ONE SANCTIONED SECOND DECLARATION OF `--dock-coat` on the
@@ -170,6 +184,17 @@ export default defineComponent({
 // takes every brown out of the post window without touching the other four
 // creation docks, which keep the warm chrome.
 //
+// ── ⚠ THE FAMILY TURNED 2026-09-05 (user ask: "for posts, we want to go cyan
+// instead of grey-blue") — blue-grey → CYAN, and the blue-grey family was
+// retired from `_tokens.scss` the same hour because this window was its only
+// wearer. What did NOT change is a single reading: the ladder lands
+// 1.01 / 2.08 / 4.10 / 6.66 on the coat where the blue-greys landed
+// 1.03 / 2.30 / 3.88 / 6.43. What DID change is the INDEX each rung sits at
+// — pale -1, mute -6, contrast -9, deep -10, against blue-grey's regular
+// 1/4/6/8 — because cyan's Material 500 reads 2.08:1 and is a mute, not a
+// contrast. The ladder is stated by READING in this family, and the table is
+// in `_tokens.scss` § THE POST WINDOW'S FOUR. ──
+//
 //   --dock-rule        the INNER BORDERS — shell, bar underline, tab strip,
 //                      tab rims (was `--brown-3`)
 //   --dock-rule-strong the active tab's rim, one step deeper (was brown-4)
@@ -184,17 +209,30 @@ export default defineComponent({
 // window, which is what the note's objection was about.
 .maker-dock {
   --dock-coat: var(--maker-coat);
+  // ⚠ THE ONLY TONE IN THIS COLORWAY THAT IS NOT ONE OF THE LADDER'S FOUR
+  // RUNGS (2026-09-05, user ask: an open window "illuminates" its borders).
+  // Material 200 — the index the whole glow set is taken at, so the four
+  // windows light in four hues at ONE brightness. It draws nothing — the
+  // shell's border stays `--dock-rule` — it only feeds the three shadow
+  // layers on `.dock-window--creation`, which is also why it is safe for it
+  // to be far too pale to letter anything.
+  // ⚠ It was the family's A100 (-11) for one ask, and the walk down to -3 is
+  // a SATURATION move, not a brightness one (100% → 46-72%): at full chroma
+  // the light read as a neon sign stuck on the window, two steps down it
+  // reads as the window being lit. Same picture, sober. `_tokens.scss` §
+  // THE FOUR GLOW TONES has the numbers.
+  --dock-glow: var(--cyan-3);
   --dock-rule: var(--maker-contrast);
-  --dock-rule-strong: var(--blue-grey-8);
+  --dock-rule-strong: var(--cyan-10);
   --dock-ink: var(--maker-contrast);
-  --dock-ink-mute: var(--blue-grey-4);
-  --dock-well: var(--blue-grey-1);
+  --dock-ink-mute: var(--cyan-6);
+  --dock-well: var(--cyan-1);
 }
 
 // The one brown in the shared chrome that is NOT a dial — a tab's hover ink
 // is written `var(--brown-10, #3e2723)` inline. It takes the window's deep
 // step, the same tone the active tab's rim does.
-.dock-tab:hover { color: var(--blue-grey-8); }
+.dock-tab:hover { color: var(--cyan-10); }
 
 // ── THE HEADER PLATE (2026-08-26, user ask) ──
 //
@@ -207,7 +245,7 @@ export default defineComponent({
 // Scoped to `.maker-dock` on purpose. `.dock-bar` is shared chrome (six
 // windows wear it, `css/_components.scss`), and the ask was about the post
 // maker; the plate reaching the other five would be a decision nobody made.
-// ⚠ ITS RIM IS SOLID `--blue-grey-8` SINCE 2026-08-26 (second user ask:
+// ⚠ ITS RIM IS SOLID SINCE 2026-08-26 (second user ask:
 // "use solid blue-grey-8 on the contrast color, borders and buttons"). The
 // card's plate closes itself with a 18% wash of the ink, which is a hairline
 // meant to be read at card scale in a column of many; up here the plate is

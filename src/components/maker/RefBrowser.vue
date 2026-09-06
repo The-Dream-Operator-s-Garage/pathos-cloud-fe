@@ -172,6 +172,7 @@ import InfoChip from 'src/components/shared/InfoChip.vue'
 import SkeletonMini from 'src/components/skeletons/SkeletonMini.vue'
 import { refService } from 'src/services/ref.service'
 import { kindFor } from 'src/utils/kinds'
+import { useNavStore } from 'src/stores/navigation'
 
 // Reference kinds a CONTENT path can carry (posts are skeletons).
 const REF_KINDS = new Set(['nodes', 'paths', 'skeletons', 'labels'])
@@ -247,6 +248,17 @@ export default defineComponent({
       // (the `auto` tier is node-only — a bare skeleton ref stays a chip).
       const mini = String(r.address || '').startsWith('skeletons/')
       emitRefs([...props.references, { address: r.address, primary: r.primary || '', ...(mini ? { display: 'mini' } : {}) }])
+      // THE SUB-STACK (2026-09-06 PM): staging a reference on the draft is
+      // the act "Attached" — the element it points at is the target.
+      try {
+        const prefix = String(r.address || '').split('/')[0]
+        useNavStore().recordAction('ATTACH', {
+          targetType: kindFor(prefix).kind === 'unknown' ? null : kindFor(prefix).kind,
+          targetId: r.id ?? null,
+          targetLabel: r.primary || r.address,
+          targetPath: r.address || null
+        })
+      } catch (_) { /* cosmetic */ }
     }
 
     // Results and staged rows both drag as a pathos ref (the house MIME,
@@ -421,10 +433,11 @@ export default defineComponent({
   padding: 0 9px;
   // The resting pill's rim is one ramp step UP from the contrast, not a wash
   // of it: the contrast tone states the PRESSED pill, and a row of five at
-  // full strength reads as five pressed ones. A step (`--blue-grey-4`) rather
-  // than a transparency because every other line in this window is solid, and
-  // one washed rim among them reads as a rendering artefact.
-  border: 1px solid var(--blue-grey-4);
+  // full strength reads as five pressed ones. A step up the ramp (the
+  // window's MUTE, `--cyan-6` since 2026-09-05, `--blue-grey-4` before it)
+  // rather than a transparency, because every other line in this window is
+  // solid and one washed rim among them reads as a rendering artefact.
+  border: 1px solid var(--cyan-6);
   border-radius: var(--radius-pill);
   background: rgba(255, 255, 255, 0.6);
   color: var(--ink-soft);

@@ -1,6 +1,14 @@
 <template>
-  <!-- The pinned list, RIDING THE FOOTER BAR'S INNER FRIEZE BAR at its RIGHT
-       RUN since 2026-09-02 — THE STACK STRIP'S MIRROR (user ask: "help me
+  <!-- The pinned list, STANDING THE FOOTER BAR'S WHOLE ROW at its RIGHT
+       END — ⭐ OUT OF THE INNER FRIEZE BAR SINCE 2026-09-05, with the stack
+       strip and in the same ask ("like the author and dashboard buttons on
+       the footer nav bar … occupy all the available height … make their
+       background color the same as the footer bar"): 31px of content row at
+       `bottom: 0`, the bar's `--plaque-coat`, `--brown-3` verticals, and the
+       trail band running behind it. It is the dashboard block's immediate
+       neighbour now, in the dashboard block's own material.
+       It rode INSIDE the band from
+       2026-09-02 to that ask — THE STACK STRIP'S MIRROR (user ask: "help me
        taking the pin side bar on the right of the screen and help me making
        its style the same as the stack bar on the footer nav bar, except the
        pin bar should be now inserted into the footer friezebar, with the
@@ -11,8 +19,8 @@
        bar's right end since 2026-08-02, the tack in a rebuilt bar row at its
        foot) until then; that column's record is in git.
        ONE element with two presentations — StackPanel's, REFLECTED:
-       · parked (win.minimized) = a `--stack-w` strip standing INSIDE the
-         trail band at `right: var(--nav-dash-w)` — beside the full-height
+       · parked (win.minimized) = a `--pins-strip-w` strip standing ON THE
+         BAR'S OWN ROW at `right: var(--nav-dash-w)` — beside the full-height
          DASHBOARD BLOCK at the bar's right end, never covering it (the
          identity section's bargain with the stack strip, mirrored) — the
          head glyph at the strip's LEFT END and the items lane to its right,
@@ -37,11 +45,43 @@
   <aside
     v-if="win.open"
     class="pins-window dock-window"
-    :class="{ 'is-parked': win.minimized }"
+    :class="{ 'is-parked': win.minimized, 'is-max': win.maximized }"
     :style="{ zIndex: EDGE_Z }"
     @mouseenter="onHoverEnter"
     @mouseleave="onHoverLeave"
   >
+    <!-- THE THIN HEADER (2026-09-06 PM) — StackPanel's, on the pins: the
+         house traffic cluster (red + yellow park — this widget is never
+         closed; green = full height), the name, and at the right the door
+         to the user's PINS skeleton in the flyout viewer (its spine keeps
+         every pin pair, unpins included, as history). `.side-head` in
+         _components.scss carries the arguments. -->
+    <header v-if="!win.minimized" class="side-head pins-head">
+      <div class="traffic">
+        <button type="button" class="traffic__dot traffic__dot--red"
+          title="Close — the pins park to their strip" @click.stop="windows.minimizePanel('pins')">
+          <q-icon name="close" />
+        </button>
+        <button type="button" class="traffic__dot traffic__dot--yellow"
+          title="Park to the strip" @click.stop="windows.minimizePanel('pins')">
+          <q-icon name="remove" />
+        </button>
+        <button type="button" class="traffic__dot traffic__dot--green"
+          :title="win.maximized ? 'Restore height' : 'Full height'" @click.stop="toggleMax">
+          <q-icon :name="win.maximized ? 'close_fullscreen' : 'open_in_full'" />
+        </button>
+      </div>
+      <span class="side-head__title nasalization">
+        <q-icon name="push_pin" size="12px" class="side-head__glyph" />
+        <span class="side-head__label">Pinned</span>
+      </span>
+      <button type="button" class="side-head__open" :disabled="skeletonOpening"
+        title="Open the pinned list as a skeleton — every pin pair, in the flyout viewer"
+        @click.stop="openSkeleton">
+        <q-icon name="schema" size="13px" />
+      </button>
+    </header>
+
     <!-- The flyout's band at the panel's top edge — StackPanel's, verbatim
          (`slim`, unflipped, the grey-8 plate under the brown-1 wave; see the
          style block). EXPANDED ONLY: the parked face is a band-height strip
@@ -167,6 +207,7 @@ import { pinService } from 'src/services/pin.service'
 import { refService } from 'src/services/ref.service'
 import { timeAgo as fmtTimeAgo } from 'src/utils/time'
 import { kindFor, hashOf } from 'src/utils/kinds'
+import { useFlyoutViewersStore } from 'src/stores/flyoutViewers'
 import SidePanelItem from './SidePanelItem.vue'
 import FriezeBar from './FriezeBar.vue'
 
@@ -352,11 +393,24 @@ export default defineComponent({
       if (!win.value.minimized) return
       hoverTimer = setTimeout(() => { windows.restorePanel('pins') }, 150)
     }
+    // ⚠ A HEIGHT TOGGLE CAN LEAVE THE POINTER OUTSIDE (2026-09-06 PM): the
+    // green light restores the cap, the panel SHRINKS under the pointer
+    // resting on the header at its top, and the `mouseleave` that fires
+    // is the panel leaving the pointer, not the reverse — parking it the
+    // instant the user asked for a smaller one. A short settle window after
+    // a toggle ignores that one leave (found by the witness: the door was
+    // unreachable a click after the green dot).
+    let settleUntil = 0
+    const toggleMax = () => {
+      settleUntil = Date.now() + 600
+      windows.toggleMaximizePanel('pins')
+    }
     const onHoverLeave = () => {
       if (hoverTimer) {
         clearTimeout(hoverTimer)
         hoverTimer = null
       }
+      if (Date.now() < settleUntil) return
       if (!win.value.minimized) windows.minimizePanel('pins')
     }
 
@@ -393,6 +447,21 @@ export default defineComponent({
       } catch (_) { /* leave the pins as is */ }
     }
 
+    // ── THE SKELETON DOOR (2026-09-06 PM) — the thin header's right
+    // control: the PINS skeleton in the flyout viewer (the stack's door, on
+    // the pins). Spawning is a window opening and records itself as one.
+    const flyouts = useFlyoutViewersStore()
+    const skeletonOpening = ref(false)
+    const openSkeleton = async () => {
+      if (skeletonOpening.value) return
+      skeletonOpening.value = true
+      try {
+        const r = await pinService.skeleton()
+        if (r.success && r.skeleton?.path) flyouts.spawnRef(r.skeleton.path)
+      } catch (_) { /* the panel stays as it is */ }
+      skeletonOpening.value = false
+    }
+
     // The widget stands inside the footer bar's right run (2026-09-02): 3120
     // clears the bar's own 3110 and every dock under it, and stays under the
     // stack strip's 3130 at the other end — the two never overlap, so the
@@ -400,7 +469,7 @@ export default defineComponent({
     // to lie over the bar's right end as a column; nothing changed.)
     const EDGE_Z = 3120
 
-    return { win, windows, pins, listPins, summaries, loading, copiedId, listEl, kindKeyOf, hashOf, isCurrent, openPin, onHoverEnter, onHoverLeave, railTitle, onUnpin, onCopy, onHistory, pinnable, isCurrentPinned, onTack, EDGE_Z }
+    return { win, windows, pins, listPins, summaries, loading, copiedId, listEl, kindKeyOf, hashOf, isCurrent, openPin, onHoverEnter, onHoverLeave, toggleMax, railTitle, onUnpin, onCopy, onHistory, openSkeleton, skeletonOpening, pinnable, isCurrentPinned, onTack, EDGE_Z }
   }
 })
 </script>
@@ -459,6 +528,11 @@ export default defineComponent({
       -5px 0 12px rgba(var(--ink-rgb-deep), 0.16);
   }
 
+  // THE GREEN LIGHT (2026-09-06 PM) — the stack's rule, mirrored.
+  &:not(.is-parked).is-max {
+    max-height: calc(100vh - var(--media-tabs-h, 0px));
+  }
+
     // THE COAT'S NEGATIVE (2026-09-03, user ask: "invert the color palette
     // for the stack bar and the pin bar inside the frieze bar so they look
     // darker … a dark gray as main background and the light-cream as main
@@ -468,25 +542,32 @@ export default defineComponent({
     // and tile faces. The verticals stay the band's grey-5: the trail's frame
     // law, unchanged. The expanded panel above keeps the coat.
   &.is-parked {
-    // INSIDE THE TRAIL: the band's interior (`--nav-chip-h`, one row in from
-    // each of its rules), the bar's odd-parity centring formula mirrored for
-    // `bottom`, the bar's own coat, the trail chips' grey-5 rim on the
-    // VERTICALS ONLY (the band's rules are the strip's top and bottom
-    // edges), no radius, no cast — StackPanel's `.is-parked`, to the pixel.
+    // ⭐ OUTSIDE THE TRAIL SINCE 2026-09-05 (user ask: "make the stack and
+    // pin bars inside the frieze bar be outside the friezebar, like the
+    // author and dashboard buttons on the footer nav bar. We want them to
+    // occupy all the available height. Also, please make their background
+    // color the same as the footer bar"): the bar's CONTENT ROW
+    // (`--nav-bar-h - 1px` = 31px, the 1px `--grey-6` lip being chrome above
+    // it) seated at `bottom: 0`, the bar's own `--plaque-coat` through the
+    // `--strip-coat` dial, `--brown-3` — the bar's inner-hairline ink — on
+    // the VERTICALS ONLY, no radius, no cast: StackPanel's `.is-parked`, to
+    // the pixel, and read that block for every argument behind these five
+    // numbers. It is `.nav-end`'s sibling now rather than a chip on the
+    // band, and it stands directly beside it.
     // ROW-REVERSE is the one line that differs: the DOM's last child (the
     // head glyph) stands at the LEFT END and the lane fills rightward from
     // it, so the two strips reflect each other across the bar.
     flex-direction: row-reverse;
     align-items: center;
-    height: var(--nav-chip-h);
-    bottom: calc((var(--nav-bar-h) - 1px - var(--nav-chip-h)) / 2);
+    height: calc(var(--nav-bar-h) - 1px);
+    bottom: 0;
     width: var(--pins-strip-w); // three pills + glyph (2026-09-03; --stack-w until then)
     // The guard the stack's 48vw cap is, mirrored: never into the docks'
     // left half — moot at `--stack-w` 240px, stated for the day the dial
     // moves.
     max-width: calc(48vw - var(--nav-dash-w));
     background: var(--strip-coat);
-    border: 1px solid var(--grey-5, #bdbdbd);
+    border: 1px solid var(--brown-3);
     border-top-width: 0;
     border-bottom-width: 0;
     border-radius: 0;
@@ -513,7 +594,9 @@ export default defineComponent({
   align-self: stretch;
   width: 20px;
   height: 100%;
-  color: var(--strip-ink); // the head glyph on the dark strip (2026-09-03)
+  // The bar's ink since 2026-09-05 — the glyph stands on the plate and the
+  // plate is `--plaque-coat` again (the stack's `.stack-side-head` note).
+  color: var(--ink-1);
 }
 
 // THE THREE TILES — the stack's: each parked pin is SidePanelItem's rail
@@ -532,7 +615,12 @@ export default defineComponent({
   flex: 0 0 var(--strip-tile-w);
   width: var(--strip-tile-w);
   min-width: var(--strip-tile-w);
-  border-radius: 999px;
+  // ⭐ ONE CURVE WITH THE LANE (2026-09-06, user ask: "make the item's corner
+  // roundness match the roundness of their container") — `--strip-lane-radius`
+  // paints the tile and the well it stands in, so they cannot drift. The
+  // capsule (999px) is over: at 20×21 it drew a stadium inside a 7px-cornered
+  // box, two different ideas of "rounded" at 2px of separation.
+  border-radius: var(--strip-lane-radius);
 }
 
 // ── THE BANDS ARE THE FLYOUT'S (2026-09-02) — StackPanel's `.stack-frieze`
@@ -655,18 +743,51 @@ export default defineComponent({
   // own edge (the stack rounds its right end; same radius, other side).
   &.is-parked {
     --side-item-face: var(--strip-ink); // the tiles' cream face (2026-09-03)
-    --side-item-h: 17px;
+    // ⭐⭐ THE SHOULDERS WENT THIN, 2026-09-06 (user ask: "make the light-cream
+    // top and bottom borders of the pin and stack bars thinner so the inner
+    // scrolls can occupy more space"). Tile 19 → 23px, lane 21 → 25, shoulder
+    // 5 → 3px — the lane takes 19% more of the row and the coat keeps just
+    // enough to read as a plate the lane is inset IN rather than a lane
+    // running edge to edge (which is what `align-self: stretch` did before
+    // 2026-09-05, and it is why the lane's own rim could not be seen).
+    // ⚠ THE ARITHMETIC IS THE POINT, NOT THE NUMBER — the bar's content row
+    // is 31px, the LANE is the tile plus its two 1px rims, and the shoulder is
+    // what is left, HALVED. Only tile heights leaving an EVEN remainder land
+    // on whole pixels: 23 → lane 25 → 3px ✓; 22 → lane 24 → 3.5px and the
+    // lane's rim fuzzes. ⚠ AND BOTH STRIPS SHARE THE NUMBER — the pins lane
+    // had been left at 17px when the stack went to 19 on 09-06's first pass,
+    // so the two bars sat at different heights on the same row; the same ask
+    // that thinned them ("make sure both item's style and color are
+    // consistent") is what put them back in step. Move them together.
+    --side-item-h: 21px;
+    // The tile's LINE, one structural ink in both strips (SidePanelItem's
+    // dial). The kind colour keeps the glyph and the current tile's fill.
+    --side-item-rim: var(--grey-6);
     --side-item-gap: 2px;
     flex-direction: row-reverse;
     align-items: center;
-    align-self: stretch;
+    // No `align-self: stretch` since 2026-09-05 — the lane sizes to its own
+    // height and the 31px strip centres it on a shoulder of coat each side
+    // (25px on a 3px shoulder since 2026-09-06; StackPanel's
+    // `.stack-list.is-parked` carries the arithmetic and this strip mirrors
+    // it — the two must not drift apart again, see the note above).
     flex: 1 1 auto;
     min-width: 0;
     margin: 0;
-    padding: 0 1px;
+    // ⭐ THE ITEMS BREATHE, 2026-09-06 (user ask: "add a little padding at the
+    // top and bottom of the bar's items"). 2px of well shows above and below
+    // every tile — they sat flush against the lane's rim before, which read
+    // as a tile jammed into a slot rather than one resting in a well.
+    // ⚠ THE 31px ROW PAYS FOR IT, AND THE SPLIT IS DELIBERATE: shoulder
+    // 3 → 2px (the coat gives up half, continuing the same sitting's "make
+    // the … borders thinner" ask) and tile 23 → 21px (the item gives the
+    // other half). Full stack, and it must total 31 in whole pixels:
+    //   2 shoulder + 1 rim + 2 pad + 21 tile + 2 pad + 1 rim + 2 shoulder
+    // The two text lines still fit — title 9 + 1 gap + sub 8 = 18 of the 21.
+    padding: 2px 1px;
     background: var(--strip-well);
     border: 1px solid var(--strip-rule);
-    border-radius: 7px 0 0 7px;
+    border-radius: var(--strip-lane-radius) 0 0 var(--strip-lane-radius);
     overflow-x: auto;
     overflow-y: hidden;
     scrollbar-width: none;

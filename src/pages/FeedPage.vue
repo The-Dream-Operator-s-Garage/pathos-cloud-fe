@@ -461,6 +461,12 @@ export default defineComponent({
 // step-down all went with it. The bar is the topmost fixed chrome again at
 // EVERY width (NavigationBar.vue z 3110), which is also what makes the
 // burger safe on a narrow window — see gotchas.md.
+// ⚠ THAT SENTENCE WAS FALSE FROM 2026-08-21 TO 2026-09-05 and is true again:
+// the growth block came back for the full-window run and left in two pieces
+// (top 08-24, bottom 09-05, the ask below the rule). The line the bottom edge
+// lands on has not moved since it was first stated — `height` names both
+// tokens, and both eras of overhang were built by ADDING a block below this
+// one, never by editing this rule. Read the removal note under it.
 //
 // (The `position: relative` + no-z-index note that closed this comment for
 // months — the flyout slot's containing block — left with the flyout: the
@@ -472,60 +478,34 @@ export default defineComponent({
   overflow: hidden;
 }
 
-// ── DESKTOP: THE COLUMN RUNS THE WHOLE WINDOW (2026-08-21, user ask: "drawn
-// on top of the header and footer bars. From the very top to the very
-// bottom") ────────────────────────────────────────────────────────────────
-// The page grows to the full viewport and pulls itself up over
-// `q-page-container`'s top padding, so the container — and both its frieze
-// bars with it — starts at y=0 and ends on the window floor.
+// ── ⚠ THE DESKTOP GROWTH BLOCK IS GONE AGAIN (2026-09-05, user ask: "make
+// the main feed container start being drawed on top of the bottom footer bar.
+// Not over it … right on top of the top border of the footer nav bar") ──────
+// It carried the SECOND half of the 2026-08-21 full-window run — `height:
+// calc(100vh - --media-tabs-h)` plus `margin-bottom: calc(-1 *
+// --nav-footer-h)`, which let the column pass BEHIND the nav bar and end on
+// the window floor. The top half went on 2026-08-24 ("start drawing right at
+// the bottom edge of the top header bar"); this is the bottom half going the
+// same way, by the same edit, and the two ends are square again — the height
+// at the top of this file states the WHOLE span, so the column's bottom edge
+// lands exactly on the bar's TOP BORDER (the 1px `--grey-6` lip the `bar-lip`
+// witness governs) with no pixel of column under the plaque.
 //
-// ⚠ AND IS DRAWN BEHIND THE TWO BARS IT CROSSES, SINCE 2026-08-24 (user ask:
-// "make the main public feed container be drawn behind the top navigation
-// header and the footer navigation bar"). THE GROWTH IS NOT THE SAME QUESTION
-// AS THE PAINT ORDER, which is the thing to keep straight in this file: the
-// span above is untouched, and what the ask settled is who wins where the
-// column and the chrome overlap. For three days the CHROME gave way — both
-// bars stepping down to z 2999 on this route (`.nav-footer--underlaid`,
-// `.media-tabs--underlaid`) under the container's 3001 — and both of those
-// classes are now DELETED. The container simply lies under the footer's 3110
-// and the rail's 3125.
+// THE PAINT-ORDER DOCTRINE IS UNTOUCHED, and is still the thing not to
+// "fix": the container stays at 3001, under the footer's 3110 and the rail's
+// 3125. It simply has nothing down there left to lose. Anything raised over
+// the bar is over every dock too, and the maker/chat/flyout windows (3010+)
+// would open BEHIND the feed on the one page they are most used on — if a
+// future ask wants the column on top again, LOWER THE BAR ON THE ROUTE (the
+// mechanism is in git three eras over), never raise this container.
 //
-// What has NOT changed, and must not be "fixed" by raising the container: the
-// lesson those eras were built around. Anything over the nav bar's 3110 is over
-// every dock too, and the maker/chat/flyout windows (3010+) would open BEHIND
-// the feed on the one page they are most used on. If a future ask wants the
-// column on top again, LOWER THE BAR ON THE ROUTE — the mechanism is in git
-// twice over — never raise this container.
-//
-// The two negative margins are the scroll arithmetic, not decoration: the
-// page container pads top by `--media-tabs-h` and bottom by the footer, so a
-// 100vh page without them hands the window a scrollbar exactly that tall.
-//
-// Desktop only, same gate as the first run: below 1024px the drawer is modal,
-// the burger lives in the bar's left cluster, and a container over the bar
-// would bury it (see gotchas).
-@media (min-width: 1024px) {
-  // ⚠ THE TOP HALF OF THIS BLOCK IS GONE (2026-08-24, user ask: "make the main
-  // feed container start drawing right at the bottom edge of the top header bar
-  // instead of behind"). It carried `margin-top: calc(-1 * --media-tabs-h)`,
-  // which cancelled the page container's top padding so the column began at
-  // y=0 and ran UNDER the silver rail; the height then has to stop naming a
-  // full `100vh` or the column overflows by exactly that padding and hands the
-  // window a scrollbar. So the two lines are one edit: drop the negative
-  // margin, subtract the rail from the height.
-  //
-  // ⚠ THE BOTTOM HALF STAYS — the column still runs past the nav bar to the
-  // window floor, behind it. The two ends were separated on 2026-08-24 and this
-  // is what that costs to keep straight: TOP edge = the rail's underside,
-  // BOTTOM edge = the window floor. (Since 2026-08-24 the chrome paints over
-  // the column at both crossings, so "behind" is the only arrangement either
-  // end can be in — what this ask changes is where the column BEGINS, not who
-  // wins where they overlap.)
-  .feed-page {
-    height: calc(100vh - var(--media-tabs-h, 0px));
-    margin-bottom: calc(-1 * var(--nav-footer-h));
-  }
-}
+// ⚠ THE MARGIN HAD TO LEAVE WITH THE HEIGHT — one edit, not two, and the
+// arithmetic is why: `q-page-container` pads top by `--media-tabs-h` and
+// bottom by the footer, so rail + (100vh − footer − rail) + footer = 100vh
+// exactly. Keep the negative margin without the 100vh height and the document
+// comes up SHORT by the bar; keep 100vh without the margin and the window
+// gets a scrollbar exactly the bar's height tall. (This is the THIRD era of
+// the pair: 2026-08-02 → 08-12, then 08-21 → today.)
 
 .feed-track {
   height: 100%;
@@ -701,7 +681,18 @@ export default defineComponent({
   //    survived 08-24 verbatim. The coat and the rim are the RAIL's pixels,
   //    OUTSIDE this bar's border-box, which is the whole reason the wrapper
   //    carries them: 15px of band stays 1+1+11+1+1 exactly.
-  --frieze-bar-v-base: var(--indigo-7, #3949ab);
+  // ⭐ ONE STEP DEEPER, 2026-09-05 (user ask: "recolor the main feed frieze
+  // bar's background color so they are just one tone of indigo darker") —
+  // `--indigo-7` → **`--indigo-8`**, Material 600 → 700, the plate alone. The
+  // motif, the two rules, the rail's coat and every number in the recipe are
+  // untouched: this is the DEPTH of the band's ground, not its composition.
+  // ⚠ The band is inlaid in a `--plaque-coat` rail, so the deeper plate also
+  // widens the step between the two — which is the effect asked for; the
+  // motif is `--plaque-flat` and reads one stop CLEARER against it for free.
+  // (History: this dial was `--indigo-9` for the three days before 08-27's
+  // composition pass took it to -7, so -8 is a level the bars have not stood
+  // on since 2026-08-24 and lands exactly between their last two settings.)
+  --frieze-bar-v-base: var(--indigo-8, #303f9f);
   --frieze-bar-v-wave-one: var(--plaque-flat, #f8f2e4);
   --frieze-bar-v-wave-two: var(--plaque-flat, #f8f2e4);
   --frieze-bar-v-edge: var(--grey-6, #9e9e9e);
@@ -1186,7 +1177,8 @@ export default defineComponent({
   }
 }
 
-// ── WHY THERE IS NO GROWTH BLOCK HERE ANY MORE (2026-08-12) ──
+// ── WHY THERE IS NO GROWTH BLOCK HERE ANY MORE (2026-08-12; TRUE AGAIN
+// SINCE 2026-09-05, after a second era of it) ──
 // From 2026-08-02 this file ended with a `min-width: 1024px` block that grew
 // the page to `height: 100vh` with a matching negative `margin-bottom`, so the
 // column ran PAST the bar to the window's floor and the stream scrolled
@@ -1197,6 +1189,13 @@ export default defineComponent({
 // opposite one — "the feed container's lower edge starts drawing from the top
 // edge of the footer" — so BOTH halves are gone and the height at the top of
 // this file states the whole vertical span again, at every width.
+// ⚠ THE BLOCK CAME BACK ON 2026-08-21 (the full-window run) AND LEFT AGAIN IN
+// TWO PIECES — the top half on 2026-08-24, the bottom half on 2026-09-05 —
+// which is why the same paragraph is written twice in this file, once at each
+// end. Both removals landed on the same arrangement this one describes, and
+// the second era never restored the bar's step-down: from 2026-08-24 the
+// chrome always won the crossing, so what 09-05 removed was overhang the bar
+// was painting over anyway.
 //
 // Three things came back with the bar (all of them worth not re-losing):
 //  · The bar is the TOPMOST fixed chrome again everywhere — no route where a

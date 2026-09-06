@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { useWindowsStore } from './windows'
+import { useNavStore } from './navigation'
 
 // The uploader's in-progress state — sibling of stores/maker.js. Every
 // unsubmitted upload is a tab in the UploaderDock; link URLs and note text
@@ -105,19 +106,29 @@ export const useUploaderStore = defineStore('uploader', {
     open () {
       this.load()
       if (!this.uploads.length) this.addUpload()
+      // THE SUB-STACK (2026-09-06 PM): closed→open = "Opened uploader" in
+      // the current stop (see stores/maker.js for the rule).
+      const wasClosed = !this.isOpen
       this.isOpen = true
       this.isMinimized = false
       useWindowsStore().focus('uploader')
+      if (wasClosed) {
+        try { useNavStore().recordDock('uploader', 'open') } catch (_) { /* the window opens whether or not the log does */ }
+      }
     },
 
     // NOTE: closing/minimizing does NOT cancel an armed skeleton-builder
     // capture — the last upload tab auto-closes the dock in the same tick
     // that delivers the capture. The builder's banner keeps its own cancel.
     close () {
+      const wasOpen = this.isOpen
       this.isOpen = false
       this.isMinimized = false
       this.isMaximized = false
       useWindowsStore().release('uploader')
+      if (wasOpen) {
+        try { useNavStore().recordDock('uploader', 'close') } catch (_) { /* the window opens whether or not the log does */ }
+      }
     },
 
     minimize () {

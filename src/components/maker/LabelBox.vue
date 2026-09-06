@@ -156,7 +156,7 @@ export default defineComponent({
 // in; the dock went to paper on 2026-07-27 and the pair was never re-read.
 // Measured before the fix: fill rgba(44,61,78,.85), text rgba(44,61,78,.85).
 //
-// The chips now wear the window's field aesthetic — `--blue-grey-1` fill,
+// The chips now wear the window's field aesthetic — the window's PALE fill,
 // `--maker-contrast` rim, ink text — so they are legible AND they read as
 // siblings of the three controls above them, which is what the ask asked
 // for ("match the title input aesthetic", then "blue-grey instead of the
@@ -169,7 +169,7 @@ export default defineComponent({
   gap: 4px;
   height: 26px;
   padding: 0 10px;
-  background: var(--blue-grey-1);
+  background: var(--cyan-1);
   border: 1px solid var(--maker-contrast);
   border-radius: 12px;
   font-family: 'Space Mono', monospace;
@@ -182,7 +182,7 @@ export default defineComponent({
   // The LOCK was amber (`rgba(255,200,0,.5)`) — one of the warm bits the
   // third ask sent out of this window. It is the deep step, not the contrast:
   // a lock is the one mark on the chip that has to out-read the rim.
-  .lock-icon    { color: var(--blue-grey-8); margin-left: 2px; }
+  .lock-icon    { color: var(--cyan-10); margin-left: 2px; }
 }
 
 // The MOMENT chip was the window's most-brown object — a `rgba(45,30,15,.55)`
@@ -190,11 +190,11 @@ export default defineComponent({
 // from the author chip by TONE within the one family (a step-deeper fill, the
 // deep rim) rather than by belonging to another one.
 .moment-chip {
-  background: var(--blue-grey-4);
-  border-color: var(--blue-grey-8);
+  background: var(--cyan-6);
+  border-color: var(--cyan-10);
   color: var(--ink);
 
-  .canonic-icon { color: var(--blue-grey-8); }
+  .canonic-icon { color: var(--cyan-10); }
 }
 
 // ── User-added: red wrapper + delete button ───────────────────

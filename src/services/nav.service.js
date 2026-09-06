@@ -42,5 +42,18 @@ export const navService = {
   async getNavigationSkeleton () {
     const { data } = await api.get('/nav/skeleton')
     return data
+  },
+
+  // ── THE WINDOW TRAY (2026-09-06) ──────────────────────────────
+  // The floating viewers open on the tab bar, so a reload puts them back.
+  // Read once on boot; written fire-and-forget on every open/park/close —
+  // a window's geometry is not worth blocking a click on.
+  async getWindows () {
+    const { data } = await api.get('/nav/windows')
+    return data
+  },
+
+  saveWindows (windows) {
+    api.put('/nav/windows', { windows }).catch(() => {})
   }
 }

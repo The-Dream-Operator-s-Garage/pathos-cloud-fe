@@ -645,10 +645,11 @@
                    own chain address — the same `?hash=` clause Talavero
                    issues when an ask contains an address — so the stream
                    answers with this ONE card, drawn full-height between the
-                   board's home slot and the container's floor. The board
-                   slides back to its top berth on the same press (an
-                   expanded card is read under it, not around it), and a
-                   second press releases the lens. A hairline divides the
+                   container's ceiling and the board's home slot (⚠ those two
+                   ends swapped on 2026-09-05 with the board itself). The
+                   board slides back to its berth on the same press (an
+                   expanded card is read AROUND the board, never under it),
+                   and a second press releases the lens. A hairline divides the
                    cell from the facts, the cap's own device: this is a
                    thing you PRESS, and everything past the rule is a thing
                    you READ. -->
@@ -1520,15 +1521,17 @@ export default defineComponent({
     // writes one nav_state row per gesture.
     const headY = computed(() => (typeof holder.state.headY === 'number' ? holder.state.headY : null))
     // Embed mode never writes: there is no head box in the flyout, and the
-    // expand lead's `setHeadY(0)` would otherwise slide the REAL feed's
+    // expand lead's `setHeadY(null)` would otherwise slide the REAL feed's
     // board home from inside another window (same route, same nav_state).
     const setHeadY = (v) => { if (!props.embedItem) holder.state.headY = v }
 
     // …and its measured height, published back down as `--fhead-h`: the well
-    // reserves the box's HOME slot so the first card is not born underneath
-    // it (what the band's own place in the flow used to buy). Lifted out of
-    // that slot, the box floats and the slot stays — the reveal at the top of
-    // the stream is where the head came from.
+    // reserves the box's HOME slot so no card is born underneath it (what the
+    // band's own place in the flow used to buy). Lifted out of that slot, the
+    // box floats and the slot stays — the reveal it leaves is where the head
+    // came from. ⚠ THAT SLOT IS THE WELL'S BOTTOM PADDING SINCE 2026-09-05
+    // (it was the top's for the box's whole first era): the height published
+    // here is the same number doing the same job at the other end.
     const headH = ref(0)
 
     // THE SQUARE CEILING, measured rather than inferred. A card may be no
@@ -2074,10 +2077,14 @@ export default defineComponent({
       // to it (its twin rule: the spoken hash IS the expand, via activeHash).
       hashFilter.value = null
       lensSpec.value = spec
-      // A spoken address means "show me THIS one": the board takes its top
-      // berth so the expanded card gets the whole space under it, exactly
-      // as the card's own expand lead does it.
-      if (spec.hash) setHeadY(0)
+      // A spoken address means "show me THIS one": the board goes back to its
+      // berth so the expanded card gets the whole space beside it, exactly as
+      // the card's own expand lead does it. ⚠ `null`, not `0`, since
+      // 2026-09-05 — the berth is the FLOOR now and `0` clamps to the other
+      // end. THIS is the copy the sweep found: the door has TWO callers and
+      // only the lead is obvious, so grep `setHeadY(` before changing what
+      // "home" means.
+      if (spec.hash) setHeadY(null)
       sortOrder.value = spec.order && spec.order !== 'newest' ? spec.order : null
       pendingReceipt.value = receipt?.id || null
       laneLabels.value = (spec.labels || []).map((l) => ({
@@ -2515,10 +2522,14 @@ export default defineComponent({
         return
       }
       hashFilter.value = { hash: postHash(item), id: item.skeleton_id }
-      // The board returns to its top berth: an expanded card fills the space
-      // UNDER the home slot, and a board parked mid-container would stand on
-      // top of the one thing being read. 0 clamps to HOME inside the box.
-      setHeadY(0)
+      // The board returns to its berth: an expanded card fills the space the
+      // home slot leaves, and a board parked mid-container would stand on top
+      // of the one thing being read. ⚠ `null`, NOT `0`, since 2026-09-05 —
+      // home is the FLOOR now and 0 clamps to the opposite end. `null` is the
+      // box's own word for "nobody has placed me", and it resolves the berth
+      // inside FeedHeadBox, which is the one file that should know where it
+      // is. (`0` was correct for exactly as long as home was the top.)
+      setHeadY(null)
       load()
     }
 
@@ -3873,13 +3884,29 @@ export default defineComponent({
   // this scroller since 2026-08-06 and spans the field on its own, so that
   // pairing is retired and this padding is the cards' alone.
   //
-  // The TOP padding came back with the same change, and it is the box's HOME
-  // SLOT: `--fhead-h` is the box's measured height (published down from
-  // `setup()` — a px value, for the same reason `--post-square-max` is one),
-  // `12px` is the box's resting offset (`HOME` in FeedHeadBox — it clears the
-  // corner sweeps, so it moved with them when the edge was thickened) and
-  // another `10px` the gap to the first card, so at rest the stream begins
-  // where it began under the band.
+  // ⭐ THE HOME SLOT IS AT THE BOTTOM NOW (2026-09-05, user ask: "make
+  // Talavero's board start being rendered at the bottom of the rails instead
+  // of at the top … also make sure the content starts being drawed at the top
+  // of the feed container"). The reserve did not shrink, it changed ENDS —
+  // the two halves of that one ask are these two numbers:
+  //   · TOP is `6px` flat: the stream's own flex gap, and nothing else. It is
+  //     the whole "content starts at the top" half. ⚠ NOT `0` — that is the
+  //     same trade the side padding's note above spells out, in the other
+  //     axis: at 0 the first card's border and the container's top edge stop
+  //     being two lines.
+  //   · BOTTOM carries the slot: `--fhead-h` (the box's measured height,
+  //     published down from `setup()` — a px value, for the same reason
+  //     `--post-square-max` is one) + `12px`, the daylight the box keeps off
+  //     the container's end (`EDGE` in FeedHeadBox — it clears the corner
+  //     sweeps, so it moved with them when the edge was thickened) + `6px`,
+  //     the gap to the LAST card, on top of the frieze clearance that was
+  //     already there. So the stream ends where the board begins, exactly as
+  //     it used to begin where the board ended.
+  // (History: from 2026-08-06 the top read `--fhead-h + 18px` on the same
+  // three terms, `10px` of gap until the 2026-08-22 density pass took it to
+  // 6. The TOTAL is 6px more than that arrangement's — one gap is paid at
+  // each end now instead of one at the top — which is why both dependent
+  // sites below moved with this line.)
   // It does NOT follow the box down: the slot is the head's place, and a
   // stream that reflowed while you dragged would make the drag a resize. Drag
   // the head away and the reveal it leaves behind is where it came from.
@@ -3891,13 +3918,16 @@ export default defineComponent({
   // square ceiling is measured from — the ResizeObserver picks the new width
   // up on its own, so `--post-square-max` follows automatically.
   // ⚠ ALL THREE TERMS MOVED IN THE DENSITY PASS. Top `+22px` → **`+18px`**
-  // (the 12px HOME offset is untouched — it clears the head box's corner
+  // (the 12px EDGE offset is untouched — it clears the head box's corner
   // sweeps — and the 10px gap to the first card became 6, matching the new
   // flex gap); bottom `+12px` → **`+8px`**. KEEP THE SUBTRACTION IN STEP: the
-  // expanded card states its height as this well minus these two constants,
-  // and `fsck --static`'s `expanded-card` witness fails the build if the pair
-  // drifts. Grep `KEEP THE SUBTRACTION IN STEP` — there are exactly two sites.
-  padding: calc(var(--fhead-h, 120px) + 18px) 3px calc(var(--frieze-h) + 8px);
+  // expanded card states its height as this well minus these constants, and
+  // `fsck --static`'s `expanded-card` witness fails the build if they drift.
+  // Grep `KEEP THE SUBTRACTION IN STEP` — there are exactly two sites.
+  // ⚠ THE WITNESS WAS RE-KEYED WITH THE 2026-09-05 SWAP: it reads THREE
+  // numbers now (top, the slot's own constant, the frieze's), because the
+  // bottom is a two-term calc since the slot moved into it.
+  padding: 6px 3px calc(var(--fhead-h, 120px) + 18px + var(--frieze-h) + 8px);
 
   // ── THE BED'S SIDE BORDERS (2026-08-07, user ask) — 1px `--indigo-6` down
   // each side, nothing on the ends. This box IS what holds the post cards, and
@@ -4385,22 +4415,26 @@ export default defineComponent({
   // ── THE EXPANDED CARD (2026-08-09, user ask) — the hash lens's face ────
   // When the active filter is one post's ADDRESS the stream holds exactly
   // one card, and that card stops being a window onto the post and becomes
-  // the reading surface itself: full height, from the board's home slot
-  // down to the container's floor. The height is stated rather than grown —
+  // the reading surface itself: full height, from the container's ceiling
+  // down to the board's home slot (⚠ the two ends swapped on 2026-09-05 with
+  // the board — it read "from the board's home slot down to the container's
+  // floor" for the whole first era, and the ARITHMETIC below is unchanged by
+  // the swap: it subtracts the well's paddings, not a named end). The height is stated rather than grown —
   // `--feed-well-h` is the well's measured visible height (published by the
   // same ResizeObserver that measures the width, for the same reason: a px
   // value cannot fail) minus the well's OWN paddings, which is what leaves
   // the little daylight above and below the card the well already reserves
   // for every card. ⚠ KEEP THE SUBTRACTION IN STEP with the well's
-  // `padding` line: top = --fhead-h + 18px, bottom = --frieze-h + 8px
-  // (both came down from 22/12 in the 2026-08-22 density pass, and
-  // `fsck --static`'s `expanded-card` witness exists to catch exactly the
-  // case where one of the two sites moves without the other).
+  // `padding` line: top = 6px, bottom = --fhead-h + 18px + --frieze-h + 8px
+  // (the 18/8 pair came down from 22/12 in the 2026-08-22 density pass and
+  // the whole slot moved to the bottom on 2026-09-05; `fsck --static`'s
+  // `expanded-card` witness exists to catch exactly the case where one of the
+  // two sites moves without the other, and it reads all THREE numbers).
   // The square ceiling lifts (`max-height: none`) and the PIT — the one
   // flexible track — takes every pixel the rigid strips leave, scrolling in
   // place exactly as it does at card scale.
   &.is-expanded {
-    height: calc(var(--feed-well-h, 100vh) - var(--fhead-h, 120px) - 18px - var(--frieze-h) - 8px);
+    height: calc(var(--feed-well-h, 100vh) - 6px - var(--fhead-h, 120px) - 18px - var(--frieze-h) - 8px);
     max-height: none;
   }
 }
@@ -4410,10 +4444,10 @@ export default defineComponent({
 // and a medium sized for a ≤60vh card standing in a full-height one would
 // leave the pit half empty. Same shape as the resting formula below — the
 // card's height term swapped for the expanded height, the well's paddings
-// (18 + 8 = 26px since the 2026-08-22 density pass, plus its 1× --frieze-h)
-// folded in beside the card's own 276px chrome — which no longer carries a
+// (6 + 18 + 8 = 32px since the 2026-09-05 slot swap, 26 before it, plus its
+// 1× --frieze-h) folded in beside the card's own 276px chrome — which no longer carries a
 // band term of its own. Keep all three lines in step: the well's
-// `padding`, `.is-expanded`'s height, and this. (276 + 26 = 302; the pair was
+// `padding`, `.is-expanded`'s height, and this. (276 + 32 = 308; the pair was
 // 300 + 34 = 334 until 2026-08-10, whose rail-padding asks took 8px out of
 // the card's chrome and whose frieze move traded a 6px band for a band
 // already counted in the variable term, and 276 + 34 = 310 until that day's
@@ -4425,11 +4459,13 @@ export default defineComponent({
 // took the well's own paddings 22/12 → 18/8 while this constant kept counting
 // the old 34 — an 8px overcharge that stood until the frieze move audited the
 // line. That is exactly the drift the sentence above warns about, and it is
-// always THIS copy: the resting rule is the one you naturally edit. Both terms
-// are current at 276 / 302, and the variable term is the WELL's own
-// `1 × --frieze-h` alone — the card's `0.55 ×` half went with the band.)
+// always THIS copy: the resting rule is the one you naturally edit — and it
+// did NOT lag on 2026-09-05, when the slot moved ends and the well's pads
+// went 26 → 32. Both terms are current at 276 / 308, and the variable term is
+// the WELL's own `1 × --frieze-h` alone — the card's `0.55 ×` half went with
+// the band.)
 .post-square.is-expanded .post-square__pit {
-  --media-max-h: max(120px, calc(var(--feed-well-h, 60vh) - var(--fhead-h, 120px) - 302px - var(--frieze-h)));
+  --media-max-h: max(120px, calc(var(--feed-well-h, 60vh) - var(--fhead-h, 120px) - 308px - var(--frieze-h)));
 }
 
 // ── THE VEIL (2026-08-07, user ask) — the card's MIDDLE LAYER ──

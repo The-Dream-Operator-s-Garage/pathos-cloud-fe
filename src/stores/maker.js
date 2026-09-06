@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { useWindowsStore } from './windows'
+import { useNavStore } from './navigation'
 
 // The post maker's in-progress state. Every unposted draft is a tab in the
 // MakerDock; the whole set survives reloads via localStorage so half-written
@@ -89,19 +90,30 @@ export const useMakerStore = defineStore('maker', {
     open () {
       this.load()
       if (!this.drafts.length) this.addDraft()
+      // THE SUB-STACK (2026-09-06 PM): a closed→open transition is the act
+      // "Opened post maker" in the stop you stand in; re-opening an already
+      // open (or parked) dock is a focus, not an event.
+      const wasClosed = !this.isOpen
       this.isOpen = true
       this.isMinimized = false
       useWindowsStore().focus('maker')
+      if (wasClosed) {
+        try { useNavStore().recordDock('maker', 'open') } catch (_) { /* the window opens whether or not the log does */ }
+      }
     },
 
     // NOTE: closing/minimizing does NOT cancel an armed skeleton-builder
     // capture — posting auto-closes/minimizes the dock in the same tick
     // that delivers the capture. The builder's banner keeps its own cancel.
     close () {
+      const wasOpen = this.isOpen
       this.isOpen = false
       this.isMinimized = false
       this.isMaximized = false
       useWindowsStore().release('maker')
+      if (wasOpen) {
+        try { useNavStore().recordDock('maker', 'close') } catch (_) { /* the window opens whether or not the log does */ }
+      }
     },
 
     minimize () {

@@ -168,7 +168,7 @@
              Desktop-only: mobile hides the grips (the mobile block below) and
              `trailShiftOf` reads 0 there. ── -->
         <div class="create-row">
-        <q-btn unelevated class="nav-btn create-btn" :ref="setChip('maker')" :style="chipStyle('maker')" @click="$emit('open-maker')">
+        <q-btn unelevated class="nav-btn create-btn create-btn--maker" :class="{ 'is-active': creationExpanded.maker }" :ref="setChip('maker')" :style="chipStyle('maker')" @click="$emit('open-maker')">
           <span class="nav-btn__grip" @pointerdown="startChipDrag('maker', $event)" @click.stop>
             <q-icon name="drag_indicator" size="11px" />
           </span>
@@ -177,7 +177,7 @@
           <span class="nav-btn__label">POST</span>
           <q-tooltip>Make post</q-tooltip>
         </q-btn>
-        <q-btn unelevated class="nav-btn create-btn" :ref="setChip('skeletonBuilder')" :style="chipStyle('skeletonBuilder')" @click="$emit('open-skeleton-builder')">
+        <q-btn unelevated class="nav-btn create-btn create-btn--skeletonBuilder" :class="{ 'is-active': creationExpanded.skeletonBuilder }" :ref="setChip('skeletonBuilder')" :style="chipStyle('skeletonBuilder')" @click="$emit('open-skeleton-builder')">
           <span class="nav-btn__grip" @pointerdown="startChipDrag('skeletonBuilder', $event)" @click.stop>
             <q-icon name="drag_indicator" size="11px" />
           </span>
@@ -186,7 +186,7 @@
           <span class="nav-btn__label">SKELETONS</span>
           <q-tooltip>Build skeletons — define templates, populate and edit instances</q-tooltip>
         </q-btn>
-        <q-btn unelevated class="nav-btn create-btn" :ref="setChip('labelMaker')" :style="chipStyle('labelMaker')" @click="$emit('open-label-maker')">
+        <q-btn unelevated class="nav-btn create-btn create-btn--labelMaker" :class="{ 'is-active': creationExpanded.labelMaker }" :ref="setChip('labelMaker')" :style="chipStyle('labelMaker')" @click="$emit('open-label-maker')">
           <span class="nav-btn__grip" @pointerdown="startChipDrag('labelMaker', $event)" @click.stop>
             <q-icon name="drag_indicator" size="11px" />
           </span>
@@ -195,7 +195,7 @@
           <span class="nav-btn__label">LABELS</span>
           <q-tooltip>Label maker — grow, fork and reorganize label trees</q-tooltip>
         </q-btn>
-        <q-btn unelevated class="nav-btn create-btn" :ref="setChip('uploader')" :style="chipStyle('uploader')" @click="$emit('open-uploader')">
+        <q-btn unelevated class="nav-btn create-btn create-btn--uploader" :class="{ 'is-active': creationExpanded.uploader }" :ref="setChip('uploader')" :style="chipStyle('uploader')" @click="$emit('open-uploader')">
           <span class="nav-btn__grip" @pointerdown="startChipDrag('uploader', $event)" @click.stop>
             <q-icon name="drag_indicator" size="11px" />
           </span>
@@ -393,18 +393,20 @@
        The stack/pins side panels park to thin icon rails instead — pins a
        column on the right edge, the stack a chip strip inside this bar's
        left run since 2026-08-30 (StackPanel/PinsDrawer `is-parked`). ── -->
-  <div class="minitab-strip" :style="{ right: minitabRight }">
+  <div class="minitab-strip">
     <TransitionGroup name="minitab-pop">
       <button
         v-for="t in parkedTabs"
         :key="t.key"
         type="button"
         class="minitab"
+        :class="'minitab--' + t.key"
+        :style="minitabStyle(t.key)"
         :title="t.title"
         @click="t.restore"
       >
-        <q-spinner v-if="t.busy" size="12px" color="primary" />
-        <q-icon v-else :name="t.icon" size="13px" :class="'minitab__icon--' + t.key" />
+        <q-spinner v-if="t.busy" size="11px" color="primary" />
+        <q-icon v-else :name="t.icon" size="12px" class="minitab__icon" />
         <span class="minitab__label">{{ t.label }}</span>
         <span v-if="t.meta" class="minitab__meta mono">{{ t.meta }}</span>
       </button>
@@ -413,7 +415,7 @@
 </template>
 
 <script>
-import { defineComponent, ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
+import { defineComponent, ref, computed, watch, nextTick, onMounted, onBeforeUnmount } from 'vue'
 import { useRoute } from 'vue-router'
 import { useWindowsStore } from 'src/stores/windows'
 import { useMakerStore, draftLabel } from 'src/stores/maker'
@@ -490,6 +492,23 @@ export default defineComponent({
     // toggle the chat button has: closed → open, parked → restore, standing →
     // close.
     const dashboardExpanded = computed(() => dashboardStore.isOpen && !dashboardStore.isMinimized)
+
+    // ── THE FOUR CREATION WINDOWS' STANDING STATE (2026-09-05, user ask:
+    // "when a window is open, illuminate their borders … and the button's
+    // icon") ────────────────────────────────────────────────────────────────
+    // `isOpen && !isMinimized`, which is exactly what `chatExpanded` and
+    // `dashboardExpanded` above have meant since those two chips got an
+    // `is-active` — and the reason to keep that definition rather than a
+    // bare `isOpen` is that a MINIMIZED window is already saying so, loudly,
+    // with the parked tab standing on this very chip. Two signals for one
+    // state would make the pair meaningless; as it is they hand off — the
+    // chip glows while the window is up, the tab appears when it goes down.
+    const creationExpanded = computed(() => ({
+      maker: makerStore.isOpen && !makerStore.isMinimized,
+      skeletonBuilder: skeletonBuilderStore.isOpen && !skeletonBuilderStore.isMinimized,
+      labelMaker: labelMakerStore.isOpen && !labelMakerStore.isMinimized,
+      uploader: uploaderStore.isOpen && !uploaderStore.isMinimized
+    }))
     const toggleDashboard = () => {
       if (!dashboardStore.isOpen) dashboardStore.open()
       else if (dashboardStore.isMinimized) dashboardStore.restore()
@@ -637,10 +656,69 @@ export default defineComponent({
         edge = it.left
       }
       if (moved) windows.persistTrail()
+      measureChips()
     }
     const queueReconcile = () => {
       clearTimeout(reconcileTimer)
       reconcileTimer = setTimeout(reconcileTrail, 150)
+    }
+
+    // ── EACH PARKED TAB STANDS ON ITS OWN CHIP (2026-09-05, user ask: the
+    // tabs "appear right on top of their respective buttons on the bottom
+    // footer nav bar… match their respective button width… and transportate
+    // with the button") ────────────────────────────────────────────────────
+    //
+    // The strip was a flex row anchored to the bar's right end, so a parked
+    // tab's position said WHICH ORDER things were minimized in and nothing
+    // about which button restores it. It is an absolute layer now and every
+    // tab is addressed: left + width off its own chip, and the chip's own
+    // `--trail-shift` re-applied so the pair moves as one object when the
+    // trail is dragged.
+    //
+    // ⚠ THE MEASUREMENT SUBTRACTS THE SHIFT AND THE STYLE ADDS IT BACK.
+    // `getBoundingClientRect()` reports the chip where it is PAINTED, which
+    // already includes `translate`. Storing that and then translating the tab
+    // by the same amount would double the offset — the tab would drift twice
+    // as far as the chip and leave it behind, which is exactly the bug this
+    // subtraction exists to prevent. What is stored is the chip's SEAT (where
+    // it sits in the grid), and the shift is a live dial on top of it, so a
+    // drag needs no re-measurement at all.
+    const chipBoxes = ref({})
+    const measureChips = () => {
+      const next = {}
+      for (const k of TRAIL_CHIPS) {
+        const el = chipEls[k]
+        if (!el) continue
+        const r = el.getBoundingClientRect()
+        if (r.width > 0) next[k] = { left: r.left - windows.trailShiftOf(k), width: r.width }
+      }
+      // The dashboard is NOT a trail chip — it became the bar's full-height
+      // end block on 2026-09-02 — so it has no ref and no shift. Its tab
+      // stands on it all the same: same law, one query.
+      const dash = document.querySelector('.nav-bar .dashboard-btn')
+      if (dash) {
+        const r = dash.getBoundingClientRect()
+        if (r.width > 0) next.dashboard = { left: r.left, width: r.width }
+      }
+      chipBoxes.value = next
+    }
+
+    // The flare span, in JS as well as in CSS, because the tab's BOX is inset
+    // by it at both ends: the sweep hangs outside the box and the ask was
+    // that the whole handle match the button, not the box inside its sweeps.
+    // See `--minitab-flare` for why 7px and not the media bar's 9.
+    const MINITAB_FLARE = 7
+    const minitabStyle = (key) => {
+      const b = chipBoxes.value[key]
+      // Un-measured (the first paint, or a chip the viewport has hidden):
+      // the tab keeps its place in the strip's flow fallback instead of
+      // jumping to x=0. `visibility`, not `display`, so it still measures.
+      if (!b) return { position: 'relative', visibility: 'hidden' }
+      return {
+        left: `${b.left + MINITAB_FLARE}px`,
+        width: `${Math.max(b.width - MINITAB_FLARE * 2, 24)}px`,
+        translate: `${windows.trailShiftOf(key)}px 0`
+      }
     }
 
     // ── PIN state ────────────────────────────────────────────
@@ -696,6 +774,12 @@ export default defineComponent({
       // dial moves; the is-parked guard keeps a hover-EXPANDED panel, a
       // transient, from shoving chips around).
       window.addEventListener('resize', queueReconcile)
+      // Two measurements, not one: the first is for the fonts and the grid
+      // settling, the second rides `reconcileTrail`'s own 400ms wait for the
+      // flanking strips. A tab that appears later needs no third — the chips
+      // are always mounted, so `chipBoxes` is warm before anything parks.
+      nextTick(measureChips)
+      setTimeout(measureChips, 400)
       setTimeout(reconcileTrail, 400)
       if (window.ResizeObserver) {
         setTimeout(() => {
@@ -731,10 +815,12 @@ export default defineComponent({
     // left run since 2026-08-30, pins at the right run beside the dashboard
     // block since 2026-09-02) and are reached through them. ──
 
-    // The minitab strip hugs the footer's top-right edge. `footerPanelInset`
-    // reads 0 since 2026-09-02 (no side widget stands at the right edge any
-    // more); the seam is kept so a future right-edge widget insets it again.
-    const minitabRight = computed(() => `${10 + windows.footerPanelInset}px`)
+    // (`minitabRight` lived here until 2026-09-05 — `10px + footerPanelInset`,
+    // the right-anchored flow's own offset. The strip is a full-width
+    // absolute layer now and every tab is addressed to its chip, so there is
+    // no strip end to hug and no side-widget inset to clear: a tab cannot
+    // collide with the pins strip because the CHIP it stands on cannot, and
+    // keeping the chips off that strip is `trailBounds`'s job already.)
 
     // ── Minitab strip — one folder tab per minimized dock. Only the maker
     // and uploader park here; the stack/pins side panels narrow into
@@ -830,7 +916,8 @@ export default defineComponent({
       pinsCount,
       onTackClick,
       showTack,
-      minitabRight,
+      minitabStyle,
+      creationExpanded,
       chatExpanded,
       toggleChat,
       dashboardExpanded,
@@ -945,73 +1032,244 @@ export default defineComponent({
 // under the drawer (3120) and the side widgets (3100). `right` is bound
 // inline (base 10px, shifted left by the pins-widget inset) so parked tabs
 // clear that column.
+// ⚠ IT IS AN ABSOLUTE LAYER SINCE 2026-09-05 (user ask: the tabs stand on
+// their buttons), not a right-anchored flex row. Zero-height and full-width:
+// every tab is `position: absolute; bottom: 0`, so the strip's own bottom
+// edge — seated on the bar's top edge by `bottom: var(--nav-footer-h)` — is
+// the line every tab's bottom edge lands on, exactly as before. What changed
+// is the horizontal address, which is now the chip's (see `minitabStyle`).
+// `display: flex` survives as the FALLBACK: an unmeasured tab is styled
+// `position: relative` and falls back into this row rather than piling up at
+// x=0, which is what the first paint and a hidden chip both look like.
 .minitab-strip {
   position: fixed;
   bottom: var(--nav-footer-h);
-  right: 10px;
+  left: 0;
+  right: 0;
+  height: 0;
   z-index: 3045;
   display: flex;
   align-items: flex-end;
+  justify-content: flex-end;
   gap: 3px;
-  transition: right 0.18s ease;
+  padding-right: 10px;
+  pointer-events: none; // a zero-height layer over the whole bar; the tabs re-arm
 }
 
+// ── THE PARKED TAB IS THE MEDIA RAIL'S TAB, TURNED OVER (2026-09-05, user
+// ask: denser, and the rounded borders matching "the ones that show up on
+// the top bar when a flyout window is minimized") ─────────────────────────
+//
+// `MediaTabsBar`'s `.media-tabs__tab` is the reference and this is that
+// construction MIRRORED, because the two hang off opposite edges: a media tab
+// is pulled DOWN out of the top rail, this one is pulled UP out of the footer
+// bar. So every vertical term inverts — no BOTTOM border (it flows into the
+// bar), radius on the TOP corners, flares at the BOTTOM two, pad above the
+// writing instead of below it — and every horizontal term is identical.
+//
+// WHAT CAME ACROSS, term for term:
+//  · **Content height, not a box.** It was a flat `height: 26px` with the row
+//    centred in it, which spelled ~7px of dead face over the glyph and ~7px
+//    under. The 12px glyph sets the line now, `line-height: 1` stops the
+//    inherited leading padding it back out, and the only vertical space
+//    declared is the 2px over the writing. Total 12 + 2 + rim = 16px against
+//    the old 26 — which IS the "denser" of the ask, arrived at the same way
+//    the media tab arrived at it on 2026-08-24 rather than by picking a
+//    smaller number.
+//  · **The rim doubled**, 1px → `--minitab-rim` (2px), matching the media
+//    rail's `--media-tabs-rim`. A 2px edge is what lets the flare's arc read
+//    as a drawn LINE turning a corner instead of a soft edge on paint.
+//  · **The flares** — a concave fillet at each bottom corner, so the tab
+//    SWEEPS into the bar instead of butting into it at a right angle. Radial
+//    gradients, not borders: an inverted radius has no `border-radius`
+//    spelling. Two extra stops draw the rim along the arc in the rim's own
+//    tone, and the arc meets the tab's border where its tangent turns
+//    vertical, so one continuous line runs bar → flare → tab.
+//  · **The rounded corners** stay 9px, the media tab's own, now at the top.
+//
+// ⚠ THE FLARE IS 7px HERE, NOT THE MEDIA RAIL'S 9. That rail is a free flex
+// row with 9px of side padding reserved for the outermost sweep and no width
+// constraint on any tab. These tabs are PINNED to chips and inset by the
+// flare at both ends (the ask was that the whole handle match the button, not
+// the box inside its sweeps), so the span comes straight off the body: at 9px
+// the narrowest chip on the bar — chat, measured 45px — is left a 27px body,
+// which cannot hold a 12px glyph and its own padding. 7px leaves 31px and the
+// sweep still reads. If a chip ever gets narrower than ~40px, this is the
+// number that gives, not the padding.
 .minitab {
+  --minitab-flare: 7px;
+  --minitab-rim: 2px;
+  // The three dials every colorway below turns. Defaults are the bar's own
+  // material, so a window with no colorway needs no rule at all.
+  --mtab-face: var(--plaque-flat, #f8f2e4);
+  --mtab-rim-ink: var(--grey-6, #9e9e9e);
+  --mtab-ink: var(--grey-9, #424242);
+
+  pointer-events: auto; // the strip above is a click-through layer
+  position: absolute;
+  bottom: 0;
+  box-sizing: border-box;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  height: 26px;
-  padding: 0 12px;
-  border: 1px solid rgba(var(--ink-rgb-deep), 0.35);
-  border-bottom: none;
+  justify-content: center;
+  gap: 5px;
+  min-width: 0;
+  padding: 2px 6px 0;
+  line-height: 1;
+  border: var(--minitab-rim) solid var(--mtab-rim-ink);
+  border-bottom: none; // it flows into the bar, so it has no bottom edge
   border-radius: 9px 9px 0 0;
-  // Folder tabs on the bar's top edge, flat, no blur. This face WAS the
-  // plaque's own — same tone, which is what said "attached". The bar's coat
-  // became a --light-cream sheet under a --grey-3 veil on 2026-08-17 and the
-  // tabs did NOT follow (the ask was the bar's background), so the strip is
-  // brown-1 on a paler, warmer plaque now and the border + the seated bottom
-  // edge carry the attachment alone. Rejoining is one line, not one token, if
-  // the strip should read attached by material again: the tab would take the
-  // bar's whole two-layer background, sheet and veil together.
-  background: var(--brown-1);
-  color: var(--ink-1);
+  background: var(--mtab-face);
+  color: var(--mtab-ink);
   cursor: pointer;
-  // NO CAST (2026-08-02, user ask). It wore `0 2px 8px` onto the frieze band
-  // it stands over, and that DOWNWARD reach — at the bar's own top edge —
-  // is exactly what made a parked tab look like it hovers above the bar
-  // instead of being attached to it. A folder tab is stuck to its drawer; the
-  // border is what says so (the shared brown-1 face said it too until the bar
-  // took its cream-under-veil plaque — see the background note above).
+  // NO CAST (2026-08-02, user ask) — it wore `0 2px 8px` onto the frieze band
+  // and that downward reach, at the bar's own top edge, is what made a parked
+  // tab look like it hovers above the bar instead of being attached to it.
   box-shadow: none;
-  transition: background 0.12s;
+  transition: background 0.12s, padding-bottom 0.12s, transform 0.12s;
 
-  &:hover {
-    background:
-      linear-gradient(rgba(255, 255, 255, 0.35), rgba(255, 255, 255, 0.35)),
-      var(--brown-1);
+  // The media tab's two states, mirrored: hover REACHES further out of the
+  // bar (spelled in the pad, since a content-tall box has no height to grow)
+  // and lifts the veil; press dips back in onto a step darker. Direction is
+  // the same on both edges — lighter reaching out, darker under the finger.
+  &:hover { --mtab-face: var(--light-cream, #fcf3e0); padding-top: 5px; }
+  &:active { --mtab-face: var(--grey-3, #eeeeee); transform: translateY(1px); }
+
+  // ── THE FLARES — mirrored to the BOTTOM corners. `circle at 0 0` /
+  // `at 100% 0` puts each arc's centre at the corner nearest the tab's TOP,
+  // where the media rail's sits at the bottom. Every dimension follows the
+  // two dials, so the fillet's half of the line is always the same weight as
+  // the border it continues. The `+ var(--minitab-rim)` of extra width lies
+  // over the stub of side border that would otherwise cross the sweep.
+  &::before,
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    width: calc(var(--minitab-flare) + var(--minitab-rim));
+    height: var(--minitab-flare);
+    pointer-events: none;
+  }
+
+  &::before {
+    left: calc(-1 * var(--minitab-flare));
+    background: radial-gradient(circle at 0 0,
+      transparent calc(var(--minitab-flare) - var(--minitab-rim) - 0.1px),
+      var(--mtab-rim-ink) calc(var(--minitab-flare) - var(--minitab-rim) + 0.1px),
+      var(--mtab-rim-ink) calc(var(--minitab-flare) - 0.1px),
+      var(--mtab-face) calc(var(--minitab-flare) + 0.1px));
+  }
+
+  &::after {
+    right: calc(-1 * var(--minitab-flare));
+    background: radial-gradient(circle at 100% 0,
+      transparent calc(var(--minitab-flare) - var(--minitab-rim) - 0.1px),
+      var(--mtab-rim-ink) calc(var(--minitab-flare) - var(--minitab-rim) + 0.1px),
+      var(--mtab-rim-ink) calc(var(--minitab-flare) - 0.1px),
+      var(--mtab-face) calc(var(--minitab-flare) + 0.1px));
   }
 }
 
-// Distinctive icon tint per window, mirroring each window's header icon.
-// The two windows with a colorway of their own read their contrast DIAL
-// (2026-09-04, the labels window's purple pass — the uploader's tab had kept
-// a purple literal from before its 2026-08-26 teal repaint, and a purple
-// uploader tab beside a purple labels tab would have named the wrong window).
-.minitab__icon--maker           { color: #00829c; }
-.minitab__icon--uploader        { color: var(--uploader-contrast); }
-.minitab__icon--skeletonBuilder { color: #5b6c82; }
-.minitab__icon--labelMaker      { color: var(--labels-contrast); }
-// The dashboard's tab is the only GREY mark in the strip, matching its button
-// four pixels above it and the coat of the window it restores — `--grey-9`,
-// the same #424242 the pebble letters its glyph in (2026-08-10).
-.minitab__icon--dashboard       { color: #424242; }
+// ── EACH TAB WEARS THE WINDOW IT RESTORES (2026-09-05, user ask: the tabs
+// "match their window coloring") ──────────────────────────────────────────
+// Until today the colorway reached the tab as ONE tinted glyph on a shared
+// brown face. Now the whole handle is the window's material: its coat as the
+// face (`--*-flat`, the composite — the coat itself is a background LAYER
+// LIST and would be dropped in the flare gradients' stops), its contrast as
+// the rim, and its DARKEST tone as the ink — the same tone the button under
+// it letters its word in, so tab and button are one object read twice.
+//
+// This is the media rail's law inverted, and deliberately so: a media tab
+// matches the STRIP it hangs from because every one of them restores the same
+// kind of window. These five restore five different windows, so the tab's job
+// is to name WHICH — and the only thing that can name it is the window's own
+// material.
+.minitab--maker {
+  --mtab-face: var(--maker-flat);
+  --mtab-rim-ink: var(--maker-contrast);
+  --mtab-ink: var(--cyan-10);
+}
+.minitab--skeletonBuilder {
+  --mtab-face: var(--skeletons-flat);
+  --mtab-rim-ink: var(--skeletons-contrast);
+  --mtab-ink: var(--deep-orange-10);
+}
+.minitab--labelMaker {
+  --mtab-face: var(--labels-flat);
+  --mtab-rim-ink: var(--labels-contrast);
+  --mtab-ink: var(--deep-purple-10);
+}
+.minitab--uploader {
+  --mtab-face: var(--uploader-flat);
+  --mtab-rim-ink: var(--uploader-contrast);
+  --mtab-ink: var(--lime-10);
+}
+// ⚠ CHAT AND THE DASHBOARD ARE THE TWO WINDOWS WITH NO SHEET OF THEIR OWN —
+// the one-plaque law's remaining two — so their tabs keep the bar's
+// `--plaque-flat` face and state their colorway in the rim and ink alone.
+// That is the correct reading of "match your window": these two windows ARE
+// the bar's material, and a tab that invented a sheet for them would say
+// something about the window that is not true.
+.minitab--chat {
+  --mtab-rim-ink: var(--lime-4);
+  --mtab-ink: var(--lime-10);
+}
+.minitab--dashboard {
+  --mtab-rim-ink: var(--grey-6);
+  --mtab-ink: var(--grey-9);
+}
 
+// ONE ink for glyph and word — the media tab's rule, and for its reason: at
+// 12px a glyph a step under the word beside it reads as FADED rather than as
+// quieter. `inherit` rather than a restatement, so the tab sets `color` once.
+.minitab__icon { flex: 0 0 auto; color: inherit; }
+
+// ── THE NAME IS NASALIZATION, LOWERCASE (2026-09-05, user ask) ───────────
+// The display face, not the mono the strip has lettered its tabs in since it
+// was built — the same face every WINDOW writes its own name in on the
+// `.dock-bar__plate` (`.nasalization` in `_utilities.scss`: `--font-display`
+// at 0.05em tracking). So the tab and the window it restores now name
+// themselves in ONE voice as well as in one material, which is the whole
+// argument of this pass carried into the type.
+//
+// LOWERCASE is a `text-transform`, not the source string: the labels come
+// from live draft titles and label names (`draftLabel`, `builderLabel`,
+// `labelMakerStore.selected.name`) — content, not chrome — so lowering it in
+// CSS keeps the value intact for the `title` tooltip, which still shows what
+// the user actually typed. ⚠ It is `lowercase`, not `none`: a draft called
+// "P6 Pack Witness" has to read as tab furniture rather than as a heading,
+// and this is a 10px handle.
+//
+// Weight drops 700 → 600: nasalization is a wider, more assertive face than
+// the mono it replaces, and at this size 700 filled the tab. The tracking is
+// the utility's own 0.05em (up from the mono's 0.03), which is what the face
+// is drawn for.
 .minitab__label {
-  font-family: var(--font-mono);
-  font-size: 0.7em;
-  font-weight: 700;
-  letter-spacing: 0.03em;
-  max-width: 24ch;
+  font-family: var(--font-display);
+  font-size: 0.62em;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: lowercase;
+  // ⚠ IT OVERRIDES THE TAB'S `line-height: 1`, AND IT HAS TO — the two rules
+  // below cut the descenders off otherwise, which is a bug you can only see
+  // on a name that HAS one (the first four tabs read `untitled`, `new`,
+  // `labels`, `empty`, and only the last one showed it).
+  //
+  // The mechanism is the mirror biting: `overflow: hidden` is here for the
+  // ellipsis, and at `line-height: 1` the span's box IS the em box — 8.7px
+  // measured — so a `p` or a `y` hangs ~1.7px outside it and gets clipped
+  // flat. The media rail's tab never hits this because its 2px of pad sits on
+  // its FREE edge, which is its BOTTOM; turn the tab over and that pad moves
+  // to the top, where a descender never goes. Descenders always hang down —
+  // that asymmetry is the one thing the mirror could not carry across.
+  //
+  // 1.5 rather than more pad: the half-leading (2.2px each side) buys the
+  // descender its room INSIDE the clip, and at 13px the span's box lands a
+  // hair over the 12px glyph beside it, so the tab grows one pixel (16 → 17)
+  // instead of three. Lowercase, in a display face, is what makes the
+  // descender load heavy enough to matter at all here.
+  line-height: 1.5;
+  min-width: 0;   // or the flex floor cannot bite and the name never ellipses
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1027,6 +1285,131 @@ export default defineComponent({
 
 .minitab-pop-enter-active, .minitab-pop-leave-active { transition: transform 0.16s ease, opacity 0.16s ease; }
 .minitab-pop-enter-from, .minitab-pop-leave-to { transform: translateY(8px); opacity: 0; }
+
+// ── THE FOUR CREATION WORDS WEAR THEIR WINDOWS (2026-09-05, user ask: "for
+// each button, color the text with the darkest available tone of their
+// respective quasar color tone") ─────────────────────────────────────────
+//
+// "Darkest available" is read as the family's **Material 900**, its last real
+// step — `--cyan-10`, `--deep-orange-10`, `--deep-purple-10`, `--lime-10` —
+// which is also the ONE rung every one of these four families has in common.
+// Three of them are already their window's ladder deep step; `--deep-purple-10`
+// was minted for this line alone.
+//
+// ⚠ IT IS NOT `--lime-deep`, even though that IS darker and does exist. That
+// level is HAND-MIXED — the uploader's ladder needed a rung below Material
+// 900 and Quasar's lime has none — and the ask says "quasar color tone". So
+// the law here is the palette's, not the file's: 900 in all four, one rung,
+// no argument about which window gets the exception. (`--lime-10` therefore
+// letters UPLOADS with the same tone that is its window's CONTRAST, where the
+// other three words are a step deeper than their windows' — unavoidable, and
+// invisible unless the two are compared side by side.)
+//
+// ⚠ THE WORD ONLY, NOT THE GLYPH. The ask says text, and the split is worth
+// keeping deliberately: the bar's six glyphs are one ink at one weight, which
+// is what lets the cluster read as one control strip rather than six badges,
+// and the WORD is the part that names the window anyway. The parked tab above
+// each chip states the same four tones on its own ink — where glyph and word
+// DO share it, because up there the whole handle is the window's material.
+//
+// ⚠ Legibility on the chips' `--light-cream` face, measured: cyan-10 7.4:1,
+// deep-purple-10 12.3:1, deep-orange-10 5.6:1, lime-10 4.6:1. The lime is the
+// floor of the set and still clears AA for the 9px bold-tracked word it
+// letters; it is the tone this family's ink has always sat at (chat's whole
+// colorway is written in it) for exactly that reason.
+.nav-bar .create-btn--maker           .nav-btn__label { color: var(--cyan-10); }
+.nav-bar .create-btn--skeletonBuilder .nav-btn__label { color: var(--deep-orange-10); }
+.nav-bar .create-btn--labelMaker      .nav-btn__label { color: var(--deep-purple-10); }
+.nav-bar .create-btn--uploader        .nav-btn__label { color: var(--lime-10); }
+
+// ── AND THE CHIP'S LINES AND ITS HANDLE (2026-09-05, the sitting's last ask:
+// "recolor the buttons borders and the drag icon just like their respective
+// tabs") ──────────────────────────────────────────────────────────────────
+//
+// `--chip-rim` and `--chip-grip` are dials on `.nav-bar .nav-btn`
+// (`_components.scss`, where the defaults and the two-ink law they break are
+// stated). Both take the window's CONTRAST — the exact tone the parked tab
+// above draws its border and its two flares in — so a chip and its tab are
+// one continuous drawing: the tab's rim comes down the flare, lands on the
+// chip's own vertical, and the handle inside it is the same line.
+//
+// ⚠ CONTRAST, NOT THE 900 THE WORD TAKES. The chip now states its family
+// twice at two registers, and the split is the tab's own: the tab draws its
+// RIM in the contrast and its INK in Material 900, and the chip does exactly
+// that — lines and handle in the contrast, the word a step deeper. A handle
+// and a rim are structure; a word is content; structure is the quieter of
+// the two on every other surface on this platform and stays quieter here.
+//
+// ⚠ `--chip-rim` reaches THREE lines, not two — the chip's left and right
+// rims (its horizontals are the band's rules, not its own) and the grip's
+// hairline between handle and body. That is deliberate and it is why the
+// dial exists rather than four `border-color` overrides: all three are the
+// chip's vertical line system and a colorway that moved only the outer two
+// would leave a grey line inside a coloured box.
+.nav-bar .create-btn--maker           { --chip-rim: var(--maker-contrast);     --chip-grip: var(--maker-contrast);     --chip-glow: var(--cyan-3); }
+.nav-bar .create-btn--skeletonBuilder { --chip-rim: var(--skeletons-contrast); --chip-grip: var(--skeletons-contrast); --chip-glow: var(--deep-orange-3); }
+.nav-bar .create-btn--labelMaker      { --chip-rim: var(--labels-contrast);    --chip-grip: var(--labels-contrast);    --chip-glow: var(--deep-purple-3); }
+.nav-bar .create-btn--uploader        { --chip-rim: var(--uploader-contrast);  --chip-grip: var(--uploader-contrast);  --chip-glow: var(--lime-3); }
+
+// ── AN OPEN WINDOW LIGHTS ITS CHIP (2026-09-05, user ask: "when a window is
+// open, illuminate their borders, as if emitting light with the 11-th color
+// tone for each respective button… also illuminate with this bright color the
+// button's icon") ─────────────────────────────────────────────────────────
+//
+// `is-active` is `isOpen && !isMinimized` (see `creationExpanded`) — the same
+// meaning the chat and dashboard chips have given that class since they got
+// one, and it hands off cleanly with the parked tab: the chip glows while the
+// window is UP, the tab appears when it goes DOWN, and neither state is ever
+// announced twice.
+//
+// ⚠ THE BORDERS THAT ILLUMINATE ARE THE **WINDOW'S**, NOT THE CHIP'S. The
+// first pass of this read "their borders" as the buttons' and ringed the chip;
+// the ask is the window (`--dock-glow` + the three shadow layers on
+// `.dock-window--creation`, `_components.scss`). What stays here is the ask's
+// SECOND sentence, which is about this chip and only about its GLYPH:
+// "illuminate with this bright color the button's icon when the window is
+// open". So the chip's rims, its handle and its word do not move — they are
+// the contrast and Material 900 the previous ask put there — and exactly one
+// mark on the bar changes when a window stands up.
+//
+// ⚠ A GLOW-TONE GLYPH NEEDS A BLOOM ON THIS BAR, AND THAT IS NOT OPTIONAL.
+// Every glow tone is near the pale end of its family (the set is Material
+// 200 since the sober pass; it was the A100s for one ask before that), the chip's face is
+// `--plaque-flat` cream, and the band around it is NOT the dark `--grey-8`
+// plate the top rail and side trio wear — the footer trail is `--light-cream`
+// under a 60% `--grey-4` veil, ~rgb(234,231,226). There is nowhere on this bar
+// for a light tone to be luminous by brightness, so it reads by BLOOM instead.
+// (The windows have it easier: they stand over the feed's `--grey-8` field.)
+//
+// ⚠ NOTHING MOVES. `text-shadow` is outside the box model, so a 19px chip in
+// a zero-sum 19px row stays 19px and the trail's geometry is untouched.
+//
+// THE WORD DOES NOT LIGHT, deliberately: it stays at Material 900. At 9px a
+// glow-tone word on cream is illegible and no bloom rescues type that small —
+// lighting it would delete it. The glyph is a lamp; the word is a name.
+.nav-bar .create-btn.is-active {
+  // `:deep()` because Quasar owns the `.q-icon` inside `.q-btn__content`; the
+  // direct combinator excludes the grip's own drag glyph, which is a HANDLE
+  // and stays in the contrast with the rims it belongs to.
+  :deep(.q-btn__content) > .q-icon {
+    color: var(--chip-glow);
+    // ⚠ The carve has to go. `--chip-carve` is a white-over-dark text-shadow
+    // pair that makes a resting glyph read as pressed INTO the cream; on a
+    // lit glyph it draws a hard dark edge around a light source, which is
+    // the one thing a lamp cannot have.
+    //
+    // What replaces it is a two-layer bloom, and the TIGHT CONTRAST LAYER IS
+    // LOAD-BEARING — an A100 glyph on this cream face
+    // is a ghost without it, and `--lime-3` (#e6ee9c) is the one that proves
+    // it: measured 1.10:1, invisible, where the other three merely read
+    // faint. A 2px bloom in the family's own mid tone gives the mark its edge
+    // back without outlining it, so it reads as a filament rather than as a
+    // pale glyph with a border.
+    text-shadow:
+      0 0 2px color-mix(in srgb, var(--chip-rim) 80%, transparent),
+      0 0 6px color-mix(in srgb, var(--chip-glow) 70%, transparent);
+  }
+}
 
 // The nav-btn base styling lives in src/css/_components.scss — CREAM CHIPS ON
 // THE TRAIL since 2026-08-23 (they were light glass pebbles, a light-green-1
@@ -1606,6 +1989,14 @@ export default defineComponent({
     // two exceptions worth naming — the dashboard chip's `--grey-9` and the
     // chat chip's `--ink-2` reached their glyphs through this same seam; both
     // chips are wordless, and both now rest in the bar's one ink anyway.)
+    //
+    // ⚠ THAT SENTENCE HAS FOUR EXCEPTIONS AGAIN SINCE 2026-09-05 (user ask:
+    // "for each button, color the text with the darkest available tone of
+    // their respective quasar color tone"). The four creation words are the
+    // one place on this bar where a colorway is stated in WRITING, and the
+    // rules are below this block. `inherit` is what makes them possible in
+    // one line each — the word takes the button's colour, and the button
+    // states it.
     color: inherit;
     white-space: nowrap;
 
@@ -2100,9 +2491,13 @@ export default defineComponent({
   // The tack butts against `.nav-right`'s gap, which just shrank.
   .tack-slot { margin-left: -4px; }
 
-  // Parked tabs stand on the same band; a long draft title would otherwise
-  // run the strip off the left edge of a 375px screen.
-  .minitab { padding: 0 8px; }
+  // Parked tabs stand on the same band. ⚠ On a phone the tabs are still
+  // ADDRESSED to their chips (`minitabStyle` measures whatever is mounted),
+  // which is what keeps the pairing true at the width where it matters most —
+  // but the chips are word-less down here, so the label has to give: what is
+  // left is the glyph, its meta, and as much of the name as a ~40px chip can
+  // hold. `trailShiftOf` reads 0 on mobile, so nothing translates.
+  .minitab { padding: 2px 4px 0; gap: 3px; }
   .minitab__label { max-width: 9ch; }
 }
 </style>

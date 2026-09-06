@@ -192,10 +192,10 @@ export default defineComponent({
 //     free. `border-radius` here does NOT reach the border: the outline is
 //     drawn by `:before`, which needs `border-radius: inherit` or the box
 //     rounds and its rim stays square.
-//   · `:before` — the RIM. 2px solid `--blue-grey-6` ("thick"), replacing
+//   · `:before` — the RIM. 2px solid `--maker-contrast` ("thick"), replacing
 //     Quasar's 1px `rgba(0,0,0,.24)`.
-//   · `:after` — the FOCUS ring, `--q-primary` (the window's
-//     `--blue-grey-8`). Same `inherit`, same reason.
+//   · `:after` — the FOCUS ring, `--q-primary` (the host window's DEEP
+//     step). Same `inherit`, same reason.
 //   · `.q-field__marginal` — the append/prepend cell, 40px tall in dense and
 //     the thing that silently keeps a 26px control 40px tall if it is left
 //     alone.
@@ -205,9 +205,11 @@ export default defineComponent({
     min-height: 26px;
     padding: 0 4px 0 10px;
     border-radius: 13px;
-    // `--maker-pale`, not `--blue-grey-1` (2026-08-26, the uploader repaint):
-    // this header is worn by two colorways now, and a shared component reads
-    // DIALS — the maker leaves the default, `.uploader-dock` turns it teal.
+    // `--maker-pale`, not a LEVEL (2026-08-26, the uploader repaint): this
+    // header is worn by two colorways, and a shared component reads DIALS —
+    // the post window leaves the default, `.uploader-dock` turns it. ⚠ Both
+    // families moved on 2026-09-05 (blue-grey → cyan, teal → lime) and NOT
+    // ONE LINE IN THIS FILE CHANGED. That is the whole return on the dial.
     background: var(--maker-pale);
 
     &::before {

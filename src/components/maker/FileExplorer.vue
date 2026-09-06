@@ -237,8 +237,11 @@ export default defineComponent({
 // cards on a carved inset pit — and since 2026-08-26's repaint (the uploader
 // wears the post window's construction in teal) the accents read the
 // window's dial, `--uploader-contrast`, instead of the shared chrome's
-// `#00829c`. Washes restate the dial's channels (0,150,136) — see the drop
-// zone's note in UploaderDock. The per-kind ICON palette (`KIND_COLOR`)
+// `#00829c`. Washes restate the dial's channels through `--lime-10-rgb` —
+// see the drop zone's note in UploaderDock. (⚠ Until 2026-09-05 both the
+// dial and the washes were TEAL, and the washes spelled `$teal-6`'s channels
+// as a literal `rgba(0, 150, 136, …)` in four places here; the lime repaint
+// had to find them by grep, which is why they read a token now.) The per-kind ICON palette (`KIND_COLOR`)
 // stays: it classifies files, it does not chrome the window — the same line
 // RefBrowser drew when its pressed pills went one-tone and its result icons
 // kept the kind colours.
@@ -282,7 +285,7 @@ export default defineComponent({
 // rim at rest, contrast pressed. ──
 .view-toggle {
   display: inline-flex;
-  border: 1px solid var(--teal-4);
+  border: 1px solid var(--lime-9);
   border-radius: var(--radius-pill);
   overflow: hidden;
   background: rgba(255, 255, 255, 0.6);
@@ -363,7 +366,7 @@ export default defineComponent({
   text-align: left;
   transition: border-color 0.12s;
 
-  &:hover { border-color: rgba(0, 150, 136, 0.5); }
+  &:hover { border-color: rgba(var(--lime-10-rgb), 0.5); }
 }
 
 .file-row__thumb {
@@ -433,8 +436,8 @@ export default defineComponent({
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: var(--uploader-contrast);
-  background: rgba(0, 150, 136, 0.08);
-  border: 1px solid rgba(0, 150, 136, 0.25);
+  background: rgba(var(--lime-10-rgb), 0.08);
+  border: 1px solid rgba(var(--lime-10-rgb), 0.25);
   border-radius: var(--radius-pill);
   padding: 0 6px;
   white-space: nowrap;
@@ -465,7 +468,7 @@ export default defineComponent({
   transition: border-color 0.12s, box-shadow 0.12s;
 
   &:hover {
-    border-color: rgba(0, 150, 136, 0.55);
+    border-color: rgba(var(--lime-10-rgb), 0.55);
     box-shadow: 0 2px 10px rgba(var(--ink-rgb-deep), 0.16);
   }
 }
