@@ -545,14 +545,16 @@ export default defineComponent({
   // for it, so every tone in this colorway is a rung of the ladder again. The
   // chip's lit glyph on the bar kept its own `--chip-glow`.)
   --dock-rule: var(--labels-contrast);
-  --dock-rule-strong: var(--deep-purple-8);
+  // ⚠ THE FAMILY MOVED ON 2026-09-07 (user ask: "labels -> pink") — the levels named here
+  // are pink's now; the dials above them follow in `_tokens.scss`.
+  --dock-rule-strong: var(--pink-8);
   --dock-ink: var(--labels-contrast);
-  --dock-ink-mute: var(--deep-purple-4);
-  --dock-well: var(--deep-purple-1);
+  --dock-ink-mute: var(--pink-4);
+  --dock-well: var(--pink-1);
   --ltm-accent: var(--labels-contrast);
-  --ltm-accent-rgb: var(--deep-purple-6-rgb);
+  --ltm-accent-rgb: var(--pink-6-rgb);
   --q-primary: var(--labels-contrast);
-  --q-secondary: var(--deep-purple-8);
+  --q-secondary: var(--pink-8);
 }
 
 // ── THE HEADER PLATE — the maker's `.dock-bar__plate`, dial for dial, in
@@ -649,7 +651,7 @@ export default defineComponent({
   color: var(--ink-soft);
   cursor: pointer;
 
-  &:hover { color: var(--labels-contrast); background: rgba(var(--deep-purple-6-rgb), 0.1); }
+  &:hover { color: var(--labels-contrast); background: rgba(var(--pink-6-rgb), 0.1); }
   &.is-current { color: #fff; background: var(--labels-contrast); }
 }
 
@@ -671,7 +673,7 @@ export default defineComponent({
   background: rgba(var(--ink-rgb), 0.08);
 
   &--sys  { color: #8a6200; background: rgba(255, 200, 0, 0.18); }
-  &--mine { color: var(--labels-contrast); background: rgba(var(--deep-purple-6-rgb), 0.12); }
+  &--mine { color: var(--labels-contrast); background: rgba(var(--pink-6-rgb), 0.12); }
 }
 
 .label-dock__open {

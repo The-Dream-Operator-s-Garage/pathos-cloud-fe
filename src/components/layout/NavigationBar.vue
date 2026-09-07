@@ -1107,6 +1107,29 @@ export default defineComponent({
   --mtab-face: var(--plaque-flat, #f8f2e4);
   --mtab-rim-ink: var(--grey-6, #9e9e9e);
   --mtab-ink: var(--grey-9, #424242);
+  // ── THE TAB WEARS ITS WINDOW'S GLASS EDGE (2026-09-07 PM, user ask: "put
+  // the glass border effect onto the tabs") — the footprint's sheet / lip /
+  // rim (`.dock-window--creation`, `_components.scss`) on the tab's own
+  // construction: the SHEET is the 2px rim the tab already had, recoloured
+  // to its rim tone tinting the strong glass at 15% (`--mtab-rim-ink` is
+  // the window's contrast on the four creation tabs, lime-4 on chat's,
+  // grey-6 on the dashboard's — so each tab's glass carries its window);
+  // `background-clip: padding-box` stops the face at the sheet so the
+  // band shows through it; the LIP is 1px white-85% inside the top and both
+  // sides as three one-sided inset shadows (safe here as on the chips —
+  // nothing in a tab paints over its edge; the bottom is the seat on the
+  // bar and gets none); the RIM is a 1px grey-9-30% ring outside, whose
+  // bottom run lands under the bar (z 3110 over this strip's 3045).
+  // ⚠ THE FLARES CARRY ALL THREE. Each concave flare is a radial gradient
+  // that used to run transparent → rim → face; it runs transparent → RIM
+  // hairline → SHEET → LIP → face now, at the same radii plus one pixel each
+  // side, so the glass turns the corner down to the chip instead of stopping
+  // at the tab's box. A flare is `--minitab-flare` + `--minitab-rim` wide
+  // and `--minitab-flare` tall; the lip band at F..F+1 and the face beyond
+  // still fit inside it.
+  --mtab-edge: color-mix(in srgb, var(--mtab-rim-ink) 15%, var(--surface-glass-strong));
+  --mtab-edge-lip: rgb(255 255 255 / 85%);
+  --mtab-edge-rim: color-mix(in srgb, var(--grey-9) 30%, transparent);
 
   pointer-events: auto; // the strip above is a click-through layer
   position: absolute;
@@ -1119,7 +1142,8 @@ export default defineComponent({
   min-width: 0;
   padding: 2px 6px 0;
   line-height: 1;
-  border: var(--minitab-rim) solid var(--mtab-rim-ink);
+  border: var(--minitab-rim) solid var(--mtab-edge);
+  background-clip: padding-box;
   border-bottom: none; // it flows into the bar, so it has no bottom edge
   border-radius: 9px 9px 0 0;
   background: var(--mtab-face);
@@ -1128,7 +1152,11 @@ export default defineComponent({
   // NO CAST (2026-08-02, user ask) — it wore `0 2px 8px` onto the frieze band
   // and that downward reach, at the bar's own top edge, is what made a parked
   // tab look like it hovers above the bar instead of being attached to it.
-  box-shadow: none;
+  box-shadow:
+    inset 0 1px 0 0 var(--mtab-edge-lip),
+    inset 1px 0 0 0 var(--mtab-edge-lip),
+    inset -1px 0 0 0 var(--mtab-edge-lip),
+    0 0 0 1px var(--mtab-edge-rim);
   transition: background 0.12s, padding-bottom 0.12s, transform 0.12s;
 
   // The media tab's two states, mirrored: hover REACHES further out of the
@@ -1157,19 +1185,27 @@ export default defineComponent({
   &::before {
     left: calc(-1 * var(--minitab-flare));
     background: radial-gradient(circle at 0 0,
-      transparent calc(var(--minitab-flare) - var(--minitab-rim) - 0.1px),
-      var(--mtab-rim-ink) calc(var(--minitab-flare) - var(--minitab-rim) + 0.1px),
-      var(--mtab-rim-ink) calc(var(--minitab-flare) - 0.1px),
-      var(--mtab-face) calc(var(--minitab-flare) + 0.1px));
+      transparent calc(var(--minitab-flare) - var(--minitab-rim) - 1px - 0.1px),
+      var(--mtab-edge-rim) calc(var(--minitab-flare) - var(--minitab-rim) - 1px + 0.1px),
+      var(--mtab-edge-rim) calc(var(--minitab-flare) - var(--minitab-rim) - 0.1px),
+      var(--mtab-edge) calc(var(--minitab-flare) - var(--minitab-rim) + 0.1px),
+      var(--mtab-edge) calc(var(--minitab-flare) - 0.1px),
+      var(--mtab-edge-lip) calc(var(--minitab-flare) + 0.1px),
+      var(--mtab-edge-lip) calc(var(--minitab-flare) + 1px - 0.1px),
+      var(--mtab-face) calc(var(--minitab-flare) + 1px + 0.1px));
   }
 
   &::after {
     right: calc(-1 * var(--minitab-flare));
     background: radial-gradient(circle at 100% 0,
-      transparent calc(var(--minitab-flare) - var(--minitab-rim) - 0.1px),
-      var(--mtab-rim-ink) calc(var(--minitab-flare) - var(--minitab-rim) + 0.1px),
-      var(--mtab-rim-ink) calc(var(--minitab-flare) - 0.1px),
-      var(--mtab-face) calc(var(--minitab-flare) + 0.1px));
+      transparent calc(var(--minitab-flare) - var(--minitab-rim) - 1px - 0.1px),
+      var(--mtab-edge-rim) calc(var(--minitab-flare) - var(--minitab-rim) - 1px + 0.1px),
+      var(--mtab-edge-rim) calc(var(--minitab-flare) - var(--minitab-rim) - 0.1px),
+      var(--mtab-edge) calc(var(--minitab-flare) - var(--minitab-rim) + 0.1px),
+      var(--mtab-edge) calc(var(--minitab-flare) - 0.1px),
+      var(--mtab-edge-lip) calc(var(--minitab-flare) + 0.1px),
+      var(--mtab-edge-lip) calc(var(--minitab-flare) + 1px - 0.1px),
+      var(--mtab-face) calc(var(--minitab-flare) + 1px + 0.1px));
   }
 }
 
@@ -1190,22 +1226,22 @@ export default defineComponent({
 .minitab--maker {
   --mtab-face: var(--maker-flat);
   --mtab-rim-ink: var(--maker-contrast);
-  --mtab-ink: var(--cyan-10);
+  --mtab-ink: var(--blue-10);
 }
 .minitab--skeletonBuilder {
   --mtab-face: var(--skeletons-flat);
   --mtab-rim-ink: var(--skeletons-contrast);
-  --mtab-ink: var(--deep-orange-10);
+  --mtab-ink: var(--amber-10);
 }
 .minitab--labelMaker {
   --mtab-face: var(--labels-flat);
   --mtab-rim-ink: var(--labels-contrast);
-  --mtab-ink: var(--deep-purple-10);
+  --mtab-ink: var(--pink-10);
 }
 .minitab--uploader {
   --mtab-face: var(--uploader-flat);
   --mtab-rim-ink: var(--uploader-contrast);
-  --mtab-ink: var(--lime-10);
+  --mtab-ink: var(--green-10);
 }
 // ⚠ CHAT AND THE DASHBOARD ARE THE TWO WINDOWS WITH NO SHEET OF THEIR OWN —
 // the one-plaque law's remaining two — so their tabs keep the bar's
@@ -1320,10 +1356,31 @@ export default defineComponent({
 // floor of the set and still clears AA for the 9px bold-tracked word it
 // letters; it is the tone this family's ink has always sat at (chat's whole
 // colorway is written in it) for exactly that reason.
-.nav-bar .create-btn--maker           .nav-btn__label { color: var(--cyan-10); }
-.nav-bar .create-btn--skeletonBuilder .nav-btn__label { color: var(--deep-orange-10); }
-.nav-bar .create-btn--labelMaker      .nav-btn__label { color: var(--deep-purple-10); }
-.nav-bar .create-btn--uploader        .nav-btn__label { color: var(--lime-10); }
+// ⚠ THE FOUR FAMILIES CHANGED ON 2026-09-07 (user ask: uploads green, posts
+// blue, skeletons amber, labels pink — the sitting's first cut, light-green /
+// light-blue / orange / purple, was re-asked before it shipped). The words
+// follow the law above, each family's Material 900. Measured on the chip
+// face: blue-10 7.7:1, pink-10 8.5:1, green-10 7.1:1, amber-10 **2.5:1** —
+// ⚠ the amber is far under AA for a 9px word, and it is still the answer:
+// amber's 900 (#ff6f00) is the darkest tone Quasar's amber has, the word law
+// asks for exactly that, and the family was chosen knowing it cannot carry
+// ink (`$amber-*`, `_tokens.scss`). The hand-mixed `--amber-deep` would read
+// 4.1:1 and is not a Quasar tone; it stays the window's deep step.
+//
+// ── ⭐ AND THE GLYPH MATCHES THE WORD (2026-09-07 PM, user ask: "for the
+// buttons, make the icon match the text button color") — the four creation
+// chips' kind icons take the same Material 900 as their words at rest, via
+// ONE dial, `--chip-word`, so the two cannot drift. This retires the "word
+// only, not the glyph" split below for these four; chat's and the
+// dashboard's glyphs stay the bar's one ink. The LIT state is untouched: a
+// standing window still turns its chip's glyph to the family's 200 with the
+// bloom (`.create-btn.is-active`, further down — it outscores this rule).
+.nav-bar .create-btn--maker           { --chip-word: var(--blue-10); }
+.nav-bar .create-btn--skeletonBuilder { --chip-word: var(--amber-10); }
+.nav-bar .create-btn--labelMaker      { --chip-word: var(--pink-10); }
+.nav-bar .create-btn--uploader        { --chip-word: var(--green-10); }
+.nav-bar .create-btn .nav-btn__label { color: var(--chip-word); }
+.nav-bar .create-btn :deep(.q-btn__content) > .q-icon { color: var(--chip-word); }
 
 // ── AND THE CHIP'S LINES AND ITS HANDLE (2026-09-05, the sitting's last ask:
 // "recolor the buttons borders and the drag icon just like their respective
@@ -1349,10 +1406,10 @@ export default defineComponent({
 // dial exists rather than four `border-color` overrides: all three are the
 // chip's vertical line system and a colorway that moved only the outer two
 // would leave a grey line inside a coloured box.
-.nav-bar .create-btn--maker           { --chip-rim: var(--maker-contrast);     --chip-grip: var(--maker-contrast);     --chip-glow: var(--cyan-3); }
-.nav-bar .create-btn--skeletonBuilder { --chip-rim: var(--skeletons-contrast); --chip-grip: var(--skeletons-contrast); --chip-glow: var(--deep-orange-3); }
-.nav-bar .create-btn--labelMaker      { --chip-rim: var(--labels-contrast);    --chip-grip: var(--labels-contrast);    --chip-glow: var(--deep-purple-3); }
-.nav-bar .create-btn--uploader        { --chip-rim: var(--uploader-contrast);  --chip-grip: var(--uploader-contrast);  --chip-glow: var(--lime-3); }
+.nav-bar .create-btn--maker           { --chip-rim: var(--maker-contrast);     --chip-grip: var(--maker-contrast);     --chip-glow: var(--blue-3); }
+.nav-bar .create-btn--skeletonBuilder { --chip-rim: var(--skeletons-contrast); --chip-grip: var(--skeletons-contrast); --chip-glow: var(--amber-3); }
+.nav-bar .create-btn--labelMaker      { --chip-rim: var(--labels-contrast);    --chip-grip: var(--labels-contrast);    --chip-glow: var(--pink-3); }
+.nav-bar .create-btn--uploader        { --chip-rim: var(--uploader-contrast);  --chip-grip: var(--uploader-contrast);  --chip-glow: var(--green-3); }
 
 // ── THE CHIP WEARS ITS WINDOW'S GLASS EDGE (2026-09-07 PM, user ask, after
 // the windows' borders became "thin glass sheets": "transfer this effect

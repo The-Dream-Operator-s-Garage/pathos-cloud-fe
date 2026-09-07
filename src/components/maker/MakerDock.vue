@@ -193,7 +193,7 @@ export default defineComponent({
 // — pale -1, mute -6, contrast -9, deep -10, against blue-grey's regular
 // 1/4/6/8 — because cyan's Material 500 reads 2.08:1 and is a mute, not a
 // contrast. The ladder is stated by READING in this family, and the table is
-// in `_tokens.scss` § THE POST WINDOW'S FOUR. ──
+// in `_tokens.scss` § BLUE, THE POST WINDOW'S FAMILY (cyan's until 2026-09-07). ──
 //
 //   --dock-rule        the INNER BORDERS — shell, bar underline, tab strip,
 //                      tab rims (was `--brown-3`)
@@ -216,16 +216,18 @@ export default defineComponent({
   // for it, so every tone in this colorway is a rung of the ladder again. The
   // chip's lit glyph on the bar kept its own `--chip-glow`.)
   --dock-rule: var(--maker-contrast);
-  --dock-rule-strong: var(--cyan-10);
+  // ⚠ THE FAMILY MOVED ON 2026-09-07 (user ask: "posts -> blue") — the levels named here
+  // are blue's now; the dials above them follow in `_tokens.scss`.
+  --dock-rule-strong: var(--blue-9);
   --dock-ink: var(--maker-contrast);
-  --dock-ink-mute: var(--cyan-6);
-  --dock-well: var(--cyan-1);
+  --dock-ink-mute: var(--blue-6);
+  --dock-well: var(--blue-1);
 }
 
 // The one brown in the shared chrome that is NOT a dial — a tab's hover ink
 // is written `var(--brown-10, #3e2723)` inline. It takes the window's deep
 // step, the same tone the active tab's rim does.
-.dock-tab:hover { color: var(--cyan-10); }
+.dock-tab:hover { color: var(--blue-9); }
 
 // ── THE HEADER PLATE (2026-08-26, user ask) ──
 //

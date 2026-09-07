@@ -570,19 +570,23 @@ export default defineComponent({
   // for it, so every tone in this colorway is a rung of the ladder again. The
   // chip's lit glyph on the bar kept its own `--chip-glow`.)
   --dock-rule: var(--skeletons-contrast);
-  --dock-rule-strong: var(--deep-orange-10);
+  // ⚠ THE FAMILY MOVED ON 2026-09-07 (user ask: "skeletons -> amber") — the levels named here
+  // are amber's now; the dials above them follow in `_tokens.scss`.
+  // ⚠ `--amber-deep` is HAND-MIXED: amber's contrast is already its 900, and
+  // that 900 is the family's ceiling (2.5:1 on the coat) — read `$amber-*`.
+  --dock-rule-strong: var(--amber-deep);
   --dock-ink: var(--skeletons-contrast);
-  --dock-ink-mute: var(--deep-orange-4);
-  --dock-well: var(--deep-orange-1);
+  --dock-ink-mute: var(--amber-9);
+  --dock-well: var(--amber-1);
   --ltm-accent: var(--skeletons-contrast);
-  --ltm-accent-rgb: var(--deep-orange-8-rgb);
+  --ltm-accent-rgb: var(--amber-10-rgb);
   --q-primary: var(--skeletons-contrast);
 }
 
 // The one brown in the shared chrome that is NOT a dial — the tab-hover ink,
 // written `var(--brown-10, #3e2723)` inline. The window's deep step, as in
 // the other three.
-.dock-tab:hover { color: var(--deep-orange-10); }
+.dock-tab:hover { color: var(--amber-deep); }
 
 // ── THE HEADER PLATE — MakerDock's `.dock-bar__plate`, dial for dial, in
 // this window's contrast. Same scoping argument: the plate is stated at the
@@ -668,7 +672,7 @@ export default defineComponent({
   text-align: left;
   transition: border-color 0.12s, box-shadow 0.12s;
 
-  &:hover { border-color: rgba(var(--deep-orange-8-rgb), 0.5); box-shadow: var(--shadow-soft); }
+  &:hover { border-color: rgba(var(--amber-10-rgb), 0.5); box-shadow: var(--shadow-soft); }
 }
 
 .start-define__title {
@@ -766,7 +770,7 @@ export default defineComponent({
   cursor: pointer;
   transition: border-color 0.12s, color 0.12s;
 
-  &:hover { border-color: rgba(var(--deep-orange-8-rgb), 0.5); color: var(--skeletons-contrast); }
+  &:hover { border-color: rgba(var(--amber-10-rgb), 0.5); color: var(--skeletons-contrast); }
 }
 
 // ── Body (define mode) ──
@@ -869,7 +873,7 @@ export default defineComponent({
   color: var(--ink-soft);
   cursor: pointer;
 
-  &:hover { border-color: rgba(var(--deep-orange-8-rgb), 0.5); color: var(--skeletons-contrast); }
+  &:hover { border-color: rgba(var(--amber-10-rgb), 0.5); color: var(--skeletons-contrast); }
 }
 
 .kind-chip {

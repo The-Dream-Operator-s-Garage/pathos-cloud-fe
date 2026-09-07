@@ -437,7 +437,7 @@ export default defineComponent({
   // window's MUTE, `--cyan-6` since 2026-09-05, `--blue-grey-4` before it)
   // rather than a transparency, because every other line in this window is
   // solid and one washed rim among them reads as a rendering artefact.
-  border: 1px solid var(--cyan-6);
+  border: 1px solid var(--dock-ink-mute); // the window's MUTE dial (2026-09-07; was the post window's `--cyan-6` level)
   border-radius: var(--radius-pill);
   background: rgba(255, 255, 255, 0.6);
   color: var(--ink-soft);
