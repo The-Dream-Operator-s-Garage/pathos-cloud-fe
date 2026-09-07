@@ -142,9 +142,12 @@
              a slab.
 
              They carry `.nav-btn` now — the bar's one button rule — and
-             `.create-btn` is kept purely as a NAME: no rule reads it (the aqua
-             hover it used to carry went when the bar took one shared hover),
-             but the witness flow and the docs address these four by it. ── -->
+             `.create-btn` was kept purely as a NAME from then until
+             2026-09-07 PM: no rule read it (the aqua hover it used to carry
+             went when the bar took one shared hover); the witness flow and
+             the docs simply addressed these four by it. ONE rule reads it
+             now — the glass edge these four share with their windows (the
+             style block below, "THE CHIP WEARS ITS WINDOW'S GLASS EDGE"). ── -->
 
         <!-- ── ⭐ THE TRAIL IS A SLIDER (2026-08-30, user ask: "transform the
              frieze bar … into a horizontal sliding bar … I want to grab a
@@ -1350,6 +1353,51 @@ export default defineComponent({
 .nav-bar .create-btn--skeletonBuilder { --chip-rim: var(--skeletons-contrast); --chip-grip: var(--skeletons-contrast); --chip-glow: var(--deep-orange-3); }
 .nav-bar .create-btn--labelMaker      { --chip-rim: var(--labels-contrast);    --chip-grip: var(--labels-contrast);    --chip-glow: var(--deep-purple-3); }
 .nav-bar .create-btn--uploader        { --chip-rim: var(--uploader-contrast);  --chip-grip: var(--uploader-contrast);  --chip-glow: var(--lime-3); }
+
+// ── THE CHIP WEARS ITS WINDOW'S GLASS EDGE (2026-09-07 PM, user ask, after
+// the windows' borders became "thin glass sheets": "transfer this effect
+// onto the respective buttons for the windows on the bottom footer bar") ──
+//
+// The same three-part edge the footprint draws (`.dock-window--creation`,
+// `_components.scss`: sheet, lip, rim), scaled to a 19px chip and to the
+// chip's own line system — VERTICALS ONLY, because a chip's horizontals are
+// the band's rules and not its own (the trail witness's "1px in the gaps,
+// never 2px over a chip" rule). Nothing moves: the sheet IS the 1px side rim
+// the chip already had, recoloured, and the lip and the rim are shadows,
+// which are outside the box model.
+//  · `--chip-edge` — the SHEET: the chip's contrast (`--chip-rim`) tinting
+//    the platform's strong glass at 15%, the window's recipe exactly, so a
+//    chip and its window are one material. `background-clip: padding-box`
+//    stops the cream face at the sheet and lets the BAND show through it —
+//    without the clip a translucent rim merely tints the face.
+//  · `--chip-edge-lip` — the LIP: 1px white at 85% just inside each side,
+//    as two one-sided inset shadows (`inset ±1px 0`). An inset shadow is
+//    safe here where the window needed a pseudo-element: nothing inside a
+//    chip paints a background over its edge.
+//  · `--chip-edge-rim` — the RIM: 1px `--grey-9` at 30% just outside each
+//    side, as two one-sided offset shadows (`±1px 0`) — the box shifted a
+//    pixel, of which only that pixel shows. Square chips, so no corner to
+//    reconcile. It lands in the gap between chips, which is ≥4px.
+//
+// ⚠ `--chip-rim` STILL REACHES THE GRIP'S HAIRLINE at full strength: the
+// window kept its inner lines (plate rim, underline, tab rims) in the
+// contrast while its shell went glass, and the chip does the same — the
+// handle's divider is structure inside the box, not the box's edge.
+// ⚠ Chat and the other footer chips keep their flat grey-5 sides: this rule
+// reads `.create-btn`, which is the four creation chips and nothing else.
+// (The template's note that "no rule reads it" is from before this day.)
+.nav-bar .create-btn {
+  --chip-edge: color-mix(in srgb, var(--chip-rim) 15%, var(--surface-glass-strong));
+  --chip-edge-lip: rgb(255 255 255 / 85%);
+  --chip-edge-rim: color-mix(in srgb, var(--grey-9) 30%, transparent);
+  border-color: var(--chip-edge);
+  background-clip: padding-box;
+  box-shadow:
+    inset 1px 0 0 0 var(--chip-edge-lip),
+    inset -1px 0 0 0 var(--chip-edge-lip),
+    1px 0 0 0 var(--chip-edge-rim),
+    -1px 0 0 0 var(--chip-edge-rim);
+}
 
 // ── AN OPEN WINDOW LIGHTS ITS CHIP (2026-09-05, user ask: "when a window is
 // open, illuminate their borders, as if emitting light with the 11-th color

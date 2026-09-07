@@ -730,14 +730,57 @@
   background: var(--dock-coat);
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
-  border: 1px solid var(--dock-rule);
+  // ── THE BORDER IS A THIN GLASS SHEET (2026-09-07 PM, user ask: "change the
+  // borders of the windows so they look like thin glass sheets") ──────────
+  // Three things make an edge read as glass, and they are three dials:
+  //  · `--dock-edge` — the SHEET: a translucent band, the platform's
+  //    `--surface-glass-strong` (white at 70%) tinted 15% with the window's
+  //    own contrast, so each window's glass carries its family faintly
+  //    (cyan, deep-orange, deep-purple, lime; chat's lime-3 and the
+  //    dashboard's grey-4 are so pale their sheets are near-clear).
+  //    `--dock-edge-w` is its thickness, 2px.
+  //    ⚠ WALKED IN THE SAME SITTING (user ask: "slightly thinner and less
+  //    transparent, even slightly brighter"): 3px → 2px; `--surface-glass`
+  //    (45%) tinted 20% → the strong glass (70%) tinted 15%, which lands the
+  //    sheet at ~75% alpha instead of ~56% and pulls its tone toward white;
+  //    the lip 75% → 85%. The rim and the cast did not move.
+  //  · `--dock-edge-lip` — the LIP: a 1px white-at-85% specular line where
+  //    the sheet meets the coat. Drawn by the `::before` below, NOT by an
+  //    inset `box-shadow`: the header bar paints its own coat over the top
+  //    of the padding box and would bury an inset line there (gotchas).
+  //  · `--dock-edge-rim` — the RIM: a 1px hairline of `--grey-9` at 30%
+  //    outside the sheet, the edge of the glass against the field. It is
+  //    what still draws the box on a cream page, where the sheet itself is
+  //    nearly the coat's tone; it rides the `box-shadow` list below, ahead
+  //    of the cast.
+  // ⚠ `background-clip: padding-box` IS THE GLASS. By default the coat
+  // paints under the border too, and a translucent border merely tints the
+  // coat; clipped to the padding box, the coat stops at the sheet's inner
+  // edge and the FIELD shows through the band — the feed's grey-8 plate, a
+  // page's cream, the corner of a post card. That transparency is the whole
+  // effect.
+  // ⚠ THE FAMILY CONTRAST LEFT THE BORDER, and did not leave the window: the
+  // plate rim, the header underline, the tab rims and the titles still wear
+  // `--dock-rule` / `--dock-ink`, and `flow-window-colorways.mjs` reads the
+  // contrast off the plate rim now, not off the shell. (The shell's line was
+  // `1px solid var(--dock-rule)` from 2026-07-27 to this ask.)
+  --dock-edge-w: 2px;
+  --dock-edge: color-mix(in srgb, var(--dock-rule) 15%, var(--surface-glass-strong));
+  --dock-edge-lip: rgb(255 255 255 / 85%);
+  --dock-edge-rim: color-mix(in srgb, var(--grey-9) 30%, transparent);
+  border: var(--dock-edge-w) solid var(--dock-edge);
   border-bottom: none;
+  background-clip: padding-box;
   border-top-left-radius: var(--dock-radius);
   border-top-right-radius: var(--dock-radius);
-  // A THIN GREY SHADOW, AND NOTHING ELSE (2026-09-07, user ask: remove the
-  // glow from the windows' borders, "make them project a thin grey shadow
-  // instead") — one layer, `--grey-9` at 45%, 6px of blur pulled in 1px and
-  // lifted 2px. Grey-9 and not a paler grey because these windows stand over
+  // A THIN GREY SHADOW (2026-09-07, user ask: remove the glow from the
+  // windows' borders, "make them project a thin grey shadow instead") — one
+  // layer, `--grey-9` at 45%, 6px of blur pulled in 1px and lifted 2px —
+  // ⚠ WITH THE GLASS SHEET'S RIM AHEAD OF IT since the same afternoon (the
+  // border note above): a 1px hairline ring, `--dock-edge-rim`, that is the
+  // edge of the glass and not a cast, so it is symmetric where the cast is
+  // not; its downward run lands under the nav bar (z 3110 over every dock)
+  // and is never seen. Grey-9 and not a paler grey because these windows stand over
   // TWO fields, the feed's `--grey-8` plate and the cream pages, and a shadow
   // has to DARKEN both: grey-7 (#757575) mixed into grey-8 (#616161) at any
   // alpha composites LIGHTER than the plate — a pale rim, which is a glow
@@ -760,8 +803,44 @@
   // family's Material 200), retired by the ask above. Should a light ever
   // come back it goes HERE, on this declaration — the top of the rule is
   // where a `box-shadow` compiled clean and painted nothing once (gotchas).
-  box-shadow: 0 -2px 6px -1px color-mix(in srgb, var(--grey-9) 45%, transparent);
+  box-shadow:
+    0 0 0 1px var(--dock-edge-rim),
+    0 -2px 6px -1px color-mix(in srgb, var(--grey-9) 45%, transparent);
   transition: left 0.18s ease, right 0.18s ease, top 0.18s ease;
+
+  // THE LIP (the border note above): a ring 1px inside the padding box,
+  // ABOVE every child (z 50 — nothing inside a dock outranks 6), with its
+  // bottom run 2px past the floor so the shell's `overflow: hidden` clips it:
+  // the bottom is welded to the bar and a weld has no highlight.
+  // ⚠ EVERYTHING GEOMETRIC IS INHERITED, ON PURPOSE. The border STYLES AND
+  // WIDTHS, so a flush edge that dropped its border — the dashboard's
+  // screen-joined right, `.is-max`'s left, both splits, the phone joins —
+  // drops this ring's border on that side too, which pushes its line outside
+  // the clip: the lip goes with the sheet, and no rule that squares a corner
+  // has to restate anything here. And the RADII, so the ring's inner curve
+  // is the coat's own (outer cap minus the sheet, squared caps included)
+  // rather than a `calc()` that would have to be repeated wherever a cap is
+  // handed back.
+  // ⚠ THE STYLE MUST BE INHERITED WITH THE WIDTH. `border-width: inherit`
+  // alone copies the parent's SPECIFIED 3px even where the parent's style is
+  // `none` (Blink reports that side's computed width as 0px but hands the
+  // pre-none width down), so a maximized window kept a 3px lip inset on its
+  // flush left edge. Inheriting the style makes that side `none` here as
+  // well, and a `none` border is 0 wide whatever width it inherited
+  // (gotchas). The bottom needs no special case for the same reason: the
+  // parent's `border-bottom: none` arrives as `none`.
+  &::before {
+    content: '';
+    position: absolute;
+    inset: calc(-1 * var(--dock-edge-w)) calc(-1 * var(--dock-edge-w)) -2px;
+    border-style: inherit;
+    border-width: inherit;
+    border-color: transparent;
+    border-radius: inherit;
+    box-shadow: inset 0 0 0 1px var(--dock-edge-lip);
+    pointer-events: none;
+    z-index: 50;
+  }
 
   // HEADER LAYOUT — title centred, traffic lights pinned to the left edge,
   // iOS-sheet fashion rather than the old Mac-window one (2026-08-04, user
@@ -1649,9 +1728,12 @@
     --dock-gap: 8px;
     left: var(--dock-gap);
     // Both restated: the ≤900px rule above squares the left side off for
-    // tablets and it fires here too. `--dock-rule`, never a literal — the
-    // chat dock's left border has to come back GREEN.
-    border-left: 1px solid var(--dock-rule);
+    // tablets and it fires here too. The SHEET's dials, never a literal —
+    // the side has to come back as the window's own glass (2026-09-07 PM;
+    // it was `1px solid var(--dock-rule)` while the border was the contrast
+    // line, and chat's had to come back green). The lip follows by
+    // inheritance.
+    border-left: var(--dock-edge-w) solid var(--dock-edge);
     border-top-left-radius: var(--dock-radius);
   }
 
@@ -1664,8 +1746,8 @@
     left: var(--dock-gap);
     right: calc(var(--dock-right, 0px) + var(--dock-gap));
     top: calc(var(--dock-gap) + var(--media-tabs-h, 0px) + var(--media-tabs-park-h, 0px));
-    border-left: 1px solid var(--dock-rule);
-    border-right: 1px solid var(--dock-rule);
+    border-left: var(--dock-edge-w) solid var(--dock-edge);
+    border-right: var(--dock-edge-w) solid var(--dock-edge);
     border-top-left-radius: var(--dock-radius);
     border-top-right-radius: var(--dock-radius);
   }
