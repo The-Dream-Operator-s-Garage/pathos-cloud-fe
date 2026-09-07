@@ -741,7 +741,7 @@ export default defineComponent({
   font-size: 0.68em;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: var(--maker-deep, var(--blue-9, #1565c0));
+  color: var(--maker-deep, var(--indigo-8, #303f9f));
   .mono { opacity: 0.7; }
 }
 .maker-surface__grids-hint {

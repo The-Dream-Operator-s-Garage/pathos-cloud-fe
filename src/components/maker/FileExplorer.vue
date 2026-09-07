@@ -285,7 +285,7 @@ export default defineComponent({
 // rim at rest, contrast pressed. ──
 .view-toggle {
   display: inline-flex;
-  border: 1px solid var(--green-6);
+  border: 1px solid var(--teal-4);
   border-radius: var(--radius-pill);
   overflow: hidden;
   background: rgba(255, 255, 255, 0.6);
@@ -366,7 +366,7 @@ export default defineComponent({
   text-align: left;
   transition: border-color 0.12s;
 
-  &:hover { border-color: rgba(var(--green-8-rgb), 0.5); }
+  &:hover { border-color: rgba(var(--teal-7-rgb), 0.5); }
 }
 
 .file-row__thumb {
@@ -436,8 +436,8 @@ export default defineComponent({
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: var(--uploader-contrast);
-  background: rgba(var(--green-8-rgb), 0.08);
-  border: 1px solid rgba(var(--green-8-rgb), 0.25);
+  background: rgba(var(--teal-7-rgb), 0.08);
+  border: 1px solid rgba(var(--teal-7-rgb), 0.25);
   border-radius: var(--radius-pill);
   padding: 0 6px;
   white-space: nowrap;
@@ -468,7 +468,7 @@ export default defineComponent({
   transition: border-color 0.12s, box-shadow 0.12s;
 
   &:hover {
-    border-color: rgba(var(--green-8-rgb), 0.55);
+    border-color: rgba(var(--teal-7-rgb), 0.55);
     box-shadow: 0 2px 10px rgba(var(--ink-rgb-deep), 0.16);
   }
 }

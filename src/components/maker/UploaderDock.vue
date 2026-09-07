@@ -903,22 +903,22 @@ export default defineComponent({
   // for it, so every tone in this colorway is a rung of the ladder again. The
   // chip's lit glyph on the bar kept its own `--chip-glow`.)
   --dock-rule: var(--uploader-contrast);
-  // ⚠ THE FAMILY MOVED ON 2026-09-07 (user ask: "uploads -> green") — the levels named here
-  // are green's now; the dials above them follow in `_tokens.scss`.
-  --dock-rule-strong: var(--green-9);
+  // ⚠ THE FAMILY MOVED ON 2026-09-07 (user ask: "uploads -> teal") — the levels named here
+  // are teal (the August family, one rung deeper)'s now; the dials above them follow in `_tokens.scss`.
+  --dock-rule-strong: var(--teal-9);
   --dock-ink: var(--uploader-contrast);
-  --dock-ink-mute: var(--green-6);
-  --dock-well: var(--green-1);
+  --dock-ink-mute: var(--teal-4);
+  --dock-well: var(--teal-1);
   --maker-contrast: var(--uploader-contrast);
-  --maker-pale: var(--green-1);
-  --maker-deep: var(--green-9);
+  --maker-pale: var(--teal-1);
+  --maker-deep: var(--teal-9);
   --q-primary: var(--uploader-contrast);
 }
 
 // The one brown in the shared chrome that is NOT a dial — the tab-hover ink,
 // written `var(--brown-10, #3e2723)` inline. The window's deep step, as in
 // the maker.
-.dock-tab:hover { color: var(--green-9); }
+.dock-tab:hover { color: var(--teal-9); }
 
 // ── THE HEADER PLATE — MakerDock's `.dock-bar__plate`, dial for dial, in
 // this window's contrast. Same scoping argument: the plate is stated at the
@@ -1068,14 +1068,14 @@ export default defineComponent({
   line-height: 1.45;
 
   &::placeholder { color: var(--ink-mute); }
-  &:focus { outline: none; border-color: var(--green-9); }
+  &:focus { outline: none; border-color: var(--teal-9); }
 
   // Files dragged over the note light it as a drop target — the drop
   // zone's own live-edge grammar (the wash restates the contrast's channels
   // through `--lime-10-rgb`, as there).
   &.is-over {
     border-color: var(--uploader-contrast);
-    background: rgba(var(--green-8-rgb), 0.06);
+    background: rgba(var(--teal-7-rgb), 0.06);
   }
 }
 
@@ -1175,7 +1175,7 @@ export default defineComponent({
     // `$teal-6`'s channels, which is what made the lime repaint a grep)
     // — the dial resolves to a hex, so a live-edge wash restates them.
     border-color: var(--uploader-contrast);
-    background: rgba(var(--green-8-rgb), 0.06);
+    background: rgba(var(--teal-7-rgb), 0.06);
   }
 }
 

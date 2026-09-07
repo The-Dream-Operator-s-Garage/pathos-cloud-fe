@@ -1226,22 +1226,22 @@ export default defineComponent({
 .minitab--maker {
   --mtab-face: var(--maker-flat);
   --mtab-rim-ink: var(--maker-contrast);
-  --mtab-ink: var(--blue-10);
+  --mtab-ink: var(--indigo-10);
 }
 .minitab--skeletonBuilder {
   --mtab-face: var(--skeletons-flat);
   --mtab-rim-ink: var(--skeletons-contrast);
-  --mtab-ink: var(--amber-10);
+  --mtab-ink: var(--yellow-10);
 }
 .minitab--labelMaker {
   --mtab-face: var(--labels-flat);
   --mtab-rim-ink: var(--labels-contrast);
-  --mtab-ink: var(--pink-10);
+  --mtab-ink: var(--red-10);
 }
 .minitab--uploader {
   --mtab-face: var(--uploader-flat);
   --mtab-rim-ink: var(--uploader-contrast);
-  --mtab-ink: var(--green-10);
+  --mtab-ink: var(--teal-10);
 }
 // ⚠ CHAT AND THE DASHBOARD ARE THE TWO WINDOWS WITH NO SHEET OF THEIR OWN —
 // the one-plaque law's remaining two — so their tabs keep the bar's
@@ -1356,16 +1356,17 @@ export default defineComponent({
 // floor of the set and still clears AA for the 9px bold-tracked word it
 // letters; it is the tone this family's ink has always sat at (chat's whole
 // colorway is written in it) for exactly that reason.
-// ⚠ THE FOUR FAMILIES CHANGED ON 2026-09-07 (user ask: uploads green, posts
-// blue, skeletons amber, labels pink — the sitting's first cut, light-green /
-// light-blue / orange / purple, was re-asked before it shipped). The words
-// follow the law above, each family's Material 900. Measured on the chip
-// face: blue-10 7.7:1, pink-10 8.5:1, green-10 7.1:1, amber-10 **2.5:1** —
-// ⚠ the amber is far under AA for a 9px word, and it is still the answer:
-// amber's 900 (#ff6f00) is the darkest tone Quasar's amber has, the word law
-// asks for exactly that, and the family was chosen knowing it cannot carry
-// ink (`$amber-*`, `_tokens.scss`). The hand-mixed `--amber-deep` would read
-// 4.1:1 and is not a Quasar tone; it stays the window's deep step.
+// ⚠ THE FOUR FAMILIES CHANGED ON 2026-09-07 (user ask: uploads teal, posts
+// indigo, skeletons yellow, labels red — the sitting walked twice first:
+// light-green / light-blue / orange / purple never shipped, green / blue /
+// pink / amber shipped for one deploy). The words follow the law above, each
+// family's Material 900. Measured on the chip face: indigo-10 11.9:1,
+// teal-10 8.8:1, red-10 5.9:1, yellow-10 **2.4:1** — ⚠ the yellow is far
+// under AA for a 9px word, and it is still the answer: yellow's 900
+// (#f57f17) is the darkest tone Quasar's yellow has, the word law asks for
+// exactly that, and the family was chosen knowing it cannot carry ink
+// (`$yellow-*`, `_tokens.scss`). The hand-mixed `--yellow-deep` would read
+// 3.8:1 and is not a Quasar tone; it stays the window's deep step.
 //
 // ── ⭐ AND THE GLYPH MATCHES THE WORD (2026-09-07 PM, user ask: "for the
 // buttons, make the icon match the text button color") — the four creation
@@ -1375,10 +1376,10 @@ export default defineComponent({
 // dashboard's glyphs stay the bar's one ink. The LIT state is untouched: a
 // standing window still turns its chip's glyph to the family's 200 with the
 // bloom (`.create-btn.is-active`, further down — it outscores this rule).
-.nav-bar .create-btn--maker           { --chip-word: var(--blue-10); }
-.nav-bar .create-btn--skeletonBuilder { --chip-word: var(--amber-10); }
-.nav-bar .create-btn--labelMaker      { --chip-word: var(--pink-10); }
-.nav-bar .create-btn--uploader        { --chip-word: var(--green-10); }
+.nav-bar .create-btn--maker           { --chip-word: var(--indigo-10); }
+.nav-bar .create-btn--skeletonBuilder { --chip-word: var(--yellow-10); }
+.nav-bar .create-btn--labelMaker      { --chip-word: var(--red-10); }
+.nav-bar .create-btn--uploader        { --chip-word: var(--teal-10); }
 .nav-bar .create-btn .nav-btn__label { color: var(--chip-word); }
 .nav-bar .create-btn :deep(.q-btn__content) > .q-icon { color: var(--chip-word); }
 
@@ -1406,10 +1407,10 @@ export default defineComponent({
 // dial exists rather than four `border-color` overrides: all three are the
 // chip's vertical line system and a colorway that moved only the outer two
 // would leave a grey line inside a coloured box.
-.nav-bar .create-btn--maker           { --chip-rim: var(--maker-contrast);     --chip-grip: var(--maker-contrast);     --chip-glow: var(--blue-3); }
-.nav-bar .create-btn--skeletonBuilder { --chip-rim: var(--skeletons-contrast); --chip-grip: var(--skeletons-contrast); --chip-glow: var(--amber-3); }
-.nav-bar .create-btn--labelMaker      { --chip-rim: var(--labels-contrast);    --chip-grip: var(--labels-contrast);    --chip-glow: var(--pink-3); }
-.nav-bar .create-btn--uploader        { --chip-rim: var(--uploader-contrast);  --chip-grip: var(--uploader-contrast);  --chip-glow: var(--green-3); }
+.nav-bar .create-btn--maker           { --chip-rim: var(--maker-contrast);     --chip-grip: var(--maker-contrast);     --chip-glow: var(--indigo-3); }
+.nav-bar .create-btn--skeletonBuilder { --chip-rim: var(--skeletons-contrast); --chip-grip: var(--skeletons-contrast); --chip-glow: var(--yellow-3); }
+.nav-bar .create-btn--labelMaker      { --chip-rim: var(--labels-contrast);    --chip-grip: var(--labels-contrast);    --chip-glow: var(--red-3); }
+.nav-bar .create-btn--uploader        { --chip-rim: var(--uploader-contrast);  --chip-grip: var(--uploader-contrast);  --chip-glow: var(--teal-3); }
 
 // ── THE CHIP WEARS ITS WINDOW'S GLASS EDGE (2026-09-07 PM, user ask, after
 // the windows' borders became "thin glass sheets": "transfer this effect
