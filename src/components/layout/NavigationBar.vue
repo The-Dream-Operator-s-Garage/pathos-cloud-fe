@@ -1372,6 +1372,15 @@ export default defineComponent({
 // the contrast and Material 900 the previous ask put there — and exactly one
 // mark on the bar changes when a window stands up.
 //
+// ⚠ AND THE WINDOW'S HALF IS GONE SINCE 2026-09-07 (user ask: "remove the
+// glow effect from their borders. Make them project a thin grey shadow
+// instead") — `--dock-glow` and its three layers are deleted and the
+// footprint casts one grey layer instead (`_components.scss`, the cast note
+// on `.dock-window--creation`). This glyph is now the ONLY lit mark for a
+// standing window, and `--chip-glow` is the four Material 200 tones' one
+// remaining role. Nothing here moved for it: the two halves of that ask were
+// always two rules, and the second ask took only the first half away.
+//
 // ⚠ A GLOW-TONE GLYPH NEEDS A BLOOM ON THIS BAR, AND THAT IS NOT OPTIONAL.
 // Every glow tone is near the pale end of its family (the set is Material
 // 200 since the sober pass; it was the A100s for one ask before that), the chip's face is

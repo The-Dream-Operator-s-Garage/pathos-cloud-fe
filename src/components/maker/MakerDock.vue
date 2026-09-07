@@ -209,19 +209,12 @@ export default defineComponent({
 // window, which is what the note's objection was about.
 .maker-dock {
   --dock-coat: var(--maker-coat);
-  // ⚠ THE ONLY TONE IN THIS COLORWAY THAT IS NOT ONE OF THE LADDER'S FOUR
-  // RUNGS (2026-09-05, user ask: an open window "illuminates" its borders).
-  // Material 200 — the index the whole glow set is taken at, so the four
-  // windows light in four hues at ONE brightness. It draws nothing — the
-  // shell's border stays `--dock-rule` — it only feeds the three shadow
-  // layers on `.dock-window--creation`, which is also why it is safe for it
-  // to be far too pale to letter anything.
-  // ⚠ It was the family's A100 (-11) for one ask, and the walk down to -3 is
-  // a SATURATION move, not a brightness one (100% → 46-72%): at full chroma
-  // the light read as a neon sign stuck on the window, two steps down it
-  // reads as the window being lit. Same picture, sober. `_tokens.scss` §
-  // THE FOUR GLOW TONES has the numbers.
-  --dock-glow: var(--cyan-3);
+  // (`--dock-glow` stood here 2026-09-05 → 09-07: the open-window light, this
+  // family's Material 200 feeding three shadow layers on the shared footprint.
+  // Retired by the user's ask for "a thin grey shadow instead" — the cast is
+  // one grey layer on `.dock-window--creation` now and no window sets a tone
+  // for it, so every tone in this colorway is a rung of the ladder again. The
+  // chip's lit glyph on the bar kept its own `--chip-glow`.)
   --dock-rule: var(--maker-contrast);
   --dock-rule-strong: var(--cyan-10);
   --dock-ink: var(--maker-contrast);

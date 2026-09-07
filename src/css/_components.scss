@@ -594,42 +594,19 @@
 // modifier would have had to out-specify each of them separately, and the
 // mobile `border-left` restatement would have quietly won against it.
 .dock-window--creation {
-  // ── AN OPEN WINDOW EMITS ITS FAMILY'S LIGHT (2026-09-05, user ask: "when
-  // a window is open, illuminate their borders, as if emitting light with the
-  // 11-th color tone… the deep-purple labels window should illuminate
-  // deep-purple-11") ────────────────────────────────────────────────────────
-  //
-  // ⚠ THERE IS NO STATE CLASS AND THERE MUST NOT BE ONE. Every creation dock
-  // is `v-if="store.isOpen && !store.isMinimized"`, so the element EXISTS
-  // only while the window is standing — its presence IS the open state. A
-  // parked window is not dimmed here, it is not in the DOM; what says so is
-  // the minitab that appears on the chip below.
-  //
-  // Three layers on top of the window's own cast, in the order an emission
-  // has them: a hard 1px ring just outside the border, a hot near halo, a
-  // wide far bleed. The BORDER ITSELF stays `--dock-rule` (the window's
-  // contrast): structure has to keep reading as structure, and the light is
-  // laid ON that edge rather than replacing it — which is what "illuminate
-  // their borders" asks for and what swapping the border to an A100 would
-  // instead destroy (these accents are the palest tones in their families;
-  // `--cyan-11` is 1.1:1 on the window's own coat and would leave the box
-  // with no drawn edge at all).
-  //
-  // ⚠ IT READS BECAUSE OF WHERE THE WINDOW SITS. These docks stand over the
-  // feed's `--grey-8` field, so an A100 has something dark to be luminous
-  // against — the opposite of the footer chips, whose band is pale and whose
-  // own glow had to be rebuilt around a mid-tone bloom for that reason.
-  //
-  // `--dock-glow` is set by the four windows that have a family (in their own
-  // .vue files, beside the rest of their colorway). Chat and the dashboard
-  // set nothing and the `transparent` fallback makes all three layers
-  // no-ops — including through `color-mix`, where mixing transparent with
-  // transparent is still transparent. So this is one unconditional rule and
-  // there is no second modifier to keep in step.
-  // ⚠ THE DECLARATION IS NOT HERE — it is on the `box-shadow` further down
-  // this same rule, beside the no-downward-cast note. This rule sets
-  // `box-shadow` TWICE and the second wins; a glow written here paints
-  // nothing at all, which is exactly how this landed the first time.
+  // ── THE OPEN-WINDOW LIGHT IS GONE (2026-09-07, user ask: "remove the glow
+  // effect from their borders. Make them project a thin grey shadow
+  // instead") ──────────────────────────────────────────────────────────────
+  // For two days (2026-09-05 → 09-07) a standing window emitted its family's
+  // Material 200 through three extra `box-shadow` layers on this rule, fed by
+  // a `--dock-glow` dial each of the four docks set on its root. All of that
+  // is retired: the four dials are deleted and the footprint casts ONE thin
+  // grey shadow, declared on the `box-shadow` beside the no-downward-cast
+  // note further down this rule — the ONLY `box-shadow` in it, and the only
+  // place a future one may go (a light written up here once compiled clean
+  // and painted nothing; gotchas). What the ask did NOT retire is the chip's
+  // lit GLYPH on the footer bar (`--chip-glow`, NavigationBar.vue): that was
+  // the 09-05 ask's second sentence and it still says which window stands.
   --dock-gap: 14px;
   // THE CAP RADIUS IS A DIAL TOO (2026-08-24, user ask: "make their corners a
   // little less round") — `--radius-lg` (1.25em, 17.5px measured) →
@@ -757,65 +734,33 @@
   border-bottom: none;
   border-top-left-radius: var(--dock-radius);
   border-top-right-radius: var(--dock-radius);
-  // NO DOWNWARD CAST (2026-08-02, user ask: an open maker/uploader "looks
-  // like it's floating on top of the bar"). The old `0 12px 38px` at 45%
-  // black was offset twelve pixels DOWN, and this dock's bottom edge IS the
-  // nav bar's top edge — so the darkest part of its shadow landed on the bar
-  // across the dock's whole width. A bottom-anchored panel RISES from the
-  // bar; it is welded to it, and a panel welded to a surface casts nothing
-  // onto it. What is left reaches up and to the LEFT only: the negative
-  // spread pulls the box in 6px so the blur's own half-radius (15px) can
-  // never out-reach the -10px offset downward (15 - 6 - 10 = -1px), and the
-  // -10px x-offset does the same on the right, where the dock meets the
-  // side-widget column.
+  // A THIN GREY SHADOW, AND NOTHING ELSE (2026-09-07, user ask: remove the
+  // glow from the windows' borders, "make them project a thin grey shadow
+  // instead") — one layer, `--grey-9` at 45%, 6px of blur pulled in 1px and
+  // lifted 2px. Grey-9 and not a paler grey because these windows stand over
+  // TWO fields, the feed's `--grey-8` plate and the cream pages, and a shadow
+  // has to DARKEN both: grey-7 (#757575) mixed into grey-8 (#616161) at any
+  // alpha composites LIGHTER than the plate — a pale rim, which is a glow
+  // again. Grey-9 at 45% lands ~rgb(83) on the plate and ~rgb(166) on cream:
+  // a hairline of shade on either.
   //
-  // ⚠ AND THE WINDOW EMITS ITS FAMILY'S LIGHT (2026-09-05, user ask), which
-  // is why this list has four layers now: the cast above, then a hard 1px
-  // ring just outside the border, a hot near halo and a wide far bleed, all
-  // three in `--dock-glow`.
+  // ⚠ NO DOWNWARD CAST (2026-08-02, user ask: an open maker/uploader "looks
+  // like it's floating on top of the bar") STILL HOLDS, by the same
+  // arithmetic — reach per side is blur/2 + spread ± offset, so downward it
+  // is 3 − 1 − 2 = 0px. This dock's bottom edge IS the nav bar's top edge; a
+  // bottom-anchored panel RISES from the bar, it is welded to it, and a panel
+  // welded to a surface casts nothing onto it. What is left reaches 4px up
+  // and 2px to each side. (The cast this replaces was `-10px -10px 30px -6px`
+  // at 42% black — a wide fall reaching 19px up and left only, its x-offset
+  // keeping it off the side-widget column. That column retired on
+  // 2026-09-02, so the right side is free to take the same 2px now.)
   //
-  //  · THE BORDER ITSELF STAYS `--dock-rule`, the window's contrast.
-  //    Structure has to keep reading as structure and the light is laid ON
-  //    that edge rather than replacing it — which is what "illuminate their
-  //    borders" asks for and what swapping the border to an A100 would
-  //    destroy: these accents are the palest tones in their families
-  //    (`--cyan-11` is 1.1:1 on the window's own coat) and the box would be
-  //    left with no drawn edge at all.
-  //  · THERE IS NO STATE CLASS AND THERE MUST NOT BE ONE. Every creation dock
-  //    is `v-if="store.isOpen && !store.isMinimized"`, so the element exists
-  //    only while its window is standing — presence IS the open state. A
-  //    parked window is not dimmed, it is not in the DOM; the minitab that
-  //    appears on its chip is what says so instead.
-  //  · `--dock-glow` is set by the four windows that HAVE a family, in their
-  //    own .vue files beside the rest of their colorway. Chat and the
-  //    dashboard set nothing, and the `transparent` fallback makes all three
-  //    layers no-ops — including through `color-mix`, where transparent mixed
-  //    with transparent is still transparent. One unconditional rule, no
-  //    second modifier to keep in step.
-  //  · THE GLOW IS SYMMETRIC where the cast above is deliberately not, and
-  //    that is safe for one structural reason worth writing down: the nav bar
-  //    is z 3110 and every dock is 3010+, so whatever these layers spill
-  //    downward is painted over by the bar. The cast's careful arithmetic
-  //    (`15 - 6 - 10 = -1px`) exists because a black shadow landing on the
-  //    bar would read even at low alpha through the weld's seam; a light one
-  //    cannot land there at all.
-  //  · It reads because of WHERE these windows stand — over the feed's
-  //    `--grey-8` field, so an A100 has something dark to be luminous
-  //    against. That is the opposite of the footer chips, whose band is pale
-  //    and whose lit glyph needed a mid-tone bloom for exactly that reason.
-  //  · ⚠ THINNED 2026-09-05 (same sitting, with the walk to the -3 tones):
-  //    12px → 9px near, 30px → 20px far. The two moves are one move — a
-  //    quieter tone under a wider halo reads as a smudge rather than as a
-  //    light, because the bleed's outer third falls below what the eye
-  //    separates from the field at 42% of a 46%-saturation tone. The RING
-  //    does not thin: 1px is where a drawn edge starts, and it is the layer
-  //    that makes this read as the border emitting rather than as the box
-  //    being back-lit.
-  box-shadow:
-    -10px -10px 30px -6px rgba(0, 0, 0, 0.42),
-    0 0 0 1px var(--dock-glow, transparent),
-    0 0 9px color-mix(in srgb, var(--dock-glow, transparent) 85%, transparent),
-    0 0 20px color-mix(in srgb, var(--dock-glow, transparent) 42%, transparent);
+  // ⚠ THE OPEN-WINDOW LIGHT STOOD ON THIS LIST 2026-09-05 → 09-07: three
+  // more layers in `--dock-glow` (a 1px ring, a 9px halo, a 20px bleed at the
+  // family's Material 200), retired by the ask above. Should a light ever
+  // come back it goes HERE, on this declaration — the top of the rule is
+  // where a `box-shadow` compiled clean and painted nothing once (gotchas).
+  box-shadow: 0 -2px 6px -1px color-mix(in srgb, var(--grey-9) 45%, transparent);
   transition: left 0.18s ease, right 0.18s ease, top 0.18s ease;
 
   // HEADER LAYOUT — title centred, traffic lights pinned to the left edge,

@@ -965,6 +965,13 @@ $warning:   #F2C037;
   // "illuminates" its borders "as if emitting light"; and the same day's
   // follow-up: "try the -3 for the glow instead of the -11 tones for a sober
   // look") ─────────────────────────────────────────────────────────────────
+  // ⚠ THE WINDOW HALF OF THAT ROLE RETIRED 2026-09-07 (user ask: "remove the
+  // glow effect from their borders. Make them project a thin grey shadow
+  // instead"): no dock sets `--dock-glow` any more and the footprint's three
+  // light layers are gone — `.dock-window--creation` casts one `--grey-9`
+  // shadow. What these four still do is light the chip's GLYPH on the footer
+  // bar while its window stands (`--chip-glow`, NavigationBar.vue), and that
+  // is why they stay minted, and at one index, for the reason below.
   // All four are their family's **Material 200**, the ONE index the set is
   // taken at — which is what makes the effect read as a single lighting
   // condition in four hues rather than as four separately-chosen
@@ -983,8 +990,9 @@ $warning:   #F2C037;
   //
   // ⚠ THEY ARE THE ONLY TONES IN THESE FAMILIES THAT NEVER TOUCH A WINDOW'S
   // SURFACE. Each window's ladder is four rungs and this is not one of them:
-  // it is emitted, not painted — three `box-shadow` layers outside the
-  // border, plus the chip glyph's `color` while that window stands. Which is
+  // it is emitted, not painted — the chip glyph's `color` while that window
+  // stands (and, 2026-09-05 → 09-07, three `box-shadow` layers outside the
+  // window's border, retired for the grey cast). Which is
   // also why a tone this pale is safe here: it draws nothing that has to be
   // read as a line or a letter.
   --cyan-3: #{$cyan-3};
