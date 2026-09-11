@@ -30,8 +30,18 @@
   · ref (the `?flyout=` door): opens on the skeleton face, self-resolving;
     a ref that RESOLVES to a POST instance fetches its feed item through
     the hash lens and RETARGETS the window into a post; a `nodes/<hash>`
-    ref fetches the enriched row and retargets into a node. Same window,
-    same rect, new self — title, tab, faces and foot all follow.
+    ref fetches the enriched row and retargets into a node; an
+    `entities/<hash>` ref resolves its summary card and retargets into an
+    entity. Same window, same rect, new self — title, tab, faces and foot
+    all follow.
+  · entity (2026-09-11, user ask — every entity link on the platform,
+    the identity window's Profile button, a resolved entities/ ref):
+    element view = THE PROFILE PAGE IN A BOX (`entities/EntityFace`: the
+    entity card, the origin sky inline, the org / alter-ego panel, the
+    anchors, the contribution bands — laid out by the window's width).
+    Skeleton view = the entity's USER_PROFILE skeleton (SkeletonTable),
+    offered only when the row has one. The bar and the parked tab wear
+    the entity's KIND glyph and its @handle (utils/entityKind).
 
   DEFAULT VIEW follows the KIND: posts and nodes open on the ELEMENT, the
   skeleton one header press away; a bare schema IS its skeleton and offers
@@ -163,6 +173,21 @@
         />
       </div>
 
+      <!-- ELEMENT FACE, entity (2026-09-11): the profile page's whole
+           content — the entity card, the origin sky, the org / alter-ego
+           panel, the anchors, the contribution bands — laid out by the
+           WINDOW's width (container queries), one scroller. `loaded`
+           hands the row up so the bar, the tab and the tray learn the
+           entity's handle, kind and address. -->
+      <div v-else-if="showing === 'entity'" class="element-flyout__entity">
+        <EntityFace
+          :key="'entity:' + targetEntity.id"
+          :entity-id="targetEntity.id"
+          :seed="targetEntity"
+          @loaded="onEntityLoaded"
+        />
+      </div>
+
       <!-- SKELETON FACE: the dense Field | Type | Data table — pre-walked
            for nodes (the surround read), self-resolving for posts and
            refs (`resolved` reports back so a ref window can title itself
@@ -192,7 +217,7 @@
         />
         <InfoChip
           v-else-if="refFailed"
-          :kind="'nodes'" :address="refString"
+          :kind="isEntityRef ? 'entities' : 'nodes'" :address="refString"
         />
         <div v-else class="element-flyout__loading">
           <q-spinner size="14px" color="primary" />
@@ -360,6 +385,7 @@ import MediaViewerBody from 'src/components/media/MediaViewerBody.vue'
 import FeedStream from 'src/components/posts/FeedStream.vue'
 import SkeletonTable from 'src/components/skeletons/SkeletonTable.vue'
 import InfoChip from 'src/components/shared/InfoChip.vue'
+import EntityFace from 'src/components/entities/EntityFace.vue'
 import { useFlyoutViewersStore } from 'src/stores/flyoutViewers'
 import { useWindowsStore } from 'src/stores/windows'
 import { useNavStore } from 'src/stores/navigation'
@@ -378,6 +404,8 @@ import { useMediaWindowGestures } from 'src/composables/useMediaWindowGestures'
 import { probeNaturalSize, fitRect, chromeOf, clampRect } from 'src/utils/mediaFit'
 import { titleOf, iconFor } from 'src/utils/mediaKind'
 import { kindFor } from 'src/utils/kinds'
+import { entityGlyph, entityHandle } from 'src/utils/entityKind'
+import { entitySummary } from 'src/utils/entityDisplay'
 
 // Fullscreen rides ABOVE the drawer (3120) — a maximized viewer is the
 // one thing meant to cover everything; normal z comes from windows.order.
@@ -389,10 +417,14 @@ const MAX_Z = 3200
 // document. (The node targets get a REAL probe.)
 const POST_BOX = { w: 4, h: 5 }
 const TABLE_BOX = { w: 3, h: 4 }
+// The entity face is a page in a box — a little taller than wide, so the
+// card and the side column have room to stand beside each other once the
+// fit engine has maximized it in the arena (2026-09-11).
+const ENTITY_BOX = { w: 5, h: 6 }
 
 export default defineComponent({
   name: 'ElementFlyout',
-  components: { ConversationPicker, FriezeBar, MediaViewerBody, FeedStream, SkeletonTable, InfoChip },
+  components: { ConversationPicker, FriezeBar, MediaViewerBody, FeedStream, SkeletonTable, InfoChip, EntityFace },
   props: {
     viewerId: { type: String, required: true }
   },
@@ -411,11 +443,19 @@ export default defineComponent({
     const target = computed(() => viewer.value?.target || null)
     const targetNode = computed(() => (target.value?.kind === 'node' ? target.value.node : null))
     const targetItem = computed(() => (target.value?.kind === 'post' ? target.value.item : null))
+    // ENTITY (2026-09-11): `{ id, … }` from any entity link (utils/entityDoor),
+    // the identity window's Profile button, or a resolved entities/ ref.
+    // The face reads the row itself and hands it up (`entityInfo`), which
+    // is where the skeleton face's profile id and the org handle come from.
+    const targetEntity = computed(() => (target.value?.kind === 'entity' ? target.value.entity : null))
+    const entityInfo = ref(null)
+    const entitySkeletonId = computed(() => entityInfo.value?.entity?.profile?.skeleton_id ?? null)
     const refString = computed(() => {
       if (target.value?.kind !== 'ref') return null
       return String(target.value.ref).replace(/^pathos:/, '')
     })
     const isNodeRef = computed(() => !!refString.value && refString.value.startsWith('nodes/'))
+    const isEntityRef = computed(() => !!refString.value && refString.value.startsWith('entities/'))
 
     // Drag (bar) + proportional resize (rim handles) — pointer capture,
     // clamping and the shrink floor all live in the composable; the shell
@@ -503,6 +543,7 @@ export default defineComponent({
       if (!t) return ''
       if (t.kind === 'node') return 'node:' + t.node.id
       if (t.kind === 'post') return 'post:' + t.item.skeleton_id
+      if (t.kind === 'entity') return 'entity:' + t.entity.id
       return 'ref:' + t.ref
     })
 
@@ -513,6 +554,34 @@ export default defineComponent({
     const resolveRef = async () => {
       const ref0 = refString.value
       if (!ref0) return
+      if (isEntityRef.value) {
+        // entities/<hash> → the summary card (the chips' cached resolver,
+        // one read per entity per session), then BECOME an entity window
+        // — the face reads the full row off the id.
+        try {
+          const hash = ref0.split('/').pop()
+          const s = await entitySummary({ hash })
+          if (refString.value !== ref0 || !viewer.value) return
+          if (s?.id != null) {
+            store.retarget(viewer.value.id, {
+              kind: 'entity',
+              entity: {
+                id: parseInt(s.id, 10),
+                path: ref0,
+                display_name: s.primary || null,
+                username: typeof s.secondary === 'string' && s.secondary.startsWith('@') ? s.secondary.slice(1) : null,
+                pioneer: s.pioneer === true,
+                photo: s.photo || null
+              }
+            })
+            return
+          }
+          refFailed.value = true
+        } catch (_) {
+          if (refString.value === ref0) refFailed.value = true
+        }
+        return
+      }
       if (isNodeRef.value) {
         // nodes/<hash> → the enriched row, then BECOME a node window.
         try {
@@ -561,8 +630,9 @@ export default defineComponent({
       nodeWalk.value = null
       nodeWalkFailed.value = false
       userToggled.value = false
+      entityInfo.value = null
       const k = target.value?.kind
-      view.value = (k === 'node' || k === 'post') ? 'element' : 'skeleton'
+      view.value = (k === 'node' || k === 'post' || k === 'entity') ? 'element' : 'skeleton'
       if (k === 'ref') resolveRef()
     }
     watch(targetIdentity, resetFor, { immediate: true })
@@ -591,9 +661,13 @@ export default defineComponent({
     const showing = computed(() => {
       if (view.value === 'element' && targetNode.value) return 'node'
       if (view.value === 'element' && targetItem.value) return 'post'
+      if (view.value === 'element' && targetEntity.value) return 'entity'
       return 'skeleton'
     })
-    const hasElementFace = computed(() => !!targetNode.value || !!targetItem.value)
+    // An entity offers its skeleton face only once the read has named a
+    // USER_PROFILE skeleton — a system row without one IS its own face.
+    const hasElementFace = computed(() =>
+      !!targetNode.value || !!targetItem.value || (!!targetEntity.value && entitySkeletonId.value != null))
     const swapView = () => {
       userToggled.value = true
       view.value = view.value === 'element' ? 'skeleton' : 'element'
@@ -603,7 +677,8 @@ export default defineComponent({
     // targets ride the pre-walked door instead).
     const tableRef = computed(() => {
       if (targetItem.value) return targetItem.value.skeleton_id
-      if (target.value?.kind === 'ref' && !isNodeRef.value) return refString.value
+      if (targetEntity.value) return entitySkeletonId.value
+      if (target.value?.kind === 'ref' && !isNodeRef.value && !isEntityRef.value) return refString.value
       return null
     })
 
@@ -614,6 +689,7 @@ export default defineComponent({
     const elementGlyph = computed(() => {
       if (targetNode.value) return iconFor(targetNode.value)
       if (targetItem.value) return 'sym_o_post'
+      if (targetEntity.value) return entityGlyph(entityInfo.value?.entity || targetEntity.value)
       return skeletonKind.icon
     })
     const headIcon = computed(() =>
@@ -622,6 +698,9 @@ export default defineComponent({
     const title = computed(() => {
       if (targetNode.value) return titleOf(targetNode.value)
       if (targetItem.value) return targetItem.value.title || ('post #' + targetItem.value.skeleton_id)
+      // An entity window is named by its HANDLE (user ask: the parked tab
+      // carries "an entity icon and the handle"; bar and tab are one name).
+      if (targetEntity.value) return entityHandle(entityInfo.value?.entity || targetEntity.value)
       // A skeleton that carries a TITLE note is named by it (the NAVIGATION
       // PATH_VIEW reads "My navigation path", not "PATH_VIEW Skeleton" —
       // 2026-09-06 PM, the stack's skeleton door).
@@ -633,8 +712,9 @@ export default defineComponent({
       view.value === 'element' ? skeletonKind.icon : elementGlyph.value
     )
     const swapTitle = computed(() => {
-      if (view.value === 'element') return 'Show the skeleton'
-      return targetItem.value ? 'Show the post' : 'Show the element'
+      if (view.value === 'element') return targetEntity.value ? 'Show the profile skeleton' : 'Show the skeleton'
+      if (targetItem.value) return 'Show the post'
+      return targetEntity.value ? 'Show the entity' : 'Show the element'
     })
 
     // The parked tab draws label + icon from the store — mirrored as the
@@ -654,6 +734,7 @@ export default defineComponent({
     const naturalFor = async () => {
       if (targetNode.value) return probeNaturalSize(targetNode.value)
       if (targetItem.value) return { ...POST_BOX }
+      if (targetEntity.value) return { ...ENTITY_BOX }
       return { ...TABLE_BOX }
     }
     const place = async () => {
@@ -690,25 +771,32 @@ export default defineComponent({
     const voting = ref(false)
 
     const kindWord = computed(() =>
-      targetNode.value ? 'node' : (targetItem.value ? 'post' : 'skeleton')
+      targetNode.value ? 'node' : (targetItem.value ? 'post' : (targetEntity.value ? 'entity' : 'skeleton'))
     )
     const pageGlyph = computed(() =>
-      targetNode.value ? 'adjust' : (targetItem.value ? 'sym_o_post' : skeletonKind.icon)
+      targetNode.value ? 'adjust' : (targetItem.value ? 'sym_o_post' : (targetEntity.value ? elementGlyph.value : skeletonKind.icon))
     )
     const pageRoute = computed(() => {
       if (targetNode.value) return '/nodes/' + targetNode.value.id
       if (targetItem.value) return '/posts/' + targetItem.value.skeleton_id
+      if (targetEntity.value) return '/entities/' + targetEntity.value.id
       if (resolvedInfo.value?.id != null) return '/skeletons/' + resolvedInfo.value.id
       return null
     })
     const elementPath = computed(() => {
       if (targetNode.value) return targetNode.value.path || null
       if (targetItem.value) return targetItem.value.skeleton_path || null
+      if (targetEntity.value) return targetEntity.value.path || null
       return refString.value
     })
     const pinTarget = computed(() => {
       if (targetNode.value) return { type: 'node', id: targetNode.value.id }
       if (targetItem.value) return { type: 'skeleton', id: targetItem.value.skeleton_id }
+      // An ENTITY is not pinnable (pins take node / label / skeleton), and
+      // its skeleton face is its PROFILE — the entity's, not a skeleton
+      // this window is "on" — so no tack, and none of the skeleton
+      // cluster below: the foot offers the page, the link and the address.
+      if (targetEntity.value) return null
       // A bare skeleton window pins its skeleton once the walk has named
       // it (skeletons plan phase 2 — the door used to offer no tack).
       if (resolvedInfo.value?.id != null) return { type: 'skeleton', id: resolvedInfo.value.id }
@@ -716,7 +804,35 @@ export default defineComponent({
     })
     // A bare skeleton window is a full citizen of the foot since the
     // skeletons plan phase 4: votes, comment, fork, share, seal, versions.
-    const isSkeletonTarget = computed(() => !targetNode.value && !targetItem.value && resolvedInfo.value?.id != null)
+    const isSkeletonTarget = computed(() =>
+      !targetNode.value && !targetItem.value && !targetEntity.value && resolvedInfo.value?.id != null)
+
+    // The entity face read the row — the window learns its address (the
+    // tray persists `entities/<hash>`), its handle and its kind (the bar
+    // and the parked tab letter themselves) through ONE retarget: same
+    // identity (`entity:<id>`), so nothing resets, and the tray re-saves.
+    const onEntityLoaded = (r) => {
+      const e = r?.entity
+      if (!e || !viewer.value || !targetEntity.value || e.id !== targetEntity.value.id) return
+      entityInfo.value = { ...r, entity: { ...e, organization: r.organization || null } }
+      const org = r.organization
+      store.retarget(viewer.value.id, {
+        kind: 'entity',
+        entity: {
+          ...targetEntity.value,
+          id: e.id,
+          path: e.path,
+          type_id: e.type_id,
+          ancestor_id: e.ancestor_id,
+          username: e.username || e.profile?.username || null,
+          display_name: e.profile?.display_name || org?.name || targetEntity.value.display_name || null,
+          photo: e.profile?.photo || targetEntity.value.photo || null,
+          organization: org
+            ? { id: org.id, name: org.name, org_profile: org.org_profile ? { handle: org.org_profile.handle || null } : null }
+            : null
+        }
+      })
+    }
     const votable = computed(() => !!targetNode.value || !!targetItem.value || isSkeletonTarget.value)
 
     const targetMeta = () => {
@@ -933,7 +1049,10 @@ export default defineComponent({
       viewer,
       targetNode,
       targetItem,
+      targetEntity,
+      onEntityLoaded,
       refString,
+      isEntityRef,
       refFailed,
       nodeWalk,
       view,
@@ -1172,6 +1291,21 @@ export default defineComponent({
   display: flex;
 
   :deep(.feed-stream-pane) { flex: 1 1 auto; min-width: 0; }
+}
+
+// ── ELEMENT FACE, ENTITY: the profile in a box (2026-09-11) ─────────────
+// The face is its own scroller and its own size container (the well
+// hands it the window's box; its grid answers the width — two columns
+// past ~700px, one under). A grey-3 ground behind the white panels — the
+// skeleton table's own step above the metal well — so the cards read as
+// the page's panels rather than as more metal.
+.element-flyout__entity {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  border-radius: 6px;
+  background: var(--grey-3, #eeeeee);
 }
 
 // ── SKELETON FACE: the dense table's frame ───────────────────────────────

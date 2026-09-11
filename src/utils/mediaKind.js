@@ -1,3 +1,5 @@
+import { entityGlyph, entityHandle } from 'src/utils/entityKind'
+
 // What a media node IS, for display (docs/plans/floating-media-viewer.md).
 // ONE branch decision, shared: the viewer body picks its renderer off
 // `faceOf`, and the minimize tabs bar picks its glyph off `iconFor` — the
@@ -100,11 +102,22 @@ function webNameOf (embed) {
 // has resolved (`store.describe` overwrites both the moment it does), and
 // the node-only fallbacks drew a blank paperclip for every other kind —
 // the "attach_file + empty name" tab of the skeletons plan audit (A4).
+// ENTITY windows (2026-09-11): the tab wears the entity's KIND glyph (a
+// person, the pioneer's star, an org's building, a bot, an alter-ego's
+// masks — utils/entityKind) and its HANDLE (user ask: "an entity icon and
+// the handle"); an `entities/<hash>` ref still resolving wears the family
+// mark and the hash until the window retargets.
 export function iconForTarget (target) {
   if (!target) return FACE_ICON.card
   if (target.kind === 'node') return iconFor(target.node)
   if (target.kind === 'post') return 'sym_o_post'
-  if (target.kind === 'ref') return String(target.ref).includes('nodes/') ? FACE_ICON.card : 'schema'
+  if (target.kind === 'entity') return entityGlyph(target.entity)
+  if (target.kind === 'ref') {
+    const ref = String(target.ref)
+    if (ref.includes('nodes/')) return FACE_ICON.card
+    if (ref.includes('entities/')) return 'person'
+    return 'schema'
+  }
   return FACE_ICON.card
 }
 
@@ -112,10 +125,12 @@ export function titleOfTarget (target) {
   if (!target) return ''
   if (target.kind === 'node') return titleOf(target.node)
   if (target.kind === 'post') return target.item?.title || ('post #' + target.item?.skeleton_id)
+  if (target.kind === 'entity') return entityHandle(target.entity)
   if (target.kind === 'ref') {
     const ref = String(target.ref).replace(/^pathos:/, '')
     const hash = ref.split('/').pop() || ''
-    return (ref.startsWith('nodes/') ? 'node ' : 'skeleton ') + hash.slice(0, 8)
+    const word = ref.startsWith('nodes/') ? 'node ' : (ref.startsWith('entities/') ? 'entity ' : 'skeleton ')
+    return word + hash.slice(0, 8)
   }
   return ''
 }

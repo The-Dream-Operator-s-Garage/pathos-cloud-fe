@@ -25,10 +25,11 @@
 </template>
 
 <script>
-import { defineComponent } from 'vue'
+import { defineComponent, onMounted, onBeforeUnmount } from 'vue'
 import ElementFlyout from 'src/components/shared/ElementFlyout.vue'
 import MediaTabsBar from 'src/components/media/MediaTabsBar.vue'
 import { useFlyoutViewersStore } from 'src/stores/flyoutViewers'
+import { installEntityLinkDoor } from 'src/utils/entityDoor'
 
 export default defineComponent({
   name: 'ElementFlyoutHost',
@@ -39,6 +40,18 @@ export default defineComponent({
   emits: ['pins-changed'],
   setup () {
     const store = useFlyoutViewersStore()
+
+    // THE ENTITY DOOR (2026-09-11, user ask): every entity link on the
+    // platform opens that entity's WINDOW. The host is the one mount the
+    // family has, so the one document-level door is installed here and
+    // lives exactly as long as the windows can — see utils/entityDoor for
+    // the rule and its escape hatches.
+    let removeDoor = null
+    onMounted(() => {
+      removeDoor = installEntityLinkDoor((id) => store.spawnEntity({ id }))
+    })
+    onBeforeUnmount(() => { if (removeDoor) removeDoor() })
+
     return { store }
   }
 })

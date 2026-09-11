@@ -44,6 +44,7 @@ import { useWindowsStore } from './windows'
 import { useNavStore } from 'src/stores/navigation'
 import { navService } from 'src/services/nav.service'
 import { kindFor } from 'src/utils/kinds'
+import { entityHandle } from 'src/utils/entityKind'
 
 let seq = 0
 
@@ -57,6 +58,10 @@ const refOf = (target) => {
   if (target.kind === 'node') return target.node?.path || null
   if (target.kind === 'post') return target.item?.skeleton_path || null
   if (target.kind === 'ref') return String(target.ref).replace(/^pathos:/, '')
+  // An entity window persists as `entities/<hash>` — the address arrives
+  // with the entity read (the face retargets the window with it), so a
+  // window spawned off a bare id is persistable the moment it has loaded.
+  if (target.kind === 'entity') return target.entity?.path || null
   return null
 }
 
@@ -82,6 +87,20 @@ const placeOf = (target, label = '') => {
       targetId: it.skeleton_id,
       targetLabel: label || it.title || `Post #${it.skeleton_id}`,
       targetPath: it.skeleton_path || null
+    }
+  }
+  // An ENTITY window (2026-09-11) is the second way to be on a profile —
+  // the same stop the `/entities/:id` page opens, so the trail reads "you
+  // were on talavero" whichever surface you were on it through.
+  if (target.kind === 'entity') {
+    const e = target.entity
+    if (!e?.id) return null
+    return {
+      targetRoute: `/entities/${e.id}`,
+      targetType: 'entity',
+      targetId: e.id,
+      targetLabel: label || entityHandle(e),
+      targetPath: e.path || null
     }
   }
   // A bare ref has no id until it resolves — it still deserves a stop, keyed
@@ -114,12 +133,14 @@ const identityOf = (target) => {
   if (target.kind === 'node') return 'node:' + target.node?.id
   if (target.kind === 'post') return 'post:' + target.item?.skeleton_id
   if (target.kind === 'ref') return 'ref:' + String(target.ref)
+  if (target.kind === 'entity') return 'entity:' + target.entity?.id
   return null
 }
 
 export const useFlyoutViewersStore = defineStore('flyoutViewers', {
   state: () => ({
-    // { id, target: {kind:'node',node} | {kind:'post',item} | {kind:'ref',ref},
+    // { id, target: {kind:'node',node} | {kind:'post',item} | {kind:'ref',ref}
+    //               | {kind:'entity',entity} (2026-09-11 — the entity window),
     //   rect: {x,y,w,h}|null, natural: {w,h}|null, minimized, maximized,
     //   label, icon }
     // `node`/`item` arrive ENRICHED from their triggers (NodeMini's card,
@@ -271,6 +292,16 @@ export const useFlyoutViewersStore = defineStore('flyoutViewers', {
     spawnRef (ref) {
       if (ref == null || ref === '') return null
       return this.spawn({ kind: 'ref', ref: String(ref) })
+    },
+    // THE ENTITY DOOR (2026-09-11): `{ id }` is enough — the face reads the
+    // entity itself and retargets the window with the full row (path,
+    // handle, kind) as it lands. Whatever the trigger already knew
+    // (a feed author's name + face, the identity chip's user) rides along
+    // as the seed so the window opens lettered rather than as "entity #n".
+    spawnEntity (entity) {
+      const id = parseInt(entity?.id, 10)
+      if (!id) return null
+      return this.spawn({ kind: 'entity', entity: { ...entity, id } })
     },
 
     // A REF window that resolved into a real element becomes that element

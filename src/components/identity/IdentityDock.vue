@@ -208,6 +208,7 @@ import { useQuasar } from 'quasar'
 import { useAuthStore } from 'src/stores/auth'
 import { useIdentityStore } from 'src/stores/identity'
 import { useWindowsStore } from 'src/stores/windows'
+import { useFlyoutViewersStore } from 'src/stores/flyoutViewers'
 import EntityAvatar from 'src/components/entities/EntityAvatar.vue'
 import OrgLogoChip from 'src/components/organizations/OrgLogoChip.vue'
 import FriezeBar from 'src/components/layout/FriezeBar.vue'
@@ -221,6 +222,7 @@ export default defineComponent({
     const auth = useAuthStore()
     const identity = useIdentityStore()
     const windows = useWindowsStore()
+    const flyouts = useFlyoutViewersStore()
     const switching = ref(null)
 
     const user = computed(() => auth.user)
@@ -232,10 +234,16 @@ export default defineComponent({
 
     // Navigations close the window first so the destination lands in full
     // view — the same row-activate-parks bargain the side widgets strike.
+    // PROFILE opens the entity WINDOW since 2026-09-11 (user ask: the
+    // entity flyout "whenever we click on an entity … from the entity
+    // window"): the one entity door on the platform that was a
+    // programmatic push rather than a link, hand-wired to the same store
+    // the link door feeds — seeded with the user the chip already draws,
+    // so the window opens lettered.
     const goToProfile = () => {
-      const id = auth.user?.id
+      const u = auth.user
       identity.close()
-      if (id) router.push('/entities/' + id)
+      if (u?.id) flyouts.spawnEntity({ id: u.id, username: u.username, display_name: u.display_name, photo: u.photo })
     }
     const goToOrg = (o) => {
       identity.close()

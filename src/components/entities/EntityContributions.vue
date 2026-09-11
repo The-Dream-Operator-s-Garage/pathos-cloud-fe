@@ -1,4 +1,9 @@
 <template>
+  <!-- `.contrib-host` is a SIZE CONTAINER (2026-09-11): the band answers
+       the width of whatever holds it — the page (three panels across) or
+       the entity WINDOW (two, then one, as the window narrows) — instead
+       of the viewport. -->
+  <div class="contrib-host">
   <div class="contrib">
 
     <!-- ══ 1 · Skeleton instantiations ══ -->
@@ -118,6 +123,7 @@
       </div>
     </section>
 
+  </div>
   </div>
 </template>
 
@@ -257,6 +263,8 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
+.contrib-host { container-type: inline-size; min-width: 0; }
+
 .contrib {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -484,7 +492,13 @@ export default defineComponent({
   text-overflow: ellipsis;
 }
 
-@media (max-width: 1023px) {
-  .contrib { grid-template-columns: 1fr; }
+// Two panels across under ~900px of host, one under ~560px — the entity
+// window's narrow shapes; the page reaches the same rules through its own
+// width, which is what a container query is for.
+@container (max-width: 900px) {
+  .contrib { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@container (max-width: 560px) {
+  .contrib { grid-template-columns: minmax(0, 1fr); }
 }
 </style>
