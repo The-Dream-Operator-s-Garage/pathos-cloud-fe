@@ -11,11 +11,22 @@
        button-wears-its-window's-tone tie chat (aqua) and the dashboard
        (grey) already play on this bar.
 
-       BELOW 1024px the section collapses to the avatar alone — --nav-id-w
-       drops to 34px (the tap-target floor argument from the bar's mobile
-       block) and the text/badges are display:none'd; the face IS the
-       identity at rail scale, the same reduction the drawer's mini state
-       made. -->
+       ⭐ 2026-09-11 (user ask: "make the user section … occupy the size of
+       the profile pic. remove the name and handle too … I just want to
+       reduce the surface it occupies", then "make this profile button …
+       the same size as the dashboard button on the right end") — THE CHIP
+       IS THE FACE, at every width, in the DASHBOARD BUTTON'S BOX. The
+       avatar-only state that used to be the sub-1024px branch is now the
+       ONLY state, and --nav-id-w is one number equal to --nav-dash-w (42px,
+       the rail-slot width): the name and the handle are GONE from the
+       markup, the badge row is parked, and what the chip no longer says it
+       says on hover (`title` carries name + acting org) and in the window it
+       opens. The reduction is the drawer mini-state's argument taken all the
+       way — the face IS the identity — and it squares the mirror the
+       2026-09-02 ask started: the two ends of the bar are now the same
+       glyph-sized block, one holding a 24px face, the other a 21px
+       dashboard glyph. The mask chip stays: acting as an alter-ego has to
+       read when the face is all there is. -->
   <button
     type="button"
     class="identity-chip"
@@ -32,13 +43,13 @@
         <q-icon name="theater_comedy" size="8px" />
       </span>
     </span>
-    <span class="identity-chip__text">
-      <span class="identity-chip__name">{{ name }}</span>
-      <span class="identity-chip__sub mono">{{ subLine }}</span>
-    </span>
     <!-- The worn badges — org-given role titles the user chose to display
-         (the wardrobe lives in the window). Logo mark + title, ellipsizing
-         as a row; authority you can point at, one pill per title. -->
+         (the wardrobe lives in the window). Logo mark + title, one pill per
+         title. PARKED since 2026-09-11: a pill cannot ride a 34px cell, so
+         the row is display:none'd (see the style below) rather than unwired
+         — the wardrobe's toggles, its store key and this markup all stand,
+         waiting for a surface. Give the section width back, or give the
+         badges a corner mark like the mask's, and they light up again. -->
     <span v-if="identity.shownBadges.length" class="identity-chip__badges">
       <span
         v-for="b in identity.shownBadges"
@@ -72,16 +83,10 @@ export default defineComponent({
     const name = computed(() =>
       auth.user?.display_name || auth.user?.username || `entity #${auth.user?.id}`)
 
-    // Line two states WHERE you are acting when you are inside an org —
-    // "@ <org> · <title>" — and falls back to the address you can be typed
-    // back at (the drawer's own name-over-handle rhythm) when you are just
-    // yourself.
-    const subLine = computed(() => {
-      const o = identity.actingOrg
-      if (o) return `@ ${o.name}${o.role_title ? ' · ' + o.role_title : ''}`
-      return auth.user?.username ? `@${auth.user.username}` : `entity #${auth.user?.id}`
-    })
-
+    // THE TOOLTIP CARRIES WHAT THE CHIP NO LONGER PRINTS (2026-09-11): the
+    // display name, and — when masked — the org and role title the old
+    // second line spelled out ("@ <org> · <title>"). Hover is the reading
+    // surface now; the window is the full one.
     const tooltip = computed(() => {
       const o = identity.actingOrg
       return o
@@ -95,7 +100,7 @@ export default defineComponent({
     onMounted(() => { if (auth.isAuthenticated) identity.load() })
     watch(() => auth.entityId, (id) => { if (id) identity.load(true) })
 
-    return { identity, user, isAlterEgo, name, subLine, tooltip }
+    return { identity, user, isAlterEgo, tooltip }
   }
 })
 </script>
@@ -111,8 +116,15 @@ export default defineComponent({
   height: 100%;
   display: flex;
   align-items: center;
-  gap: 7px;
-  padding: 0 8px 0 7px;
+  // ⭐ 2026-09-11 — THE FACE IS CENTRED IN ITS OWN CELL. With the name, the
+  // handle and the badge row gone there is nothing to lead into, so the
+  // left-reading padding/gap the two-line stamp needed goes with them: the
+  // 24px avatar sits in the middle of the 41px content box (--nav-id-w less
+  // its closing hairline), the same box the dashboard button centres its
+  // 21px glyph in at the other end. A picture, and the air around it.
+  justify-content: center;
+  gap: 0;
+  padding: 0;
   border: none;
   background: var(--plaque-coat);
   cursor: pointer;
@@ -120,22 +132,23 @@ export default defineComponent({
   min-width: 0;
   font-family: var(--font-body, inherit);
 
-  // Hover lifts the veil a step — the minitab's own idiom on this coat.
-  &:hover {
-    background:
-      linear-gradient(rgba(255, 255, 255, 0.35), rgba(255, 255, 255, 0.35)),
-      var(--plaque-coat);
-  }
+  // ⭐ 2026-09-11 — THE DASHBOARD BUTTON'S TWO STATES, to the declaration.
+  // The mirror the user asked for is not only the box: this block and
+  // `.nav-bar .dashboard-btn` are the bar's two full-height end cells, so
+  // they answer the pointer and the standing window in one grammar — the
+  // bar's shared `--grey-3` hover (`.nav-btn`'s), and `--grey-4` for the
+  // panel-is-standing state.
+  &:hover { background: var(--grey-3); }
 
-  // THE WINDOW IS STANDING — the identity window's orange, the one place
-  // this colorway reaches the bar (chat's aqua / dashboard's grey pattern:
-  // a button and the window it summons wear one tone).
-  &.is-active {
-    background: var(--orange-2, #ffe0b2);
-
-    .identity-chip__name { color: var(--orange-10, #e65100); }
-    .identity-chip__sub { color: rgba(230, 81, 0, 0.72); }
-  }
+  // THE WINDOW IS STANDING. This wore `--orange-2` for eleven days — the one
+  // place the identity window's colorway reached the bar, under the
+  // button-wears-its-window's-tone tie. The tie is INTACT and is exactly why
+  // the tone moved: the window went to the board's grey family the same
+  // sitting (see IdentityDock.vue), so the chip follows it to `--grey-4`,
+  // the darker-grey-rather-than-accent argument the dashboard block has
+  // carried since 2026-08-10. The plate is the WHOLE tell now — there is no
+  // name or sub-line ink left to tint.
+  &.is-active { background: var(--grey-4); }
 }
 
 .identity-chip__facebox {
@@ -162,38 +175,17 @@ export default defineComponent({
   .q-icon { color: var(--grey-3) !important; opacity: 1; }
 }
 
-// Two stacked lines read as ONE stamp — the feed card's identity figure,
-// compacted to the bar's 31px.
-.identity-chip__text {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  line-height: 1.15;
-  min-width: 0;
-  flex: 0 1 auto;
-}
-
-.identity-chip__name {
-  font-size: 0.72em;
-  font-weight: 700;
-  color: var(--ink-1);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.identity-chip__sub {
-  font-size: 0.6em;
-  color: rgba(66, 66, 66, 0.62);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-// Worn badges — tiny pills in the window's orange, after the text, eating
-// whatever width the name left over and ellipsizing from the last pill.
+// Worn badges — tiny pills in the window's family (grey rim, pale face,
+// brown-8 title, since the window left orange the same sitting). PARKED
+// 2026-09-11 as well: a
+// 17px pill cannot ride a 33px content box beside a 24px face, so the row is
+// held at `display: none` while the section is the picture's size. The rules
+// below are the pills' REMAINING wardrobe, kept whole (with the markup and
+// the store's `shownBadges`) so restoring them is one declaration, not a
+// rebuild — widen --nav-id-w and flip this back to `flex`, or give the
+// badges a corner mark the way the mask above takes one.
 .identity-chip__badges {
-  display: flex;
+  display: none;
   align-items: center;
   gap: 4px;
   min-width: 0;
@@ -208,9 +200,9 @@ export default defineComponent({
   gap: 4px;
   height: 17px;
   padding: 0 6px 0 3px;
-  border: 1px solid var(--orange-4, #ffb74d);
+  border: 1px solid var(--grey-5);
   border-radius: 9px;
-  background: var(--orange-1, #fff3e0);
+  background: var(--grey-2);
   min-width: 0;
   flex: 0 1 auto;
 }
@@ -220,21 +212,14 @@ export default defineComponent({
   font-weight: 700;
   letter-spacing: 0.03em;
   text-transform: uppercase;
-  color: var(--orange-10, #e65100);
+  color: var(--brown-8);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-// Below the desktop gate the section is the face alone (--nav-id-w is 34px
-// there — the dial's own media override): center the avatar, drop the rest.
-@media (max-width: 1023px) {
-  .identity-chip {
-    justify-content: center;
-    padding: 0;
-    gap: 0;
-  }
-  .identity-chip__text,
-  .identity-chip__badges { display: none; }
-}
+// (The `@media (max-width: 1023px)` block that USED to hold this reduction
+// retired on 2026-09-11 — its rules are the base rules now. One state, one
+// width, no gate: the dial is 34px everywhere and the chip is the face
+// everywhere, so there is nothing left for the breakpoint to say.)
 </style>

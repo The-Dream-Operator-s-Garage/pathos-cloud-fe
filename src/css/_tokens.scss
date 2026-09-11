@@ -1181,6 +1181,22 @@ $warning:   #F2C037;
   // rails around those bands wear the real `--plaque-coat`, so motif and coat
   // composite to the same rgb and the meander reads as the chrome's own
   // material carved into an `--indigo-7` plate.
+  //
+  // ⚠ SECOND FRIEZE ROLE ADDED 2026-09-07 (user ask: "color both frieze svgs
+  // the same color as the header bar light-cream color"): THE TOP RAIL'S
+  // INLAID BAND — BOTH waves of `.media-tabs__frieze`, flat, the two
+  // cyan→indigo `-paint` ramps deleted with the move. Same trap, same answer:
+  // the ask names the BAR'S OWN colour, the bar wears `--plaque-coat`, and a
+  // wave fill is a `background-color` slot the layer list cannot enter — this
+  // token is the only way to say it. The band's own `--frieze-bar-base` still
+  // spends the real coat, which it may, being a `background:` shorthand.
+  // With the feed container's bands this makes TWO surfaces drawing their
+  // meanders in this ink; their PATTERNS differ (one wave there, an opposed
+  // pair here), so the shared thing is the material, not the figure.
+  // ⚠ On the header band the ink sits on a `--grey-8` plate, i.e. LIGHTER
+  // than what it is cut into — the relation a `FriezeBar` carve requires —
+  // where on the feed's `--indigo-8` bands it is lighter too. Both are
+  // carve-legal and both keep it off under the pixel-drawn law.
   --plaque-flat: #f8f2e4;
 
   // ── THE FOUR WINDOW COATS AS FLAT COLOURS (2026-09-05, user ask: the
@@ -1362,6 +1378,21 @@ $warning:   #F2C037;
   // colorway is its lines, wells and ink, never its sheet (the dock-coat
   // witness's law; maker/uploader — and the labels window since 2026-09-04 — are the only
   // sanctioned exceptions).
+  //
+  // ⚠⚠ NOBODY WEARS THIS MAP SINCE 2026-09-11 (user ask: apply to the
+  // identity window "the same aesthetic and inner frieze bar as the
+  // dashboard window so they look consistent instead of the identity window
+  // being orange"). Both consumers moved to the FLYOUT FAMILY's five
+  // `--dock-*` values — the ones `.dock-window--dashboard` declares — and the
+  // bar chip's standing tone went with them to `--grey-4`. The ramp is KEPT
+  // rather than retired, which is a deliberate exception to the no-consumer
+  // rule the deep-orange map below was retired under: this family is
+  // hand-declared (`$orange-*` at the top of this file — ⚠ the file never
+  // imports Quasar's palette, so a re-mint means declaring the `$` levels
+  // again or sass dies "Undefined variable"), it was minted for a named ask
+  // eleven days ago, and wearing it again is one rule's worth of work while
+  // re-minting it is not. Delete both halves together if a pass decides the
+  // platform is done with orange.
   --orange-1: #{$orange-1};
   --orange-2: #{$orange-2};
   --orange-3: #{$orange-3};
@@ -1733,10 +1764,44 @@ $warning:   #F2C037;
   // is the buttons touching the very frieze bar borders from inside". The
   // band went back to 21px with the shoulder; the cream margins are 5px a
   // side again.)
-  --nav-trail-h: 21px;
+  // ⭐⭐ 29px SINCE 2026-09-10 PM (user ask: "reduce the inner vertical padding
+  // from the frieze bar on the footer bar and make the svg patterns bigger so
+  // they are practically touching the top and bottom borders of the footer
+  // bar") — the band now takes all but a hairline of the bar. The arithmetic
+  // is the same zero-sum this token has always run, spent the other way:
+  // `band + 2×cream = 31` (the bar's content row, its 1px lip aside).
+  // ⚠ **29px WAS ONE RUNG TOO FAR** — it left 1px of cream and the next ask
+  // was "make the footer bar lips bigger. they're way too thin now", so the
+  // band settled at **25px / 3px LIPS**. The ladder, all odd (an even band
+  // cannot centre on the odd 31px box): 29 (1px lips — too thin) · 27 (2) ·
+  // **25 (3)** · 23 (4) · 21 (5 — where it stood all morning). The pair of
+  // asks brackets it: "practically touching the bar's borders" pushed off 21,
+  // "lips way too thin" pulled back off 29, and 25 is the rung between them —
+  // the band still takes four fifths of the bar, and the cream that frames it
+  // is a LIP you can see rather than a hairline.
+  // ⚠ ODD ON PURPOSE, and the band's centring formula depends on it: an
+  // abspos box lays out against the 31px PADDING box, and only an odd band
+  // centres on an odd box in whole pixels. `(32 − 1 − 25) / 2 = 3px`.
+  // ⚠ AND IT MOVES THE BUTTONS WITH IT — that is the one-number law below,
+  // and since the same sitting's first ask `--nav-chip-h` IS this number.
+  // THE WALK: 28 (2px rows, buttons riding inside) → 24 → 17 → 21 (2026-08-23)
+  // → 29 → **25** (today). Everything on this bar is zero-sum in 31px; every
+  // 2px the band takes is 1px of cream off each side.
+  // ⚠ THE MASK FIT MUST FOLLOW THIS NUMBER or the motif stops filling the
+  // band: `--trail-mask-h` on `.nav-frieze` is sized so the mask's ELEVEN
+  // INKED ROWS (of thirteen) come to the band's height — `13 × band / 11`.
+  --nav-trail-h: 25px;
 
-  // ⭐ THE CHIP HEIGHT — the trail's height LESS its two 1px rules, i.e. the
-  // band's INTERIOR exactly (2026-08-30's closing ask, second reading: "the
+  // ⭐ THE CHIP HEIGHT — the trail's height less 2px, which was the band's
+  // INTERIOR while the band had two 1px rules to be interior TO
+  // (⭐⭐ 2026-09-10: the rules are DELETED — the trail took the header
+  // rail's frameless dress, user ask — so the same −2px is now a 1px
+  // SHOULDER OF `--grey-8` PLATE above and below each chip. The arithmetic
+  // did not move a pixel and the reading got BETTER: the shoulder was
+  // invisible on the old cream-under-a-veil plate, which is why it took
+  // rules to state at all, and on a dark plate it simply draws. Everything
+  // below still holds with "rule" read as "plate edge")
+  // (2026-08-30's closing ask, second reading: "the
   // buttons touching the very frieze bar borders from inside … not on top or
   // below"). It was `--nav-trail-h` itself from 08-23 until then, and that
   // is the bug the ask names: a chip congruent with the band paints its own
@@ -1745,9 +1810,9 @@ $warning:   #F2C037;
   // box floating under the bar's darker lip rather than as the band's frame.
   // Nothing was ever a pixel off — sampling the composited bar row by row
   // put every edge on the same row, which IS the fault. One pixel of height
-  // each side buys the whole reading: the band's two rules are now the only
-  // thing drawn on those rows, uniform from end to end, and each chip's own
-  // rim starts where the band's frame stops.
+  // each side buys the whole reading: those two rows are the BAND'S alone,
+  // uniform from end to end — its two rules until 2026-09-10, its plate
+  // since — and each chip's own rim starts where the band stops.
   // ⚠ DERIVED, not authored, so the "one number" law the block above states
   // survives the split: move `--nav-trail-h` and the band, every chip in it
   // and the stack strip move together, still flush inside. Consumers are
@@ -1759,7 +1824,29 @@ $warning:   #F2C037;
   // carries a 17px icon (19px while the chip was 21px). That chain is
   // written out in `.nav-btn`; an icon bigger than the chip's content box is
   // clipped in silence.
-  --nav-chip-h: calc(var(--nav-trail-h) - 2px);
+  // ⭐⭐ AND THE −2px IS GONE — THE CHIP IS THE BAND (2026-09-10 PM, user ask:
+  // "there is a little gap between the buttons and the top part of the footer
+  // navigation bar. The gap is on the frieze bar. please fix it so the buttons
+  // look well fitted inside the frieze bar"). The 1px shoulder that row bought
+  // was invisible for as long as the plate was cream-under-a-veil — which is
+  // exactly why 2026-08-30 needed it — and the moment the trail took the
+  // header rail's flat `--grey-8` plate (that morning) the same row started
+  // DRAWING, as one dark line between each chip and the band's edge. Measured
+  // off the composited bar: one row of `rgb(97,97,97)` at each end of every
+  // chip. A shoulder you can see is a gap.
+  // ⚠ SO THE CHIP IS CONGRUENT WITH THE BAND AGAIN — 29px in 29px, both
+  // centred on the same odd 31px box, edge for edge — which is what it was
+  // from 2026-08-23 to 08-30 and what the "box cannot look inside a box it is
+  // congruent with" gotcha warns about. THAT WARNING IS SPENT: it was never
+  // about congruence itself but about the band's two 1px RULES, which a
+  // congruent chip painted its own rules on top of, so the frame read as the
+  // chip's box and the band vanished. The rules were deleted this morning.
+  // With no frame to steal, a congruent chip simply fills the band, and what
+  // states the band is its plate showing in the 6px gaps and the open runs.
+  // ⚠ STILL DERIVED, NOT AUTHORED — one edit to `--nav-trail-h` still moves
+  // the band and every chip in it together, which is the whole point of the
+  // split; the derivation is just `identity` now.
+  --nav-chip-h: var(--nav-trail-h);
 
   // TOTAL height of the bottom chrome — the bar's row PLUS the floor frieze
   // band standing under it (2026-08-02, user ask: "a dark brown frieze bar
@@ -2111,11 +2198,27 @@ $warning:   #F2C037;
   // never-covered bargain the burger's 42px slot used to strike. The
   // trail-slider's left flank (NavigationBar.trailBounds) measures the live
   // `.nav-left` box rather than reading this, so it follows for free.
-  // Below 1024px the section collapses to the avatar alone — the same gate
-  // the six trail words use ("desktop" = the width that can spend the
-  // pixels) — and every consumer follows through the dial.
-  --nav-id-w: 220px;
-  @media (max-width: 1023px) { --nav-id-w: 34px; }
+  // ⭐ 2026-09-11 (user ask: "make the user section from the footer bar on
+  // the main layout occupy the size of the profile pic. remove the name and
+  // handle too … I just want to reduce the surface it occupies", then "make
+  // this profile button … the same size as the dashboard button on the
+  // right end"): THE DIAL IS ONE NUMBER AT EVERY WIDTH NOW, and that number
+  // is `--nav-dash-w`'s. The 220px two-line stamp is retired — no name, no
+  // handle, no badge row, no 1024px branch — and the section is a
+  // GLYPH-ONLY BLOCK holding the 24px face, the rail-slot width the burger
+  // and the tack wore. The 2026-09-02 ask made the dashboard block
+  // "the identity section's MIRROR"; this one finishes the mirror by
+  // making the original the same size as its reflection, so both ends of
+  // the bar are 42px cells with identical content-plus-hairline arithmetic
+  // and the 178px between them goes back to the trail. Nothing else moved:
+  // every consumer (the .nav-left box, the chip, the stack strip's `left`)
+  // still reads this one dial, so the seam stayed put while the number
+  // shrank. What the chip no longer SAYS it still says on hover (the chip's
+  // `title` carries name + acting org) and in the window it opens.
+  // ⚠ Keep the two dials EQUAL unless an ask separates them again — the
+  // mirror is the point, and the two strips (stack left, pins right) seat
+  // against them.
+  --nav-id-w: 42px;
   // ⭐ THE DASHBOARD BLOCK'S width (2026-09-02, user ask: "remove the
   // draggable properties from the dashboard button … make the button occupy
   // the whole height like the identity section on the left … place the

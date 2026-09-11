@@ -907,7 +907,13 @@ export default defineComponent({
   // 1px rim + 17px chip (`--side-item-h`, which SidePanelItem's rail
   // face reads) + 1px = the strip's full 19px, because the strip has no
   // horizontal rims to pay for any more — the band's own rules are its top
-  // and bottom edges, and this lane runs straight up to them. ⚠ The chip
+  // and bottom edges, and this lane runs straight up to them.
+  // ⚠ THAT LAST CLAUSE IS TWICE HISTORY: this strip stopped riding the band
+  // on 2026-09-05 (it is a full-height bar CELL now — see `.is-parked`), and
+  // the band's two rules were deleted on 2026-09-10 when the trail took the
+  // header rail's frameless dress. The 19px arithmetic below is unaffected —
+  // it is the strip's own lane, bounded by the bar's lip and the window
+  // floor. ⚠ The chip
   // took a 17 → 15 → 17px round trip across 2026-08-30's closing asks,
   // purely as arithmetic: 15px while the strip still spent 2px of its 19px
   // on rims of its own, 17px again once those came off — and the 2026-08-31

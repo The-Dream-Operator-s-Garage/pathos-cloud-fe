@@ -75,8 +75,29 @@
          since this same ask (it hardcoded `auto 117%` + its halved carve
          before, which would have squeezed the mask and grimed the band; see
          FriezeBar's slim block). The arithmetic lives on `--media-tabs-band`
-         in _tokens.scss and the dials in the style block. -->
-    <FriezeBar slim class="media-tabs__frieze" />
+         in _tokens.scss and the dials in the style block.
+         ⭐ TWO WAVES AGAIN SINCE 2026-09-07, AND THEY RUN AT EACH OTHER (user
+         ask: "changing the frieze pattern of the top nav bar by adding
+         another frieze but that is horizontally mirrored … we want the waves
+         to encounter each other. Use the complementary pattern from the
+         bottom footer nav bar friezes"). `slim` came OFF and `counter` went
+         on — the second depth's return by exactly the route the style block
+         has named since 2026-08-30 ("if the second depth ever comes back, it
+         starts by taking `slim` off the template, not by re-dialling"), and
+         the pattern it returns with is the FOOTER TRAIL'S complement: mask
+         `a`, the wave the trail draws beside this one's mask `b`, which is
+         the only pattern the platform HAS that is complementary to what was
+         already here. What `counter` adds on top of the plain pair is the
+         ask's own word — mask `a` arrives HORIZONTALLY MIRRORED
+         (`mercury-wave-a.svg`, the existing mirror partner of the default
+         `-mirror` corner; no new asset), so its spirals open against `b`'s
+         instead of trailing them and the two meanders meet down the band.
+         ⚠ THE GEOMETRY DID NOT MOVE, which is the whole reason this is a
+         one-line template edit: every default `slim` was carrying here is
+         already stated as a dial below — `--frieze-bar-h`, `auto 13px`,
+         `carve: none`, `pad: 0` — so the band is the same 13px at 1px a row
+         it has been since 2026-08-27; only the second layer appears. -->
+    <FriezeBar counter class="media-tabs__frieze" />
     <!-- ── THE BACK BUTTON (2026-08-31, user ask: "relocate the back button
          from the left drawer into the top header nav bar"; the drawer is
          hidden the same day) — INSIDE the rail since the follow-up ask
@@ -576,17 +597,113 @@ export default defineComponent({
   // plaque dial) took the greys downstairs and brought the ramp back: teal
   // flat under the cyan→indigo `-paint`, the flat dial a never-seen fallback
   // again, tracking the ramp's TOP end as it did 08-22 → 08-30.
-  // ⭐ WAVE ONE'S DIALS LEFT WITH THE PATTERN (2026-08-30): they joined on
-  // 2026-08-27 when the exchange brought the second wave, and `slim` v-ifs
-  // that layer out of the DOM — dials on a band that isn't drawn are the
-  // exact trap FriezeBar's slim notes warn about, so they go rather than
-  // stand as dead state. Wave two is the slim pattern's one wave (mask `b`).
-  --frieze-bar-wave-two: var(--teal-11, #a7ffeb);
-  --frieze-bar-wave-two-paint: linear-gradient(
-    to bottom,
-    var(--teal-11, #a7ffeb) 0%,
-    var(--indigo-11, #8c9eff) 100%
-  );
+  // ⭐ WAVE ONE'S DIALS LEFT WITH THE PATTERN (2026-08-30) AND CAME BACK WITH
+  // IT (2026-09-07): they joined on 2026-08-27 when the exchange brought the
+  // second wave, went when `slim` returned — `slim` v-ifs that layer out of
+  // the DOM, and dials on a band that isn't drawn are the exact trap
+  // FriezeBar's slim notes warn about — and are real again now that `counter`
+  // has taken `slim` off the mount and layer one renders. Wave two is still
+  // the mask the band never lost (`b`, the wave carrying the full-width
+  // centre rule); wave one is the FOOTER TRAIL'S complement (`a`), arriving
+  // horizontally mirrored so the two meet.
+  // ── ⭐ BOTH WAVES ARE THE BAR'S OWN CREAM SINCE 2026-09-07 (user ask:
+  // "color both frieze svgs the same color as the header bar light-cream
+  // color") — AND THE RAMPS ARE DELETED WITH THEM ────────────────────────
+  // `--plaque-flat`, which is `--plaque-coat`'s composite measured as a flat
+  // `<color>` (#f8f2e4). It has to be that token and not the coat itself: a
+  // wave fill is a `background-color`, and the coat is a background LAYER
+  // LIST, legal only in a `background:` shorthand (the plaque dial one block
+  // up can spend it; these cannot). This is the token's second frieze role —
+  // the feed container's bands took it on 2026-08-27 for the same sentence,
+  // "the light-cream with a veil from the header's background color" as the
+  // motif — so the two surfaces draw their meanders in the same ink again.
+  //
+  // The ramps are DELETED, not blanked: FriezeBar's
+  // `background-image: var(--frieze-bar-wave-{one,two}-paint, none)` falls
+  // back to `none`, so the flat dial IS the drawn ink. What ends here is the
+  // cyan→indigo pair the band had worn since the post cards handed it over
+  // (08-22, inverted 08-24, downstairs and back through 08-30's swap) and the
+  // REVERSED counterpart wave one took when `counter` landed this morning.
+  //
+  // ⚠ ONE TONE FOR BOTH MASKS, which the platform has drawn once before —
+  // `.nav-frieze`'s cream era (2026-08-23 → 08-30), where an ask naming one
+  // colour for "the inner friezes" made the interleave read as a SINGLE
+  // meander. Here that is the point rather than the price: the pair is
+  // OPPOSED and, at the -11px phase below, collision-free, so one ink makes
+  // the two waves read as one continuous key running the width of the window
+  // instead of two motifs sharing a strip. What tells them apart now is
+  // DIRECTION and PHASE alone — the mask swap and the shift, not colour.
+  //
+  // ⚠ AND THE VALUE RELATION FLIPS BACK, which retires a standing warning:
+  // cream ink on the `--grey-8` plate is LIGHTER than its plate for the first
+  // time since 2026-08-30's recolor, so the "value-inverted → the carve is
+  // forbidden by law" note that has ridden these dials through the recolor,
+  // the swap and this morning's pattern change is VOID. The carve is still
+  // `none`, but now only by the pixel-drawn law (1px strokes + black/white
+  // flanks = grime), which is a reason that could be argued with rather than
+  // a geometric impossibility.
+  --frieze-bar-wave-two: var(--plaque-flat, #f8f2e4);
+  // ── ⭐ THE OPPOSED WAVE'S INK — THE SAME RAMP, RUN THE OTHER WAY
+  // (2026-09-07; ⚠ SUPERSEDED THE SAME SITTING by the cream ask — the ⭐
+  // block at wave two's dial. This paragraph is the record of the hour the
+  // band spent as a two-accent reflection, and of the one argument in it
+  // that OUTLIVED the ramp: a mirrored pair wants its halves distinguishable,
+  // and when the colour stopped doing that job the DIRECTION and the -11px
+  // PHASE were already carrying it) ────────────────────────────────────────
+  // The PATTERN came from the footer trail; the COLORING deliberately did
+  // not. The trail's greys are a quiet band under a row of buttons; this rail
+  // has one motif for the whole window and it has worn the two A100 accents —
+  // teal-11 → indigo-11 — since the post cards handed the band over. Two
+  // greys arriving on top of that would make the band read as two objects in
+  // two palettes rather than one motif that turned back on itself.
+  //
+  // So wave one takes wave two's ramp REVERSED — indigo-11 at the top, teal-11
+  // at the foot — which is the device the post card's own mirrored PAIR
+  // already used (FriezeBar's `-paint` note: "the post card's pair runs
+  // teal-11 → indigo-11 down the band, reversed on the mirrored one"). Here
+  // the reflection happens inside ONE band instead of across two, and the
+  // reversal is what makes the mirroring legible: where the two meanders
+  // meet, the light accent of one lies against the dark accent of the other,
+  // so the encounter is a colour event as well as a shape one. Told apart by
+  // VALUE as well as by shape — the law `.nav-frieze` records for every band
+  // whose two masks draw at once.
+  //
+  // The flat dial is a NEVER-SEEN FALLBACK, tracking its ramp's TOP end
+  // exactly as wave two's does, so a paint-less render lands on the right
+  // accent rather than a stray one.
+  //
+  // ⚠ Both waves are LIGHTER than the `--grey-8` plate, which is the relation
+  // this band has always drawn and the only one a carve could ever be turned
+  // back on over. (It stays `none` under the pixel-drawn law regardless.)
+  // ⭐ NOW `--plaque-flat` LIKE ITS TWIN (the cream ask) — the reversal above
+  // is history and the two waves are ONE ink; see wave two's block.
+  --frieze-bar-wave-one: var(--plaque-flat, #f8f2e4);
+  // ── ⭐ AND THE OPPOSED WAVE IS PULLED 11px LEFT (2026-09-07, the ask right
+  // after the pattern landed: "move the new line a little to the left so that
+  // it fills up the space in between that the other svg left … well
+  // distributed") ─────────────────────────────────────────────────────────
+  // THIS IS WHAT FINISHES `counter`, not a nudge. The two masks interleave
+  // because they are one meander offset by HALF A TILE; mirroring layer one
+  // threw that offset away, so both motifs came to rest on nearly the same
+  // columns — 20 of the tile's 21 columns collided, the two ramps painting
+  // each other out, which is the clotted single wave the ask is looking at.
+  //
+  // 11 IS MEASURED, NOT PICKED. The masks are a 21 × 13 cell grid; walking
+  // layer one left one column at a time and counting cells that land on layer
+  // two's gives a clean minimum: 20 collisions at 0, dropping through 7 at
+  // −7px, and **exactly 0 at −11px** — the only offset in the tile with none
+  // at all (−10 and −12 both leave 4). And what lands there is better than
+  // merely non-colliding: at −11 the tile is SYMMETRIC about the centre rule,
+  // rows 1–5 mirroring rows 7–11 with the two layers exchanged, so the band
+  // reads as one motif reflected rather than two motifs sharing a strip.
+  //
+  // ⚠ THE UNIT IS A MOTIF COLUMN AND IT IS ONLY 1px HERE BECAUSE OF THE FIT.
+  // `auto 13px` renders the 231 × 143 file at 21 × 13, so one column is
+  // exactly 1px and 11 columns is 11px. Move `--frieze-bar-fit` and this
+  // number MUST move with it — `shift = columns × N / 13` for a fit of
+  // `auto Npx` (the next crisp step, `auto 26px`, would want 22px). The
+  // COLUMN COUNT is the constant; the pixels are a reading of it.
+  --frieze-bar-wave-one-shift: -11px;
 }
 
 // ── …ON EVERY ROUTE, /feed INCLUDED AGAIN (2026-08-24, user ask: "make the

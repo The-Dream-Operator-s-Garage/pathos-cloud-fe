@@ -30,6 +30,11 @@
        centre, this one turns a WHOLE band upside down so two of them
        can bracket something as a reflected pair.
 
+       `counter` (2026-09-07) turns HALF the band: layer one wears its own
+       mask's horizontal mirror and layer two stays put, so the two waves
+       run AT each other instead of marching together. Same asset-swap
+       law as the other two, and it composes with both.
+
        ONE TILING, always (2026-07-27): the layers span the box and the
        masks anchor at its LEFT edge, so the motif runs one way across
        the whole band. A `mirrored` variant lived here for a day — the
@@ -42,7 +47,12 @@
        `scaleX(-1)` (it mirrors the drop-shadow carve with the motif). -->
   <div
     class="frieze-bar"
-    :class="{ 'frieze-bar--slim': slim, 'frieze-bar--flip': flip, 'frieze-bar--vflip': vflip }"
+    :class="{
+      'frieze-bar--slim': slim,
+      'frieze-bar--flip': flip,
+      'frieze-bar--vflip': vflip,
+      'frieze-bar--counter': counter
+    }"
     aria-hidden="true"
   >
     <div class="frieze-bar__inner">
@@ -85,7 +95,38 @@ export default defineComponent({
     // which on the same canvas is the original turned 180°
     // (`translate(231 143) scale(-1 -1)`), and `flip` + `vflip` together land
     // on the plain `-vmirror` pair, the fourth corner of that square.
-    vflip: { type: Boolean, default: false }
+    vflip: { type: Boolean, default: false },
+    // Run the TWO WAVES AT EACH OTHER (2026-09-07, user ask for the top nav
+    // bar: "adding another frieze but that is horizontally mirrored … we want
+    // the waves to encounter each other"). Layer ONE takes the horizontal
+    // mirror of whatever mask it would otherwise wear; layer TWO does not
+    // move. The masks being one meander offset by half a tile, mirroring only
+    // half the pair turns the interleave from two waves marching the same way
+    // into two waves meeting — the spirals of `a` now open against the
+    // spirals of `b` instead of trailing them.
+    //
+    // A mask swap for the third time and for the third time for the same
+    // reason: `transform: scaleX(-1)` on one layer would mirror that layer's
+    // carve too and light half the band from the right. Every corner of the
+    // 4-mask square already exists on disk, so the opposed pairing costs no
+    // asset — it is the `-mirror` partner of each corner, which is why this
+    // composes with `flip` and `vflip` rather than fighting them (see the
+    // four rules in the style block).
+    //
+    // ⚠ NO-OP UNDER `slim`, which `v-if`s layer one out of the DOM: there is
+    // only one wave to run and nothing for it to meet. A band that wants the
+    // opposed pair takes `slim` OFF (its geometry defaults all reach through
+    // the `--frieze-bar-*` dials, so a host that states them loses nothing).
+    //
+    // ⚠⚠ A `counter` BAND IS NOT FINISHED UNTIL IT IS RE-PHASED — state
+    // `--frieze-bar-wave-one-shift` as well as this prop. What makes the two
+    // masks interleave is the HALF-TILE OFFSET between them, and mirroring one
+    // of them destroys exactly that: the two motifs come to rest on nearly the
+    // same columns and paint each other out (20 of the 21-column tile's cells
+    // collide, measured on the header band the day this shipped — it reads as
+    // one clotted wave, not two). The style block's phase-dial note has the
+    // columns → px conversion; the top rail's own 11px is derived there.
+    counter: { type: Boolean, default: false }
   }
 })
 </script>
@@ -176,10 +217,8 @@ export default defineComponent({
   inset: 0;
   mask-repeat: repeat-x;
   mask-size: var(--frieze-bar-fit, auto 99%);
-  mask-position: left center;
   -webkit-mask-repeat: repeat-x;
   -webkit-mask-size: var(--frieze-bar-fit, auto 99%);
-  -webkit-mask-position: left center;
   filter: var(
     --frieze-bar-carve,
     drop-shadow(-1.05px -1.05px 0 #0b0c10)
@@ -189,6 +228,34 @@ export default defineComponent({
   );
 }
 
+// ── THE WAVES' PHASE (2026-09-07) — a THIRD form of each wave dial:
+// `--frieze-bar-wave-{one,two}-shift`, a horizontal offset applied to that
+// layer's `mask-position` (`0` unset, which is the `left center` this rule
+// stated from the beginning — the masks still anchor at the box's left edge
+// and still run ONE tiling across it; the dial only chooses WHERE IN THE
+// MOTIF that edge falls).
+//
+// It exists because `counter` needs it. The two masks are one meander offset
+// by half a tile, and that offset is what makes them interleave — mirror ONE
+// of them and the offset is gone: the two motifs land on nearly the same
+// columns and paint each other out (20 of the tile's cells collide, measured).
+// Re-phasing the mirrored pair is not a taste knob, it is what finishes the
+// variant, and it has to be a DIAL rather than a number in here because the
+// right offset is in MOTIF COLUMNS while `mask-position` takes LENGTH, and the
+// conversion runs through `--frieze-bar-fit`, which is the host's to state:
+//
+//     the file is 231 × 143 = 21 × 13 cells, so at a fixed fit `auto Npx`
+//     one motif column renders at N / 13 px  →  shift = columns × N / 13
+//
+// At the family's canonical `auto 13px` that is 1px A COLUMN, which is the
+// whole reason the pixel-drawn bands are pleasant to phase by hand. Under the
+// viewport-relative `auto 99%` there is no fixed px answer at all, which is
+// the second reason this cannot live in the component.
+//
+// ⚠ NEGATIVE IS LEFT, and left is the direction that matters: the tile's own
+// columns run 0→20 with the un-mirrored `a` motif at the left end, so pulling
+// layer one back is what walks it into the gap layer two leaves.
+//
 // ── THE WAVES' PAINT (2026-08-07) — each wave dial has a second form, an
 // IMAGE laid over its flat tone: `--frieze-bar-wave-{one,two}-paint`. Unset it
 // is `none` and the layer is the flat plate it has always been; set, the host
@@ -213,6 +280,8 @@ export default defineComponent({
   background-image: var(--frieze-bar-wave-one-paint, none);
   mask-image: url('../../assets/frieze/mercury-wave-a-mirror.svg');
   -webkit-mask-image: url('../../assets/frieze/mercury-wave-a-mirror.svg');
+  mask-position: var(--frieze-bar-wave-one-shift, 0px) center;
+  -webkit-mask-position: var(--frieze-bar-wave-one-shift, 0px) center;
 }
 
 .frieze-bar__layer--two {
@@ -220,6 +289,8 @@ export default defineComponent({
   background-image: var(--frieze-bar-wave-two-paint, none);
   mask-image: url('../../assets/frieze/mercury-wave-b-mirror.svg');
   -webkit-mask-image: url('../../assets/frieze/mercury-wave-b-mirror.svg');
+  mask-position: var(--frieze-bar-wave-two-shift, 0px) center;
+  -webkit-mask-position: var(--frieze-bar-wave-two-shift, 0px) center;
 }
 
 // ── FLIP (2026-08-02) — the same band with the meander running the other
@@ -274,6 +345,54 @@ export default defineComponent({
     mask-image: url('../../assets/frieze/mercury-wave-b-vmirror.svg');
     -webkit-mask-image: url('../../assets/frieze/mercury-wave-b-vmirror.svg');
   }
+}
+
+// ── COUNTER (2026-09-07) — THE TWO WAVES RUN AT EACH OTHER. Every rule
+// above turns the WHOLE band; this one turns HALF of it, which is a
+// different kind of thing and the reason it is its own variant rather than a
+// third axis of the same square. `flip`/`vflip` keep the pair marching in
+// step and change which way the column of them faces; `counter` breaks step
+// — layer one takes its own mask's horizontal mirror while layer two stays
+// put, so the half-tile offset that used to read as ONE meander at double
+// density now reads as two meanders meeting. Only layer one moves, and it
+// moves to a file that already exists.
+//
+// FOUR RULES, one per corner of the square the three blocks above define,
+// because `counter` has to answer "the mirror of what layer one would
+// otherwise wear" and that answer differs in each:
+//
+//   band          layer one becomes        (mirror of)
+//   ─────────────────────────────────────────────────────────
+//   (default)     a                        a-mirror
+//   flip          a-mirror                 a
+//   vflip         a-vmirror                a-mirror-vmirror
+//   flip vflip    a-mirror-vmirror         a-vmirror
+//
+// ⚠ ORDER AND SPECIFICITY ARE LOAD-BEARING, exactly as they are between
+// `--vflip` and `--flip.--vflip` above. These sit AFTER the three blocks so
+// the plain `--counter` rule (two classes) outranks `--flip`'s and
+// `--vflip`'s (two classes each) on source order, and the compound rules
+// climb to three and four classes so they outrank `--flip.--vflip`'s three.
+// Moving any of them above the blocks they override silently hands a
+// `counter` band the un-mirrored mask and the opposition disappears.
+.frieze-bar--counter .frieze-bar__layer--one {
+  mask-image: url('../../assets/frieze/mercury-wave-a.svg');
+  -webkit-mask-image: url('../../assets/frieze/mercury-wave-a.svg');
+}
+
+.frieze-bar--counter.frieze-bar--flip .frieze-bar__layer--one {
+  mask-image: url('../../assets/frieze/mercury-wave-a-mirror.svg');
+  -webkit-mask-image: url('../../assets/frieze/mercury-wave-a-mirror.svg');
+}
+
+.frieze-bar--counter.frieze-bar--vflip .frieze-bar__layer--one {
+  mask-image: url('../../assets/frieze/mercury-wave-a-vmirror.svg');
+  -webkit-mask-image: url('../../assets/frieze/mercury-wave-a-vmirror.svg');
+}
+
+.frieze-bar--counter.frieze-bar--flip.frieze-bar--vflip .frieze-bar__layer--one {
+  mask-image: url('../../assets/frieze/mercury-wave-a-mirror-vmirror.svg');
+  -webkit-mask-image: url('../../assets/frieze/mercury-wave-a-mirror-vmirror.svg');
 }
 
 // ── SLIM (2026-07-26) — the band at HALF height, drawn by the brown-1 wave

@@ -108,6 +108,14 @@
 // closing it — the bar's own structural ink, the tone of its top lip, which
 // is the line that has to do the work where a chip overhangs the trail onto
 // the plaque and face meets face at 1:1.
+// ⭐ SINCE 2026-09-10 THE BAND DOES THAT WORK ALONE (user ask: the footer
+// wears the header rail's band now — `.nav-frieze` in NavigationBar). The
+// plate is a flat `--grey-8` and this face is `--plaque-flat`, ~4.4:1 apart,
+// so a chip's top and bottom edge is drawn by VALUE and the band's two rules
+// could be deleted with the rest of the rail's dress. "Face meets face at
+// 1:1" is void where a chip meets the TRAIL; it still describes the vertical
+// seams against the bar's own cream at the cluster's ends, which is what the
+// grey-5 side rims below are for.
 //
 // HOVER steps COOL, not deeper into a hue: `--grey-3` is the veil's own tone,
 // ten levels under the composited face, so the chip reads as the same material
@@ -153,6 +161,23 @@
 // frame stops. (⚠ The first pass over-corrected to a 2px shoulder in a 25px
 // band — plate and meander visibly above and below each chip — and was
 // rejected on sight. "Inside" here means flush, not floating.)
+// ⭐⭐ AND ON 2026-09-10 THE RULES WENT — the height did NOT (user ask: the
+// trail takes the header rail's band, dress and all). The chip is still
+// `--nav-chip-h`, still 19px in a 21px band, still 1px in at each end; what
+// that 1px row IS changed, from the band's own rule to a row of `--grey-8`
+// PLATE — and it drew so well that the NEXT ask called it a gap: "there is a
+// little gap between the buttons and the top part of the footer navigation
+// bar. The gap is on the frieze bar" (2026-09-10 PM). Sampled off the
+// composited bar it was one row of rgb(97,97,97) at each end of every chip,
+// exactly as designed. **`--nav-chip-h` IS `--nav-trail-h` now** — chip and
+// band congruent, edge for edge, no row of plate between them.
+// ⚠ SO THE WHOLE CORRECTION ABOVE IS REVERSED, and the reason it can be is
+// that its cause is gone: the 08-30 failure was a congruent chip painting its
+// own rules over the BAND'S two rules, and the band has had no rules since
+// 2026-09-10 AM. What is left is better than the fix — a 1px relation is
+// worth whatever its plate is worth, so re-look at every one of them whenever
+// a plate changes VALUE, and look at PAINT: every geometry assert here stayed
+// green through both complaints.
 //
 // STILL ONE AUTHORED NUMBER, NOT TWO IN STEP — `--nav-chip-h` is
 // `calc(var(--nav-trail-h) - 2px)` at `:root` (_tokens.scss), so the band
@@ -215,7 +240,10 @@
   //
   // ⚠ THIS IS A SANCTIONED BREAK IN THE BAR'S TWO-INK LAW, which is stated
   // at `border` below and reads: grey-6 draws every HORIZONTAL line on this
-  // bar, grey-5 every VERTICAL one. It still holds everywhere the eye reads
+  // bar, grey-5 every VERTICAL one. (⭐ 2026-09-10: the law's horizontal half
+  // is down to ONE line — the bar's top lip — since the trail took the header
+  // band's frameless dress and its two grey-6 rules went with the old plate.
+  // The vertical half is untouched, which is the half this dial breaks.) It still holds everywhere the eye reads
   // the bar as one object — the band's rules, the strips, the two "looker"
   // chips at the ends, and the gaps between all of them. What it stops
   // holding for is the four chips that HAVE a colorway, and the reason is the
@@ -273,6 +301,14 @@
   // seam itself goes. THE BAND'S RULE IS EACH CHIP'S TOP AND BOTTOM EDGE
   // NOW — the chip's face runs straight up to it — and the chips draw only
   // the verticals that separate them from each other.
+  // ⭐⭐ THE RULES ARE GONE SINCE 2026-09-10 (the trail took the header
+  // band's dress; `.nav-frieze` in NavigationBar) AND THESE STAY OFF FOR THE
+  // INVERTED REASON: the chip's `--plaque-flat` face against the band's flat
+  // `--grey-8` plate is ~4.4:1, so the edge is drawn by VALUE and is the
+  // strongest line on the bar. Any rim put back in that seam — grey-5,
+  // grey-6, a family contrast — can only dull it, and would re-open the
+  // uniformity problem below in a new form (a line over the chips, none in
+  // the gaps, where there is no band rule left to match).
   // ⚠ `border-box` keeps the box 19px, so NOTHING MOVES: the content height
   // goes 17 → 19px and the 17px glyphs simply gain a pixel of face above
   // and below (that 1px is the chip's own cream, not band — it does not
@@ -283,6 +319,12 @@
   // property to protect: give these rims their horizontal halves back and
   // the line draws 2px over a chip and 1px in the gaps, which is the
   // unevenness this whole thread of asks has been about.
+  // ⭐⭐ RESTATED FOR THE DARK BAND (2026-09-10): there is no hairline to keep
+  // uniform any more — what runs end to end is the PLATE'S EDGE, and it is
+  // uniform for free because it is one absolute stripe. The property to
+  // protect is now that the chips never draw over it: they sit a pixel
+  // inside, so the dark line the eye follows along the bar is unbroken by
+  // the six chips standing in it.
   border-top-width: 0;
   border-bottom-width: 0;
   background: var(--plaque-flat);
