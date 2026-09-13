@@ -16,6 +16,22 @@
       <q-icon name="hub" size="18px" />
       <span>Origin constellation</span>
       <q-space />
+      <!-- ⭐ THE HOP LINE (2026-09-13, user ask: "for the flyout window for
+           entities, include the hop thing on the constellation section").
+           The viewer's distance to this entity through the vouch tree —
+           the `[n hops]` plate the feed card's byline wore from 2026-07-29
+           until today, moved to where the chain is DRAWN. `trust` rides
+           the origin read (`{ hops, path }`, docs/concepts/trust.md); the
+           tooltip walks the path, "you" first, as the plate's did. -->
+      <span
+        v-if="hopsLabel"
+        class="origin-sky__hops"
+        :class="{ 'origin-sky__hops--you': trust.hops === 0 }"
+        :title="hopsTitle"
+      >
+        <q-icon name="connect_without_contact" size="13px" />
+        {{ hopsLabel }}
+      </span>
       <q-btn v-if="!inline" flat dense round icon="close" size="sm" @click="$emit('close')" />
     </div>
 
@@ -66,8 +82,24 @@
         >
           <!-- A star is an entity link — and since 2026-09-11 every entity
                link is a door to that entity's WINDOW (utils/entityDoor). -->
+          <!-- ⭐ THE REAL FACE (2026-09-13, user ask: "include the actual
+               profile pictures there"). The star passed `entity-id` and
+               `photo` — two props `EntityAvatar` never declared (it takes
+               `entity`, `id`, `size`), so every star fell through to the
+               monogram. The chain card already carries the photo card
+               (`{ url, ref }`, or null for a faceless / undisclosed face)
+               and the name; handed over as `entity`, the avatar draws the
+               picture and never fetches. A FACELESS card (photo null — the
+               pioneer by seed, or a face the viewer may not see) is handed
+               only its `id` instead, so the avatar resolves the summary
+               itself and the pioneer earns its star glyph rather than a
+               monogram. -->
           <router-link :to="`/entities/${card.id}`" class="origin-node__ring">
-            <EntityAvatar :entity-id="card.id" :photo="card.photo" :size="card.edge === 'self' ? 52 : 42" />
+            <EntityAvatar
+              :entity="card.photo ? { id: card.id, display_name: card.name, photo: card.photo } : null"
+              :id="card.id"
+              :size="card.edge === 'self' ? 52 : 42"
+            />
           </router-link>
           <div class="origin-node__name">
             <q-icon v-if="card.isPioneer" name="star" size="13px" class="origin-node__star" />
@@ -131,6 +163,9 @@ export default defineComponent({
     const chain = ref([])
     const concealed = ref(false)
     const owns = ref(false)
+    // The viewer's `{ hops, path }` to this entity (2026-09-13) — null until
+    // loaded, and null from the server when either end is off the tree.
+    const trust = ref(null)
     // What OTHERS would see — asked once so the toggle reflects reality.
     const concealedForOthers = ref(false)
 
@@ -144,6 +179,7 @@ export default defineComponent({
           chain.value = r.chain
           concealed.value = r.concealed
           owns.value = r.owns
+          trust.value = r.trust || null
           // the server answers what strangers see; null = not an alter-ego
           concealedForOthers.value = r.disclosed_to_others === null
             ? r.concealed
@@ -172,6 +208,23 @@ export default defineComponent({
     const edgeCaption = (edge) =>
       edge === 'alter_ego' ? 'unravels to' : 'invited by'
 
+    // The hop line's two strings — the feed byline's former `trustLabel` /
+    // `trustTitle`, verbatim in meaning: the label states the DISTANCE, the
+    // tooltip walks the PATH with "you" in the first seat.
+    const hopsLabel = computed(() => {
+      const t = trust.value
+      if (!t) return ''
+      return t.hops === 0 ? 'you' : `${t.hops} hop${t.hops === 1 ? '' : 's'} away`
+    })
+    const hopsTitle = computed(() => {
+      const t = trust.value
+      if (!t) return ''
+      if (t.hops === 0) return 'This is you'
+      const names = (t.path || []).map((p) => p.name)
+      if (names.length) names[0] = 'you'
+      return `Invite chain: ${names.join(' › ')}`
+    })
+
     const toggleDisclosure = async (v) => {
       try {
         const r = await entityService.setOriginDisclosure(props.entityId, v)
@@ -189,27 +242,48 @@ export default defineComponent({
     onMounted(load)
     watch(() => props.entityId, load)
 
-    return { loading, chain, concealed, owns, concealedForOthers, displayChain, selfIsAlterEgo, edgeCaption, toggleDisclosure, load }
+    return { loading, chain, concealed, owns, concealedForOthers, trust, hopsLabel, hopsTitle, displayChain, selfIsAlterEgo, edgeCaption, toggleDisclosure, load }
   }
 })
 </script>
 
 <style lang="scss" scoped>
-// A night sky, not a form: deep ink, three drifting star layers, and one
-// luminous thread. The only warm things are the pioneer's gold and the
-// amber toggle — edges and marks, never surfaces.
+// ⭐ RE-FAMILIED 2026-09-13 (user ask: "adjust its aesthetic to fit the general
+// color palette"). It was a NIGHT SKY — deep ink (#0d131b), white stars, a
+// mint thread, amber toggles — the one dark object in a window whose every
+// other panel is `EntityCard`'s idiom: a white body, a `#f4f7fb` chrome
+// band, `#e2e6ed` rules, the `--radius-md` corner, inks off `--ink`. The sky
+// is that panel now. What SURVIVES of the night is the drawing — the three
+// drifting star layers (ink specks on paper instead of light on dark), the
+// bottom-up vine, the unravelling thread — and one warm accent: the pioneer
+// gold `#c79a00`, which is the window's own pioneer tint (`EntityCard`'s
+// `.pioneer-tint`), on the invite thread, the pioneer's star and the self
+// ring. The tokens are `EntityCard`'s, restated here because a scoped panel
+// cannot read a sibling's; keep the seven in step with `.subject-panel`.
 .origin-sky {
+  --panel-chrome: #f4f7fb;
+  --panel-body:   #ffffff;
+  --panel-rule:   #e2e6ed;
+  --panel-ink:    #2C3D4E;
+  --panel-ink-1:  #1F2A38;
+  --panel-ink-2:  #5b6c82;
+  --panel-ink-mute: #8995a8;
+  --sky-gold: #c79a00;
+
   position: relative;
   width: 420px;
   max-width: 92vw;
   max-height: 84vh;
   overflow: hidden;
-  border-radius: 14px;
-  background: radial-gradient(ellipse at 50% 120%, #1d2733 0%, #0d131b 60%, #070b10 100%);
-  color: #cfd8dc;
+  border-radius: var(--radius-md, 0.85em);
+  background: var(--panel-body);
+  border: 1px solid var(--panel-rule);
+  color: var(--panel-ink);
   display: flex;
   flex-direction: column;
-  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.55);
+  // The dialog's lift, on a pale card now — a soft ink shadow, not the
+  // night's black one.
+  box-shadow: 0 12px 40px rgba(var(--ink-rgb), 0.18);
 
   // INLINE (2026-09-11): a block in the entity window's column — the
   // column's width, a capped height the vine scrolls inside, the dialog's
@@ -220,7 +294,6 @@ export default defineComponent({
     max-width: none;
     max-height: 380px;
     min-height: 200px;
-    border-radius: 10px;
     box-shadow: none;
   }
 }
@@ -230,24 +303,26 @@ export default defineComponent({
   inset: -50%;
   pointer-events: none;
   background-repeat: repeat;
-  opacity: 0.8;
+  opacity: 0.9;
 }
-// each layer is a handful of box-shadow "stars" on a 1px dot, tiled by size
+// each layer is a handful of specks on a 1px dot, tiled by size — INK on
+// paper since the re-family (they were white on the night); the far layer
+// faintest, the near one a touch of the gold so the sky keeps one warm dust.
 .origin-sky__stars--far {
-  background-image: radial-gradient(1px 1px at 20px 30px, rgba(255,255,255,.5) 50%, transparent 51%),
-    radial-gradient(1px 1px at 90px 110px, rgba(255,255,255,.35) 50%, transparent 51%),
-    radial-gradient(1px 1px at 160px 60px, rgba(255,255,255,.4) 50%, transparent 51%);
+  background-image: radial-gradient(1px 1px at 20px 30px, rgba(var(--ink-rgb), .18) 50%, transparent 51%),
+    radial-gradient(1px 1px at 90px 110px, rgba(var(--ink-rgb), .12) 50%, transparent 51%),
+    radial-gradient(1px 1px at 160px 60px, rgba(var(--ink-rgb), .14) 50%, transparent 51%);
   background-size: 200px 160px;
   animation: origin-drift 160s linear infinite;
 }
 .origin-sky__stars--mid {
-  background-image: radial-gradient(1.5px 1.5px at 50px 80px, rgba(178,235,242,.5) 50%, transparent 51%),
-    radial-gradient(1px 1px at 130px 20px, rgba(255,255,255,.45) 50%, transparent 51%);
+  background-image: radial-gradient(1.5px 1.5px at 50px 80px, rgba(var(--ink-rgb), .16) 50%, transparent 51%),
+    radial-gradient(1px 1px at 130px 20px, rgba(var(--ink-rgb), .14) 50%, transparent 51%);
   background-size: 240px 200px;
   animation: origin-drift 110s linear infinite reverse;
 }
 .origin-sky__stars--near {
-  background-image: radial-gradient(2px 2px at 70px 140px, rgba(255,224,130,.5) 50%, transparent 51%);
+  background-image: radial-gradient(2px 2px at 70px 140px, rgba(199, 154, 0, .35) 50%, transparent 51%);
   background-size: 300px 260px;
   animation: origin-drift 80s linear infinite;
 }
@@ -256,19 +331,52 @@ export default defineComponent({
   to   { transform: translate(120px, 80px); }
 }
 
+// The head is the panel's CHROME band — EntityCard's own header recipe
+// (chrome coat, rule under it, ink-1), the title in small caps as before.
 .origin-sky__head {
   position: relative;
   z-index: 2;
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 12px 14px;
-  font-size: 0.8rem;
+  padding: 8px 12px;
+  font-size: 0.78rem;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: #90a4ae;
+  color: var(--panel-ink-1);
+  background: var(--panel-chrome);
+  border-bottom: 1px solid var(--panel-rule);
+  .q-icon { color: var(--panel-ink-2); }
 }
-.origin-sky--inline .origin-sky__head { padding: 8px 12px; font-size: 0.72rem; }
+.origin-sky--inline .origin-sky__head { padding: 6px 10px; font-size: 0.72rem; }
+
+// THE HOP LINE (2026-09-13) — the feed byline's `[n hops]` plate, relocated:
+// the same tiny plate idiom the window's chips use (`rgba(ink, .04)` coat,
+// `.15` rim, 6px corner — EntityAnchors' fact chip), lower-case against the
+// head's small caps so it reads as a VALUE beside a TITLE. "you" wears the
+// gold: the one case where the distance is not a distance.
+.origin-sky__hops {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 7px;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: none;
+  white-space: nowrap;
+  color: var(--panel-ink-1);
+  background: rgba(var(--ink-rgb), 0.04);
+  border: 1px solid rgba(var(--ink-rgb), 0.15);
+  border-radius: 6px;
+  cursor: help;
+  .q-icon { color: var(--panel-ink-2); }
+  &--you {
+    color: var(--sky-gold);
+    border-color: rgba(199, 154, 0, 0.45);
+    .q-icon { color: var(--sky-gold); }
+  }
+}
 
 .origin-sky__center {
   position: relative;
@@ -279,7 +387,7 @@ export default defineComponent({
   padding: 60px 0 80px;
 }
 .origin-sky--inline .origin-sky__center { padding: 30px 0 40px; }
-.origin-sky__empty { color: #607d8b; font-style: italic; }
+.origin-sky__empty { color: var(--panel-ink-2); font-style: italic; }
 
 // the column: BOTTOM-UP — you at the bottom, pioneer at the top
 .origin-vine {
@@ -301,42 +409,44 @@ export default defineComponent({
   opacity: 0;
   animation: origin-appear 0.7s ease forwards;
 
+  // The ring around a star: the window's chip coat + rim, the face inside
+  // it a REAL picture now (see the template). Hover lifts the rim to ink.
   &__ring {
     display: inline-flex;
     border-radius: 26%;
     padding: 3px;
-    background: rgba(128, 203, 196, 0.12);
-    box-shadow: 0 0 14px rgba(128, 203, 196, 0.25);
-    transition: box-shadow 0.25s;
-    &:hover { box-shadow: 0 0 22px rgba(128, 203, 196, 0.55); }
+    background: rgba(var(--ink-rgb), 0.04);
+    border: 1px solid rgba(var(--ink-rgb), 0.15);
+    transition: border-color 0.2s, box-shadow 0.25s;
+    &:hover {
+      border-color: rgba(var(--ink-rgb), 0.45);
+      box-shadow: 0 2px 10px rgba(var(--ink-rgb), 0.16);
+    }
   }
   &__name {
     font-size: 0.8rem;
     font-weight: 600;
-    color: #eceff1;
+    color: var(--panel-ink-1);
     display: inline-flex;
     align-items: center;
     gap: 4px;
   }
-  &__sub { font-size: 0.66rem; color: #78909c; }
-  &__star { color: #ffd54f; filter: drop-shadow(0 0 4px rgba(255, 213, 79, 0.8)); }
+  &__sub { font-size: 0.66rem; color: var(--panel-ink-2); }
+  &__star { color: var(--sky-gold); }
 
   &--self &__ring {
-    background: rgba(255, 213, 79, 0.14);
-    box-shadow: 0 0 18px rgba(255, 213, 79, 0.35);
+    background: rgba(199, 154, 0, 0.08);
+    border-color: rgba(199, 154, 0, 0.55);
   }
-  &--pioneer &__name {
-    background: linear-gradient(160deg, #f5e6b8, #d4af37 55%, #b8860b);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-  }
+  &--pioneer &__name { color: var(--sky-gold); }
   &--fog {
-    color: #546e7a;
-    .origin-node__name { color: #78909c; font-style: italic; font-weight: 400; }
+    color: var(--panel-ink-mute);
+    .origin-node__name { color: var(--panel-ink-2); font-style: italic; font-weight: 400; }
   }
 }
 
+// The thread: ink-2 for an alter-ego's unravelling, the gold for an invite
+// — the two edge kinds told apart by the palette's own two accents.
 .origin-vine__thread {
   position: relative;
   display: flex;
@@ -344,9 +454,9 @@ export default defineComponent({
   align-items: center;
   opacity: 0;
   animation: origin-appear 0.7s ease forwards;
-  color: rgba(128, 203, 196, 0.75);
+  color: rgba(91, 108, 130, 0.7);
 
-  &--invite { color: rgba(255, 213, 79, 0.55); }
+  &--invite { color: rgba(199, 154, 0, 0.75); }
 
   .origin-vine__svg { width: 40px; height: 56px; display: block; }
   .origin-vine__path {
@@ -362,7 +472,7 @@ export default defineComponent({
     transform: translateY(-50%);
     font-size: 0.62rem;
     letter-spacing: 0.04em;
-    color: #607d8b;
+    color: var(--panel-ink-mute);
     white-space: nowrap;
   }
 }
@@ -376,8 +486,10 @@ export default defineComponent({
   margin-top: 14px;
   padding: 8px 12px;
   border-radius: 10px;
-  background: rgba(13, 19, 27, 0.85);
+  background: rgba(244, 247, 251, 0.9);
+  border: 1px solid var(--panel-rule);
   backdrop-filter: blur(3px);
   font-size: 0.72rem;
+  color: var(--panel-ink-1);
 }
 </style>

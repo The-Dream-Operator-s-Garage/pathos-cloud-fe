@@ -862,10 +862,12 @@
                     @click.stop
                   >
                     <span class="post-square__identity-name">{{ authorName(item.author) }}</span>
-                    <!-- No `mono` here (2026-08-09, Nasalization ask): the
-                         whole band letters in the display face, and a class
-                         on the span would beat the inheritance. -->
-                    <span class="post-square__identity-handle">{{ authorHandle(item.author) }}</span>
+                    <!-- ⭐ THE HANDLE IS GONE (2026-09-13, user ask: "remove
+                         the handle and the 'hop' thing from the author/moment
+                         section"). The name alone names the author on this
+                         line — the handle is one hover away on the link's
+                         title and one click away on the profile. Its rules
+                         left the style block with it. -->
                   </router-link>
                   <!-- The badge — its own link to the organization. Drawn
                        only for a MASK: an org publishing as itself already
@@ -913,16 +915,15 @@
                        the seam between who and how-long-ago on one line,
                        decorative — the age reads without it. -->
                   <span class="post-square__ago-dash" aria-hidden="true">—</span>
-                  <span
-                    v-if="item.author?.trust"
-                    class="post-square__trust"
-                    :title="trustTitle(item.author.trust)"
-                  >{{ trustLabel(item.author.trust) }}</span>
-                  <span
-                    v-if="item.author?.trust"
-                    class="post-square__ago-dot"
-                    aria-hidden="true"
-                  >·</span>
+                  <!-- ⭐ THE HOP CHIP AND ITS DOT ARE GONE (2026-09-13, user
+                       ask: "remove … the 'hop' thing from the author/moment
+                       section. Then, for the flyout window for entities,
+                       include the hop thing on the constellation section").
+                       The invite-chain distance moved to where the chain is
+                       DRAWN — the entity window's origin constellation
+                       (`entities/OriginSky.vue`) — and this line reads
+                       `name — age`. The API still sends `author.trust`
+                       (`{hops, path}`); the card just stopped wearing it. -->
                   <span class="post-square__ago-text">{{ timeAgo(item.created_at, item.moment) }}</span>
                 </span>
               </div>
@@ -2439,17 +2440,9 @@ export default defineComponent({
       } catch (_) { /* stub box */ }
     })
 
-    // The trust chip's two lines. Label states the DISTANCE; the tooltip
-    // walks the PATH — every vouch between you and the author, in order.
-    const trustLabel = (trust) =>
-      trust.hops === 0 ? 'you' : `${trust.hops} hop${trust.hops === 1 ? '' : 's'}`
-
-    const trustTitle = (trust) => {
-      if (trust.hops === 0) return 'This is you'
-      const names = (trust.path || []).map((p) => p.name)
-      if (names.length) names[0] = 'you'
-      return `Invite chain: ${names.join(' › ')}`
-    }
+    // (`trustLabel` / `trustTitle` — the byline's hop chip and its tooltip —
+    // left with the chip on 2026-09-13; the entity window's constellation
+    // states the distance now, `entities/OriginSky.vue`, same two lines.)
 
     // The two lines of the identity block. `display_name` is what the
     // author's USER_PROFILE says to call them, `username` is the login
@@ -2459,8 +2452,7 @@ export default defineComponent({
     const authorName = (author) =>
       author?.display_name || author?.username || `entity #${author?.id}`
 
-    const authorHandle = (author) =>
-      author?.username ? `@${author.username}` : `entity #${author?.id}`
+    // (`authorHandle` left with the byline's handle span, 2026-09-13.)
 
     // THE MOMENT LINE's time segment. The WHEN is on every card since
     // 2026-08-09 (user ask) — a placed post used to swap its date out for
@@ -2801,7 +2793,6 @@ export default defineComponent({
       standingSay,
       lensLive,
       authorName,
-      authorHandle,
       momentWhen,
       momentTitle,
       momentLine,
@@ -2871,8 +2862,6 @@ export default defineComponent({
       labelMatches,
       pickLabelHit,
       applyLabelQuery,
-      trustLabel,
-      trustTitle,
       // the spoken lens (the Talavero seat, 2026-08-07)
       seat,
       lensSpec,
@@ -5264,13 +5253,8 @@ export default defineComponent({
 
 // The separator. One step quieter than the facts it stands between — it is
 // punctuation, and it should be the last thing on this line the eye lands on.
-.post-square__ago-dot {
-  flex: 0 0 auto;
-  font-size: 0.62em;
-  font-weight: 700;
-  color: rgba(var(--ink-rgb), 0.55);
-  opacity: 0.5;
-}
+// (`.post-square__ago-dot` — the `·` between the hop plate and the age — went
+// with the plate, 2026-09-13; the dash before the age is the line's one seam.)
 // The legend's leading dash (2026-09-13, user ask: the "— xxx ago" form) —
 // the dot's own recipe, so the line's two separators are one ink.
 .post-square__ago-dash {
@@ -6794,8 +6778,7 @@ export default defineComponent({
   // 70%-alpha pair) made the hover look like two targets in a row. The
   // resting name is `--cyan-9`, four steps deeper in the same family, so
   // this reads as a LIFT along one hue rather than a swap between two.
-  &:hover .post-square__identity-name,
-  &:hover .post-square__identity-handle { color: var(--cyan-14, #00b8d4); }
+  &:hover .post-square__identity-name { color: var(--cyan-14, #00b8d4); }
 }
 
 // The org badge belongs to the identity beside it, not to the band — pulled
@@ -6818,18 +6801,10 @@ export default defineComponent({
 // LEADS THE AGO LINE now (user ask) — see the template — so the negative
 // margin is gone with the run it was closing up: this chip is the first
 // thing on its line, and there is nothing to its left to hug.
-.post-square__trust {
-  flex: 0 0 auto;
-  font-size: 0.58em;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  white-space: nowrap;
-  color: var(--grey-9, #424242);
-  background: var(--grey-1, #fafafa);
-  border: 1px solid var(--grey-5, #bdbdbd);
-  border-radius: 9px;
-  padding: 1px 6px;
-}
+// (`.post-square__trust` — the byline's `[1 hop]` plate, Thread J's face on
+// the feed since 2026-07-29 — is GONE since 2026-09-13, user ask: the hop
+// count lives on the entity window's origin constellation now,
+// `entities/OriginSky.vue`. The API still sends `author.trust`.)
 
 // HEAT CHIP (2026-08-07) — the trust chip's recipe with the tones flipped
 // warm: under `order=heat` the card states its own score, so the ordering
@@ -6885,16 +6860,8 @@ export default defineComponent({
 // it never has to. It keeps a `16ch` ceiling for the opposite case — a wide
 // card and a long handle, where the name is safe and the address is simply
 // longer than the line wants to spend on it.
-.post-square__identity-handle {
-  flex: 0 1 auto;
-  min-width: 0;
-  font-size: 0.6em;
-  color: rgba(var(--ink-rgb), 0.5);
-  max-width: 16ch;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
+// (`.post-square__identity-handle` — the `@handle` beside the name — is GONE
+// since 2026-09-13, user ask; the name is the whole of the identity link now.)
 
 // ── ONE LINE ON DESKTOP (2026-08-09, user ask) ────────────────────────────
 // The byline's two dense lines fold into a SINGLE row when the window is
@@ -6988,11 +6955,11 @@ export default defineComponent({
   // `flex-shrink: 0` at every width, the handle absorbs at every width). This
   // block only makes the order need to fire later.
   .post-square__identity-name { font-size: 0.66em; }
-  .post-square__identity-handle { font-size: 0.55em; }
 
   // The hop chip travels with them: it leads the ago line now, and a plate
   // dialled for the desktop band would out-weigh the name it sits under.
-  .post-square__trust { font-size: 0.54em; padding: 1px 5px; }
+  // (the handle's and the hop plate's narrow-column sizes stood here until
+  // 2026-09-13 — both elements are gone from the band.)
 
   // AND THE MOMENT STACK GIVES FIRST (2026-08-10, same ask). The two rules
   // above were not enough on their own: the handle collapsing to nothing
