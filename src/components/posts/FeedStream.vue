@@ -1326,8 +1326,7 @@
                  so both strips are read the same way: a hairline at every
                  seam, and each cell holding one kind of thing.
 
-                   [refs] │ [chip  copy] │ [comments forks] │ [⌃n]
-                                                              [⌄n]
+                   [refs] │ [chip  copy] │ [comments forks] │ [⌃n ⌄n]
 
                  · REFS, at the far left edge, is the flyout press the chip
                    gave up two paragraphs ago, re-homed and NAMED. What that
@@ -1347,11 +1346,10 @@
                    glyph-flips-to-`check` feedback the media viewer's copy
                    uses.
                  · COMMENTS and FORKS keep their glyphs and their counts.
-                 · The VOTES cell closes the strip at the far right edge, a
-                   COLUMN rather than a row: `keyboard_arrow_up` over
-                   `keyboard_arrow_down`, each with its own tally — the
-                   TAILLESS pair at 9px (2026-08-10, third ask; the tailed
-                   `arrow_upward`/`arrow_downward` at 11px read as two
+                 · The VOTES cell closes the strip at the far right edge:
+                   `keyboard_arrow_up` then `keyboard_arrow_down`, each with
+                   its own tally — the TAILLESS pair (2026-08-10, third ask;
+                   the tailed `arrow_upward`/`arrow_downward` read as two
                    instructions where this strip wanted two marks). The
                    single
                    `thumb_up` it replaces showed `votes.up` alone — half of
@@ -1359,7 +1357,31 @@
                    that states both is also the one that stops hiding the
                    other half. Tallies, not controls: nothing in this strip
                    has ever been a vote button, and the card is a reading
-                   surface. -->
+                   surface. ⭐ ONE ROW SINCE 2026-09-13 (user ask, "put the
+                   vote up and vote down buttons on a single line"): the
+                   pair stood as a COLUMN — up over down at 9px, rows
+                   tightened to `line-height: 1.15` — from 2026-08-10, and
+                   two stacked rows were what made this cell the strip's
+                   tallest (28.22px against the other cells' 26). Laid
+                   flat, the arrows take the tallies' own 11px: at 9px they
+                   were sized to stack, and beside `chat_bubble_outline`
+                   at 11px a smaller mark read as a lesser one.
+
+                 ⭐ THE DENSITY PASS (2026-09-13, same ask — "homogenize the
+                 size of the footer bar subsections and buttons and text,
+                 reduce the padding on top and bottom"): every cell pads
+                 `--foot-pad` (2px 8px; they ran 4/8, 4/8, 4/9 and 3/9),
+                 every in-cell gap is `--foot-gap` (6px; they ran 4, 8 and
+                 1), every control stands exactly `--foot-ctl` tall (16px —
+                 both buttons, the chip, the tallies' line box; the buttons
+                 were 18 and the chip 18.11), both button glyphs are 12px
+                 (the references mark was 14 beside a 12 copy), and the chip
+                 letters at the tallies' 0.66em with its hash CUT TO 10ch
+                 (it showed all 64 hex digits on a desktop card — 417px of
+                 address nobody reads off a card; the full path is on its
+                 tooltip and one press away). Foot 28.22 → 20px measured,
+                 carried into both `--media-max-h` constants (the pit's
+                 note). -->
             <div class="post-square__foot">
               <div class="post-square__foot-lead">
                 <button
@@ -1375,7 +1397,7 @@
                        with no glyph for the ligature and draws an empty
                        14px box (which is exactly what it did for one pass
                        here). The cap's marks are all Symbols anyway. -->
-                  <q-icon name="sym_o_developer_guide" size="14px" />
+                  <q-icon name="sym_o_developer_guide" size="12px" />
                 </button>
               </div>
               <span class="post-square__foot-rule" aria-hidden="true" />
@@ -1413,10 +1435,10 @@
 
               <div class="post-square__votes">
                 <span class="post-square__stat" title="up-votes">
-                  <q-icon name="keyboard_arrow_up" size="9px" />{{ item.votes?.up || 0 }}
+                  <q-icon name="keyboard_arrow_up" size="11px" />{{ item.votes?.up || 0 }}
                 </span>
                 <span class="post-square__stat" title="down-votes">
-                  <q-icon name="keyboard_arrow_down" size="9px" />{{ item.votes?.down || 0 }}
+                  <q-icon name="keyboard_arrow_down" size="11px" />{{ item.votes?.down || 0 }}
                 </span>
               </div>
             </div>
@@ -4519,8 +4541,10 @@ export default defineComponent({
 // went (−1). Fourth time this line was touched; first time it did not lag.
 // ⭐ **283 THE SAME DAY** (251 + 32) — the byline's one-line pass, −19, moved
 // with the resting one again.
+// ⭐ **275 THE SAME DAY** (243 + 32) — the foot's density pass, −8, moved with
+// the resting one a third time.
 .post-square.is-expanded .post-square__pit {
-  --media-max-h: max(120px, calc(var(--feed-well-h, 60vh) - var(--fhead-h, 120px) - 283px - var(--frieze-h)));
+  --media-max-h: max(120px, calc(var(--feed-well-h, 60vh) - var(--fhead-h, 120px) - 275px - var(--frieze-h)));
 }
 
 // ── THE VEIL (2026-08-07, user ask) — the card's MIDDLE LAYER ──
@@ -5581,7 +5605,13 @@ export default defineComponent({
   // 2px, one row) took the band 41.75 → 23px; chrome measured 136 → 117.25,
   // −18.75, carried as −19 (over-subtracting a quarter pixel keeps a maxed
   // medium inside the card; under-subtracting would not).
-  --media-max-h: max(120px, calc(min(var(--post-square-max, 100cqw), 60vh) - 251px));
+  // ⭐ **243 THE SAME DAY** — the foot's DENSITY PASS (votes one row, every
+  // cell `2px 8px`, every control 16px; the foot's own note) took the strip
+  // 28.22 → 20px; chrome measured 110.25 → 102.03 (pit margins excluded this
+  // time, the same 7px either side of the delta), −8.22, carried as −8: the
+  // constant stays 0.22 above the measured chrome, which is the side a
+  // maxed medium wants to be on.
+  --media-max-h: max(120px, calc(min(var(--post-square-max, 100cqw), 60vh) - 243px));
 
   flex: 1 1 auto;
   min-height: 0;
@@ -6591,7 +6621,27 @@ export default defineComponent({
 // `__byline-rule` does). The old row — chip, `q-space`, three tallies, all in
 // one 8px-gapped line with `padding: 5px 9px 7px` — is what those cells
 // replace.
+//
+// ⭐ THREE DIALS SINCE 2026-09-13's DENSITY PASS (user ask: "homogenize the
+// size of the footer bar subsections and buttons and text … reduce the
+// padding on top and bottom"). The four cells had drifted into four
+// paddings (4/8, 4/8, 4/9, 3/9) and three gaps (4, 8, 1), and the strip's
+// height was whichever cell happened to be tallest — the votes column, at
+// 28.22px. Now every cell reads the same three numbers off the strip:
+//   `--foot-ctl`  16px — the height of EVERYTHING standing in a cell: both
+//                 buttons, the chip, each tally's line box. One register
+//                 under the cap's 20px control, as the foot has always been.
+//   `--foot-pad`  2px 8px — each cell's padding (the strip itself stays
+//                 unpadded so the rules meet its edges square, see above).
+//   `--foot-gap`  6px — between the things a cell holds.
+// So the strip is 16 + 2 + 2 = 20px tall by construction, not by whichever
+// member overshoots, and the next thing added to a cell inherits the height
+// instead of setting a new one. Measured 28.22 → 20; both `--media-max-h`
+// constants carry the −8 (the pit's note).
 .post-square__foot {
+  --foot-ctl: 16px;
+  --foot-pad: 2px 8px;
+  --foot-gap: 6px;
   display: flex;
   align-items: stretch;
   min-width: 0;
@@ -6616,7 +6666,7 @@ export default defineComponent({
   flex: 0 0 auto;
   display: flex;
   align-items: center;
-  padding: 4px 8px;
+  padding: var(--foot-pad);
 }
 
 // THE ADDRESS CELL — the only one that gives. `min-width: 0` is what lets the
@@ -6627,8 +6677,8 @@ export default defineComponent({
   min-width: 0;
   display: flex;
   align-items: center;
-  gap: 4px;
-  padding: 4px 8px;
+  gap: var(--foot-gap);
+  padding: var(--foot-pad);
   overflow: hidden;
 }
 
@@ -6637,39 +6687,40 @@ export default defineComponent({
   flex: 0 0 auto;
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 4px 9px;
+  gap: var(--foot-gap);
+  padding: var(--foot-pad);
 }
 
-// THE VOTES CELL, closing the strip at the far RIGHT edge — a COLUMN, up over
-// down. Its rows are tighter than the strip's other text (`line-height: 1.15`)
-// so two of them stand in about the height one tally row did: the foot is a
-// rigid strip on a square-ceilinged card, and every pixel it grows comes out
-// of the pit's reading room.
+// THE VOTES CELL, closing the strip at the far RIGHT edge — up then down,
+// ONE ROW, the tally cell's twin. ⭐ It was a COLUMN from 2026-08-10 to
+// 2026-09-13 (up over down, rows tightened to `line-height: 1.15` "so two of
+// them stand in about the height one tally row did") — they did not, quite:
+// two 10.6px rows + 1px gap + 6px padding = 28.22, and that was the strip's
+// height, 2px over every other cell. The density pass laid the pair flat
+// (user ask) and the cell reads the strip's three dials like the others.
 .post-square__votes {
   flex: 0 0 auto;
   display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 1px;
-  padding: 3px 9px;
-
-  .post-square__stat { line-height: 1.15; }
+  align-items: center;
+  gap: var(--foot-gap);
+  padding: var(--foot-pad);
 }
 
 // The foot's own controls — the references button and the copy. Chromeless
 // until hovered, exactly as the cap's `__cap-act`: this strip is read far
 // more often than it is pressed. A SEPARATE class from the cap's for the
-// reason `__foot-rule` is separate, and one register smaller (18px against
-// 20px) — the foot's type is smaller than the cap's, and a button drawn to
-// the cap's size stood taller than the chip it sits beside.
+// reason `__foot-rule` is separate, and one register smaller (`--foot-ctl`
+// 16px against 20px; 18px until 2026-09-13's density pass) — the foot's type
+// is smaller than the cap's, and a button drawn to the cap's size stood
+// taller than the chip it sits beside. Both glyphs 12px since the same pass
+// (the references mark was 14 beside a 12 copy).
 .post-square__foot-act {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   flex: 0 0 auto;
-  width: 18px;
-  height: 18px;
+  width: var(--foot-ctl);
+  height: var(--foot-ctl);
   padding: 0;
   border: 0;
   border-radius: 5px;
@@ -6710,12 +6761,30 @@ export default defineComponent({
 // address and switches anyway, because the ask is the CARD's face, and a
 // chip in two typefaces would state the seam between the word and the hash
 // louder than the `::` already does.
+//
+// ⭐ AT THE STRIP'S REGISTER SINCE 2026-09-13's density pass: `--foot-ctl`
+// tall (MicroChip's own `1px 6px` padding over a 1.4 line box came to 18.11,
+// which is not the 18 the buttons were and not the 16 they are), lettering
+// at the tallies' 0.66em rather than MicroChip's 0.72 (the strip's ONE text
+// size — "homogenize … the text"), and the HASH CUT TO `10ch`: the address
+// cell is the one that gives, and on a desktop card it gave the chip 417px,
+// enough for all 64 hex digits. Nobody reads a hash off a card; ten
+// characters say "this address" and the tooltip carries the whole path
+// (NodeMini's foot chip made the same cut, `chipHash`, 10 + …). Ellipsis is
+// MicroChip's own — its hash span already clips with `text-overflow`; the
+// cap on the span is the only new word, and the 6ch floor under it still
+// governs the squeeze on a phone.
 .post-square__foot .post-square__chip {
+  height: var(--foot-ctl);
+  padding: 0 5px;
   font-family: var(--font-display);
+  font-size: 0.66em;
+  line-height: 1;
   letter-spacing: 0.02em;
 
   :deep(.micro-chip__type),
   :deep(.micro-chip__hash) { font-family: var(--font-display); }
+  :deep(.micro-chip__hash) { max-width: 10ch; }
 
   // `::` is punctuation the eye should pass over, but MicroChip's 0.35 was
   // dialled for a single `/`; a doubled glyph at that opacity reads as dirt.
@@ -6912,11 +6981,14 @@ export default defineComponent({
 // Mono', monospace` was the last typeface on this card that was not the
 // display one, and these are COUNTS, not addresses: nothing about `0` needs a
 // fixed advance width. With this the whole square letters in one face, cap to
-// foot.
+// foot. The line box is the strip's control height (`--foot-ctl`, 2026-09-13)
+// so a tally and the button beside it stand the same 16px — the votes' own
+// tightened rows and the default 1.5 both went with the density pass.
 .post-square__stat {
   display: inline-flex;
   align-items: center;
   gap: 4px;
+  line-height: var(--foot-ctl, 16px);
   font-family: var(--font-display);
   letter-spacing: 0.02em;
   font-size: 0.66em;
