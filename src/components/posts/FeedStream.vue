@@ -992,6 +992,58 @@
                  The foot keeps ITS band — it closes the reading area and is
                  half of nothing, so it never belonged to this bracket. -->
 
+            <!-- ⭐ THE LABEL STRIP STOOD HERE UNTIL 2026-09-13 (user ask: "move
+                 the label section to the bottom, between the content and the
+                 cyan-indigo hairline"). It is under the pit now — see there.
+                 What this seam holds is the byline's own rule and the pit's
+                 top margin, on every card alike; the two comments above
+                 describe a lane that no longer has a middle. -->
+
+            <!-- Body pit — the carved inset that echoes the dug-open label
+                 squares. It holds the WHOLE post, not a preview: the feed is
+                 fetched with `body=full`, so this is the actual markdown the
+                 author wrote, rendered through MarkdownBody (the platform's
+                 one pipeline) in a COMPRESSED tier — every construct keeps its
+                 meaning (headings read as headings, lists as lists, code as
+                 code) at card scale, with the vertical rhythm squeezed to one
+                 tight step so a square holds as much of the post as possible.
+                 `:breaks="false"` is load-bearing: post bodies are hard-wrapped
+                 at ~72 chars, and the platform default would turn every source
+                 line into a <br>, laying the text out at the AUTHOR's wrap
+                 width instead of the card's.
+                 The pit is the card's flexible middle — it is what gives way
+                 when the square ceiling bites (so the foot's origin chips are
+                 never clipped off), and it scrolls in place, which is what
+                 makes the square a window onto the whole post rather than a
+                 truncation of it. -->
+            <!-- `auto` ref tier (2026-07-31): a bare node ref that resolves
+                 to an embeddable URL (YouTube, Wikipedia, …) or a media
+                 file blooms into its teal NodeMini panel right on the card;
+                 every other ref stays the micro chip. Authors overrule per
+                 ref: ![[…]] forces the panel, -[[…]] forces the chip. -->
+            <div v-if="postBody(item)" class="post-square__pit" @click.stop>
+              <MarkdownBody
+                class="post-square__md"
+                :text="postBody(item)"
+                :breaks="false"
+                ref-display="auto"
+              />
+            </div>
+
+            <!-- ⭐ THE LABEL STRIP, UNDER THE CONTENT SINCE 2026-09-13 (user
+                 ask: "move the label section to the bottom, between the
+                 content and the cyan-indigo hairline"). Back where it stood
+                 before 2026-07-25's fourth pass, one row above the foot's
+                 rule: what a post IS (cap, byline) opens the card, what it
+                 SAYS (the pit) is the middle, and what it is FILED UNDER
+                 closes the reading — classification as an afterword rather
+                 than a preface. Nothing inside the strip moved; its two
+                 changes are on `.post-square__rail-strip` (the rule it
+                 carried is gone — the plain hairline right under it closes
+                 the lane now — and its air is re-split 0/4 so the rail
+                 stands 4px off the pit's margin above and 4px off the rule
+                 below). The comment run below travelled with it and reads
+                 the old position in places; the dates say which is which. -->
             <!-- LABEL RAIL — the element's OWN classification, as the label
                  paths it holds, root to leaf. It sat BELOW the body until
                  2026-07-25 (fourth pass) and now occupies the strip the title
@@ -1191,38 +1243,6 @@
                  unlabelled card never stacked two sandwiches with nothing
                  between them. The strip's rim and its own air do that work
                  now, and they travel with the labels for free. -->
-
-            <!-- Body pit — the carved inset that echoes the dug-open label
-                 squares. It holds the WHOLE post, not a preview: the feed is
-                 fetched with `body=full`, so this is the actual markdown the
-                 author wrote, rendered through MarkdownBody (the platform's
-                 one pipeline) in a COMPRESSED tier — every construct keeps its
-                 meaning (headings read as headings, lists as lists, code as
-                 code) at card scale, with the vertical rhythm squeezed to one
-                 tight step so a square holds as much of the post as possible.
-                 `:breaks="false"` is load-bearing: post bodies are hard-wrapped
-                 at ~72 chars, and the platform default would turn every source
-                 line into a <br>, laying the text out at the AUTHOR's wrap
-                 width instead of the card's.
-                 The pit is the card's flexible middle — it is what gives way
-                 when the square ceiling bites (so the foot's origin chips are
-                 never clipped off), and it scrolls in place, which is what
-                 makes the square a window onto the whole post rather than a
-                 truncation of it. -->
-            <!-- `auto` ref tier (2026-07-31): a bare node ref that resolves
-                 to an embeddable URL (YouTube, Wikipedia, …) or a media
-                 file blooms into its teal NodeMini panel right on the card;
-                 every other ref stays the micro chip. Authors overrule per
-                 ref: ![[…]] forces the panel, -[[…]] forces the chip. -->
-            <div v-if="postBody(item)" class="post-square__pit" @click.stop>
-              <MarkdownBody
-                class="post-square__md"
-                :text="postBody(item)"
-                :breaks="false"
-                ref-display="auto"
-              />
-            </div>
-
             <!-- THE FOOT'S OPENING EDGE — the `RgbHairline` (2026-08-09,
                  user ask; it closed the CAP from 2026-08-07 until this
                  pass, and the label rail for hours before that). The cap's
@@ -1232,7 +1252,21 @@
                  quiet rules and closes on its one drawn motif. Same
                  unconditional standing as before — every card has a foot,
                  so its rule is on every card. -->
-            <RgbHairline class="post-square__hairline" />
+            <!-- ⭐ A PLAIN HAIRLINE SINCE 2026-09-13 (user ask: "remove that
+                 hairline and turn it into a normal thin hairline"). The
+                 sandwich is gone from this card — `RgbHairline` has no
+                 consumer on this surface any more (import and registration
+                 dropped; the component stays for its next host) — and what
+                 closes the reading area is the same line every other seam on
+                 the card is drawn in: 1px of `--grey-5`, the byline's rule
+                 brought down to the foot. Own `<div>` rather than a
+                 `border-top` on the foot, because the foot paints a
+                 border-box background layer with `background-origin` tricks
+                 (see its rules) and a border there would join that stack;
+                 a 1px block in the flex column is the same rule the strip's
+                 `border-bottom` was, with nothing to interact with. Same
+                 unconditional standing as the band it replaces. -->
+            <div class="post-square__hairline" aria-hidden="true" />
 
             <!-- Foot — the post's own chip and its activity tallies. The
                  author left this row for the byline band at the card's top
@@ -1405,7 +1439,6 @@ import PostMicro from 'src/components/posts/PostMicro.vue'
 // element — so it reaches for the generic chip rather than PostMicro.
 import MicroChip from 'src/components/shared/MicroChip.vue'
 import MarkdownBody from 'src/components/shared/MarkdownBody.vue'
-import RgbHairline from 'src/components/layout/RgbHairline.vue'
 import ConversationPicker from 'src/components/chat/ConversationPicker.vue'
 // A label tree whose ROOT has a mark draws it instead of spelling the root's
 // name — see the module for the registry and for why it is a front-end one.
@@ -1468,7 +1501,7 @@ const KIND_ICONS = {
 
 export default defineComponent({
   name: 'FeedStream',
-  components: { EntityAvatar, OrgLogoChip, PostMicro, MicroChip, MarkdownBody, FeedHeadBox, RgbHairline, ConversationPicker },
+  components: { EntityAvatar, OrgLogoChip, PostMicro, MicroChip, MarkdownBody, FeedHeadBox, ConversationPicker },
   props: {
     // The posts whose flyout VIEWERS are open right now (2026-08-17, the
     // fusion — it was a single `selectedId` while the feed owned one box).
@@ -4474,8 +4507,11 @@ export default defineComponent({
 // went 26 → 32. Both terms are current at 276 / 308, and the variable term is
 // the WELL's own `1 × --frieze-h` alone — the card's `0.55 ×` half went with
 // the band.)
+// ⭐ **302 SINCE 2026-09-13** (270 + 32) — moved WITH the resting one, same
+// ask: the foot's band became a 1px rule (−5) and the label strip's rule
+// went (−1). Fourth time this line was touched; first time it did not lag.
 .post-square.is-expanded .post-square__pit {
-  --media-max-h: max(120px, calc(var(--feed-well-h, 60vh) - var(--fhead-h, 120px) - 308px - var(--frieze-h)));
+  --media-max-h: max(120px, calc(var(--feed-well-h, 60vh) - var(--fhead-h, 120px) - 302px - var(--frieze-h)));
 }
 
 // ── THE VEIL (2026-08-07, user ask) — the card's MIDDLE LAYER ──
@@ -5284,8 +5320,29 @@ export default defineComponent({
 //
 // KEEP THE PIT'S MEDIA BUDGET IN STEP: 6px of bands now, all of it the foot's,
 // unconditional.
+//
+// ── ⭐ A PLAIN RULE SINCE 2026-09-13 (user ask: "remove that hairline and turn
+// it into a normal thin hairline") ──────────────────────────────────────────
+// Everything above is the band's history; the element is a 1px `--grey-5`
+// block now — the card's ONE line ink, the byline's rule repeated at the
+// foot — and the `RgbHairline` component has left this file. It is a plain
+// `<div>` in the flex column rather than a `border-top` on the foot because
+// the foot's background is a border-box layer stack (see `.post-square__foot`)
+// and a border there would enter it. `flex: 0 0 auto` for the same reason
+// the component stated it: a card with a ceiling takes its slack out of a
+// shrinkable divider first, and a squashed 1px rule simply vanishes.
+//
+// The card reads cap │ byline │ pit │ labels │ HERE │ foot since the same ask
+// moved the label strip under the content (see the template): this rule
+// closes the labels when the post carries any and the pit when it does not.
+// KEEP THE PIT'S MEDIA BUDGET IN STEP: 1px of rule now, from 6px of band —
+// the constants took −5 for it (and −1 for the strip's rule, gone the same
+// ask): 276 → 270, 308 → 302.
 .post-square__hairline {
+  flex: 0 0 auto;
+  height: 1px;
   min-width: 0;
+  background: var(--grey-5, #bdbdbd);
 }
 
 // THE MOMENT CHIP — the post's when over its where (or its date).
@@ -5464,7 +5521,13 @@ export default defineComponent({
   // one without the other and you get either a player that needs a scroll or
   // a small player in a half-empty card. The 120px floor is for the narrowest
   // columns, where the subtraction would otherwise go negative.
-  --media-max-h: max(120px, calc(min(var(--post-square-max, 100cqw), 60vh) - 276px));
+  //
+  // ⭐ **270 SINCE 2026-09-13** — the foot's `RgbHairline` (6px) became a 1px
+  // rule (−5) and the label strip's own rule went (−1) when the strip moved
+  // under the pit (its padding re-split 2/2 → 0/4, no change). Measured, not
+  // derived: the labelled card's non-pit chrome read 142px before the ask
+  // and 136px after (`flow-feed-card-rows.mjs` reads the rows), −6 exactly.
+  --media-max-h: max(120px, calc(min(var(--post-square-max, 100cqw), 60vh) - 270px));
 
   flex: 1 1 auto;
   min-height: 0;
@@ -5763,7 +5826,14 @@ export default defineComponent({
 .post-square__rail-strip {
   flex: 0 0 auto;
   min-width: 0;
-  padding: 2px 5px;
+  // ⭐ `0 5px 4px` SINCE 2026-09-13 — the strip stands UNDER THE PIT now (user
+  // ask), so its top air is the pit's own 4px bottom margin and a lane of its
+  // own there would double it (6px over the rail against 2px under it read as
+  // the rail slumping toward the rule). The 4px below matches: rail → rule is
+  // the same lane as pit → rail, and on a card with no labels the pit's margin
+  // meets the rule at that same 4px. Vertical total unchanged (2 + 2 → 0 + 4),
+  // so the media budget did not move for this line — only for the rule below.
+  padding: 0 5px 4px;
   // A ROW since 2026-08-10's add-button ask: the rail and the `+` cell side by
   // side. The rail takes the slack (`flex: 1 1 auto` on it) and the button is
   // rigid, which is what keeps the control at a FIXED place on every card
@@ -5788,7 +5858,14 @@ export default defineComponent({
   // unlabelled card draws neither the strip nor its rule and its byline
   // hairline closes straight onto the pit. Its 1px is in the media budget as
   // worst case, like everything else there.
-  border-bottom: 1px solid var(--grey-5, #bdbdbd);
+  // ⭐ GONE 2026-09-13 (user ask) — the strip's rule was the labels→content
+  // seam, and there is no such seam now that the strip stands under the
+  // content: what follows it is `.post-square__hairline`, the card's plain
+  // 1px rule, and a `border-bottom` here would put two 1px lines of one ink
+  // in the same 2px and read as one thick rule. The lip-to-lip argument that
+  // put the rule on the strip rather than the rail still holds — it is why
+  // the divider is a full-width block of the card's column and not a rim.
+  // (Was `border-bottom: 1px solid var(--grey-5)`; −1 on the media budget.)
 }
 
 .post-square__rail {
@@ -6030,7 +6107,19 @@ export default defineComponent({
   // It also opens the gap to the grey ring outside it (below): a highlight
   // and an outline want to be told apart, and at -1 the pair were close to
   // one line drawn twice in two greys.
-  border: 1px solid var(--indigo-2, #c5cae9);
+  //
+  // ⭐ `--red-3` SINCE 2026-09-13 (user ask: "recolor the labels section with
+  // purple tones to red tones and make them slightly more visible"), off the
+  // `--indigo-2` the plate wore since 2026-08-10. RED is the labels family —
+  // the label maker's window went red on 2026-09-07 (`--labels-contrast` is
+  // `--red-7`) and the card's rail is the one other place labels are drawn
+  // as chrome, so the two now speak one family. "Slightly more visible" is
+  // ONE INDEX UP: Material 100 → 200 (indigo-2 #c5cae9 → red-3 #ef9a9a,
+  // luma ~204 → ~180), a line you see without looking for it, still a tint.
+  // ⚠ The tiers used to be told apart by FAMILY at one index (indigo plate,
+  // deep-purple members). One family cannot do that, so the INDEX does it
+  // now: rim -3 here, ring -4 on the member — see `.post-square__bundle-item`.
+  border: 1px solid var(--red-3, #ef9a9a);
   // ── A SECOND EDGE, OUTSIDE THE FIRST (2026-08-10, user ask) ─────────────
   // The plate wears TWO rims now: the `--indigo-1` highlight above, and a
   // `0.5px --grey-7` ring hugging it. They do different jobs, which is the
@@ -6085,7 +6174,13 @@ export default defineComponent({
   // meet what lies on it.
   &:hover {
     background: var(--grey-2, #f5f5f5);
-    border-color: var(--deep-purple-11, #b388ff);
+    // ⭐ `--red-7` SINCE 2026-09-13 (the red re-family) — the labels window's
+    // own contrast index, off `--deep-purple-11`. Not the family's A100 (the
+    // old rim's index): `--red-11` (#ff8a80) is LIGHTER than the resting
+    // `--red-3` rim, so the hover would have read as the rim fading, and an
+    // edge that answers the pointer has to deepen. -7 is the clear step
+    // (#e53935, luma ~108) that stays the same hue.
+    border-color: var(--red-7, #e53935);
 
     // THE ROOT'S SIDE ANSWERS TOGETHER — the mark and the `::` seam, both to
     // `--indigo-8` (2026-08-10). They are one utterance ("this tree, then:")
@@ -6097,8 +6192,14 @@ export default defineComponent({
     // whose mass is STROKE, and it wanted ink. -8 rather than the label
     // ink's -9 for the same reason the filter glyph takes -8 — a mark at
     // this size wants the step the text does not need.
-    .post-square__label-mark { background-color: var(--indigo-8, #303f9f); }
-    .post-square__bundle-sep { color: var(--indigo-8, #303f9f); }
+    // ⭐ `--red-9` SINCE 2026-09-13 (the red re-family) — ONE hover ink for
+    // every mark on this rail (the tree's mark, the `::` seam, the label
+    // text, the funnel), off the -8/-9 split indigo ran. The split's reason
+    // ("a mark this size wants the step the text does not need") priced
+    // indigo's -8 against its -9; red-9 (#c62828) already carries the ink
+    // weight both wanted, and one index is one fewer dial to keep in step.
+    .post-square__label-mark { background-color: var(--red-9, #c62828); }
+    .post-square__bundle-sep { color: var(--red-9, #c62828); }
   }
 }
 
@@ -6194,7 +6295,19 @@ export default defineComponent({
   // `--deep-purple-2` did not exist before this ask — it is minted in
   // `_tokens.scss` beside the family's two hover tones, and it is the first
   // RESTING role deep purple has on this rail.
-  box-shadow: inset 0 0 0 0.5px var(--deep-purple-2, #d1c4e9);
+  //
+  // ⭐ `--red-4` SINCE 2026-09-13 (user ask: purple → red, "slightly more
+  // visible"). The plate's rim is `--red-3` at 1px; this ring is `--red-4`
+  // at 0.5px, INSET as before. Two indices of one family where there were
+  // two families at one index: a single hue cannot tell the tiers apart by
+  // family, so the index carries it — and the DEEPER index goes on the
+  // THINNER line, because a half-pixel ring renders at roughly half
+  // strength and needs a step more ink to read as strongly as the 1px rim
+  // around it. Same tone on both would have read as the ring fading.
+  // Reading outward from a member now: ring red-4 → member border -5 →
+  // plate coat -3 → plate rim red-3 → plate ring -7 → band -5.
+  // `--deep-purple-2` has no consumer left; its token stays with a note.
+  box-shadow: inset 0 0 0 0.5px var(--red-4, #e57373);
   // `5px` since 2026-08-10's last rail ask (it was 3px) — the innermost tier
   // of the rail's nested radius family, rail 10 › bundle 7 › HERE.
   border-radius: 5px;
@@ -6233,7 +6346,9 @@ export default defineComponent({
   // The LABEL answers for itself, where the plate around it answers for the
   // tree: ink only, no coat of its own. `--indigo-9` is the same ink the
   // member took while it was a chip in its own right.
-  &:hover { color: var(--indigo-9, #283593); }
+  // ⭐ `--red-9` SINCE 2026-09-13 — the rail's one hover ink (see the plate's
+  // hover note); the leaf and the funnel take the same token below.
+  &:hover { color: var(--red-9, #c62828); }
 }
 
 .post-square__label-step {
@@ -6350,7 +6465,7 @@ export default defineComponent({
 // colour, so without this it would sit at `rgba(ink, .9)` while every
 // ancestor step around it turned indigo, and the one word the chip is
 // actually naming would be the one that did not answer.
-.post-square__label:hover .post-square__label-step.is-leaf { color: var(--indigo-9, #283593); }
+.post-square__label:hover .post-square__label-step.is-leaf { color: var(--red-9, #c62828); }
 
 // The chip's FUNNEL (2026-08-01) — the second door into the label lens:
 // filter the stream by this chip without leaving the feed. Hover-revealed
@@ -6400,7 +6515,8 @@ export default defineComponent({
   // in a family nothing around it speaks read as borrowed from another
   // surface. -8 rather than the label's -9: this is a GLYPH at 11px, and a
   // mark that small wants the step the text does not need.
-  &:hover { opacity: 1 !important; color: var(--indigo-8, #303f9f); }
+  // ⭐ `--red-9` SINCE 2026-09-13 — the rail's one hover ink (plate hover note).
+  &:hover { opacity: 1 !important; color: var(--red-9, #c62828); }
 }
 
 // The ORIGIN row — author, post hash, tallies. Rigid: it is the last thing a
