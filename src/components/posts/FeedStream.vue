@@ -7016,7 +7016,9 @@ export default defineComponent({
     flex: 0 20 auto;
     min-width: 0;
   }
-
-  .post-square__moment-chip { max-width: 100%; }
+  // (`.post-square__moment-chip { max-width: 100% }` stood here until
+  // 2026-09-13 — the chips are gone and `.post-square__when` states its own
+  // `max-width: 100%` at its base rule, so the narrow column needs nothing
+  // more: the `0 20 auto` above is what makes the one text run give first.)
 }
 </style>
