@@ -4298,7 +4298,17 @@ export default defineComponent({
   // ⚠ The card is now the ONLY thing on this surface turning a corner at the
   // outer level — bed and container are square. That is fine at 2px (a corner
   // this subtle does not ask its field to answer it); it would not be at 8.
-  border-radius: 2px;
+  //
+  // ── **`4px` SINCE 2026-09-13** (user ask, "make the post's corners from the
+  // post feed rounder"), off the `2px` above. The ordering rule above picked
+  // the value: "rounder" from 2, with 6 to avoid and 7 to skip, leaves 4 as
+  // the last step that still states itself on the NEAR side of the pit's 7 —
+  // a doubled arc that is plainly a softened square, three pixels short of its
+  // contents, so nobody reads it as an attempt at 7. It is the 2026-08-06
+  // setting again. `8px` stays the next step if "rounder" comes back, and the
+  // square-field caveat just above is what it would cost: at 8 the bed and
+  // the container would have to answer the corner. The veil follows: 4 − 1 = 3.
+  border-radius: 4px;
   // `--light-cream` (#FCF3E0) since 2026-08-07 — THE COAT ALONE LEAVES THE
   // NEUTRALS, hours after the card's lines went grey, and it took two asks to
   // land: `--brown-1` first ("just the background"), then a TOKEN MINTED FOR IT
@@ -4480,7 +4490,8 @@ export default defineComponent({
 // resolves there), so it stops exactly inside the border and the card's outer
 // line keeps its own tone undimmed — which is what "with the outer border
 // colors it already has" asks for. The card's `overflow: hidden` clips it to
-// the 4px radius for free, so the veil has no corners of its own to state.
+// the card's own radius for free, so the veil has no corners of its own to
+// state (its border does, though — see the veil's radius note below).
 //
 // WHAT IT ACTUALLY CHANGES: 0.7 × `--grey-3` (#eeeeee) over #FCF3E0 measures
 // **rgb(242,239,234)** — the coat paler and cooler, the warmth pulled back
@@ -4766,7 +4777,10 @@ export default defineComponent({
   // note above, and specs/gotchas.md): `border-radius` takes fractional and
   // sub-pixel values and renders them — it is `border-width` alone that Chrome
   // rounds to whole pixels. Do not let one rule talk you out of the other.
-  border-radius: 1px;
+  //
+  // **`3px` SINCE 2026-09-13** — derived again, nothing decided here: card
+  // radius (4) − card border (1), in step with the card's 2 → 4 ("rounder").
+  border-radius: 3px;
   backdrop-filter: blur(2px);
   -webkit-backdrop-filter: blur(2px);
   pointer-events: none;
