@@ -841,9 +841,17 @@
                 :title="authorName(item.author) + ' — open profile'"
                 @click.stop
               >
-                <EntityAvatar :entity="item.author" :size="24" />
+                <EntityAvatar :entity="item.author" :size="18" />
               </router-link>
 
+              <!-- ⭐ ONE LINE SINCE 2026-09-13 (user ask: "make it way denser by
+                   reducing the padding and turning the information into a
+                   single line. Put the name of the posting entity, the '- xxx'
+                   time ago legend on the right"). The two-line stamp is a
+                   ROW now — `.post-square__byline-lines` keeps its name and
+                   lays its two spans side by side: who, then the age legend
+                   led by a dash. Face 24 → 18 so the band is one text line
+                   tall. -->
               <div class="post-square__byline-lines">
                 <span class="post-square__byline-who">
                   <router-link
@@ -901,6 +909,10 @@
                      platform's own separator for facts of one kind on one
                      line, drawn only when there is a chip to separate. -->
                 <span class="post-square__byline-ago">
+                  <!-- the "— xxx ago" legend's dash (2026-09-13, user ask):
+                       the seam between who and how-long-ago on one line,
+                       decorative — the age reads without it. -->
+                  <span class="post-square__ago-dash" aria-hidden="true">—</span>
                   <span
                     v-if="item.author?.trust"
                     class="post-square__trust"
@@ -933,30 +945,30 @@
                    puts the resolved strings on them; the address tooltip
                    is overridden with the human one, since the feed's
                    moment card carries no hash to show. -->
+              <!-- ⭐ ONE TEXT RUN SINCE 2026-09-13 (user ask: "combine the
+                   moment/location labels into a single line, with a better
+                   moment icon, and leave them as text rather than weird
+                   pills"). The two stacked MicroChips are gone; the moment
+                   is stated the way the byline states the author — a link
+                   in text, no plate — as `when · where`, led by the
+                   platform's own moment mark (`schedule`, the glyph the
+                   kinds registry gives `moments`, `utils/kinds.js`) in the
+                   kind's colour. Still a DOOR: it routes to `moments/<id>`
+                   when the item carries one and degrades to a plain span
+                   for a moment-less legacy item, exactly as the chips did.
+                   The tooltip keeps the full `when · where` for the cards
+                   whose run ellipsizes. -->
               <div class="post-square__byline-when">
-                <MicroChip
-                  class="post-square__moment-chip"
-                  kind="moments"
-                  :id="item.moment?.id"
-                  icon="event"
-                  icon-size="9px"
-                  :show-type="false"
-                  :display="momentWhen(item)"
-                  :full-address="momentTitle(item) + (item.moment?.id ? ' — open moment' : '')"
+                <component
+                  :is="item.moment?.id ? 'router-link' : 'span'"
+                  :to="item.moment?.id ? '/moments/' + item.moment.id : undefined"
+                  class="post-square__when"
+                  :title="momentLine(item) + (item.moment?.id ? ' — open moment' : '')"
                   @click.stop
-                />
-                <MicroChip
-                  v-if="item.moment?.place"
-                  class="post-square__moment-chip"
-                  kind="moments"
-                  :id="item.moment.id"
-                  icon="place"
-                  icon-size="9px"
-                  :show-type="false"
-                  :display="item.moment.place"
-                  :full-address="momentTitle(item) + ' — open moment'"
-                  @click.stop
-                />
+                >
+                  <q-icon name="schedule" size="11px" class="post-square__when-icon" />
+                  <span class="post-square__when-text">{{ momentLine(item) }}</span>
+                </component>
               </div>
             </div>
 
@@ -2478,6 +2490,11 @@ export default defineComponent({
       const when = item.moment?.datetime || absoluteTime(item.created_at, item.moment)
       return item.moment?.place ? `${when} · ${item.moment.place}` : when
     }
+    // The byline's one-line moment run (2026-09-13): `when · where`, built
+    // from `momentWhen` so a legacy item without a moment row shows the same
+    // locale date the chip used to, not `absoluteTime`'s form.
+    const momentLine = (item) =>
+      item.moment?.place ? `${momentWhen(item)} · ${item.moment.place}` : momentWhen(item)
 
     // Does this card hold an OPEN flyout viewer? Compared loosely on
     // purpose — the ids arrive from the store as strings while the feed
@@ -2787,6 +2804,7 @@ export default defineComponent({
       authorHandle,
       momentWhen,
       momentTitle,
+      momentLine,
       isOpen,
       copiedId,
       copyAddress,
@@ -4510,8 +4528,10 @@ export default defineComponent({
 // ⭐ **302 SINCE 2026-09-13** (270 + 32) — moved WITH the resting one, same
 // ask: the foot's band became a 1px rule (−5) and the label strip's rule
 // went (−1). Fourth time this line was touched; first time it did not lag.
+// ⭐ **283 THE SAME DAY** (251 + 32) — the byline's one-line pass, −19, moved
+// with the resting one again.
 .post-square.is-expanded .post-square__pit {
-  --media-max-h: max(120px, calc(var(--feed-well-h, 60vh) - var(--fhead-h, 120px) - 302px - var(--frieze-h)));
+  --media-max-h: max(120px, calc(var(--feed-well-h, 60vh) - var(--fhead-h, 120px) - 283px - var(--frieze-h)));
 }
 
 // ── THE VEIL (2026-08-07, user ask) — the card's MIDDLE LAYER ──
@@ -5166,8 +5186,17 @@ export default defineComponent({
 .post-square__byline {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 4px 9px;
+  // ⭐ ONE LINE, `2px 7px`, SINCE 2026-09-13 (user ask: "make it way denser by
+  // reducing the padding and turning the information into a single line").
+  // Off `4px 9px` and the two-line split stamp of 2026-08-09: the author
+  // block is a row now (name, handle, the "— age" legend beside it), the
+  // moment is one text run at the band's end, and the face is 18px so the
+  // text line sets the band's height — measured 41.75 → ~22px, which is the
+  // whole of "way denser". The rule between the two sides carries a −2px
+  // stretch to match (`.post-square__byline-rule`) — KEEP IN STEP. The
+  // media budget follows by measurement (see the pit's constant).
+  gap: 5px;
+  padding: 2px 7px;
   flex: 0 0 auto;
   min-width: 0;
   // The card's INNER weight, 1px, where its outer edges run 1.5px — an inner
@@ -5201,11 +5230,16 @@ export default defineComponent({
 // packs the chips at the band's end, and a flex-grow here would eat the
 // free space before an auto margin sees any of it.
 .post-square__byline-lines {
+  // ⭐ A ROW SINCE 2026-09-13 (user ask) — the name keeps its class for the
+  // witnesses and the paper trail, but the column is gone: `who` and the
+  // "— age" legend sit side by side on one baseline. `0 1 auto`, NOT a
+  // grower, for the reason above (the seam rule's auto margin packs the
+  // moment run right and a grower here would starve it).
   flex: 0 1 auto;
   min-width: 0;
   display: flex;
-  flex-direction: column;
-  gap: 1px;
+  align-items: center;
+  gap: 5px;
   line-height: 1.15;
 }
 
@@ -5231,6 +5265,15 @@ export default defineComponent({
 // The separator. One step quieter than the facts it stands between — it is
 // punctuation, and it should be the last thing on this line the eye lands on.
 .post-square__ago-dot {
+  flex: 0 0 auto;
+  font-size: 0.62em;
+  font-weight: 700;
+  color: rgba(var(--ink-rgb), 0.55);
+  opacity: 0.5;
+}
+// The legend's leading dash (2026-09-13, user ask: the "— xxx ago" form) —
+// the dot's own recipe, so the line's two separators are one ink.
+.post-square__ago-dash {
   flex: 0 0 auto;
   font-size: 0.62em;
   font-weight: 700;
@@ -5337,7 +5380,7 @@ export default defineComponent({
 // closes the labels when the post carries any and the pit when it does not.
 // KEEP THE PIT'S MEDIA BUDGET IN STEP: 1px of rule now, from 6px of band —
 // the constants took −5 for it (and −1 for the strip's rule, gone the same
-// ask): 276 → 270, 308 → 302.
+// ask): 276 → 270, 308 → 302 (then 251 / 283 the same day — the byline pass).
 .post-square__hairline {
   flex: 0 0 auto;
   height: 1px;
@@ -5368,12 +5411,20 @@ export default defineComponent({
 // and each hugs its own words; `flex: 0 0 auto` — the LEFT side is the one
 // that gives, its 16ch caps doing the yielding.
 .post-square__byline-when {
-  flex: 0 0 auto;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 2px;
+  // ⭐ ONE RUN SINCE 2026-09-13 (user ask) — the chip column is a single text
+  // link now (`.post-square__when`), and this box is what lets it GIVE:
+  // `0 1 auto` + `min-width: 0` so a long `when · where` ellipsizes inside
+  // its own box, capped at just over half the band so the author side is
+  // never squeezed off (the 2026-07-25 argument — the moment used to be
+  // the rigid part while the TITLE absorbed; the title left the band on
+  // 08-09 and there is nothing else built to absorb, so the run bounds
+  // itself, and the tooltip carries what the ellipsis cuts).
+  flex: 0 1 auto;
   min-width: 0;
+  max-width: 58%;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
 }
 
 // The chips at BAND density. MicroChip is sized against body text; these
@@ -5384,20 +5435,35 @@ export default defineComponent({
 // addresses — a date ellipsizing is a date, where a hash slice under 6 is
 // noise); the caps clear the wider branch whole (27-char date / 19-char
 // place) and stop a pathological place name from taking the band.
-.post-square__moment-chip {
-  font-size: 0.58em;
-  max-width: 30ch;
-
-  // These show resolved STRINGS, not addresses, so they letter in the
-  // band's display face (2026-08-09, Nasalization ask) — the deep rule's
-  // two classes + scope attribute beat the hash span's own `.mono`, the
-  // cap's named-chip precedent exactly.
-  :deep(.micro-chip__hash) {
-    min-width: 0;
-    font-weight: 500;
-    font-family: var(--font-display);
-    letter-spacing: 0.02em;
-  }
+// ⭐ `.post-square__moment-chip` IS GONE (2026-09-13, user ask: "leave them as
+// text rather than weird pills") — the two MicroChips it dressed left the
+// template. What replaced them:
+.post-square__when {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  min-width: 0;
+  max-width: 100%;
+  font-size: 0.6em;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  text-decoration: none;
+  color: rgba(var(--ink-rgb), 0.6);
+  &:hover .post-square__when-text { color: var(--cyan-14, #00b8d4); }
+}
+// The moment mark in the moment kind's own colour — `utils/kinds.js` states
+// `moments` as `schedule` in `#e65100`, and that registry is the one place
+// the platform decides what a moment looks like, so the byline reads it
+// rather than minting a tone. (The hex is the registry's, not this file's.)
+.post-square__when-icon {
+  flex: 0 0 auto;
+  color: #e65100;
+}
+.post-square__when-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 // The byline's DESKTOP FOLD lives at the bottom of the byline family —
@@ -5527,7 +5593,11 @@ export default defineComponent({
   // under the pit (its padding re-split 2/2 → 0/4, no change). Measured, not
   // derived: the labelled card's non-pit chrome read 142px before the ask
   // and 136px after (`flow-feed-card-rows.mjs` reads the rows), −6 exactly.
-  --media-max-h: max(120px, calc(min(var(--post-square-max, 100cqw), 60vh) - 270px));
+  // ⭐ **251 THE SAME DAY** — the byline's one-line pass (face 18, padding
+  // 2px, one row) took the band 41.75 → 23px; chrome measured 136 → 117.25,
+  // −18.75, carried as −19 (over-subtracting a quarter pixel keeps a maxed
+  // medium inside the card; under-subtracting would not).
+  --media-max-h: max(120px, calc(min(var(--post-square-max, 100cqw), 60vh) - 251px));
 
   flex: 1 1 auto;
   min-height: 0;
@@ -6866,7 +6936,8 @@ export default defineComponent({
   flex: 0 0 1px;
   width: 1px;
   align-self: stretch;
-  margin: -4px 0 -4px auto;
+  // `-2px` since 2026-09-13 — the band's padding went 4 → 2 (one-line pass).
+  margin: -2px 0 -2px auto;
   background: var(--grey-5, #bdbdbd);
 }
 
