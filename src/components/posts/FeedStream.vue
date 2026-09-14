@@ -635,6 +635,27 @@
                  far LEFT edge, so the cap reads control │ facts │ controls
                  with a hairline at every seam.
 
+                 ⭐ FIVE CELLS OF ONE WIDTH since 2026-09-13 (user ask: "put
+                 the pin one on the very right edge, and also make sure all
+                 of them look the same width and are surrounded by either an
+                 edge or a hairline"). The strip reads
+
+                   [expand] │ facts… │ [skeleton] │ [flyout] │ [share] │ [pin]
+
+                 — every control in its own `.post-square__cap-cell`, all of
+                 them `--cap-cell` wide (32px, the foot's references cell),
+                 each closed on both sides by a rule or the card's edge. The
+                 old shape was a padded LANE holding four buttons with rules
+                 slipped between them, which made the four cells 31 / 24 /
+                 24 / 31 wide (the lane's 9px padding fell on the outer two
+                 alone) beside a 38px expand cell — five boxes, four widths.
+                 The lane and the lead are gone as elements; the cells that
+                 replace them read one dial. The PIN closes the strip at the
+                 card's right edge: it is the one control whose state
+                 persists (a pin either is or is not), and the edge is where
+                 a held state is found on every strip of this card — the
+                 foot's own held control, references, stands at ITS edge. -->
+
                  The whole strip is set in `--font-display` (Nasalization) —
                  the platform's display face, which until now the card did
                  not wear anywhere. -->
@@ -652,8 +673,9 @@
                    and a second press releases the lens. A hairline divides the
                    cell from the facts, the cap's own device: this is a
                    thing you PRESS, and everything past the rule is a thing
-                   you READ. -->
-              <div class="post-square__cap-lead">
+                   you READ. ⭐ A `.post-square__cap-cell` since 2026-09-13,
+                   the same box as the four at the other end. -->
+              <div class="post-square__cap-cell">
                 <button
                   type="button"
                   class="post-square__cap-act"
@@ -737,22 +759,15 @@
                        window — and the press is the very same `select` the
                        foot's references button emits. FeedPage spawns
                        through the flyoutViewers store; the `openIds` prop
-                       comes back down for the lit mark. -->
-              <div class="post-square__cap-side">
-                <button
-                  type="button"
-                  class="post-square__cap-act"
-                  :class="{ 'is-on': pinnedIds.has(item.skeleton_id) }"
-                  :title="pinnedIds.has(item.skeleton_id) ? 'Unpin this post' : 'Pin this post'"
-                  @click.stop="togglePin(item)"
-                >
-                  <q-icon name="push_pin" size="13px" />
-                </button>
-                <!-- Hairlines between the lane's three controls (2026-08-09,
-                     user ask) — the cap's rule run all the way in: each
-                     control stands in a ruled cell of its own, the way the
-                     facts and the lane already stood apart. -->
-                <span class="post-square__cap-rule" aria-hidden="true" />
+                       comes back down for the lit mark.
+
+                   ⭐ NO LANE SINCE 2026-09-13 — four `.post-square__cap-cell`s
+                   at the cap's own level, a `__cap-rule` between each pair
+                   (2026-08-09's "each control in a ruled cell of its own",
+                   finally true to the pixel), reading skeleton │ flyout │
+                   share │ PIN, the pin moved from the lane's head to the
+                   card's right edge (user ask). -->
+              <div class="post-square__cap-cell">
                 <router-link
                   class="post-square__cap-act"
                   :to="'/skeletons/' + item.skeleton_id"
@@ -761,7 +776,9 @@
                 >
                   <q-icon name="sym_o_orthopedics" size="14px" />
                 </router-link>
-                <span class="post-square__cap-rule" aria-hidden="true" />
+              </div>
+              <span class="post-square__cap-rule" aria-hidden="true" />
+              <div class="post-square__cap-cell">
                 <button
                   type="button"
                   class="post-square__cap-act"
@@ -771,11 +788,13 @@
                 >
                   <q-icon name="open_in_new" size="13px" />
                 </button>
-                <!-- Share to chat (dashboards phase 5, 2026-08-10): the
-                     conversation picker prefills a draft with this post's
-                     chip; ChatDock's send flow grants through the share
-                     tree. Grants, never publishes. -->
-                <span class="post-square__cap-rule" aria-hidden="true" />
+              </div>
+              <span class="post-square__cap-rule" aria-hidden="true" />
+              <!-- Share to chat (dashboards phase 5, 2026-08-10): the
+                   conversation picker prefills a draft with this post's
+                   chip; ChatDock's send flow grants through the share
+                   tree. Grants, never publishes. -->
+              <div class="post-square__cap-cell">
                 <button
                   type="button"
                   class="post-square__cap-act"
@@ -783,6 +802,18 @@
                   @click.stop="openShare(item)"
                 >
                   <q-icon name="ios_share" size="13px" />
+                </button>
+              </div>
+              <span class="post-square__cap-rule" aria-hidden="true" />
+              <div class="post-square__cap-cell">
+                <button
+                  type="button"
+                  class="post-square__cap-act"
+                  :class="{ 'is-on': pinnedIds.has(item.skeleton_id) }"
+                  :title="pinnedIds.has(item.skeleton_id) ? 'Unpin this post' : 'Pin this post'"
+                  @click.stop="togglePin(item)"
+                >
+                  <q-icon name="push_pin" size="13px" />
                 </button>
               </div>
             </div>
@@ -4902,7 +4933,16 @@ export default defineComponent({
 //
 // Rigid (`flex: 0 0 auto`), like every other strip on this card: the square
 // ceiling takes its slack out of the pit alone.
+//
+// ⭐ `--cap-cell` (2026-09-13) — the ONE width of every control cell on this
+// strip, five of them since the pin moved to the right edge. 32px = the foot's
+// references cell (16 + 8 + 8), so the card's two strips box a lone control
+// in the same width at both ends; here that is 20 + 6 + 6, a 20px control
+// with 6px of air a side. The lane it replaces padded its four buttons as one
+// group (`2px 9px` round the lot, 2px between), so its cells came out
+// 31 / 24 / 24 / 31 beside a 38px expand lead — read the cell rule below.
 .post-square__cap {
+  --cap-cell: 32px;
   display: flex;
   align-items: stretch;
   flex: 0 0 auto;
@@ -4944,40 +4984,33 @@ export default defineComponent({
   white-space: nowrap;
 }
 
-// The CONTROL lane, sized to exactly what it holds — its buttons' width plus
-// its own padding, and not a pixel of the card beyond that. `0 0 auto` on
-// both counts: it may not grow into the title's room, and it may not be
-// squeezed by a long one either (the fact cell is the one that gives, which
-// is why it carries the `min-width: 0` and this does not).
-.post-square__cap-side {
-  flex: 0 0 auto;
+// THE CONTROL CELL (2026-09-13, user ask) — ONE box for all five controls:
+// the expand lead at the card's left edge (its own `__cap-lead` from
+// 2026-08-09 until today) and the four at the right (a padded `__cap-side`
+// LANE holding them all, rules slipped between, over the same span). Rigid
+// both ways at exactly `--cap-cell`: it may not grow into the title's room
+// and may not be squeezed by a long one (the fact cell is the one that
+// gives, which is why it carries `min-width: 0` and this does not), and the
+// control is centred in it rather than padded into place — so the width is
+// a stated number, not padding + glyph + gap summed differently at each end
+// of a lane. The 2px vertical padding is the strip's own (26 = 2 + 20 + 2
+// + the closing border), unchanged.
+//
+// Why a lane was wrong: the rules INSIDE it had to stretch and win back its
+// padding with a negative margin (the `__byline-rule` trick), and the lane's
+// horizontal padding fell on its outer two members alone — the pin cell was
+// 31px, the flyout cell 24. With the cells at the cap's own level, every
+// `__cap-rule` stands between two unpadded siblings of a stretch container
+// and meets both edges square with no trick at all, and the card's edge
+// closes the two end cells the way a rule closes the rest: every control is
+// boxed on both sides, by a rule or an edge, and every box is one width.
+.post-square__cap-cell {
+  flex: 0 0 var(--cap-cell);
+  width: var(--cap-cell);
   display: flex;
   align-items: center;
-  gap: 2px;
-  padding: 2px 9px;
-
-  // The lane's INNER rules (2026-08-09, user ask) — each control in a ruled
-  // cell of its own. Same trick as `__byline-rule`: the lane centres its
-  // children, so a rule must stretch and then win back the lane's own 2px
-  // vertical padding to meet the strip's edges square. Keep the margin in
-  // step with that padding.
-  > .post-square__cap-rule {
-    align-self: stretch;
-    margin: -2px 0;
-  }
-}
-
-// THE EXPAND LEAD (2026-08-09, user ask) — the cell at the card's far LEFT
-// edge, holding the one control that acts on the STREAM around the card:
-// the hash lens toggle (filter to this post's address, draw it full-height).
-// The lane's own sizing rule and padding, mirrored at the other end: rigid
-// both ways, one button wide, and the fact cell between the two stays the
-// only thing that gives.
-.post-square__cap-lead {
-  flex: 0 0 auto;
-  display: flex;
-  align-items: center;
-  padding: 2px 9px;
+  justify-content: center;
+  padding: 2px 0;
 }
 
 // The two controls. Chromeless by default — a glyph at the icons' own tone,
@@ -5015,11 +5048,11 @@ export default defineComponent({
 
 // The split, drawn exactly like the byline's section rules — 1px of the
 // card's one line ink, meeting the strip's edges square. No negative margin
-// is needed (unlike `__byline-rule`) for the CAP-LEVEL rules: the cells carry
-// the padding here, not the flex parent, so `align-self: stretch` already
-// reaches both edges. The copies INSIDE the control lane (2026-08-09) are the
-// exception — they live in a padded cell and take the stretch + negative
-// margin override in `__cap-side` above.
+// is needed (unlike `__byline-rule`) — the cells carry the padding here, not
+// the flex parent, so `align-self: stretch` already reaches both edges. ⭐
+// ALL of them are cap-level since 2026-09-13: the copies that lived INSIDE
+// the control lane (2026-08-09) and needed the stretch + negative-margin
+// override went with the lane (see `__cap-cell`).
 .post-square__cap-rule {
   flex: 0 0 1px;
   width: 1px;
