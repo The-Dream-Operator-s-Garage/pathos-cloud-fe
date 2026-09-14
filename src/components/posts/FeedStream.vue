@@ -654,7 +654,7 @@
                  card's right edge: it is the one control whose state
                  persists (a pin either is or is not), and the edge is where
                  a held state is found on every strip of this card — the
-                 foot's own held control, references, stands at ITS edge. -->
+                 foot's own held control, references, stands at ITS edge.
 
                  The whole strip is set in `--font-display` (Nasalization) —
                  the platform's display face, which until now the card did
