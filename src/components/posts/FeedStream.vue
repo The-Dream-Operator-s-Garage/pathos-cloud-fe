@@ -689,14 +689,10 @@
               <span class="post-square__cap-rule" aria-hidden="true" />
 
               <div class="post-square__cap-main">
-                <span class="post-square__cap-icons" :title="capKindTitle(item)">
-                  <q-icon
-                    v-for="ic in capIcons(item)"
-                    :key="ic"
-                    :name="ic"
-                    size="13px"
-                  />
-                </span>
+                <!-- The KIND MARKS opened this cell from 2026-08-07 until
+                     2026-09-13, when they moved INTO the name's pill (user
+                     ask, "put the post icon from the header inside the chip
+                     too") — see the title below. -->
 
                 <!-- The origin clause(s): "Comment on <chip> ::"
 
@@ -732,7 +728,30 @@
                   <span class="post-square__cap-sep">::</span>
                 </span>
 
-                <span class="post-square__cap-title" :title="capTitle(item)">{{ capTitle(item) }}</span>
+                <!-- ⭐ THE NAME IS A CHIP since 2026-09-13 (user ask: "put
+                     the title of the cards inside a clear-background chip
+                     and make sure it is aligned on the center horizontally
+                     … rounded borders and a thin border the same color as
+                     the card's hairlines"). The outer span is still the
+                     cell that takes the slack; the inner one is the pill —
+                     centred in that slack, ellipsizing inside it. -->
+                <span class="post-square__cap-title">
+                  <span class="post-square__cap-title-chip" :title="capTitle(item)">
+                    <!-- The kind marks lead the pill (2026-09-13, same
+                         sitting): `post` for an original, `comment` for a
+                         comment, both for a fork — one family of Material
+                         Symbols, stating what the name names. -->
+                    <span class="post-square__cap-icons" :title="capKindTitle(item)">
+                      <q-icon
+                        v-for="ic in capIcons(item)"
+                        :key="ic"
+                        :name="ic"
+                        size="13px"
+                      />
+                    </span>
+                    <span class="post-square__cap-title-text">{{ capTitle(item) }}</span>
+                  </span>
+                </span>
               </div>
               <span class="post-square__cap-rule" aria-hidden="true" />
 
@@ -5060,6 +5079,9 @@ export default defineComponent({
 }
 
 // The kind marks. One step under the ink — they classify, they do not name.
+// ⭐ INSIDE the name's pill since 2026-09-13 (user ask) — they led the fact
+// cell from the cap's first day; now they lead the chip, so mark and name
+// are one boxed object.
 .post-square__cap-icons {
   flex: 0 0 auto;
   display: inline-flex;
@@ -5147,8 +5169,58 @@ export default defineComponent({
 
 // The post's name, taking all the slack and ellipsizing alone.
 // ⚠ IT STEPS UP ON DESKTOP — see the media query directly below this rule.
+//
+// ⭐ A CENTRED CHIP since 2026-09-13 (user ask). This span is the CELL — it
+// still takes every pixel the icons and the origin clause leave — and the
+// name moved into `__cap-title-chip` inside it, which the cell centres. So
+// the name floats mid-strip on a titleless "post #n" and on a short title
+// alike, and a long one grows the pill until it meets the cell's edges and
+// then ellipsizes INSIDE the pill (the cell's `min-width: 0` is what lets
+// the pill be squeezed at all — the flex-basis-is-a-request rule, gotchas).
+// The clip and ellipsis moved down onto the pill with the text; the cell
+// only positions.
 .post-square__cap-title {
   flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+// THE PILL. Clear-backed — the strip's own ground shows through, so it is a
+// drawn OUTLINE around the name rather than a plate under it — with the
+// card's hairline ink as its rim (`--grey-5`, the one line ink every rule
+// on this square runs; the cap's cell rules are the same 1px, so the name's
+// box and the strip's seams are one system) and 999px ends: the same pill
+// the label rail's members wear one strip down, at the cap's register.
+// EXACTLY the fact cell's content height — the cell pads 4px in a 24px
+// strip, so 16 = the whole box, 1px rim + 14px line — which is what keeps
+// the strip at 26 (the cap's `--media-max-h` share is unchanged; the media
+// budget did not move for this). The desktop step-up below lands on the
+// cell and reaches the chip by inheritance: 1.16em of the cap in a 14px
+// line still clears.
+.post-square__cap-title-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 100%;
+  box-sizing: border-box;
+  height: 16px;
+  line-height: 14px;
+  // Tighter on the left: the 13px mark leads, and a glyph's own drawing
+  // leaves air a letter does not, so 6 before it lands its ink where 8
+  // lands the name's.
+  padding: 0 8px 0 6px;
+  border: 1px solid var(--grey-5, #bdbdbd);
+  border-radius: 999px;
+  background: transparent;
+  overflow: hidden;
+}
+
+// The name inside the pill — the one member that gives. `min-width: 0` so
+// the flex item may be squeezed below its text (the marks are `0 0 auto`),
+// and the ellipsis lands here, after the mark, never over it.
+.post-square__cap-title-text {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -5692,7 +5764,13 @@ export default defineComponent({
   // (it is the radius the scrollbar thumbs already run), so the pit reads as
   // cut into the card rather than laid on it — the same argument as its flat,
   // carve-free surface below.
-  border-radius: 3px;
+  // ⭐ SLIGHTLY ROUNDER since 2026-09-13 (user ask, "make its corners
+  // slightly rounder"): 3 → 5px. One step past the card's own 4px corner —
+  // the pit is inset from the card's edge by its margins, so a radius a
+  // hair over the card's reads as a softer inner frame, not as the mismatch
+  // the 2026-08-10 note above guards against (that was 7 against a 2px
+  // card corner, three and a half times over; this is five against four).
+  border-radius: 5px;
   // The pit's own two tones (2026-07-25): a `--grey-1` floor with the frame's
   // INNER border drawn around it in the card's line ink. The floor was a 5% ink
   // tint of whatever the card was, which made the pit a slightly darker patch
