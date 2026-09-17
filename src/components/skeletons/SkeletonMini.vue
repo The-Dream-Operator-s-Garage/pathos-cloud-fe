@@ -6,19 +6,45 @@
        dashboard cell, listed by the reference browser, or previewed in
        the composer: MiniPanel chrome in the web-media mini's grammar —
        NodeMini's header ROW of hairline-split zones (the address chip +
-       copy button, the name, the lock, the CORNER BUTTON that spawns the
-       skeleton's own flyout window) over a SkeletonTable body and a
-       provenance foot (schema · keys · author · lock), the way a YouTube
-       mini's foot says PROVIDER :: url.
+       copy button · the name · the integrity dot · the lock · the layout
+       switch · the CORNER BUTTON that spawns the skeleton's own flyout
+       window) over a SkeletonTable body and a provenance foot (schema ·
+       keys · author · lock), the way a YouTube mini's foot says
+       PROVIDER :: url.
+
+       ⭐ 2026-09-17 — ONE VIEWER, EVERY SURFACE (user ask: "the chip with
+       the copy button is on its own row, as is the title, the lock and
+       the expand button — we want them all on a single row … the same
+       viewer from the feed on the dashboard board … the layout switch
+       and the nestability properly enabled for both … the same green dot
+       and verification process for the skeletons"):
+       · the header is a ROW again — the panel's default head is a flex
+         COLUMN, and the `:deep` override here said `display: flex` and
+         nothing else, so the four zones inherited the column and stacked
+         into a tower (the gotcha NodeMini already paid for; the reset is
+         restated on the style below);
+       · the INTEGRITY DOT — `skeleton.integrity` off the walk, the
+         skeleton's own verdict (its spine path + every live spine link,
+         integrityService.verifySkeletonSync): green proof-verified, red
+         violated (click → Talavero's report), lawful-unproven draws
+         nothing. A violated spine WITHHELDS the keys (`slots_withheld`),
+         and the body wears the withheld face instead of an empty grid;
+       · the LAYOUT SWITCH — the flyout's toggle, on the mini: a VIEW
+         setting (never an AXIS write) remembered per browser under the
+         flyout's own key, so a skeleton lies the same way in a post, on
+         a board and in its window. Top-level minis only; nested ones
+         follow the layout handed down;
+       · `enriched` is ON by default — nested skeletons (cell-bound, list
+         members) render as minis on the feed and the board, not only in
+         the flyout, so the whole tree reads one way everywhere.
 
        The grid inside owns every edit (keys, cells, axis — see
        SkeletonTable); this panel owns the NAME (double-click, owner) and
        the LOCK (owner; a locked skeleton freezes keys and cells, 40303).
 
-       Recursion rides the grid now: a cell bound to another skeleton
-       renders that skeleton's grid inline (depth budget 2, cycle chip),
-       so this panel no longer nests panels — `depth`/`visited` pass
-       through to the grid.
+       Recursion rides the grid: a cell bound to another skeleton renders
+       that skeleton's grid inline (depth budget 2, cycle chip), so this
+       panel no longer nests panels — `depth`/`visited` pass through.
 
        NOT a router-link (the grid's popovers and nested grids would nest
        anchors); the head carries explicit doors instead.
@@ -26,7 +52,9 @@
        bodyFit lifts MiniPanel's 110px excerpt cap — a grid's size is its
        meaning — and the body brings ITS OWN scroll contract in exchange:
        `--skel-mini-max-h`, published by the surface (dashboard cells;
-       silence = uncapped).
+       silence = uncapped). A NESTED mini ignores it: its host's scroll
+       already bounds it, and a cap inside a cap is a scrollbar inside a
+       scrollbar.
 
        Re-toning: NodeMini's dial pattern — `--skel-mini-coat/-rule/
        -rule-hover/-head-ink` repaint the CHROME; the grid inside listens
@@ -41,7 +69,11 @@
        double-frame a card that is already one. -->
   <SkeletonTable v-else-if="isGithubPr" :skeleton="head" :slots="slotRows" />
 
-  <div v-else class="skel-mini" :class="{ 'is-locked': head.locked, 'is-sealed': sealed, 'is-schema': head.is_schema }">
+  <div
+    v-else
+    class="skel-mini"
+    :class="{ 'is-locked': head.locked, 'is-sealed': sealed, 'is-schema': head.is_schema, 'is-nested': depth > 0, 'is-withheld': withheld }"
+  >
     <MiniPanel body-fit>
       <template #head>
         <!-- The address chip + its copy button: WHAT IT IS first. -->
@@ -74,11 +106,30 @@
           >
           <span
             v-else
-            class="skel-mini__name-text nasalization"
+            class="skel-mini__name-text"
             :class="{ 'is-editable': canRename }"
             @dblclick.stop.prevent="canRename && beginRename()"
           >{{ headline }}</span>
           <span v-if="head.is_schema" class="skel-mini__schema">SCHEMA</span>
+        </span>
+
+        <!-- The integrity traffic light (2026-09-17): the skeleton's own
+             verdict in the header — green proof-verified (spine path +
+             every live spine link), red violated (click → Talavero's
+             report). Lawful-unproven draws nothing. In a ZONE OF ITS OWN,
+             NodeMini's reason verbatim: the row's `& + &` hairline rule
+             fires only between adjacent zones, so a bare dot would break
+             the chain and unrule everything past it; the `v-if` degrades
+             correctly — with no verdict the lock's previous sibling is the
+             name zone and it keeps its hairline. -->
+        <span v-if="integrityState" class="skel-mini__zone skel-mini__zone--dot">
+          <span
+            class="skel-mini__integrity"
+            :class="'integrity-' + integrityState"
+            :title="integrityTitle"
+            role="button"
+            @click.stop.prevent="openIntegrityReport"
+          />
         </span>
 
         <!-- The lock: every owned skeleton since phase 0. A locked one
@@ -99,6 +150,28 @@
           <q-icon :name="lockGlyph" size="11px" />
         </span>
 
+        <!-- THE LAYOUT SWITCH (2026-09-17) — ElementFlyout's toggle, on the
+             mini. Wears the glyph of the layout it OFFERS: swap_horiz while
+             the grid stands vertical (keys down the first column, lists as
+             columns), swap_vert while it lies horizontal (keys across the
+             top, lists flowing left → right). A VIEW setting, never a write
+             — the stored AXIS is untouched — and remembered per browser
+             under the flyout's own key (`pathos_skeleton_layout`), so the
+             post, the board and the window agree. Top-level minis only: a
+             nested mini lies the way its host laid it, and one switch per
+             tree is the whole point. The grid's own corner flips the same
+             setting (`update:layout`). -->
+        <button
+          v-if="depth === 0 && !withheld"
+          type="button"
+          class="skel-mini__zone skel-mini__zone--layout"
+          :class="{ 'is-horizontal': shownLayout === 'horizontal' }"
+          :title="layoutTitle"
+          @click.stop.prevent="toggleLayout"
+        >
+          <q-icon :name="shownLayout === 'horizontal' ? 'swap_vert' : 'swap_horiz'" size="10px" />
+        </button>
+
         <!-- THE CORNER: this skeleton in its own floating window (the
              `?flyout=` door as a button — NodeMini's corner, verbatim). -->
         <button
@@ -113,16 +186,31 @@
 
       <template #body>
         <div v-if="editError" class="skel-mini__error">{{ editError }}</div>
-        <div class="skel-mini__scroll">
+        <!-- THE WITHHELD FACE (2026-09-17): the walk already emptied the
+             slots (`slots_withheld`), and instead of pretending an empty
+             table the panel says so — NodeMini's `.node-mini__withheld`
+             grammar, the whole line clicking through to the report. -->
+        <div
+          v-if="withheld"
+          class="skel-mini__withheld"
+          role="button"
+          :title="integrityTitle || 'keys withheld — integrity check failed'"
+          @click.stop.prevent="openIntegrityReport"
+        >
+          <q-icon name="report" size="12px" />
+          <span>keys withheld — integrity check failed{{ integrityReport ? ' · open Talavero\'s report' : '' }}</span>
+        </div>
+        <div v-else class="skel-mini__scroll">
           <SkeletonTable
             :skeleton="head"
             :slots="slotRows"
             :depth="depth"
             :visited="visited"
-            :layout="layout"
+            :layout="effectiveLayout"
             :readonly="readonly"
             :enriched="enriched"
             @changed="refresh"
+            @update:layout="setLayout"
           />
         </div>
       </template>
@@ -134,7 +222,8 @@
           <q-icon :name="skeletonKind.icon" size="10px" />
           <span class="skel-mini__foot-schema">{{ footSchema }}</span>
           <span class="skel-mini__foot-dot">·</span>
-          <span class="skel-mini__foot-keys mono">{{ slotRows.length }} {{ slotRows.length === 1 ? 'key' : 'keys' }}</span>
+          <span v-if="withheld" class="skel-mini__foot-withheld mono">keys withheld</span>
+          <span v-else class="skel-mini__foot-keys mono">{{ slotRows.length }} {{ slotRows.length === 1 ? 'key' : 'keys' }}</span>
           <template v-if="author">
             <span class="skel-mini__foot-dot">·</span>
             <span class="skel-mini__foot-author">by {{ author }}</span>
@@ -151,6 +240,7 @@
 
 <script>
 import { defineComponent, ref, computed, onMounted, watch, nextTick } from 'vue'
+import { useRouter } from 'vue-router'
 import MiniPanel from 'src/components/shared/MiniPanel.vue'
 import InfoChip from 'src/components/shared/InfoChip.vue'
 import SkeletonTable from 'src/components/skeletons/SkeletonTable.vue'
@@ -163,6 +253,10 @@ import { kindFor, shortHash } from 'src/utils/kinds'
 // One summary per address per session — the foot's author line must not
 // cost a dashboard of twelve minis twelve round-trips on every reload.
 const summaryCache = new Map()
+
+// The layout preference's key — ElementFlyout's, deliberately: one
+// setting, every surface (2026-09-17).
+const LAYOUT_KEY = 'pathos_skeleton_layout'
 
 export default defineComponent({
   name: 'SkeletonMini',
@@ -178,21 +272,28 @@ export default defineComponent({
     // Recursion guards, passed through to the grid.
     depth: { type: Number, default: 0 },
     visited: { type: Array, default: () => [] },
-    // Passed through to the grid (2026-09-06 PM): the flyout's layout
-    // ('vertical' | 'horizontal' | null = the skeleton's own axis), a host
-    // that shows the grid as evidence only, and `enriched` — skeletons
-    // inside this one render as minis too, so the whole tree reads the
-    // same way (the NAVIGATION skeleton's stops and their sub-stacks).
+    // THE HOST'S LAYOUT ('vertical' | 'horizontal'), when a host owns it:
+    // a nested mini takes its parent grid's; the flyout hands its toggle
+    // down through the grid. null (the top-level default) = this mini owns
+    // the setting itself — the header switch + the browser's remembered
+    // choice (2026-09-17; was a bare pass-through since 2026-09-06 PM).
     layout: { type: String, default: null },
+    // A host that shows the grid as evidence only.
     readonly: { type: Boolean, default: false },
-    enriched: { type: Boolean, default: false }
+    // Skeletons inside this one render as minis too, so the whole tree
+    // reads the same way (the NAVIGATION skeleton's stops and their
+    // sub-stacks). ON by default since 2026-09-17 — the feed and the board
+    // nest the way the flyout does; a host that wants bare grids says so.
+    enriched: { type: Boolean, default: true }
   },
   // resolved mirrors SkeletonTable's emit; changed tells a pre-walked
-  // host (the dashboard grid) its batch data went stale after a write.
-  emits: ['resolved', 'changed'],
+  // host (the dashboard grid) its batch data went stale after a write;
+  // update:layout asks a host that OWNS the layout for the other one.
+  emits: ['resolved', 'changed', 'update:layout'],
   setup (props, { emit }) {
     const auth = useAuthStore()
     const flyouts = useFlyoutViewersStore()
+    const router = useRouter()
     const loading = ref(false)
     const failed = ref(false)
     const walked = ref(null)
@@ -270,6 +371,57 @@ export default defineComponent({
       if (h.axis) bits.push('axis ' + h.axis)
       return bits.filter(Boolean).join(' · ')
     })
+
+    // ── the verdict (2026-09-17) ──────────────────────────────────────
+    // `skeleton.integrity` rides the walk (and the chip summary): 'ok' →
+    // green, 'violated' → red + the slots came back withheld; exempt and
+    // absent draw nothing (no claim, never a guess).
+    const integrityState = computed(() => {
+      const s = head.value.integrity?.status
+      return s === 'ok' || s === 'violated' ? s : null
+    })
+    const integrityReport = computed(() => head.value.integrity?.report || null)
+    const withheld = computed(() => head.value.slots_withheld === true)
+    const integrityTitle = computed(() => {
+      if (integrityState.value === 'ok') return 'proof verified — the spine and every live key link'
+      if (integrityState.value !== 'violated') return null
+      const i = head.value.integrity || {}
+      const where = i.element && !String(i.element).startsWith('skeletons/') ? ` on ${i.element}` : ''
+      const what = (i.check || 'integrity') + where
+      return integrityReport.value
+        ? `integrity violated: ${what} — click for Talavero's report`
+        : `integrity violated: ${what} — report unavailable`
+    })
+    const openIntegrityReport = () => {
+      if (integrityReport.value) {
+        router.push({ path: '/feed', query: { flyout: integrityReport.value } })
+      }
+    }
+
+    // ── the layout (2026-09-17) ───────────────────────────────────────
+    // Host-owned when the `layout` prop is set (nested minis, a flyout
+    // tree); otherwise this mini's own — the browser's remembered choice,
+    // or null = the skeleton's stored AXIS until the reader chooses.
+    const loadLayout = () => {
+      try {
+        const v = localStorage.getItem(LAYOUT_KEY)
+        return v === 'horizontal' || v === 'vertical' ? v : null
+      } catch (_) { return null }
+    }
+    const localLayout = ref(loadLayout())
+    const effectiveLayout = computed(() => (props.layout != null ? props.layout : localLayout.value))
+    // What the grid is SHOWING — the layout in force, else the stored axis.
+    const shownLayout = computed(() => effectiveLayout.value || (head.value.axis === 'row' ? 'horizontal' : 'vertical'))
+    const setLayout = (v) => {
+      const next = v === 'horizontal' ? 'horizontal' : 'vertical'
+      if (props.layout != null) { emit('update:layout', next); return }
+      localLayout.value = next
+      try { localStorage.setItem(LAYOUT_KEY, next) } catch (_) { /* preference only */ }
+    }
+    const toggleLayout = () => setLayout(shownLayout.value === 'horizontal' ? 'vertical' : 'horizontal')
+    const layoutTitle = computed(() => (shownLayout.value === 'horizontal'
+      ? 'Lay the skeleton out vertically — keys down the first column, lists as columns'
+      : 'Lay the skeleton out horizontally — keys across the top, lists flowing left to right'))
 
     // ── the doors ─────────────────────────────────────────────────────
     const openViewer = () => {
@@ -361,6 +513,16 @@ export default defineComponent({
       author,
       footSchema,
       footTitle,
+      integrityState,
+      integrityReport,
+      integrityTitle,
+      withheld,
+      openIntegrityReport,
+      effectiveLayout,
+      shownLayout,
+      setLayout,
+      toggleLayout,
+      layoutTitle,
       openViewer,
       copied,
       copyAddress,
@@ -404,10 +566,19 @@ export default defineComponent({
   :deep(.mini-panel--hover):hover {
     --panel-rule: var(--skel-mini-rule-hover, var(--grey-7, #757575));
   }
-  // The header is one ROW of zones, split by vertical hairlines.
+  // The header is one ROW of zones, split by full-height vertical
+  // hairlines — which is why the zone padding lives on the zones and not
+  // on the header (a padded header would inset the rules).
+  // `flex-direction` and `gap` are RESETS, not decoration (2026-09-17):
+  // MiniPanel's default head is a flex COLUMN of zones with a 4px gap, and
+  // an override that only said `display: flex` inherited both — the chip,
+  // the name, the lock and the corner stacked into a tower, one per line.
+  // NodeMini paid for this exact lesson on 2026-08-23 (gotchas.md).
   :deep(.mini-panel__head--own) {
     display: flex;
+    flex-direction: row;
     align-items: stretch;
+    gap: 0;
     min-width: 0;
     padding: 0;
   }
@@ -420,8 +591,12 @@ export default defineComponent({
   min-width: 0;
   padding: 1px 4px;
   color: var(--sm-ink);
+  // ONE LINE, ALWAYS: a header that grows a second line changes the
+  // panel's height from its content, which a dense band must not do.
   white-space: nowrap;
   overflow: hidden;
+  // The vertical hairlines — one before every zone but the first, so the
+  // count follows the zones and no rule can end up hanging at an edge.
   & + & { border-left: 1px solid var(--sm-rule); }
 }
 .skel-mini__zone--chip {
@@ -433,9 +608,14 @@ export default defineComponent({
   justify-content: center;
   gap: 6px;
 }
+// The label itself, and the only run here allowed to disappear. The
+// display face declared directly rather than through the `.nasalization`
+// utility (NodeMini's reason): the utility also tracks the letters
+// 0.05em, which at this size costs about a character of the ellipsis.
 .skel-mini__name-text {
   flex: 0 1 auto;
   min-width: 0;
+  font-family: var(--font-display);
   font-size: 0.76em;
   text-align: center;
   overflow: hidden;
@@ -466,8 +646,11 @@ export default defineComponent({
   letter-spacing: 0.06em;
   font-weight: 600;
 }
+// The real <button>s in the row — reset to the zone's own face so the
+// chrome stays the zone's and the cursor is the one tell.
 .skel-mini__copy,
 .skel-mini__lock,
+.skel-mini__zone--layout,
 .skel-mini__zone--open {
   appearance: none;
   background: none;
@@ -476,13 +659,23 @@ export default defineComponent({
   cursor: pointer;
   color: inherit;
 }
+// The copy button: a bare glyph on the chip's line, the zone's ink at 60%
+// so it reads as an affordance ON the chip rather than a second object;
+// full ink under the pointer, `--positive` for the 1600ms the check shows.
 .skel-mini__copy {
   display: inline-flex;
   align-items: center;
-  margin-left: 2px;
+  flex: 0 0 auto;
+  margin-left: 3px;
   padding: 0;
   opacity: 0.6;
-  &:hover, &.is-copied { opacity: 1; }
+  transition: opacity 0.12s, color 0.12s;
+  &:hover { opacity: 1; }
+  &.is-copied { opacity: 1; color: var(--positive, #21ba45); }
+}
+// The dot's zone: a dot has one size.
+.skel-mini__zone--dot {
+  flex: 0 0 auto;
 }
 .skel-mini__lock {
   flex: 0 0 auto;
@@ -491,10 +684,43 @@ export default defineComponent({
   &:disabled { opacity: 0.5; cursor: default; }
 }
 .skel-mini.is-sealed .skel-mini__lock { color: #2e8b57; cursor: default; }
+.skel-mini__zone--layout {
+  flex: 0 0 auto;
+  &:hover { color: var(--teal-12, #00b8d4); }
+}
 .skel-mini__zone--open {
   flex: 0 0 auto;
   &:hover { color: var(--coral-deep, #d35f5f); }
 }
+
+// ── The integrity traffic light + withheld face (2026-09-17) ─────────
+// NodeMini's dot at the same scale: the chips' grammar, red the only
+// interactive state (it routes to Talavero's report).
+.skel-mini__integrity {
+  flex-shrink: 0;
+  align-self: center;
+  width: 8px;
+  height: 8px;
+  margin: 0;
+  border-radius: 50%;
+  &.integrity-ok       { background: #2e6a3a; }
+  &.integrity-violated {
+    background: #a03d3d;
+    cursor: pointer;
+    box-shadow: 0 0 0 2px rgba(160, 61, 61, 0.25);
+  }
+}
+.skel-mini__withheld {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 8px;
+  font-size: 0.74em;
+  color: #a03d3d;
+  cursor: pointer;
+}
+.skel-mini__foot-withheld { color: #a03d3d; }
 
 .skel-mini__error {
   padding: 2px 6px;
@@ -503,10 +729,17 @@ export default defineComponent({
 }
 
 // The body's OWN scroll contract, in exchange for bodyFit: the surface
-// publishes the ceiling (dashboard cells); silence = uncapped.
+// publishes the ceiling (dashboard cells); silence = uncapped. A nested
+// mini is already inside its host's scroll and ignores the ceiling —
+// the custom property inherits, and a cap inside a cap is a scrollbar
+// inside a scrollbar (2026-09-17).
 .skel-mini__scroll {
   max-height: var(--skel-mini-max-h, none);
   overflow: auto;
+}
+.skel-mini.is-nested .skel-mini__scroll {
+  max-height: none;
+  overflow: visible;
 }
 
 // ── the provenance foot ──────────────────────────────────────────────

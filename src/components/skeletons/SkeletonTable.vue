@@ -418,7 +418,10 @@ export default defineComponent({
     // Nested skeletons — a cell's, a list's members — render as the
     // SKELETON MINI (chrome + name + provenance foot) instead of a bare
     // grid; and long lists unfold their newest LIST_UNFOLD_MAX only. The
-    // flyout viewer sets it; the dashboards keep their bare nesting.
+    // flyout viewer sets it, and since 2026-09-17 SkeletonMini passes it
+    // by default — the feed and the board nest the way the flyout does;
+    // only a host mounting this grid BARE (a page, a draft) still gets
+    // bare nesting.
     enriched: { type: Boolean, default: false }
   },
   // resolved: what the walk found ({ id, name, path, is_schema }) — hosts

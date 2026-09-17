@@ -96,6 +96,14 @@
           <q-icon name="open_in_full" size="11px" />
         </button>
         <SessionActivityCard v-if="cell.type === 'virtual' && cell.virtual === 'session-activity'" />
+        <!-- THE SAME VIEWER THE FEED BLOOMS (2026-09-17, user ask: "make
+             sure we're using the same viewer from the feed on the
+             dashboard board"): SkeletonMini — pre-walked here off the
+             batch read, self-resolving there through ElementMini — one
+             component, one head row (chip · name · integrity dot · lock ·
+             layout switch · corner), its own layout switch and the
+             enriched nesting on by default. The cell adds nothing but the
+             batch data and the reload hook. -->
         <SkeletonMini
           v-else-if="cell.type === 'skeleton' && cell.walk"
           :skeleton="cell.walk.skeleton"
