@@ -8,6 +8,7 @@
       ['kind-' + kind]: true,
       'with-icon': showIcon
     }"
+    :style="accentStyle"
     :title="path"
     :data-nav-focus="route || null"
     @click.stop="onClick"
@@ -51,6 +52,9 @@ export default defineComponent({
     })
 
     const iconForKind = computed(() => KINDS[kind.value]?.icon || 'circle')
+    // The kind's colour is kinds.js's (2026-09-21) — the same `--kind-accent`
+    // MicroChip and InfoChip set; this file's own tint block is gone.
+    const accentStyle = computed(() => ({ '--kind-accent': (KINDS[kind.value] || KINDS.unknown).color }))
 
     const route = computed(() => {
       if (props.to) return props.to
@@ -72,7 +76,7 @@ export default defineComponent({
       router.push(route.value)
     }
 
-    return { kind, iconForKind, route, display, onClick }
+    return { accentStyle, kind, iconForKind, route, display, onClick }
   }
 })
 </script>
@@ -105,17 +109,12 @@ export default defineComponent({
     }
   }
 
-  // Kind-tinted icons
-  &.kind-nodes    .hl-icon { color: var(--ink); }
-  &.kind-labels   .hl-icon { color: #00BCD4; }
-  &.kind-posts    .hl-icon { color: #b0bec5; }
-  &.kind-entities .hl-icon { color: #ce93d8; }
-  &.kind-pioneer  .hl-icon { color: #ffd54f; }
-  &.kind-moments  .hl-icon { color: rgba(255, 200, 0, 0.7); }
-  &.kind-paths    .hl-icon { color: #80cbc4; }
+  // (Kind-tinted icons stood here until 2026-09-21 — a fourth palette, its
+  // own pastels. The glyph reads `--kind-accent` now, kinds.js's colour.)
 }
 
 .hl-icon {
+  color: var(--kind-accent, currentColor);
   opacity: 0.6;
   flex-shrink: 0;
 }

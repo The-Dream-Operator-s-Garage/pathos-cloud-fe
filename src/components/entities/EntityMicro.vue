@@ -9,6 +9,10 @@
     :full-address="fullAddress"
     :display="effectiveName"
     :pioneer="effectivePioneer"
+    :integrity="effectiveIntegrity"
+    :integrity-leads="integrityLeads"
+    :verify="verify && !username"
+    :expand="expand"
   />
 </template>
 
@@ -32,7 +36,16 @@ export default defineComponent({
     // enriched entity so the chip skips its lookup entirely.
     username: { type: String, default: '' },
     // Tri-state: true/false when the caller knows, null = resolve it here.
-    pioneer: { type: Boolean, default: null }
+    pioneer: { type: Boolean, default: null },
+    // The traffic light and the door (2026-09-21). An entity chip that
+    // resolves its name already holds the summary the verdict rides on, so
+    // it hands that down and MicroChip fetches nothing more; a chip given
+    // its name outright lets MicroChip resolve (the cache is shared —
+    // utils/elementSummary — so it is one read per entity either way).
+    integrity: { type: Object, default: null },
+    integrityLeads: { type: Boolean, default: false },
+    verify: { type: Boolean, default: true },
+    expand: { type: Boolean, default: true }
   },
   setup (props) {
     // Entity chips never show a bare hash: resolve username + pioneer flag
@@ -53,7 +66,10 @@ export default defineComponent({
     const effectivePioneer = computed(() =>
       props.pioneer !== null ? props.pioneer : resolved.value?.pioneer === true)
 
-    return { effectiveName, effectivePioneer }
+    const effectiveIntegrity = computed(() =>
+      props.integrity || resolved.value?.integrity || null)
+
+    return { effectiveName, effectivePioneer, effectiveIntegrity }
   }
 })
 </script>

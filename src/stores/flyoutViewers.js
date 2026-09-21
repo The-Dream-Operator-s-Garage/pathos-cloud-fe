@@ -62,6 +62,9 @@ const refOf = (target) => {
   // with the entity read (the face retargets the window with it), so a
   // window spawned off a bare id is persistable the moment it has loaded.
   if (target.kind === 'entity') return target.entity?.path || null
+  // THE ELEMENT WINDOW (2026-09-21) persists as its address — it opened on
+  // one and resolves the same way on boot.
+  if (target.kind === 'element') return target.address || null
   return null
 }
 
@@ -103,6 +106,22 @@ const placeOf = (target, label = '') => {
       targetPath: e.path || null
     }
   }
+  // An ELEMENT window (2026-09-21 — labels, moments, paths, links, secrets:
+  // the fifth target, the kind's Mini in a box) is the same stop as that
+  // element's page; the summary it resolved carries the route and the id.
+  if (target.kind === 'element') {
+    const addr = String(target.address || '')
+    const prefix = addr.split('/').slice(-2)[0]
+    const sum = target.summary || null
+    const route = sum?.route || `/${addr}`
+    return {
+      targetRoute: route,
+      targetType: kindFor(prefix).kind,
+      targetId: sum?.id ?? null,
+      targetLabel: label || sum?.primary || addr.split('/').pop()?.slice(0, 10) || 'Element',
+      targetPath: addr
+    }
+  }
   // A bare ref has no id until it resolves — it still deserves a stop, keyed
   // by the address itself, and `retarget` upgrades it the moment it knows.
   if (target.kind === 'ref') {
@@ -134,13 +153,17 @@ const identityOf = (target) => {
   if (target.kind === 'post') return 'post:' + target.item?.skeleton_id
   if (target.kind === 'ref') return 'ref:' + String(target.ref)
   if (target.kind === 'entity') return 'entity:' + target.entity?.id
+  if (target.kind === 'element') return 'element:' + target.address
   return null
 }
 
 export const useFlyoutViewersStore = defineStore('flyoutViewers', {
   state: () => ({
     // { id, target: {kind:'node',node} | {kind:'post',item} | {kind:'ref',ref}
-    //               | {kind:'entity',entity} (2026-09-11 — the entity window),
+    //               | {kind:'entity',entity} (2026-09-11 — the entity window)
+    //               | {kind:'element',address,summary} (2026-09-21 — labels /
+    //                 moments / paths / links / secrets: the kind's Mini panel
+    //                 as the element face, the surround walk as the skeleton),
     //   rect: {x,y,w,h}|null, natural: {w,h}|null, minimized, maximized,
     //   label, icon }
     // `node`/`item` arrive ENRICHED from their triggers (NodeMini's card,
@@ -302,6 +325,13 @@ export const useFlyoutViewersStore = defineStore('flyoutViewers', {
       const id = parseInt(entity?.id, 10)
       if (!id) return null
       return this.spawn({ kind: 'entity', entity: { ...entity, id } })
+    },
+    // THE ELEMENT DOOR (2026-09-21): any address the ref door does not
+    // already own a window shape for. `summary` is the seed the window
+    // letters itself with; the face re-reads the element as its Mini.
+    spawnElement (address, summary = null) {
+      if (!address) return null
+      return this.spawn({ kind: 'element', address: String(address).replace(/^pathos:/, ''), summary })
     },
 
     // A REF window that resolved into a real element becomes that element

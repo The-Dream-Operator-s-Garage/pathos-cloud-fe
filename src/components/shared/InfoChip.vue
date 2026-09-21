@@ -11,6 +11,7 @@
     :to="route"
     class="info-chip"
     :class="['kind-' + meta.kind, { 'is-link': !!route, 'is-dense': dense, 'is-loading': loading, 'pioneer-gold': isPioneer, 'is-locked': isLocked }]"
+    :style="accentStyle"
     :title="isLocked ? 'Private element — click to request access' : tooltip"
     :data-nav-focus="route || null"
     @click.stop
@@ -86,6 +87,9 @@ export default defineComponent({
   setup (props) {
     const router = useRouter()
     const meta = computed(() => kindFor(props.kind))
+    // THE KIND'S COLOUR IS kinds.js's (2026-09-21) — the same custom property
+    // MicroChip sets; the scoped per-kind block this file carried is gone.
+    const accentStyle = computed(() => ({ '--kind-accent': meta.value.color }))
 
     const loading = ref(false)
     const resolved = ref(null) // { primary, secondary, route, id, hash }
@@ -165,7 +169,13 @@ export default defineComponent({
       return s === 'ok' || s === 'violated' ? s : null
     })
     const integrityTitle = computed(() => {
-      if (integrityState.value === 'ok') return 'proof verified'
+      if (integrityState.value === 'ok') {
+        // Names the depth of the proof, as MicroChip does: the unsigned four
+        // kinds verify on their chain file alone.
+        return resolved.value?.integrity?.proof === 'file'
+          ? 'proof verified — chain file present and decodable (this kind is not signed)'
+          : 'proof verified'
+      }
       if (integrityState.value !== 'violated') return null
       const check = resolved.value?.integrity?.check || 'integrity'
       return resolved.value?.integrity?.report
@@ -185,6 +195,7 @@ export default defineComponent({
       integrityTitle,
       onIntegrityClick,
       meta,
+      accentStyle,
       loading,
       primaryLine,
       secondaryLine,
@@ -256,7 +267,9 @@ export default defineComponent({
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
 }
 
-.info-chip__icon { flex-shrink: 0; opacity: 0.9; }
+// The kind glyph wears kinds.js's colour through the root's `--kind-accent`
+// (2026-09-21); `.pioneer-gold` still out-ranks it.
+.info-chip__icon { flex-shrink: 0; opacity: 0.9; color: var(--kind-accent, currentColor); }
 
 // Claim STATUS pill — one shared palette with MicroChip's status dot and
 // the claim band so every surface states a claim's standing identically.
@@ -319,15 +332,6 @@ export default defineComponent({
   .info-chip__primary { font-size: 0.72em; }
 }
 
-// Per-kind icon tints — same palette as MicroChip so the family coheres.
-.kind-node     .info-chip__icon { color: var(--ink); }
-.kind-label    .info-chip__icon { color: #00829c; }
-.kind-post     .info-chip__icon { color: #7d8995; }
-.kind-path     .info-chip__icon { color: #4d8a83; }
-.kind-entity   .info-chip__icon { color: #9b6cb0; }
-.kind-skeleton .info-chip__icon { color: #5b6c82; }
-.kind-pioneer  .info-chip__icon { color: #c79a00; }
-.kind-moment   .info-chip__icon { color: #c79a00; }
-.kind-secret   .info-chip__icon { color: #a06070; }
-.kind-link     .info-chip__icon { color: #7d8995; }
+// (The per-kind `.kind-* .info-chip__icon` tints stood here until
+// 2026-09-21 — MicroChip's old set, copied. kinds.js is the one source now.)
 </style>

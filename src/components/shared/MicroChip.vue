@@ -8,7 +8,8 @@
     :is="rootTag"
     :to="route"
     class="micro-chip"
-    :class="['kind-' + meta.kind, { 'is-link': !!route, 'no-type': !showType, 'pioneer-gold': pioneer, 'integrity-leads': integrityLeads }]"
+    :class="['kind-' + meta.kind, { 'is-link': !!route, 'no-type': !showType, 'pioneer-gold': pioneer, 'integrity-leads': integrityLeads, 'has-open': canOpen }]"
+    :style="accentStyle"
     :title="tooltip"
     :data-nav-focus="route || null"
     @click.stop
@@ -51,13 +52,34 @@
       role="button"
       @click.stop.prevent="onIntegrityClick"
     />
+    <!-- THE DOOR (2026-09-21, user ask: "add a button to extend the item"):
+         the chip's last mark opens the element in the flyout viewer — the
+         node's media faces, the post's card, the entity's profile, a
+         skeleton's grid, and (new the same day) a label / moment / path /
+         link / secret as its Mini panel with its surround skeleton one
+         switch away. A span with a role, not a <button>: the chip's root
+         is an anchor when it routes, and a control inside a control is
+         invalid markup — the integrity dot above set the precedent.
+         `.stop.prevent` keeps the anchor from navigating on the same press.
+         `open_in_full`, NodeMini's corner glyph, one size down. -->
+    <span
+      v-if="canOpen"
+      class="micro-chip__open"
+      role="button"
+      :title="'open this ' + meta.kind + ' in the flyout viewer'"
+      @click.stop.prevent="openFlyout"
+    >
+      <q-icon name="open_in_full" size="8px" />
+    </span>
   </component>
 </template>
 
 <script>
-import { defineComponent, computed } from 'vue'
+import { defineComponent, computed, ref, watchEffect } from 'vue'
 import { useRouter } from 'vue-router'
-import { kindFor, hashOf } from 'src/utils/kinds'
+import { kindFor, prefixFor, hashOf } from 'src/utils/kinds'
+import { elementSummary } from 'src/utils/elementSummary'
+import { useFlyoutViewersStore } from 'src/stores/flyoutViewers'
 
 export default defineComponent({
   name: 'MicroChip',
@@ -118,7 +140,19 @@ export default defineComponent({
     // mark among many in a sentence: `● node / a1b2c3…`. Markup order is
     // untouched (it is `order: -1` on the dot), so the tooltip, the click and
     // the draws-nothing law stay the one place they are.
-    integrityLeads: { type: Boolean, default: false }
+    integrityLeads: { type: Boolean, default: false },
+    // THE LIGHT ON EVERY CHIP (2026-09-21, user ask: the node's traffic
+    // light "to all of them"). When no `integrity` is handed in, the chip
+    // resolves its own off `GET /refs/summary` — every kind's summary
+    // carries the verdict since the same day (integrityService
+    // .verifyElementSync) — through the session-wide cache in
+    // utils/elementSummary, so N chips for one element cost one read.
+    // `verify=false` opts a chip out (a dense strip that must not fetch).
+    verify: { type: Boolean, default: true },
+    // THE DOOR: draw the open-in-flyout mark (see the template). Off for a
+    // chip standing in a strip that already offers the same door (the feed
+    // card's foot beside its open_in_new, the stack strip's tiles).
+    expand: { type: Boolean, default: true }
   },
   setup (props) {
     const router = useRouter()
@@ -146,28 +180,90 @@ export default defineComponent({
 
     const rootTag = computed(() => route.value ? 'router-link' : 'span')
 
+    // THE KIND'S COLOUR IS kinds.js's (2026-09-21) — one custom property on
+    // the root, read by the icon below. The scoped `.kind-* .micro-chip__icon`
+    // block that used to live in this file (a purple entity, a grey post, a
+    // teal label — the pre-palette set) is gone with it.
+    const accentStyle = computed(() => ({ '--kind-accent': meta.value.color }))
+
+    // The on-disk prefix this chip stands for — 'entities' for a pioneer
+    // chip too (the golden treatment renames the kind, not the registry).
+    const prefix = computed(() => (props.pioneer || meta.value.kind === 'entity')
+      ? 'entities'
+      : prefixFor(props.kind))
+
+    // The verdict: handed in, or resolved here off the cached summary.
+    const resolvedIntegrity = ref(null)
+    watchEffect(() => {
+      resolvedIntegrity.value = null
+      if (props.integrity || !props.verify) return
+      const p = prefix.value
+      if (!p || p === 'unknown' || p === 'actions') return
+      const key = hash.value ? { hash: hash.value } : (props.id != null ? { id: props.id } : null)
+      if (!key) return
+      elementSummary({ prefix: p, ...key }).then((s) => {
+        if (s?.integrity) resolvedIntegrity.value = s.integrity
+      })
+    })
+    const integrityCard = computed(() => props.integrity || resolvedIntegrity.value)
+
     const integrityState = computed(() => {
-      const s = props.integrity?.status
+      const s = integrityCard.value?.status
       return s === 'ok' || s === 'violated' ? s : null
     })
     const integrityTitle = computed(() => {
-      if (integrityState.value === 'ok') return 'proof verified'
+      if (integrityState.value === 'ok') {
+        // Green says the check that EXISTS for this kind passed: a signed
+        // sidecar for nodes / links / paths / skeletons, the chain file for
+        // the four kinds the truth spine never signs. The tooltip names
+        // which, so the same colour never overstates.
+        return integrityCard.value?.proof === 'file'
+          ? 'proof verified — chain file present and decodable (this kind is not signed)'
+          : 'proof verified'
+      }
       if (integrityState.value === 'violated') {
-        const check = props.integrity?.check || 'integrity'
-        return props.integrity?.report
+        const check = integrityCard.value?.check || 'integrity'
+        return integrityCard.value?.report
           ? `integrity violated: ${check} — click for Talavero's report`
           : `integrity violated: ${check} — report unavailable`
       }
       return null
     })
     const onIntegrityClick = () => {
-      const report = props.integrity?.report
+      const report = integrityCard.value?.report
       if (integrityState.value === 'violated' && report) {
         router.push({ path: '/feed', query: { flyout: report } })
       }
     }
 
-    return { meta, hash, route, rootTag, tooltip, integrityState, integrityTitle, onIntegrityClick }
+    // THE DOOR. Every kind opens by ADDRESS through the flyout store's ref
+    // door (`spawnRef`), which resolves nodes, entities and skeletons into
+    // their own windows and everything else into the element window; a
+    // chip that knows only an id learns its hash off the cached summary
+    // first. Posts open on their SKELETON address — a post's `path` IS
+    // `skeletons/<hash>` (the feed hands `item.skeleton_path`), and the ref
+    // door steps a POST instance forward to its card by itself. An entity
+    // with an id goes straight through the entity door.
+    const canOpen = computed(() =>
+      props.expand && prefix.value && prefix.value !== 'unknown' && prefix.value !== 'actions' &&
+      (!!hash.value || props.id != null))
+    const openFlyout = async () => {
+      const flyouts = useFlyoutViewersStore()
+      const p = prefix.value
+      if (p === 'entities' && props.id != null) {
+        flyouts.spawnEntity({ id: props.id, display_name: props.display || null, pioneer: !!props.pioneer })
+        return
+      }
+      const addrPrefix = p === 'posts' ? 'skeletons' : p
+      let h = hash.value
+      if (!h && props.id != null) {
+        const s = await elementSummary({ prefix: p, id: props.id })
+        h = s?.hash || null
+      }
+      if (h) flyouts.spawnRef(`${addrPrefix}/${h}`)
+    }
+
+    return { meta, hash, route, rootTag, tooltip, accentStyle, integrityState, integrityTitle, onIntegrityClick, canOpen, openFlyout }
   }
 })
 </script>
@@ -219,7 +315,10 @@ export default defineComponent({
   }
 }
 
-.micro-chip__icon { flex-shrink: 0; opacity: 0.85; }
+// The kind glyph wears kinds.js's colour through the root's `--kind-accent`
+// (2026-09-21). The pioneer's `.pioneer-gold` still out-ranks it (global,
+// `!important`, the one carved treatment).
+.micro-chip__icon { flex-shrink: 0; opacity: 0.85; color: var(--kind-accent, currentColor); }
 
 // Claim STATUS dot — same palette as InfoChip's status pill.
 .micro-chip__status {
@@ -250,6 +349,21 @@ export default defineComponent({
 // flex `order` moves it to the row's start without moving the markup, so the
 // verdict reads before the address — `● node / a1b2c3…`.
 .micro-chip.integrity-leads .micro-chip__integrity { order: -1; }
+// THE DOOR — the chip's last mark. Dimmed like the type word until the chip
+// is hovered; coral on its own hover, NodeMini's corner colour, so the
+// three "open" marks on the platform (mini corner, flyout act, chip door)
+// answer the finger the same way.
+.micro-chip__open {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  margin-left: 1px;
+  opacity: 0.55;
+  cursor: pointer;
+  transition: opacity 0.12s, color 0.12s;
+  &:hover { opacity: 1; color: var(--coral-deep, #d35f5f); }
+}
+.micro-chip:hover .micro-chip__open { opacity: 0.85; }
 .micro-chip__sep  { flex-shrink: 0; opacity: 0.35; }
 // The drawn type. One step under the leading icon's 0.85, the way the type
 // WORD sits one step under the hash — it classifies, it does not name.
@@ -269,16 +383,8 @@ export default defineComponent({
   min-width: 6ch;
 }
 
-// Per-kind icon tinting matches the existing HashLink palette so the family
-// stays visually coherent.
-.kind-node     .micro-chip__icon { color: var(--ink); }
-.kind-label    .micro-chip__icon { color: #00829c; }
-.kind-post     .micro-chip__icon { color: #7d8995; }
-.kind-path     .micro-chip__icon { color: #4d8a83; }
-.kind-entity   .micro-chip__icon { color: #9b6cb0; }
-.kind-skeleton .micro-chip__icon { color: #5b6c82; }
-.kind-pioneer  .micro-chip__icon { color: #c79a00; }
-.kind-moment   .micro-chip__icon { color: #c79a00; }
-.kind-secret   .micro-chip__icon { color: #a06070; }
-.kind-link     .micro-chip__icon { color: #7d8995; }
+// (The per-kind `.kind-* .micro-chip__icon` tints stood here 2026-07 →
+// 2026-09-21: a purple entity, a grey post, a #00829c label, a slate
+// skeleton, one gold for pioneer and moment. They were the third palette
+// the chips answered to. kinds.js is the one now — see `--kind-accent`.)
 </style>

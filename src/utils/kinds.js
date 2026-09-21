@@ -10,15 +10,32 @@
 //
 // ⭐ THE PALETTE IS THE PLATFORM'S NOW (2026-09-06, user ask: "recolor the
 // items on the stack so they're readable and also consistent with the color
-// palette. For example, using deep-purple on labels"). Every colour here was
-// an ad-hoc hex picked kind by kind — a navy node, a teal label, two greys
-// that were the same grey, three kinds sharing one gold — chosen before the
-// platform HAD a palette. It has one now: four windows carry four sanctioned
-// colorways (`--maker-contrast` cyan, `--uploader-contrast` lime,
-// `--labels-contrast` deep-purple, `--skeletons-contrast` deep-orange), and
-// THE KIND THAT A WINDOW MAKES NOW WEARS THAT WINDOW'S TONE. A label chip and
-// the label maker are the same violet; a post chip and the post maker the same
-// cyan. The rest fill in from the same Material families at levels that carry.
+// palette"). Every colour here was an ad-hoc hex picked kind by kind — a navy
+// node, a teal label, two greys that were the same grey, three kinds sharing
+// one gold — chosen before the platform HAD a palette.
+//
+// ⭐⭐ ONE SOURCE, THE FOOTER BAR'S (2026-09-21, user ask: "make the colors for
+// posts, labels, skeletons, and uploads (nodes) match the colors used on their
+// respective buttons on the footer bar. Leave moments yellow as they are and
+// change entities to cyan instead of purple (just like on the posts)"). Until
+// this day THREE palettes disagreed: this file (the 09-06 set, read by the
+// stack strip), MicroChip's and InfoChip's own scoped `.kind-*` blocks (the
+// pre-palette ad-hoc set — a purple entity, a grey post, a teal label) and
+// HashLink's. Now this map is THE ONLY ONE: every chip reads `color` through
+// the `--kind-accent` custom property its root sets inline, and the scoped
+// per-kind blocks are gone. The four kinds a window makes wear that window's
+// CONTRAST dial exactly as the footer bar's four buttons do (`.create-btn--*`
+// in NavigationBar: `--chip-rim` = the contrast):
+//   posts     `--maker-contrast`     = indigo-6   (was cyan-9 here, grey on chips)
+//   nodes     `--uploader-contrast`  = teal-7     (was lime-10 here, ink on chips)
+//   labels    `--labels-contrast`    = red-7      (was deep-purple-6 here, #00829c on chips)
+//   skeletons `--skeletons-contrast` = yellow-10  (was deep-orange-8 here, slate on chips)
+// Entities take the POST CARD BYLINE's cyan — `--cyan-9`, the author name's
+// resting tone since 2026-08-09 — because that is where the user already
+// reads an entity in cyan. Moments keep the chips' gold. Links and paths had
+// to move too: links stood one step deeper than posts (cyan-10 beside cyan-9)
+// and follow posts into indigo; paths stood in teal beside the nodes' new
+// teal and go to blue-grey (a route is a road, drawn in slate).
 //
 // ⚠ THESE MUST STAY `#rrggbb` LITERALS, not `var(--token)`: SidePanelItem's
 // `softHex()` parses the channel bytes to derive the current row's soft fill,
@@ -29,40 +46,47 @@
 // face these are drawn on in the footer strip AND the ink they invert to when
 // a tile is the current one, so one number governs both directions.
 export const KINDS = {
-  // indigo-6 — the chrome/identity family. Frees the violet it used to
-  // borrow for labels, which is the family that actually names them.
-  files: { kind: 'entity', icon: 'person', color: '#3f51b5', route: (id) => `/entities/${id}` },
-  entities: { kind: 'entity', icon: 'person', color: '#3f51b5', route: (id) => `/entities/${id}` },
-  // lime-10 = `--uploader-contrast`. The uploader is the window that mints
-  // nodes, so a node chip and that window are one tone. (Was #2C3D4E navy —
-  // a beautiful 10:1 that belonged to no family on this platform.)
-  nodes: { kind: 'node', icon: 'adjust', color: '#827717', route: (id) => `/nodes/${id}` },
-  // cyan-9 = `--maker-contrast`. Same argument, one window over. (Was
-  // #7d8995, a grey it shared with links and unknown — three kinds, one
-  // colour, which is the opposite of what a kind colour is for.)
-  posts: { kind: 'post', icon: 'edit_note', color: '#00838f', route: (id) => `/posts/${id}` },
-  // teal-8 — a path is a route; teal was already reaching for this at
-  // #4d8a83, this is that intent at a level that carries text.
-  paths: { kind: 'path', icon: 'route', color: '#00796B', route: (id) => `/paths/${id}` },
-  // deep-purple-6 = `--labels-contrast`, the user's own example. The label
-  // maker went Quasar purple on 2026-09-04 and the chips stayed teal for two
-  // days — this closes that gap.
-  labels: { kind: 'label', icon: 'label_important', color: '#673ab7', route: (id) => `/labels/${id}` },
-  // deep-orange-8 = `--skeletons-contrast`.
-  skeletons: { kind: 'skeleton', icon: 'schema', color: '#e64a19', route: (id) => `/skeletons/${id}` },
-  // ⚠ CARVED GOLD IS A TRADITION — the pioneer's mark keeps it, alone. It is
-  // the one colour here that is not from a Material family and that is the
-  // point: nothing else on the platform is the pioneer.
+  // cyan-9 = the post card byline's author name (`.post-square__author`,
+  // `--cyan-9` since 2026-08-09). An entity is cyan wherever it is named.
+  // (Was indigo-6 here 09-06 → 09-21, #9b6cb0 purple on the chips.)
+  files: { kind: 'entity', icon: 'person', color: '#00838f', route: (id) => `/entities/${id}` },
+  entities: { kind: 'entity', icon: 'person', color: '#00838f', route: (id) => `/entities/${id}` },
+  // teal-7 = `--uploader-contrast`, the UPLOADS button's rim. The uploader
+  // is the window that mints nodes, so a node chip and that button are one
+  // tone. (Was lime-10 here — the uploader's 09-05 lime, before its 09-07
+  // teal walk.)
+  nodes: { kind: 'node', icon: 'adjust', color: '#00897b', route: (id) => `/nodes/${id}` },
+  // indigo-6 = `--maker-contrast`, the POST button's rim. (Was cyan-9 — the
+  // maker's 09-05 cyan, before "posts -> indigo" on 09-07.)
+  posts: { kind: 'post', icon: 'edit_note', color: '#3f51b5', route: (id) => `/posts/${id}` },
+  // blue-grey-7 (Material 700) — a path is a ROUTE, drawn in slate. Teal-8
+  // stood here until the nodes took teal; two teals a step apart read as one.
+  paths: { kind: 'path', icon: 'route', color: '#455a64', route: (id) => `/paths/${id}` },
+  // red-7 = `--labels-contrast`, the LABELS button's rim (the label maker
+  // went red on 09-07; the chips stayed violet-in-this-file / teal-on-the-
+  // chip for two weeks — this closes that gap).
+  labels: { kind: 'label', icon: 'label_important', color: '#e53935', route: (id) => `/labels/${id}` },
+  // yellow-10 = `--skeletons-contrast`, the SKELETONS button's rim and word.
+  skeletons: { kind: 'skeleton', icon: 'schema', color: '#f57f17', route: (id) => `/skeletons/${id}` },
+  // ⚠ CARVED GOLD IS A TRADITION — the pioneer's mark keeps it, alone as a
+  // TREATMENT (`.pioneer-gold`, the star, the carved face). The moment shares
+  // the hex below by the user's word, not by kinship: nothing else on the
+  // platform is the pioneer.
   pioneer: { kind: 'pioneer', icon: 'star', color: '#c79a00', route: null },
-  // orange-10 — the warm end for TIME. It shared the pioneer's gold before,
-  // at 2.4:1, which is a decorative contrast and not a legible one.
-  moments: { kind: 'moment', icon: 'schedule', color: '#e65100', route: (id) => `/moments/${id}` },
+  // The chips' gold, kept — "leave moments yellow as they are" (2026-09-21).
+  // This file said orange-10 for two weeks while every moment chip on every
+  // surface drew this gold from its own scoped rule; the chips were what the
+  // user saw, so the chips' tone is the one that stays and the stack strip
+  // follows it. Not a Material stop; 2.4:1 on cream as TEXT (the strip
+  // draws it at 0.14 as a fill and as a glyph, where it carries).
+  moments: { kind: 'moment', icon: 'schedule', color: '#c79a00', route: (id) => `/moments/${id}` },
   // brown-8 — the platform's own material, at its sealed end. A secret reads
   // shut rather than coloured.
   secrets: { kind: 'secret', icon: 'key', color: '#4e342e', route: (id) => `/secrets/${id}` },
-  // cyan-10 — a post's family one level deeper: a link and the thing it
-  // points at are kin, and the depth is what tells them apart.
-  links: { kind: 'link', icon: 'link', color: '#006064', route: (id) => `/links/${id}` },
+  // indigo-8 — a post's family one level deeper: a link and the thing it
+  // points at are kin, and the depth is what tells them apart. (Followed the
+  // posts out of cyan on 09-21 — it was cyan-10 beside their cyan-9.)
+  links: { kind: 'link', icon: 'link', color: '#283593', route: (id) => `/links/${id}` },
   // grey-8 — the sub-stack's neutral. An action is not an element with a
   // colour of its own; it is a mark left on one.
   actions: { kind: 'action', icon: 'bolt', color: '#616161', route: null },

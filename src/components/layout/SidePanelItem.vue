@@ -69,6 +69,8 @@
           :hash-str="hash"
           :display="display"
           icon-size="10px"
+          :verify="false"
+          :expand="false"
         />
         <q-icon v-else :name="displayIcon" size="12px" class="side-item__icon" />
         <span v-if="title" class="side-item__title">{{ title }}</span>

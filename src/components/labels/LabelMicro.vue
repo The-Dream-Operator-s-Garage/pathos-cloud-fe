@@ -28,6 +28,10 @@
       :show-type="showType"
       :icon-size="iconSize"
       :full-address="fullAddress"
+      :integrity="integrity"
+      :integrity-leads="integrityLeads"
+      :verify="verify"
+      :expand="expand"
     />
 
     <button
@@ -49,6 +53,10 @@
     :show-type="showType"
     :icon-size="iconSize"
     :full-address="fullAddress"
+    :integrity="integrity"
+    :integrity-leads="integrityLeads"
+    :verify="verify"
+    :expand="expand"
   />
 </template>
 
@@ -69,7 +77,12 @@ export default defineComponent({
     fullAddress: { type: String, default: '' },
     // Horizontal ancestry navigation (chevrons). Off where a static chip
     // is wanted (e.g. inside LabelMini, which carries its own slider).
-    nav: { type: Boolean, default: true }
+    nav: { type: Boolean, default: true },
+    // The traffic light and the door (2026-09-21) — through to MicroChip.
+    integrity: { type: Object, default: null },
+    integrityLeads: { type: Boolean, default: false },
+    verify: { type: Boolean, default: true },
+    expand: { type: Boolean, default: true }
   },
   setup (props) {
     // chain[0] = this label, chain[1] = parent, ... (reversed server order)

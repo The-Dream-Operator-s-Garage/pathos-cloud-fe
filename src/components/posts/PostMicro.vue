@@ -12,6 +12,10 @@
     :icon-size="iconSize"
     :linked="linked"
     :full-address="fullAddress"
+    :integrity="integrity"
+    :integrity-leads="integrityLeads"
+    :verify="verify"
+    :expand="expand"
   />
 </template>
 
@@ -39,7 +43,14 @@ export default defineComponent({
     // MicroChip. The feed card's foot chip does, so a click on it can open
     // the post information flyout rather than navigate to the viewer.
     linked: { type: Boolean, default: true },
-    fullAddress: { type: String, default: '' }
+    fullAddress: { type: String, default: '' },
+    // The traffic light and the door (2026-09-21) — all four hand straight
+    // through to MicroChip, which owns the law: a verdict given here wins,
+    // else the chip resolves its own; `expand` draws the open-in-flyout mark.
+    integrity: { type: Object, default: null },
+    integrityLeads: { type: Boolean, default: false },
+    verify: { type: Boolean, default: true },
+    expand: { type: Boolean, default: true }
   }
 })
 </script>

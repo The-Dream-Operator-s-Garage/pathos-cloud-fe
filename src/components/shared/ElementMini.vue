@@ -6,9 +6,9 @@
        route: POST instances render PostMini, every other skeleton (schema
        or populated instance) renders SkeletonMini's embeddable grid
        (2026-08-10 as ResourceSkeletonMini; the 2026-07 SkeletonMini field
-       summary before that). Kinds
-       without a Mini (secrets) degrade to an InfoChip; so do
-       unresolvable refs.
+       summary before that). Secrets render SecretMini since 2026-09-21
+       (the element window's face); unresolvable refs degrade to an
+       InfoChip, locked ones to the LockedChip.
        Used by post content-element rails, by MarkdownBody's inline
        reference rendering on post surfaces, and by the skeleton
        instance viewers' populated field rows. -->
@@ -24,6 +24,7 @@
     <EntityMini v-else-if="shape.kind === 'entity' && shape.entity" :entity="shape.entity" />
     <MomentMini v-else-if="shape.kind === 'moment' && shape.moment" :moment="shape.moment" :human="shape.human" />
     <LinkMini v-else-if="shape.kind === 'link' && shape.link" :link="shape.link" :target="shape.target" :parent-path="shape.parentPath" />
+    <SecretMini v-else-if="shape.kind === 'secret' && shape.secret" :secret="shape.secret" :owner="shape.owner" :receiver="shape.receiver" />
     <!-- Non-POST skeletons wear the skeleton mini (dashboards phase 2,
          2026-08-10 as ResourceSkeletonMini; SkeletonMini since the
          skeletons plan phase 2, 2026-09-01) — it resolves the walk itself
@@ -53,6 +54,7 @@ import LabelMini from 'src/components/labels/LabelMini.vue'
 import EntityMini from 'src/components/entities/EntityMini.vue'
 import MomentMini from 'src/components/moments/MomentMini.vue'
 import LinkMini from 'src/components/links/LinkMini.vue'
+import SecretMini from 'src/components/secrets/SecretMini.vue'
 import SkeletonMini from 'src/components/skeletons/SkeletonMini.vue'
 import InfoChip from './InfoChip.vue'
 import LockedChip from './LockedChip.vue'
@@ -63,12 +65,13 @@ import { labelService } from 'src/services/label.service'
 import { entityService } from 'src/services/entity.service'
 import { momentService } from 'src/services/moment.service'
 import { linkService } from 'src/services/link.service'
+import { secretService } from 'src/services/secret.service'
 import { refService } from 'src/services/ref.service'
 import { bodyOf } from 'src/utils/nodeContent'
 
 export default defineComponent({
   name: 'ElementMini',
-  components: { NodeMini, PathMini, PostMini, LabelMini, EntityMini, MomentMini, LinkMini, SkeletonMini, InfoChip, LockedChip },
+  components: { NodeMini, PathMini, PostMini, LabelMini, EntityMini, MomentMini, LinkMini, SecretMini, SkeletonMini, InfoChip, LockedChip },
   props: {
     // '<kind>/<hash>' reference (optionally owner-scoped) — self-resolves.
     address: { type: String, default: '' },
@@ -192,8 +195,17 @@ export default defineComponent({
             const r = await linkService.getByHash(ref_.hash)
             return r.success ? { kind: 'link', link: r.link, target: r.target, parentPath: r.parentPath } : { kind: null }
           }
+          case 'secrets': {
+            // (2026-09-21) A secret has a Mini of its own — the sealed card
+            // with its parties — and the element window needs it; the
+            // InfoChip fallback below stays for anything the read refuses.
+            const r = await secretService.getByHash(ref_.hash)
+            return r?.success && r.secret
+              ? { kind: 'secret', secret: r.secret, owner: r.owner || null, receiver: r.receiver || null }
+              : { kind: null }
+          }
           default:
-            return { kind: null } // secrets → InfoChip
+            return { kind: null }
         }
       } catch (_) {
         return { kind: null }

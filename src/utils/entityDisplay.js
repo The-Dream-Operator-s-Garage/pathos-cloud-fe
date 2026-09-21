@@ -7,28 +7,13 @@
 // hash } or null when the entity can't be resolved. Failures are not cached
 // so a transient error doesn't stick for the whole session.
 
-import { refService } from 'src/services/ref.service'
+import { elementSummary } from 'src/utils/elementSummary'
 
-const _cache = new Map() // 'id:<n>' | 'hash:<h>' → Promise<summary|null>
-
+// Since 2026-09-21 the cache is `elementSummary`'s (utils/elementSummary.js),
+// shared with every other kind's chip — one fetch per entity for the name,
+// the face AND the integrity verdict.
 export function entitySummary ({ id = null, hash = null } = {}) {
-  const key = id != null ? `id:${id}` : (hash ? `hash:${hash}` : null)
-  if (!key) return Promise.resolve(null)
-  if (_cache.has(key)) return _cache.get(key)
-
-  const p = (id != null
-    ? refService.summaryById('entities', id)
-    : refService.summary(`entities/${hash}`)
-  )
-    .then((res) => (res?.success ? res.summary : null))
-    .catch(() => null)
-    .then((summary) => {
-      if (!summary) _cache.delete(key)
-      return summary
-    })
-
-  _cache.set(key, p)
-  return p
+  return elementSummary({ prefix: 'entities', id, hash })
 }
 
 // THE TALAVERO SEAT (2026-09-11) — which entity is the install's feed seat

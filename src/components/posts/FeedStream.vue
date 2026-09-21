@@ -1460,6 +1460,7 @@
                   icon="sym_o_post"
                   type-icon="sym_o_orthopedics"
                   sep="::"
+                  :expand="false"
                 />
                 <button
                   type="button"

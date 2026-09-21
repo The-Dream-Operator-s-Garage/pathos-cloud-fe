@@ -10,7 +10,7 @@
     :title="`reveal ${ref.address}`"
     @click.capture.stop.prevent="onClick"
   >
-    <MicroChip :kind="ref.prefix" :hash-str="ref.hash" show-type />
+    <MicroChip :kind="ref.prefix" :hash-str="ref.hash" show-type :expand="false" />
   </span>
 </template>
 
