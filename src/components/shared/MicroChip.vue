@@ -348,28 +348,17 @@ export default defineComponent({
   // every nano chip, and its corners were the pill's since the morning
   // (`--radius-pill`, scoped to that head then; the chip's own now).
   border-radius: var(--radius-pill, 999px);
-  // THE RIM IS THE KIND'S, A TONE LIGHTER (⭐ 2026-09-21 PM7, user asks:
-  // "make the borders of all nano chips be coloured with their respective
-  // element colors" → "… but in a lighter tone"): 1px of kinds.js's `color`
-  // through `--kind-accent`, mixed 55/45 over white — the glyph's family
-  // (posts indigo, nodes teal, labels red, skeletons brown, entities cyan,
-  // moments gold) about two Material steps up from the glyph's own tone.
-  // Was an 18% ink hairline, the same grey on every kind. The hover firms
-  // it to the FULL accent — one step, the glyph's own tone.
-  border: 1px solid color-mix(in srgb, var(--kind-accent, var(--ink)) 55%, white);
-  // THE OUTER RIM (⭐ 2026-09-21 PM7, user ask: "add them an additional
-  // light grey thin outer rim, being careful to follow the pill's roundness
-  // on the corners" → "make it a darker tone of grey pls"): a 1px `--grey-5`
-  // ring OUTSIDE the tinted border, drawn as a spread shadow — a shadow
-  // traces the border-box's own radii corner by corner (the collapsed notch
-  // included) and takes no layout, where an `outline` would square off in
-  // older engines and a second border would grow the pill. Unchanged on
-  // hover. It was `--grey-4` for one deploy: measured off a magnified clone,
-  // #e0e0e0 sat one step from the mini header's grey-3 and two from the
-  // card foot's cream and vanished on both (no host clips it — checked on
-  // four surfaces); grey-5 is the platform's hairline grey, the tone the
-  // card foot's rule and the mini's box already draw.
-  box-shadow: 0 0 0 1px var(--grey-5, #bdbdbd);
+  // THE RIM IS THE ORIGINAL 18% INK HAIRLINE — the same grey on every
+  // kind. (2026-09-21 PM7 walked it and brought it home the same evening:
+  // "make the borders … coloured with their respective element colors" →
+  // the full `--kind-accent` → "… but in a lighter tone" → the accent at
+  // 55% over white → "no. leave the original grey border instead of the
+  // tinted one". A kind-tinted rim is not wanted on this pill.)
+  border: 1px solid rgba(var(--ink-rgb), 0.18);
+  // (An OUTER RING — `box-shadow: 0 0 0 1px` in grey-4, then grey-5 — stood
+  // here for two deploys on 2026-09-21 PM7 and was REMOVED the same evening
+  // by the user's word: "remove the outer gray ring from all pills. leave
+  // the original color". The tinted border above is the pill's whole edge.)
   // THE FACE IS THE FOOTER BAR'S (⭐ 2026-09-21 PM7, user ask: "for all nano
   // pill chips, regardless of where they are, make them have the same
   // background color as the footer nav bar background color, with the
@@ -409,21 +398,12 @@ export default defineComponent({
 .micro-chip.is-collapsed {
   min-width: 0;
   .micro-chip__hash { min-width: 0; overflow: visible; }
-  // THE NOTCH (⭐ 2026-09-21 PM7, user asks: "for all nano chips on collapsed
-  // version, make their bottom left corner be less rounded than the
-  // others" → "Still rounded, not square, but less round than the others"
-  // → "Still quite rounded … make it even rounder. it looks square and
-  // ugly"): the bottom-left corner is 0.65em — about 70% of the pill's own
-  // corner (a 999px radius resolves to half the height, ~8.2px at this
-  // font; 0.65em ≈ 5.8px). The user walked the dial four times: xs ≈ 2.2px
-  // read square, sm ≈ 4.4px, the xs/sm midpoint ≈ 3.3px "square and ugly"
-  // — anything under ~half the pill's corner reads as a square corner next
-  // to it. No token sits here, so the number is stated; the witness holds
-  // the RATIO (0.6–0.9 of the pill's corner) rather than the pixels. The
-  // mini header's pill sits like a TAB on the panel under it and still
-  // reads as a rounded thing; the other three corners stay the pill's; the
-  // extended pill is a whole pill still.
-  border-bottom-left-radius: 0.65em;
+  // (A NOTCH on the bottom-left corner — `--radius-xs`, `--radius-sm`,
+  // their midpoint, then 0.65em — was tried four times on 2026-09-21 PM7
+  // and REMOVED the same evening: every value read SQUARE beside the pill's
+  // ~8px corners — "make it round back because you can't make it just less
+  // round". The collapsed pill is a whole pill: all four corners
+  // `--radius-pill`, the root rule's.)
 }
 
 // A chip that opens its window answers the pointer in ITS OWN FAMILY: a
@@ -443,7 +423,7 @@ export default defineComponent({
     background:
       linear-gradient(color-mix(in srgb, var(--kind-accent, var(--ink)) 12%, transparent), color-mix(in srgb, var(--kind-accent, var(--ink)) 12%, transparent)),
       var(--plaque-coat, #f8f2e4);
-    border-color: var(--kind-accent, var(--ink));
+    border-color: color-mix(in srgb, var(--kind-accent, var(--ink)) 45%, transparent);
   }
 }
 
