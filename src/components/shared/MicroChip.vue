@@ -357,6 +357,14 @@ export default defineComponent({
   // Was an 18% ink hairline, the same grey on every kind. The hover firms
   // it to the FULL accent — one step, the glyph's own tone.
   border: 1px solid color-mix(in srgb, var(--kind-accent, var(--ink)) 55%, white);
+  // THE OUTER RIM (⭐ 2026-09-21 PM7, user ask: "add them an additional
+  // light grey thin outer rim, being careful to follow the pill's roundness
+  // on the corners"): a 1px `--grey-4` ring OUTSIDE the tinted border, drawn
+  // as a spread shadow — a shadow traces the border-box's own radii corner
+  // by corner (the collapsed notch included) and takes no layout, where an
+  // `outline` would square off in older engines and a second border would
+  // grow the pill. Unchanged on hover.
+  box-shadow: 0 0 0 1px var(--grey-4, #e0e0e0);
   // THE FACE IS THE FOOTER BAR'S (⭐ 2026-09-21 PM7, user ask: "for all nano
   // pill chips, regardless of where they are, make them have the same
   // background color as the footer nav bar background color, with the
@@ -398,13 +406,15 @@ export default defineComponent({
   .micro-chip__hash { min-width: 0; overflow: visible; }
   // THE NOTCH (⭐ 2026-09-21 PM7, user asks: "for all nano chips on collapsed
   // version, make their bottom left corner be less rounded than the
-  // others" → "Still rounded, not square, but less round than the
-  // others"): the bottom-left corner drops from the pill's to `--radius-sm`
-  // — about half the pill's curve at this height (`--radius-xs` computed to
-  // ~2px here and read square) — so the mini header's pill sits like a TAB
-  // on the panel under it and still reads as a rounded thing. The other
-  // three corners stay the pill's; the extended pill is a whole pill still.
-  border-bottom-left-radius: var(--radius-sm, 0.5em);
+  // others" → "Still rounded, not square, but less round than the others"
+  // → "Still quite rounded, not square … it is still too round"): the
+  // bottom-left corner drops from the pill's to the MIDPOINT of `--radius-xs`
+  // and `--radius-sm` — the user walked it: xs (~2.2px here) read square, sm
+  // (~4.4px) still too round; ~3.3px sits between — so the mini header's
+  // pill sits like a TAB on the panel under it and still reads as a rounded
+  // thing. The other three corners stay the pill's; the extended pill is a
+  // whole pill still.
+  border-bottom-left-radius: calc((var(--radius-xs, 0.25em) + var(--radius-sm, 0.5em)) / 2);
 }
 
 // A chip that opens its window answers the pointer in ITS OWN FAMILY: a
