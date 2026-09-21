@@ -186,7 +186,7 @@ const KIND_TABS = [
   { key: 'nodes', label: 'Nodes', icon: 'adjust' },
   { key: 'labels', label: 'Labels', icon: 'label_important' },
   { key: 'paths', label: 'Paths', icon: 'route' },
-  { key: 'skeletons', label: 'Skels', icon: 'schema' }
+  { key: 'skeletons', label: 'Skels', icon: 'sym_o_mitre' }
 ]
 
 export default defineComponent({

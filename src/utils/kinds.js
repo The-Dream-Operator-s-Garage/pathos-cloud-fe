@@ -30,6 +30,8 @@
 //   nodes     `--uploader-contrast`  = teal-7     (was lime-10 here, ink on chips)
 //   labels    `--labels-contrast`    = red-7      (was deep-purple-6 here, #00829c on chips)
 //   skeletons `--skeletons-contrast` = yellow-10  (was deep-orange-8 here, slate on chips)
+//             ⭐ PM6 the same day: BROWN-7 — the button is the SCHEMAS button
+//             now and a populated skeleton is not a schema; see the row.
 // Entities take the POST CARD BYLINE's cyan — `--cyan-9`, the author name's
 // resting tone since 2026-08-09 — because that is where the user already
 // reads an entity in cyan. Moments keep the chips' gold. Links and paths had
@@ -50,9 +52,10 @@
 // the same color as the icon, but in its darkest quasar tone"): the chip's
 // TEXT — type word, separators, hash — in the icon family's deepest step,
 // Material 900 = Quasar `-10` (the same rung the footer buttons letter their
-// WORD in, `--chip-word`). Yellow cannot carry ink at its 900 (the glyph IS
-// yellow-10), so the skeleton's ink is the family's hand-mixed deep step
-// `--yellow-deep`; gold has no Quasar family, so the moment's and the
+// WORD in, `--chip-word`). (Yellow cannot carry ink at its 900, so while the
+// skeleton was yellow — AM → PM5 — its ink was the hand-mixed `--yellow-deep`;
+// brown since PM6, it inks at brown-10 like every other family.) Gold has
+// no Quasar family, so the moment's and the
 // pioneer's ink is the carved gold's own (`.pioneer-gold`'s text). Read by
 // MicroChip / InfoChip through the inline `--kind-ink` custom property.
 export const KINDS = {
@@ -85,9 +88,26 @@ export const KINDS = {
   // chip for two weeks — this closes that gap).
   // ink red-10.
   labels: { kind: 'label', icon: 'label_important', color: '#e53935', ink: '#b71c1c', route: (id) => `/labels/${id}` },
-  // yellow-10 = `--skeletons-contrast`, the SKELETONS button's rim and word.
-  // ink `--yellow-deep` (#c46008) — the family's hand-mixed deep step; yellow-10 is the glyph.
-  skeletons: { kind: 'skeleton', icon: 'schema', color: '#f57f17', ink: '#c46008', route: (id) => `/skeletons/${id}` },
+  // ⭐ 2026-09-21 PM6 — BROWN-7 / BROWN-10 / `sym_o_mitre` (user ask: the
+  // footer's yellow SKELETONS section "corresponds to SCHEMA creation …
+  // rename the section … keep its yellow coloring and icon", and "for all
+  // the SKELETONS that are used on dashboards, flyouts and references
+  // (populated skeletons) … re-paint them to quasar brown tones … use the
+  // material 'mitre' icon instead of the SCHEMAS one"). The one-source rule
+  // above still holds for the other three rows; this row STOPPED mirroring
+  // its button on purpose: that button mints SCHEMAS, and a populated
+  // skeleton is not a schema. It is the platform's own material — the
+  // substrate's brown, the family the secret already wears one rung deeper
+  // — so `color` = `--brown-7` (`--skeleton-accent`, Material 600 like the
+  // nodes' teal-7 and the labels' red-7) and `ink` = `--brown-10` (Material
+  // 900, the rule every other family follows). The glyph is Material
+  // SYMBOLS' mitre — `sym_o_mitre`, the symbols set only (plain `mitre` is
+  // not in the legacy font and renders as its own name); `schema` stays the
+  // SCHEMA's mark (the builder, the SCHEMAS button, and every viewer that
+  // can read `is_schema` draws a schema with it — SkeletonMini's foot, the
+  // flyout's head, the explorer's squares, the dashboard's add-a-table rows).
+  // (yellow-10 `#f57f17` / `--yellow-deep` `#c46008` / `schema` AM → PM5.)
+  skeletons: { kind: 'skeleton', icon: 'sym_o_mitre', color: '#6d4c41', ink: '#3e2723', route: (id) => `/skeletons/${id}` },
   // ⚠ CARVED GOLD IS A TRADITION — the pioneer's mark keeps it, alone as a
   // TREATMENT (`.pioneer-gold`, the star, the carved face). The moment shares
   // the hex below by the user's word, not by kinship: nothing else on the
@@ -101,7 +121,11 @@ export const KINDS = {
   // draws it at 0.14 as a fill and as a glyph, where it carries).
   moments: { kind: 'moment', icon: 'schedule', color: '#c79a00', ink: '#5f4700', route: (id) => `/moments/${id}` },
   // brown-8 — the platform's own material, at its sealed end. A secret reads
-  // shut rather than coloured.
+  // shut rather than coloured. (⚠ `--brown-8` in THIS sheet's scale: #4e342e
+  // is Material 800, the hex Quasar names -9 — see the `$brown-*` note in
+  // _tokens.scss.) One rung under the populated skeleton's brown-7 since
+  // 2026-09-21 PM6, and a key beside a mitre: kin on purpose, told apart by
+  // depth and glyph.
   secrets: { kind: 'secret', icon: 'key', color: '#4e342e', ink: '#3e2723', route: (id) => `/secrets/${id}` },
   // indigo-8 — a post's family one level deeper: a link and the thing it
   // points at are kin, and the depth is what tells them apart. (Followed the

@@ -162,7 +162,7 @@ import ElementMini from 'src/components/shared/ElementMini.vue'
 import SlotRefPicker from 'src/components/maker/SlotRefPicker.vue'
 import { skeletonService } from 'src/services/skeleton.service'
 import { momentService } from 'src/services/moment.service'
-import { useSkeletonBuilderStore } from 'src/stores/skeletonBuilder'
+import { useSchemaBuilderStore } from 'src/stores/schemaBuilder'
 import { useMakerStore } from 'src/stores/maker'
 import { useUploaderStore } from 'src/stores/uploader'
 import { kindFor } from 'src/utils/kinds'
@@ -181,7 +181,7 @@ export default defineComponent({
   emits: ['changed'],
 
   setup (props, { emit }) {
-    const store = useSkeletonBuilderStore()
+    const store = useSchemaBuilderStore()
 
     const selectedSlot = ref(null)
     const selectedKind = computed(() =>

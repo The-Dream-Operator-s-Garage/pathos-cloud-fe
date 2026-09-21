@@ -81,8 +81,8 @@ export const ACTIONS = {
   CLOSE_MAKER: { label: 'Closed post maker', icon: 'edit_note', group: 'window' },
   OPEN_UPLOADER: { label: 'Opened uploader', icon: 'upload_file', group: 'window' },
   CLOSE_UPLOADER: { label: 'Closed uploader', icon: 'upload_file', group: 'window' },
-  OPEN_BUILDER: { label: 'Opened skeleton builder', icon: 'schema', group: 'window' },
-  CLOSE_BUILDER: { label: 'Closed skeleton builder', icon: 'schema', group: 'window' },
+  OPEN_BUILDER: { label: 'Opened schema builder', icon: 'schema', group: 'window' },
+  CLOSE_BUILDER: { label: 'Closed schema builder', icon: 'schema', group: 'window' },
   OPEN_LABELS: { label: 'Opened label maker', icon: 'label', group: 'window' },
   CLOSE_LABELS: { label: 'Closed label maker', icon: 'label', group: 'window' },
 
@@ -197,7 +197,7 @@ export const isNavCode = (code) => NAV_CODES.has(code)
 export const DOCK_WINDOWS = {
   maker: { open: 'OPEN_MAKER', close: 'CLOSE_MAKER', label: 'Post maker', leaf: 'MAKER' },
   uploader: { open: 'OPEN_UPLOADER', close: 'CLOSE_UPLOADER', label: 'Uploader', leaf: 'UPLOADER' },
-  skeletonBuilder: { open: 'OPEN_BUILDER', close: 'CLOSE_BUILDER', label: 'Skeleton builder', leaf: 'SKELETON_BUILDER' },
+  schemaBuilder: { open: 'OPEN_BUILDER', close: 'CLOSE_BUILDER', label: 'Schema builder', leaf: 'SKELETON_BUILDER' },
   labelMaker: { open: 'OPEN_LABELS', close: 'CLOSE_LABELS', label: 'Label maker', leaf: 'LABEL_MAKER' }
 }
 

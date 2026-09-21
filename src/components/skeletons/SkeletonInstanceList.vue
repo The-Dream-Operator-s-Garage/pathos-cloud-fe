@@ -15,7 +15,7 @@
     </div>
 
     <div v-else-if="rows.length === 0" class="instance-list__empty">
-      <q-icon name="schema" size="11px" class="q-mr-xs" /> no instantiations
+      <q-icon name="sym_o_mitre" size="11px" class="q-mr-xs" /> no instantiations
     </div>
 
     <template v-else>
@@ -158,7 +158,7 @@ export default defineComponent({
     const iconFor = (row) => {
       if (row.is_doc) return 'menu_book'
       const base = (row.name || '').split(':')[0]
-      return ICONS[base] || 'schema'
+      return ICONS[base] || 'sym_o_mitre' // an instance: the populated skeleton's mark (2026-09-21 PM6)
     }
 
     const formatTimeShort = (iso) => {
@@ -242,7 +242,7 @@ export default defineComponent({
   cursor: pointer;
   flex-shrink: 0;
   margin-top: 2px;
-  &:hover { color: #5b6c82; }
+  &:hover { color: var(--skeleton-accent, #6d4c41); }
 }
 
 .instance-row__body { flex: 1; min-width: 0; }
@@ -253,7 +253,7 @@ export default defineComponent({
   gap: 6px;
   min-width: 0;
 }
-.instance-row__kind { color: #5b6c82; flex-shrink: 0; }
+.instance-row__kind { color: var(--skeleton-accent, #6d4c41); flex-shrink: 0; }
 .instance-row__title {
   font-size: 0.82em;
   font-weight: 600;
@@ -303,6 +303,6 @@ export default defineComponent({
   font-size: 0.72em;
   color: rgba(var(--ink-rgb), 0.6);
   cursor: pointer;
-  &:hover { border-color: #5b6c82; color: #5b6c82; }
+  &:hover { border-color: var(--skeleton-accent, #6d4c41); color: var(--skeleton-accent, #6d4c41); }
 }
 </style>

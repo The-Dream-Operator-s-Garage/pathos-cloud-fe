@@ -76,12 +76,12 @@ const KIND_TABS = [
   { key: 'nodes', label: 'Nodes', icon: 'adjust', color: '#2C3D4E' },
   { key: 'labels', label: 'Labels', icon: 'label_important', color: '#00829c' },
   { key: 'paths', label: 'Paths', icon: 'route', color: '#4d8a83' },
-  { key: 'skeletons', label: 'Skels', icon: 'schema', color: '#5b6c82' },
+  { key: 'skeletons', label: 'Skels', icon: 'sym_o_mitre', color: '#6d4c41' }, // brown-7 + the mitre since 2026-09-21 PM6 (slate + `schema` before)
   { key: 'moments', label: 'Moments', icon: 'schedule', color: '#c79a00' },
   { key: 'links', label: 'Links', icon: 'link', color: '#7d8995' }
 ]
 
-// The skeleton builder's search column: like the maker's RefBrowser but it
+// The schema builder's search column: like the maker's RefBrowser but it
 // feeds SLOTS instead of a reference list — results are draggable onto slot
 // rows (payload in application/x-pathos-ref) and clickable to fill whichever
 // slot is selected. When the selected slot declares a kind the pills lock.

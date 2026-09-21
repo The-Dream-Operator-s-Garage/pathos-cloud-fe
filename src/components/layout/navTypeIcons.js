@@ -7,7 +7,7 @@ export const TYPE_ICONS = {
   node_edit: 'edit',
   label: 'label_important',
   post: 'edit_note',
-  skeleton: 'schema',
+  skeleton: 'sym_o_mitre', // the populated skeleton's mark (kinds.js) — `schema` is the SCHEMA's, 2026-09-21 PM6
   explorer: 'explore',
   profile: 'person',
   page: 'circle'

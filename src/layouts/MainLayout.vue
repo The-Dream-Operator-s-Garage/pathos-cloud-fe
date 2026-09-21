@@ -110,7 +110,7 @@
           </q-item>
 
           <q-item clickable v-ripple :to="'/skeletons'" active-class="my-menu-link">
-            <q-item-section avatar><q-icon name="schema" /></q-item-section>
+            <q-item-section avatar><q-icon name="sym_o_mitre" /></q-item-section>
             <q-item-section>Skeletons</q-item-section>
           </q-item>
 
@@ -196,12 +196,12 @@
       @toggle-drawer="drawer = !drawer"
       @open-maker="makerStore.open()"
       @open-uploader="uploaderStore.open()"
-      @open-skeleton-builder="skeletonBuilderStore.open()"
+      @open-schema-builder="schemaBuilderStore.open()"
       @open-label-maker="labelMakerStore.open()"
       @pins-changed="pinsRefreshKey++"
     />
 
-    <!-- The eight docked windows (maker, uploader, skeleton builder, label
+    <!-- The eight docked windows (maker, uploader, schema builder, label
          maker, chat, DASHBOARD since 2026-08-10, stack, pins) — always
          mounted; their stores decide whether each renders open, minimized
          (maker/uploader/chat → minitab on the nav bar, pins → icon rail on
@@ -216,7 +216,7 @@
     <StackPanel />
     <MakerDock @created="onPostCreated" />
     <UploaderDock @created="onUploaded" />
-    <SkeletonBuilderDock />
+    <SchemaBuilderDock />
     <LabelMakerDock />
     <ChatDock />
     <!-- The dashboard panel — the creation footprint in the flyout family's
@@ -239,7 +239,7 @@ import { useNavStore } from 'src/stores/navigation'
 import { useWindowsStore } from 'src/stores/windows'
 import MakerDock from 'src/components/maker/MakerDock.vue'
 import UploaderDock from 'src/components/maker/UploaderDock.vue'
-import SkeletonBuilderDock from 'src/components/maker/SkeletonBuilderDock.vue'
+import SchemaBuilderDock from 'src/components/maker/SchemaBuilderDock.vue'
 import LabelMakerDock from 'src/components/maker/LabelMakerDock.vue'
 import ChatDock from 'src/components/chat/ChatDock.vue'
 import DashboardDock from 'src/components/dashboard/DashboardDock.vue'
@@ -252,20 +252,20 @@ import PinsDrawer from 'src/components/layout/PinsDrawer.vue'
 import StackPanel from 'src/components/layout/StackPanel.vue'
 import { useMakerStore } from 'src/stores/maker'
 import { useUploaderStore } from 'src/stores/uploader'
-import { useSkeletonBuilderStore } from 'src/stores/skeletonBuilder'
+import { useSchemaBuilderStore } from 'src/stores/schemaBuilder'
 import { useLabelMakerStore } from 'src/stores/labelMaker'
 import { useGeoStore } from 'src/stores/geo'
 import { useEventsStore } from 'src/stores/events'
 
 export default defineComponent({
   name: 'MainLayout',
-  components: { MakerDock, UploaderDock, SkeletonBuilderDock, LabelMakerDock, ChatDock, DashboardDock, IdentityDock, ElementFlyoutHost, FriezeBar, NavigationBar, PinsDrawer, StackPanel },
+  components: { MakerDock, UploaderDock, SchemaBuilderDock, LabelMakerDock, ChatDock, DashboardDock, IdentityDock, ElementFlyoutHost, FriezeBar, NavigationBar, PinsDrawer, StackPanel },
   setup () {
     const router = useRouter()
     const navStore = useNavStore()
     const makerStore = useMakerStore()
     const uploaderStore = useUploaderStore()
-    const skeletonBuilderStore = useSkeletonBuilderStore()
+    const schemaBuilderStore = useSchemaBuilderStore()
     const labelMakerStore = useLabelMakerStore()
     const windows = useWindowsStore()
     // ⚠ THE DRAWER IS HIDDEN (2026-08-31, user ask) — this flag is the
@@ -307,7 +307,7 @@ export default defineComponent({
     // "just created" tray instead of navigating (the page stays put so the
     // user can drag it into a slot).
     const onPostCreated = (created) => {
-      if (created?.path && skeletonBuilderStore.deliverFresh('posts', created.path, created.title)) return
+      if (created?.path && schemaBuilderStore.deliverFresh('posts', created.path, created.title)) return
       if (created?.id) router.push('/posts/' + created.id)
     }
 
@@ -316,10 +316,10 @@ export default defineComponent({
     // file explorer already shows them at the top. During an instance
     // populate session every fresh node joins the page's tray instead.
     const onUploaded = (nodes) => {
-      if (skeletonBuilderStore.populate && nodes?.length) {
+      if (schemaBuilderStore.populate && nodes?.length) {
         let consumed = false
         for (const n of nodes) {
-          if (n?.path && skeletonBuilderStore.deliverFresh('nodes', n.path, n.name)) consumed = true
+          if (n?.path && schemaBuilderStore.deliverFresh('nodes', n.path, n.name)) consumed = true
         }
         if (consumed) return
       }
@@ -360,7 +360,7 @@ export default defineComponent({
       useEventsStore().connect()
     })
 
-    return { drawerEnabled, drawer, mini, drawerRailW, hideDrawer, showBurger, makerStore, uploaderStore, skeletonBuilderStore, labelMakerStore, windows, pinsRefreshKey, onPostCreated, onUploaded }
+    return { drawerEnabled, drawer, mini, drawerRailW, hideDrawer, showBurger, makerStore, uploaderStore, schemaBuilderStore, labelMakerStore, windows, pinsRefreshKey, onPostCreated, onUploaded }
   }
 })
 </script>

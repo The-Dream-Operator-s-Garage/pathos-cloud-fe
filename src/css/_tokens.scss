@@ -60,6 +60,15 @@ $brown-1: #efebe9;
 $brown-2: #d7ccc8;
 $brown-3: #bcaaa4;
 $brown-4: #a1887f;
+// ⭐ 2026-09-21 PM6 — the skeleton family's three missing rungs (Material
+// 400 / 500 / 600, the same hexes Quasar's own scale carries at -5/-6/-7).
+// ⚠ THIS SHEET'S `$brown-8` IS MATERIAL 800 (#4e342e — Quasar calls that
+// hex -9; Quasar's -8 is #5d4037). It has been so since 2026-07-27 and every
+// `--brown-8` consumer means THIS hex, so the rung keeps its name; the
+// Material 700 step is simply not on this sheet.
+$brown-5: #8d6e63;
+$brown-6: #795548;
+$brown-7: #6d4c41;
 $brown-8: #4e342e;
 
 // The INK of the NodeMini quoted into the post information flyout (2026-07-27,
@@ -1016,6 +1025,13 @@ $warning:   #F2C037;
 
   --red-13: #{$red-13};    // Quasar red-13 (accent A400, #ff1744) — the 2px BASE under the PIN TACK, in BOTH its copies (NavigationBar's fallback tack and the pinned column's footer block in PinsDrawer), since 2026-08-22 (user ask: put the node panel's top-left round pill on the pin button, "instead of teal-13, use red-13"). ⚠ THE PILL ITSELF WAS DELETED THE NEXT DAY (2026-08-23, the NodeMini refit — "remove the button from the left section on the header"), so this is no longer a copy OF anything: the two tack rules ARE the material, and the `tack-skin` witness was re-keyed off them plus a table of constants when the source it had been reading stopped existing. The tack wears `.node-mini__round-pill`'s material — `--grey-3` fill, a `--grey-5` hairline RING outside the box and SEAM inside its bottom edge, `--grey-8` ink with the glyph's hairline stroke — and this is the ONE line in it that is a colour instead of a tone, which is precisely the job `--teal-13` does on the node panel the material came from. Swapping that single line is what lets the two objects be the same MATERIAL and different THINGS: a reader who has learned the pill on a post card reads the tack as one of its family and still never mistakes it for a node. It also carries the PINNED state — the base closes into a full 2px ring of this and the pushpin takes it as ink, so "pinned" is the chip's own mark GROWING rather than the face inverting (the brown, later grey, invert the tack wore until today). Hover deliberately does NOT touch it: the pale face lifts to `--grey-1` instead, because the house rule recorded on --teal-12/-13 says an object's own mark and the pointer's are never the same colour at once. Nothing else on the platform carries this token — keep it that way, or the tack stops being the one thing the eye finds at that corner
 
+  // ── THE SKELETON FAMILY'S RUNGS (2026-09-21 PM6, user ask: populated
+  // skeletons "to quasar brown tones") — the four steps this sheet was
+  // missing; the `--skeleton-*` block after `--schemas-coat` reads them.
+  --brown-5:   #{$brown-5};          // Quasar brown-5 (Material 400)
+  --brown-6:   #{$brown-6};          // Quasar brown-6 (Material 500) — `--skeleton-hover`. (⚠ `--brown-8` below is Material 800, #4e342e — see the `$brown-*` note at the top of this sheet.)
+  --brown-7:   #{$brown-7};          // Quasar brown-7 (Material 600) — `--skeleton-accent`: every populated skeleton's glyph + rim (`kinds.js` `skeletons.color` mirrors this hex, #6d4c41)
+  --brown-7-rgb: 109, 76, 65;        // brown-7's channels — the SCHEMA badge's wash on SkeletonMini
   --brown-8:   #{$brown-8};          // Quasar brown-8 — drawer item ink (icons + labels + section headers) + the Back chip's solid fill + (2026-07-24) the stack/pins info-box ink: kind icon, title, `.dock-bar__action` history button, and the parked head glyph that stands in for them ⚠ IT LOST THE WHOLE SIDE CHROME to `--grey-9` on 2026-08-18 (user ask): the drawer's item ink, section headers, profile name and mask chip; the widgets' info-box icon + title, history button and parked head glyph; and the FACES of every inverted chip (Back, the drawer's burger, the pins tack). It keeps the creation docks' `--dock-ink` and the flyout's header ink.
   --brown-10:  #{$brown-10};         // Quasar brown-10 — the INK of the NodeMini quoted into the post information flyout (2026-07-27): its header row's zone ink through `--node-mini-head-ink` (mostly the open glyph — the round pill and address chip are their own neutral objects), and the source pane's text. (It also took the foot's four glyphs through `--node-mini-foot-glyph` — never the counts, never the viewer's own vote — until the foot and that dial went, later the same day.) The family's 900, standing at --teal-10's own index, so the panel's ink changes HUE and nothing else; it is the third tone at that index in one day (teal-10 → --grey-10 → here). BROWN because the box is brown where it is anything at all: --brown-8 inks the flyout's own header and the frieze band's waves are brown, and on a plaque, a well and a line system drawn entirely in neutrals those were the only warm marks left. A quoted node lettered in the HOST's family reads as part of the box where a neutral only reads as "not teal". Two steps darker than that header ink (#3e2723 vs #4e342e): the box names itself once at the top and the document it is showing you is the darkest thing in it ⭐ 2026-09-21 PM: EVERY SECRET CHIP'S TEXT — `kinds.js` `ink` mirrors this hex.
 
@@ -1240,7 +1256,7 @@ $warning:   #F2C037;
   --maker-flat:     #f4efe9;  // indigo-1 @40%       → rgb(244, 239, 233)
   --uploader-flat:  #f1f3e7;  // teal-1 @40%         → rgb(241, 243, 231) (the August flat back)
   --labels-flat:    #fdf0e6;  // red-1 @40%          → rgb(253, 240, 230)
-  --skeletons-flat: #fdf5d5;  // ⚠ yellow-**2** @40%  → rgb(253, 245, 213) (see `--skeletons-veil`)
+  --schemas-flat: #fdf5d5;  // ⚠ yellow-**2** @40%  → rgb(253, 245, 213) (see `--schemas-veil`)
 
   // ── THE FOOTER STRIPS' NIGHT COAT — ⭐ THE PLATE CAME BACK OUT OF IT
   // ON 2026-09-05 (user ask: the two strips leave the frieze band and stand
@@ -1437,18 +1453,18 @@ $warning:   #F2C037;
   // ⚠ NOT `--orange-*` above: that is the IDENTITY window's family, two hues
   // over and far darker at 900 (orange-10 #e65100 against yellow-10 #f57f17).
   //   -deep the deep step — the strong edge, the tab-hover ink (hand-mixed).
-  //   -10  the contrast — every accent, via `--skeletons-contrast`; and the
+  //   -10  the contrast — every accent, via `--schemas-contrast`; and the
   //        chip's WORD and resting GLYPH (Material 900).
   //   -9   the mute — the meta line, the resting pill rims.
   //   -3   the chip glyph's light while the window stands (Material 200).
-  //   -2   the veil in `--skeletons-coat` — NOT -1, which lands above the bar.
+  //   -2   the veil in `--schemas-coat` — NOT -1, which lands above the bar.
   //   -1   the pale — the wells, the resting tab face.
   --yellow-1: #{$yellow-1};
   --yellow-2: #{$yellow-2};
   --yellow-3: #{$yellow-3};
   --yellow-9: #{$yellow-9};
-  --yellow-10: #{$yellow-10}; // ⭐ 2026-09-21: EVERY SKELETON CHIP'S GLYPH — `kinds.js` mirrors this hex (`skeletons.color`), the SKELETONS button's rim + word (`--skeletons-contrast`).
-  --yellow-deep: #{$yellow-deep}; // ⭐ 2026-09-21 PM: EVERY SKELETON CHIP'S TEXT — `kinds.js` `ink` mirrors this hex: the family's darkest usable step, since yellow-10 (the glyph) cannot carry ink.
+  --yellow-10: #{$yellow-10}; // ⭐ 2026-09-21: the SCHEMAS button's rim + word (`--schemas-contrast`; the button read SKELETONS until PM6 of this day). AM → PM5 it was ALSO every skeleton chip's glyph (`kinds.js` mirrored it) — until PM6 moved the POPULATED skeleton to BROWN (`--skeleton-accent` = `--brown-7`, see the family block after `--schemas-coat`); the yellow is the SCHEMA window's alone now.
+  --yellow-deep: #{$yellow-deep}; // ⭐ 2026-09-21 PM: the SCHEMA window's deep step — the family's darkest usable ink, since yellow-10 cannot carry it. (PM → PM5 it was also every skeleton chip's text; PM6 the skeleton went brown and inks at `--brown-10` like every other family — `kinds.js` `skeletons.ink`.)
   // The contrast as a triple, for the window's alpha washes — same device as `--ink-rgb`.
   --yellow-10-rgb: 245, 127, 23;
 
@@ -1682,7 +1698,7 @@ $warning:   #F2C037;
   // deep-orange-8's 3.47 / 3.92 — yellow cannot carry ink, and the ask chose
   // it knowing the window reads lighter. The deep step is hand-mixed
   // (`--yellow-deep`). Read the `$yellow-*` note before moving anything.
-  --skeletons-contrast: var(--yellow-10);
+  --schemas-contrast: var(--yellow-10);
 
   // ── THE SCHEMA BUILDER'S COAT (2026-09-05, user ask — the repaint above) ─
   // `--uploader-coat`'s construction with the veil's FAMILY turned: the sheet
@@ -1698,8 +1714,8 @@ $warning:   #F2C037;
   // a glance, which matters because these two windows share a footprint.
   //
   // ⚠ THE FOURTH SANCTIONED BREAK IN THE ONE-PLAQUE LAW. The `dock-coat`
-  // witness (`api/scripts/fsck.js`) names it — `SkeletonBuilderDock.vue` →
-  // `--skeletons-coat` — exactly as it names the maker's, the uploader's and
+  // witness (`api/scripts/fsck.js`) names it — `SchemaBuilderDock.vue` →
+  // `--schemas-coat` — exactly as it names the maker's, the uploader's and
   // the labels window's. Four of the six creation docks own a sheet now; the
   // law's argument still holds for chat and the dashboard, and a FIFTH gets
   // added to that map on purpose or not at all.
@@ -1712,10 +1728,50 @@ $warning:   #F2C037;
   // rgb(253, 245, 213): +5/+3/-15 off the bar — a yellow shows on a
   // warm cream only as the absence of blue, lime's lesson. Flat composite
   // ~`#fdf5d5`.
-  --skeletons-veil: rgba(255, 249, 196, 0.4);
-  --skeletons-coat:
-    linear-gradient(var(--skeletons-veil), var(--skeletons-veil)),
+  --schemas-veil: rgba(255, 249, 196, 0.4);
+  --schemas-coat:
+    linear-gradient(var(--schemas-veil), var(--schemas-veil)),
     var(--light-cream);
+
+  // ── THE SKELETON FAMILY — Quasar BROWN (2026-09-21 PM6, user ask: "the
+  // section on the footer nav bar that reads 'skeletons' and is painted
+  // yellow corresponds to SCHEMA creation … rename the section … keep its
+  // yellow … for all the SKELETONS that are used on dashboards, flyouts and
+  // references (populated skeletons) … re-paint them to quasar brown tones").
+  // TWO THINGS HAD ONE NAME AND ONE YELLOW: the window that MINTS schemas
+  // (the footer's yellow button — `--schemas-*` above, unchanged but for its
+  // name) and the populated skeleton every dashboard cell, flyout face and
+  // reference chip shows. The populated skeleton is the platform's own
+  // material — the substrate's brown, the Talavero pit's family, the tone the
+  // secret already wears one rung deeper — and reads it as a LADDER, one
+  // Quasar rung per job, so the mini, the grid, the chip and the explorer's
+  // marks agree without a second palette:
+  //   coat         brown-1   the mini's and the grid's plate      (was grey-3)
+  //   key coat     brown-2   the key cells                        (was grey-4)
+  //   rule         brown-3   hairlines                            (was grey-4 / grey-5)
+  //   rule strong  brown-4   the keys' line, the editors' frames  (was grey-5)
+  //   ink mute     brown-4   glyphs and secondary text            (as before)
+  //   hover        brown-6   the tone that was teal-12 on every skeleton control
+  //   accent       brown-7   glyph + rim = `kinds.js` `skeletons.color` (#6d4c41)
+  //   ink          brown-8   the head's and the grid's text       (as before)
+  //   chip ink     brown-10  = `kinds.js` `skeletons.ink` (Material 900, the rule)
+  // The glyph moved with the paint: a populated skeleton wears Material
+  // SYMBOLS' mitre (`sym_o_mitre` — the symbols set only; plain `mitre` is not
+  // in the legacy font and renders as its own name), the schema keeps
+  // `schema`. Contrast on cream: brown-7 6.9:1, brown-10 12.5:1; brown-4 on
+  // brown-1 2.8:1, the same mute it had on grey-3.
+  // CONSUMED with fallbacks by SkeletonMini / SkeletonTable / the explorer's
+  // marks; a host still re-tones one tree by writing `--skel-mini-*` /
+  // `--skel-table-*` — these are the defaults those dials fall back to.
+  --skeleton-coat:        var(--brown-1);
+  --skeleton-key-coat:    var(--brown-2);
+  --skeleton-rule:        var(--brown-3);
+  --skeleton-rule-strong: var(--brown-4);
+  --skeleton-ink-mute:    var(--brown-4);
+  --skeleton-hover:       var(--brown-6);
+  --skeleton-accent:      var(--brown-7);
+  --skeleton-ink:         var(--brown-8);
+  --skeleton-chip-ink:    var(--brown-10);
 
   --border-ink:     1px solid rgba(var(--ink-rgb), 0.18);
   --border-hair:    1px solid rgba(var(--ink-rgb), 0.10);

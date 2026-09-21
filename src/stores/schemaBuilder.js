@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 import { useWindowsStore } from './windows'
 import { useNavStore } from './navigation'
 
-// The skeleton builder is now a SCHEMA workshop only: every tab either
+// The schema builder (skeletonBuilder until 2026-09-21 PM6) is a SCHEMA workshop only: every tab either
 // defines a brand-new schema (named fields, each declaring which element
 // kind — its constraint — the field accepts) or extends one you own
 // (append-only new fields). Instances are NOT populated here — instantiating
@@ -17,6 +17,9 @@ import { useNavStore } from './navigation'
 // element created in the maker/uploader (Upload / Build buttons) is routed
 // back to the page's "just created" tray instead of navigating away.
 
+// The drafts' storage key keeps its 2026-07 spelling on purpose: the store
+// was renamed skeletonBuilder → schemaBuilder on 2026-09-21 PM6 (the footer
+// word went SKELETONS → SCHEMAS) and a rename must not lose work in progress.
 const LS_KEY = 'pathos_skeleton_builder'
 
 export const builderLabel = (d) => {
@@ -51,7 +54,7 @@ const blankDraft = () => ({
   updatedAt: Date.now()
 })
 
-export const useSkeletonBuilderStore = defineStore('skeletonBuilder', {
+export const useSchemaBuilderStore = defineStore('schemaBuilder', {
   state: () => ({
     isOpen: false,
     isMinimized: false,
@@ -101,9 +104,9 @@ export const useSkeletonBuilderStore = defineStore('skeletonBuilder', {
       const wasClosed = !this.isOpen
       this.isOpen = true
       this.isMinimized = false
-      useWindowsStore().focus('skeletonBuilder')
+      useWindowsStore().focus('schemaBuilder')
       if (wasClosed) {
-        try { useNavStore().recordDock('skeletonBuilder', 'open') } catch (_) { /* the window opens whether or not the log does */ }
+        try { useNavStore().recordDock('schemaBuilder', 'open') } catch (_) { /* the window opens whether or not the log does */ }
       }
     },
 
@@ -112,20 +115,20 @@ export const useSkeletonBuilderStore = defineStore('skeletonBuilder', {
       this.isOpen = false
       this.isMinimized = false
       this.isMaximized = false
-      useWindowsStore().release('skeletonBuilder')
+      useWindowsStore().release('schemaBuilder')
       if (wasOpen) {
-        try { useNavStore().recordDock('skeletonBuilder', 'close') } catch (_) { /* the window opens whether or not the log does */ }
+        try { useNavStore().recordDock('schemaBuilder', 'close') } catch (_) { /* the window opens whether or not the log does */ }
       }
     },
 
     minimize () {
       this.isMinimized = true
-      useWindowsStore().release('skeletonBuilder')
+      useWindowsStore().release('schemaBuilder')
     },
     restore () {
       this.load()
       this.isMinimized = false
-      useWindowsStore().focus('skeletonBuilder')
+      useWindowsStore().focus('schemaBuilder')
     },
     toggleMaximize () { this.isMaximized = !this.isMaximized },
 
@@ -141,10 +144,10 @@ export const useSkeletonBuilderStore = defineStore('skeletonBuilder', {
       const wasClosed = !this.isOpen
       this.isOpen = true
       this.isMinimized = false
-      useWindowsStore().focus('skeletonBuilder')
+      useWindowsStore().focus('schemaBuilder')
       this.persist()
       if (wasClosed) {
-        try { useNavStore().recordDock('skeletonBuilder', 'open') } catch (_) { /* the window opens whether or not the log does */ }
+        try { useNavStore().recordDock('schemaBuilder', 'open') } catch (_) { /* the window opens whether or not the log does */ }
       }
     },
 

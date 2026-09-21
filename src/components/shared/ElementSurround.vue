@@ -110,7 +110,7 @@ const BAND_DEFS = [
   { key: 'comments', title: 'Comments', icon: 'chat_bubble_outline' },
   { key: 'posts', title: 'Posts', icon: 'article' },
   { key: 'uploads', title: 'Uploads', icon: 'attach_file' },
-  { key: 'instantiations', title: 'Instantiations', icon: 'schema' }
+  { key: 'instantiations', title: 'Instantiations', icon: 'sym_o_mitre' }
 ]
 
 export default defineComponent({

@@ -5,7 +5,7 @@
        referential chips), and where it LEADS (structure view, instances). -->
   <div class="skeleton-usages pathos-card">
     <div class="skeleton-usages__head">
-      <q-icon name="schema" size="16px" class="q-mr-sm text-accent" />
+      <q-icon :name="skeleton?.is_schema ? 'schema' : 'sym_o_mitre'" size="16px" class="q-mr-sm text-accent" />
       <div class="col">
         <div class="nasalization text-accent" style="font-size:0.9em;">Structure</div>
         <div v-if="skeleton" class="skeleton-usages__sub">
@@ -36,7 +36,7 @@
       <!-- Identity -->
       <section class="skeleton-usages__group">
         <div class="skeleton-usages__group-head">
-          <q-icon name="fingerprint" size="12px" style="color:#5b6c82;" />
+          <q-icon name="fingerprint" size="12px" style="color:var(--skeleton-accent, #6d4c41);" />
           identity
         </div>
         <div class="usage-fact">
@@ -61,7 +61,7 @@
       <!-- Slot inventory — every binding as a referential chip -->
       <section v-if="slots.length" class="skeleton-usages__group">
         <div class="skeleton-usages__group-head">
-          <q-icon name="view_list" size="12px" style="color:#5b6c82;" />
+          <q-icon name="view_list" size="12px" style="color:var(--skeleton-accent, #6d4c41);" />
           slots <span class="skeleton-usages__total">{{ slots.length }}</span>
         </div>
         <div v-for="s in slots" :key="s.slotName" class="slot-line">
@@ -195,9 +195,9 @@ export default defineComponent({
   align-items: center;
   gap: 3px;
   font-size: 0.74em;
-  color: #5b6c82;
+  color: var(--skeleton-accent, #6d4c41);
   text-decoration: none;
-  border-bottom: 1px dotted #5b6c82;
+  border-bottom: 1px dotted var(--skeleton-accent, #6d4c41);
   &:hover { color: var(--coral-deep); border-bottom-color: var(--coral-deep); }
 }
 

@@ -16,7 +16,7 @@
        through the head like anywhere else. -->
   <div class="draft-grid" :class="['is-' + local.axis, { 'is-ready': ready, 'is-minting': minting }]">
     <div class="draft-grid__head">
-      <q-icon name="schema" size="12px" class="draft-grid__glyph" />
+      <q-icon name="sym_o_mitre" size="12px" class="draft-grid__glyph" />
       <span class="draft-grid__title nasalization">{{ name }}</span>
       <span class="draft-grid__notice" :class="{ 'is-ready': ready }">{{ notice }}</span>
       <q-space />

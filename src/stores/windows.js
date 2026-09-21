@@ -67,7 +67,13 @@ const TRAIL_KEY = 'pathos_nav_trail'
 // the left run, pins at the right) are NOT here — they are the trail's
 // fixed flanks, the walls the drag clamps against. A stale persisted
 // `dashboard` key is simply not read.
-const TRAIL_CHIPS = ['maker', 'skeletonBuilder', 'labelMaker', 'uploader', 'chat']
+const TRAIL_CHIPS = ['maker', 'schemaBuilder', 'labelMaker', 'uploader', 'chat']
+// ⭐ 2026-09-21 PM6: the builder's chip is `schemaBuilder` (the footer word
+// went SKELETONS → SCHEMAS — that window mints SCHEMAS; the populated
+// skeleton is the brown family now, see kinds.js). An offset saved under
+// the old key is read through this map so the rename does not reseat the
+// chip on the next reload; the next persistTrail() writes the new key.
+const TRAIL_LEGACY_KEYS = { schemaBuilder: 'skeletonBuilder' }
 
 function loadTrailOffsets () {
   const out = {}
@@ -75,7 +81,7 @@ function loadTrailOffsets () {
   try {
     const saved = JSON.parse(localStorage.getItem(TRAIL_KEY))
     for (const k of TRAIL_CHIPS) {
-      const v = saved?.[k]
+      const v = saved?.[k] ?? saved?.[TRAIL_LEGACY_KEYS[k]]
       if (typeof v === 'number' && isFinite(v)) out[k] = Math.round(v)
     }
   } catch (_) { /* storage unreadable — chips rest on their flow seats */ }
@@ -128,7 +134,7 @@ export const useWindowsStore = defineStore('windows', {
     // Expanded windows, back → front (the last entry paints on top).
     order: [],
     panels: loadPanels(),
-    // Transient 50/50 tiling: the skeleton builder requests a companion
+    // Transient 50/50 tiling: the schema builder requests a companion
     // editor (maker/uploader) beside it while capturing a new element into
     // a slot. { left: <window key>, right: <window key> } or null. Not
     // persisted — a reload lands back in normal stacking.

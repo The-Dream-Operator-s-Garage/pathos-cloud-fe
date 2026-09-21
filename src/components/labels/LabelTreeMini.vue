@@ -195,7 +195,7 @@ export default defineComponent({
 <style lang="scss" scoped>
 // ⚠ THE ACCENT IS A DIAL (2026-09-04): `--ltm-accent` / `--ltm-accent-rgb`,
 // falling back to the shared dock chrome's `#00829c`. This component mounts
-// in the label maker window AND the skeleton builder's field picker; the
+// in the label maker window AND the schema builder's field picker; the
 // label maker turns the pair to its purple contrast on `.label-dock`, the
 // builder leaves it. Never write the hex here again — write the dial.
 .ltm {

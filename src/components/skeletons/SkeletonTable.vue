@@ -278,7 +278,8 @@
                       />
                     </template>
                     <span v-else class="skel-table__strip" :class="{ 'skel-table__strip--named': enriched }">
-                      <q-icon v-if="enriched" name="schema" size="11px" class="skel-table__strip-glyph" />
+                      <!-- (2026-09-21 PM6) a nested SCHEMA keeps the schema mark; a populated one wears the mitre -->
+                      <q-icon v-if="enriched" :name="st.target.skeleton.is_schema ? 'schema' : 'sym_o_mitre'" size="11px" class="skel-table__strip-glyph" />
                       <span v-if="enriched" class="skel-table__strip-name" :title="st.target.skeleton.name">{{ st.target.skeleton.name }}</span>
                       <InfoChip dense kind="skeletons" :address="st.target.skeleton.path" />
                       <button type="button" class="skel-table__unfold" title="unfold" @click.stop.prevent="expand(st.target.skeleton.path)"><q-icon name="unfold_more" size="12px" /></button>
@@ -913,14 +914,17 @@ export default defineComponent({
 .skel-table {
   // The dial set — hosts re-tone the whole grid by WRITING these on any
   // ancestor (NodeMini's dial pattern at grid scale). CONSUMED with
-  // fallbacks, never self-defined. Defaults are the flyout grey family.
-  --st-rule: var(--skel-table-rule, var(--grey-4));
-  --st-ink-mute: var(--skel-table-ink-mute, var(--brown-4));
-  --st-ink: var(--skel-table-ink, var(--brown-8));
-  --st-hover: var(--skel-table-hover, var(--teal-12));
+  // fallbacks, never self-defined. Defaults = THE SKELETON FAMILY'S BROWN
+  // LADDER since 2026-09-21 PM6 (`--skeleton-*` in _tokens.scss: coat
+  // brown-1, keys brown-2, rules brown-3/-4, hover brown-6, ink brown-8) —
+  // the flyout grey family (grey-3 / grey-4 / grey-5 / teal-12) before.
+  --st-rule: var(--skel-table-rule, var(--skeleton-rule));
+  --st-ink-mute: var(--skel-table-ink-mute, var(--skeleton-ink-mute));
+  --st-ink: var(--skel-table-ink, var(--skeleton-ink));
+  --st-hover: var(--skel-table-hover, var(--skeleton-hover));
 
   position: relative;
-  background: var(--skel-table-coat, var(--grey-3));
+  background: var(--skel-table-coat, var(--skeleton-coat));
   border: 1px solid var(--st-rule);
   border-radius: 6px;
   overflow: visible;
@@ -959,11 +963,11 @@ export default defineComponent({
 // Across the top row the keys sit on a rule and the cells split by
 // vertical hairlines instead.
 .is-row .skel-table__c + .skel-table__c { border-left: 1px solid var(--st-rule); }
-.is-row .skel-table__line--keys .skel-table__c { border-bottom: 1px solid var(--skel-table-rule-strong, var(--grey-5)); }
+.is-row .skel-table__line--keys .skel-table__c { border-bottom: 1px solid var(--skel-table-rule-strong, var(--skeleton-rule-strong)); }
 
 // ── THE KEYS — the label axis, drawn as an axis ─────────────────────
 .skel-table__key {
-  background: var(--skel-table-key-coat, var(--grey-4));
+  background: var(--skel-table-key-coat, var(--skeleton-key-coat));
   // The kind constraint colours the key's leading rule (transparent when
   // the key takes anything).
   box-shadow: inset 3px 0 0 var(--skel-table-kind, transparent);
@@ -1175,7 +1179,7 @@ export default defineComponent({
   min-width: 0;
   height: 22px;
   padding: 0 6px;
-  border: 1px solid var(--skel-table-rule-strong, var(--grey-5));
+  border: 1px solid var(--skel-table-rule-strong, var(--skeleton-rule-strong));
   border-radius: 4px;
   background: #fff;
   font-size: 0.9em;
@@ -1190,7 +1194,7 @@ export default defineComponent({
   justify-content: center;
   width: 18px;
   height: 18px;
-  border: 1px solid var(--skel-table-rule-strong, var(--grey-5));
+  border: 1px solid var(--skel-table-rule-strong, var(--skeleton-rule-strong));
   border-radius: 4px;
   background: #fff;
   color: var(--st-ink-mute);
@@ -1211,7 +1215,7 @@ export default defineComponent({
   min-width: 240px;
   max-width: 360px;
   padding: 6px;
-  border: 1px solid var(--skel-table-rule-strong, var(--grey-5));
+  border: 1px solid var(--skel-table-rule-strong, var(--skeleton-rule-strong));
   border-radius: 6px;
   background: #fff;
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);

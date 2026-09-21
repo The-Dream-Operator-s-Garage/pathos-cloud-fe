@@ -224,7 +224,7 @@ const ICON_BY_KIND = {
   label: 'label_important',
   entity: 'person',
   path: 'route',
-  skeleton: 'schema',
+  skeleton: 'sym_o_mitre',
   post: 'edit_note',
   link: 'link'
 }

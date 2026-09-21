@@ -9,7 +9,7 @@
     <!-- ══ 1 · Skeleton instantiations ══ -->
     <section class="contrib__panel">
       <header class="contrib__head">
-        <q-icon name="schema" size="14px" class="q-mr-xs" />
+        <q-icon name="sym_o_mitre" size="14px" class="q-mr-xs" />
         <span>Instantiations</span>
         <span v-if="instTotal !== null" class="contrib__count mono">{{ instTotal }}</span>
         <q-space />
@@ -32,7 +32,7 @@
             class="inst-row"
             :to="`/skeletons/${s.id}`"
           >
-            <q-icon name="schema" size="13px" class="inst-row__icon" />
+            <q-icon name="sym_o_mitre" size="13px" class="inst-row__icon" />
             <span class="inst-row__name mono">{{ s.name }}</span>
             <span class="inst-row__schema">
               of <router-link :to="`/skeletons/${s.schema.id}`" @click.stop>{{ s.schema.name }}</router-link>
@@ -365,7 +365,7 @@ export default defineComponent({
   &:hover { border-color: rgba(0, 130, 156, 0.45); background: #f9fbfd; }
 }
 
-.inst-row__icon { color: #5b6c82; flex-shrink: 0; }
+.inst-row__icon { color: var(--skeleton-accent, #6d4c41); flex-shrink: 0; }
 
 .inst-row__name {
   font-size: 0.74em;

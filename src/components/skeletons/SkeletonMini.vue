@@ -58,7 +58,20 @@
 
        Re-toning: NodeMini's dial pattern — `--skel-mini-coat/-rule/
        -rule-hover/-head-ink` repaint the CHROME; the grid inside listens
-       to its own `--skel-table-*` dials, which pass through untouched. -->
+       to its own `--skel-table-*` dials, which pass through untouched.
+
+       ⭐ 2026-09-21 PM6 — BROWN, AND THE MITRE (user ask: the footer's
+       yellow section is SCHEMA creation and keeps its yellow; "for all the
+       SKELETONS that are used on dashboards, flyouts and references
+       (populated skeletons) … re-paint them to quasar brown tones … use
+       the material 'mitre' icon instead of the SCHEMAS one"). The dials'
+       DEFAULTS are the skeleton family's ladder now (`--skeleton-*` in
+       _tokens.scss: coat brown-1, rule brown-3, hover brown-6, ink
+       brown-8) instead of the flyout's greys, the SCHEMA badge washes in
+       brown-7 instead of teal, and every teal-12 hover on the row is the
+       family's brown-6. The foot's glyph reads `is_schema`: a schema keeps
+       `schema`, a populated skeleton wears kinds.js's `sym_o_mitre` — the
+       same split the address pill, the flyout head and the explorer make. -->
   <div v-if="loading" class="skel-mini__loading">
     <q-spinner size="14px" color="primary" />
   </div>
@@ -217,7 +230,7 @@
            many keys, who owns it, and whether it is frozen. -->
       <template #foot>
         <span class="skel-mini__foot-line" :title="footTitle">
-          <q-icon :name="skeletonKind.icon" size="10px" />
+          <q-icon :name="head.is_schema ? 'schema' : skeletonKind.icon" size="10px" />
           <span class="skel-mini__foot-schema">{{ footSchema }}</span>
           <span class="skel-mini__foot-dot">·</span>
           <span v-if="withheld" class="skel-mini__foot-withheld mono">keys withheld</span>
@@ -551,17 +564,19 @@ export default defineComponent({
 
 .skel-mini {
   // NodeMini's dial pattern: the chrome listens to four dials, consumed
-  // with fallbacks (defaults = the grey family the grid also wears).
-  --sm-ink: var(--skel-mini-head-ink, var(--brown-8, #4e342e));
-  --sm-rule: var(--skel-mini-rule, var(--grey-5, #bdbdbd));
+  // with fallbacks. Defaults = THE SKELETON FAMILY'S BROWN LADDER since
+  // 2026-09-21 PM6 (`--skeleton-*`, _tokens.scss) — the flyout's greys
+  // before that day; the grid inside falls back to the same ladder.
+  --sm-ink: var(--skel-mini-head-ink, var(--skeleton-ink, #5d4037));
+  --sm-rule: var(--skel-mini-rule, var(--skeleton-rule, #bcaaa4));
 
   :deep(.mini-panel) {
-    --panel-chrome: var(--skel-mini-coat, var(--grey-3, #eeeeee));
-    --panel-body: var(--skel-mini-coat, var(--grey-3, #eeeeee));
+    --panel-chrome: var(--skel-mini-coat, var(--skeleton-coat, #efebe9));
+    --panel-body: var(--skel-mini-coat, var(--skeleton-coat, #efebe9));
     --panel-rule: var(--sm-rule);
   }
   :deep(.mini-panel--hover):hover {
-    --panel-rule: var(--skel-mini-rule-hover, var(--grey-7, #757575));
+    --panel-rule: var(--skel-mini-rule-hover, var(--skeleton-hover, #795548));
   }
   // The header is one ROW of zones, split by full-height vertical
   // hairlines — which is why the zone padding lives on the zones and not
@@ -621,7 +636,7 @@ export default defineComponent({
   overflow: hidden;
   text-overflow: ellipsis;
   &.is-editable { cursor: text; }
-  &.is-editable:hover { box-shadow: inset 0 -1px 0 var(--teal-12, #00b8d4); }
+  &.is-editable:hover { box-shadow: inset 0 -1px 0 var(--skeleton-hover, #795548); }
 }
 .skel-mini__rename {
   flex: 1 1 auto;
@@ -639,9 +654,11 @@ export default defineComponent({
   flex-shrink: 0;
   padding: 0 5px;
   border-radius: 3px;
-  border: 1px solid rgba(0, 130, 156, 0.35);
-  background: rgba(0, 130, 156, 0.10);
-  color: #00687d;
+  // The badge in the family's own wash (brown-7 at 12%, its rim at 45%,
+  // brown-10 letters) — teal #00829c until 2026-09-21 PM6.
+  border: 1px solid rgba(var(--brown-7-rgb, 109, 76, 65), 0.45);
+  background: rgba(var(--brown-7-rgb, 109, 76, 65), 0.12);
+  color: var(--skeleton-chip-ink, #3e2723);
   font-size: 0.6em;
   letter-spacing: 0.06em;
   font-weight: 600;
@@ -678,14 +695,14 @@ export default defineComponent({
 // stood.)
 .skel-mini__lock {
   flex: 0 0 auto;
-  &:hover { color: var(--teal-12, #00b8d4); }
+  &:hover { color: var(--skeleton-hover, #795548); }
   &.is-locked { color: var(--coral-deep, #c05a4e); }
   &:disabled { opacity: 0.5; cursor: default; }
 }
 .skel-mini.is-sealed .skel-mini__lock { color: #2e8b57; cursor: default; }
 .skel-mini__zone--layout {
   flex: 0 0 auto;
-  &:hover { color: var(--teal-12, #00b8d4); }
+  &:hover { color: var(--skeleton-hover, #795548); }
 }
 .skel-mini__zone--open {
   flex: 0 0 auto;

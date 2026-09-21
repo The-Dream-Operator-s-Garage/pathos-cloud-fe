@@ -4,9 +4,9 @@
   <transition name="dock-slide">
     <section
       v-if="store.isOpen && !store.isMinimized"
-      class="skeleton-dock dock-window dock-window--creation"
+      class="schema-dock dock-window dock-window--creation"
       :class="{ 'is-max': store.isMaximized }"
-      :style="{ zIndex: windows.zOf('skeletonBuilder'), '--dock-right': windows.dockRight + 'px', '--trail-shift': windows.trailShiftOf('skeletonBuilder') + 'px' }"
+      :style="{ zIndex: windows.zOf('schemaBuilder'), '--dock-right': windows.dockRight + 'px', '--trail-shift': windows.trailShiftOf('schemaBuilder') + 'px' }"
     >
       <!-- ── Thin header: title left, Mac-style traffic lights right ── -->
       <header class="dock-bar">
@@ -261,7 +261,7 @@
 import { defineComponent, ref, computed, onMounted } from 'vue'
 import { useQuasar } from 'quasar'
 import { useRouter } from 'vue-router'
-import { useSkeletonBuilderStore, builderLabel } from 'src/stores/skeletonBuilder'
+import { useSchemaBuilderStore, builderLabel } from 'src/stores/schemaBuilder'
 import { useWindowsStore } from 'src/stores/windows'
 import { useAuthStore } from 'src/stores/auth'
 import { useNavStore } from 'src/stores/navigation'
@@ -284,13 +284,13 @@ const KIND_OPTIONS = [
 ]
 
 export default defineComponent({
-  name: 'SkeletonBuilderDock',
+  name: 'SchemaBuilderDock',
   components: { LabelFieldPicker },
 
   setup () {
     const $q = useQuasar()
     const router = useRouter()
-    const store = useSkeletonBuilderStore()
+    const store = useSchemaBuilderStore()
     const windows = useWindowsStore()
     const auth = useAuthStore()
     store.load()
@@ -538,7 +538,7 @@ export default defineComponent({
 //
 //   -1  the pale  — the wells, the resting tab face, the veil (1.06:1)
 //   -4  the mute  — the meta line, the resting pill rims (2.10:1)
-//   -8  ⭐ the contrast — every accent, via `--skeletons-contrast` (3.55:1)
+//   -8  ⭐ the contrast — every accent, via `--schemas-contrast` (3.55:1)
 //   -10 the deep  — the strong edge, the tab-hover ink (5.08:1)
 //
 // It lands almost exactly on the teal the uploader used to wear (3.26 / 4.73
@@ -547,7 +547,7 @@ export default defineComponent({
 //
 // ⚠ `--dock-coat` here is the FOURTH sanctioned break in the one-plaque law
 // — `fsck --static`'s `dock-coat` witness knows this file by name
-// (`SkeletonBuilderDock.vue` → `--skeletons-coat`), as it knows the maker's,
+// (`SchemaBuilderDock.vue` → `--schemas-coat`), as it knows the maker's,
 // the uploader's and the labels window's. Same two standing rules: the value
 // is a background LAYER LIST legal only in a `background:` shorthand, and a
 // FIFTH window wanting its own sheet gets added to that map on purpose. Four
@@ -561,26 +561,26 @@ export default defineComponent({
 // `--ltm-accent` / `--ltm-accent-rgb`, so turning it here re-tones the forest
 // under this roof and nowhere else — the same mechanism, and the same reason,
 // as MakerHeader's `--maker-*` under the uploader.
-.skeleton-dock {
-  --dock-coat: var(--skeletons-coat);
+.schema-dock {
+  --dock-coat: var(--schemas-coat);
   // (`--dock-glow` stood here 2026-09-05 → 09-07: the open-window light, this
   // family's Material 200 feeding three shadow layers on the shared footprint.
   // Retired by the user's ask for "a thin grey shadow instead" — the cast is
   // one grey layer on `.dock-window--creation` now and no window sets a tone
   // for it, so every tone in this colorway is a rung of the ladder again. The
   // chip's lit glyph on the bar kept its own `--chip-glow`.)
-  --dock-rule: var(--skeletons-contrast);
+  --dock-rule: var(--schemas-contrast);
   // ⚠ THE FAMILY MOVED ON 2026-09-07 (user ask: "skeletons -> yellow") — the levels named here
   // are yellow's now; the dials above them follow in `_tokens.scss`.
   // ⚠ `--yellow-deep` is HAND-MIXED: yellow's contrast is already its 900, and
   // that 900 is the family's ceiling (2.4:1 on the coat) — read `$yellow-*`.
   --dock-rule-strong: var(--yellow-deep);
-  --dock-ink: var(--skeletons-contrast);
+  --dock-ink: var(--schemas-contrast);
   --dock-ink-mute: var(--yellow-9);
   --dock-well: var(--yellow-1);
-  --ltm-accent: var(--skeletons-contrast);
+  --ltm-accent: var(--schemas-contrast);
   --ltm-accent-rgb: var(--yellow-10-rgb);
-  --q-primary: var(--skeletons-contrast);
+  --q-primary: var(--schemas-contrast);
 }
 
 // The one brown in the shared chrome that is NOT a dial — the tab-hover ink,
@@ -597,21 +597,21 @@ export default defineComponent({
   align-items: center;
   gap: 5px;
   padding: 2px 8px;
-  border: 1px solid var(--skeletons-contrast);
+  border: 1px solid var(--schemas-contrast);
   border-radius: 4px;
   background: rgba(var(--ink-rgb), 0.04);
   transition: background 0.12s, border-color 0.12s;
 
-  .dock-bar__icon { color: var(--skeletons-contrast); opacity: 0.85; }
-  .dock-bar__title { color: var(--skeletons-contrast); }
+  .dock-bar__icon { color: var(--schemas-contrast); opacity: 0.85; }
+  .dock-bar__title { color: var(--schemas-contrast); }
 }
 
 // ── Schema tabs — the lit lip and the new-tab glyph read the window's own
 // contrast, not the shared chrome's `#00829c` (which keeps lighting the two
 // docks that have no colorway). Scoped here, so a plain two-class rule
 // outranks the global one — no `:deep()`, as in the other three. ──
-.dock-tab.is-active { box-shadow: inset 0 2px 0 var(--skeletons-contrast); }
-.dock-tab--new:hover { color: var(--skeletons-contrast); }
+.dock-tab.is-active { box-shadow: inset 0 2px 0 var(--schemas-contrast); }
+.dock-tab--new:hover { color: var(--schemas-contrast); }
 
 // A TITLE — this window's section headings letter in its contrast tone, the
 // rule RefBrowser and FileExplorer already draw in theirs: words that NAME
@@ -620,7 +620,7 @@ export default defineComponent({
   font-size: 0.7em;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: var(--skeletons-contrast);
+  color: var(--schemas-contrast);
   font-family: var(--font-mono);
 }
 
@@ -738,7 +738,7 @@ export default defineComponent({
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  &:hover { color: var(--skeletons-contrast); }
+  &:hover { color: var(--schemas-contrast); }
 }
 
 .start-tmpl__meta {
@@ -770,7 +770,7 @@ export default defineComponent({
   cursor: pointer;
   transition: border-color 0.12s, color 0.12s;
 
-  &:hover { border-color: rgba(var(--yellow-10-rgb), 0.5); color: var(--skeletons-contrast); }
+  &:hover { border-color: rgba(var(--yellow-10-rgb), 0.5); color: var(--schemas-contrast); }
 }
 
 // ── Body (define mode) ──
@@ -873,7 +873,7 @@ export default defineComponent({
   color: var(--ink-soft);
   cursor: pointer;
 
-  &:hover { border-color: rgba(var(--yellow-10-rgb), 0.5); color: var(--skeletons-contrast); }
+  &:hover { border-color: rgba(var(--yellow-10-rgb), 0.5); color: var(--schemas-contrast); }
 }
 
 .kind-chip {

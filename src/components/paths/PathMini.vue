@@ -128,7 +128,7 @@ export default defineComponent({
 
     // Element strip: one entry per step target, image nodes as thumbs.
     const STEP_CAP = 12
-    const STEP_ICONS = { node: 'adjust', label: 'label_important', path: 'route', skeleton: 'schema', entity: 'person' }
+    const STEP_ICONS = { node: 'adjust', label: 'label_important', path: 'route', skeleton: 'sym_o_mitre', entity: 'person' }
     const displaySteps = computed(() => {
       if (!Array.isArray(props.steps) || !props.steps.length) return []
       return props.steps.slice(0, STEP_CAP).map((s, i) => {

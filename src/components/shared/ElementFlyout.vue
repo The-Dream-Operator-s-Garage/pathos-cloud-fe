@@ -110,7 +110,8 @@
 
       <!-- Kind glyph + name, centred as ONE group — the glyph follows what
            is SHOWING (the element kind's mark on the element face, the
-           skeleton kind's `schema` on the skeleton face), the name stays
+           skeleton kind's mitre — or `schema` for a bare schema — on the
+           skeleton face; 2026-09-21 PM6), the name stays
            the window's stable identity so its parked tab never renames. -->
       <span class="dock-bar__title element-flyout__name" :title="title">
         <q-icon :name="headIcon" size="13px" class="element-flyout__kind" />
@@ -133,7 +134,7 @@
              is remembered per browser (localStorage) so every window opens
              the way the last one was left.
            · THE VIEW SWITCH — wears the glyph of the face it OFFERS:
-             `schema` while the element is up, the element's own glyph while
+             the skeleton's mitre while the element is up, the element's own glyph while
              the skeleton is; lit while the skeleton face is out. Only when
              the target has two faces. -->
       <span class="element-flyout__controls" @pointerdown.stop>
@@ -754,15 +755,19 @@ export default defineComponent({
     // The NAME is the window's stable self (a parked tab must not rename
     // when the face flips); the GLYPH follows what is showing.
     const skeletonKind = kindFor('skeletons')
+    // ⭐ 2026-09-21 PM6: a POPULATED skeleton's face wears kinds.js's mitre
+    // (`sym_o_mitre`); a bare SCHEMA — the only face it has — keeps `schema`,
+    // read off the ref-door walk's `is_schema` (SkeletonTable's `resolved`).
+    const skeletonGlyph = computed(() => (resolvedInfo.value?.is_schema ? 'schema' : skeletonKind.icon))
     const elementGlyph = computed(() => {
       if (targetNode.value) return iconFor(targetNode.value)
       if (targetItem.value) return 'sym_o_post'
       if (targetEntity.value) return entityGlyph(entityInfo.value?.entity || targetEntity.value)
       if (targetElement.value) return kindFor(elementPrefix.value).icon
-      return skeletonKind.icon
+      return skeletonGlyph.value
     })
     const headIcon = computed(() =>
-      showing.value === 'skeleton' ? skeletonKind.icon : elementGlyph.value
+      showing.value === 'skeleton' ? skeletonGlyph.value : elementGlyph.value
     )
     const title = computed(() => {
       if (targetNode.value) return titleOf(targetNode.value)
@@ -784,7 +789,7 @@ export default defineComponent({
       return name ? `${name} Skeleton` : 'Skeleton'
     })
     const swapIcon = computed(() =>
-      view.value === 'element' ? skeletonKind.icon : elementGlyph.value
+      view.value === 'element' ? skeletonGlyph.value : elementGlyph.value
     )
     const swapTitle = computed(() => {
       if (view.value === 'element') return targetEntity.value ? 'Show the profile skeleton' : 'Show the skeleton'

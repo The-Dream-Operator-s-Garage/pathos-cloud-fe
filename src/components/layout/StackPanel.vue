@@ -91,7 +91,7 @@
       <button type="button" class="side-head__open" :disabled="skeletonOpening"
         title="Open the stack as a skeleton — every stop and its sub-stack, in the flyout viewer"
         @click.stop="openSkeleton">
-        <q-icon name="schema" size="13px" />
+        <q-icon name="sym_o_mitre" size="13px" />
       </button>
     </header>
 

@@ -8,7 +8,7 @@
        a phase-5 layout slot exactly like a tab can. -->
   <div class="smart-input" @focusout="onFocusOut">
     <div class="smart-input__box">
-      <q-icon name="schema" size="13px" class="smart-input__glyph" />
+      <q-icon name="sym_o_mitre" size="13px" class="smart-input__glyph" />
       <input
         v-model="q"
         type="text"
@@ -33,7 +33,7 @@
         @mousedown.prevent
         @click="pick(r)"
       >
-        <q-icon name="schema" size="12px" class="smart-input__row-glyph" />
+        <q-icon :name="r.is_schema ? 'schema' : 'sym_o_mitre'" size="12px" class="smart-input__row-glyph" />
         <span class="smart-input__row-name">{{ r.name || '(untitled)' }}</span>
         <span v-if="r.is_schema" class="smart-input__row-badge">SCHEMA</span>
         <q-space />

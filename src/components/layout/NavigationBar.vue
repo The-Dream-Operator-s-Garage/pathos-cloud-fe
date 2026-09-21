@@ -145,7 +145,7 @@
              — messages, polls, invites, grants, comments all land here or
              one click away. Opening the dock marks the queue seen (coarse
              v1 ack; see stores/events.js). -->
-        <!-- ── The four creation windows: post maker · skeleton builder ·
+        <!-- ── The four creation windows: post maker · schema builder ·
              label maker · uploader. FOUR SEPARATE BUTTONS SINCE 2026-08-23
              (user ask: "separate each button so that each one of them is an
              individual button"). They were a Quasar `q-btn-group` from
@@ -196,14 +196,26 @@
           <span class="nav-btn__label">POST</span>
           <q-tooltip>Make post</q-tooltip>
         </q-btn>
-        <q-btn unelevated class="nav-btn create-btn create-btn--skeletonBuilder" :class="{ 'is-active': creationExpanded.skeletonBuilder }" :ref="setChip('skeletonBuilder')" :style="chipStyle('skeletonBuilder')" @click="$emit('open-skeleton-builder')">
-          <span class="nav-btn__grip" @pointerdown="startChipDrag('skeletonBuilder', $event)" @click.stop>
+        <!-- ⭐ 2026-09-21 PM6 — SCHEMAS (user ask: "the section on the footer nav
+             bar that reads 'skeletons' and is painted yellow corresponds to
+             SCHEMA creation. Please rename the section as such ('SCHEMAS'),
+             rebrand it internally and keep its yellow coloring and icon"). The
+             word, the tooltip, the chip key (`schemaBuilder` — `skeletonBuilder`
+             until this day; windows.js reads a trail offset saved under the old
+             key once), the dials (`--schemas-*`), the store, the dock file and
+             the `.schema-dock` root all renamed together. Yellow-10 + `schema`
+             stay: they are the SCHEMA's. What LEFT this family is the populated
+             skeleton — brown-7 + `sym_o_mitre` in kinds.js, the same sitting.
+             The chain codes did not move: OPEN_BUILDER / CLOSE_BUILDER and the
+             SKELETON_BUILDER leaf name stops already written on every trail. -->
+        <q-btn unelevated class="nav-btn create-btn create-btn--schemaBuilder" :class="{ 'is-active': creationExpanded.schemaBuilder }" :ref="setChip('schemaBuilder')" :style="chipStyle('schemaBuilder')" @click="$emit('open-schema-builder')">
+          <span class="nav-btn__grip" @pointerdown="startChipDrag('schemaBuilder', $event)" @click.stop>
             <q-icon name="drag_indicator" size="11px" />
           </span>
           <span class="nav-btn__grip-rule" />
           <q-icon name="schema" size="15px" />
-          <span class="nav-btn__label">SKELETONS</span>
-          <q-tooltip>Build skeletons — define templates, populate and edit instances</q-tooltip>
+          <span class="nav-btn__label">SCHEMAS</span>
+          <q-tooltip>Build schemas — define and fork templates; instances are populated on their own viewer</q-tooltip>
         </q-btn>
         <q-btn unelevated class="nav-btn create-btn create-btn--labelMaker" :class="{ 'is-active': creationExpanded.labelMaker }" :ref="setChip('labelMaker')" :style="chipStyle('labelMaker')" @click="$emit('open-label-maker')">
           <span class="nav-btn__grip" @pointerdown="startChipDrag('labelMaker', $event)" @click.stop>
@@ -439,7 +451,7 @@ import { useRoute } from 'vue-router'
 import { useWindowsStore } from 'src/stores/windows'
 import { useMakerStore, draftLabel } from 'src/stores/maker'
 import { useUploaderStore, uploadLabel } from 'src/stores/uploader'
-import { useSkeletonBuilderStore, builderLabel } from 'src/stores/skeletonBuilder'
+import { useSchemaBuilderStore, builderLabel } from 'src/stores/schemaBuilder'
 import { useLabelMakerStore } from 'src/stores/labelMaker'
 import { useChatStore } from 'src/stores/chat'
 import { useDashboardStore } from 'src/stores/dashboard'
@@ -451,7 +463,7 @@ import IdentityChip from 'src/components/identity/IdentityChip.vue'
 export default defineComponent({
   name: 'NavigationBar',
   components: { FriezeBar, IdentityChip },
-  emits: ['toggle-drawer', 'open-maker', 'open-uploader', 'open-skeleton-builder', 'open-label-maker', 'pins-changed'],
+  emits: ['toggle-drawer', 'open-maker', 'open-uploader', 'open-schema-builder', 'open-label-maker', 'pins-changed'],
   props: {
     // Increment to force a pin-state refresh from the parent (e.g. after the
     // PinsDrawer unpins something so the tack indicator updates).
@@ -467,7 +479,7 @@ export default defineComponent({
     const windows = useWindowsStore()
     const makerStore = useMakerStore()
     const uploaderStore = useUploaderStore()
-    const skeletonBuilderStore = useSkeletonBuilderStore()
+    const schemaBuilderStore = useSchemaBuilderStore()
     const labelMakerStore = useLabelMakerStore()
     const chatStore = useChatStore()
     const dashboardStore = useDashboardStore()
@@ -524,7 +536,7 @@ export default defineComponent({
     // chip glows while the window is up, the tab appears when it goes down.
     const creationExpanded = computed(() => ({
       maker: makerStore.isOpen && !makerStore.isMinimized,
-      skeletonBuilder: skeletonBuilderStore.isOpen && !skeletonBuilderStore.isMinimized,
+      schemaBuilder: schemaBuilderStore.isOpen && !schemaBuilderStore.isMinimized,
       labelMaker: labelMakerStore.isOpen && !labelMakerStore.isMinimized,
       uploader: uploaderStore.isOpen && !uploaderStore.isMinimized
     }))
@@ -540,7 +552,7 @@ export default defineComponent({
     // lives in the windows store so the docks can ride it. This component
     // owns everything geometric: measuring, clamping, reconciling. See the
     // template note.
-    const TRAIL_CHIPS = ['maker', 'skeletonBuilder', 'labelMaker', 'uploader', 'chat']
+    const TRAIL_CHIPS = ['maker', 'schemaBuilder', 'labelMaker', 'uploader', 'chat']
     const chipEls = {}
     const setChip = (key) => (inst) => {
       chipEls[key] = inst ? (inst.$el || inst) : null
@@ -857,15 +869,15 @@ export default defineComponent({
           restore: () => makerStore.restore()
         })
       }
-      if (skeletonBuilderStore.isOpen && skeletonBuilderStore.isMinimized) {
+      if (schemaBuilderStore.isOpen && schemaBuilderStore.isMinimized) {
         tabs.push({
-          key: 'skeletonBuilder',
+          key: 'schemaBuilder',
           icon: 'schema',
-          label: builderLabel(skeletonBuilderStore.activeDraft),
-          meta: skeletonBuilderStore.draftCount > 1 ? `+${skeletonBuilderStore.draftCount - 1}` : '',
+          label: builderLabel(schemaBuilderStore.activeDraft),
+          meta: schemaBuilderStore.draftCount > 1 ? `+${schemaBuilderStore.draftCount - 1}` : '',
           busy: false,
-          title: 'Restore the skeleton builder',
-          restore: () => skeletonBuilderStore.restore()
+          title: 'Restore the schema builder',
+          restore: () => schemaBuilderStore.restore()
         })
       }
       if (labelMakerStore.isOpen && labelMakerStore.isMinimized) {
@@ -1244,9 +1256,9 @@ export default defineComponent({
   --mtab-rim-ink: var(--maker-contrast);
   --mtab-ink: var(--indigo-10);
 }
-.minitab--skeletonBuilder {
-  --mtab-face: var(--skeletons-flat);
-  --mtab-rim-ink: var(--skeletons-contrast);
+.minitab--schemaBuilder {
+  --mtab-face: var(--schemas-flat);
+  --mtab-rim-ink: var(--schemas-contrast);
   --mtab-ink: var(--yellow-10);
 }
 .minitab--labelMaker {
@@ -1393,7 +1405,7 @@ export default defineComponent({
 // standing window still turns its chip's glyph to the family's 200 with the
 // bloom (`.create-btn.is-active`, further down — it outscores this rule).
 .nav-bar .create-btn--maker           { --chip-word: var(--indigo-10); }
-.nav-bar .create-btn--skeletonBuilder { --chip-word: var(--yellow-10); }
+.nav-bar .create-btn--schemaBuilder { --chip-word: var(--yellow-10); }
 .nav-bar .create-btn--labelMaker      { --chip-word: var(--red-10); }
 .nav-bar .create-btn--uploader        { --chip-word: var(--teal-10); }
 .nav-bar .create-btn .nav-btn__label { color: var(--chip-word); }
@@ -1426,7 +1438,7 @@ export default defineComponent({
 // chip's vertical line system and a colorway that moved only the outer two
 // would leave a grey line inside a coloured box.
 .nav-bar .create-btn--maker           { --chip-rim: var(--maker-contrast);     --chip-grip: var(--maker-contrast);     --chip-glow: var(--indigo-3); }
-.nav-bar .create-btn--skeletonBuilder { --chip-rim: var(--skeletons-contrast); --chip-grip: var(--skeletons-contrast); --chip-glow: var(--yellow-3); }
+.nav-bar .create-btn--schemaBuilder { --chip-rim: var(--schemas-contrast); --chip-grip: var(--schemas-contrast); --chip-glow: var(--yellow-3); }
 .nav-bar .create-btn--labelMaker      { --chip-rim: var(--labels-contrast);    --chip-grip: var(--labels-contrast);    --chip-glow: var(--red-3); }
 .nav-bar .create-btn--uploader        { --chip-rim: var(--uploader-contrast);  --chip-grip: var(--uploader-contrast);  --chip-glow: var(--teal-3); }
 
@@ -2210,7 +2222,7 @@ export default defineComponent({
 .nav-divider { width: 1px; align-self: stretch; background: var(--brown-3); flex-shrink: 0; }
 
 // ── THE SIX WORDS — DESKTOP ONLY (2026-08-23, user ask naming each one:
-// MESSAGES · DASHBOARDS · POST · SKELETONS · LABELS · UPLOADS) ──────────────
+// MESSAGES · DASHBOARDS · POST · SCHEMAS · LABELS · UPLOADS) ──────────────
 // NASALIZATION comes for free: `.nav-btn` has carried `font-family:
 // var(--font-display)` since the bar was built, and that token IS Nasalization
 // (`_tokens.scss`; the `.nasalization` utility is the same declaration under a
@@ -2236,7 +2248,7 @@ export default defineComponent({
 // ── THE FOUR CREATION CHIPS AS ONE MEASURE (2026-08-24, user ask: "for the
 // creative ones, help me making them all have the same width on desktop") ────
 // A grid whose columns are `1fr`, which in a shrink-to-fit container resolves
-// to "every column as wide as the WIDEST one's content" — so SKELETONS sets the
+// to "every column as wide as the WIDEST one's content" — so SCHEMAS sets the
 // measure and POST, LABELS and UPLOADS take it, with no number written down.
 // That is the whole reason for a grid rather than a `width` on `.create-btn`:
 // the words are content, and a hard-coded box rots the day one of them changes.

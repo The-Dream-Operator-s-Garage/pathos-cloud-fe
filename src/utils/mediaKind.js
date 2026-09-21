@@ -1,4 +1,5 @@
 import { entityGlyph, entityHandle } from 'src/utils/entityKind'
+import { kindFor } from 'src/utils/kinds'
 
 // What a media node IS, for display (docs/plans/floating-media-viewer.md).
 // ONE branch decision, shared: the viewer body picks its renderer off
@@ -116,7 +117,7 @@ export function iconForTarget (target) {
     const ref = String(target.ref)
     if (ref.includes('nodes/')) return FACE_ICON.card
     if (ref.includes('entities/')) return 'person'
-    return 'schema'
+    return kindFor('skeletons').icon // the populated skeleton's mitre (2026-09-21 PM6; `schema` before)
   }
   return FACE_ICON.card
 }

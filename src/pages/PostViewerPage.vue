@@ -56,7 +56,7 @@
                   class="structure-link structure-link--stacked"
                   title="View skeleton structure"
                 >
-                  <q-icon name="schema" size="16px" />
+                  <q-icon name="sym_o_mitre" size="16px" />
                   <span class="structure-link__label">view as<br>skeleton</span>
                 </router-link>
               </div>

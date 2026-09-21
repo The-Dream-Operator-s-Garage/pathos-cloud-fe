@@ -527,7 +527,7 @@ export default defineComponent({
 //
 // The tree on the left and the mini-makers are SHARED components
 // (LabelTreeMini / LabelTreeMiniNode / LabelMiniMaker also mount inside
-// the skeleton builder's LabelFieldPicker). They read ONE dial pair,
+// the schema builder's LabelFieldPicker). They read ONE dial pair,
 // `--ltm-accent` / `--ltm-accent-rgb`, with the shared chrome's `#00829c`
 // as the fallback — so turning the pair here re-tones the forest inside
 // this window and nowhere else. Same mechanism as MakerHeader's

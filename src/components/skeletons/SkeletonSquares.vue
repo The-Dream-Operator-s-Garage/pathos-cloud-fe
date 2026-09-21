@@ -90,7 +90,9 @@ export default defineComponent({
 
     const iconName = computed(() => {
       const base = (props.skeleton.name || '').split(':')[0]
-      return ICONS[base] || 'schema'
+      // (2026-09-21 PM6) a template/schema square keeps the schema mark; an
+      // instance carved inside it wears the mitre (kinds.js `skeletons.icon`).
+      return ICONS[base] || ((isTemplate.value || props.skeleton.is_schema) ? 'schema' : 'sym_o_mitre')
     })
 
     const toggle = () => { expanded.value = !expanded.value }
@@ -116,7 +118,8 @@ export default defineComponent({
 
 <style lang="scss" scoped>
 // Same carve-the-pit language as LabelSquares, tinted to the skeleton
-// family color (#5b6c82) instead of the label teal.
+// family color — brown-7 through `--skeleton-accent` since 2026-09-21 PM6
+// (the slate var(--skeleton-accent, #6d4c41) before that day) — instead of the label teal.
 .skeleton-square {
   --depth: 0;
   border: 1px solid rgba(var(--ink-rgb), 0.16);
@@ -145,18 +148,18 @@ export default defineComponent({
   cursor: pointer;
   user-select: none;
 
-  &:hover { background: rgba(91, 108, 130, 0.08); }
+  &:hover { background: rgba(var(--brown-7-rgb, 109, 76, 65), 0.08); }
 }
 
 .skeleton-square__toggle {
   color: rgba(var(--ink-rgb), 0.45);
   cursor: pointer;
   flex-shrink: 0;
-  &:hover { color: #5b6c82; }
+  &:hover { color: var(--skeleton-accent, #6d4c41); }
 }
 
 .skeleton-square__kind {
-  color: #5b6c82;
+  color: var(--skeleton-accent, #6d4c41);
   flex-shrink: 0;
 }
 
@@ -172,9 +175,9 @@ export default defineComponent({
   text-overflow: ellipsis;
 }
 
-.is-selected > .skeleton-square__head .skeleton-square__name { color: #5b6c82; }
+.is-selected > .skeleton-square__head .skeleton-square__name { color: var(--skeleton-accent, #6d4c41); }
 
-.skeleton-square__sys { color: #5b6c82; opacity: 0.75; flex-shrink: 0; }
+.skeleton-square__sys { color: var(--skeleton-accent, #6d4c41); opacity: 0.75; flex-shrink: 0; }
 
 .skeleton-square__count {
   font-family: 'Space Mono', monospace;

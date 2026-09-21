@@ -62,7 +62,7 @@
 
       <section v-if="usages.skeletons.length" class="label-usages__group">
         <div class="label-usages__group-head">
-          <q-icon name="schema" size="12px" style="color:#5b6c82;" />
+          <q-icon name="sym_o_mitre" size="12px" style="color:var(--skeleton-accent, #6d4c41);" />
           skeletons <span class="label-usages__total">{{ totals.skeletons }}</span>
         </div>
         <MiniPanel
@@ -72,7 +72,7 @@
           class="q-mb-sm"
         >
           <template #title>
-            <q-icon name="schema" size="13px" class="q-mr-xs" style="color:#5b6c82;" />
+            <q-icon name="sym_o_mitre" size="13px" class="q-mr-xs" style="color:var(--skeleton-accent, #6d4c41);" />
             {{ s.name || `Skeleton #${s.id}` }}
           </template>
           <template #hash>

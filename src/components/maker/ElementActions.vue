@@ -55,7 +55,7 @@ import ElementMaker from './ElementMaker.vue'
 import { nodeService } from 'src/services/node.service'
 import { postService } from 'src/services/post.service'
 import { skeletonService } from 'src/services/skeleton.service'
-import { useSkeletonBuilderStore } from 'src/stores/skeletonBuilder'
+import { useSchemaBuilderStore } from 'src/stores/schemaBuilder'
 
 export default defineComponent({
   name: 'ElementActions',
@@ -115,7 +115,7 @@ export default defineComponent({
       try {
         const w = await skeletonService.walk(skeletonId)
         if (!w.success) return false
-        const outcome = useSkeletonBuilderStore().openFromWalk(w, auth.entityId)
+        const outcome = useSchemaBuilderStore().openFromWalk(w, auth.entityId)
         if (outcome === 'instance') {
           router.push('/skeletons/' + skeletonId)
         }
@@ -158,7 +158,7 @@ export default defineComponent({
         // through the API.
         const w = await skeletonService.walk(props.sourceId).catch(() => null)
         if (w?.skeleton?.is_schema) {
-          useSkeletonBuilderStore().openForkDraft(w)
+          useSchemaBuilderStore().openForkDraft(w)
           return
         }
         doForkThenEdit()

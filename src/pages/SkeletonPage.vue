@@ -30,7 +30,7 @@
             </div>
 
             <div v-else-if="filteredSkeletons.length === 0" class="text-dim text-center q-py-lg" style="font-size:0.82em;">
-              <q-icon name="schema" size="32px" style="opacity:.3;" />
+              <q-icon name="sym_o_mitre" size="32px" style="opacity:.3;" />
               <div class="q-mt-sm">No skeletons yet. Run the seeders:</div>
               <code style="font-size:.9em; color:var(--ink);">node scripts/seed-templates.js</code>
             </div>
@@ -331,7 +331,7 @@
           <!-- Body — slots OR directory items (read-only for non-owned). -->
           <div v-else-if="slots.length" class="subject-panel__body subject-panel__body--list">
             <div class="body-heading">
-              <q-icon name="schema" size="16px" class="q-mr-sm" />
+              <q-icon name="sym_o_mitre" size="16px" class="q-mr-sm" />
               Fields ({{ slots.length }})
             </div>
             <div class="slot-list">
@@ -499,7 +499,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { skeletonService } from 'src/services/skeleton.service'
 import { useStateHolder } from 'src/composables/useStateHolder'
 import { useAuthStore } from 'src/stores/auth'
-import { useSkeletonBuilderStore } from 'src/stores/skeletonBuilder'
+import { useSchemaBuilderStore } from 'src/stores/schemaBuilder'
 import { hashOf, kindFor } from 'src/utils/kinds'
 import SlotRenderer from 'src/components/skeletons/SlotRenderer.vue'
 import SkeletonSquares from 'src/components/skeletons/SkeletonSquares.vue'
@@ -533,7 +533,9 @@ const SKELETON_ICONS = {
   LINK: 'link',
   PATH: 'route'
 }
-const iconForSkeleton = (s) => SKELETON_ICONS[(s?.name || '').split(':')[0]] || 'schema'
+// (2026-09-21 PM6) the fallback splits on `is_schema`: a schema keeps the
+// `schema` mark, a populated skeleton wears kinds.js's `sym_o_mitre`.
+const iconForSkeleton = (s) => SKELETON_ICONS[(s?.name || '').split(':')[0]] || (s?.is_schema ? 'schema' : 'sym_o_mitre')
 
 // Usage rows: a bound TITLE when there is one (POSTs), else the instance's
 // own name — never "(untitled)", which misreads non-post instances as
@@ -737,7 +739,7 @@ export default defineComponent({
     // Fork a schema: open the builder dock's fork draft (rename + tweak
     // fields, submit records lineage server-side). Works on your own
     // schemas too — that's how you branch a variant.
-    const builder = useSkeletonBuilderStore()
+    const builder = useSchemaBuilderStore()
     const forkSchema = () => {
       if (!skeleton.value) return
       builder.openForkDraft({ skeleton: skeleton.value, slots: slots.value })

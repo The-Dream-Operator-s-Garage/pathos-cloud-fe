@@ -338,7 +338,7 @@
   // The chat and dashboard ones have a decent look on the drag icon section.
   // Copy them please"). Quasar centres this row, and until today the four
   // MAKER chips paid for that: `.create-row`'s `1fr` columns size them all to
-  // SKELETONS' natural width, and a centred row SPLITS the leftover EVENLY —
+  // SCHEMAS' natural width, and a centred row SPLITS the leftover EVENLY —
   // so the handle drifted INTO the chip by half the slack. Measured before the
   // change, the grip's x inside its chip read 6 · 6 · 6 (skeletons/chat/
   // dashboard) against 12.5 · 16.7 · 23.5 (uploads/labels/post): the same
@@ -601,7 +601,7 @@
 .dock-slide-enter-from, .dock-slide-leave-to { transform: translateY(24px); opacity: 0; }
 
 // ── CREATION-WINDOW footprint + coat (2026-07-27) — the four creative docks
-// (maker, uploader, skeleton builder, label maker) and, since 2026-08-03,
+// (maker, uploader, schema builder, label maker) and, since 2026-08-03,
 // CHAT: five docks, ONE window (user ask — "make the window occupy the same
 // dimensions as the maker and uploader windows when expanded"; verified
 // pixel-identical at 1280×860, x 640 / 580×778 / 60px right / 50px bottom).
@@ -1210,7 +1210,7 @@
   }
 }
 
-// 50/50 split tiling (windows.split): the skeleton builder parks on the
+// 50/50 split tiling (windows.split): the schema builder parks on the
 // left half while a companion editor (maker/uploader) fills the right half
 // so a freshly created element can be captured straight into a slot.
 // !important beats each dock's own width/height rules while split.

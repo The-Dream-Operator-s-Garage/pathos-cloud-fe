@@ -74,8 +74,9 @@ export default defineComponent({
   transition: color 0.10s, background 0.10s;
 }
 .ref-skeleton {
-  color: #5b6c82;
-  &:hover { color: #1F2A38; background: rgba(31, 42, 56, 0.06); }
+  // the skeleton family's brown since 2026-09-21 PM6 (slate #5b6c82 before)
+  color: var(--skeleton-accent, #6d4c41);
+  &:hover { color: var(--skeleton-chip-ink, #3e2723); background: rgba(var(--brown-7-rgb, 109, 76, 65), 0.08); }
 }
 .ref-post {
   color: #2a5a87;
