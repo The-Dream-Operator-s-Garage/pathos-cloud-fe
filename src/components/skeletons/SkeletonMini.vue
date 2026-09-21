@@ -613,17 +613,18 @@ export default defineComponent({
 }
 .skel-mini__zone--chip {
   flex: 0 1 auto;
-  gap: 2px;
-  // THE PILL STANDS 1px OFF THE HEAD'S LEFT EDGE (⭐ 2026-09-21 PM8, user
-  // ask: "reduce the padding on the left, between the left side of the
-  // header container and the pill so the padding is consistent with the
-  // top and bottom one") — the zone rule's 4px side air, on the first zone,
-  // was the only air between the head's edge and the pill; 1px read "too
-  // close" (a round end meets a straight edge at a tangent), 2px is where
-  // it settled ("add a little more padding. just a little"). The right side
-  // keeps the zone's 4px: that is the seam before the name zone's hairline,
-  // not an edge. (NodeMini's chip zone says the same.)
-  padding-left: 2px;
+  // THE SAME ZONE AS THE NODE'S, BY CONSTRUCTION (⭐ 2026-09-21 PM8, user
+  // ask: "consistent sizing and padding on both headers for the node and for
+  // the skeleton pill containers … homogenize their header layout"): both
+  // minis' chip zones read ONE pair of dials in _tokens.scss —
+  // `--mini-chip-zone-pad` (2px 4px 2px 2px: 2px of air on the pill's three
+  // edge sides — the walk that day went 4px left → 1px "too close" → 2px,
+  // then top, then bottom — and the zone's 4px on the right, the seam before
+  // the name zone's hairline) and `--mini-chip-zone-gap` (2px between the
+  // pill and its copy glyph, which was this zone's own `gap: 2px`). Neither
+  // head can drift from the other again.
+  padding: var(--mini-chip-zone-pad, 2px 4px 2px 2px);
+  gap: var(--mini-chip-zone-gap, 2px);
   // (The pill's corners were restated here — `:deep(.info-chip) {
   // border-radius: --radius-pill }` — for the InfoChip that stood in this
   // zone 2026-09-21 AM → PM; the stock MicroChip carries them itself.)

@@ -1081,6 +1081,18 @@ $warning:   #F2C037;
   --radius-lg:  1.25em;
   --radius-pill: 999px;
   --radius-xl:  2.5em;
+  // THE MINI HEADS' CHIP ZONE — ONE PAIR OF DIALS (⭐ 2026-09-21 PM8, user
+  // ask: "make sure we have a consistent sizing and padding on both headers
+  // for the node and for the skeleton pill containers so they look the
+  // same. homogenize their header layout"). `.node-mini__zone--chip` and
+  // `.skel-mini__zone--chip` both read these, so the two heads cannot drift
+  // apart again: 2px of air around the pill on its three edge sides (the
+  // walk that day: 4px left → 1px "too close" → 2px, then "a little on top",
+  // then "a little on the bottom too"), the zone's 4px on the right — the
+  // seam before the name zone's hairline — and 2px between the pill and its
+  // copy glyph (the skeleton's gap; the node had none).
+  --mini-chip-zone-pad: 2px 4px 2px 2px;
+  --mini-chip-zone-gap: 2px;
 
   // Carved shadow stack — the signature "embossed" look:
   //   1) crisp inner top highlight (the "light catches the top edge")
