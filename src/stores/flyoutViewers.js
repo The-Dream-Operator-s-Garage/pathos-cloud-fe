@@ -190,7 +190,14 @@ export const useFlyoutViewersStore = defineStore('flyoutViewers', {
     spawn (target, opts = {}) {
       const identity = identityOf(target)
       if (!identity) return null
-      const existing = this.viewers.find(v => identityOf(v.target) === identity)
+      // ONE WINDOW PER ELEMENT, WHATEVER THE DOOR (2026-09-21 PM): a chip
+      // opens by ADDRESS (`spawnRef`) while a card or a mini opens by the
+      // enriched row (`spawnPost` / `spawnNode`), and those are different
+      // identities until the ref window resolves — so a second window would
+      // open for the same post. The persistable address is the same on both
+      // sides (`refOf`), so a match on it is a match on the element.
+      const ref = refOf(target)
+      const existing = this.viewers.find(v => identityOf(v.target) === identity || (ref && refOf(v.target) === ref))
       if (existing) {
         // ⚠ A REHYDRATION THAT LANDS HERE IS A DUPLICATE, NOT A RESTORE.
         // The tray can hold two rows for one element — a ref-door window

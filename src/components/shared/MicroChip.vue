@@ -1,18 +1,31 @@
 <template>
-  <!-- The reusable "Micro" chip: per-spec `icon / type / hash` format.
+  <!-- The reusable "Micro" chip — THE NANO PILL: `● icon / type / hash ⤢`.
        Designed to be smuggled inline with text. Width adapts to its
        container — fully expanded shows the entire hash; collapsed shows a
-       6-character minimum slice + ellipsis. Click routes to the kind's
-       viewer when an `id` is known (via src/utils/kinds.js). -->
-  <component
-    :is="rootTag"
-    :to="route"
+       6-character minimum slice + ellipsis.
+
+       ⭐ 2026-09-21 PM (user ask: "when I click on them, its respective
+       flyout window is opened instead of redirecting to an individual page
+       … put the expand icon on the right end of all nano chips … we're
+       using the very same nano chips everywhere … the nano node pill on
+       the mini node viewer's header is the reference"): the root is a SPAN
+       with a button role, never a router-link — a click opens the element's
+       flyout window (`openFlyout`), the page stays where it is; the verdict
+       light LEADS by default (NodeMini's grammar, the reference pill); the
+       door glyph stands at the right end; corners are the pill's; the text
+       is the kind's ink. No host restyles it any more — a chip in a post
+       body, on a card's cap or foot, in a mini's header, on the stack strip
+       or in the file tree is the same object. -->
+  <span
     class="micro-chip"
-    :class="['kind-' + meta.kind, { 'is-link': !!route, 'no-type': !showType, 'pioneer-gold': pioneer, 'integrity-leads': integrityLeads, 'has-open': canOpen }]"
+    :class="['kind-' + meta.kind, { 'is-open': opensOnClick, 'no-type': !showType, 'pioneer-gold': pioneer, 'integrity-leads': integrityLeads }]"
     :style="accentStyle"
     :title="tooltip"
+    :role="opensOnClick ? 'button' : null"
+    :tabindex="opensOnClick ? 0 : null"
     :data-nav-focus="route || null"
-    @click.stop
+    @click.stop="onRootClick"
+    @keydown.enter.prevent="onRootClick"
   >
     <q-icon :name="meta.icon" :size="iconSize" class="micro-chip__icon" />
     <template v-if="showType">
@@ -52,26 +65,26 @@
       role="button"
       @click.stop.prevent="onIntegrityClick"
     />
-    <!-- THE DOOR (2026-09-21, user ask: "add a button to extend the item"):
-         the chip's last mark opens the element in the flyout viewer — the
-         node's media faces, the post's card, the entity's profile, a
-         skeleton's grid, and (new the same day) a label / moment / path /
-         link / secret as its Mini panel with its surround skeleton one
-         switch away. A span with a role, not a <button>: the chip's root
-         is an anchor when it routes, and a control inside a control is
-         invalid markup — the integrity dot above set the precedent.
-         `.stop.prevent` keeps the anchor from navigating on the same press.
+    <!-- THE DOOR (2026-09-21, user ask: "add a button to extend the item";
+         PM: "put the expand icon on the right end of all nano chips"): the
+         chip's LAST mark, always at the right end — `order: 99`, whatever
+         leads. It opens the element in the flyout viewer — the node's
+         media faces, the post's card, the entity's profile, a skeleton's
+         grid, a label / moment / path / link / secret as its Mini panel
+         with its surround skeleton one switch away. The whole chip opens
+         the same window since the PM pass; the glyph keeps its own handler
+         for the one host that takes the root click back for itself (the
+         file tree's RefChip reveals in-tree; its door still opens).
          `open_in_full`, NodeMini's corner glyph, one size down. -->
     <span
       v-if="canOpen"
       class="micro-chip__open"
-      role="button"
       :title="'open this ' + meta.kind + ' in the flyout viewer'"
       @click.stop.prevent="openFlyout"
     >
       <q-icon name="open_in_full" size="8px" />
     </span>
-  </component>
+  </span>
 </template>
 
 <script>
@@ -112,12 +125,8 @@ export default defineComponent({
     icon: { type: String, default: null },
     iconSize: { type: String, default: '10px' },
     to: { type: String, default: null },
-    // Render as a plain SPAN even when the kind has a viewer route. A chip
-    // that TRIGGERS something instead of navigating needs this — the feed
-    // card's foot chip opens the post's information flyout, and as an anchor
-    // it would navigate away on the same click (and nesting one inside a
-    // control is invalid markup besides). The chip keeps its icon, hash and
-    // address tooltip; it just stops being a link.
+    // ⚠ RETIRED 2026-09-21 PM — the chip is never an anchor now (see the
+    // template note); accepted so older callers do not warn, ignored.
     linked: { type: Boolean, default: true },
     fullAddress: { type: String, default: '' },
     // Human-readable text shown in place of the hash (e.g. an entity's
@@ -139,8 +148,10 @@ export default defineComponent({
     // glyph, for a chip that IS its panel's verdict light rather than one
     // mark among many in a sentence: `● node / a1b2c3…`. Markup order is
     // untouched (it is `order: -1` on the dot), so the tooltip, the click and
-    // the draws-nothing law stay the one place they are.
-    integrityLeads: { type: Boolean, default: false },
+    // the draws-nothing law stay the one place they are. ⭐ DEFAULT TRUE
+    // since 2026-09-21 PM: NodeMini's header pill is THE reference for every
+    // nano chip, so its grammar is the chip's own.
+    integrityLeads: { type: Boolean, default: true },
     // THE LIGHT ON EVERY CHIP (2026-09-21, user ask: the node's traffic
     // light "to all of them"). When no `integrity` is handed in, the chip
     // resolves its own off `GET /refs/summary` — every kind's summary
@@ -149,10 +160,14 @@ export default defineComponent({
     // utils/elementSummary, so N chips for one element cost one read.
     // `verify=false` opts a chip out (a dense strip that must not fetch).
     verify: { type: Boolean, default: true },
-    // THE DOOR: draw the open-in-flyout mark (see the template). Off for a
-    // chip standing in a strip that already offers the same door (the feed
-    // card's foot beside its open_in_new, the stack strip's tiles).
-    expand: { type: Boolean, default: true }
+    // THE DOOR: draw the open-in-flyout mark at the right end (see the
+    // template). On everywhere since 2026-09-21 PM — the same chip on every
+    // surface; the mark is part of what a nano pill IS.
+    expand: { type: Boolean, default: true },
+    // THE ROOT CLICK opens the flyout too (2026-09-21 PM). A host that needs
+    // the click for itself (the file tree's in-tree reveal) turns this off
+    // and listens on the chip; the door glyph still opens the window.
+    openOnClick: { type: Boolean, default: true }
   },
   setup (props) {
     const router = useRouter()
@@ -166,8 +181,10 @@ export default defineComponent({
 
     const hash = computed(() => props.hashStr || hashOf(props.path))
 
+    // The element's page route — NOT navigated to any more (2026-09-21 PM);
+    // it keys `data-nav-focus`, the trail's return halo, because a chip that
+    // opens a window is still a way of being on that element.
     const route = computed(() => {
-      if (!props.linked) return null
       if (props.to) return props.to
       if (!meta.value.route || !props.id) return null
       return meta.value.route(props.id)
@@ -178,13 +195,13 @@ export default defineComponent({
       return props.claimStatus ? `${addr}\nclaim · ${props.claimStatus}` : addr
     })
 
-    const rootTag = computed(() => route.value ? 'router-link' : 'span')
-
-    // THE KIND'S COLOUR IS kinds.js's (2026-09-21) — one custom property on
-    // the root, read by the icon below. The scoped `.kind-* .micro-chip__icon`
-    // block that used to live in this file (a purple entity, a grey post, a
-    // teal label — the pre-palette set) is gone with it.
-    const accentStyle = computed(() => ({ '--kind-accent': meta.value.color }))
+    // THE KIND'S COLOUR IS kinds.js's (2026-09-21) — two custom properties on
+    // the root: `--kind-accent` for the glyph, `--kind-ink` (PM, user ask:
+    // "the font color … same color as the icon, but in its darkest quasar
+    // tone") for the text. The scoped `.kind-* .micro-chip__icon` block that
+    // used to live in this file (a purple entity, a grey post, a teal label —
+    // the pre-palette set) is gone with it.
+    const accentStyle = computed(() => ({ '--kind-accent': meta.value.color, '--kind-ink': meta.value.ink }))
 
     // The on-disk prefix this chip stands for — 'entities' for a pioneer
     // chip too (the golden treatment renames the kind, not the registry).
@@ -247,6 +264,8 @@ export default defineComponent({
     const canOpen = computed(() =>
       props.expand && prefix.value && prefix.value !== 'unknown' && prefix.value !== 'actions' &&
       (!!hash.value || props.id != null))
+    const opensOnClick = computed(() => canOpen.value && props.openOnClick)
+    const onRootClick = () => { if (opensOnClick.value) openFlyout() }
     const openFlyout = async () => {
       const flyouts = useFlyoutViewersStore()
       const p = prefix.value
@@ -263,7 +282,7 @@ export default defineComponent({
       if (h) flyouts.spawnRef(`${addrPrefix}/${h}`)
     }
 
-    return { meta, hash, route, rootTag, tooltip, accentStyle, integrityState, integrityTitle, onIntegrityClick, canOpen, openFlyout }
+    return { meta, hash, route, tooltip, accentStyle, integrityState, integrityTitle, onIntegrityClick, canOpen, opensOnClick, onRootClick, openFlyout }
   }
 })
 </script>
@@ -274,10 +293,18 @@ export default defineComponent({
   align-items: center;
   gap: 3px;
   padding: 1px 6px;
-  border-radius: 4px;
+  // THE PILL (2026-09-21 PM): NodeMini's header pill is the reference for
+  // every nano chip, and its corners were the pill's since the morning
+  // (`--radius-pill`, scoped to that head then; the chip's own now).
+  border-radius: var(--radius-pill, 999px);
   border: 1px solid rgba(var(--ink-rgb), 0.18);
   background: rgba(var(--ink-rgb), 0.04);
-  color: rgba(var(--ink-rgb), 0.78);
+  // THE INK IS THE KIND'S (2026-09-21 PM, user ask): type word, separators
+  // and hash in the icon family's darkest Quasar tone — kinds.js's `ink`,
+  // through `--kind-ink`. (Was the platform's slate at .78; and on prose
+  // surfaces the anchor rule painted it `#00829c` — the chip is not an
+  // anchor any more, so no surface can recolour it.)
+  color: var(--kind-ink, rgba(var(--ink-rgb), 0.78));
   font-family: 'Space Mono', monospace;
   font-size: 0.72em;
   line-height: 1.4;
@@ -295,23 +322,18 @@ export default defineComponent({
 
 .micro-chip.no-type { min-width: 8ch; }
 
-.micro-chip.is-link {
+// A chip that opens its window answers the pointer in ITS OWN FAMILY: a
+// wash of the glyph's tone behind it, the rim a step firmer, the ink
+// unchanged. (`.is-link` — the anchor era's class — is gone with the anchor;
+// the `text-decoration: none !important` it carried against prose
+// `a:hover` rules has nothing to fight any more.)
+.micro-chip.is-open {
   cursor: pointer;
-  &:hover {
-    background: rgba(var(--ink-rgb), 0.10);
-    color: var(--ink);
-    border-color: rgba(var(--ink-rgb), 0.32);
-    // A linked chip IS an anchor, so in rendered prose the surface's
-    // `a:hover { text-decoration: underline }` outscores the `none` on
-    // `.micro-chip` and struck a line under `node / a1b2c3…`. A chip is a
-    // bordered PILL — the box is the affordance, and an underline through an
-    // address only makes the hash harder to read character by character.
-    //
-    // `!important` for the reason MiniPanel gives at length: those rules are
-    // scoped (`.post-square__md[data-v-…] .markdown-body a:hover` = four
-    // classes + an element), so this is not a specificity fight worth entering
-    // once per surface. See MiniPanel.vue's `.mini-panel-link`.
-    text-decoration: none !important;
+  outline: none;
+  &:hover,
+  &:focus-visible {
+    background: color-mix(in srgb, var(--kind-accent, var(--ink)) 12%, transparent);
+    border-color: color-mix(in srgb, var(--kind-accent, var(--ink)) 45%, transparent);
   }
 }
 
@@ -354,6 +376,7 @@ export default defineComponent({
 // three "open" marks on the platform (mini corner, flyout act, chip door)
 // answer the finger the same way.
 .micro-chip__open {
+  order: 99;               // the RIGHT END, whatever else leads (2026-09-21 PM)
   flex-shrink: 0;
   display: inline-flex;
   align-items: center;

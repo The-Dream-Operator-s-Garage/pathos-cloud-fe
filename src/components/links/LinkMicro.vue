@@ -32,7 +32,7 @@ export default defineComponent({
     // through to MicroChip, which owns the law: a verdict given here wins,
     // else the chip resolves its own; `expand` draws the open-in-flyout mark.
     integrity: { type: Object, default: null },
-    integrityLeads: { type: Boolean, default: false },
+    integrityLeads: { type: Boolean, default: true },
     verify: { type: Boolean, default: true },
     expand: { type: Boolean, default: true }
   }

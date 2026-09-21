@@ -43,7 +43,7 @@ export default defineComponent({
     // its name outright lets MicroChip resolve (the cache is shared —
     // utils/elementSummary — so it is one read per entity either way).
     integrity: { type: Object, default: null },
-    integrityLeads: { type: Boolean, default: false },
+    integrityLeads: { type: Boolean, default: true },
     verify: { type: Boolean, default: true },
     expand: { type: Boolean, default: true }
   },

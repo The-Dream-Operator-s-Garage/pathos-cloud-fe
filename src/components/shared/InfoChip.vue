@@ -89,7 +89,7 @@ export default defineComponent({
     const meta = computed(() => kindFor(props.kind))
     // THE KIND'S COLOUR IS kinds.js's (2026-09-21) — the same custom property
     // MicroChip sets; the scoped per-kind block this file carried is gone.
-    const accentStyle = computed(() => ({ '--kind-accent': meta.value.color }))
+    const accentStyle = computed(() => ({ '--kind-accent': meta.value.color, '--kind-ink': meta.value.ink }))
 
     const loading = ref(false)
     const resolved = ref(null) // { primary, secondary, route, id, hash }
@@ -220,7 +220,9 @@ export default defineComponent({
   border-radius: 5px;
   border: 1px solid rgba(var(--ink-rgb), 0.18);
   background: rgba(var(--ink-rgb), 0.04);
-  color: rgba(var(--ink-rgb), 0.82);
+  // THE INK IS THE KIND'S (2026-09-21 PM, user ask): the text in the icon
+  // family's darkest Quasar tone — kinds.js's `ink`, through `--kind-ink`.
+  color: var(--kind-ink, rgba(var(--ink-rgb), 0.82));
   text-decoration: none;
   max-width: 100%;
   overflow: hidden;
@@ -232,7 +234,7 @@ export default defineComponent({
   cursor: pointer;
   &:hover {
     background: rgba(var(--ink-rgb), 0.10);
-    color: var(--ink);
+    color: var(--kind-ink, var(--ink));
     border-color: rgba(var(--ink-rgb), 0.32);
   }
 }

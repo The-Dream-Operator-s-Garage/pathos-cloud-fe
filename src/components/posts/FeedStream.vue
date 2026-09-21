@@ -713,17 +713,19 @@
                   class="post-square__cap-origin"
                 >
                   <span class="post-square__cap-word">{{ clause.word }}</span>
+                  <!-- THE STOCK PILL since 2026-09-21 PM (user ask: "the chip
+                       on the header of the post card should look (BE) exactly
+                       the same as the one used for a reference inside the
+                       post content"): the kind's own glyph, the type word,
+                       the name where the origin has one, the light and the
+                       door — no icon or grammar of the cap's own. -->
                   <MicroChip
                     class="post-square__cap-chip"
                     :class="{ 'is-named': !!originName(clause.target) }"
                     :kind="clause.target.kind"
                     :id="clause.target.id"
                     :path="clause.target.path"
-                    :icon="originIcon(clause.target)"
                     :display="originName(clause.target)"
-                    :show-type="false"
-                    icon-size="9px"
-                    @click.stop
                   />
                   <span class="post-square__cap-sep">::</span>
                 </span>
@@ -1453,14 +1455,17 @@
               <span class="post-square__foot-rule" aria-hidden="true" />
 
               <div class="post-square__foot-main">
+                <!-- THE STOCK PILL since 2026-09-21 PM (user ask: the card's
+                     chip must BE the content's reference chip): kind glyph,
+                     `post / hash`, the light leading, the door at the end —
+                     a click opens the post's window, the same window the
+                     cap's open_in_new opens (the store dedupes by address).
+                     The cap's own marks (`sym_o_post`, `sym_o_orthopedics`,
+                     the `::` seam) left the chip with this pass. -->
                 <PostMicro
                   class="post-square__chip"
                   :id="item.skeleton_id"
                   :path="item.skeleton_path"
-                  icon="sym_o_post"
-                  type-icon="sym_o_orthopedics"
-                  sep="::"
-                  :expand="false"
                 />
                 <button
                   type="button"
@@ -2718,7 +2723,6 @@ export default defineComponent({
     // POST-AS-DOCUMENT glyph and a different drawing from the one this cap
     // has been stating a post with two spans to the left. Everything else
     // keeps the kind's own icon — a node chip should look like a node.
-    const originIcon = (target) => (target?.kind === 'posts' ? 'sym_o_post' : null)
 
     // ── THE CAP'S PIN (2026-08-07) ──────────────────────────────────────
     // Which of this page's posts are already in the caller's PINS skeleton.
@@ -2883,7 +2887,6 @@ export default defineComponent({
       capKindTitle,
       originClauses,
       originName,
-      originIcon,
       capTitle,
       pinnedIds,
       togglePin,
@@ -5135,31 +5138,18 @@ export default defineComponent({
 // to whatever the title needs and ellipsizes only when the strip runs out,
 // which is the "let the chip spread" the ask names. The unnamed chip — a
 // NODE parent, which has no title to show — keeps the slice it always had.
+// (2026-09-21 PM: the cap chip is the STOCK pill — its display face, its
+// 0.92em, its 500 weight are gone with the user's ask that the card's chip
+// BE the content's. What stays is the row's arithmetic: a width cap so the
+// cap keeps its other cells, lifted when a name shows.)
 .post-square__cap-chip {
   flex: 0 1 auto;
   min-width: 7ch;
   max-width: 13ch;
-  font-size: 0.92em;
 
   &.is-named {
     max-width: 100%;
-    // A NAME, so it wears the strip's face and not the address one. The
-    // `mono` on MicroChip's text span is right for a string read character
-    // by character and wrong for the one word the clause is now saying —
-    // and reaching in is safe here: this selector carries two classes and
-    // the scope attribute against the component's own single class, so it
-    // wins on specificity without `!important` (see NodeMini's chip block
-    // for the case where that is not true).
-    font-family: var(--font-display);
-    letter-spacing: 0.02em;
-
-    :deep(.micro-chip__hash) {
-      font-family: var(--font-display);
-      // Free to shrink past MicroChip's 6-character floor, which exists to
-      // keep a hash slice legible. A title ellipsizes instead.
-      min-width: 0;
-      font-weight: 500;
-    }
+    :deep(.micro-chip__hash) { min-width: 0; }
   }
 }
 
@@ -6886,27 +6876,13 @@ export default defineComponent({
 // MicroChip's own — its hash span already clips with `text-overflow`; the
 // cap on the span is the only new word, and the 6ch floor under it still
 // governs the squeeze on a phone.
+// (2026-09-21 PM: the foot chip is the STOCK pill — the display face, the
+// 0.66em, the foot-control height, the `::` seam's opacity and the cyan
+// hover are gone. The one thing the row still says is the hash cap:
+// MicroChip is container-adaptive by design and would take every pixel the
+// foot can spare — gotchas.)
 .post-square__foot .post-square__chip {
-  height: var(--foot-ctl);
-  padding: 0 5px;
-  font-family: var(--font-display);
-  font-size: 0.66em;
-  line-height: 1;
-  letter-spacing: 0.02em;
-
-  :deep(.micro-chip__type),
-  :deep(.micro-chip__hash) { font-family: var(--font-display); }
   :deep(.micro-chip__hash) { max-width: 10ch; }
-
-  // `::` is punctuation the eye should pass over, but MicroChip's 0.35 was
-  // dialled for a single `/`; a doubled glyph at that opacity reads as dirt.
-  :deep(.micro-chip__sep) { opacity: 0.5; }
-
-  &:hover {
-    background: rgba(0, 130, 156, 0.10);
-    border-color: rgba(0, 130, 156, 0.4);
-    color: #00829c;
-  }
 }
 
 // THE IDENTITY BLOCK (2026-07-25) — photo left, name over handle.

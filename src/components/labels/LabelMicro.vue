@@ -80,7 +80,7 @@ export default defineComponent({
     nav: { type: Boolean, default: true },
     // The traffic light and the door (2026-09-21) — through to MicroChip.
     integrity: { type: Object, default: null },
-    integrityLeads: { type: Boolean, default: false },
+    integrityLeads: { type: Boolean, default: true },
     verify: { type: Boolean, default: true },
     expand: { type: Boolean, default: true }
   },

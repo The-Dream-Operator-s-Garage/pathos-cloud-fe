@@ -45,52 +45,67 @@
 // Contrast is measured against `--light-cream` (#FCF3E0), which is the tile
 // face these are drawn on in the footer strip AND the ink they invert to when
 // a tile is the current one, so one number governs both directions.
+//
+// ⭐ `ink` (2026-09-21 PM, user ask: "make the font color on all the pills be
+// the same color as the icon, but in its darkest quasar tone"): the chip's
+// TEXT — type word, separators, hash — in the icon family's deepest step,
+// Material 900 = Quasar `-10` (the same rung the footer buttons letter their
+// WORD in, `--chip-word`). Yellow cannot carry ink at its 900 (the glyph IS
+// yellow-10), so the skeleton's ink is the family's hand-mixed deep step
+// `--yellow-deep`; gold has no Quasar family, so the moment's and the
+// pioneer's ink is the carved gold's own (`.pioneer-gold`'s text). Read by
+// MicroChip / InfoChip through the inline `--kind-ink` custom property.
 export const KINDS = {
   // cyan-9 = the post card byline's author name (`.post-square__author`,
   // `--cyan-9` since 2026-08-09). An entity is cyan wherever it is named.
   // (Was indigo-6 here 09-06 → 09-21, #9b6cb0 purple on the chips.)
-  files: { kind: 'entity', icon: 'person', color: '#00838f', route: (id) => `/entities/${id}` },
-  entities: { kind: 'entity', icon: 'person', color: '#00838f', route: (id) => `/entities/${id}` },
+  // ink cyan-10.
+  files: { kind: 'entity', icon: 'person', color: '#00838f', ink: '#006064', route: (id) => `/entities/${id}` },
+  entities: { kind: 'entity', icon: 'person', color: '#00838f', ink: '#006064', route: (id) => `/entities/${id}` },
   // teal-7 = `--uploader-contrast`, the UPLOADS button's rim. The uploader
   // is the window that mints nodes, so a node chip and that button are one
   // tone. (Was lime-10 here — the uploader's 09-05 lime, before its 09-07
   // teal walk.)
-  nodes: { kind: 'node', icon: 'adjust', color: '#00897b', route: (id) => `/nodes/${id}` },
+  // ink teal-10.
+  nodes: { kind: 'node', icon: 'adjust', color: '#00897b', ink: '#004d40', route: (id) => `/nodes/${id}` },
   // indigo-6 = `--maker-contrast`, the POST button's rim. (Was cyan-9 — the
   // maker's 09-05 cyan, before "posts -> indigo" on 09-07.)
-  posts: { kind: 'post', icon: 'edit_note', color: '#3f51b5', route: (id) => `/posts/${id}` },
+  // ink indigo-10.
+  posts: { kind: 'post', icon: 'edit_note', color: '#3f51b5', ink: '#1a237e', route: (id) => `/posts/${id}` },
   // blue-grey-7 (Material 700) — a path is a ROUTE, drawn in slate. Teal-8
   // stood here until the nodes took teal; two teals a step apart read as one.
-  paths: { kind: 'path', icon: 'route', color: '#455a64', route: (id) => `/paths/${id}` },
+  paths: { kind: 'path', icon: 'route', color: '#455a64', ink: '#263238', route: (id) => `/paths/${id}` },
   // red-7 = `--labels-contrast`, the LABELS button's rim (the label maker
   // went red on 09-07; the chips stayed violet-in-this-file / teal-on-the-
   // chip for two weeks — this closes that gap).
-  labels: { kind: 'label', icon: 'label_important', color: '#e53935', route: (id) => `/labels/${id}` },
+  // ink red-10.
+  labels: { kind: 'label', icon: 'label_important', color: '#e53935', ink: '#b71c1c', route: (id) => `/labels/${id}` },
   // yellow-10 = `--skeletons-contrast`, the SKELETONS button's rim and word.
-  skeletons: { kind: 'skeleton', icon: 'schema', color: '#f57f17', route: (id) => `/skeletons/${id}` },
+  // ink `--yellow-deep` (#c46008) — the family's hand-mixed deep step; yellow-10 is the glyph.
+  skeletons: { kind: 'skeleton', icon: 'schema', color: '#f57f17', ink: '#c46008', route: (id) => `/skeletons/${id}` },
   // ⚠ CARVED GOLD IS A TRADITION — the pioneer's mark keeps it, alone as a
   // TREATMENT (`.pioneer-gold`, the star, the carved face). The moment shares
   // the hex below by the user's word, not by kinship: nothing else on the
   // platform is the pioneer.
-  pioneer: { kind: 'pioneer', icon: 'star', color: '#c79a00', route: null },
+  pioneer: { kind: 'pioneer', icon: 'star', color: '#c79a00', ink: '#5f4700', route: null },
   // The chips' gold, kept — "leave moments yellow as they are" (2026-09-21).
   // This file said orange-10 for two weeks while every moment chip on every
   // surface drew this gold from its own scoped rule; the chips were what the
   // user saw, so the chips' tone is the one that stays and the stack strip
   // follows it. Not a Material stop; 2.4:1 on cream as TEXT (the strip
   // draws it at 0.14 as a fill and as a glyph, where it carries).
-  moments: { kind: 'moment', icon: 'schedule', color: '#c79a00', route: (id) => `/moments/${id}` },
+  moments: { kind: 'moment', icon: 'schedule', color: '#c79a00', ink: '#5f4700', route: (id) => `/moments/${id}` },
   // brown-8 — the platform's own material, at its sealed end. A secret reads
   // shut rather than coloured.
-  secrets: { kind: 'secret', icon: 'key', color: '#4e342e', route: (id) => `/secrets/${id}` },
+  secrets: { kind: 'secret', icon: 'key', color: '#4e342e', ink: '#3e2723', route: (id) => `/secrets/${id}` },
   // indigo-8 — a post's family one level deeper: a link and the thing it
   // points at are kin, and the depth is what tells them apart. (Followed the
   // posts out of cyan on 09-21 — it was cyan-10 beside their cyan-9.)
-  links: { kind: 'link', icon: 'link', color: '#283593', route: (id) => `/links/${id}` },
+  links: { kind: 'link', icon: 'link', color: '#283593', ink: '#1a237e', route: (id) => `/links/${id}` },
   // grey-8 — the sub-stack's neutral. An action is not an element with a
   // colour of its own; it is a mark left on one.
-  actions: { kind: 'action', icon: 'bolt', color: '#616161', route: null },
-  unknown: { kind: 'unknown', icon: 'circle', color: '#757575', route: null }
+  actions: { kind: 'action', icon: 'bolt', color: '#616161', ink: '#212121', route: null },
+  unknown: { kind: 'unknown', icon: 'circle', color: '#757575', ink: '#424242', route: null }
 }
 
 // Look up by either the on-disk prefix ('nodes') OR the singular slug ('node').

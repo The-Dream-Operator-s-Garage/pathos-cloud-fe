@@ -78,7 +78,12 @@
       <template #head>
         <!-- The address chip + its copy button: WHAT IT IS first. -->
         <span class="skel-mini__zone skel-mini__zone--chip">
-          <InfoChip dense kind="skeletons" :address="head.path" :label="shortHash(head.path, 8)" />
+          <!-- THE STOCK NANO PILL since 2026-09-21 PM (user ask: the very same
+               chip everywhere, NodeMini's header pill the reference) — an
+               InfoChip stood here until then. The verdict off the walk
+               leads it; the door at its end opens THIS skeleton's window,
+               like the corner. -->
+          <MicroChip kind="skeletons" :id="head.id" :path="head.path" :integrity="head.integrity" />
           <button
             type="button"
             class="skel-mini__copy"
@@ -234,12 +239,13 @@ import { defineComponent, ref, computed, onMounted, watch, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import MiniPanel from 'src/components/shared/MiniPanel.vue'
 import InfoChip from 'src/components/shared/InfoChip.vue'
+import MicroChip from 'src/components/shared/MicroChip.vue'
 import SkeletonTable from 'src/components/skeletons/SkeletonTable.vue'
 import { skeletonService } from 'src/services/skeleton.service'
 import { refService } from 'src/services/ref.service'
 import { useAuthStore } from 'src/stores/auth'
 import { useFlyoutViewersStore } from 'src/stores/flyoutViewers'
-import { kindFor, shortHash } from 'src/utils/kinds'
+import { kindFor } from 'src/utils/kinds'
 
 // One summary per address per session — the foot's author line must not
 // cost a dashboard of twelve minis twelve round-trips on every reload.
@@ -251,7 +257,7 @@ const LAYOUT_KEY = 'pathos_skeleton_layout'
 
 export default defineComponent({
   name: 'SkeletonMini',
-  components: { MiniPanel, InfoChip, SkeletonTable },
+  components: { MiniPanel, InfoChip, MicroChip, SkeletonTable },
   props: {
     // Pre-walked mode (dashboard cells deal batch-walk results out).
     skeleton: { type: Object, default: null },
@@ -530,8 +536,7 @@ export default defineComponent({
       lockTitle,
       lockGlyph,
       sealed,
-      toggleLock,
-      shortHash
+      toggleLock
     }
   }
 })
@@ -592,13 +597,9 @@ export default defineComponent({
 .skel-mini__zone--chip {
   flex: 0 1 auto;
   gap: 2px;
-  // The address pill's corners follow the panel's (2026-09-21 user ask: "for
-  // the hash pills of both, make their corners rounder so they look good
-  // inside their rounded containers"). InfoChip's stock 5px reads as a
-  // square-ish tag inside a `--radius-md` box, so the pill is fully round
-  // here — scoped to this zone, the way NodeMini rounds its MicroChip; a
-  // chip standing in prose keeps its own corners.
-  :deep(.info-chip) { border-radius: var(--radius-pill, 999px); }
+  // (The pill's corners were restated here — `:deep(.info-chip) {
+  // border-radius: --radius-pill }` — for the InfoChip that stood in this
+  // zone 2026-09-21 AM → PM; the stock MicroChip carries them itself.)
 }
 .skel-mini__zone--name {
   flex: 1 1 auto;
