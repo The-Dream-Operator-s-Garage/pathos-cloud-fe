@@ -614,6 +614,16 @@ export default defineComponent({
 .skel-mini__zone--chip {
   flex: 0 1 auto;
   gap: 2px;
+  // THE PILL STANDS 1px OFF THE HEAD'S LEFT EDGE (⭐ 2026-09-21 PM8, user
+  // ask: "reduce the padding on the left, between the left side of the
+  // header container and the pill so the padding is consistent with the
+  // top and bottom one") — the zone rule's 4px side air, on the first zone,
+  // was the only air between the head's edge and the pill; 1px read "too
+  // close" (a round end meets a straight edge at a tangent), 2px is where
+  // it settled ("add a little more padding. just a little"). The right side
+  // keeps the zone's 4px: that is the seam before the name zone's hairline,
+  // not an edge. (NodeMini's chip zone says the same.)
+  padding-left: 2px;
   // (The pill's corners were restated here — `:deep(.info-chip) {
   // border-radius: --radius-pill }` — for the InfoChip that stood in this
   // zone 2026-09-21 AM → PM; the stock MicroChip carries them itself.)

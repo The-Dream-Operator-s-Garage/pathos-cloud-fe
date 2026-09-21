@@ -865,6 +865,28 @@ export default defineComponent({
 .node-mini__zone--chip {
   flex: 0 1 auto;
   min-width: 0;
+  // THE PILL STANDS 1px OFF THE HEAD'S LEFT EDGE (⭐ 2026-09-21 PM8, user
+  // ask: "reduce the padding on the left, between the left side of the
+  // header container and the pill so the padding is consistent with the
+  // top and bottom one") — the zone rule's `1px 4px` gave the first zone
+  // 4px of side air against the head's edge and 1px above and below the
+  // pill; 1px on the left was "too close" — the pill's round end meets a
+  // straight edge at a tangent, so equal numbers read tighter there — and
+  // 2px is where it settled ("add a little more padding. just a little").
+  // The right keeps the zone's 4px: it is the seam before the name zone's
+  // hairline, not an edge. (SkeletonMini's chip zone says the same.)
+  padding-left: 2px;
+  // THE SAME ZONE AS THE SKELETON'S (same sitting: "on the node mini viewers
+  // … the same pill container, their padding looks weird. make it look just
+  // like the padding on the skeletons for that section"): measured, the two
+  // zones differed in ONE number — SkeletonMini's chip zone gaps its pill
+  // and copy glyph 2px, this one gapped them 0 (the glyph's own 3px margin
+  // was all the air). 2px here too. Then, the same sitting, "the node mini
+  // viewer padding still looks weird. add a little padding on top of the
+  // pill please. just a little" — 2px above the pill (the zone rule's 1px
+  // stays below it).
+  gap: 2px;
+  padding-top: 2px;
 }
 
 // ── THE FOOT'S LINK LINE (2026-08-23, second pass) ───────────────────────

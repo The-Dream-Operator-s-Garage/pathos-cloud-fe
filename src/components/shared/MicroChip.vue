@@ -398,12 +398,22 @@ export default defineComponent({
 .micro-chip.is-collapsed {
   min-width: 0;
   .micro-chip__hash { min-width: 0; overflow: visible; }
-  // (A NOTCH on the bottom-left corner — `--radius-xs`, `--radius-sm`,
-  // their midpoint, then 0.65em — was tried four times on 2026-09-21 PM7
-  // and REMOVED the same evening: every value read SQUARE beside the pill's
-  // ~8px corners — "make it round back because you can't make it just less
-  // round". The collapsed pill is a whole pill: all four corners
-  // `--radius-pill`, the root rule's.)
+  // THE BOTTOM-LEFT CORNER IS 60% OF THE PILL'S (⭐ 2026-09-21 PM8, user ask:
+  // "their bottom left corner is half as rounded as it is right now. maybe
+  // a little more rounded… i just don't want that corner to look square").
+  // Stated as a RATIO of the pill radius, on purpose. PM7's four px notches
+  // (xs / sm / midpoint / 0.65em) all drew DEAD SQUARE — not because a
+  // smaller corner reads square, but because of CSS's overlapping-curves
+  // rule: when adjacent radii overflow a side, EVERY radius is scaled by
+  // the same factor (here h / 1998, the right side's two 999px corners), so
+  // a 4.4px corner beside 999px ones was drawn at ~0.04px while its computed
+  // style still said 4.4px. The same rule now does the work: three corners
+  // at `--radius-pill` scale to h/2 and 0.6 × `--radius-pill` scales to
+  // 0.6 × h/2 — a proportional notch on every host, whatever the pill's
+  // height. Tune `--notch` only; never restate it in px.
+  --notch: 0.6;
+  border-radius: var(--radius-pill, 999px) var(--radius-pill, 999px)
+    var(--radius-pill, 999px) calc(var(--radius-pill, 999px) * var(--notch));
 }
 
 // A chip that opens its window answers the pointer in ITS OWN FAMILY: a
