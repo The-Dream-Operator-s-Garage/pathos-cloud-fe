@@ -416,6 +416,25 @@ export default defineComponent({
     var(--radius-pill, 999px) calc(var(--radius-pill, 999px) * var(--notch));
 }
 
+// THE EXTENDED PILL'S FOUR CORNERS ARE 70% OF A PILL'S (⭐ 2026-09-21 PM8c,
+// user ask: "for the extended versions of the nano pills, make them all
+// have their 4 corners be slightly less rounded please. not square, just
+// less rounded"). Four EQUAL corners cannot ride the overlap rule the
+// collapsed notch rides (equal radii never overflow unequally — the used
+// value is simply min(R, h/2)), so the radius is stated in the chip's own
+// geometry: the line box is 1.4em (line-height) and the padding + border add
+// 2px a side, so half the height is `0.7em + 2px` — `--chip-half-h` — and
+// the corner is `--round` of that. 0.7 → ~6.3px on an 18px chip, ~5.7px on
+// a 16.4px one: a soft rounded rectangle, the ends no longer semicircles.
+// Tune `--round` only; never a px (the chip is 0.72em of its host, so a
+// px would be a different proportion on every host). The collapsed pill
+// keeps its three pill corners + the notch.
+.micro-chip.is-extended {
+  --chip-half-h: calc(0.7em + 2px);
+  --round: 0.7;
+  border-radius: calc(var(--chip-half-h) * var(--round));
+}
+
 // A chip that opens its window answers the pointer in ITS OWN FAMILY: a
 // wash of the glyph's tone behind it, the rim a step firmer, the ink
 // unchanged. (`.is-link` — the anchor era's class — is gone with the anchor;
