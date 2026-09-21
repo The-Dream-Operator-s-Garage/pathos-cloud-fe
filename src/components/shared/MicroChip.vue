@@ -359,12 +359,17 @@ export default defineComponent({
   border: 1px solid color-mix(in srgb, var(--kind-accent, var(--ink)) 55%, white);
   // THE OUTER RIM (⭐ 2026-09-21 PM7, user ask: "add them an additional
   // light grey thin outer rim, being careful to follow the pill's roundness
-  // on the corners"): a 1px `--grey-4` ring OUTSIDE the tinted border, drawn
-  // as a spread shadow — a shadow traces the border-box's own radii corner
-  // by corner (the collapsed notch included) and takes no layout, where an
-  // `outline` would square off in older engines and a second border would
-  // grow the pill. Unchanged on hover.
-  box-shadow: 0 0 0 1px var(--grey-4, #e0e0e0);
+  // on the corners" → "make it a darker tone of grey pls"): a 1px `--grey-5`
+  // ring OUTSIDE the tinted border, drawn as a spread shadow — a shadow
+  // traces the border-box's own radii corner by corner (the collapsed notch
+  // included) and takes no layout, where an `outline` would square off in
+  // older engines and a second border would grow the pill. Unchanged on
+  // hover. It was `--grey-4` for one deploy: measured off a magnified clone,
+  // #e0e0e0 sat one step from the mini header's grey-3 and two from the
+  // card foot's cream and vanished on both (no host clips it — checked on
+  // four surfaces); grey-5 is the platform's hairline grey, the tone the
+  // card foot's rule and the mini's box already draw.
+  box-shadow: 0 0 0 1px var(--grey-5, #bdbdbd);
   // THE FACE IS THE FOOTER BAR'S (⭐ 2026-09-21 PM7, user ask: "for all nano
   // pill chips, regardless of where they are, make them have the same
   // background color as the footer nav bar background color, with the
@@ -407,14 +412,18 @@ export default defineComponent({
   // THE NOTCH (⭐ 2026-09-21 PM7, user asks: "for all nano chips on collapsed
   // version, make their bottom left corner be less rounded than the
   // others" → "Still rounded, not square, but less round than the others"
-  // → "Still quite rounded, not square … it is still too round"): the
-  // bottom-left corner drops from the pill's to the MIDPOINT of `--radius-xs`
-  // and `--radius-sm` — the user walked it: xs (~2.2px here) read square, sm
-  // (~4.4px) still too round; ~3.3px sits between — so the mini header's
-  // pill sits like a TAB on the panel under it and still reads as a rounded
-  // thing. The other three corners stay the pill's; the extended pill is a
-  // whole pill still.
-  border-bottom-left-radius: calc((var(--radius-xs, 0.25em) + var(--radius-sm, 0.5em)) / 2);
+  // → "Still quite rounded … make it even rounder. it looks square and
+  // ugly"): the bottom-left corner is 0.65em — about 70% of the pill's own
+  // corner (a 999px radius resolves to half the height, ~8.2px at this
+  // font; 0.65em ≈ 5.8px). The user walked the dial four times: xs ≈ 2.2px
+  // read square, sm ≈ 4.4px, the xs/sm midpoint ≈ 3.3px "square and ugly"
+  // — anything under ~half the pill's corner reads as a square corner next
+  // to it. No token sits here, so the number is stated; the witness holds
+  // the RATIO (0.6–0.9 of the pill's corner) rather than the pixels. The
+  // mini header's pill sits like a TAB on the panel under it and still
+  // reads as a rounded thing; the other three corners stay the pill's; the
+  // extended pill is a whole pill still.
+  border-bottom-left-radius: 0.65em;
 }
 
 // A chip that opens its window answers the pointer in ITS OWN FAMILY: a
