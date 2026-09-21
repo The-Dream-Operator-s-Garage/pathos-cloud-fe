@@ -38,7 +38,7 @@
     </template>
 
     <template #hash>
-      <PostMicro :id="post.id" :path="targetHashPath" :show-type="true" />
+      <PostMicro :id="post.id" :path="targetHashPath" collapsed />
     </template>
 
     <template #body>

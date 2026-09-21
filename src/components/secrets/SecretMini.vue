@@ -19,7 +19,7 @@
     </template>
 
     <template #hash>
-      <SecretMicro :id="secret.id" :path="secret.path" :show-type="true" />
+      <SecretMicro :id="secret.id" :path="secret.path" collapsed />
     </template>
 
     <template #body>

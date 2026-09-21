@@ -290,14 +290,21 @@ export default defineComponent({
   &.status-retracted { background: #8995a8; text-decoration: line-through; }
 }
 
-// The integrity traffic light — MicroChip's dot at Info scale. Red is the
-// only interactive state (routes to Talavero's report).
+// The integrity traffic light — MicroChip's bead at Info scale. ⭐ 2026-09-21
+// PM3 (user ask: smaller, light-green, a thin lighter rim): 7px (was 8),
+// `--verdict-ok` under a 1px `--verdict-ok-rim` — the one source in
+// _tokens.scss. Red is the only interactive state (routes to Talavero's
+// report).
 .info-chip__integrity {
   flex-shrink: 0;
-  width: 8px;
-  height: 8px;
+  box-sizing: border-box;
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
-  &.integrity-ok       { background: #2e6a3a; }
+  &.integrity-ok {
+    background: var(--verdict-ok, #8bc34a);
+    border: 1px solid var(--verdict-ok-rim, #c5e1a5);
+  }
   &.integrity-violated {
     background: #a03d3d;
     cursor: pointer;

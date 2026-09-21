@@ -11,9 +11,9 @@
     :icon-size="iconSize"
     :full-address="fullAddress"
     :integrity="integrity"
-    :integrity-leads="integrityLeads"
     :verify="verify"
     :expand="expand"
+    :collapsed="collapsed"
   />
 </template>
 
@@ -34,10 +34,13 @@ export default defineComponent({
     // The node's integrity verdict ({ status, check, report }) and where its
     // dot stands — both handed straight to MicroChip, which owns the law.
     integrity: { type: Object, default: null },
-    integrityLeads: { type: Boolean, default: true },
     // (2026-09-21) self-resolve the verdict when none is given; draw the door.
     verify: { type: Boolean, default: true },
-    expand: { type: Boolean, default: true }
+    expand: { type: Boolean, default: true },
+    // THE STATE (2026-09-21 PM3): `collapsed` = the panel-header pill
+    // (`● / icon :: 993fa6…`, no type, no door); off = the extended
+    // reference (`● / icon :: type :: hash ⤢`). Through to MicroChip.
+    collapsed: { type: Boolean, default: false }
   }
 })
 </script>

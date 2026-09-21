@@ -81,9 +81,11 @@
           <!-- THE STOCK NANO PILL since 2026-09-21 PM (user ask: the very same
                chip everywhere, NodeMini's header pill the reference) — an
                InfoChip stood here until then. The verdict off the walk
-               leads it; the door at its end opens THIS skeleton's window,
-               like the corner. -->
-          <MicroChip kind="skeletons" :id="head.id" :path="head.path" :integrity="head.integrity" />
+               leads it. ⭐ PM3 (user ask: the collapsed state on mini
+               headers): `collapsed` — `● / ⌬ :: 993fa6…`, no type word, six
+               digits, no door glyph (the corner is this panel's door; the
+               pill's root click still opens the same window). -->
+          <MicroChip kind="skeletons" :id="head.id" :path="head.path" :integrity="head.integrity" collapsed />
           <button
             type="button"
             class="skel-mini__copy"

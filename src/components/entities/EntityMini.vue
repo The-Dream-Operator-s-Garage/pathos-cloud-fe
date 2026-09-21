@@ -25,7 +25,7 @@
       <EntityMicro
         :id="entity.id"
         :path="entity.path"
-        :show-type="true"
+        collapsed
       />
     </template>
 

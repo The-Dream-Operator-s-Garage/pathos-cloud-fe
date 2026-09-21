@@ -1,8 +1,21 @@
 <template>
-  <!-- The reusable "Micro" chip — THE NANO PILL: `● icon / type / hash ⤢`.
-       Designed to be smuggled inline with text. Width adapts to its
-       container — fully expanded shows the entire hash; collapsed shows a
-       6-character minimum slice + ellipsis.
+  <!-- The reusable "Micro" chip — THE NANO PILL, in TWO STATES (2026-09-21
+       PM3, user ask: "help me developing 2 states for those pills: Collapsed
+       and Extended"):
+
+         extended   `● / icon :: type :: hash ⤢`
+                    a reference in running text — the post body's
+                    `[[pathos:]]` refs, the feed card's foot chip — the whole
+                    address in the pill, the type word said, the door at the
+                    end. The default state.
+         collapsed  `● / icon :: 993fa6…`
+                    a panel's header pill (every Mini's `#hash` slot): no
+                    type word, the hash CUT to six digits + a stated
+                    ellipsis, no door — the panel's corner is the door there.
+
+       The grammar is FIXED: the light first, a lead `/` after it, `::`
+       seams. One object on every surface (PM2's law), so `sep` is retired
+       with this pass and `integrityLeads` too — the light always leads.
 
        ⭐ 2026-09-21 PM (user ask: "when I click on them, its respective
        flyout window is opened instead of redirecting to an individual page
@@ -10,15 +23,14 @@
        using the very same nano chips everywhere … the nano node pill on
        the mini node viewer's header is the reference"): the root is a SPAN
        with a button role, never a router-link — a click opens the element's
-       flyout window (`openFlyout`), the page stays where it is; the verdict
-       light LEADS by default (NodeMini's grammar, the reference pill); the
-       door glyph stands at the right end; corners are the pill's; the text
-       is the kind's ink. No host restyles it any more — a chip in a post
-       body, on a card's cap or foot, in a mini's header, on the stack strip
-       or in the file tree is the same object. -->
+       flyout window (`openFlyout`), the page stays where it is; the door
+       glyph stands at the right end; corners are the pill's; the text is
+       the kind's ink. No host restyles it — a chip in a post body, on a
+       card's cap or foot, in a mini's header, on the stack strip or in the
+       file tree is the same object. -->
   <span
     class="micro-chip"
-    :class="['kind-' + meta.kind, { 'is-open': opensOnClick, 'no-type': !showType, 'pioneer-gold': pioneer, 'integrity-leads': integrityLeads }]"
+    :class="['kind-' + meta.kind, { 'is-open': opensOnClick, 'is-collapsed': collapsed, 'is-extended': !collapsed, 'no-type': !typeShown, 'pioneer-gold': pioneer }]"
     :style="accentStyle"
     :title="tooltip"
     :role="opensOnClick ? 'button' : null"
@@ -27,36 +39,13 @@
     @click.stop="onRootClick"
     @keydown.enter.prevent="onRootClick"
   >
-    <q-icon :name="meta.icon" :size="iconSize" class="micro-chip__icon" />
-    <template v-if="showType">
-      <span class="micro-chip__sep">{{ sep }}</span>
-      <!-- The type slot says the same thing two ways: a WORD by default, or
-           a GLYPH when the caller hands one — for a chip standing in a strip
-           that already states that kind as an icon, where the word would be
-           the only spelt-out thing in a run of marks. -->
-      <q-icon
-        v-if="typeIcon"
-        :name="typeIcon"
-        :size="iconSize"
-        class="micro-chip__type-icon"
-      />
-      <span v-else class="micro-chip__type mono">{{ typeLabel || meta.kind }}</span>
-      <span class="micro-chip__sep">{{ sep }}</span>
-    </template>
-    <span class="micro-chip__hash mono">{{ display || hash }}</span>
-    <!-- Claim STATUS dot — a chip this small states the standing as a
-         color; the word rides the tooltip. Palette matches InfoChip's
-         status pill (Thread D reader surface). -->
-    <span
-      v-if="claimStatus"
-      class="micro-chip__status"
-      :class="'status-' + claimStatus"
-    />
-    <!-- The integrity traffic light (integrity-debt plan, 2026-08-08):
-         green = this element's chain proof verified on the last read; red =
-         a check CONTRADICTED — the body is withheld and clicking the dot
-         opens Talavero's report in the flyout. Lawful-unproven states
-         (drafts, pre-epoch) draw NOTHING: green must mean verified. -->
+    <!-- The integrity traffic light (integrity-debt plan, 2026-08-08), the
+         pill's FIRST mark since PM3 (markup order = reading order now; it
+         was `order: -1` under `integrity-leads` for a day): green = this
+         element's chain proof verified on the last read; red = a check
+         CONTRADICTED — the body is withheld and clicking the dot opens
+         Talavero's report in the flyout. Lawful-unproven states (drafts,
+         pre-epoch) draw NOTHING: green must mean verified. -->
     <span
       v-if="integrityState"
       class="micro-chip__integrity"
@@ -64,6 +53,34 @@
       :title="integrityTitle"
       role="button"
       @click.stop.prevent="onIntegrityClick"
+    />
+    <!-- The LEAD — the address dialect's root slash, drawn before the kind
+         glyph in both states (`● / node :: …`). -->
+    <span class="micro-chip__lead">/</span>
+    <q-icon :name="meta.icon" :size="iconSize" class="micro-chip__icon" />
+    <template v-if="typeShown">
+      <span class="micro-chip__sep">::</span>
+      <!-- The type slot says the same thing two ways: a WORD by default, or
+           a GLYPH when the caller hands one — for a chip standing in a strip
+           that already states that kind as an icon, where the word would be
+           the only spelt-out thing in a run of marks. Extended state only. -->
+      <q-icon
+        v-if="typeIcon"
+        :name="typeIcon"
+        :size="iconSize"
+        class="micro-chip__type-icon"
+      />
+      <span v-else class="micro-chip__type mono">{{ typeLabel || meta.kind }}</span>
+    </template>
+    <span class="micro-chip__sep">::</span>
+    <span class="micro-chip__hash mono">{{ hashText }}</span>
+    <!-- Claim STATUS dot — a chip this small states the standing as a
+         color; the word rides the tooltip. Palette matches InfoChip's
+         status pill (Thread D reader surface). -->
+    <span
+      v-if="claimStatus"
+      class="micro-chip__status"
+      :class="'status-' + claimStatus"
     />
     <!-- THE DOOR (2026-09-21, user ask: "add a button to extend the item";
          PM: "put the expand icon on the right end of all nano chips"): the
@@ -75,9 +92,11 @@
          the same window since the PM pass; the glyph keeps its own handler
          for the one host that takes the root click back for itself (the
          file tree's RefChip reveals in-tree; its door still opens).
-         `open_in_full`, NodeMini's corner glyph, one size down. -->
+         `open_in_full`, NodeMini's corner glyph, one size down. EXTENDED
+         state only (PM3): the collapsed pill stands in a panel header whose
+         corner already is this door. -->
     <span
-      v-if="canOpen"
+      v-if="canOpen && !collapsed"
       class="micro-chip__open"
       :title="'open this ' + meta.kind + ' in the flyout viewer'"
       @click.stop.prevent="openFlyout"
@@ -94,6 +113,10 @@ import { kindFor, prefixFor, hashOf } from 'src/utils/kinds'
 import { elementSummary } from 'src/utils/elementSummary'
 import { useFlyoutViewersStore } from 'src/stores/flyoutViewers'
 
+// The collapsed state's hash cut: six digits, the house's "993fa6…" (2026-09-21
+// PM3, user ask: "make sure we're not displaying more than 6 hash digits").
+const COLLAPSED_DIGITS = 6
+
 export default defineComponent({
   name: 'MicroChip',
   props: {
@@ -103,25 +126,24 @@ export default defineComponent({
     // Path like 'nodes/abc...' — used for hash extraction if hashStr is absent.
     path: { type: String, default: '' },
     hashStr: { type: String, default: '' },
-    // Show the `icon / type / hash` triplet (default). Set false for a
-    // hash-only minimal chip.
+    // THE STATE (2026-09-21 PM3). `collapsed` = the panel-header form:
+    // `● / icon :: 993fa6…` — no type word, six hash digits + `…`, no door.
+    // Off (the default) = extended: `● / icon :: type :: hash ⤢`, the form
+    // a reference wears inside a post. Every Mini's `#hash` slot passes it;
+    // a RefMicro in prose never does.
+    collapsed: { type: Boolean, default: false },
+    // Show the type word in the EXTENDED state (default). Set false for a
+    // hash-only chip; the collapsed state never shows it either way.
     showType: { type: Boolean, default: true },
-    // The WORD between the two separators. Defaults to the kind's own slug
+    // The WORD between the two seams. Defaults to the kind's own slug
     // ('post', 'node', …) — what the element IS. A chip that stands for a
-    // different READING of the same element says so here: the feed card's
-    // foot chip is set to `skeleton`, because a post's address is what the
-    // skeleton viewer is a read-out of, and the chip is that viewer's door.
+    // different READING of the same element says so here.
     typeLabel: { type: String, default: '' },
-    // …or that word DRAWN. Wins over `typeLabel` when both are given: the
-    // feed card's foot chip sends the cap's own `sym_o_orthopedics`, so the
-    // chip reads `[post] :: [skeleton] :: <hash>` — three marks and an
-    // address, matching a strip whose every other control is a glyph.
+    // …or that word DRAWN. Wins over `typeLabel` when both are given.
     typeIcon: { type: String, default: '' },
-    // The glyph drawn on both sides of that word. `/` is the address dialect
-    // every inline chip speaks (`node / a1b2c3…`); a chip standing inside a
-    // strip with its own punctuation passes that strip's — the feed foot
-    // sends `::`, the separator the cap one card-length up already uses.
-    sep: { type: String, default: '/' },
+    // ⚠ RETIRED 2026-09-21 PM3 — the grammar is fixed (`/` lead, `::` seams)
+    // in both states; accepted so older callers do not warn, ignored.
+    sep: { type: String, default: '' },
     icon: { type: String, default: null },
     iconSize: { type: String, default: '10px' },
     to: { type: String, default: null },
@@ -130,7 +152,8 @@ export default defineComponent({
     linked: { type: Boolean, default: true },
     fullAddress: { type: String, default: '' },
     // Human-readable text shown in place of the hash (e.g. an entity's
-    // username). The hash stays reachable through the tooltip.
+    // username). The hash stays reachable through the tooltip. A name is
+    // never cut to six characters — the collapsed cut is for DIGITS.
     display: { type: String, default: '' },
     // Golden one-and-only treatment: star icon, `pioneer` type, carved gold.
     pioneer: { type: Boolean, default: false },
@@ -141,16 +164,9 @@ export default defineComponent({
     // report }). 'ok' → green, 'violated' → red (click opens the report
     // flyout), 'exempt'/null → no dot.
     integrity: { type: Object, default: null },
-    // WHERE THE DOT STANDS (2026-09-21, user ask on NodeMini: "the green
-    // verification dot inside the node hash pill, on the left side of it").
-    // By default the light TRAILS the hash — the chips' grammar in prose
-    // since 2026-08-08. `integrity-leads` puts it FIRST, before the kind
-    // glyph, for a chip that IS its panel's verdict light rather than one
-    // mark among many in a sentence: `● node / a1b2c3…`. Markup order is
-    // untouched (it is `order: -1` on the dot), so the tooltip, the click and
-    // the draws-nothing law stay the one place they are. ⭐ DEFAULT TRUE
-    // since 2026-09-21 PM: NodeMini's header pill is THE reference for every
-    // nano chip, so its grammar is the chip's own.
+    // ⚠ RETIRED 2026-09-21 PM3 — the light ALWAYS leads now (it stood at
+    // the pill's head by default since PM anyway; PM3 fixed the grammar and
+    // moved the markup to match). Accepted, ignored.
     integrityLeads: { type: Boolean, default: true },
     // THE LIGHT ON EVERY CHIP (2026-09-21, user ask: the node's traffic
     // light "to all of them"). When no `integrity` is handed in, the chip
@@ -162,7 +178,7 @@ export default defineComponent({
     verify: { type: Boolean, default: true },
     // THE DOOR: draw the open-in-flyout mark at the right end (see the
     // template). On everywhere since 2026-09-21 PM — the same chip on every
-    // surface; the mark is part of what a nano pill IS.
+    // surface; the mark is part of what an EXTENDED nano pill is.
     expand: { type: Boolean, default: true },
     // THE ROOT CLICK opens the flyout too (2026-09-21 PM). A host that needs
     // the click for itself (the file tree's in-tree reveal) turns this off
@@ -180,6 +196,22 @@ export default defineComponent({
     })
 
     const hash = computed(() => props.hashStr || hashOf(props.path))
+
+    // The type word shows in the extended state only.
+    const typeShown = computed(() => props.showType && !props.collapsed)
+
+    // What the hash slot PRINTS. A display name is printed whole in both
+    // states; a hash is printed whole when extended (the CSS ellipsis cuts
+    // it to the room the host gives, 6ch at the least) and cut to six
+    // digits + a stated `…` when collapsed — stated, so a reader can tell a
+    // short address from a whole one (NodeMini's 08-23 rule, now the
+    // chip's own). No misleading ellipsis on a hash already that short.
+    const hashText = computed(() => {
+      if (props.display) return props.display
+      const h = hash.value || ''
+      if (!props.collapsed || h.length <= COLLAPSED_DIGITS) return h
+      return h.slice(0, COLLAPSED_DIGITS) + '…'
+    })
 
     // The element's page route — NOT navigated to any more (2026-09-21 PM);
     // it keys `data-nav-focus`, the trail's return halo, because a chip that
@@ -260,7 +292,9 @@ export default defineComponent({
     // first. Posts open on their SKELETON address — a post's `path` IS
     // `skeletons/<hash>` (the feed hands `item.skeleton_path`), and the ref
     // door steps a POST instance forward to its card by itself. An entity
-    // with an id goes straight through the entity door.
+    // with an id goes straight through the entity door. The collapsed pill
+    // draws no door glyph but its ROOT still opens the window (the same
+    // click law in both states).
     const canOpen = computed(() =>
       props.expand && prefix.value && prefix.value !== 'unknown' && prefix.value !== 'actions' &&
       (!!hash.value || props.id != null))
@@ -282,7 +316,7 @@ export default defineComponent({
       if (h) flyouts.spawnRef(`${addrPrefix}/${h}`)
     }
 
-    return { meta, hash, route, tooltip, accentStyle, integrityState, integrityTitle, onIntegrityClick, canOpen, opensOnClick, onRootClick, openFlyout }
+    return { meta, hash, hashText, typeShown, route, tooltip, accentStyle, integrityState, integrityTitle, onIntegrityClick, canOpen, opensOnClick, onRootClick, openFlyout }
   }
 })
 </script>
@@ -310,8 +344,8 @@ export default defineComponent({
   line-height: 1.4;
   letter-spacing: 0.02em;
   text-decoration: none;
-  // Container-adaptive width: shrinks to a 6-char hash slice when squeezed,
-  // expands to the full hash when the parent is wide.
+  // Container-adaptive width (EXTENDED): shrinks to a 6-char hash slice when
+  // squeezed, expands to the full hash when the parent is wide.
   flex: 0 1 auto;
   min-width: 9ch;   // icon + 6 chars
   max-width: 100%;
@@ -321,6 +355,14 @@ export default defineComponent({
 }
 
 .micro-chip.no-type { min-width: 8ch; }
+
+// THE COLLAPSED PILL (2026-09-21 PM3) prints its whole text — six digits and
+// the ellipsis it states itself — so it needs no room to adapt into and no
+// CSS ellipsis over the one it already wrote.
+.micro-chip.is-collapsed {
+  min-width: 0;
+  .micro-chip__hash { min-width: 0; overflow: visible; }
+}
 
 // A chip that opens its window answers the pointer in ITS OWN FAMILY: a
 // wash of the glyph's tone behind it, the rim a step firmer, the ink
@@ -353,24 +395,29 @@ export default defineComponent({
   &.status-disputed  { background: #a03d3d; }
   &.status-retracted { background: #8995a8; }
 }
-// The integrity traffic light — same footprint as the claim dot. Red is
-// the only interactive state (it routes to the report); the halo says so.
+// The integrity traffic light. ⭐ 2026-09-21 PM3 (user ask: "make the dot
+// slightly smaller, paint it with a light-green quasar tone and put it a
+// thin lighter light-green quasar tone border"): a 6px BEAD (was a 7px
+// solid disc), Quasar light-green-6 under a 1px light-green-3 rim —
+// `--verdict-ok` / `--verdict-ok-rim` in _tokens.scss, the one source both
+// pills (this and InfoChip's) read. Red keeps its own palette and is the
+// only interactive state (it routes to the report); the halo says so.
 .micro-chip__integrity {
   flex-shrink: 0;
-  width: 7px;
-  height: 7px;
+  box-sizing: border-box;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
-  &.integrity-ok       { background: #2e6a3a; }
+  &.integrity-ok {
+    background: var(--verdict-ok, #8bc34a);
+    border: 1px solid var(--verdict-ok-rim, #c5e1a5);
+  }
   &.integrity-violated {
     background: #a03d3d;
     cursor: pointer;
     box-shadow: 0 0 0 2px rgba(160, 61, 61, 0.25);
   }
 }
-// The light LEADS when the caller says so (NodeMini's header pill, 2026-09-21):
-// flex `order` moves it to the row's start without moving the markup, so the
-// verdict reads before the address — `● node / a1b2c3…`.
-.micro-chip.integrity-leads .micro-chip__integrity { order: -1; }
 // THE DOOR — the chip's last mark. Dimmed like the type word until the chip
 // is hovered; coral on its own hover, NodeMini's corner colour, so the
 // three "open" marks on the platform (mini corner, flyout act, chip door)
@@ -387,6 +434,9 @@ export default defineComponent({
   &:hover { opacity: 1; color: var(--coral-deep, #d35f5f); }
 }
 .micro-chip:hover .micro-chip__open { opacity: 0.85; }
+// The lead `/` and the `::` seams — punctuation, a step under everything
+// they separate.
+.micro-chip__lead,
 .micro-chip__sep  { flex-shrink: 0; opacity: 0.35; }
 // The drawn type. One step under the leading icon's 0.85, the way the type
 // WORD sits one step under the hash — it classifies, it does not name.
@@ -402,7 +452,7 @@ export default defineComponent({
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  // Minimum 6 chars visible before truncation kicks in
+  // Minimum 6 chars visible before truncation kicks in (extended)
   min-width: 6ch;
 }
 

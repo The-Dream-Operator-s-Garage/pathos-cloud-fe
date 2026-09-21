@@ -70,8 +70,13 @@ export const KINDS = {
   nodes: { kind: 'node', icon: 'adjust', color: '#00897b', ink: '#004d40', route: (id) => `/nodes/${id}` },
   // indigo-6 = `--maker-contrast`, the POST button's rim. (Was cyan-9 — the
   // maker's 09-05 cyan, before "posts -> indigo" on 09-07.)
-  // ink indigo-10.
-  posts: { kind: 'post', icon: 'edit_note', color: '#3f51b5', ink: '#1a237e', route: (id) => `/posts/${id}` },
+  // ink indigo-10. ⭐ 2026-09-21 PM3 (user ask: "the official post icon is the
+  // one used on the post cards title … make sure we use that same icon on the
+  // post nano pills"): the glyph is `sym_o_post` — the feed card cap's mark
+  // (`capIcons` in FeedStream, the flyout's post tab) — not `edit_note`, the
+  // post-as-document drawing the chips wore since July. Every chip reads it
+  // here, so the card's cap and its foot pill are one drawing.
+  posts: { kind: 'post', icon: 'sym_o_post', color: '#3f51b5', ink: '#1a237e', route: (id) => `/posts/${id}` },
   // blue-grey-7 (Material 700) — a path is a ROUTE, drawn in slate. Teal-8
   // stood here until the nodes took teal; two teals a step apart read as one.
   paths: { kind: 'path', icon: 'route', color: '#455a64', ink: '#263238', route: (id) => `/paths/${id}` },

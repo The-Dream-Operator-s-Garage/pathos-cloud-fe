@@ -29,9 +29,9 @@
       :icon-size="iconSize"
       :full-address="fullAddress"
       :integrity="integrity"
-      :integrity-leads="integrityLeads"
       :verify="verify"
       :expand="expand"
+      :collapsed="collapsed"
     />
 
     <button
@@ -54,9 +54,9 @@
     :icon-size="iconSize"
     :full-address="fullAddress"
     :integrity="integrity"
-    :integrity-leads="integrityLeads"
     :verify="verify"
     :expand="expand"
+    :collapsed="collapsed"
   />
 </template>
 
@@ -80,9 +80,12 @@ export default defineComponent({
     nav: { type: Boolean, default: true },
     // The traffic light and the door (2026-09-21) — through to MicroChip.
     integrity: { type: Object, default: null },
-    integrityLeads: { type: Boolean, default: true },
     verify: { type: Boolean, default: true },
-    expand: { type: Boolean, default: true }
+    expand: { type: Boolean, default: true },
+    // THE STATE (2026-09-21 PM3): `collapsed` = the panel-header pill
+    // (`● / icon :: 993fa6…`, no type, no door); off = the extended
+    // reference (`● / icon :: type :: hash ⤢`). Through to MicroChip.
+    collapsed: { type: Boolean, default: false }
   },
   setup (props) {
     // chain[0] = this label, chain[1] = parent, ... (reversed server order)

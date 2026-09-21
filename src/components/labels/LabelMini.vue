@@ -23,7 +23,7 @@
     </template>
 
     <template #hash>
-      <LabelMicro :id="label.id" :path="label.path" :show-type="true" :nav="false" />
+      <LabelMicro :id="label.id" :path="label.path" :nav="false" collapsed />
     </template>
 
     <template #body>

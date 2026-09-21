@@ -18,7 +18,7 @@
     </template>
 
     <template #hash>
-      <LinkMicro :id="link.id" :path="link.path" :show-type="true" />
+      <LinkMicro :id="link.id" :path="link.path" collapsed />
     </template>
 
     <template #body>

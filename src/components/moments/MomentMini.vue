@@ -17,7 +17,7 @@
     </template>
 
     <template #hash>
-      <MomentMicro :id="moment.id" :path="moment.path" :show-type="true" />
+      <MomentMicro :id="moment.id" :path="moment.path" collapsed />
     </template>
 
     <template #body>

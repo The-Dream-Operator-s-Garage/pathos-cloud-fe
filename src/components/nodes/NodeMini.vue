@@ -22,7 +22,7 @@
            the reading the panel settled on: WHAT IT IS first, what it is
            CALLED second.
 
-           The COPY button hands over the FULL hash, not the chip's `chipHash`
+           The COPY button hands over the FULL hash, not the pill's six-digit
            cut: the truncated form is for reading and the whole one is what a
            `[[pathos:nodes/…]]` ref or an API call needs, and a copy button
            that yields a value you cannot paste anywhere is a trap. House
@@ -35,20 +35,24 @@
              green verification dot inside the node hash pill, on the left
              side of it"). MicroChip has drawn this very dot off an
              `integrity` prop since 2026-08-08 — trailing the hash, the chips'
-             grammar in prose — so the panel hands it the node's verdict and
-             says `integrity-leads`: the light stands FIRST in the pill,
-             before the kind glyph, `● node / a1b2c3…`. One dot, one law
-             (MicroChip's): green = proof verified, red = violated and
-             clickable → Talavero's report, lawful-unproven draws nothing.
-             The zone of its own it held from 2026-08-23 went with it — see
-             the note where that zone stood. -->
+             grammar in prose — so the panel hands it the node's verdict;
+             the light stands FIRST in the pill, before the kind glyph. One
+             dot, one law (MicroChip's): green = proof verified, red =
+             violated and clickable → Talavero's report, lawful-unproven
+             draws nothing. The zone of its own it held from 2026-08-23
+             went with it — see the note where that zone stood.
+             ⭐ 2026-09-21 PM3 (user ask: "use the collapsed state of nano
+             pills for the headers of mini viewers"): the pill is the chip's
+             COLLAPSED state — `● / ◎ :: 993fa6…`, no type word, six digits,
+             no door (the corner is this panel's door). The chip cuts the
+             hash itself off the FULL path now; the panel's own 10-digit
+             `chipHash` (2026-08-23) is gone — it was also being handed in
+             as `hash-str`, i.e. as the chip's ADDRESS, ellipsis and all. -->
         <NodeMicro
           :id="node.id"
           :path="node.path"
-          :hash-str="chipHash"
-          :show-type="true"
           :integrity="node.integrity"
-          integrity-leads
+          collapsed
         />
         <button
           type="button"
@@ -207,7 +211,7 @@ import NodeMicro from './NodeMicro.vue'
 // `kindFor` left with the title section's glyph (2026-08-23, third pass) —
 // nothing on this panel draws the node KIND as a picture any more: the chip
 // says it in words and the title says what this one is called.
-import { hashOf, shortHash } from 'src/utils/kinds'
+import { hashOf } from 'src/utils/kinds'
 import { bodyOf, excerptOf } from 'src/utils/nodeContent'
 import { useFlyoutViewersStore } from 'src/stores/flyoutViewers'
 
@@ -233,8 +237,9 @@ export default defineComponent({
     const flyoutViewers = useFlyoutViewersStore()
     const openViewer = () => { flyoutViewers.spawnNode(props.node) }
 
-    // THE HASH COPY (2026-08-23, third pass). The FULL hash, not `chipHash`'s
-    // 10-digit cut: the short form is for reading, and what a `[[pathos:]]`
+    // THE HASH COPY (2026-08-23, third pass). The FULL hash, not the pill's
+    // six-digit cut (MicroChip's own `collapsed` cut since 2026-09-21 PM3):
+    // the short form is for reading, and what a `[[pathos:]]`
     // ref or an API call needs is the whole one — a copy button handing over
     // a value that pastes into nothing is worse than no button.
     // The house feedback idiom (FeedStream's `copyAddress`, ElementFlyout's
@@ -352,19 +357,10 @@ export default defineComponent({
 
     const showsSource = computed(() => props.raw && !!sourceText.value)
 
-    // The header chip's address, cut to a few digits with an explicit
-    // ellipsis so the truncation is STATED rather than left to the CSS one —
-    // a reader has to be able to tell a short address from a whole one. 10
-    // is the house compact length's neighbourhood (8 in the skeleton lists,
-    // 14 in the comment-origin label), kept from the foot chip this one
-    // replaced. `hashOf` for the comparison, so a node whose hash is already
-    // shorter than the cut gets no misleading ellipsis.
-    const chipHash = computed(() => {
-      const full = hashOf(props.node.path)
-      if (!full) return ''
-      const cut = shortHash(full, 10)
-      return cut.length < full.length ? cut + '…' : cut
-    })
+    // (The header chip's own 10-digit cut, `chipHash`, stood here 2026-08-23
+    // → 2026-09-21 PM3: the STATED ellipsis was its point — a reader must
+    // tell a short address from a whole one — and that rule is MicroChip's
+    // `collapsed` state now, at six digits, off the full path.)
 
     // The three bodies whose SIZE IS THEIR MEANING. They opt the panel out
     // of MiniPanel's 110px excerpt cap, which would otherwise crop a
@@ -402,7 +398,6 @@ export default defineComponent({
       excerpt,
       sourceText,
       showsSource,
-      chipHash,
       embed,
       mediaKind,
       isMedia,
@@ -817,8 +812,8 @@ export default defineComponent({
 // `.node-mini__zone--dot` (2026-08-23, third pass) wrapped the verdict light
 // so it had a hairline each side — `.node-mini__zone`'s `& + &` fires only
 // between adjacent ZONES, and a bare span in the row had broken the chain.
-// The light rides the address pill now (MicroChip's `integrity-leads`; see
-// the chip zone), so the row is three zones and two rules again.
+// The light rides the address pill now (MicroChip's light leads its pill;
+// see the chip zone), so the row is three zones and two rules again.
 
 // ── THE HASH COPY BUTTON (2026-08-23, third pass) ────────────────────────
 // A bare glyph beside the chip whose address it copies — no box, no rim, the
@@ -855,16 +850,14 @@ export default defineComponent({
 // squeezed (MicroChip is container-adaptive and shortens its own hash slice)
 // but never stretched, because the slack belongs to the name.
 //
-// ITS TEXT IS DARK TEAL since 2026-08-23 (user ask: "make the nano node
-// chip's text dark teal"). MicroChip's stock ink is `rgba(var(--ink-rgb),
-// .78)` — the platform's slate, correct for a chip smuggled into prose and
-// wrong here, now that the panel's LINES have gone grey: the chip's ink is
-// the last thing on the panel still able to say which colorway this is.
-// `--teal-10` is the colorway's own ink, the tone the source pane reads
-// directly for exactly the same reason. `:deep()` + `!important` because
-// MicroChip states `color` on `.micro-chip` itself and again on
-// `.is-link:hover`, and a linked chip would otherwise take its slate back
-// under the pointer.
+// ITS TEXT WAS DARK TEAL by a `:deep(.micro-chip)` override here 2026-08-23
+// → 2026-09-21 PM3 (user ask then: "make the nano node chip's text dark
+// teal"; MicroChip's stock ink was the platform's slate), with the pill's
+// corners restated beside it from the 09-21 morning. Both are the CHIP'S
+// OWN since the PM pass — `--kind-ink` = kinds.js teal-10 for a node,
+// `--radius-pill` on every nano pill — and the PM3 pass deleted the
+// override for real (the paper trail had said so a pass early). No host
+// restyles the chip.
 // FIRST IN THE ROW since the third pass (it was second, right of the title,
 // for a few hours). It holds two things now — the chip and its copy button —
 // so it is a row within the row; `flex: 0 1 auto` keeps it squeezable but
@@ -872,17 +865,6 @@ export default defineComponent({
 .node-mini__zone--chip {
   flex: 0 1 auto;
   min-width: 0;
-
-  :deep(.micro-chip) {
-    color: var(--teal-10, #004d40) !important;
-    // A PILL since 2026-09-21 (user ask: "for the hash pills of both, make
-    // their corners rounder so they look good inside their rounded
-    // containers"). MicroChip's stock 4px is drawn for a chip in prose; set in
-    // a `--radius-md` box it read as a square tag in a round frame. Fully
-    // round here, and only here — SkeletonMini gives its InfoChip the same —
-    // so the chip smuggled into a sentence keeps its own corners.
-    border-radius: var(--radius-pill, 999px);
-  }
 }
 
 // ── THE FOOT'S LINK LINE (2026-08-23, second pass) ───────────────────────

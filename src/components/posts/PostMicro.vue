@@ -8,14 +8,13 @@
     :icon="icon"
     :type-label="typeLabel"
     :type-icon="typeIcon"
-    :sep="sep"
     :icon-size="iconSize"
     :linked="linked"
     :full-address="fullAddress"
     :integrity="integrity"
-    :integrity-leads="integrityLeads"
     :verify="verify"
     :expand="expand"
+    :collapsed="collapsed"
   />
 </template>
 
@@ -31,26 +30,29 @@ export default defineComponent({
     path: { type: String, default: '' },
     hashStr: { type: String, default: '' },
     showType: { type: Boolean, default: true },
-    // Both pass straight to MicroChip — the kind's default glyph is
-    // `edit_note` (post-as-document), and a caller drawn beside the feed
-    // card's `sym_o_post` cap sends that one instead so the two marks match.
+    // Both pass straight to MicroChip — the kind's default glyph is the
+    // feed cap's `sym_o_post` (kinds.js, since 2026-09-21 PM3 — it was
+    // `edit_note`, and the cap had to send its own to match). (`sep` left
+    // with that pass: the pill's grammar is fixed, `/` lead + `::` seams.)
     icon: { type: String, default: null },
     typeLabel: { type: String, default: '' },
     typeIcon: { type: String, default: '' },
-    sep: { type: String, default: '/' },
     iconSize: { type: String, default: '10px' },
     // Pass false to render the chip as a span instead of a router-link — see
     // MicroChip. The feed card's foot chip does, so a click on it can open
     // the post information flyout rather than navigate to the viewer.
     linked: { type: Boolean, default: true },
     fullAddress: { type: String, default: '' },
-    // The traffic light and the door (2026-09-21) — all four hand straight
+    // The traffic light and the door (2026-09-21) — all three hand straight
     // through to MicroChip, which owns the law: a verdict given here wins,
     // else the chip resolves its own; `expand` draws the open-in-flyout mark.
     integrity: { type: Object, default: null },
-    integrityLeads: { type: Boolean, default: true },
     verify: { type: Boolean, default: true },
-    expand: { type: Boolean, default: true }
+    expand: { type: Boolean, default: true },
+    // THE STATE (2026-09-21 PM3): `collapsed` = the panel-header pill
+    // (`● / icon :: 993fa6…`, no type, no door); off = the extended
+    // reference (`● / icon :: type :: hash ⤢`). Through to MicroChip.
+    collapsed: { type: Boolean, default: false }
   }
 })
 </script>

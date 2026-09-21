@@ -42,7 +42,7 @@
     </template>
 
     <template #hash>
-      <PathMicro :id="path.id" :path="path.path" :show-type="true" />
+      <PathMicro :id="path.id" :path="path.path" collapsed />
     </template>
 
     <template #body>

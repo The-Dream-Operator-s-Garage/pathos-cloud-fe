@@ -1356,9 +1356,10 @@
                    [sym_o_post] :: [sym_o_orthopedics] :: <hash>
 
                  · the leading GLYPH is `sym_o_post`, the mark the cap states
-                   a post with (MicroChip's own default for the kind is
-                   `edit_note`, a different drawing) — the card's two strips
-                   wear one face for one thing.
+                   a post with (MicroChip's own default for the kind WAS
+                   `edit_note`, a different drawing, until 2026-09-21 PM3
+                   made `sym_o_post` the kind's glyph in kinds.js) — the
+                   card's two strips wear one face for one thing.
                  · the TYPE slot is `skeleton` — not `post`: what a post's
                    address is a handle on is its skeleton, and that is the
                    reading every control around it opens — but it is the
@@ -1456,12 +1457,16 @@
 
               <div class="post-square__foot-main">
                 <!-- THE STOCK PILL since 2026-09-21 PM (user ask: the card's
-                     chip must BE the content's reference chip): kind glyph,
-                     `post / hash`, the light leading, the door at the end —
-                     a click opens the post's window, the same window the
-                     cap's open_in_new opens (the store dedupes by address).
-                     The cap's own marks (`sym_o_post`, `sym_o_orthopedics`,
-                     the `::` seam) left the chip with this pass. -->
+                     chip must BE the content's reference chip), in its
+                     EXTENDED state since PM3 (user ask: "use the extended
+                     version of the post pill on the post card footer"):
+                     `● / [post] :: post :: hash ⤢` — the light leading, the
+                     cap's own `sym_o_post` (the kind's glyph in kinds.js
+                     now), the type word, the door at the end — a click
+                     opens the post's window, the same window the cap's
+                     open_in_new opens (the store dedupes by address). The
+                     cap's `sym_o_orthopedics` and the chip's old `/` seps
+                     are gone; the `::` seam is the chip's own grammar. -->
                 <PostMicro
                   class="post-square__chip"
                   :id="item.skeleton_id"
@@ -2718,11 +2723,11 @@ export default defineComponent({
     }
 
     // And the MARK it wears: the card's own post glyph, so the clause and
-    // the kind icons at the head of the same line are one family. MicroChip
-    // defaults to `KINDS.posts.icon` (`edit_note`), which is the platform's
-    // POST-AS-DOCUMENT glyph and a different drawing from the one this cap
-    // has been stating a post with two spans to the left. Everything else
-    // keeps the kind's own icon — a node chip should look like a node.
+    // the kind icons at the head of the same line are one family. (MicroChip
+    // defaulted to `edit_note` — the POST-AS-DOCUMENT drawing — until
+    // 2026-09-21 PM3 made this cap's `sym_o_post` the kind's own glyph in
+    // kinds.js; the chip reads it there now.) Everything else keeps the
+    // kind's own icon — a node chip should look like a node.
 
     // ── THE CAP'S PIN (2026-08-07) ──────────────────────────────────────
     // Which of this page's posts are already in the caller's PINS skeleton.
