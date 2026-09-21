@@ -31,11 +31,24 @@
            the mark simply never flips. `.stop.prevent` because the panel is a
            router-link. -->
       <span class="node-mini__zone node-mini__zone--chip">
+        <!-- THE VERDICT LIGHT RIDES THE PILL since 2026-09-21 (user ask: "the
+             green verification dot inside the node hash pill, on the left
+             side of it"). MicroChip has drawn this very dot off an
+             `integrity` prop since 2026-08-08 — trailing the hash, the chips'
+             grammar in prose — so the panel hands it the node's verdict and
+             says `integrity-leads`: the light stands FIRST in the pill,
+             before the kind glyph, `● node / a1b2c3…`. One dot, one law
+             (MicroChip's): green = proof verified, red = violated and
+             clickable → Talavero's report, lawful-unproven draws nothing.
+             The zone of its own it held from 2026-08-23 went with it — see
+             the note where that zone stood. -->
         <NodeMicro
           :id="node.id"
           :path="node.path"
           :hash-str="chipHash"
           :show-type="true"
+          :integrity="node.integrity"
+          integrity-leads
         />
         <button
           type="button"
@@ -64,26 +77,12 @@
         <span class="node-mini__name-text">{{ nodeLabel }}</span>
       </span>
 
-      <!-- The integrity traffic light (integrity-debt plan): the panel
-           wears its node's verdict in the header — green proof-verified,
-           red violated (click → Talavero's report). Same grammar as the
-           chips'; lawful-unproven draws nothing.
-
-           IN A ZONE OF ITS OWN since the third pass, which is what puts
-           hairlines on both sides of it (see `.node-mini__zone`'s `& + &`
-           rule: it only fires between ADJACENT zones, so a bare dot in the
-           row broke the chain and the flyout beyond it went unruled). The
-           `v-if` degrades correctly — with no verdict to show, the flyout's
-           previous sibling is the title zone and it keeps its hairline. -->
-      <span v-if="integrityState" class="node-mini__zone node-mini__zone--dot">
-        <span
-          class="node-mini__integrity"
-          :class="'integrity-' + integrityState"
-          :title="integrityTitle"
-          role="button"
-          @click.stop.prevent="openIntegrityReport"
-        />
-      </span>
+      <!-- (THE DOT'S OWN ZONE stood here 2026-08-23 → 2026-09-21 —
+           `.node-mini__zone--dot`, a bare 8px light between the title and the
+           corner with a hairline each side. It moved INTO the address pill
+           (see the chip zone above); the row is `chip+copy │ title │ open`
+           again, two hairlines, with no `v-if` for the `& + &` rule to
+           degrade around.) -->
 
       <!-- The FLYOUT VIEWER trigger (2026-08-04 as the media viewer's;
            the general element flyout since the 2026-08-17 fusion) — the
@@ -382,20 +381,11 @@ export default defineComponent({
     // The integrity verdict rides the enriched node (integrity-debt plan):
     // green proof-verified / red violated (click → Talavero's report in
     // the flyout); lawful-unproven states draw nothing.
-    const integrityState = computed(() => {
-      const s = props.node.integrity?.status
-      return s === 'ok' || s === 'violated' ? s : null
-    })
+    // The verdict's state and tooltip are MicroChip's since 2026-09-21
+    // (`node.integrity` goes to the pill whole); the panel keeps only what
+    // its WITHHELD face needs — the report ref and the knock.
     const integrityReport = computed(() => props.node.integrity?.report || null)
     const isWithheld = computed(() => props.node.content_withheld === true)
-    const integrityTitle = computed(() => {
-      if (integrityState.value === 'ok') return 'proof verified'
-      if (integrityState.value !== 'violated') return null
-      const check = props.node.integrity?.check || 'integrity'
-      return integrityReport.value
-        ? `integrity violated: ${check} — click for Talavero's report`
-        : `integrity violated: ${check} — report unavailable`
-    })
     const openIntegrityReport = () => {
       if (integrityReport.value) {
         router.push({ path: '/feed', query: { flyout: integrityReport.value } })
@@ -405,8 +395,6 @@ export default defineComponent({
     return {
       targetRoute,
       openViewer,
-      integrityState,
-      integrityTitle,
       integrityReport,
       isWithheld,
       openIntegrityReport,
@@ -483,7 +471,23 @@ export default defineComponent({
 // card. What says it is the `--teal-1` ring, the body — and the viewer's
 // own vote on the caption line, which no dial touches.
 :deep(.mini-panel) {
-  // THE COAT IS THE POST CARD'S (2026-08-23, second ask on the same surface:
+  // ⭐ 2026-09-21 — THE SKELETON MINI'S BOX (user asks, one sitting: "make its
+  // corners rounded … make the roundness look similar for the skeleton and
+  // node viewers", then "make their background colors the same, using the
+  // skeleton mini background color style as basis"). Four of the 2026-08-23
+  // decisions in this block reversed TOGETHER, because they were one argument
+  // and its premise went: the panel shared the card's fill, so it was drawn as
+  // a BAND of the card — square, side-less, bled to the pit's border, no
+  // shadow. With the coat now `--grey-3` (SkeletonMini's basis) it is a
+  // distinct OBJECT in the pit again, the same object a skeleton is in the
+  // same pit, and an object wants the box that one has: MiniPanel's
+  // `--radius-md` corners, its 1px rule on all four sides, its shadow, and
+  // the pit's own 10px padding around it (a rounded box flush against the
+  // pit's border would meet that line at four corners it cannot follow). The
+  // notes under each of the four declarations stay as the record of why they
+  // were right for the band — read them as history.
+  //
+  // THE COAT WAS THE POST CARD'S (2026-08-23, second ask on the same surface:
   // "the background color of the mini node card should be the same as the
   // post card's background color, the light-cream with a grey veil"). It was a
   // uniform `--teal-1`, head to foot, since the colorway was written.
@@ -501,8 +505,13 @@ export default defineComponent({
   // pasted `rgba(...)` here to go stale. It is a LAYER LIST, not a colour;
   // MiniPanel only ever puts these two properties in `background`, which is
   // the one place a layer list is legal.
-  --panel-chrome: var(--node-mini-coat, var(--card-coat));
-  --panel-body:   var(--node-mini-coat, var(--card-coat));
+  // `--grey-3` SINCE 2026-09-21: SkeletonMini's coat verbatim (its
+  // `--skel-mini-coat` dial defaults to the same token), so a node and a
+  // skeleton quoted into one post are one material at one lightness, a step
+  // above the `--grey-1` pit they stand in. `--card-coat` stays minted for the
+  // card's own `::before`; this panel no longer reads it.
+  --panel-chrome: var(--node-mini-coat, var(--grey-3, #eeeeee));
+  --panel-body:   var(--node-mini-coat, var(--grey-3, #eeeeee));
   // MiniPanel's own line tone: its outer border AND its head/body divider.
   // GREY-5 SINCE 2026-08-23 (user ask: "make the mini node viewer's borders
   // grey-5 instead of teal"). It was `--teal-3` from the colorway's first day
@@ -541,10 +550,13 @@ export default defineComponent({
   // a frame. MiniPanel's own 1px stands unmodified now; the note further up
   // about a width dial having to double this base is dead with it.
   //
-  // SQUARE, by the same ask: `--radius-md` rounded a panel that now shares its
-  // fill with the card behind it, and a rounded hole cut in a square column of
-  // prose shows its corners as four gaps.
-  border-radius: 0;
+  // It was SQUARE by the same ask (`border-radius: 0` stood here): `--radius-md`
+  // rounded a panel that shared its fill with the card behind it, and a rounded
+  // hole cut in a square column of prose showed its corners as four gaps.
+  // ROUNDED AGAIN SINCE 2026-09-21 — and by NO declaration: MiniPanel's own
+  // `--radius-md` stands, which is exactly what SkeletonMini wears, so the two
+  // viewers' roundness is one token by construction, not two numbers kept in
+  // step.
 
   // ── FULL BLEED TO THE HOST CONTAINER'S BORDER (2026-08-23 user ask:
   // "remove the padding between the mini node viewer's right border and the
@@ -567,8 +579,12 @@ export default defineComponent({
   // bubble, a skeleton cell, the post viewer's scroller publish nothing and
   // the panel sits where it always did. ⚠ `0px`, not `0`: it lands inside a
   // `calc()`, where a unitless zero is invalid and would drop the declaration.
-  margin-left: calc(-1 * var(--quoted-bleed-x, 0px));
-  margin-right: calc(-1 * var(--quoted-bleed-x, 0px));
+  // ⚠ THE BLEED IS OFF SINCE 2026-09-21 (two `margin-*: calc(-1 *
+  // var(--quoted-bleed-x, 0px))` declarations stood here): a rounded, bordered
+  // box flush against the pit's border would meet that line at four corners it
+  // cannot follow. The panel sits inside the pit's padding now, where
+  // SkeletonMini sits. `--quoted-bleed-x` stays published by the pit for
+  // whoever bleeds next.
 
   // ── NO SIDE BORDERS (2026-08-23 user ask: "remove the borders from the
   // right and left of the mini node viewer") ───────────────────────────────
@@ -587,12 +603,15 @@ export default defineComponent({
   // zero-width border stays invisible where a re-declared style might not.
   // The head/body/foot dividers are untouched — they are `& > * + *`
   // `border-top`s inside the panel, not part of its box.
-  border-left-width: 0;
-  border-right-width: 0;
-  // The card's own drop shadow goes with the coat: a tinted panel already
-  // separates from the post body it sits in, and the shadow only greyed
-  // the tint.
-  box-shadow: none;
+  // ⚠ THE SIDE BORDERS ARE BACK SINCE 2026-09-21 (`border-left-width: 0;
+  // border-right-width: 0` stood here): the doubled-edge argument above held
+  // only while the panel touched the pit's border; 10px in, its own rule is
+  // the only line there, and a rounded corner needs a side to turn into.
+  // (`box-shadow: none` stood here 2026-07-26 → 2026-09-21: "the card's own
+  // drop shadow goes with the coat — a tinted panel already separates from
+  // the post body it sits in, and the shadow only greyed the tint". The panel
+  // is an object in the pit again, and MiniPanel's `--shadow-card` is what
+  // lifts SkeletonMini out of that same pit, so it lifts this one too.)
 }
 
 // HOVER, in the colorway (2026-07-26). MiniPanel reddens the border with
@@ -794,16 +813,12 @@ export default defineComponent({
   text-overflow: ellipsis;
 }
 
-// ── THE DOT'S ZONE (2026-08-23, third pass) ──────────────────────────────
-// The verdict light used to stand in the row as a BARE span, which cost it
-// both hairlines: `.node-mini__zone`'s `& + &` rule fires only between
-// adjacent ZONES, so an unwrapped element in the middle broke the chain and
-// the flyout past it went unruled too. Wrapping it restores the row's own
-// grammar — every boundary is a hairline, and the count follows the zones.
-// `flex: 0 0 auto` because a dot has one size.
-.node-mini__zone--dot {
-  flex: 0 0 auto;
-}
+// ── THE DOT'S ZONE IS GONE (2026-09-21) ──────────────────────────────────
+// `.node-mini__zone--dot` (2026-08-23, third pass) wrapped the verdict light
+// so it had a hairline each side — `.node-mini__zone`'s `& + &` fires only
+// between adjacent ZONES, and a bare span in the row had broken the chain.
+// The light rides the address pill now (MicroChip's `integrity-leads`; see
+// the chip zone), so the row is three zones and two rules again.
 
 // ── THE HASH COPY BUTTON (2026-08-23, third pass) ────────────────────────
 // A bare glyph beside the chip whose address it copies — no box, no rim, the
@@ -860,6 +875,13 @@ export default defineComponent({
 
   :deep(.micro-chip) {
     color: var(--teal-10, #004d40) !important;
+    // A PILL since 2026-09-21 (user ask: "for the hash pills of both, make
+    // their corners rounder so they look good inside their rounded
+    // containers"). MicroChip's stock 4px is drawn for a chip in prose; set in
+    // a `--radius-md` box it read as a square tag in a round frame. Fully
+    // round here, and only here — SkeletonMini gives its InfoChip the same —
+    // so the chip smuggled into a sentence keeps its own corners.
+    border-radius: var(--radius-pill, 999px);
   }
 }
 
@@ -1062,25 +1084,11 @@ export default defineComponent({
   font-style: italic;
 }
 
-// ── The integrity traffic light + withheld face (integrity-debt plan) ────
-// Header dot: the chips' grammar at panel scale. Red is the only
-// interactive state — it routes to Talavero's report.
-.node-mini__integrity {
-  flex-shrink: 0;
-  align-self: center;
-  width: 8px;
-  height: 8px;
-  // No margin since 2026-08-23: the dot sits in a padded zone of its own now,
-  // and its old `0 4px` would have doubled that inset on both sides.
-  margin: 0;
-  border-radius: 50%;
-  &.integrity-ok       { background: #2e6a3a; }
-  &.integrity-violated {
-    background: #a03d3d;
-    cursor: pointer;
-    box-shadow: 0 0 0 2px rgba(160, 61, 61, 0.25);
-  }
-}
+// ── The withheld face (integrity-debt plan) ──────────────────────────────
+// (`.node-mini__integrity`, the panel's own 8px header dot, stood here
+// 2026-08-08 → 2026-09-21. The light is MicroChip's 7px `.micro-chip__integrity`
+// inside the address pill now — same palette, same red-only click — and the
+// panel draws no dot of its own.)
 
 .node-mini__withheld {
   display: flex;

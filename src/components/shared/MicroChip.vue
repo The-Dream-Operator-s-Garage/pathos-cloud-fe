@@ -8,7 +8,7 @@
     :is="rootTag"
     :to="route"
     class="micro-chip"
-    :class="['kind-' + meta.kind, { 'is-link': !!route, 'no-type': !showType, 'pioneer-gold': pioneer }]"
+    :class="['kind-' + meta.kind, { 'is-link': !!route, 'no-type': !showType, 'pioneer-gold': pioneer, 'integrity-leads': integrityLeads }]"
     :title="tooltip"
     :data-nav-focus="route || null"
     @click.stop
@@ -109,7 +109,16 @@ export default defineComponent({
     // The element's integrity verdict from the API ({ status, check,
     // report }). 'ok' → green, 'violated' → red (click opens the report
     // flyout), 'exempt'/null → no dot.
-    integrity: { type: Object, default: null }
+    integrity: { type: Object, default: null },
+    // WHERE THE DOT STANDS (2026-09-21, user ask on NodeMini: "the green
+    // verification dot inside the node hash pill, on the left side of it").
+    // By default the light TRAILS the hash — the chips' grammar in prose
+    // since 2026-08-08. `integrity-leads` puts it FIRST, before the kind
+    // glyph, for a chip that IS its panel's verdict light rather than one
+    // mark among many in a sentence: `● node / a1b2c3…`. Markup order is
+    // untouched (it is `order: -1` on the dot), so the tooltip, the click and
+    // the draws-nothing law stay the one place they are.
+    integrityLeads: { type: Boolean, default: false }
   },
   setup (props) {
     const router = useRouter()
@@ -237,6 +246,10 @@ export default defineComponent({
     box-shadow: 0 0 0 2px rgba(160, 61, 61, 0.25);
   }
 }
+// The light LEADS when the caller says so (NodeMini's header pill, 2026-09-21):
+// flex `order` moves it to the row's start without moving the markup, so the
+// verdict reads before the address — `● node / a1b2c3…`.
+.micro-chip.integrity-leads .micro-chip__integrity { order: -1; }
 .micro-chip__sep  { flex-shrink: 0; opacity: 0.35; }
 // The drawn type. One step under the leading icon's 0.85, the way the type
 // WORD sits one step under the hash — it classifies, it does not name.

@@ -10,6 +10,8 @@
     :show-type="showType"
     :icon-size="iconSize"
     :full-address="fullAddress"
+    :integrity="integrity"
+    :integrity-leads="integrityLeads"
   />
 </template>
 
@@ -26,7 +28,11 @@ export default defineComponent({
     hashStr: { type: String, default: '' },
     showType: { type: Boolean, default: true },
     iconSize: { type: String, default: '10px' },
-    fullAddress: { type: String, default: '' }
+    fullAddress: { type: String, default: '' },
+    // The node's integrity verdict ({ status, check, report }) and where its
+    // dot stands — both handed straight to MicroChip, which owns the law.
+    integrity: { type: Object, default: null },
+    integrityLeads: { type: Boolean, default: false }
   }
 })
 </script>

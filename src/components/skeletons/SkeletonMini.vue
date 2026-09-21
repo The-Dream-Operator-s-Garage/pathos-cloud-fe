@@ -113,24 +113,15 @@
           <span v-if="head.is_schema" class="skel-mini__schema">SCHEMA</span>
         </span>
 
-        <!-- The integrity traffic light (2026-09-17): the skeleton's own
-             verdict in the header — green proof-verified (spine path +
-             every live spine link), red violated (click → Talavero's
-             report). Lawful-unproven draws nothing. In a ZONE OF ITS OWN,
-             NodeMini's reason verbatim: the row's `& + &` hairline rule
-             fires only between adjacent zones, so a bare dot would break
-             the chain and unrule everything past it; the `v-if` degrades
-             correctly — with no verdict the lock's previous sibling is the
-             name zone and it keeps its hairline. -->
-        <span v-if="integrityState" class="skel-mini__zone skel-mini__zone--dot">
-          <span
-            class="skel-mini__integrity"
-            :class="'integrity-' + integrityState"
-            :title="integrityTitle"
-            role="button"
-            @click.stop.prevent="openIntegrityReport"
-          />
-        </span>
+        <!-- (THE DOT'S OWN ZONE stood here 2026-09-17 → 2026-09-21 —
+             `.skel-mini__zone--dot`, an 8px light between the name and the
+             lock. User ask: "remove the green dot next to the lock as the
+             verification information is already on the pill" — the InfoChip
+             in the chip zone resolves this skeleton's summary and wears
+             `summary.integrity` as its own trailing dot, the same
+             verifySkeletonSync verdict, red-click → report included. Two
+             lights saying one thing was one too many. The row is
+             `chip+copy │ name │ lock │ layout │ open`.) -->
 
         <!-- The lock: every owned skeleton since phase 0. A locked one
              refuses every key and cell write (403 40303); flips are
@@ -513,7 +504,6 @@ export default defineComponent({
       author,
       footSchema,
       footTitle,
-      integrityState,
       integrityReport,
       integrityTitle,
       withheld,
@@ -602,6 +592,13 @@ export default defineComponent({
 .skel-mini__zone--chip {
   flex: 0 1 auto;
   gap: 2px;
+  // The address pill's corners follow the panel's (2026-09-21 user ask: "for
+  // the hash pills of both, make their corners rounder so they look good
+  // inside their rounded containers"). InfoChip's stock 5px reads as a
+  // square-ish tag inside a `--radius-md` box, so the pill is fully round
+  // here — scoped to this zone, the way NodeMini rounds its MicroChip; a
+  // chip standing in prose keeps its own corners.
+  :deep(.info-chip) { border-radius: var(--radius-pill, 999px); }
 }
 .skel-mini__zone--name {
   flex: 1 1 auto;
@@ -673,10 +670,9 @@ export default defineComponent({
   &:hover { opacity: 1; }
   &.is-copied { opacity: 1; color: var(--positive, #21ba45); }
 }
-// The dot's zone: a dot has one size.
-.skel-mini__zone--dot {
-  flex: 0 0 auto;
-}
+// (`.skel-mini__zone--dot` stood here 2026-09-17 → 2026-09-21; the verdict
+// light is the address pill's own — see the template note where the zone
+// stood.)
 .skel-mini__lock {
   flex: 0 0 auto;
   &:hover { color: var(--teal-12, #00b8d4); }
@@ -693,23 +689,10 @@ export default defineComponent({
   &:hover { color: var(--coral-deep, #d35f5f); }
 }
 
-// ── The integrity traffic light + withheld face (2026-09-17) ─────────
-// NodeMini's dot at the same scale: the chips' grammar, red the only
-// interactive state (it routes to Talavero's report).
-.skel-mini__integrity {
-  flex-shrink: 0;
-  align-self: center;
-  width: 8px;
-  height: 8px;
-  margin: 0;
-  border-radius: 50%;
-  &.integrity-ok       { background: #2e6a3a; }
-  &.integrity-violated {
-    background: #a03d3d;
-    cursor: pointer;
-    box-shadow: 0 0 0 2px rgba(160, 61, 61, 0.25);
-  }
-}
+// ── The withheld face (2026-09-17) ───────────────────────────────────
+// (`.skel-mini__integrity`, the panel's own 8px dot at NodeMini's scale,
+// stood here 2026-09-17 → 2026-09-21. The pill's `.info-chip__integrity`
+// is the one light now — same palette, same red-only click.)
 .skel-mini__withheld {
   display: flex;
   align-items: center;
