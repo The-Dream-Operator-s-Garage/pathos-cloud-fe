@@ -3,7 +3,7 @@
        PM3, user ask: "help me developing 2 states for those pills: Collapsed
        and Extended"):
 
-         extended   `● / icon :: type :: hash ⤢`
+         extended   `● | icon :: type :: hash ⤢`
                     a reference in running text — the post body's
                     `[[pathos:]]` refs, the feed card's foot chip — the whole
                     address in the pill, the type word said, the door at the
@@ -14,12 +14,12 @@
                     gives, the ellipsis cuts it at the edge, and NO HOST CAPS
                     IT (the feed foot's `10ch` cap is gone). A host that must
                     hold a chip short bounds the chip's WRAPPER, not the hash.
-         collapsed  `● / icon :: 993fa6…`
+         collapsed  `● | icon :: 993fa6…`
                     a panel's header pill (every Mini's `#hash` slot): no
                     type word, the hash CUT to six digits + a stated
                     ellipsis, no door — the panel's corner is the door there.
 
-       The grammar is FIXED: the light first, a lead `/` after it, `::`
+       The grammar is FIXED: the light first, a lead `|` after it, `::`
        seams. One object on every surface (PM2's law), so `sep` is retired
        with this pass and `integrityLeads` too — the light always leads.
 
@@ -60,9 +60,12 @@
       role="button"
       @click.stop.prevent="onIntegrityClick"
     />
-    <!-- The LEAD — the address dialect's root slash, drawn before the kind
-         glyph in both states (`● / node :: …`). -->
-    <span class="micro-chip__lead">/</span>
+    <!-- The LEAD — a bar between the light and the address, drawn before
+         the kind glyph in both states (`● | node :: …`). ⭐ PM5 (user ask:
+         "for all chips, let's try to put '|' instead of '/' on this thing
+         next to the green dot") — it was the address dialect's root slash
+         for the space of PM3 → PM4. -->
+    <span class="micro-chip__lead">|</span>
     <q-icon :name="meta.icon" :size="iconSize" class="micro-chip__icon" />
     <template v-if="typeShown">
       <span class="micro-chip__sep">::</span>
@@ -133,8 +136,8 @@ export default defineComponent({
     path: { type: String, default: '' },
     hashStr: { type: String, default: '' },
     // THE STATE (2026-09-21 PM3). `collapsed` = the panel-header form:
-    // `● / icon :: 993fa6…` — no type word, six hash digits + `…`, no door.
-    // Off (the default) = extended: `● / icon :: type :: hash ⤢`, the form
+    // `● | icon :: 993fa6…` — no type word, six hash digits + `…`, no door.
+    // Off (the default) = extended: `● | icon :: type :: hash ⤢`, the form
     // a reference wears inside a post. Every Mini's `#hash` slot passes it;
     // a RefMicro in prose never does.
     collapsed: { type: Boolean, default: false },
@@ -147,7 +150,7 @@ export default defineComponent({
     typeLabel: { type: String, default: '' },
     // …or that word DRAWN. Wins over `typeLabel` when both are given.
     typeIcon: { type: String, default: '' },
-    // ⚠ RETIRED 2026-09-21 PM3 — the grammar is fixed (`/` lead, `::` seams)
+    // ⚠ RETIRED 2026-09-21 PM3 — the grammar is fixed (`|` lead, `::` seams)
     // in both states; accepted so older callers do not warn, ignored.
     sep: { type: String, default: '' },
     icon: { type: String, default: null },
@@ -440,7 +443,7 @@ export default defineComponent({
   &:hover { opacity: 1; color: var(--coral-deep, #d35f5f); }
 }
 .micro-chip:hover .micro-chip__open { opacity: 0.85; }
-// The lead `/` and the `::` seams — punctuation, a step under everything
+// The lead `|` and the `::` seams — punctuation, a step under everything
 // they separate.
 .micro-chip__lead,
 .micro-chip__sep  { flex-shrink: 0; opacity: 0.35; }

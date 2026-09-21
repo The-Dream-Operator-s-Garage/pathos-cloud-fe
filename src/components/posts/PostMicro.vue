@@ -33,7 +33,7 @@ export default defineComponent({
     // Both pass straight to MicroChip — the kind's default glyph is the
     // feed cap's `sym_o_post` (kinds.js, since 2026-09-21 PM3 — it was
     // `edit_note`, and the cap had to send its own to match). (`sep` left
-    // with that pass: the pill's grammar is fixed, `/` lead + `::` seams.)
+    // with that pass: the pill's grammar is fixed, `|` lead + `::` seams.)
     icon: { type: String, default: null },
     typeLabel: { type: String, default: '' },
     typeIcon: { type: String, default: '' },
@@ -50,8 +50,8 @@ export default defineComponent({
     verify: { type: Boolean, default: true },
     expand: { type: Boolean, default: true },
     // THE STATE (2026-09-21 PM3): `collapsed` = the panel-header pill
-    // (`● / icon :: 993fa6…`, no type, no door); off = the extended
-    // reference (`● / icon :: type :: hash ⤢`). Through to MicroChip.
+    // (`● | icon :: 993fa6…`, no type, no door); off = the extended
+    // reference (`● | icon :: type :: hash ⤢`). Through to MicroChip.
     collapsed: { type: Boolean, default: false }
   }
 })

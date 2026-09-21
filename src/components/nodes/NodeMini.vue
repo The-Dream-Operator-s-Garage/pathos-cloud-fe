@@ -43,7 +43,7 @@
              went with it — see the note where that zone stood.
              ⭐ 2026-09-21 PM3 (user ask: "use the collapsed state of nano
              pills for the headers of mini viewers"): the pill is the chip's
-             COLLAPSED state — `● / ◎ :: 993fa6…`, no type word, six digits,
+             COLLAPSED state — `● | ◎ :: 993fa6…`, no type word, six digits,
              no door (the corner is this panel's door). The chip cuts the
              hash itself off the FULL path now; the panel's own 10-digit
              `chipHash` (2026-08-23) is gone — it was also being handed in

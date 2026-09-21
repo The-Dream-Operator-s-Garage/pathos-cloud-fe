@@ -82,7 +82,7 @@
                chip everywhere, NodeMini's header pill the reference) — an
                InfoChip stood here until then. The verdict off the walk
                leads it. ⭐ PM3 (user ask: the collapsed state on mini
-               headers): `collapsed` — `● / ⌬ :: 993fa6…`, no type word, six
+               headers): `collapsed` — `● | ⌬ :: 993fa6…`, no type word, six
                digits, no door glyph (the corner is this panel's door; the
                pill's root click still opens the same window). -->
           <MicroChip kind="skeletons" :id="head.id" :path="head.path" :integrity="head.integrity" collapsed />

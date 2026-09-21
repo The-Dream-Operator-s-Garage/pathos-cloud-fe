@@ -83,8 +83,8 @@ export default defineComponent({
     verify: { type: Boolean, default: true },
     expand: { type: Boolean, default: true },
     // THE STATE (2026-09-21 PM3): `collapsed` = the panel-header pill
-    // (`● / icon :: 993fa6…`, no type, no door); off = the extended
-    // reference (`● / icon :: type :: hash ⤢`). Through to MicroChip.
+    // (`● | icon :: 993fa6…`, no type, no door); off = the extended
+    // reference (`● | icon :: type :: hash ⤢`). Through to MicroChip.
     collapsed: { type: Boolean, default: false }
   },
   setup (props) {

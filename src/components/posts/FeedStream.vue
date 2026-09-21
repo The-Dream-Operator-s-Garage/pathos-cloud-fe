@@ -1460,7 +1460,7 @@
                      chip must BE the content's reference chip), in its
                      EXTENDED state since PM3 (user ask: "use the extended
                      version of the post pill on the post card footer"):
-                     `● / [post] :: post :: hash ⤢` — the light leading, the
+                     `● | [post] :: post :: hash ⤢` — the light leading, the
                      cap's own `sym_o_post` (the kind's glyph in kinds.js
                      now), the type word, the door at the end — a click
                      opens the post's window, the same window the cap's
