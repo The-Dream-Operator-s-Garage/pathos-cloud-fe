@@ -1065,10 +1065,13 @@ $warning:   #F2C037;
   // smaller, paint it with a light-green quasar tone and put it a thin
   // lighter light-green quasar tone border") — the integrity-ok bead on
   // MicroChip AND InfoChip, one source. Quasar light-green-6 (`$light-green`
-  // itself) under a 1px light-green-3 rim, three steps lighter. Red (the
-  // violated state) keeps the claim palette's #a03d3d in each chip.
+  // itself) under a 1px rim. ⭐ PM7 (user ask: "instead of having a lighter
+  // light-green border, make it have a darker light-green thin border"): the
+  // rim is light-green-8, two steps DARKER — PM3's light-green-3 (three
+  // steps lighter) vanished into the pill's cream face. Red (the violated
+  // state) keeps the claim palette's #a03d3d in each chip.
   --verdict-ok:     #8bc34a;   // light-green-6
-  --verdict-ok-rim: #c5e1a5;   // light-green-3
+  --verdict-ok-rim: #689f38;   // light-green-8 (PM7 — darker than the fill; was light-green-3)
 
   // ── PRESENTATION TOKENS ──
   // Heavier rounding to match the inspiration's pill-and-pebble vocabulary.

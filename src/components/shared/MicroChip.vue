@@ -3,7 +3,7 @@
        PM3, user ask: "help me developing 2 states for those pills: Collapsed
        and Extended"):
 
-         extended   `● | icon :: type :: hash ⤢`
+         extended   `icon type / hash ● ⤢`
                     a reference in running text — the post body's
                     `[[pathos:]]` refs, the feed card's foot chip — the whole
                     address in the pill, the type word said, the door at the
@@ -14,14 +14,19 @@
                     gives, the ellipsis cuts it at the edge, and NO HOST CAPS
                     IT (the feed foot's `10ch` cap is gone). A host that must
                     hold a chip short bounds the chip's WRAPPER, not the hash.
-         collapsed  `● | icon :: 993fa6…`
+         collapsed  `icon / 993fa6… ●`
                     a panel's header pill (every Mini's `#hash` slot): no
                     type word, the hash CUT to six digits + a stated
                     ellipsis, no door — the panel's corner is the door there.
 
-       The grammar is FIXED: the light first, a lead `|` after it, `::`
-       seams. One object on every surface (PM2's law), so `sep` is retired
-       with this pass and `integrityLeads` too — the light always leads.
+       The grammar is FIXED — ⭐ PM7 (user ask: "re-arranging their content
+       … [icon + type_name + '/' + hash + green_dot + flyout_icon] … [icon +
+       '/' + hash + green_dot]"): the kind glyph OPENS the pill, the type
+       word follows it bare (extended only), ONE `/` seam stands before the
+       hash, and the light stands AFTER the hash — before the door. (PM3 →
+       PM6 read `● | icon :: type :: hash ⤢`: the light first, a `|` lead,
+       `::` seams.) One object on every surface (PM2's law), so `sep` is
+       retired and `integrityLeads` too — the light's place is the grammar's.
 
        ⭐ 2026-09-21 PM (user ask: "when I click on them, its respective
        flyout window is opened instead of redirecting to an individual page
@@ -45,34 +50,16 @@
     @click.stop="onRootClick"
     @keydown.enter.prevent="onRootClick"
   >
-    <!-- The integrity traffic light (integrity-debt plan, 2026-08-08), the
-         pill's FIRST mark since PM3 (markup order = reading order now; it
-         was `order: -1` under `integrity-leads` for a day): green = this
-         element's chain proof verified on the last read; red = a check
-         CONTRADICTED — the body is withheld and clicking the dot opens
-         Talavero's report in the flyout. Lawful-unproven states (drafts,
-         pre-epoch) draw NOTHING: green must mean verified. -->
-    <span
-      v-if="integrityState"
-      class="micro-chip__integrity"
-      :class="'integrity-' + integrityState"
-      :title="integrityTitle"
-      role="button"
-      @click.stop.prevent="onIntegrityClick"
-    />
-    <!-- The LEAD — a bar between the light and the address, drawn before
-         the kind glyph in both states (`● | node :: …`). ⭐ PM5 (user ask:
-         "for all chips, let's try to put '|' instead of '/' on this thing
-         next to the green dot") — it was the address dialect's root slash
-         for the space of PM3 → PM4. -->
-    <span class="micro-chip__lead">|</span>
+    <!-- The kind glyph OPENS the pill (⭐ PM7): `[post] post / 993f…`. The
+         `|` lead that stood before it (PM5 → PM6; the address dialect's root
+         slash for PM3 → PM4) left with the light's move to the hash's end. -->
     <q-icon :name="meta.icon" :size="iconSize" class="micro-chip__icon" />
     <template v-if="typeShown">
-      <span class="micro-chip__sep">::</span>
       <!-- The type slot says the same thing two ways: a WORD by default, or
            a GLYPH when the caller hands one — for a chip standing in a strip
            that already states that kind as an icon, where the word would be
-           the only spelt-out thing in a run of marks. Extended state only. -->
+           the only spelt-out thing in a run of marks. Extended state only,
+           and BARE after the glyph since PM7 — no seam between them. -->
       <q-icon
         v-if="typeIcon"
         :name="typeIcon"
@@ -81,8 +68,27 @@
       />
       <span v-else class="micro-chip__type mono">{{ typeLabel || meta.kind }}</span>
     </template>
-    <span class="micro-chip__sep">::</span>
+    <!-- THE ONE SEAM (⭐ PM7): a `/` before the hash in both states — the
+         address dialect's own separator (`post / hash`, `[node] / hash`).
+         PM3 → PM6 drew `::` twice, around the type word. -->
+    <span class="micro-chip__sep">/</span>
     <span class="micro-chip__hash mono">{{ hashText }}</span>
+    <!-- The integrity traffic light (integrity-debt plan, 2026-08-08): green
+         = this element's chain proof verified on the last read; red = a
+         check CONTRADICTED — the body is withheld and clicking the dot opens
+         Talavero's report in the flyout. Lawful-unproven states (drafts,
+         pre-epoch) draw NOTHING: green must mean verified. ⭐ PM7 (user
+         ask: "hash + green_dot + flyout_icon"): it stands AFTER the hash,
+         before the door — where PM3 → PM6 had it FIRST (and PM → PM2 at
+         `order: -1` under `integrity-leads`). Markup order = reading order. -->
+    <span
+      v-if="integrityState"
+      class="micro-chip__integrity"
+      :class="'integrity-' + integrityState"
+      :title="integrityTitle"
+      role="button"
+      @click.stop.prevent="onIntegrityClick"
+    />
     <!-- Claim STATUS dot — a chip this small states the standing as a
          color; the word rides the tooltip. Palette matches InfoChip's
          status pill (Thread D reader surface). -->
@@ -136,9 +142,10 @@ export default defineComponent({
     path: { type: String, default: '' },
     hashStr: { type: String, default: '' },
     // THE STATE (2026-09-21 PM3). `collapsed` = the panel-header form:
-    // `● | icon :: 993fa6…` — no type word, six hash digits + `…`, no door.
-    // Off (the default) = extended: `● | icon :: type :: hash ⤢`, the form
-    // a reference wears inside a post. Every Mini's `#hash` slot passes it;
+    // `icon / 993fa6… ●` — no type word, six hash digits + `…`, no door.
+    // Off (the default) = extended: `icon type / hash ● ⤢`, the form a
+    // reference wears inside a post. (PM7 grammar; PM3 → PM6 led with the
+    // light and a `|`.) Every Mini's `#hash` slot passes it;
     // a RefMicro in prose never does.
     collapsed: { type: Boolean, default: false },
     // Show the type word in the EXTENDED state (default). Set false for a
@@ -150,8 +157,9 @@ export default defineComponent({
     typeLabel: { type: String, default: '' },
     // …or that word DRAWN. Wins over `typeLabel` when both are given.
     typeIcon: { type: String, default: '' },
-    // ⚠ RETIRED 2026-09-21 PM3 — the grammar is fixed (`|` lead, `::` seams)
-    // in both states; accepted so older callers do not warn, ignored.
+    // ⚠ RETIRED 2026-09-21 PM3 — the grammar is fixed (one `/` seam before
+    // the hash since PM7) in both states; accepted so older callers do not
+    // warn, ignored.
     sep: { type: String, default: '' },
     icon: { type: String, default: null },
     iconSize: { type: String, default: '10px' },
@@ -173,9 +181,9 @@ export default defineComponent({
     // report }). 'ok' → green, 'violated' → red (click opens the report
     // flyout), 'exempt'/null → no dot.
     integrity: { type: Object, default: null },
-    // ⚠ RETIRED 2026-09-21 PM3 — the light ALWAYS leads now (it stood at
-    // the pill's head by default since PM anyway; PM3 fixed the grammar and
-    // moved the markup to match). Accepted, ignored.
+    // ⚠ RETIRED 2026-09-21 PM3 — the light's place is the grammar's, not a
+    // caller's: FIRST for PM3 → PM6, AFTER THE HASH since PM7. Accepted,
+    // ignored.
     integrityLeads: { type: Boolean, default: true },
     // THE LIGHT ON EVERY CHIP (2026-09-21, user ask: the node's traffic
     // light "to all of them"). When no `integrity` is handed in, the chip
@@ -340,8 +348,25 @@ export default defineComponent({
   // every nano chip, and its corners were the pill's since the morning
   // (`--radius-pill`, scoped to that head then; the chip's own now).
   border-radius: var(--radius-pill, 999px);
-  border: 1px solid rgba(var(--ink-rgb), 0.18);
-  background: rgba(var(--ink-rgb), 0.04);
+  // THE RIM IS THE KIND'S, A TONE LIGHTER (⭐ 2026-09-21 PM7, user asks:
+  // "make the borders of all nano chips be coloured with their respective
+  // element colors" → "… but in a lighter tone"): 1px of kinds.js's `color`
+  // through `--kind-accent`, mixed 55/45 over white — the glyph's family
+  // (posts indigo, nodes teal, labels red, skeletons brown, entities cyan,
+  // moments gold) about two Material steps up from the glyph's own tone.
+  // Was an 18% ink hairline, the same grey on every kind. The hover firms
+  // it to the FULL accent — one step, the glyph's own tone.
+  border: 1px solid color-mix(in srgb, var(--kind-accent, var(--ink)) 55%, white);
+  // THE FACE IS THE FOOTER BAR'S (⭐ 2026-09-21 PM7, user ask: "for all nano
+  // pill chips, regardless of where they are, make them have the same
+  // background color as the footer nav bar background color, with the
+  // light-cream basis"): `--plaque-coat` — the `--light-cream` sheet under
+  // the 30% `--grey-3` veil that coats the nav bar itself (_tokens.scss;
+  // NavigationBar's `.nav-bar` reads the same token). One layer list, so the
+  // pill and the bar composite to the same rgb wherever the pill stands —
+  // a post body, a card's foot, a mini's header, the stack strip. (Was a 4%
+  // ink wash over whatever surface held it — a different grey on every host.)
+  background: var(--plaque-coat, #f8f2e4);
   // THE INK IS THE KIND'S (2026-09-21 PM, user ask): type word, separators
   // and hash in the icon family's darkest Quasar tone — kinds.js's `ink`,
   // through `--kind-ink`. (Was the platform's slate at .78; and on prose
@@ -371,6 +396,15 @@ export default defineComponent({
 .micro-chip.is-collapsed {
   min-width: 0;
   .micro-chip__hash { min-width: 0; overflow: visible; }
+  // THE NOTCH (⭐ 2026-09-21 PM7, user asks: "for all nano chips on collapsed
+  // version, make their bottom left corner be less rounded than the
+  // others" → "Still rounded, not square, but less round than the
+  // others"): the bottom-left corner drops from the pill's to `--radius-sm`
+  // — about half the pill's curve at this height (`--radius-xs` computed to
+  // ~2px here and read square) — so the mini header's pill sits like a TAB
+  // on the panel under it and still reads as a rounded thing. The other
+  // three corners stay the pill's; the extended pill is a whole pill still.
+  border-bottom-left-radius: var(--radius-sm, 0.5em);
 }
 
 // A chip that opens its window answers the pointer in ITS OWN FAMILY: a
@@ -383,8 +417,14 @@ export default defineComponent({
   outline: none;
   &:hover,
   &:focus-visible {
-    background: color-mix(in srgb, var(--kind-accent, var(--ink)) 12%, transparent);
-    border-color: color-mix(in srgb, var(--kind-accent, var(--ink)) 45%, transparent);
+    // The wash rides OVER the coat (PM7): a gradient layer of the family's
+    // tone at 12% stacked on `--plaque-coat`, so the cream basis stays under
+    // the hover — `background` replaces the whole layer list, so the coat
+    // must be restated here or the hover would fall through to the host.
+    background:
+      linear-gradient(color-mix(in srgb, var(--kind-accent, var(--ink)) 12%, transparent), color-mix(in srgb, var(--kind-accent, var(--ink)) 12%, transparent)),
+      var(--plaque-coat, #f8f2e4);
+    border-color: var(--kind-accent, var(--ink));
   }
 }
 
@@ -407,9 +447,12 @@ export default defineComponent({
 // The integrity traffic light. ⭐ 2026-09-21 PM3 (user ask: "make the dot
 // slightly smaller, paint it with a light-green quasar tone and put it a
 // thin lighter light-green quasar tone border"): a 6px BEAD (was a 7px
-// solid disc), Quasar light-green-6 under a 1px light-green-3 rim —
-// `--verdict-ok` / `--verdict-ok-rim` in _tokens.scss, the one source both
-// pills (this and InfoChip's) read. Red keeps its own palette and is the
+// solid disc), Quasar light-green-6 under a 1px rim — `--verdict-ok` /
+// `--verdict-ok-rim` in _tokens.scss, the one source both pills (this and
+// InfoChip's) read. ⭐ PM7 (user ask: "instead of having a lighter
+// light-green border, make it have a darker light-green thin border"): the
+// rim is light-green-8, two steps DARKER than the fill — PM3's light-green-3
+// rim vanished into the pill's wash. Red keeps its own palette and is the
 // only interactive state (it routes to the report); the halo says so.
 .micro-chip__integrity {
   flex-shrink: 0;
@@ -419,7 +462,7 @@ export default defineComponent({
   border-radius: 50%;
   &.integrity-ok {
     background: var(--verdict-ok, #8bc34a);
-    border: 1px solid var(--verdict-ok-rim, #c5e1a5);
+    border: 1px solid var(--verdict-ok-rim, #689f38);
   }
   &.integrity-violated {
     background: #a03d3d;
@@ -443,9 +486,8 @@ export default defineComponent({
   &:hover { opacity: 1; color: var(--coral-deep, #d35f5f); }
 }
 .micro-chip:hover .micro-chip__open { opacity: 0.85; }
-// The lead `|` and the `::` seams — punctuation, a step under everything
-// they separate.
-.micro-chip__lead,
+// The `/` seam — punctuation, a step under everything it separates. (The
+// `|` lead and the second `::` seam left with PM7.)
 .micro-chip__sep  { flex-shrink: 0; opacity: 0.35; }
 // The drawn type. One step under the leading icon's 0.85, the way the type
 // WORD sits one step under the hash — it classifies, it does not name.

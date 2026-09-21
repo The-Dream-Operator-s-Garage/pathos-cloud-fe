@@ -291,7 +291,8 @@ export default defineComponent({
 }
 
 // The integrity traffic light — MicroChip's bead at Info scale. ⭐ 2026-09-21
-// PM3 (user ask: smaller, light-green, a thin lighter rim): 7px (was 8),
+// PM3 (user ask: smaller, light-green, a thin lighter rim; ⭐ PM7: the rim
+// went DARKER — light-green-8 under the same fill): 7px (was 8),
 // `--verdict-ok` under a 1px `--verdict-ok-rim` — the one source in
 // _tokens.scss. Red is the only interactive state (routes to Talavero's
 // report).
@@ -303,7 +304,7 @@ export default defineComponent({
   border-radius: 50%;
   &.integrity-ok {
     background: var(--verdict-ok, #8bc34a);
-    border: 1px solid var(--verdict-ok-rim, #c5e1a5);
+    border: 1px solid var(--verdict-ok-rim, #689f38);
   }
   &.integrity-violated {
     background: #a03d3d;
