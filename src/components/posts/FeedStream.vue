@@ -6883,12 +6883,17 @@ export default defineComponent({
 // governs the squeeze on a phone.
 // (2026-09-21 PM: the foot chip is the STOCK pill — the display face, the
 // 0.66em, the foot-control height, the `::` seam's opacity and the cyan
-// hover are gone. The one thing the row still says is the hash cap:
-// MicroChip is container-adaptive by design and would take every pixel the
-// foot can spare — gotchas.)
-.post-square__foot .post-square__chip {
-  :deep(.micro-chip__hash) { max-width: 10ch; }
-}
+// hover are gone. The one thing the row still said was the hash cap.)
+// ⭐ 2026-09-21 PM4 — THE CAP IS GONE (user ask: "for the extended version
+// of the pills, we want the hash to be extended … the extended pills' width
+// extend inside their containers … for the post cards, we should see way
+// more digits so the empty available space below is covered"): the
+// EXTENDED pill's hash is elastic by MicroChip's own law now — it takes
+// every pixel the address cell can spare (`.post-square__foot-main` is the
+// cell that gives, `min-width: 0` + `overflow: hidden`), all 64 digits on a
+// desktop card, an ellipsis at the cell's edge on a phone, the 6ch floor
+// under that. The row restates NOTHING about the chip any more; the
+// selector that held the `10ch` cap for eight days is deleted, not emptied.
 
 // THE IDENTITY BLOCK (2026-07-25) — photo left, name over handle.
 //

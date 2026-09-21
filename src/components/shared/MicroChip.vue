@@ -7,7 +7,13 @@
                     a reference in running text — the post body's
                     `[[pathos:]]` refs, the feed card's foot chip — the whole
                     address in the pill, the type word said, the door at the
-                    end. The default state.
+                    end. The default state. ⭐ PM4 (user ask: "the extended
+                    pills' width extend inside their containers … way more
+                    digits so the empty available space is covered"): the
+                    hash is ELASTIC — it takes every pixel its container
+                    gives, the ellipsis cuts it at the edge, and NO HOST CAPS
+                    IT (the feed foot's `10ch` cap is gone). A host that must
+                    hold a chip short bounds the chip's WRAPPER, not the hash.
          collapsed  `● / icon :: 993fa6…`
                     a panel's header pill (every Mini's `#hash` slot): no
                     type word, the hash CUT to six digits + a stated
@@ -455,6 +461,13 @@ export default defineComponent({
   // Minimum 6 chars visible before truncation kicks in (extended)
   min-width: 6ch;
 }
+// THE EXTENDED HASH IS ELASTIC (2026-09-21 PM4, user ask): it grows into
+// whatever room the pill is given — a pill a flex host stretches puts the
+// slack where the digits go, not after them — and shrinks to the 6ch floor
+// under the ellipsis. The pill itself still hugs its content (`flex: 0 1
+// auto`, `max-width: 100%` above): sixty-four hex digits reach a card's edge
+// on their own; a NAME (`display`) never stretches a pill past itself.
+.micro-chip.is-extended .micro-chip__hash { flex: 1 1 auto; }
 
 // (The per-kind `.kind-* .micro-chip__icon` tints stood here 2026-07 →
 // 2026-09-21: a purple entity, a grey post, a #00829c label, a slate
