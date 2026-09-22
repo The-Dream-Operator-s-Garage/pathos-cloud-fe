@@ -81,5 +81,15 @@ export const orgService = {
   async addRule (id, ref) {
     const { data } = await api.post(`/organizations/${id}/rules`, { ref })
     return data
+  },
+
+  // THE ROLE BADGE'S DOOR (2026-09-22): the ORG_MEMBER instance behind one
+  // membership row → `{ skeleton: { id, path }, member }`, so a feed card's
+  // badge can open the role's window by address. Metadata only — the
+  // window's read is gated by the element's own access (outsiders get the
+  // locked face, which is the org doctrine).
+  async memberSkeleton (id, memberId) {
+    const { data } = await api.get(`/organizations/${id}/members/${memberId}/skeleton`)
+    return data
   }
 }
