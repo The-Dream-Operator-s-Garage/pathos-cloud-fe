@@ -922,7 +922,12 @@
                   :title="authorName(item.author) + ' — open profile'"
                   @click.stop
                 >
-                  <EntityAvatar :entity="item.author" :size="16" class="post-square__pill-face" />
+                  <!-- 30px since 2026-09-22 PM (user ask: "the author profile pic
+                       occupy the whole chip height"): the pill's inner height less
+                       the 1px inset a side — 2 × --row-h + --row-gap − 2 borders − 2
+                       = 30 at 16/2. ⚠ A prop, not CSS (the avatar sizes itself
+                       inline): move it with the two dials. -->
+                  <EntityAvatar :entity="item.author" :size="30" class="post-square__pill-face" />
                   <span class="post-square__identity-name">{{ authorName(item.author) }}</span>
                 </router-link>
                 <span class="post-square__identity-seats">
@@ -4587,8 +4592,8 @@ export default defineComponent({
 // ⭐ **275 THE SAME DAY** (243 + 32) — the foot's density pass, −8, moved with
 // the resting one a third time.
 .post-square.is-expanded .post-square__pit {
-  // ⭐ 265 since 2026-09-22 (was 275): resting 233 + the well's 32 — the byline's 2×2 pass, see the resting note.
-  --media-max-h: max(120px, calc(var(--feed-well-h, 60vh) - var(--fhead-h, 120px) - 265px - var(--frieze-h)));
+  // ⭐ 257 since 2026-09-22 PM (265 that morning, 275 before): resting 225 + the well's 32 — see the resting note.
+  --media-max-h: max(120px, calc(var(--feed-well-h, 60vh) - var(--fhead-h, 120px) - 257px - var(--frieze-h)));
 }
 
 // ── THE VEIL (2026-08-07, user ask) — the card's MIDDLE LAYER ──
@@ -5260,11 +5265,26 @@ export default defineComponent({
 // for itself, and the moment pill dials its own down to 18.
 .post-square__byline {
   --pill-h: 20px;
+  // ⭐ 2026-09-22 PM — THE TWO DIALS OF THE 2×2 (user ask: "reduce the
+  // vertical padding of the new label section as much as possible … specially
+  // between name and badges and also moment chips and labels scroll"):
+  // `--row-h` is EVERY row's height (the moment pill, the rail, and — less
+  // the pill's own 1px border a side — the name row and the seats row),
+  // `--row-gap` the ONE lane between rows, in the pill and in the column
+  // alike. 16 / 2: a 16px moment pill is the 10.08px words' 14.1px line box
+  // plus its two borders (no air left to take), the rail is its 16px plates
+  // exactly, and 2px is the least a lane between two rimmed objects can be
+  // and still read as a lane. The band is 2 × 16 + 2 = 34 inside, 37 with
+  // its 1px pads and its rule (was 45). Tune the two numbers, nothing else.
+  --row-h: 16px;
+  --row-gap: 2px;
   display: flex;
   align-items: center;
   justify-content: flex-start;
   gap: 5px;
-  padding: 2px 7px;
+  // `1px 7px` since 2026-09-22 PM (was 2px): the least air between the cap's
+  // rule and the pills' rims that keeps them from touching — the same ask.
+  padding: 1px 7px;
   flex: 0 0 auto;
   min-width: 0;
   border-bottom: 1px solid var(--grey-5, #bdbdbd);
@@ -5343,7 +5363,10 @@ export default defineComponent({
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  height: calc(var(--pill-h) * 2);
+  // 2 × --row-h + --row-gap since 2026-09-22 PM (was 2 × --pill-h = 40):
+  // the column IS its two rows and the one lane between them.
+  height: calc(2 * var(--row-h) + var(--row-gap));
+  gap: var(--row-gap);
 }
 // One row of the column — 18px, the row unit less the pill's two borders,
 // so a pill in it is the row and a rail in it is the row.
@@ -5352,7 +5375,7 @@ export default defineComponent({
   align-items: center;
   gap: 4px;
   min-width: 0;
-  height: calc(var(--pill-h) - 2px);
+  height: var(--row-h); // the dial (2026-09-22 PM; was --pill-h − 2 = 18)
 }
 
 // ── THE CARD'S FRIEZE BAND — GONE FROM THIS SURFACE 2026-08-22 ────────────
@@ -5456,7 +5479,9 @@ export default defineComponent({
   // family), and `flex: 1 1 auto` so it takes the column's whole first row;
   // the heat plate, when the heat lens is on, is the one rigid thing after
   // it. `0 1 auto` before this — it hugged its words beside the author.
-  --pill-h: 18px;
+  // `--row-h` since 2026-09-22 PM (was 18): the pill IS the row — 16px, its
+  // words' line box plus two borders; corner by the law, 70% of 8 = 5.6px.
+  --pill-h: var(--row-h);
   flex: 1 1 auto;
   width: 100%;
   &:hover .post-square__when-text,
@@ -5617,7 +5642,10 @@ export default defineComponent({
   // carried −10. Every card carries the rail row now, so labelled and bare cards share
   // one chrome and this constant is no longer a worst case. The expanded twin above
   // moved with it (275 → 265); flow-feed-card-rows reads both off the CSSOM.
-  --media-max-h: max(120px, calc(min(var(--post-square-max, 100cqw), 60vh) - 233px));
+  // ⭐ 225 since 2026-09-22 PM (233 that morning) — THE DENSE PASS: the band
+  // 45 → 37 (rows 16 on a 2px lane, the pill a 34px grid, 1px pads), chrome
+  // MEASURED 103.11 → 95.11, carried −8. The expanded twin above moved with it.
+  --media-max-h: max(120px, calc(min(var(--post-square-max, 100cqw), 60vh) - 225px));
 
   flex: 1 1 auto;
   min-height: 0;
@@ -5936,7 +5964,10 @@ export default defineComponent({
   // row, so the plates' 1px of clearance a side is all there is. The run-in
   // lead stays 2px (a scroller with no lead reads as content already cut
   // off at rest — the one thing that dial exists to prevent).
-  height: calc(var(--pill-h) - 2px);
+  // `--row-h` since 2026-09-22 PM (was --pill-h − 2 = 18): the rail is the
+  // row, and its 16px plates fill it EXACTLY — no clearance, none needed
+  // (equal heights under `overflow-y: hidden` clip nothing).
+  height: var(--row-h);
   padding: 0 2px;
   border: 0;
   border-radius: 0;
@@ -6504,8 +6535,8 @@ export default defineComponent({
 // overhang the row by a pixel a side, so it is the row's height here; the
 // glyph keeps its 14. Still no action (the note in the template).
 .post-square__rail-add {
-  width: calc(var(--pill-h) - 2px);
-  height: calc(var(--pill-h) - 2px);
+  width: var(--row-h);
+  height: var(--row-h);
 }
 
 // The ORIGIN row — author, post hash, tallies. Rigid: it is the last thing a
@@ -6659,29 +6690,41 @@ export default defineComponent({
 .post-square__identity {
   flex: 0 0 auto;
   // ⭐ 2026-09-22 — TWO ROWS TALL (user ask: "twice as tall and keep the
-  // layout and paddings very dense"): `--author-h` = 2 × `--pill-h` (40px),
-  // a COLUMN the pill's inner 38px splits into the DOOR ROW (face + name,
-  // the top) and the SEATS ROW (the org chips, the bottom), 18px each with
-  // a 2px lane between — the right column's two rows, so the band reads as
-  // a 2×2: who │ when, seats │ labels. The CORNER keeps the ROW UNIT's law
-  // (7px off `--pill-h` 20 — not 14 off the doubled height): every corner on
-  // this card turns in the 6–7px family, and a 14px corner on a 40px box
-  // would be a different object. Dense: the face inset stays 1px, the right
-  // pad 6px, no vertical padding — the rows centre their own contents.
-  // Before this it was one 20px row, and an ANCHOR: the door is the top
-  // row's own link now (`__identity-door`), since a seat's face and badges
-  // are interactive and cannot nest in an `<a>`.
-  --author-h: calc(var(--pill-h) * 2);
+  // layout and paddings very dense"), and ⭐ THE SAME EVENING A GRID (user
+  // ask: "make the author profile pic occupy the whole chip height so we
+  // put the org badges below the name … reduce the vertical padding … as
+  // much as possible"): two columns — the FACE, spanning both rows, and
+  // beside it the NAME over the SEATS — two rows of `--row-h − 1px` (the
+  // pill's own border a side is the difference from the column's rows) with
+  // `--row-gap` between, so the pill's height is the column's: 2 × 16 + 2 =
+  // 34 (was 40 with 18px rows and a 2px lane; before that one 20px row).
+  // No vertical padding at all — the rows centre their own contents and
+  // the face's 1px inset is the pill's inner height minus 30. The CORNER
+  // keeps the ROW UNIT's law (7px off `--pill-h` 20 — not off the pill's
+  // own height): every corner on this card turns in the 6–7px family.
+  // ⚠ A `<div>`, and the door is ONE anchor drawn `display: contents`
+  // (`__identity-door`) so its two children — the face and the name — are
+  // the GRID's items while the seats (siblings of the door, since
+  // interactive content cannot nest in an anchor) take the third cell.
+  --author-h: calc(2 * var(--row-h) + var(--row-gap));
   --face-inset: 1px;
-  flex-direction: column;
-  align-items: stretch;
-  justify-content: space-between;
-  gap: 0;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-rows: calc(var(--row-h) - 1px) calc(var(--row-h) - 1px);
+  grid-template-areas: 'face name' 'face seats';
+  column-gap: 4px;
+  row-gap: var(--row-gap);
+  align-items: center;
   height: var(--author-h);
   padding: 0 6px 0 var(--face-inset);
-  // The face's corner concentric with the pill's: 7 − 1 (border) − 1
-  // (inset) = 5px over EntityAvatar's own 26% (2026-09-21).
-  :deep(.entity-avatar) { border-radius: calc(var(--chip-half-h) * var(--round) - 1px - var(--face-inset)); }
+  // The face: the pill's first column, both rows, 30px in the 32px inner
+  // height (`:size` in the template — move it with the dials); its corner
+  // concentric with the pill's: 7 − 1 (border) − 1 (inset) = 5px.
+  :deep(.entity-avatar) {
+    grid-area: face;
+    align-self: center;
+    border-radius: calc(var(--chip-half-h) * var(--round) - 1px - var(--face-inset));
+  }
   &:hover .post-square__identity-name { color: var(--cyan-14, #00b8d4); }
 }
 
@@ -6689,13 +6732,16 @@ export default defineComponent({
 // since 2026-09-11: the pill's one `#/entities/<id>` anchor, caught by
 // `utils/entityDoor.js`'s capture-phase listener → the entity window (the
 // page a modifier click away). 18px, the band's row less the pill's borders.
+// THE DOOR — still the entity door it has been since 2026-09-11: the pill's
+// one `#/entities/<id>` anchor, caught by `utils/entityDoor.js`'s
+// capture-phase listener → the entity window (the page a modifier click
+// away). ⭐ `display: contents` since 2026-09-22 PM: the anchor draws NO BOX
+// of its own so the face and the name it wraps are laid out by the pill's
+// grid (face down the left, name top right); a click on either still
+// resolves `closest('a[href]')` to this anchor, and `:hover` on it still
+// lights the name. ⚠ Its own rect is 0×0 — witnesses measure its children.
 .post-square__identity-door {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  flex: 0 0 auto;
-  height: calc(var(--pill-h) - 2px);
-  min-width: 0;
+  display: contents;
   color: inherit;
   text-decoration: none;
 }
@@ -6710,9 +6756,13 @@ export default defineComponent({
   align-items: center;
   gap: 3px;
   flex: 0 0 auto;
-  height: calc(var(--pill-h) - 2px);
+  // The grid's bottom-right cell since 2026-09-22 PM (was the pill's whole
+  // second row): `--row-h − 1px` = 15, its 14px chips centred; no lead — the
+  // face's column is the lead now.
+  grid-area: seats;
+  height: calc(var(--row-h) - 1px);
   min-width: 0;
-  padding-left: 1px;
+  padding-left: 0;
 }
 
 // ONE SEAT — the org's FACE (a `#/entities/<org entity>` anchor → the org's
@@ -6827,6 +6877,10 @@ export default defineComponent({
 // 0.72em off `.post-square__pill`; the display face and the 700 weight went
 // with the identity block on 2026-09-21).
 .post-square__identity-name {
+  // The grid's top-right cell since 2026-09-22 PM (`grid-area: name`); the
+  // 14.1px line box centred in the 15px row.
+  grid-area: name;
+  align-self: center;
   flex: 0 0 auto;
   min-width: 0;
   overflow: hidden;
