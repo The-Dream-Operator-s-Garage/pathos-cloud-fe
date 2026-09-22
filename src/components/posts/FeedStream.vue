@@ -850,181 +850,76 @@
                  style block for why it is neither the card's weight nor the
                  card's ink. -->
 
-            <!-- BYLINE band — the author's IDENTITY BLOCK, at the card's top
-                 edge (2026-07-25; TWO RULED SIDES since 2026-08-09's last
-                 byline ask). A post is read "who, then what", so the person
-                 comes before everything and the foot stays a pure activity
-                 row.
+            <!-- BYLINE band — TWO NANO PILLS, LEFT-ALIGNED (2026-09-21, user
+                 ask: "turn the author/moment section into a single section
+                 to contain labels … the author into a nano chip that
+                 contains the profile picture and the name in a cream color
+                 with grey text … remove the '— x time ago' bit … another
+                 pill for time that uses the same yellow-gold aesthetic as
+                 the pills used to represent moments on the skeleton viewers
+                 … the 'globe_clock' material icon … the date and the
+                 location … both pills together aligned to the left"). Off
+                 2026-09-13's one line, `face name — age │ 🕓 when · where`.
 
-                 The band held four ruled sections for a day —
-                 [author] │ [when/where] │ [title] │ [open] — and the last
-                 two are GONE: the title already names the card in the CAP
-                 one strip up (stating it twice was the old two-strips
-                 problem the 07-25 merge fixed, reborn sideways), and the
-                 open-post door lives on in the flyout's own links. What
-                 remains is provenance, two dense sides of one band (the
-                 one-line desktop fold lived a few hours between the
-                 arrangements):
-
-                   [face] name @handle [badge] [trust] [heat] │ [⌚ Sun, 9 Aug 2026 · 7:07 AM]
-                          3h ago                              │    [⌖ Mexico City, Mexico]
-
-                 LEFT: the author line with the bare relative age tucked
-                 under it — the "xxx ago" legend extracted from the moment
-                 run, no icon, the light second line of the identity stamp.
-                 RIGHT: the moment as TWO DENSE MICRO CHIPS stacked at the
-                 band's end — the detailed date on top, the city under it
-                 (only when the author shared one) — each a real MicroChip
-                 addressing moments/<id>, because that is how this platform
-                 states an element you can visit.
-
-                 EVERY FACT HERE IS A DOOR (same day): the face and the
-                 name/handle link to the author's profile, the badge to the
-                 organization (its own link, as ever — a link inside a link
-                 is invalid, and they go to different places), and BOTH
-                 MOMENT CHIPS to the MOMENT VIEWER, where the tiny world
-                 map lives. A full-band seam rule divides the two sections,
-                 riding the chips' left edge. -->
+                 The band is ONE ROW OF CHIPS now — the same object the
+                 card's foot and the skeleton cells wear (MicroChip's
+                 material: cream `--plaque-coat` face, the 18% ink hairline,
+                 0.72em Space Mono, the extended pill's 70% corner). The
+                 AUTHOR pill (face + name, grey ink) is still the entity
+                 DOOR: an `#/entities/<id>` anchor the capture-phase door
+                 catches → the entity window. The MOMENT pill (globe-clock
+                 glyph + `when · where`, the moments kind's gold off kinds.js)
+                 is an `#/moments/<id>` anchor the moment door catches → the
+                 moment window (utils/entityDoor.js, both). The org badge and
+                 the heat plate keep their places beside the author. The
+                 relative age and the seam rule are gone — the date says when.
+                 Nothing is right-aligned: both pills pack left, and the
+                 moment pill is the one that ellipsizes. -->
             <div class="post-square__byline">
               <router-link
                 v-if="item.author"
                 :to="'/entities/' + item.author.id"
-                class="post-square__face"
+                class="post-square__pill post-square__identity"
                 :title="authorName(item.author) + ' — open profile'"
                 @click.stop
               >
-                <EntityAvatar :entity="item.author" :size="18" />
+                <EntityAvatar :entity="item.author" :size="16" class="post-square__pill-face" />
+                <span class="post-square__identity-name">{{ authorName(item.author) }}</span>
               </router-link>
-
-              <!-- ⭐ ONE LINE SINCE 2026-09-13 (user ask: "make it way denser by
-                   reducing the padding and turning the information into a
-                   single line. Put the name of the posting entity, the '- xxx'
-                   time ago legend on the right"). The two-line stamp is a
-                   ROW now — `.post-square__byline-lines` keeps its name and
-                   lays its two spans side by side: who, then the age legend
-                   led by a dash. Face 24 → 18 so the band is one text line
-                   tall. -->
-              <div class="post-square__byline-lines">
-                <span class="post-square__byline-who">
-                  <router-link
-                    v-if="item.author"
-                    :to="'/entities/' + item.author.id"
-                    class="post-square__identity"
-                    :title="authorName(item.author) + ' — open profile'"
-                    @click.stop
-                  >
-                    <span class="post-square__identity-name">{{ authorName(item.author) }}</span>
-                    <!-- ⭐ THE HANDLE IS GONE (2026-09-13, user ask: "remove
-                         the handle and the 'hop' thing from the author/moment
-                         section"). The name alone names the author on this
-                         line — the handle is one hover away on the link's
-                         title and one click away on the profile. Its rules
-                         left the style block with it. -->
-                  </router-link>
-                  <!-- The badge — its own link to the organization. Drawn
-                       only for a MASK: an org publishing as itself already
-                       has its name in the block (`org.self`). -->
-                  <OrgLogoChip
-                    v-if="item.author?.org && !item.author.org.self"
-                    :org="item.author.org"
-                    :size="14"
-                  />
-                  <!-- The TRUST CHIP stood here, third in the qualifier run,
-                       from Thread J until 2026-08-10 — see the ago line
-                       below, which is where it went and why. -->
-                  <!-- HEAT CHIP (2026-08-07) — only under `order=heat`,
-                       where the number IS the ordering being read. -->
-                  <span
-                    v-if="sortOrder === 'heat' && item.heat != null"
-                    class="post-square__heat"
-                    :title="'Heat ' + item.heat + ' — the sum of this lens\'s label weights this post matches'"
-                  >
-                    <q-icon name="local_fire_department" size="10px" />{{ item.heat }}
-                  </span>
-                </span>
-
-                <!-- The AGO line — the identity stamp's quiet second line
-                     (2026-08-09), the fact you scan the stream by sitting
-                     right under who did it. The precise datetime lives in
-                     the chip across the rule.
-
-                     THE HOP CHIP LEADS IT since 2026-08-10 (user ask):
-
-                       [1 hop] · 3h ago
-
-                     It rode the WHO line as the author's third qualifier
-                     (badge, trust, heat) and it was the widest of the three
-                     — a bordered plate with a word in it, standing between
-                     the name and the card's right edge on the one line the
-                     name has to fit on. Down here it costs the name nothing,
-                     and the pairing is honest besides: how FAR the author is
-                     and how LONG ago they published are both distances, and
-                     this line is where the card states them. The DOT is the
-                     platform's own separator for facts of one kind on one
-                     line, drawn only when there is a chip to separate. -->
-                <span class="post-square__byline-ago">
-                  <!-- the "— xxx ago" legend's dash (2026-09-13, user ask):
-                       the seam between who and how-long-ago on one line,
-                       decorative — the age reads without it. -->
-                  <span class="post-square__ago-dash" aria-hidden="true">—</span>
-                  <!-- ⭐ THE HOP CHIP AND ITS DOT ARE GONE (2026-09-13, user
-                       ask: "remove … the 'hop' thing from the author/moment
-                       section. Then, for the flyout window for entities,
-                       include the hop thing on the constellation section").
-                       The invite-chain distance moved to where the chain is
-                       DRAWN — the entity window's origin constellation
-                       (`entities/OriginSky.vue`) — and this line reads
-                       `name — age`. The API still sends `author.trust`
-                       (`{hops, path}`); the card just stopped wearing it. -->
-                  <span class="post-square__ago-text">{{ timeAgo(item.created_at, item.moment) }}</span>
-                </span>
-              </div>
-
-              <!-- The SEAM RULE — the full-band vertical hairline between
-                   the author side and the moment side, riding the chips'
-                   left edge (it carries the `auto` margin that packs them
-                   right). Stretch + negative margins against the band's
-                   4px padding — keep in step. -->
-              <span class="post-square__byline-rule" aria-hidden="true" />
-
-              <!-- THE MOMENT, as TWO DENSE MICRO CHIPS (2026-08-09, the
-                   arrangement's ask) — the detailed date on top, the city
-                   under it when the author shared one. Real MicroChips,
-                   not styled spans: a moment is an element with an address
-                   and a viewer (the tiny world map lives there), and the
-                   chip is how this platform states one — both route to
-                   moments/<id>, and a moment-less legacy item degrades to
-                   MicroChip's own span face (no id, no route). `display`
-                   puts the resolved strings on them; the address tooltip
-                   is overridden with the human one, since the feed's
-                   moment card carries no hash to show. -->
-              <!-- ⭐ ONE TEXT RUN SINCE 2026-09-13 (user ask: "combine the
-                   moment/location labels into a single line, with a better
-                   moment icon, and leave them as text rather than weird
-                   pills"). The two stacked MicroChips are gone; the moment
-                   is stated the way the byline states the author — a link
-                   in text, no plate — as `when · where`, led by the
-                   platform's own moment mark (`schedule`, the glyph the
-                   kinds registry gives `moments`, `utils/kinds.js`) in the
-                   kind's colour. Still a DOOR: it routes to `moments/<id>`
-                   when the item carries one and degrades to a plain span
-                   for a moment-less legacy item, exactly as the chips did.
-                   The tooltip keeps the full `when · where` for the cards
-                   whose run ellipsizes. -->
-              <div class="post-square__byline-when">
-                <component
-                  :is="item.moment?.id ? 'router-link' : 'span'"
-                  :to="item.moment?.id ? '/moments/' + item.moment.id : undefined"
-                  class="post-square__when"
-                  :title="momentLine(item) + (item.moment?.id ? ' — open moment' : '')"
-                  @click.stop
-                >
-                  <q-icon name="schedule" size="11px" class="post-square__when-icon" />
-                  <span class="post-square__when-text">{{ momentLine(item) }}</span>
-                </component>
-              </div>
+              <OrgLogoChip
+                v-if="item.author?.org && !item.author.org.self"
+                :org="item.author.org"
+                :size="14"
+              />
+              <span
+                v-if="sortOrder === 'heat' && item.heat != null"
+                class="post-square__heat"
+                :title="'Heat ' + item.heat + ' — the sum of this lens\'s label weights this post matches'"
+              >
+                <q-icon name="local_fire_department" size="10px" />{{ item.heat }}
+              </span>
+              <component
+                :is="item.moment?.id ? 'router-link' : 'span'"
+                :to="item.moment?.id ? '/moments/' + item.moment.id : undefined"
+                class="post-square__pill post-square__when"
+                :style="momentPillStyle"
+                :title="momentLine(item) + (item.moment?.id ? ' — open moment' : '')"
+                @click.stop
+              >
+                <q-icon :name="GLOBE_CLOCK" size="10px" class="post-square__pill-icon" />
+                <span class="post-square__when-text">{{ momentWhen(item) }}</span>
+                <!-- The WHERE, when there is one (2026-09-21, user ask: "put the
+                     'globe_location_pin' next to the location if the location
+                     is available"): the chip's `/` separator's cousin, a
+                     middle dot, then the pin glyph (in the font — `sym_o_`) in
+                     the same gold, then the place — the one run that yields. -->
+                <template v-if="item.moment?.place">
+                  <span class="post-square__when-sep" aria-hidden="true">·</span>
+                  <q-icon name="sym_o_globe_location_pin" size="10px" class="post-square__pill-icon post-square__pill-pin" />
+                  <span class="post-square__when-place">{{ item.moment.place }}</span>
+                </template>
+              </component>
             </div>
-
             <!-- THE CARD'S FRIEZE PAIR (2026-08-07, user ask) — the platform's
                  crown motif at the size the floating media viewer runs it
                  (`slim`), trimmed a further fifth, standing where the card's two
@@ -1527,8 +1422,10 @@ import { pinService } from 'src/services/pin.service'
 import { refService } from 'src/services/ref.service'
 import FeedHeadBox from 'src/components/posts/FeedHeadBox.vue'
 import { useStateHolder } from 'src/composables/useStateHolder'
-import { timeAgo, absoluteTime } from 'src/utils/time'
+import { absoluteTime } from 'src/utils/time'
 import EntityAvatar from 'src/components/entities/EntityAvatar.vue'
+import { kindFor } from 'src/utils/kinds'
+import { GLOBE_CLOCK } from 'src/utils/glyphs'
 import OrgLogoChip from 'src/components/organizations/OrgLogoChip.vue'
 import PostMicro from 'src/components/posts/PostMicro.vue'
 // The cap chips a post's PARENT, which may be a post, a node or some other
@@ -2568,6 +2465,13 @@ export default defineComponent({
     // The byline's one-line moment run (2026-09-13): `when · where`, built
     // from `momentWhen` so a legacy item without a moment row shows the same
     // locale date the chip used to, not `absoluteTime`'s form.
+    // The byline's moment pill wears the moments kind's two colours off
+    // kinds.js — the ONE colour source — by MicroChip's own dial names, so the
+    // pill and the skeleton viewers' moment chips are one tone by construction
+    // (2026-09-21). The author pill sets neither and falls to grey-8.
+    const momentKind = kindFor('moments')
+    const momentPillStyle = { '--kind-accent': momentKind.color, '--kind-ink': momentKind.ink }
+
     const momentLine = (item) =>
       item.moment?.place ? `${momentWhen(item)} · ${item.moment.place}` : momentWhen(item)
 
@@ -2878,6 +2782,8 @@ export default defineComponent({
       momentWhen,
       momentTitle,
       momentLine,
+      momentPillStyle,
+      GLOBE_CLOCK,
       isOpen,
       copiedId,
       copyAddress,
@@ -2960,11 +2866,12 @@ export default defineComponent({
       trashedLabels,
       restoreLabel,
       dropUrlLabel,
-      sweepLane,
+      sweepLane
       // `absoluteTime` is no longer exposed — the head strip's time-ago chip
       // it fed is gone, and `momentTitle` calls it directly for the one
       // tooltip that still needs an absolute form.
-      timeAgo
+      // `timeAgo` left with the byline's "— age" on 2026-09-21 — the moment
+      // pill's date says when.
     }
   }
 })
@@ -5257,159 +5164,83 @@ export default defineComponent({
   }
 }
 
-// THE BYLINE BAND — the card's first strip, holding the author (2026-07-25).
-//
-// Rigid like the head and the foot: who published a post is not something the
-// square ceiling may trim, so it stays out of the flex give-and-take and only
-// the pit gives way.
-//
-// ⚠ ITS BOTTOM BORDER IS THE CLASSIC HAIRLINE AGAIN (2026-08-10, user ask,
-// "a classic grey-6 hairline between the author/moment section and the label
-// section") — an EDGE-TO-EDGE 1px rule in `--grey-6`, the ink every line on
-// this CARD is drawn in (its outer border, the pit's rim, the cap's vertical
-// rule): a divider inside the card being the same line as the ones around it,
-// at hairline weight. That is what stood here from the card's birth until
-// 2026-08-07, and the three devices that held the seam in between are the
-// argument for it coming back plain.
-//
-// THE SEAM'S WHOLE WALK: hairline → FRIEZE BAND (2026-08-07 — the same
-// `--grey-6` reading, the line "given height and a motif carved into it";
-// the border went so the card would not state one seam twice) → the frieze
-// moved UP to the cap on 2026-08-10 and an `RgbHairline` took this seam →
-// that band became half of a BRACKET around the labels → the bracket went
-// when the label strip took a rim of its own, leaving the seam BARE for one
-// pass. Bare is what this ask answers: the byline and the labels are two
-// different kinds of fact about a post, and with the strip inset from the
-// card's edges there was nothing running lip to lip to say where one ends.
-//
-// It goes HERE, on the band, and not on the strip below it — the strip is
-// inset by `7px` now, so a rule drawn on it would stop short of both edges,
-// and a divider has to run lip to lip. Same rule that has always governed
-// this card: it is DIVIDED by full-bleed lines and PANELLED by inset boxes.
-// The frieze lips shared the `--grey-6` level for one
-// day in 2026-08-06's indigo; they are the plaque's own tone now and the card's
-// lines are grey, so the two systems no longer meet anywhere.
-// TWO RULED SIDES SINCE 2026-08-09's last byline ask — the band walked
-// four arrangements in one day (ruled columns with title+open → two
-// stacked dense lines → a one-line desktop fold → here) and settled as a
-// SPLIT STAMP: the face and a two-line author block on the left (who over
-// the bare relative age), a full-band seam rule, and the moment as two
-// stacked MICRO CHIPS at the right end (date over city). The title plate
-// and open-post control never came back (the CAP names the card; the
-// flyout's links are the viewer door).
+// THE BYLINE BAND — ONE ROW OF NANO PILLS (2026-09-21, user ask; the
+// template note has the words). The band was the author's identity block
+// from 2026-07-25 and ONE LINE — face 18 · `name — age` │ `🕓 when · where`
+// — since 2026-09-13; the pills replaced all of it in one sitting. What
+// stays: the strip's own box (2px 7px, the grey-5 rule under it, the display
+// face for the org badge and the heat plate). What goes: the face wrapper,
+// the two-line block, the age, the seam rule and the right-aligned moment
+// run — the byline has no right end any more, it packs left.
 .post-square__byline {
   display: flex;
   align-items: center;
-  // ⭐ ONE LINE, `2px 7px`, SINCE 2026-09-13 (user ask: "make it way denser by
-  // reducing the padding and turning the information into a single line").
-  // Off `4px 9px` and the two-line split stamp of 2026-08-09: the author
-  // block is a row now (name, handle, the "— age" legend beside it), the
-  // moment is one text run at the band's end, and the face is 18px so the
-  // text line sets the band's height — measured 41.75 → ~22px, which is the
-  // whole of "way denser". The rule between the two sides carries a −2px
-  // stretch to match (`.post-square__byline-rule`) — KEEP IN STEP. The
-  // media budget follows by measurement (see the pit's constant).
+  justify-content: flex-start;
   gap: 5px;
   padding: 2px 7px;
   flex: 0 0 auto;
   min-width: 0;
-  // The card's INNER weight, 1px, where its outer edges run 1.5px — an inner
-  // line has to read as lighter than the edge that contains it. ⚠ Worth 1px
-  // in BOTH `--media-max-h` constants (276 / 310); see the pit's note.
   border-bottom: 1px solid var(--grey-5, #bdbdbd);
-  // NASALIZATION across the whole section (2026-08-09, user ask) — the
-  // cap's own face and tracking, one strip down: the band inherits it to
-  // the name, the ago line, the trust/heat plates and (through the deep
-  // rule on the chips) the moment strings. The `mono` utility came OFF the
-  // handle and the two little plates in the template for exactly this —
-  // a class on the element would beat inheritance.
   font-family: var(--font-display);
   letter-spacing: 0.02em;
 }
 
-// The face, hanging beside both lines — its own link to the profile (the
-// name beside it is the other; same destination, two honest targets).
-.post-square__face {
-  flex: 0 0 auto;
+// THE PILL — MicroChip's material restated for a chip that carries WORDS
+// rather than an address (a face + a name; a glyph + a date). Byte for byte
+// the nano pill's box (`components/shared/MicroChip.vue`): the cream
+// `--plaque-coat` face, the 18% ink hairline, `1px 6px`, 0.72em Space Mono
+// on a 1.4 line, and the EXTENDED pill's corner — `--chip-half-h` (0.7em +
+// 2px, half the chip's height) × `--round` 0.7 — so the two byline pills, the
+// foot's address pill and the pit turn the same corner on the same card. It
+// reads the chip's two colour dials by the chip's own names — `--kind-accent`
+// on the glyph, `--kind-ink` on the words — set inline off kinds.js where a
+// pill HAS a kind (the moment) and left unset where it has none (the author:
+// grey-8 words). Restated rather than reused because MicroChip is
+// address-bound (it resolves and verifies what it names); these two name a
+// person and a time in words. ⚠ Keep the dials in step with the chip's — a
+// pill that drifts is a second object.
+.post-square__pill {
+  // ⭐ SLIGHTLY TALLER THAN THE CHIP (2026-09-21, later ask: "make both pills
+  // slightly higher"): the height is a DIAL, `--pill-h` 20px, against the
+  // nano pill's 18.11 by construction (1.4 × 10.08 + 2 + 2). The corner keeps
+  // the chip's LAW — 70% of half the height — so it is 7px here (the foot
+  // chip's 6.34 is 70% of ITS half); the pit stays on the foot's number.
+  --pill-h: 20px;
+  --chip-half-h: calc(var(--pill-h) / 2);
+  --round: 0.7;
   display: inline-flex;
-  border-radius: var(--radius-sm, 0.5em);
-
-  &:hover { outline: 1px solid rgba(0, 130, 156, 0.45); }
-}
-
-// The author block's two-line column. 1.15 leading and a 1px gap: at these
-// sizes the pair has to read as ONE stamp — any more air and it breaks
-// into two facts. `0 1 auto` and NOT a grower (2026-08-09, last
-// arrangement): the seam rule to its right carries the `auto` margin that
-// packs the chips at the band's end, and a flex-grow here would eat the
-// free space before an auto margin sees any of it.
-.post-square__byline-lines {
-  // ⭐ A ROW SINCE 2026-09-13 (user ask) — the name keeps its class for the
-  // witnesses and the paper trail, but the column is gone: `who` and the
-  // "— age" legend sit side by side on one baseline. `0 1 auto`, NOT a
-  // grower, for the reason above (the seam rule's auto margin packs the
-  // moment run right and a grower here would starve it).
+  align-items: center;
+  gap: 3px;
   flex: 0 1 auto;
   min-width: 0;
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  line-height: 1.15;
-}
-
-// The relative age under the author line — the stream's scan fact,
-// extracted from the moment run with its icon left behind (the arrangement
-// ask): under the name it reads as the stamp's quiet second line, and the
-// PRECISE datetime is the chip across the rule.
-//
-// A ROW since 2026-08-10 (user ask), because the HOP CHIP now leads it:
-// `[1 hop] · 3h ago`. The 0.62em deliberately does NOT live on this line but
-// on its TEXT children: the hop chip is dialled in `em` against the BAND
-// (0.58em, tuned there and unchanged by the move), and a size on the row
-// would have compounded the two into 0.36em — the plate would have arrived
-// at the new line two thirds of the size it left the old one.
-.post-square__byline-ago {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+  height: var(--pill-h);
+  padding: 0 6px;
+  border-radius: calc(var(--chip-half-h) * var(--round));
+  border: 1px solid rgba(var(--ink-rgb), 0.18);
+  background: var(--plaque-coat, #f8f2e4);
+  color: var(--kind-ink, var(--grey-8, #424242));
+  font-family: 'Space Mono', monospace;
+  font-size: 0.72em;
+  font-weight: 400;
+  line-height: 1.4;
+  letter-spacing: 0.02em;
   white-space: nowrap;
-}
-
-// The separator. One step quieter than the facts it stands between — it is
-// punctuation, and it should be the last thing on this line the eye lands on.
-// (`.post-square__ago-dot` — the `·` between the hop plate and the age — went
-// with the plate, 2026-09-13; the dash before the age is the line's one seam.)
-// The legend's leading dash (2026-09-13, user ask: the "— xxx ago" form) —
-// the dot's own recipe, so the line's two separators are one ink.
-.post-square__ago-dash {
-  flex: 0 0 auto;
-  font-size: 0.62em;
-  font-weight: 700;
-  color: rgba(var(--ink-rgb), 0.55);
-  opacity: 0.5;
-}
-
-// The age itself gives before the chip does: a squeezed `3h ago` is still
-// legible cut, where a hop plate cut in half states nothing at all.
-.post-square__ago-text {
-  flex: 0 1 auto;
-  min-width: 0;
   overflow: hidden;
-  text-overflow: ellipsis;
-  font-size: 0.62em;
-  font-weight: 700;
-  color: rgba(var(--ink-rgb), 0.55);
+  text-decoration: none;
+  vertical-align: middle;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+  // Hover — the chip's 12% wash of the accent over the cream.
+  &:hover { background: color-mix(in srgb, var(--kind-accent, var(--ink)) 12%, var(--plaque-coat, #f8f2e4)); }
 }
-
-// Line one: the author and everything that qualifies them (badge, trust,
-// heat). A flex row of rigid chips after one shrinkable link.
-.post-square__byline-who {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  min-width: 0;
-}
+// The author's face — the profile picture at the pill's INNER height less a
+// 1px ring (16px inside the 20px pill; see `.post-square__identity`),
+// EntityAvatar's tile with its corner fitted to the pill's.
+.post-square__pill-face { flex: 0 0 auto; }
+// The moment's glyph — `globe_clock` (utils/glyphs.js; the installed font
+// lacks it), in the kind's accent like MicroChip's own `__icon`.
+.post-square__pill-icon { flex: 0 0 auto; opacity: 0.85; color: var(--kind-accent, currentColor); }
 
 // ── THE CARD'S FRIEZE BAND — GONE FROM THIS SURFACE 2026-08-22 ────────────
 // (user ask: "take the cyan-indigo frieze bar from the post cards and incrust
@@ -5497,79 +5328,25 @@ export default defineComponent({
   background: var(--grey-5, #bdbdbd);
 }
 
-// THE MOMENT CHIP — the post's when over its where (or its date).
-//
-// Two stacked lines on the identity block's own rhythm, so the band reads as
-// two parallel two-line facts either side of the rule rather than a block
-// beside a strip.
-//
-// It does NOT shrink (2026-07-25, third pass). It was the band's give-way
-// part while the band held only the author beside it; once the TITLE joined
-// them, two shrinkable items shared the slack and the place string landed at
-// a different length on every card — "Mexico City," over "Mexico City,
-// Mexico" over "Mexico City, Mexi" down the column, which reads as damage
-// rather than as truncation. The title is the item built to absorb (one
-// line, one ellipsis, no meaning lost by cutting it), so it absorbs alone and
-// the left run of the band is identical on every card. The chip bounds
-// ITSELF instead, in `ch` on its detail line — a cap it reaches only for
-// place names far longer than the "City, Country" form produces.
-// THE MOMENT'S CHIP STACK (2026-08-09, the last byline arrangement) — the
-// band's right side: the detailed date on top, the city under it when the
-// author shared one, each a real `MicroChip` addressing `moments/<id>`.
-// Right-aligned (`flex-end`) so the two chips share the band's end edge
-// and each hugs its own words; `flex: 0 0 auto` — the LEFT side is the one
-// that gives, its 16ch caps doing the yielding.
-.post-square__byline-when {
-  // ⭐ ONE RUN SINCE 2026-09-13 (user ask) — the chip column is a single text
-  // link now (`.post-square__when`), and this box is what lets it GIVE:
-  // `0 1 auto` + `min-width: 0` so a long `when · where` ellipsizes inside
-  // its own box, capped at just over half the band so the author side is
-  // never squeezed off (the 2026-07-25 argument — the moment used to be
-  // the rigid part while the TITLE absorbed; the title left the band on
-  // 08-09 and there is nothing else built to absorb, so the run bounds
-  // itself, and the tooltip carries what the ellipsis cuts).
-  flex: 0 1 auto;
-  min-width: 0;
-  max-width: 58%;
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-}
-
-// The chips at BAND density. MicroChip is sized against body text; these
-// sit in a 40px band stating one resolved string each, so they compress:
-// the cap's named-chip treatment (same two-class + scope specificity — no
-// `!important`), one register smaller. `min-width: 0` on the hash span
-// frees MicroChip's 6-character hash floor (these show STRINGS, not
-// addresses — a date ellipsizing is a date, where a hash slice under 6 is
-// noise); the caps clear the wider branch whole (27-char date / 19-char
-// place) and stop a pathological place name from taking the band.
-// ⭐ `.post-square__moment-chip` IS GONE (2026-09-13, user ask: "leave them as
-// text rather than weird pills") — the two MicroChips it dressed left the
-// template. What replaced them:
+// THE MOMENT PILL — `.post-square__pill` in the moments kind's colours
+// (`momentPillStyle` in the script: `--kind-accent` gold `#c79a00` on the
+// glyph, `--kind-ink` `#5f4700` on the words — kinds.js, the ONE colour
+// source, the same pair the skeleton viewers' moment chips wear). It is the
+// pill that yields: `flex: 0 1 auto` + the text's ellipsis, so on a narrow
+// card the place goes before the date does and the author never loses a
+// letter. Hover lifts the words to the accent, the chip's own gesture.
 .post-square__when {
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  min-width: 0;
-  max-width: 100%;
-  font-size: 0.6em;
-  font-weight: 500;
-  letter-spacing: 0.02em;
-  white-space: nowrap;
-  text-decoration: none;
-  color: rgba(var(--ink-rgb), 0.6);
-  &:hover .post-square__when-text { color: var(--cyan-14, #00b8d4); }
+  flex: 0 1 auto;
+  &:hover .post-square__when-text,
+  &:hover .post-square__when-place { color: var(--kind-accent, currentColor); }
 }
-// The moment mark in the moment kind's own colour — `utils/kinds.js` states
-// `moments` as `schedule` in `#e65100`, and that registry is the one place
-// the platform decides what a moment looks like, so the byline reads it
-// rather than minting a tone. (The hex is the registry's, not this file's.)
-.post-square__when-icon {
-  flex: 0 0 auto;
-  color: #e65100;
-}
-.post-square__when-text {
+// The WHEN never yields; the WHERE does (the 2026-08-10 argument: a trimmed
+// place is better than a trimmed date, and the author beside them never
+// loses a letter either way). The pin glyph leads the place (2026-09-21).
+.post-square__when-text { flex: 0 0 auto; }
+.post-square__when-sep { flex: 0 0 auto; opacity: 0.55; }
+.post-square__when-place {
+  flex: 0 1 auto;
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -5766,7 +5543,22 @@ export default defineComponent({
   // hair over the card's reads as a softer inner frame, not as the mismatch
   // the 2026-08-10 note above guards against (that was 7 against a 2px
   // card corner, three and a half times over; this is five against four).
-  border-radius: 5px;
+  // ⭐ **THE FOOT PILL'S CORNER since 2026-09-21** (user ask, "make the
+  // corners of the content container … match the post pill on the footer"):
+  // 5 → `6.34px`. The card's foot wears the nano pill in its EXTENDED state
+  // (`MicroChip.is-extended`, PM8c), whose corner is a RATIO — `--chip-half-h`
+  // (0.7em + 2px) × `--round` 0.7 — and on THIS card's foot that resolves to
+  // (0.7 × 10.08 + 2) × 0.7 = 6.3392px (the chip is 0.72em of the card's
+  // 14px). A flat px here rather than the calc, because the pit's em is
+  // 12.32 (its own 0.88em), not the chip's — the ratio restated in the pit's
+  // em would resolve to a different corner and only LOOK like the same law.
+  // The 2026-09-13 argument holds one step further: 6.34 against the card's
+  // 4 still reads as a softer inner frame, not as an attempt at the outer
+  // corner. Two decimals (`border-radius` takes fractions — the veil's note).
+  // ⚠ Moves with the chip: retune `--round` / `--chip-half-h` in MicroChip,
+  // or the foot chip's font size, and this number follows BY HAND —
+  // `flow-feed-card-rows` measures both and holds them equal.
+  border-radius: 6.34px;
   // The pit's own two tones (2026-07-25): a `--grey-1` floor with the frame's
   // INNER border drawn around it in the card's line ink. The floor was a 5% ink
   // tint of whatever the card was, which made the pit a slightly darker patch
@@ -6850,101 +6642,30 @@ export default defineComponent({
   }
 }
 
-// The foot chip as a DOOR (2026-08-10, user ask; it was a trigger-span from
-// 2026-07-26 and its `.is-open` lit state went with the flyout press). As a
-// router-link it gets `.micro-chip.is-link`'s cursor and hover for free — but
-// that hover is ink-toned, and this chip has worn the platform's cyan since
-// the day it was born. Nested under the foot so the restatement outranks it
-// (`.post-square__foot[data-v] .post-square__chip:hover` = four selectors
-// against the component's three) instead of racing it on bundle order.
-//
-// NASALIZATION, like the cap and the byline above it (the card is set in its
-// display face top to bottom now, and the foot was the last strip still
-// lettering in Space Mono). Both text spans carry the `mono` UTILITY class,
-// which a font-family on the chip would lose to at equal specificity — so
-// both are reached deeply, the move `.post-square__cap-chip.is-named` and
-// `.post-square__moment-chip` each make one strip up. Those two switched
-// face because they show STRINGS rather than addresses; this one shows an
-// address and switches anyway, because the ask is the CARD's face, and a
-// chip in two typefaces would state the seam between the word and the hash
-// louder than the `::` already does.
-//
-// ⭐ AT THE STRIP'S REGISTER SINCE 2026-09-13's density pass: `--foot-ctl`
-// tall (MicroChip's own `1px 6px` padding over a 1.4 line box came to 18.11,
-// which is not the 18 the buttons were and not the 16 they are), lettering
-// at the tallies' 0.66em rather than MicroChip's 0.72 (the strip's ONE text
-// size — "homogenize … the text"), and the HASH CUT TO `10ch`: the address
-// cell is the one that gives, and on a desktop card it gave the chip 417px,
-// enough for all 64 hex digits. Nobody reads a hash off a card; ten
-// characters say "this address" and the tooltip carries the whole path
-// (NodeMini's foot chip made the same cut, `chipHash`, 10 + …). Ellipsis is
-// MicroChip's own — its hash span already clips with `text-overflow`; the
-// cap on the span is the only new word, and the 6ch floor under it still
-// governs the squeeze on a phone.
-// (2026-09-21 PM: the foot chip is the STOCK pill — the display face, the
-// 0.66em, the foot-control height, the `::` seam's opacity and the cyan
-// hover are gone. The one thing the row still said was the hash cap.)
-// ⭐ 2026-09-21 PM4 — THE CAP IS GONE (user ask: "for the extended version
-// of the pills, we want the hash to be extended … the extended pills' width
-// extend inside their containers … for the post cards, we should see way
-// more digits so the empty available space below is covered"): the
-// EXTENDED pill's hash is elastic by MicroChip's own law now — it takes
-// every pixel the address cell can spare (`.post-square__foot-main` is the
-// cell that gives, `min-width: 0` + `overflow: hidden`), all 64 digits on a
-// desktop card, an ellipsis at the cell's edge on a phone, the 6ch floor
-// under that. The row restates NOTHING about the chip any more; the
-// selector that held the `10ch` cap for eight days is deleted, not emptied.
-
-// THE IDENTITY BLOCK (2026-07-25) — photo left, name over handle.
-//
-// One unit, not three items: the avatar and the two text lines are a single
-// link to the author's profile, and the block as a whole is what the eye
-// picks up. Stacking the handle under the name is what lets both be shown at
-// all — side by side they read as one long string and the card has no width
-// to spare.
-//
-// It refuses to shrink below its own content (`flex: 0 0 auto`) and caps each
-// line instead: left to the flex floor, both lines ellipsize to three letters
-// even on a wide card. The `55%` cap it carried in the foot is GONE with the
-// move to its own band — it was there because the post's hash chip shared that
-// row and truncates adaptively, so a long display name would have eaten the
-// whole run. Here the only thing beside the block is the org badge, which the
-// two `18ch` line caps already leave room for.
-// Deliberately NO `min-width: 0` here — see gotchas.md. It is inert while the
-// block is `flex: 0 0 auto`, but it is the exact property that collapsed this
-// block to `cla…` / `@cla…` once, and leaving it written invites the next edit
-// to make it bite again.
-// The name + handle, INLINE on the who-line since 2026-08-09 (they stacked
-// as the block's own two lines while the band ran in columns; the STACK is
-// the whole band now, and this pair is its first line). One link to the
-// profile — the face beside it is the other, same destination.
-//
-// THE SQUEEZE ORDER IS THE HANDLE'S, NOT THE NAME'S (2026-08-10, user ask —
-// "the main name must not get trimmed, trim the @handle instead"). Both spans
-// carried a `16ch` cap and the default `flex-shrink: 1`, so a narrow card
-// took the two down TOGETHER, in proportion to their widths — on a phone that
-// produced `Dream Ope… @dreamo…`, the name unreadable to save an address
-// nobody reads off a card. The pair now shrinks in a stated order (see the
-// two rules below), and `overflow: hidden` here is what makes that order
-// enforceable: the name's `flex-shrink: 0` means the link's content can
-// exceed the link, and without a clip that overrun would push the badge and
-// the heat chip off the card instead of stopping at the name.
+// THE AUTHOR PILL — `.post-square__pill` with no kind: the cream face, grey-8
+// words (2026-09-21, user ask: "in a cream color with grey text"), the
+// profile picture at the head. Still the entity DOOR it has been since
+// 2026-09-11: a `#/entities/<id>` router-link, caught by
+// `utils/entityDoor.js`'s capture-phase listener → the entity window (the
+// page stays a modifier click away). `flex: 0 0 auto` — the author never
+// yields; the moment pill beside it is the one that ellipsizes. Hover keeps
+// the identity's cyan on the name.
 .post-square__identity {
-  display: inline-flex;
-  align-items: baseline;
+  flex: 0 0 auto;
+  // THE FACE FILLS THE PILL (2026-09-21, later ask: "reduce the padding
+  // around the profile pic to its minimum so the profile pic takes as much
+  // space as possible … adjust the roundness of its corners to fit the
+  // pill"): the left pad drops to `--face-inset` (1px — the smallest ring of
+  // cream that still separates the picture's edge from the hairline; 0
+  // fuses them), the picture is the pill's inner height minus that ring
+  // (20 − 2 − 2 = 16px, EntityAvatar `:size="16"` in the template — keep in
+  // step), and its corner is CONCENTRIC with the pill's: the pill's radius
+  // minus the border minus the inset (7 − 1 − 1 = 5px), over the tile's own
+  // 26%. The name keeps a 4px breath off the picture.
+  --face-inset: 1px;
+  padding-left: var(--face-inset);
   gap: 4px;
-  flex: 0 1 auto;
-  min-width: 0;
-  overflow: hidden;
-  text-decoration: none;
-  color: inherit;
-
-  // BOTH LINES LIGHT AS ONE (2026-08-09, user ask) — `--cyan-14`, the
-  // cyan family's A700, on the name AND the handle together. They are one
-  // link to one place, and lighting only the name (the old `#00829c` +
-  // 70%-alpha pair) made the hover look like two targets in a row. The
-  // resting name is `--cyan-9`, four steps deeper in the same family, so
-  // this reads as a LIFT along one hue rather than a swap between two.
+  :deep(.entity-avatar) { border-radius: calc(var(--chip-half-h) * var(--round) - 1px - var(--face-inset)); }
   &:hover .post-square__identity-name { color: var(--cyan-14, #00b8d4); }
 }
 
@@ -6992,87 +6713,14 @@ export default defineComponent({
   padding: 1px 6px;
 }
 
-// THE NAME IS THE LAST THING TO GIVE (2026-08-10, user ask). `flex-shrink: 0`
-// takes it out of the squeeze entirely — every pixel the line is short comes
-// out of the handle beside it — and its old `16ch` cap is replaced by
-// `max-width: 100%`, which is the line ITSELF: the name ellipsizes only once
-// the handle has gone to nothing and the whole link is narrower than the name
-// alone, which on a phone means a name of about twenty characters or more.
-// (`16ch` was the cap that trimmed `Dream Operator` on a card wide enough to
-// print it — a fixed cap cannot know how much room the line actually has.)
+// The name — the pill's words, on the pill's own face and size (Space Mono
+// 0.72em off `.post-square__pill`; the display face and the 700 weight went
+// with the identity block on 2026-09-21).
 .post-square__identity-name {
   flex: 0 0 auto;
-  font-size: 0.72em;
-  font-weight: 700;
-  // CYAN since 2026-08-09 (user ask) — `--cyan-9`, Material 800, minted
-  // for this. It replaces a hard-coded `#4f3e98` purple that belonged to
-  // no family on this platform, and it makes the byline the card's ONE
-  // coloured voice: cap, rail, pit and foot are all neutral now, so the
-  // author's name is the only thing on a post square stating a hue in
-  // TEXT. Deep end of the family on purpose — the pointer takes it up to
-  // `--cyan-14`, and a resting tone must be the one you can read.
-  color: var(--cyan-9, #00838f);
-  max-width: 100%;
-  white-space: nowrap;
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
-}
-
-// The handle is the address you can type back — quieter, riding the
-// name's baseline (in the band's display face since the Nasalization ask;
-// its `mono` went with it).
-//
-// AND IT IS THE ONE THAT ABSORBS (2026-08-10, user ask): `min-width: 0` frees
-// it to shrink all the way to `@…` and then out of sight, so the name above
-// it never has to. It keeps a `16ch` ceiling for the opposite case — a wide
-// card and a long handle, where the name is safe and the address is simply
-// longer than the line wants to spend on it.
-// (`.post-square__identity-handle` — the `@handle` beside the name — is GONE
-// since 2026-09-13, user ask; the name is the whole of the identity link now.)
-
-// ── ONE LINE ON DESKTOP (2026-08-09, user ask) ────────────────────────────
-// The byline's two dense lines fold into a SINGLE row when the window is
-// wide enough to hold them side by side: author at the left, the moment
-// run at the right end of the same line, the face hanging beside one line
-// instead of two. `min-width: 1024px` is the CARD's type gate, shared with
-// the cap title's step-up above — the two type rules follow one word for
-// desktop; under it the stack stands. ⚠ It came from FeedPage's full-height
-// container ask and was that page's gate until 2026-08-12, when that block was
-// retired entirely (the column stops on the nav bar's top edge now, with no
-// breakpoint of its own). This number did not follow it out: a byline folds
-// when the BAND is wide enough to hold two runs on one line, which was never
-// the same question as where the page had chrome beside the nav bar.
-//
-// The type steps UP with the fold (name 0.72→0.8em, handle 0.6→0.66,
-// ago 0.66→0.72, details 0.6→0.66): two lines' worth of facts on one line
-// has width to spend, and the band it sits in got SHORTER — 33px stacked
-// → 32px folded (the 24px face + the band's 8px padding is the height
-// now; the media budget's byline term is measured on THIS branch, desktop
-// being where the 1440×900 measurement lives).
-//
-// Squeeze order on the shared line, stated in shrink factors: the PLACE
-// gives first (factor 4, floor 0), the WHEN may then ellipsize (factor 1
-// — it was rigid in the stack, but on a shared line "never trims" would
-// push the author off instead; an ellipsized time is still a time, and
-// the tooltip carries it whole), and the author's own 16ch caps hold the
-// left end.
-//
-// The SEAM RULE between the author side and the moment chips —
-// unconditional since the split-stamp arrangement (2026-08-09, last byline
-// ask; it was born hours earlier as a fold-only member). Full band height
-// by the house device — stretch + negative margins cancelling the band's
-// own 4px padding (keep in step) — and it CARRIES the `auto` left margin
-// that packs the chip stack at the band's end, so the rule stands exactly
-// at the seam it divides. (The one-line desktop fold and its
-// `display: contents` machinery died with the arrangement; the band is
-// one layout at every width now.)
-.post-square__byline-rule {
-  flex: 0 0 1px;
-  width: 1px;
-  align-self: stretch;
-  // `-2px` since 2026-09-13 — the band's padding went 4 → 2 (one-line pass).
-  margin: -2px 0 -2px auto;
-  background: var(--grey-5, #bdbdbd);
 }
 
 // The foot's tallies. NASALIZATION since 2026-08-10 (user ask) — `'Space
@@ -7124,7 +6772,9 @@ export default defineComponent({
   // The shrink ORDER is not restated here — it is unconditional (the name is
   // `flex-shrink: 0` at every width, the handle absorbs at every width). This
   // block only makes the order need to fire later.
-  .post-square__identity-name { font-size: 0.66em; }
+  // (the name's narrow size — 0.66em — stood here until 2026-09-21: the name
+  // is the author PILL's words now, on the pill's own 0.72em; a second
+  // multiplier would shrink it under the face beside it.)
 
   // The hop chip travels with them: it leads the ago line now, and a plate
   // dialled for the desktop band would out-weigh the name it sits under.
@@ -7149,7 +6799,10 @@ export default defineComponent({
   // in practice means the author block does not move until they are at their
   // own floor. `min-width: 0` is what lets them reach it (the chips already
   // ellipsize — their hash span's floor was freed for the same reason).
-  .post-square__byline-when {
+  // …the moment PILL since 2026-09-21 (the `__byline-when` block it names
+  // is gone; the pill is the yielding item at every width, this is the
+  // narrow width's harder ratio).
+  .post-square__when {
     flex: 0 20 auto;
     min-width: 0;
   }

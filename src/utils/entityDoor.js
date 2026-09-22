@@ -49,3 +49,38 @@ export function installEntityLinkDoor (open) {
   document.addEventListener('click', handler, true)
   return () => document.removeEventListener('click', handler, true)
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// THE MOMENT DOOR (2026-09-21, user ask: "for the moment pills on the nodes,
+// posts, skeleton viewers, etc, make it default to be flown out the flyout
+// viewer when clicking on them") — the entity door's twin for
+// `#/moments/<id|hash>` anchors: the feed byline's moment pill, MomentMini's
+// title link, every `router-link` to a moment page. Same capture-phase
+// contract (a primary, unmodified click on an `a[href]`; `data-moment-page`
+// and `target` anchors fall through; `preventDefault` stands Vue Router
+// down). The opener receives the KEY the href names — a DB id or a hash —
+// and `ElementFlyoutHost` turns an id into the address (`moments/<hash>`)
+// the window is keyed by. MicroChips (`kind="moments"`) are spans, not
+// anchors — their root click already spawns by address — so nothing opens
+// twice.
+const MOMENT_HREF_RE = /(?:^|#)\/moments\/([0-9a-zA-Z]+)(?:[/?#]|$)/
+
+export function momentKeyFromHref (href) {
+  const m = MOMENT_HREF_RE.exec(String(href || ''))
+  return m ? m[1] : null
+}
+
+export function installMomentLinkDoor (open) {
+  const handler = (e) => {
+    if (e.defaultPrevented || e.button !== 0) return
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return
+    const a = e.target && e.target.closest ? e.target.closest('a[href]') : null
+    if (!a || a.hasAttribute('data-moment-page') || a.getAttribute('target')) return
+    const key = momentKeyFromHref(a.getAttribute('href'))
+    if (key == null) return
+    e.preventDefault()
+    open(key, a)
+  }
+  document.addEventListener('click', handler, true)
+  return () => document.removeEventListener('click', handler, true)
+}

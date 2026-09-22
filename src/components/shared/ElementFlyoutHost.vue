@@ -29,7 +29,9 @@ import { defineComponent, onMounted, onBeforeUnmount } from 'vue'
 import ElementFlyout from 'src/components/shared/ElementFlyout.vue'
 import MediaTabsBar from 'src/components/media/MediaTabsBar.vue'
 import { useFlyoutViewersStore } from 'src/stores/flyoutViewers'
-import { installEntityLinkDoor } from 'src/utils/entityDoor'
+import { installEntityLinkDoor, installMomentLinkDoor } from 'src/utils/entityDoor'
+import { momentService } from 'src/services/moment.service'
+import { isHash } from 'src/utils/kinds'
 
 export default defineComponent({
   name: 'ElementFlyoutHost',
@@ -47,10 +49,25 @@ export default defineComponent({
     // lives exactly as long as the windows can — see utils/entityDoor for
     // the rule and its escape hatches.
     let removeDoor = null
+    let removeMomentDoor = null
     onMounted(() => {
       removeDoor = installEntityLinkDoor((id) => store.spawnEntity({ id }))
+      // THE MOMENT DOOR (2026-09-21) — `#/moments/<id|hash>` anchors open the
+      // moment window. The window is keyed by ADDRESS (`moments/<hash>`, the
+      // element target), so an id in the href costs one read to learn its
+      // hash; a hash goes straight through. See utils/entityDoor.js.
+      removeMomentDoor = installMomentLinkDoor(async (key) => {
+        if (isHash(key)) { store.spawnRef(`moments/${key}`); return }
+        try {
+          const r = await momentService.get(parseInt(key, 10))
+          if (r?.moment?.path) store.spawnRef(r.moment.path)
+        } catch (_) { /* the page stays a typed URL away */ }
+      })
     })
-    onBeforeUnmount(() => { if (removeDoor) removeDoor() })
+    onBeforeUnmount(() => {
+      if (removeDoor) removeDoor()
+      if (removeMomentDoor) removeMomentDoor()
+    })
 
     return { store }
   }

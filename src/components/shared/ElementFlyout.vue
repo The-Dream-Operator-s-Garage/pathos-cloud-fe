@@ -207,6 +207,15 @@
            post quoting this element would, at the window's width. The
            panel routes to its page (it is a router-link); the foot offers
            the same door. Keyed on the address so a retarget remounts. -->
+      <!-- THE MOMENT FACE (2026-09-21, user ask: "a flyout moment viewer that
+           contains everything i see when visiting a moment"): a `moments/…`
+           element target draws `MomentFace` — the page in a box, the entity
+           face's box (`__moment` = `__entity`'s rule) — where the fifth
+           target's MomentMini stood. Every other element prefix keeps its
+           Mini. `loaded` retitles the window off the read (the datetime). -->
+      <div v-else-if="showing === 'element' && isMomentTarget" class="element-flyout__moment">
+        <MomentFace :key="'moment:' + targetElement.address" :id="momentFaceId" @loaded="onMomentLoaded" />
+      </div>
       <div v-else-if="showing === 'element'" class="element-flyout__element">
         <ElementMini :key="'element:' + targetElement.address" :address="targetElement.address" />
       </div>
@@ -410,6 +419,7 @@ import SkeletonTable from 'src/components/skeletons/SkeletonTable.vue'
 import InfoChip from 'src/components/shared/InfoChip.vue'
 import EntityFace from 'src/components/entities/EntityFace.vue'
 import ElementMini from 'src/components/shared/ElementMini.vue'
+import MomentFace from 'src/components/moments/MomentFace.vue'
 import { useFlyoutViewersStore } from 'src/stores/flyoutViewers'
 import { useWindowsStore } from 'src/stores/windows'
 import { useNavStore } from 'src/stores/navigation'
@@ -448,13 +458,17 @@ const ENTITY_BOX = { w: 5, h: 6 }
 // An element window holds a Mini panel — wider than tall, a card's shape
 // (2026-09-21).
 const ELEMENT_BOX = { w: 4, h: 3 }
+// The moment face (2026-09-21) is the moment PAGE in a box — hero, facts,
+// the tiny map, the decoded buffer, the minted list — so it opens on the
+// post's portrait, not the element's landscape 4:3.
+const MOMENT_BOX = { w: 4, h: 5 }
 // The ref prefixes the ELEMENT target answers for; nodes, entities and
 // skeletons (posts included) keep their own windows.
 const ELEMENT_PREFIXES = new Set(['labels', 'moments', 'paths', 'links', 'secrets'])
 
 export default defineComponent({
   name: 'ElementFlyout',
-  components: { ConversationPicker, FriezeBar, MediaViewerBody, FeedStream, SkeletonTable, InfoChip, EntityFace, ElementMini },
+  components: { ConversationPicker, FriezeBar, MediaViewerBody, FeedStream, SkeletonTable, InfoChip, EntityFace, ElementMini, MomentFace },
   props: {
     viewerId: { type: String, required: true }
   },
@@ -495,6 +509,33 @@ export default defineComponent({
     // What the failed-ref chip stands for: the element's own prefix, the
     // ref's, or a node (the pre-element default).
     const facePrefix = computed(() => elementPrefix.value || refPrefix.value || 'nodes')
+    // A `moments/…` element target wears the moment FACE (2026-09-21) — the
+    // page in a box — instead of the kind's Mini. The face loads by the
+    // summary's id when the ref door resolved one, else by the address's hash
+    // (the route's own contract: id or hash).
+    const isMomentTarget = computed(() => elementPrefix.value === 'moments')
+    const momentFaceId = computed(() => {
+      const t = targetElement.value
+      if (!t) return null
+      return t.summary?.id ?? String(t.address || '').split('/').pop()
+    })
+    // The face's read retitles the window: the summary's headline is the
+    // datetime once the moment is known (a hash-only door had none). Same
+    // address → same identity, so the retarget resets nothing.
+    const onMomentLoaded = (r) => {
+      const m = r?.moment
+      const t = targetElement.value
+      if (!m || !viewer.value || !t || elementPrefix.value !== 'moments') return
+      const sum = t.summary || {}
+      const primary = r.human?.datetime || sum.primary || null
+      const secondary = r.human?.place || sum.secondary || null
+      if (sum.id != null && sum.primary === primary && sum.secondary === secondary) return
+      store.retarget(viewer.value.id, {
+        kind: 'element',
+        address: t.address,
+        summary: { ...sum, id: sum.id ?? m.id, primary, secondary, route: sum.route || ('/moments/' + m.id) }
+      })
+    }
 
     // Drag (bar) + proportional resize (rim handles) — pointer capture,
     // clamping and the shrink floor all live in the composable; the shell
@@ -815,7 +856,7 @@ export default defineComponent({
       if (targetNode.value) return probeNaturalSize(targetNode.value)
       if (targetItem.value) return { ...POST_BOX }
       if (targetEntity.value) return { ...ENTITY_BOX }
-      if (targetElement.value) return { ...ELEMENT_BOX }
+      if (targetElement.value) return isMomentTarget.value ? { ...MOMENT_BOX } : { ...ELEMENT_BOX }
       return { ...TABLE_BOX }
     }
     const place = async () => {
@@ -1145,6 +1186,9 @@ export default defineComponent({
       onEntityLoaded,
       refString,
       isEntityRef,
+      isMomentTarget,
+      momentFaceId,
+      onMomentLoaded,
       facePrefix,
       refFailed,
       nodeWalk,
@@ -1412,6 +1456,17 @@ export default defineComponent({
   overflow: auto;
   padding: 8px;
   :deep(.element-mini) { max-width: none; }
+}
+
+// The moment face's well (2026-09-21) — the entity face's box, verbatim:
+// the face is its own scrolling surface on the grey-3 bed.
+.element-flyout__moment {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  border-radius: 6px;
+  background: var(--grey-3, #eeeeee);
 }
 
 // ── SKELETON FACE: the dense table's frame ───────────────────────────────
