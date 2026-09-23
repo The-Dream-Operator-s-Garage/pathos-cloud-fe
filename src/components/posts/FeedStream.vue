@@ -6713,6 +6713,20 @@ export default defineComponent({
   // hover wash in the ACCENT — as the moment pill reads the moments kind's.
   --kind-accent: var(--entity-accent, #546e7a);
   --kind-ink: var(--entity-ink, #263238);
+  // ⭐ THE VEIL (2026-09-22 PM4, user ask: "apply the same veil on the author
+  // chip used on the post cards and the button on the footer") —
+  // `--identity-coat`: the identity window's coat, the entity family's pale
+  // (blue-grey-1) at 40% over the same light-cream sheet every pill wears
+  // (the nano pill's `--plaque-coat` is that sheet under the bar's grey-3).
+  // A layer list, so the hover restates it under the pill's 12% accent wash
+  // as a third layer (the base pill's `color-mix` over a list would be
+  // dropped as invalid).
+  background: var(--identity-coat, var(--plaque-coat));
+  &:hover {
+    background:
+      linear-gradient(color-mix(in srgb, var(--kind-accent) 12%, transparent), color-mix(in srgb, var(--kind-accent) 12%, transparent)),
+      var(--identity-coat, var(--plaque-coat));
+  }
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
   grid-template-rows: calc(var(--row-h) - 1px) calc(var(--row-h) - 1px);

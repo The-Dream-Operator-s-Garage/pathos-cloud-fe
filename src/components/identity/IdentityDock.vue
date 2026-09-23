@@ -340,7 +340,16 @@ export default defineComponent({
   width: min(420px, 100vw);
   height: auto;
   max-height: calc(100vh - var(--media-tabs-h, 0px) - var(--nav-footer-h) - 14px);
-  background: var(--plaque-coat);
+  // ⭐ THE VEIL (2026-09-22 PM4, user ask: the labels window's "red veil over
+  // the cream color" applied here) — `--identity-coat`: the same light-cream
+  // sheet the bar and the docks wear, under the ENTITY family's pale
+  // (blue-grey-1) at 40% instead of the bar's grey-3 — the creation docks'
+  // recipe (`--labels-coat`, `--maker-coat`…) in this window's family. A
+  // layer list, legal only in `background`; the sheet underneath is still
+  // `--light-cream`, so "colorway is lines/wells/ink, never the sheet"
+  // holds — the veil is a wash on the sheet, not another sheet. (Was
+  // `--plaque-coat`, the bar's own list, 2026-09-11 → this pass.)
+  background: var(--identity-coat, var(--plaque-coat));
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
   border: 1px solid var(--dock-rule-strong);

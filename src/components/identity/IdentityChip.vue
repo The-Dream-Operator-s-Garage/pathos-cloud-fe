@@ -141,7 +141,11 @@ export default defineComponent({
   gap: 0;
   padding: 0;
   border: none;
-  background: var(--plaque-coat);
+  // ⭐ THE VEIL (2026-09-22 PM4, user ask): the identity window's coat — the
+  // entity family's pale at 40% over the bar's light-cream sheet — so the
+  // chip and the window it opens are one material; hover/active keep the
+  // dashboard button's two greys (the button-wears-its-window's-tone tie).
+  background: var(--identity-coat, var(--plaque-coat));
   cursor: pointer;
   text-align: left;
   min-width: 0;

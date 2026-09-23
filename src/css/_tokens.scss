@@ -417,6 +417,7 @@ $cyan-14: #00b8d4;
 // and `blue-grey-10` (Material 900) its INK. Hand-minted like every family
 // here (the sheet never imports Quasar's palette). Their consumers are the
 // two entity dials below, and `utils/kinds.js` mirrors the hexes.
+$blue-grey-1:  #eceff1; // the family's pale — the identity window's VEIL (2026-09-22 PM4)
 $blue-grey-7:  #546e7a;
 $blue-grey-10: #263238;
 
@@ -1006,6 +1007,21 @@ $warning:   #F2C037;
   // (born cyan-9 / cyan-10 that evening, for one commit).
   --entity-accent: #{$blue-grey-7};
   --entity-ink: #{$blue-grey-10};
+  // ⭐ THE IDENTITY WINDOW'S VEIL + COAT (2026-09-22 PM4, user ask: "the
+  // labels window extended from the nav bar has a red veil over the cream
+  // color. Help me applying the same onto the identity window extendable
+  // from the footer bar") — the creation docks' recipe (`--labels-coat`
+  // below: the family's -1 at 40% over `--light-cream`) in the ENTITY
+  // family: `$blue-grey-1` (236, 239, 241) @40% over the cream. Composite
+  // ≈ rgb(246, 241, 235), a cool cream a few points off the bar's grey-3
+  // veil — the window reads as the person's, not the bar's. Read by
+  // `.identity-dock`'s `background` DIRECTLY (not through `--dock-coat`:
+  // that dial is the six bottom docks' one declaration, and fsck's
+  // `dock-coat` witness guards it — this window paints its own list).
+  --identity-veil: rgba(236, 239, 241, 0.4);
+  --identity-coat:
+    linear-gradient(var(--identity-veil), var(--identity-veil)),
+    var(--light-cream);
   --cyan-11: #{$cyan-11};      // (It held the post window's GLOW for one ask on 2026-09-05; the set walked to the -3s the same day — see `--cyan-3`.) Quasar cyan-11 (accent A100) — the WARM END of the RGB HAIRLINE's gradient filling (2026-08-07, user ask, `layout/RgbHairline.vue`), running to `--indigo-11` down a 3px band held between two `--grey-6` rules. The third A100 taken into service (with `--teal-11` and `--indigo-11`): a mark made of two hues is built from accents at ONE index, so it reads as a ramp turning colour rather than as a bright tone fading into a dull one. (It was "the only level of the cyan family" when written; `--cyan-9`/`--cyan-10` arrived 2026-08-09 for the post card byline.) (It HELD the side-chrome frieze weave's cold CENTRE for part of 2026-08-17's sitting, lost the role to `--teal-11` in that sitting's hue walk, and the weave itself went sober grey on 2026-08-21 — the trio rule in `_components.scss` is flat greys now)
 
   // (THE POST WINDOW'S CYAN MAP — `--cyan-1/-6/-10/-9-rgb` — stood here
