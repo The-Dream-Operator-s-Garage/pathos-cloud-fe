@@ -658,36 +658,30 @@
 
                  The whole strip is set in `--font-display` (Nasalization) —
                  the platform's display face, which until now the card did
-                 not wear anywhere. -->
-            <div class="post-square__cap">
-              <!-- THE EXPAND LEAD (2026-08-09, user ask) — a third cell, at
-                   the card's LEFT edge, holding one control: `expand`. It IS
-                   the hash lens: pressing it filters the feed by this post's
-                   own chain address — the same `?hash=` clause Talavero
-                   issues when an ask contains an address — so the stream
-                   answers with this ONE card, drawn full-height between the
-                   container's ceiling and the board's home slot (⚠ those two
-                   ends swapped on 2026-09-05 with the board itself). The
-                   board slides back to its berth on the same press (an
-                   expanded card is read AROUND the board, never under it),
-                   and a second press releases the lens. A hairline divides the
-                   cell from the facts, the cap's own device: this is a
-                   thing you PRESS, and everything past the rule is a thing
-                   you READ. ⭐ A `.post-square__cap-cell` since 2026-09-13,
-                   the same box as the four at the other end. -->
-              <div class="post-square__cap-cell">
-                <button
-                  type="button"
-                  class="post-square__cap-act"
-                  :class="{ 'is-on': isExpanded(item) }"
-                  :title="isExpanded(item) ? 'Release this post — back to the stream' : 'Expand this post — the feed shows it alone'"
-                  @click.stop="toggleExpand(item)"
-                >
-                  <q-icon name="expand" size="14px" />
-                </button>
-              </div>
-              <span class="post-square__cap-rule" aria-hidden="true" />
+                 not wear anywhere.
 
+                 ⭐ THREE CELLS AND A PRESSABLE NAME since 2026-09-23 (user
+                 ask: "remove the expand icon on the left end and then make
+                 the card expand when clicking on the title. Remove the weird
+                 skeleton icon too. Then put the flyout button on the right
+                 end, displacing the pin one to the left"). The strip reads
+
+                   facts… │ [share] │ [pin] │ [FLYOUT]
+
+                 — the expand lead is GONE and the NAME is its door (the pill
+                 is a button on the same hash lens), the orthopedics link into
+                 `/skeletons/:id` is GONE (the flyout's window reaches the
+                 skeleton face from its own header), and the FLYOUT closes the
+                 strip at the card's right edge, the pin one cell in. The fact
+                 cell opens on the card's LEFT edge now, with nothing before
+                 it. Same sitting: the strip went DENSE (22 tall, was 26) and
+                 the pill wears the PIT's paint and corners — see the style
+                 block. -->
+            <div class="post-square__cap">
+              <!-- THE EXPAND LEAD stood here from 2026-08-09 until 2026-09-23
+                   (user ask) — an `expand` glyph in its own cell at the card's
+                   left edge, the HASH LENS's door. The lens is unchanged; its
+                   door is the name's pill below. -->
               <div class="post-square__cap-main">
                 <!-- The KIND MARKS opened this cell from 2026-08-07 until
                      2026-09-13, when they moved INTO the name's pill (user
@@ -738,7 +732,38 @@
                      cell that takes the slack; the inner one is the pill —
                      centred in that slack, ellipsizing inside it. -->
                 <span class="post-square__cap-title">
-                  <span class="post-square__cap-title-chip" :title="capTitle(item)">
+                  <!-- ⭐ THE NAME IS THE EXPAND DOOR since 2026-09-23 (user
+                       ask: "make the card expand when clicking on the
+                       title"). The pill is a BUTTON on the hash lens the
+                       expand lead held: pressing it filters the feed by this
+                       post's own chain address — the same `?hash=` clause
+                       Talavero issues when an ask contains an address — so
+                       the stream answers with this ONE card drawn
+                       full-height, the board sliding back to its berth (an
+                       expanded card is read AROUND the board, never under
+                       it); a second press releases the lens. The marks light
+                       (`is-on`) while this card is the expanded one, and the
+                       tooltip is the full name plus what a press does.
+                       ⚠ DISABLED IN EMBED MODE (the flyout window's postcard):
+                       there is no feed behind that stream to filter, and a
+                       press there only set `.is-expanded` — measured 295 →
+                       700px, the height calc falling back to 100vh with no
+                       well to publish `--feed-well-h`. The door was always
+                       meant to be inert there (the embed note); the name's
+                       much larger target is what made it reachable.
+                       `aria-disabled`, NOT `disabled`: Quasar's global
+                       `[disabled]` rule fades the element to 0.6 and draws a
+                       not-allowed cursor, both `!important` — a name that is
+                       merely not a door in that window must not look broken.
+                       `toggleExpand` refuses the press itself. -->
+                  <button
+                    type="button"
+                    class="post-square__cap-title-chip"
+                    :class="{ 'is-on': isExpanded(item) }"
+                    :aria-disabled="embedItem ? 'true' : null"
+                    :title="capTitleTip(item)"
+                    @click.stop="toggleExpand(item)"
+                  >
                     <!-- The kind marks lead the pill (2026-09-13, same
                          sitting): `post` for an original, `comment` for a
                          comment, both for a fork — one family of Material
@@ -752,7 +777,7 @@
                       />
                     </span>
                     <span class="post-square__cap-title-text">{{ capTitle(item) }}</span>
-                  </span>
+                  </button>
                 </span>
               </div>
               <span class="post-square__cap-rule" aria-hidden="true" />
@@ -766,12 +791,7 @@
                        `pinsRefreshKey` exactly as the media viewer's tack
                        and the nav bar's do, so the widget reloads on the
                        same press.
-                     · the ORTHOPEDICS glyph opens `/skeletons/:id` — the
-                       post read as its SKELETON (slots, spine, surround)
-                       instead of as a post. It is a link, not a button: it
-                       navigates, and it should offer what every link does.
-                     · `open_in_new` is that SAME destination WITHOUT the
-                       navigation (2026-08-07, user ask): it opens this post
+                     · `open_in_new` (2026-08-07, user ask) opens this post
                        in a FLYOUT VIEWER, so the reader keeps their place
                        in the column. Since 2026-08-17 (the fusion) that
                        viewer is a free floating WINDOW — the postcard
@@ -782,35 +802,17 @@
                        through the flyoutViewers store; the `openIds` prop
                        comes back down for the lit mark.
 
-                   ⭐ NO LANE SINCE 2026-09-13 — four `.post-square__cap-cell`s
-                   at the cap's own level, a `__cap-rule` between each pair
-                   (2026-08-09's "each control in a ruled cell of its own",
-                   finally true to the pixel), reading skeleton │ flyout │
-                   share │ PIN, the pin moved from the lane's head to the
-                   card's right edge (user ask). -->
-              <div class="post-square__cap-cell">
-                <router-link
-                  class="post-square__cap-act"
-                  :to="'/skeletons/' + item.skeleton_id"
-                  title="Open the skeleton viewer — this post as its slots and spine"
-                  @click.stop
-                >
-                  <q-icon name="sym_o_orthopedics" size="14px" />
-                </router-link>
-              </div>
-              <span class="post-square__cap-rule" aria-hidden="true" />
-              <div class="post-square__cap-cell">
-                <button
-                  type="button"
-                  class="post-square__cap-act"
-                  :class="{ 'is-on': isOpen(item) }"
-                  title="Open this post in the flyout viewer beside the feed"
-                  @click.stop="$emit('select', item)"
-                >
-                  <q-icon name="open_in_new" size="13px" />
-                </button>
-              </div>
-              <span class="post-square__cap-rule" aria-hidden="true" />
+                   ⭐ NO LANE SINCE 2026-09-13 — the controls are
+                   `.post-square__cap-cell`s at the cap's own level, a
+                   `__cap-rule` between each pair (2026-08-09's "each control
+                   in a ruled cell of its own", finally true to the pixel).
+                   ⭐ THREE OF THEM since 2026-09-23 (user ask): the
+                   ORTHOPEDICS link into `/skeletons/:id` is GONE ("remove
+                   the weird skeleton icon too" — the flyout's window turns
+                   to the skeleton face from its own header, so the post read
+                   as its slots and spine is still one press past the
+                   flyout), and the FLYOUT took the card's right edge, the
+                   pin displaced one cell in: share │ pin │ FLYOUT. -->
               <!-- Share to chat (dashboards phase 5, 2026-08-10): the
                    conversation picker prefills a draft with this post's
                    chip; ChatDock's send flow grants through the share
@@ -835,6 +837,18 @@
                   @click.stop="togglePin(item)"
                 >
                   <q-icon name="push_pin" size="13px" />
+                </button>
+              </div>
+              <span class="post-square__cap-rule" aria-hidden="true" />
+              <div class="post-square__cap-cell">
+                <button
+                  type="button"
+                  class="post-square__cap-act"
+                  :class="{ 'is-on': isOpen(item) }"
+                  title="Open this post in the flyout viewer beside the feed"
+                  @click.stop="$emit('select', item)"
+                >
+                  <q-icon name="open_in_new" size="13px" />
                 </button>
               </div>
             </div>
@@ -2689,7 +2703,8 @@ export default defineComponent({
     // ── THE HASH LENS (2026-08-09, user ask) — expand = filter by address ──
     // A post's chain address is its one unique reference, so "expand this
     // card" and "filter the feed to this post" are the same operation read
-    // from two ends. The cap's expand lead applies it locally; Talavero
+    // from two ends. The cap's NAME PILL applies it locally (the expand lead
+    // did until 2026-09-23 — the pill is the door since, user ask); Talavero
     // applies the same clause when an ask contains an address (`spec.hash`).
     // Either way the ACTIVE hash is what the expanded rendering keys off —
     // the card that matches it draws full-height (see `.is-expanded`),
@@ -2705,6 +2720,9 @@ export default defineComponent({
       return !!h && postHash(item).startsWith(h)
     }
     const toggleExpand = (item) => {
+      // Inert in EMBED MODE (2026-09-23): no feed to filter, and setting the
+      // lens would only mark the one pinned card expanded (see the name pill).
+      if (props.embedItem) return
       if (isExpanded(item)) {
         hashFilter.value = null
         // A Talavero-issued hash releases through the clause machinery, so
@@ -2852,6 +2870,15 @@ export default defineComponent({
     // and a post with no title still has an id.
     const capTitle = (item) => item.title || `post #${item.skeleton_id}`
 
+    // The name pill's tooltip since it became the EXPAND door (2026-09-23):
+    // the full name first — the pill ellipsizes, so the tooltip is where a
+    // long one is read whole — then what a press does, which flips with the
+    // lens exactly as the expand lead's own tooltip did.
+    // An embedded postcard's pill is no door (aria-disabled), so it says the name.
+    const capTitleTip = (item) => props.embedItem ? capTitle(item) : capTitle(item) + (isExpanded(item)
+      ? ' — click to release this post, back to the stream'
+      : ' — click to expand this post, the feed shows it alone')
+
     // The card's classification, taken from the element itself: every label it
     // holds, as its full root→leaf PATH. This replaced the header's kind
     // legend (doc / post / fork / comment), which asserted a category the card
@@ -2996,6 +3023,7 @@ export default defineComponent({
       originClauses,
       originName,
       capTitle,
+      capTitleTip,
       pinnedIds,
       togglePin,
       labelPaths,
@@ -4340,6 +4368,16 @@ export default defineComponent({
   //     order for no reason. A card's inside is the card's business.
   position: relative;
   isolation: isolate;
+  // ⭐ THE PIT'S PAINT AND CORNER ARE DIALS (2026-09-23, user ask: the cap's
+  // name pill "painted like the content container … its corners match the
+  // content container ones"). Declared HERE because the two readers are
+  // cousins, not parent and child: the PIT (the reading area, whose floor and
+  // corner were literals on its own rule until today) and the cap's NAME
+  // PILL. One number each, so the pill cannot drift off the pit the next time
+  // the pit's corner is walked (7 → 3 → 5 → 6.34 so far — the pit's radius
+  // note still says where 6.34 comes from and what it moves with).
+  --pit-coat: var(--grey-1, #fafafa);
+  --pit-r: 6.34px;
   // The ceiling — the LOWER of two limits, so whichever bites first wins:
   //
   //   width  — `--post-square-max` is the column's measured width, published by
@@ -4708,8 +4746,8 @@ export default defineComponent({
 // ⭐ **275 THE SAME DAY** (243 + 32) — the foot's density pass, −8, moved with
 // the resting one a third time.
 .post-square.is-expanded .post-square__pit {
-  // ⭐ 257 since 2026-09-22 PM (265 that morning, 275 before): resting 225 + the well's 32 — see the resting note.
-  --media-max-h: max(120px, calc(var(--feed-well-h, 60vh) - var(--fhead-h, 120px) - 257px - var(--frieze-h)));
+  // ⭐ 253 since 2026-09-23 (257 since 2026-09-22 PM, 265 that morning, 275 before): resting 221 + the well's 32 — see the resting note.
+  --media-max-h: max(120px, calc(var(--feed-well-h, 60vh) - var(--fhead-h, 120px) - 253px - var(--frieze-h)));
 }
 
 // ── THE VEIL (2026-08-07, user ask) — the card's MIDDLE LAYER ──
@@ -5075,6 +5113,17 @@ export default defineComponent({
 // with 6px of air a side. The lane it replaces padded its four buttons as one
 // group (`2px 9px` round the lot, 2px between), so its cells came out
 // 31 / 24 / 24 / 31 beside a 38px expand lead — read the cell rule below.
+//
+// ⭐ THREE CELLS, AND THE STRIP IS 22 SINCE 2026-09-23 (user ask; the
+// template note has the words). The expand lead and the orthopedics link are
+// gone — `facts │ share │ pin │ flyout`, the fact cell opening on the card's
+// left edge — and the strip went DENSE ("reduce the padding around the title
+// container and its text"): a control's box 20 → 16 (the foot's
+// `--foot-ctl`; the glyphs keep their 13px) and the fact cell's pads
+// `4px 9px` → `2px 4px`, so the name's 16px pill and every control stand the
+// same 2px off the strip's top and off its closing rule: 2 + 16 + 2 + the
+// 2px border = 22. Still 32px cells (16 + 8 + 8 — the foot's cell exactly
+// now). −4px of card chrome, carried by both `--media-max-h` constants.
 .post-square__cap {
   --cap-cell: 32px;
   display: flex;
@@ -5113,12 +5162,18 @@ export default defineComponent({
   display: flex;
   align-items: center;
   gap: 5px;
-  padding: 4px 9px;
+  // `2px 4px` since 2026-09-23's density pass (was `4px 9px`): the name's
+  // pill 2px off the strip's edges like every control, and 4px — not 2 — off
+  // the card's own left edge, which the cell touches now the expand lead is
+  // gone (an origin clause's words would otherwise ride the card's rim).
+  padding: 2px 4px;
   overflow: hidden;
   white-space: nowrap;
 }
 
-// THE CONTROL CELL (2026-09-13, user ask) — ONE box for all five controls:
+// THE CONTROL CELL (2026-09-13, user ask) — ONE box for all five controls
+// (⭐ THREE since 2026-09-23 — share │ pin │ flyout; the strip is 22 now,
+// 2 + 16 + 2 + the closing border — see `.post-square__cap`):
 // the expand lead at the card's left edge (its own `__cap-lead` from
 // 2026-08-09 until today) and the four at the right (a padded `__cap-side`
 // LANE holding them all, rules slipped between, over the same span). Rigid
@@ -5159,8 +5214,10 @@ export default defineComponent({
   align-items: center;
   justify-content: center;
   flex: 0 0 auto;
-  width: 20px;
-  height: 20px;
+  // 16px since 2026-09-23's density pass (20 before) — the foot's
+  // `--foot-ctl`; the 13px glyphs are unchanged, only the hover box shrank.
+  width: 16px;
+  height: 16px;
   padding: 0;
   border: 0;
   border-radius: 5px;
@@ -5301,22 +5358,53 @@ export default defineComponent({
 // budget did not move for this). The desktop step-up below lands on the
 // cell and reaches the chip by inheritance: 1.16em of the cap in a 14px
 // line still clears.
+//
+// ⭐ 2026-09-23 — A BUTTON IN THE PIT'S PAINT (user ask: "reduce the padding
+// around the title container and its text so it is denser and also make the
+// title container denser inside and paint it like the content container also
+// making the title container corners match the content container ones"):
+//   · the floor and the corner are the PIT's — `--pit-coat` (grey-1) where it
+//     was clear, `--pit-r` (6.34px) where it was 999px, both off the card's
+//     dials — so the name's box and the reading area are one material at the
+//     two ends of the card's body; the rim was already the pit's;
+//   · denser inside: pads `0 4px 0 3px` (8 / 6 halved, the glyph-first
+//     asymmetry kept) and a 2px gap mark → name (was 4). The 6.34 corner
+//     clears both: at 3px in, the mark's ink starts past the arc;
+//   · it is a BUTTON (the expand door — the template note), so the UA's
+//     button face, margins and letter-spacing are reset to the strip's —
+//     `font: inherit` BEFORE the `line-height`, which the shorthand resets;
+//     the pointer and a `--grey-7` rim under it say it presses, and the marks
+//     light in the accent while this card is the expanded one (the expand
+//     glyph's own lit state, carried onto the name).
 .post-square__cap-title-chip {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 2px;
   max-width: 100%;
   box-sizing: border-box;
   height: 16px;
+  margin: 0;
+  font: inherit;
+  letter-spacing: inherit;
+  color: inherit;
   line-height: 14px;
   // Tighter on the left: the 13px mark leads, and a glyph's own drawing
-  // leaves air a letter does not, so 6 before it lands its ink where 8
-  // lands the name's.
-  padding: 0 8px 0 6px;
+  // leaves air a letter does not, so 3 before it lands its ink where 4
+  // lands the name's (6 / 8 until 2026-09-23).
+  padding: 0 4px 0 3px;
   border: 1px solid var(--grey-5, #bdbdbd);
-  border-radius: 999px;
-  background: transparent;
+  border-radius: var(--pit-r, 6.34px);
+  background: var(--pit-coat, var(--grey-1, #fafafa));
   overflow: hidden;
+  cursor: pointer;
+  transition: border-color 0.12s;
+
+  &:hover:not([aria-disabled='true']) { border-color: var(--grey-7, #757575); }
+  &.is-on .post-square__cap-icons { color: var(--accent, #c79a00); }
+  // Embed mode (the flyout's postcard): no door there, so no pointer and no
+  // hover rim. `aria-disabled` rather than `disabled` — the template note has
+  // why (Quasar's `[disabled]` fade).
+  &[aria-disabled='true'] { cursor: default; }
 }
 
 // The name inside the pill — the one member that gives. `min-width: 0` so
@@ -5807,7 +5895,10 @@ export default defineComponent({
   // ⭐ 225 since 2026-09-22 PM (233 that morning) — THE DENSE PASS: the band
   // 45 → 37 (rows 16 on a 2px lane, the pill a 34px grid, 1px pads), chrome
   // MEASURED 103.11 → 95.11, carried −8. The expanded twin above moved with it.
-  --media-max-h: max(120px, calc(min(var(--post-square-max, 100cqw), 60vh) - 225px));
+  // ⭐ 221 since 2026-09-23 — THE CAP'S DENSITY PASS: the strip 26 → 22 (16px
+  // controls, the fact cell's pads 2px), chrome MEASURED 95.11 → 91.11,
+  // carried −4. The expanded twin above moved with it.
+  --media-max-h: max(120px, calc(min(var(--post-square-max, 100cqw), 60vh) - 221px));
 
   flex: 1 1 auto;
   min-height: 0;
@@ -5876,7 +5967,9 @@ export default defineComponent({
   // ⚠ Moves with the chip: retune `--round` / `--chip-half-h` in MicroChip,
   // or the foot chip's font size, and this number follows BY HAND —
   // `flow-feed-card-rows` measures both and holds them equal.
-  border-radius: 6.34px;
+  // ⭐ The number lives on `.post-square` as `--pit-r` since 2026-09-23 — the
+  // cap's name pill wears the same corner (user ask), so it is stated once.
+  border-radius: var(--pit-r, 6.34px);
   // The pit's own two tones (2026-07-25): a `--grey-1` floor with the frame's
   // INNER border drawn around it in the card's line ink. The floor was a 5% ink
   // tint of whatever the card was, which made the pit a slightly darker patch
@@ -5906,7 +5999,8 @@ export default defineComponent({
   // wants a plain frame — a weighted edge above the text reads as a rule the
   // prose hangs from. The heavy-top device stays the rail's alone.
   border: 1px solid var(--grey-5, #bdbdbd);
-  background: var(--grey-1, #fafafa);
+  // `--pit-coat` (grey-1) since 2026-09-23 — the cap's name pill reads it too.
+  background: var(--pit-coat, var(--grey-1, #fafafa));
   // NO carve (end of 2026-07-25) — the surface is FLAT. The pit used to wear
   // the `.label-square__pit` recipe, an inset dark shadow at the top edge over
   // an inset white lip at the bottom, which read as a box pressed into the
