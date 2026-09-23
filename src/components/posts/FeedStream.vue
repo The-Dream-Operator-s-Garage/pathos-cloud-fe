@@ -676,7 +676,19 @@
                  cell opens on the card's LEFT edge now, with nothing before
                  it. Same sitting: the strip went DENSE (22 tall, was 26) and
                  the pill wears the PIT's paint and corners — see the style
-                 block. -->
+                 block. ⭐ AND LATER THE SAME DAY (user ask: "make the title
+                 container have the same font as the content container … put
+                 the inner post icon outside on the left end … reduce the
+                 padding around the title … make the font a little bigger …
+                 extend to all the available width of its container while
+                 keeping the title text centered"):
+
+                   [marks] (origin…) [═══════ name, centred ═══════] │ share │ pin │ flyout
+
+                 — the marks lead the fact cell again, the pill FILLS the
+                 cell and centres its name, set in the PIT's own face, size
+                 and ink (Inter at the pit's 0.88 of the card, 12.32px — was
+                 Nasalization at 10.07). -->
             <div class="post-square__cap">
               <!-- THE EXPAND LEAD stood here from 2026-08-09 until 2026-09-23
                    (user ask) — an `expand` glyph in its own cell at the card's
@@ -686,7 +698,22 @@
                 <!-- The KIND MARKS opened this cell from 2026-08-07 until
                      2026-09-13, when they moved INTO the name's pill (user
                      ask, "put the post icon from the header inside the chip
-                     too") — see the title below. -->
+                     too"). ⭐ BACK HERE since 2026-09-23 (user ask: "put the
+                     inner post icon outside on the left end") — the pill
+                     spans the cell now and centres the name, so the marks
+                     lead the strip at the card's left gutter, ahead of any
+                     origin clause: `post` for an original, `comment` for a
+                     comment, both for a fork — one family of Material
+                     Symbols, stating what the name names. They light in the
+                     accent while the card is the expanded one. -->
+                <span class="post-square__cap-icons" :title="capKindTitle(item)">
+                  <q-icon
+                    v-for="ic in capIcons(item)"
+                    :key="ic"
+                    :name="ic"
+                    size="13px"
+                  />
+                </span>
 
                 <!-- The origin clause(s): "Comment on <chip> ::"
 
@@ -741,8 +768,9 @@
                        the stream answers with this ONE card drawn
                        full-height, the board sliding back to its berth (an
                        expanded card is read AROUND the board, never under
-                       it); a second press releases the lens. The marks light
-                       (`is-on`) while this card is the expanded one, and the
+                       it); a second press releases the lens. The pill wears
+                       `is-on` while this card is the expanded one (the kind
+                       marks at the strip's head light with it), and the
                        tooltip is the full name plus what a press does.
                        ⚠ DISABLED IN EMBED MODE (the flyout window's postcard):
                        there is no feed behind that stream to filter, and a
@@ -764,18 +792,8 @@
                     :title="capTitleTip(item)"
                     @click.stop="toggleExpand(item)"
                   >
-                    <!-- The kind marks lead the pill (2026-09-13, same
-                         sitting): `post` for an original, `comment` for a
-                         comment, both for a fork — one family of Material
-                         Symbols, stating what the name names. -->
-                    <span class="post-square__cap-icons" :title="capKindTitle(item)">
-                      <q-icon
-                        v-for="ic in capIcons(item)"
-                        :key="ic"
-                        :name="ic"
-                        size="13px"
-                      />
-                    </span>
+                    <!-- The kind marks led the pill 2026-09-13 → 2026-09-23;
+                         they head the fact cell again (above). -->
                     <span class="post-square__cap-title-text">{{ capTitle(item) }}</span>
                   </button>
                 </span>
@@ -4378,6 +4396,23 @@ export default defineComponent({
   // note still says where 6.34 comes from and what it moves with).
   --pit-coat: var(--grey-1, #fafafa);
   --pit-r: 6.34px;
+  // ⭐ THE CARD'S SIDE GUTTER (2026-09-23 PM, user ask: "make the label chips
+  // match the beginning and the end of the sides so they look aligned to the
+  // content container. They currently have a little extra padding
+  // horizontally"). ONE number for how far the card's contents stand in from
+  // its edge: the pit's side MARGIN, the byline's side PADDING (7px until
+  // today — its chips ran 3px inside the pit on both sides, measured 67→653
+  // against 64→656) and the cap's left pad (the kind marks). Move it here
+  // and all three edges move together.
+  --card-gutter: 4px;
+  // ⭐ THE TWO TYPE SCALES (2026-09-23 PM, user ask: the name "the same font
+  // as the content container"), as unitless numbers so a reader anywhere in
+  // the card can do the arithmetic: the PIT reads at 0.88 of the card and
+  // the CAP at 0.62. The name's pill lives in the cap and must land on the
+  // pit's size — `calc(var(--pit-scale) / var(--cap-scale) * 1em)` there —
+  // and an `em` in a custom property would resolve at the reader, not here.
+  --pit-scale: 0.88;
+  --cap-scale: 0.62;
   // The ceiling — the LOWER of two limits, so whichever bites first wins:
   //
   //   width  — `--post-square-max` is the column's measured width, published by
@@ -4572,7 +4607,19 @@ export default defineComponent({
   // setting again. `8px` stays the next step if "rounder" comes back, and the
   // square-field caveat just above is what it would cost: at 8 the bed and
   // the container would have to answer the corner. The veil follows: 4 − 1 = 3.
-  border-radius: 4px;
+  //
+  // ── ⭐ **`8px` SINCE 2026-09-23** (user ask, "make the post card corners
+  // slightly more rounded") — "rounder" came back, and the rule above picked
+  // the value again, re-read against TODAY's contents: the pit and the cap's
+  // name pill turn at 6.34px (`--pit-r`), so the near-miss band sits around
+  // 6.34, not 7. 5 would be a corner a pixel and a third tighter than the
+  // boxes it holds and 6 a third of a pixel off them — both read as a failed
+  // match; 8 stands 1.66px ROUNDER than its contents, a sheet laid round
+  // boxes rather than a tray moulded to them. The veil follows: 8 − 1 = 7.
+  // (The square-field caveat is the user's to weigh; nothing at the card's
+  // own corners clips — the marks sit 4px in, the end cells centre their
+  // controls.)
+  border-radius: 8px;
   // `--light-cream` (#FCF3E0) since 2026-08-07 — THE COAT ALONE LEAVES THE
   // NEUTRALS, hours after the card's lines went grey, and it took two asks to
   // land: `--brown-1` first ("just the background"), then a TOKEN MINTED FOR IT
@@ -4746,8 +4793,8 @@ export default defineComponent({
 // ⭐ **275 THE SAME DAY** (243 + 32) — the foot's density pass, −8, moved with
 // the resting one a third time.
 .post-square.is-expanded .post-square__pit {
-  // ⭐ 253 since 2026-09-23 (257 since 2026-09-22 PM, 265 that morning, 275 before): resting 221 + the well's 32 — see the resting note.
-  --media-max-h: max(120px, calc(var(--feed-well-h, 60vh) - var(--fhead-h, 120px) - 253px - var(--frieze-h)));
+  // ⭐ 252 since 2026-09-23 PM (253 that afternoon, 257 since 2026-09-22 PM, 265 that morning, 275 before): resting 220 + the well's 32 — see the resting note.
+  --media-max-h: max(120px, calc(var(--feed-well-h, 60vh) - var(--fhead-h, 120px) - 252px - var(--frieze-h)));
 }
 
 // ── THE VEIL (2026-08-07, user ask) — the card's MIDDLE LAYER ──
@@ -5052,7 +5099,8 @@ export default defineComponent({
   //
   // **`3px` SINCE 2026-09-13** — derived again, nothing decided here: card
   // radius (4) − card border (1), in step with the card's 2 → 4 ("rounder").
-  border-radius: 3px;
+  // **`7px` SINCE 2026-09-23** — derived: 8 − 1, with the card's 4 → 8.
+  border-radius: 7px;
   backdrop-filter: blur(2px);
   -webkit-backdrop-filter: blur(2px);
   pointer-events: none;
@@ -5131,7 +5179,9 @@ export default defineComponent({
   flex: 0 0 auto;
   min-width: 0;
   font-family: var(--font-display);
-  font-size: 0.62em;
+  // 0.62 of the card — `--cap-scale` on `.post-square` since 2026-09-23 PM,
+  // so the name's pill can undo it (see the pill).
+  font-size: calc(var(--cap-scale, 0.62) * 1em);
   letter-spacing: 0.02em;
   // The card's deepest ink, the same the trust chip is lettered in — this
   // strip is the post's NAME and belongs at that weight, not at the
@@ -5161,12 +5211,21 @@ export default defineComponent({
   min-width: 0;
   display: flex;
   align-items: center;
-  gap: 5px;
+  // 3px since 2026-09-23 PM (5 before) — marks → origin → pill, denser.
+  gap: 3px;
   // `2px 4px` since 2026-09-23's density pass (was `4px 9px`): the name's
   // pill 2px off the strip's edges like every control, and 4px — not 2 — off
   // the card's own left edge, which the cell touches now the expand lead is
   // gone (an origin clause's words would otherwise ride the card's rim).
-  padding: 2px 4px;
+  // ⭐ `1px 2px 1px <gutter>` LATER THE SAME DAY (user ask: "reduce the
+  // padding around the title so it looks even denser and we can make the font
+  // a little bigger"): 1px over and under the pill, which grew 16 → 18 for
+  // the bigger type (18 + 1 + 1 = the controls' 20-tall cells, so the strip
+  // holds at 22 and the media budget does not move for it); 2px before the
+  // rule on the right (at 1px the pill's rim and the rule read as one doubled
+  // line); and on the left the card's `--card-gutter`, so the kind marks that
+  // lead the strip again stand on the pit's edge line and the byline's.
+  padding: 1px 2px 1px var(--card-gutter, 4px);
   overflow: hidden;
   white-space: nowrap;
 }
@@ -5254,6 +5313,13 @@ export default defineComponent({
 // ⭐ INSIDE the name's pill since 2026-09-13 (user ask) — they led the fact
 // cell from the cap's first day; now they lead the chip, so mark and name
 // are one boxed object.
+// ⭐ OUT AGAIN since 2026-09-23 PM (user ask: "put the inner post icon
+// outside on the left end"): the head of the fact cell, at the card's
+// gutter — the pill spans the cell and centres the name, and a mark inside
+// it would have ridden the centred run. They LIGHT in the accent while the
+// card is the expanded one (the rule under this one): the lit state the
+// pill's `is-on` gave them while they were inside it, now keyed off the
+// card's `.is-expanded` — the same `isExpanded(item)` predicate.
 .post-square__cap-icons {
   flex: 0 0 auto;
   display: inline-flex;
@@ -5261,6 +5327,7 @@ export default defineComponent({
   gap: 1px;
   color: var(--grey-8, #424242);
 }
+.post-square.is-expanded .post-square__cap-icons { color: var(--accent, #c79a00); }
 
 // The origin clause — "Comment on <chip> ::". It shrinks BEFORE the title
 // does (`flex: 0 1 auto` against the title's `1 1`), because a squeezed chip
@@ -5338,12 +5405,15 @@ export default defineComponent({
 // the pill be squeezed at all — the flex-basis-is-a-request rule, gotchas).
 // The clip and ellipsis moved down onto the pill with the text; the cell
 // only positions.
+// ⭐ 2026-09-23 PM (user ask: "make the title container extend to all the
+// available width of its container while keeping the title text
+// centered"): the cell stopped centring a pill — the pill FILLS it and
+// centres its own name, so `justify-content` moved down onto the pill.
 .post-square__cap-title {
   flex: 1 1 auto;
   min-width: 0;
   display: flex;
   align-items: center;
-  justify-content: center;
 }
 
 // THE PILL. Clear-backed — the strip's own ground shows through, so it is a
@@ -5376,22 +5446,44 @@ export default defineComponent({
 //     the pointer and a `--grey-7` rim under it say it presses, and the marks
 //     light in the accent while this card is the expanded one (the expand
 //     glyph's own lit state, carried onto the name).
+//
+// ⭐ 2026-09-23 PM — THE CONTENT'S FACE, FULL WIDTH (user ask: "make the
+// title container have the same font as the content container … put the
+// inner post icon outside on the left end … reduce the padding around the
+// title so it looks even denser and we can make the font a little bigger …
+// make the title container extend to all the available width of its
+// container while keeping the title text centered"):
+//   · it FILLS the cell (`flex: 1 1 auto` + `min-width: 0`) and centres the
+//     name (`justify-content: center`), which ellipsizes when it meets the
+//     rims;
+//   · the PIT's type: family `--font-body` (Inter, what the pit inherits from
+//     `body`), the pit's SIZE by arithmetic — `--pit-scale` over
+//     `--cap-scale`, the card's two dials, = 0.88 of the card = 12.32px (was
+//     Nasalization at 10.07 on desktop, 8.68 under it) — weight 400, no
+//     tracking, the pit's `--ink`;
+//   · 18px tall on a 16px line (was 16 on 14): Inter's content area is
+//     1.21em (ascender 0.969 + descender 0.242) = 14.9px here, and the
+//     name's own `overflow: hidden` would clip the tails of g / p / y in a
+//     14px line (gotchas: size the type to the box);
+//   · `0 4px` pads (the mark left, so the glyph-first asymmetry went with it)
+//     and no gap — the name is the pill's one member.
 .post-square__cap-title-chip {
-  display: inline-flex;
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
   align-items: center;
-  gap: 2px;
-  max-width: 100%;
+  justify-content: center;
   box-sizing: border-box;
-  height: 16px;
+  height: 18px;
   margin: 0;
   font: inherit;
-  letter-spacing: inherit;
-  color: inherit;
-  line-height: 14px;
-  // Tighter on the left: the 13px mark leads, and a glyph's own drawing
-  // leaves air a letter does not, so 3 before it lands its ink where 4
-  // lands the name's (6 / 8 until 2026-09-23).
-  padding: 0 4px 0 3px;
+  font-family: var(--font-body, 'Inter', 'Helvetica Neue', system-ui, sans-serif);
+  font-size: calc(var(--pit-scale, 0.88) / var(--cap-scale, 0.62) * 1em);
+  font-weight: 400;
+  letter-spacing: normal;
+  line-height: 16px;
+  color: var(--ink, #2C3D4E);
+  padding: 0 4px;
   border: 1px solid var(--grey-5, #bdbdbd);
   border-radius: var(--pit-r, 6.34px);
   background: var(--pit-coat, var(--grey-1, #fafafa));
@@ -5400,7 +5492,6 @@ export default defineComponent({
   transition: border-color 0.12s;
 
   &:hover:not([aria-disabled='true']) { border-color: var(--grey-7, #757575); }
-  &.is-on .post-square__cap-icons { color: var(--accent, #c79a00); }
   // Embed mode (the flyout's postcard): no door there, so no pointer and no
   // hover rim. `aria-disabled` rather than `disabled` — the template note has
   // why (Quasar's `[disabled]` fade).
@@ -5409,7 +5500,9 @@ export default defineComponent({
 
 // The name inside the pill — the one member that gives. `min-width: 0` so
 // the flex item may be squeezed below its text (the marks are `0 0 auto`),
-// and the ellipsis lands here, after the mark, never over it.
+// and the ellipsis lands here, after the mark, never over it. (⭐ The pill's
+// ONLY member since 2026-09-23 PM — centred while it fits, squeezed and
+// ellipsized once it does not.)
 .post-square__cap-title-text {
   min-width: 0;
   overflow: hidden;
@@ -5445,11 +5538,11 @@ export default defineComponent({
 // source order and do nothing at all. And it changes TYPE, not the strip: the
 // cap's height is set by its 14px icon buttons and its padding, so the
 // measured `CAP 24` in the media budget above holds at both widths (verified).
-@media (min-width: 1024px) {
-  .post-square__cap-title {
-    font-size: 1.16em;
-  }
-}
+// ⭐ RETIRED 2026-09-23 PM — the `@media (min-width: 1024px)` step-up that
+// stood here (`.post-square__cap-title { font-size: 1.16em }`) went with the
+// display face: the name reads in the PIT's type now, at the pit's size, and
+// the pit does not step up on desktop either, so neither does its name. It
+// was the component's last use of the 1024 gate.
 
 // THE BYLINE BAND — ONE ROW OF NANO PILLS (2026-09-21, user ask; the
 // template note has the words). The band was the author's identity block
@@ -5500,10 +5593,23 @@ export default defineComponent({
   gap: 5px;
   // `1px 7px` since 2026-09-22 PM (was 2px): the least air between the cap's
   // rule and the pills' rims that keeps them from touching — the same ask.
-  padding: 1px 7px;
+  // ⭐ SIDES = THE CARD'S GUTTER since 2026-09-23 PM (user ask: "make the
+  // label chips match the beginning and the end of the sides so they look
+  // aligned to the content container"): 7 → `--card-gutter` (4), the pit's
+  // own side margin, so the author pill's left rim and the rail's right end
+  // stand on the pit's two edges (measured 3px inside them on both sides at
+  // 7).
+  padding: 1px var(--card-gutter, 4px);
   flex: 0 0 auto;
   min-width: 0;
-  border-bottom: 1px solid var(--grey-5, #bdbdbd);
+  // ⭐ NO RULE UNDER THE BAND since 2026-09-23 PM (user ask: "remove the
+  // hairline between the label section and the content container"): the
+  // 1px `--grey-5` `border-bottom` that stood here (since 2026-08-10's
+  // "classic grey-6 hairline", grey-5 with the line walk) is gone. The seam
+  // is AIR now — the band's 1px pad + the pit's 3px top margin, a 4px lane
+  // that mirrors the pit's 4px bottom one to the foot's rule — and the
+  // section's cream plates against the pit's rim do the dividing. −1px of
+  // card chrome, carried by both `--media-max-h` constants.
   font-family: var(--font-display);
   letter-spacing: 0.02em;
 }
@@ -5898,13 +6004,18 @@ export default defineComponent({
   // ⭐ 221 since 2026-09-23 — THE CAP'S DENSITY PASS: the strip 26 → 22 (16px
   // controls, the fact cell's pads 2px), chrome MEASURED 95.11 → 91.11,
   // carried −4. The expanded twin above moved with it.
-  --media-max-h: max(120px, calc(min(var(--post-square-max, 100cqw), 60vh) - 221px));
+  // ⭐ 220 LATER THE SAME DAY — the byline's rule went (the label section
+  // meets the pit on air): chrome MEASURED 91.11 → 90.11, carried −1. The
+  // cap's second pass (18px pill in 1px pads) held the strip at 22.
+  --media-max-h: max(120px, calc(min(var(--post-square-max, 100cqw), 60vh) - 220px));
 
   flex: 1 1 auto;
   min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
-  font-size: 0.88em;
+  // 0.88 of the card — `--pit-scale` on `.post-square` since 2026-09-23 PM,
+  // which the cap's name pill reads to land on this same size.
+  font-size: calc(var(--pit-scale, 0.88) * 1em);
   color: var(--ink, #2C3D4E);
   word-break: break-word;
   line-height: 1.6;
@@ -5922,7 +6033,10 @@ export default defineComponent({
   // padding went to a sliver — this surface keeps deciding that a card's job
   // is to BOUND the content, not to stand back from it. ⚠ 6px of vertical
   // margin left the card, so the media budget's constant follows: 282 → 276.
-  margin: 3px 4px 4px;
+  // ⭐ The sides are the card's `--card-gutter` since 2026-09-23 PM — the
+  // byline's side padding reads the same dial, so the label chips and this
+  // box share two edge lines (user ask).
+  margin: 3px var(--card-gutter, 4px) 4px;
   // ── THE BLEED CONTRACT (2026-08-23, user ask: "remove the padding between
   // the mini node viewer's right border and the post card's content
   // container's right border, and also the left") ──────────────────────────

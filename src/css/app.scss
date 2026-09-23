@@ -44,7 +44,7 @@ html, body {
 body, body.body--dark {
   margin: 0;
   color: var(--ink);
-  font-family: 'Inter', 'Helvetica Neue', system-ui, sans-serif;
+  font-family: var(--font-body, 'Inter', 'Helvetica Neue', system-ui, sans-serif);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background:
