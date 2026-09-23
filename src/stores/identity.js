@@ -56,22 +56,34 @@ export const useIdentityStore = defineStore('identity', {
     // Every badge the orgs have given this root: one per membership that
     // carries a role title. `shown` rides along so the wardrobe renders in
     // one pass.
+    // ⭐ 2026-09-22 PM: EVERY seat is a badge now (a seat with no title still
+    // has a role — the glyph says which; `utils/roleBadges.js`), the row
+    // carries `role` / `is_admin` / the org's `entity_id` so the chip can
+    // draw the feed card's SEAT idiom (org face + role glyph), and an UNSET
+    // wardrobe wears everything (user ask: "display the username and the
+    // badges on the tiny square") — the eye toggles are opt-outs from a full
+    // set, not opt-ins to an empty one.
     badges (s) {
-      const shown = new Set(this.shownBadgeIds)
+      const ids = this.shownBadgeIds
+      const shown = ids ? new Set(ids) : null
       return s.organizations
-        .filter((o) => o.role_title)
         .map((o) => ({
           id: o.member_id,
-          title: o.role_title,
-          org: { id: o.id, name: o.name, logo: o.logo },
-          shown: shown.has(o.member_id)
+          title: o.role_title || null,
+          role_title: o.role_title || null, // the shape `utils/roleBadges.js` reads (glyph + tooltip)
+          role: o.role,
+          is_admin: !!o.is_admin,
+          org: { id: o.id, entity_id: o.entity_id, name: o.name, logo: o.logo },
+          shown: shown ? shown.has(o.member_id) : true
         }))
     },
 
+    // null = no preference saved for this root (everything is worn);
+    // an array = exactly those membership ids.
     shownBadgeIds (s) {
       const auth = useAuthStore()
       const ids = s.badgePrefs[auth.rootEntityId]
-      return Array.isArray(ids) ? ids : []
+      return Array.isArray(ids) ? ids : null
     },
 
     shownBadges () {
@@ -114,7 +126,10 @@ export const useIdentityStore = defineStore('identity', {
       const auth = useAuthStore()
       const root = auth.rootEntityId
       if (!root) return
-      const ids = new Set(this.badgePrefs[root] || [])
+      // An unset wardrobe means "all worn": the first toggle starts from the
+      // full set, so hiding one badge does not hide the rest.
+      const saved = this.badgePrefs[root]
+      const ids = new Set(Array.isArray(saved) ? saved : this.badges.map((b) => b.id))
       if (ids.has(memberId)) ids.delete(memberId)
       else ids.add(memberId)
       this.badgePrefs = { ...this.badgePrefs, [root]: [...ids] }

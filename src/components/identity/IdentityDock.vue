@@ -177,7 +177,9 @@
           <div v-for="b in identity.badges" :key="b.id" class="identity-dock__badge-row">
             <span class="identity-dock__badge" :class="{ 'is-shown': b.shown }">
               <OrgLogoChip :org="b.org" :size="12" :link="false" />
-              <span class="identity-dock__badge-title">{{ b.title }}</span>
+              <!-- An untitled seat still names its role (2026-09-22 PM: every
+                   seat is a badge now — the glyph on the chip says which). -->
+              <span class="identity-dock__badge-title">{{ b.title || (b.is_admin ? 'Admin' : 'Member') }}</span>
               <span class="identity-dock__badge-org">· {{ b.org.name }}</span>
             </span>
             <button
@@ -192,8 +194,8 @@
           </div>
 
           <div v-if="identity.badges.length" class="identity-dock__hint">
-            Shown badges ride your identity chip on the bar — proof of the
-            titles your organizations gave you.
+            Shown badges ride your identity chip on the bar (desktop) — the
+            seats your organizations gave you, worn unless you hide them.
           </div>
         </div>
       </div>

@@ -265,7 +265,7 @@ export default defineComponent({
   gap: 4px;
   font-size: 0.74em;
   color: var(--ink, #1f2a38);
-  .q-icon { color: #9b6cb0; }
+  .q-icon { color: var(--entity-accent, #546e7a); } // the person glyph in the entity family (2026-09-22 PM)
   .is-me { font-weight: 700; }
 }
 .contract-band__pill {

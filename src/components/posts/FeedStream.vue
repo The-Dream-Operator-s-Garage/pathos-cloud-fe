@@ -6708,6 +6708,11 @@ export default defineComponent({
   // interactive content cannot nest in an anchor) take the third cell.
   --author-h: calc(2 * var(--row-h) + var(--row-gap));
   --face-inset: 1px;
+  // ⭐ THE ENTITY FAMILY'S DIALS (2026-09-22 PM, blue-grey): the pill reads the
+  // chip's two names off the family's tokens — the name in the entity INK, the
+  // hover wash in the ACCENT — as the moment pill reads the moments kind's.
+  --kind-accent: var(--entity-accent, #546e7a);
+  --kind-ink: var(--entity-ink, #263238);
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
   grid-template-rows: calc(var(--row-h) - 1px) calc(var(--row-h) - 1px);
@@ -6725,7 +6730,7 @@ export default defineComponent({
     align-self: center;
     border-radius: calc(var(--chip-half-h) * var(--round) - 1px - var(--face-inset));
   }
-  &:hover .post-square__identity-name { color: var(--cyan-14, #00b8d4); }
+  &:hover .post-square__identity-name { color: var(--entity-accent, #546e7a); } // the family's accent (2026-09-22 PM; was cyan-14)
 }
 
 // THE DOOR ROW — the face and the name, still the entity door it has been
@@ -6789,7 +6794,7 @@ export default defineComponent({
   overflow: hidden;
   transition: border-color 0.12s, background 0.12s;
   &:hover { background: var(--grey-1, #fafafa); }
-  &.is-active { border-color: var(--cyan-9, #00838f); }
+  &.is-active { border-color: var(--entity-accent, #546e7a); }
 }
 .post-square__seat-face {
   display: inline-flex;
@@ -6819,11 +6824,11 @@ export default defineComponent({
   border: 0;
   border-radius: 3px;
   background: transparent;
-  color: var(--cyan-9, #00838f);
+  color: var(--entity-accent, #546e7a);
   cursor: pointer;
   line-height: 1;
   transition: background 0.12s, color 0.12s;
-  &:hover { background: rgba(var(--ink-rgb), 0.08); color: var(--cyan-10, #006064); }
+  &:hover { background: rgba(var(--ink-rgb), 0.08); color: var(--entity-ink, #263238); }
 }
 
 // The org badge belongs to the identity beside it, not to the band — pulled

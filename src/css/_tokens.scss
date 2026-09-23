@@ -411,6 +411,14 @@ $cyan-11: #84ffff;
 // hard-coded value ──
 $cyan-9:  #00838f;
 $cyan-14: #00b8d4;
+// ⭐ BLUE-GREY (2026-09-22 PM, user ask: "re-coloring them all on blue-grey
+// quasar tones" — every author/entity surface): Quasar `blue-grey-7`
+// (Material 600) is the family's ACCENT — glyphs, rims, the active seat —
+// and `blue-grey-10` (Material 900) its INK. Hand-minted like every family
+// here (the sheet never imports Quasar's palette). Their consumers are the
+// two entity dials below, and `utils/kinds.js` mirrors the hexes.
+$blue-grey-7:  #546e7a;
+$blue-grey-10: #263238;
 
 // (THE POST WINDOW'S FOUR — `$cyan-3/-1/-6/-10` — stood here 2026-09-05 →
 // 2026-09-07 while the post window wore cyan; the window went INDIGO on
@@ -983,8 +991,21 @@ $warning:   #F2C037;
   // above. (`--cyan-3`, `--deep-purple-3` and `--deep-orange-3` retired with
   // their windows.)
   // (`--deep-purple-10` — the LABELS button's word, Material 900 — stood here 2026-09-05 → 07; the word is `--red-10` now, declared in the labels map above.)
-  --cyan-9: #{$cyan-9};        // (⚠ the second role ended 2026-09-07 — the post window went indigo; this is the byline's tone again and nothing else.) ⚠ SECOND ROLE since 2026-09-05 (user ask: the post window goes "cyan instead of grey-blue"): ⭐ THE POST MAKER WINDOW'S CONTRAST, via `--maker-contrast` — its inner borders, titles, the draft tabs' lit lip, the ref browser's pressed pill, both post plates' rims, `--q-primary`. ONE LEVEL, TWO SURFACES, and the SAME argument picked it twice: 800 is the deepest cyan that still reads as cyan rather than as a blackish teal, which is what the card wanted for a name and what the window wants for a line. It replaces `--blue-grey-6` at 4.10:1 against that tone's 3.88:1 on the same coat — a hue move, not a weight move. ⚠ If either surface moves this level, check the other. Quasar cyan-9 (Material 800) — THE POST CARD BYLINE'S AUTHOR NAME at rest (2026-08-09, user ask), replacing the hard-coded `#4f3e98` purple that had lettered it since the identity block was condensed. The name is the band's most authoritative text and the band is now the card's one coloured voice: everything around it is `--grey-*` neutral, so the hue IS the emphasis. This level and not -10: at 800 the name still reads as CYAN (~4.3:1 on the veiled cream coat, bold at 0.72em), where 900 goes blackish-teal and states depth instead of colour — and not -8, which is a step short of carrying small text on a pale card. Its hover partner is `--cyan-14`, the accent ramp's darkest step; see that note for why the pair is a lift rather than a swap ⭐ THIRD ROLE 2026-09-21: EVERY ENTITY CHIP'S GLYPH — `kinds.js` mirrors this hex (`entities.color`; user ask: "change entities to cyan instead of purple, just like on the posts" — the posts' byline is where an entity was already cyan).
-  --cyan-14: #{$cyan-14};      // Quasar cyan-14 (accent A700) — THE POST CARD BYLINE'S HOVER INK (2026-08-09, user ask): the author's NAME **and** their @handle both take it under the pointer, so the whole identity link lights as ONE object rather than the name alone (which is what the old `#00829c` / 70%-alpha pair did — two inks for one target). A700 is the only accent in the family that can carry text on a pale card at all, and it is still a BRIGHT mark rather than a legible one: ~2.15:1 measured on the card's veiled coat, which is a deliberate hover register — the pointer is already on the words, so the state change is the message and the resting `--cyan-9` is what the name is READ in. ⚠ If this ever has to letter something at rest, it is the wrong end of the ramp; take `--cyan-9` or deeper
+  // ⚠ `--cyan-9` and `--cyan-14` RETIRED 2026-09-22 PM under the no-consumer
+  // rule: the byline's author name (rest + hover), the feed card's active
+  // seat rim and its badge glyphs — the last three consumers — read the
+  // entity family's two dials below, and that family is blue-grey now. The
+  // `$cyan-9` / `$cyan-14` locals stay minted (the pair's note above), unworn.
+  // ⭐ THE ENTITY FAMILY'S TWO DIALS (2026-09-22 PM) — the ACCENT (glyphs,
+  // rims, the active seat) and the INK (words) every author/entity surface
+  // reads: the feed card's identity pill (its `--kind-*` dials), seats and
+  // badges, the footer identity chip's name and seats, EntityMini/EntityCard's
+  // person/org/bot glyphs, the entity window's door and links. `utils/kinds.js`
+  // `entities` MIRRORS these two hexes (a JS file cannot read a custom
+  // property) — move all four together. ⭐ BLUE-GREY since 2026-09-22 PM
+  // (born cyan-9 / cyan-10 that evening, for one commit).
+  --entity-accent: #{$blue-grey-7};
+  --entity-ink: #{$blue-grey-10};
   --cyan-11: #{$cyan-11};      // (It held the post window's GLOW for one ask on 2026-09-05; the set walked to the -3s the same day — see `--cyan-3`.) Quasar cyan-11 (accent A100) — the WARM END of the RGB HAIRLINE's gradient filling (2026-08-07, user ask, `layout/RgbHairline.vue`), running to `--indigo-11` down a 3px band held between two `--grey-6` rules. The third A100 taken into service (with `--teal-11` and `--indigo-11`): a mark made of two hues is built from accents at ONE index, so it reads as a ramp turning colour rather than as a bright tone fading into a dull one. (It was "the only level of the cyan family" when written; `--cyan-9`/`--cyan-10` arrived 2026-08-09 for the post card byline.) (It HELD the side-chrome frieze weave's cold CENTRE for part of 2026-08-17's sitting, lost the role to `--teal-11` in that sitting's hue walk, and the weave itself went sober grey on 2026-08-21 — the trio rule in `_components.scss` is flat greys now)
 
   // (THE POST WINDOW'S CYAN MAP — `--cyan-1/-6/-10/-9-rgb` — stood here
@@ -2314,6 +2335,12 @@ $warning:   #F2C037;
   // ⚠ Keep the two dials EQUAL unless an ask separates them again — the
   // mirror is the point, and the two strips (stack left, pins right) seat
   // against them.
+  // ⭐ 2026-09-22 PM (user ask: "on desktop version only, display the
+  // username and the badges on the tiny square at the left end of the nav
+  // footer bar"): 42px is the SUB-1024px number now; at 1024px and up the
+  // media override at the END OF THIS FILE widens the dial to 140px — the
+  // face, the name and the worn seats (IdentityChip's column). The two
+  // dials are SEPARATED on desktop by that ask; they stay equal below it.
   --nav-id-w: 42px;
   // ⭐ THE DASHBOARD BLOCK'S width (2026-09-02, user ask: "remove the
   // draggable properties from the dashboard button … make the button occupy
@@ -2343,4 +2370,18 @@ $warning:   #F2C037;
   // so it reads as a rounded vertical key rather than a square.
   --side-item-h: 36px;
   --side-item-gap: 4px;
+}
+
+// ⭐ THE IDENTITY SECTION'S DESKTOP WIDTH (2026-09-22 PM, user ask: "on
+// desktop version only, display the username and the badges on the tiny
+// square at the left end of the nav footer bar") — `--nav-id-w` widens at
+// the bar's own 1024px gate (NavigationBar's labels open on the same line)
+// so IdentityChip can stand the name over the worn seats beside the face:
+// 5 pad + 24 face + 4 gap + ~103 for the column (three 26px seats and
+// their gaps, or a 14-character name) + 4 pad. Every consumer of the dial
+// (.nav-left, the chip, the stack strip's `left` and its 48vw cap) follows.
+// On `:root`, because that is where the dial lives — a component-level
+// override would not reach the strip.
+@media (min-width: 1024px) {
+  :root { --nav-id-w: 140px; }
 }

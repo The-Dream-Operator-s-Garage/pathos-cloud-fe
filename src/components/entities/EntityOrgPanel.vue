@@ -182,7 +182,7 @@ export default defineComponent({
 .org-panel__door {
   display: inline-flex;
   color: var(--panel-ink-2);
-  &:hover { color: #3f51b5; }
+  &:hover { color: var(--entity-accent, #546e7a); } // the entity family (2026-09-22 PM; was indigo-6)
 }
 .org-panel__scroll {
   flex: 1 1 auto;
@@ -235,7 +235,7 @@ export default defineComponent({
   min-width: 0;
   font-size: 0.8em;
   .q-icon { color: var(--panel-ink-2); }
-  &:hover { border-color: rgba(63, 81, 181, 0.45); background: #f9fafd; }
+  &:hover { border-color: rgba(84, 110, 122, 0.45); background: #f9fafd; }
 }
 .org-sub-row__name { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
 .org-sub-row__count { font-size: 0.86em; color: var(--panel-ink-2); white-space: nowrap; }

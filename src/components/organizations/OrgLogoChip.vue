@@ -123,5 +123,5 @@ export default defineComponent({
   max-width: 20ch;
 }
 
-.org-logo-chip--labeled:hover .org-logo-chip__name { color: #00829c; }
+.org-logo-chip--labeled:hover .org-logo-chip__name { color: var(--entity-accent, #546e7a); } // the entity family (2026-09-22 PM; was the old teal)
 </style>

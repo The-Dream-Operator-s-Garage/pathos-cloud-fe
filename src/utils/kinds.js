@@ -59,12 +59,17 @@
 // pioneer's ink is the carved gold's own (`.pioneer-gold`'s text). Read by
 // MicroChip / InfoChip through the inline `--kind-ink` custom property.
 export const KINDS = {
-  // cyan-9 = the post card byline's author name (`.post-square__author`,
-  // `--cyan-9` since 2026-08-09). An entity is cyan wherever it is named.
-  // (Was indigo-6 here 09-06 → 09-21, #9b6cb0 purple on the chips.)
-  // ink cyan-10.
-  files: { kind: 'entity', icon: 'person', color: '#00838f', ink: '#006064', route: (id) => `/entities/${id}` },
-  entities: { kind: 'entity', icon: 'person', color: '#00838f', ink: '#006064', route: (id) => `/entities/${id}` },
+  // ⭐ BLUE-GREY since 2026-09-22 PM (user ask: "map out all author/entity
+  // components everywhere and help me re-coloring them all on blue-grey
+  // quasar tones") — blue-grey-7 (Material 600) the accent, blue-grey-10
+  // (Material 900) the ink: `--entity-accent` / `--entity-ink` in
+  // _tokens.scss, which every hand-styled entity surface reads; THESE TWO
+  // HEXES MIRROR THEM (move all four together). An entity is slate wherever
+  // it is named. (Cyan-9 / cyan-10 from 09-21 to this pass — the byline's
+  // tone; indigo-6 09-06 → 09-21; #9b6cb0 purple on the chips before that.)
+  // ⚠ Blue-grey was the PATHS' family until this pass — they moved to blue.
+  files: { kind: 'entity', icon: 'person', color: '#546e7a', ink: '#263238', route: (id) => `/entities/${id}` },
+  entities: { kind: 'entity', icon: 'person', color: '#546e7a', ink: '#263238', route: (id) => `/entities/${id}` },
   // teal-7 = `--uploader-contrast`, the UPLOADS button's rim. The uploader
   // is the window that mints nodes, so a node chip and that button are one
   // tone. (Was lime-10 here — the uploader's 09-05 lime, before its 09-07
@@ -80,9 +85,14 @@ export const KINDS = {
   // post-as-document drawing the chips wore since July. Every chip reads it
   // here, so the card's cap and its foot pill are one drawing.
   posts: { kind: 'post', icon: 'sym_o_post', color: '#3f51b5', ink: '#1a237e', route: (id) => `/posts/${id}` },
-  // blue-grey-7 (Material 700) — a path is a ROUTE, drawn in slate. Teal-8
-  // stood here until the nodes took teal; two teals a step apart read as one.
-  paths: { kind: 'path', icon: 'route', color: '#455a64', ink: '#263238', route: (id) => `/paths/${id}` },
+  // ⭐ BLUE since 2026-09-22 PM — blue-9 (Material 800) / blue-10 (900): the
+  // entities took blue-grey that evening, and one family cannot carry two
+  // kinds in every `--kind-accent` consumer (chips, strips, the ref
+  // browser). Not cyan: cyan-9 beside the nodes' teal-7 is the "two teals a
+  // step apart read as one" this row already refused once. A path is a
+  // ROUTE, drawn in the map's blue. (Blue-grey-7 #455a64 / blue-grey-10
+  // 09-21 → this pass; teal-8 before the nodes took teal.)
+  paths: { kind: 'path', icon: 'route', color: '#1565c0', ink: '#0d47a1', route: (id) => `/paths/${id}` },
   // red-7 = `--labels-contrast`, the LABELS button's rim (the label maker
   // went red on 09-07; the chips stayed violet-in-this-file / teal-on-the-
   // chip for two weeks — this closes that gap).

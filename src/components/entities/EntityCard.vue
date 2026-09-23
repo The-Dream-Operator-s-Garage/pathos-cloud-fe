@@ -423,15 +423,15 @@ export default defineComponent({
   color: var(--ink);
   flex-shrink: 0;
   align-self: center;
-  &.entity-tint  { color: #9b6cb0; }
+  &.entity-tint  { color: var(--entity-accent, #546e7a); } // ⭐ 2026-09-22 PM: the entity family, blue-grey (was the old purple)
   &.pioneer-tint { color: #c79a00; }
-  &.org-tint     { color: #3f51b5; }
-  &.bot-tint     { color: #00838f; }
+  &.org-tint     { color: var(--entity-accent, #546e7a); } // an org IS an entity here (was indigo-6)
+  &.bot-tint     { color: var(--entity-accent, #546e7a); } // (was cyan-9)
   &.ego-tint     { color: #7b4f9d; }
 }
 .meta-icon.pioneer-tint { color: #c79a00; }
-.meta-icon.org-tint     { color: #3f51b5; }
-.meta-icon.bot-tint     { color: #00838f; }
+.meta-icon.org-tint     { color: var(--entity-accent, #546e7a); }
+.meta-icon.bot-tint     { color: var(--entity-accent, #546e7a); }
 .meta-icon.ego-tint     { color: #7b4f9d; }
 
 // Chip-shaped wrappers so the global .pioneer-gold surface reads as a badge.
@@ -530,9 +530,10 @@ export default defineComponent({
   margin-left: 8px;
   padding: 0 7px;
   border-radius: 4px;
-  border: 1px solid rgba(0, 131, 143, 0.35);
-  background: rgba(0, 131, 143, 0.08);
-  color: #00838f;
+  // ⭐ 2026-09-22 PM: the entity family's blue-grey (84,110,122 = #546e7a) — was cyan-9.
+  border: 1px solid rgba(84, 110, 122, 0.35);
+  background: rgba(84, 110, 122, 0.08);
+  color: var(--entity-accent, #546e7a);
   font-size: 0.86em;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -626,14 +627,14 @@ export default defineComponent({
   gap: 8px;
   margin: 0 0 12px;
   padding: 7px 10px;
-  border: 1px dashed rgba(0, 131, 143, 0.4);
+  border: 1px dashed rgba(84, 110, 122, 0.4);
   border-radius: 8px;
-  background: rgba(0, 131, 143, 0.05);
+  background: rgba(84, 110, 122, 0.05);
   font-size: 0.8em;
   color: rgba(var(--ink-rgb), 0.7);
   line-height: 1.4;
 }
-.entity-nature__icon { color: #00838f; flex: 0 0 auto; margin-top: 1px; }
+.entity-nature__icon { color: var(--entity-accent, #546e7a); flex: 0 0 auto; margin-top: 1px; }
 
 .entity-facts { margin-bottom: 14px; }
 
@@ -656,7 +657,7 @@ export default defineComponent({
 }
 
 .entity-card__link {
-  color: #3f51b5;
+  color: var(--entity-accent, #546e7a); // the entity family (2026-09-22 PM; was indigo-6)
   text-decoration: none;
   display: inline-flex;
   align-items: center;
@@ -693,14 +694,14 @@ export default defineComponent({
   gap: 8px;
   margin: 0 0 14px;
   padding: 7px 10px;
-  border: 1px solid rgba(63, 81, 181, 0.35);
+  border: 1px solid rgba(84, 110, 122, 0.35);
   border-radius: 8px;
-  background: rgba(63, 81, 181, 0.06);
-  color: #3f51b5;
+  background: rgba(84, 110, 122, 0.06);
+  color: var(--entity-accent, #546e7a);
   font-size: 0.82em;
   text-decoration: none;
   span { flex: 1 1 auto; }
-  &:hover { background: rgba(63, 81, 181, 0.12); }
+  &:hover { background: rgba(84, 110, 122, 0.12); }
 }
 
 .no-profile-note {

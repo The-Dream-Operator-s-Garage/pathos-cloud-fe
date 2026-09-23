@@ -101,7 +101,7 @@ export default defineComponent({
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--ink-mute, #8995a8);
-  .q-icon { color: #0b7a8a; }
+  .q-icon { color: var(--entity-accent, #546e7a); } // the entity family (2026-09-22 PM; was the hand-mixed org teal)
 }
 .entity-orgs__count {
   font-size: 0.9em;
@@ -125,13 +125,13 @@ export default defineComponent({
   border: 1px solid rgba(var(--ink-rgb), 0.1);
   border-radius: 8px;
 }
-.entity-orgs__org { display: flex; align-items: center; gap: 7px; .q-icon { color: #0b7a8a; } }
+.entity-orgs__org { display: flex; align-items: center; gap: 7px; .q-icon { color: var(--entity-accent, #546e7a); } }
 .entity-orgs__name {
   font-weight: 700;
   font-size: 0.88em;
   color: var(--ink, #1f2a38);
   text-decoration: none;
-  &:hover { color: #0b7a8a; }
+  &:hover { color: var(--entity-accent, #546e7a); }
 }
 .entity-orgs__admin {
   font-size: 0.6em;
@@ -140,8 +140,8 @@ export default defineComponent({
   letter-spacing: 0.06em;
   padding: 1px 6px;
   border-radius: 7px;
-  border: 1px solid rgba(#9b6cb0, 0.5);
-  color: #9b6cb0;
+  border: 1px solid rgba(84, 110, 122, 0.5); // the role badge in the entity family (2026-09-22 PM; the mask below keeps its purple)
+  color: var(--entity-accent, #546e7a);
 }
 .entity-orgs__meta { font-size: 0.72em; color: var(--ink-mute, #8995a8); }
 .entity-orgs__title { font-style: italic; color: var(--coral-deep, #b25e49); }

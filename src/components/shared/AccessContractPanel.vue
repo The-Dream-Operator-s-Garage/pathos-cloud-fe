@@ -139,7 +139,7 @@ export default defineComponent({
   align-items: center;
   gap: 6px;
   font-size: 0.74em;
-  .q-icon { color: #9b6cb0; }
+  .q-icon { color: var(--entity-accent, #546e7a); } // the person glyph in the entity family (2026-09-22 PM)
 }
 .access-contract__who { font-weight: 700; }
 .access-contract__when {

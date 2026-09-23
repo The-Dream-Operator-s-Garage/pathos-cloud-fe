@@ -347,7 +347,7 @@ export default defineComponent({
   color: #5b6c82;
   cursor: pointer;
 
-  &:hover:not(:disabled) { border-color: rgba(0, 130, 156, 0.5); color: #00829c; }
+  &:hover:not(:disabled) { border-color: rgba(84, 110, 122, 0.5); color: var(--entity-accent, #546e7a); } // the entity family (2026-09-22 PM; was the old teal)
   &:disabled { opacity: 0.5; }
 }
 
@@ -362,7 +362,7 @@ export default defineComponent({
   text-decoration: none;
   min-width: 0;
 
-  &:hover { border-color: rgba(0, 130, 156, 0.45); background: #f9fbfd; }
+  &:hover { border-color: rgba(84, 110, 122, 0.45); background: #f9fbfd; }
 }
 
 .inst-row__icon { color: var(--skeleton-accent, #6d4c41); flex-shrink: 0; }
@@ -381,7 +381,7 @@ export default defineComponent({
   color: #8995a8;
   white-space: nowrap;
 
-  a { color: #00829c; text-decoration: none; &:hover { text-decoration: underline; } }
+  a { color: var(--entity-accent, #546e7a); text-decoration: none; &:hover { text-decoration: underline; } }
 }
 
 .inst-row__time {
@@ -459,7 +459,7 @@ export default defineComponent({
   background: #f4f7fb;
   text-decoration: none;
 
-  &:hover { border-color: rgba(0, 130, 156, 0.55); }
+  &:hover { border-color: rgba(84, 110, 122, 0.55); }
 
   img {
     width: 100%;

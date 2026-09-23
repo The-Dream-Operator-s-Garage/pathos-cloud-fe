@@ -61,7 +61,7 @@ import { defineComponent, ref, onMounted } from 'vue'
 import { authService } from 'src/services/auth.service'
 
 const ICON = { USER: 'person', ORGANIZATION: 'reduce_capacity', ALTER_EGO: 'theater_comedy', ORG_ALTER_EGO: 'theater_comedy', BOT: 'smart_toy' }
-const COLOR = { USER: 'primary', ORGANIZATION: 'teal', ALTER_EGO: 'purple', ORG_ALTER_EGO: 'teal', BOT: 'grey' }
+const COLOR = { USER: 'blue-grey', ORGANIZATION: 'teal', ALTER_EGO: 'purple', ORG_ALTER_EGO: 'teal', BOT: 'grey' } // USER = the entity family (2026-09-22 PM)
 
 export default defineComponent({
   name: 'AuthorPicker',

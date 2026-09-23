@@ -70,7 +70,7 @@ export default defineComponent({
   transition: background 0.12s;
 
   &:hover { background: rgba(var(--ink-rgb), 0.05); }
-  &.is-me { background: rgba(#00829c, 0.06); }
+  &.is-me { background: rgba(84, 110, 122, 0.06); } // the entity family (2026-09-22 PM)
   &.is-acting { background: rgba(#9b6cb0, 0.09); }
 }
 
@@ -79,7 +79,7 @@ export default defineComponent({
   font-weight: 700;
   color: var(--ink, #1f2a38);
   text-decoration: none;
-  &:hover { color: #00829c; }
+  &:hover { color: var(--entity-accent, #546e7a); }
 }
 .org-node__title {
   font-size: 0.82em;

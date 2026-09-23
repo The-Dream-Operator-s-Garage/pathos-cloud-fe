@@ -88,7 +88,7 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-.entity-mini__icon { color: #9b6cb0; vertical-align: middle; }
+.entity-mini__icon { color: var(--entity-accent, #546e7a); vertical-align: middle; } // the entity family (2026-09-22 PM; #9b6cb0 was the pre-09-21 purple)
 
 // Chip-shaped wrapper so the global .pioneer-gold surface reads as a badge
 // inside the panel title.

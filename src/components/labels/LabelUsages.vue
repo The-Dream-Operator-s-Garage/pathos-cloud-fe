@@ -32,7 +32,7 @@
     <div v-else class="label-usages__scroll">
       <section v-if="usages.entities.length" class="label-usages__group">
         <div class="label-usages__group-head">
-          <q-icon name="person" size="12px" style="color:#9b6cb0;" />
+          <q-icon name="person" size="12px" style="color:var(--entity-accent, #546e7a);" />
           entities <span class="label-usages__total">{{ totals.entities }}</span>
         </div>
         <EntityMini v-for="e in usages.entities" :key="'e' + e.id" :entity="e" class="q-mb-sm" />

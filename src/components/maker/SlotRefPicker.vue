@@ -71,7 +71,7 @@ import { kindFor } from 'src/utils/kinds'
 // Every referenceable pathchain kind (mirrors the API's VALID_SLOT_KINDS —
 // secrets stay out: their hash is the invite credential).
 const KIND_TABS = [
-  { key: 'entities', label: 'People', icon: 'person', color: '#9b6cb0' },
+  { key: 'entities', label: 'People', icon: 'person', color: '#546e7a' }, // = kinds.js entities.color (2026-09-22 PM; the purple was a shadow palette)
   { key: 'posts', label: 'Posts', icon: 'article', color: '#6c4d72' },
   { key: 'nodes', label: 'Nodes', icon: 'adjust', color: '#2C3D4E' },
   { key: 'labels', label: 'Labels', icon: 'label_important', color: '#00829c' },
