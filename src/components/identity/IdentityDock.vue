@@ -365,14 +365,31 @@ export default defineComponent({
 // The header row on the shared coat, ruled and inked in the family's dials —
 // `--dock-rule` under it, `--dock-ink` on the glyph and title, `--dock-ink-mute`
 // on the meta. The same three the board's head wears at the bar's other end.
+// ⭐ THE DARK CAP (2026-09-22 PM4c, user ask: "use like the darkest tones on
+// the frieze bar below the header and also paint the header!"): the head is
+// the entity family's blue-grey-9 (`--identity-head`), its glyph and title
+// the family's ice (-1), the meta -3, and the rule under it is the FRIEZE's
+// base (-10) so the two read as one dark band. The board's three head dials
+// (`--dock-rule` / `--dock-ink` / `--dock-ink-mute`) still dress the BODY —
+// the wells' rules and the section titles — this is the cap alone.
 .identity-dock .dock-bar {
-  background: var(--plaque-coat);
-  border-bottom: 1px solid var(--dock-rule);
+  background: var(--identity-head, #37474f);
+  border-bottom: 1px solid var(--identity-frieze, #263238);
 }
 
 .identity-dock .dock-bar__icon,
-.identity-dock .dock-bar__title { color: var(--dock-ink); }
-.identity-dock .dock-bar__meta { color: var(--dock-ink-mute); text-transform: none; }
+.identity-dock .dock-bar__title { color: var(--identity-head-ink, #eceff1); }
+.identity-dock .dock-bar__meta { color: var(--identity-head-mute, #b0bec5); text-transform: none; }
+
+// The slim frieze under the head, on the family's FLOOR (-10) with its wave
+// carved in -8 — the "darkest tones" of the ask. `.flyout-window__frieze`
+// gives it the flyout family's grey-9 base; these two dials override it
+// here only (the slim variant draws wave TWO alone; one is set for parity).
+.identity-dock .flyout-window__frieze {
+  --frieze-bar-base: var(--identity-frieze, #263238);
+  --frieze-bar-wave-one: var(--identity-frieze-wave, #455a64);
+  --frieze-bar-wave-two: var(--identity-frieze-wave, #455a64);
+}
 
 .identity-dock__body {
   flex: 1 1 auto;
