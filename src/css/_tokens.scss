@@ -1282,6 +1282,11 @@ $warning:   #F2C037;
   // the coat is the BASE LAYER of a visibly grey stripe now — the drawer's
   // two-wave interleave in `--grey-5` + `--grey-6`, framed by two 1px
   // grey-4 rules, under the buttons.
+  // ⚠ BOTH NAV-BAND ROLES ARE OVER: the trail's plate went flat `--grey-8`
+  // on 2026-09-10 and the trail band itself was DELETED on 2026-09-23 (user
+  // ask) — the rows it covered are painted by `.nav-bar`'s own
+  // `background: var(--plaque-coat)` now, which is the one wearer this
+  // paragraph started from.
   --plaque-coat:
     linear-gradient(rgba(238, 238, 238, 0.3), rgba(238, 238, 238, 0.3)),
     var(--light-cream);
@@ -1964,6 +1969,13 @@ $warning:   #F2C037;
   // ⚠ THE MASK FIT MUST FOLLOW THIS NUMBER or the motif stops filling the
   // band: `--trail-mask-h` on `.nav-frieze` is sized so the mask's ELEVEN
   // INKED ROWS (of thirteen) come to the band's height — `13 × band / 11`.
+  // ⭐⭐ 2026-09-23 — THE BAND IS DELETED (user ask: "remove the frieze bar
+  // from the footer navigation and paint the space where the frieze bar was
+  // with the same creamy color on the rest of the bar"), so this number has
+  // ONE consumer left: the nav chips' height, through `--nav-chip-h` below.
+  // The mask-fit coupling above died with `.nav-frieze`; the ODD-parity rule
+  // did not — the chips centre by flex in the bar's odd 31px row, and only an
+  // odd chip lands there on whole pixels (3px of cream above and below at 25).
   --nav-trail-h: 25px;
 
   // ⭐ THE CHIP HEIGHT — the trail's height less 2px, which was the band's
@@ -2350,6 +2362,20 @@ $warning:   #F2C037;
   // the tiles round all four corners — same radius, different corners.
   --strip-lane-radius: 7px;
   --pins-strip-w: 90px;
+  // ⭐ THE PHONE'S STRIP WIDTH (2026-09-23, user ask: on mobile the pin
+  // section should "match the style of the pin Bubble on desktop mode and show
+  // only the last pinned item inside a Bubble", and the stack section come
+  // back "with a single item"). ONE bubble per strip on a phone:
+  //   1px vertical + 15px head glyph (its bare icon — the desktop's 20px box
+  //   less its air) + the lane (1px rim + 1px pad + the 20px `--strip-tile-w`
+  //   tile + 1px pad + 1px rim = 24) + 1px vertical = 41px.
+  // NOT a free pick: 41 is the retired fallback TACK slot's footprint
+  // (`--dock-rail-w − 1px`), so the pins strip lands on exactly the pixels
+  // the tack stood on and the centred creation row keeps its 375px
+  // arithmetic (NavigationBar's ≤600px block). Read by PinsDrawer (through
+  // `--pins-strip-w`, re-pointed at this in the phone block at the end of
+  // this file), StackPanel's phone rules and NavigationBar's grid reserves.
+  --strip-phone-w: 41px;
 
   // The parked rail's THIN dimension — the pins widget's icon-column WIDTH
   // at the right edge. It WAS also the stack widget's left offset and the
@@ -2441,4 +2467,12 @@ $warning:   #F2C037;
 // override would not reach the strip.
 @media (min-width: 1024px) {
   :root { --nav-id-w: 140px; }
+}
+
+// The pins strip parks to ONE bubble on a phone (2026-09-23) — see
+// `--strip-phone-w`. Re-pointing the dial (rather than overriding the strip's
+// `width` in PinsDrawer) keeps "the parked pins strip's width" one name at
+// every size.
+@media (max-width: 600px) {
+  :root { --pins-strip-w: var(--strip-phone-w); }
 }

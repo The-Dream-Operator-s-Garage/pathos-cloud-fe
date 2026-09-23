@@ -513,7 +513,8 @@ export default defineComponent({
   // band's pre-recolor dress earlier in the day and preserved it, so the
   // swap is a RESTORATION here — grey-8 plate, teal-11 flat, the cyan→indigo
   // ramp — while the recolor's quiet grey-6-on-coat moved downstairs to
-  // `.nav-frieze`. What did NOT come back: the two 1px rules (deleted by the
+  // `.nav-frieze` (deleted outright 2026-09-23 — user ask — so this rail's band
+  // is the window's ONLY horizontal frieze now). What did NOT come back: the two 1px rules (deleted by the
   // recolor's follow-up ask and absent on the footer too, so the swap has no
   // frame to carry) — the plate is a bare dark stripe on the cream rail now,
   // exactly the presentation the trail had. Geometry untouched: band 13px,

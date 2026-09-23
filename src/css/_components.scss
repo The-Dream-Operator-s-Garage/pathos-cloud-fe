@@ -116,6 +116,14 @@
 // 1:1" is void where a chip meets the TRAIL; it still describes the vertical
 // seams against the bar's own cream at the cluster's ends, which is what the
 // grey-5 side rims below are for.
+// ⚠⚠ AND SINCE 2026-09-23 THERE IS NO BAND (user ask: "remove the frieze bar
+// from the footer navigation and paint the space … with the same creamy
+// color"). Face meets face at 1:1 on EVERY edge now — the chip's cream on the
+// bar's cream — so what states a chip is its side rims (the glass sheet on the
+// four creation chips), its glyph and word inks and its hover, not a plate.
+// The horizontal rims stay off as the user's own 2026-08-23 cream-bar ask had
+// them ("remove their top and bottom borders so they blend smoothly with the
+// bar") — which is exactly the arrangement this deletion returns the bar to.
 //
 // HOVER steps COOL, not deeper into a hue: `--grey-3` is the veil's own tone,
 // ten levels under the composited face, so the chip reads as the same material
@@ -301,6 +309,8 @@
   // seam itself goes. THE BAND'S RULE IS EACH CHIP'S TOP AND BOTTOM EDGE
   // NOW — the chip's face runs straight up to it — and the chips draw only
   // the verticals that separate them from each other.
+  // (⚠ 2026-09-23: the band itself is DELETED — see the ⚠⚠ note at the top
+  // of this rule's header; the argument below is its 09-10 → 09-22 record.)
   // ⭐⭐ THE RULES ARE GONE SINCE 2026-09-10 (the trail took the header
   // band's dress; `.nav-frieze` in NavigationBar) AND THESE STAY OFF FOR THE
   // INVERTED REASON: the chip's `--plaque-flat` face against the band's flat
@@ -1734,7 +1744,8 @@
 // 375px. One breakpoint, kept in sync with MOBILE_MQ in stores/windows.js
 // (which zeroes the rail reserves the same moment these rules fire).
 // The fixed-position dock system goes ONE SURFACE AT A TIME:
-//   · the stack/pins side widgets hide (their column reserve drops to 0);
+//   · the stack/pins side widgets hid (their column reserve dropped to 0) —
+//     until 2026-09-23, when both came back as one-bubble strips (below);
 //   · every bottom dock — the five now share `.dock-window--creation`, chat
 //     included — takes the full width between the screen edges instead of the
 //     right half, keeping a narrow gap on the top and both sides;
@@ -1742,13 +1753,16 @@
 //     the left edge, dots grown 13px → 17px.
 // ═══════════════════════════════════════════════════════════════════
 @media (max-width: 600px) {
-  // The two footer strips (the stack at the trail's left run since
-  // 2026-08-30, the pins at its right run since 2026-09-02): hover-driven
-  // permanent fixtures — both presentations meaningless on a 375px touch
-  // screen. NavigationBar drops `.nav-right`'s `--stack-w` reserve here
-  // for the same reason, and its fallback tack renders in the bar.
-  .stack-window,
-  .pins-window { display: none; }
+  // ⭐ THE TWO FOOTER STRIPS ARE BACK ON A PHONE (2026-09-23, user ask). They
+  // hid here from 2026-07-31 to 09-22 ("hover-driven permanent fixtures —
+  // both presentations meaningless on a 375px touch screen") and the bar
+  // carried a fallback pin TACK instead. Each now parks to ONE bubble at
+  // `--strip-phone-w` — the pins strip its newest pin, the stack its current
+  // stop — with hover gated off (a tap fires `mouseenter`, which would expand
+  // the panel under a navigation) and the head glyph's TAP extending the
+  // section upward. Their phone rules live in PinsDrawer's and StackPanel's
+  // own ≤600px blocks; NavigationBar reserves both seats in its phone grid
+  // and stops rendering the tack there.
 
   // Creation docks — CHAT INCLUDED since 2026-08-03 (it carries
   // `.dock-window--creation` now, so these five docks are one footprint on

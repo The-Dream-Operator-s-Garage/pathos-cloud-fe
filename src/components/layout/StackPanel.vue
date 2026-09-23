@@ -25,8 +25,8 @@
        · parked (win.minimized) = a row of UP TO THREE GLYPH TILES (2026-09-02;
          a dense shrink-fit chip row before — and a lettered title rode
          each tile for ONE deploy that day, until "the text overlaps … just display the icon") ON THE
-         BAR'S OWN ROW — the strip stands OUTSIDE `.nav-frieze` since
-         2026-09-05 (`--nav-bar-h - 1px` at `bottom: 0`; it was the band's
+         BAR'S OWN ROW — the strip stood OUTSIDE `.nav-frieze` from
+         2026-09-05 until the band was deleted 2026-09-23 (`--nav-bar-h - 1px` at `bottom: 0`; it was the band's
          interior, `--nav-chip-h`, from 2026-08-30 until then), wearing the
          bar's own coat with a night-well item lane inset in it (the fourth
          ask; it rode the band bare-transparent for one ask) — beside the
@@ -160,7 +160,7 @@
           + (entry.actions.length ? ' — ' + lastActionOf(entry).label : '')
           + (i === currentIndex ? ' — you are here' : '')"
         rail-icon-size="12px"
-        wide-current
+        :wide-current="!windows.isMobile"
         @activate="jumpToIndex(i)"
       >
         <template v-if="entry.isCheckpoint || entry.actions.length" #badges>
@@ -296,9 +296,14 @@ export default defineComponent({
     // the 09-03 dress, where the wide seat followed the current index and
     // could land in the middle or at the left with tiny tiles after it.
     const PARKED_SLOTS = 3
+    // ⭐ ONE SLOT ON A PHONE (2026-09-23, user ask: "put the stack section
+    // with a single item … since it is gone") — the CURRENT stop alone, the
+    // ledger's last entry, as a plain glyph tile (`wide-current` is off
+    // there: the lettered face needs ~170px and a phone strip has 41).
+    const parkedSlots = computed(() => (windows.isMobile ? 1 : PARKED_SLOTS))
     const parkedRows = computed(() => {
       const t = trail.value
-      const start = Math.max(0, t.length - PARKED_SLOTS)
+      const start = Math.max(0, t.length - parkedSlots.value)
       return t.slice(start).map((entry, k) => ({ entry, i: start + k }))
     })
     const rows = computed(() => (
@@ -358,6 +363,13 @@ export default defineComponent({
     // through `jumpTo` and keep the return halo; otherwise it is an
     // ordinary navigation.
     const jumpToIndex = (idx) => {
+      // On a phone the parked strip's ONE tile is the stop you are on, so a
+      // jump has nowhere to go — the tap extends the section instead (the
+      // head glyph's own act), rather than falling dead. (2026-09-23)
+      if (windows.isMobile && win.value.minimized && idx === currentIndex.value) {
+        windows.restorePanel('stack')
+        return
+      }
       const stop = trail.value[idx]
       if (stop && idx !== currentIndex.value) navStore.jumpToStop(stop, router)
       if (!win.value.minimized) windows.minimizePanel('stack')
@@ -370,7 +382,10 @@ export default defineComponent({
     // screens, where hover doesn't exist.
     let hoverTimer = null
     const onHoverEnter = () => {
-      if (!win.value.minimized) return
+      // ⚠ NEVER ON A PHONE (2026-09-23) — a tap fires `mouseenter` first;
+      // see PinsDrawer's `onHoverEnter` for the whole argument. The head
+      // glyph (or the lone tile) is the phone's tap up.
+      if (windows.isMobile || !win.value.minimized) return
       hoverTimer = setTimeout(() => { windows.restorePanel('stack') }, 150)
     }
     // ⚠ A HEIGHT TOGGLE CAN LEAVE THE POINTER OUTSIDE (2026-09-06 PM): the
@@ -1033,4 +1048,31 @@ export default defineComponent({
 .stack-item.is-window :deep(.side-item__btn--rail) { border-style: dashed; }
 .stack-item.is-future { color: var(--ink-soft); font-style: italic; }
 .stack-item.is-checkpoint :deep(.side-item__title) { color: var(--coral-deep); }
+
+// ── ⭐ THE PHONE (2026-09-23, user ask: "put the stack section with a single
+// item … since it is gone"). The strip parks at `--strip-phone-w` (41px — the
+// pins strip's phone width, _tokens.scss) beside the identity cell, its
+// desktop seat, holding the CURRENT stop alone (`parkedSlots`) as a plain
+// glyph tile: the `.is-current` rule above grows that tile into the lettered
+// wide face, which has no room here, so it is put back to the tile every
+// other stop wears (the solid kind fill still marks it current). The head
+// glyph drops to its bare 15px icon like the pins strip's. The expanded panel
+// keeps `--stack-w` — it rises over the page, not the bar.
+@media (max-width: 600px) {
+  .stack-window.is-parked { width: var(--strip-phone-w); }
+  .stack-side-head { width: 15px; }
+  .stack-list.is-parked :deep(.side-item__btn--rail.is-current) {
+    flex: 0 0 var(--strip-tile-w);
+    width: var(--strip-tile-w);
+    min-width: var(--strip-tile-w);
+    padding: 0;
+  }
+}
+// ⚠ UNDER 346px THE BAR HAS NO SEAT FOR IT: identity 42 + stack 41 + the
+// centred creation row 144 + chat 28 + pins 41 + dashboard 42 + two 4px gaps
+// is 346px, so on the narrowest phones the stack strip stands down (the pins
+// keep their seat) — NavigationBar drops its left reserve at the same width.
+@media (max-width: 345px) {
+  .stack-window { display: none; }
+}
 </style>

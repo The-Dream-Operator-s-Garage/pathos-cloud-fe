@@ -3,69 +3,16 @@
 
     <div class="nav-bar">
 
-      <!-- ── THE TRAIL (2026-08-23, two user asks the same sitting) — the LEFT
-           DRAWER'S OWN SECTION-DIVIDER BAND, laid across this bar at its
-           vertical middle with the whole button row standing on it. It is
-           literally that element: an unflipped `FriezeBar` wearing the SIDE
-           CHROME TRIO's flat greys, and `.nav-frieze` joins that palette rule
-           BY NAME in `_components.scss` (a quartet now, not a trio) rather
-           than copying three paints into this file.
-
-           It differs from the drawer's four in ONE number, and that number is
-           the second ask ("place them over the new frieze bar, like the frieze
-           bar is a trail for the buttons … or make the frieze bar a little
-           higher if needed"): the band stands at the family's NEXT PIXEL-DRAWN
-           STEP UP — 28px on an `auto 26px` fit, 2px a motif row where the
-           drawer's 15px band gives 1px — so the buttons ride INSIDE the trail
-           instead of straddling it. 28px is arithmetic, not taste: the masks
-           are a 13-row grid and only `13n` of mask + the component's own 2px
-           of pad lands on the pixel grid, so this family's sizes are 15 → 28
-           → 41 and there is nothing between them.
-
-           ABSOLUTE, and the reason that is safe is the trap this file already
-           records one block down: `.nav-bar`'s children are UNPOSITIONED grid
-           cells, so anything positioned paints OVER them (which is why the
-           plaque's veil is a background layer and not a `::before`). The band
-           takes `z-index: 0` and the two edge sections are lifted to 1 — the
-           only z-pair on this bar, and the whole reason the buttons read as
-           standing ON the trail. The empty middle is deliberately NOT lifted:
-           the trail crosses it.
-
-           ⭐ 2026-08-30 WALKED THIS BAND THREE TIMES IN ONE DAY: it wore the
-           HEADER BAND first ("put the same inner friezebar of the top header
-           bar on the footer bar inner friezebar" — `slim`, one wave, the
-           cyan→indigo ramp on the grey-8 plate), the SWAP then traded it the
-           header's recolor (the bar's own coat as plate, flat grey-6 wave),
-           and the day's LAST ask brought THE DRAWER'S OWN PATTERN BACK
-           ("changing the svg-pattern to the one on the inner friezebars from
-           the left drawer, with the 2 svgs well drawn instead of the single
-           tiny one") — `slim` OFF, exactly the route the style block always
-           named for the second depth's return: BOTH waves draw again, mask
-           `a` + mask `b`, inked grey-5 (wave one) and grey-6 (wave two) on
-           the coat under a 60% grey-4 veil (the walk: grey-8/grey-6 one
-           pass, inverted to grey-6/grey-7, then the veil ask stepped both
-           lighter and greyed the plate — the style block has each stage).
-           The trail is
-           literally the drawer's element again for the first time since the
-           morning — same two masks, same fit — differing in its height and
-           in wearing its bar's own coat under darker inks.
-
-           ⭐ 2026-09-10 — THE HEADER'S BAND, AGAIN AND WHOLE (user ask: "put
-           the same frieze bar from the header on the footer, including
-           coloration but adjusting the bar's height and making sure the
-           buttons look good there"). `counter` comes onto the mount — the
-           top rail's own variant, layer one mirrored so the two meanders run
-           AT each other — and the dials below take the rail's dress entire:
-           `--grey-8` plate, BOTH waves `--plaque-flat`, no rules, the
-           pixel-drawn `auto 13px` fit and the −11px re-phase that finishes
-           `counter`. The 2026-08-30 walk above is history in one edit; what
-           it kept is the ONE number the ask exempts, this band's height
-           (`--nav-trail-h`, 21px) — the header's band is 13px of pure
-           ornament, this one is 21px because a row of buttons stands in it.
-           Same drawing, taller plate: the fit stays the rail's, so the
-           meander is the same 1px-a-row key at the same scale and the extra
-           8px is plate above and below it. ── -->
-      <FriezeBar counter class="nav-frieze" />
+      <!-- ── THE TRAIL BAND IS DELETED (2026-09-23, user ask: "remove the frieze
+           bar from the footer navigation and paint the space where the
+           frieze bar was with the same creamy color on the rest of the
+           bar"). `<FriezeBar counter class="nav-frieze">` stood here from
+           2026-08-23 — an absolute stripe across the bar's middle that the
+           button row rode in, last dressed as the header rail's band (grey-8
+           plate, cream counter-meander). Nothing replaces it: the rows it
+           covered now show `.nav-bar`'s own `--plaque-coat`, so the bar is
+           one cream sheet end to end and the chips stand on it directly.
+           Its walk (seven dresses, 21 → 29 → 25px) is in git. ── -->
 
       <!-- ── LEFT: the drawer column continued down through the bar — but
            ONLY WHILE THERE IS NO DRAWER (2026-08-02). The drawer runs to the
@@ -251,6 +198,17 @@
              COLUMN's, gone with it).
              They are also the two chips with NO WORD — see their notes. ── -->
 
+        <!-- ── THE LOOKERS' GROUP (2026-09-23) — chat + the tack's divider +
+             the tack, wrapped so a PHONE can hold them in one grid cell: at
+             ≤600px `.nav-right` is a three-column grid that CENTRES the four
+             creation chips on the bar (user ask), and this group is its
+             right-hand cell — chat alone there plus the PINS STRIP's 41px
+             seat as padding (the tack does not render on a phone since the
+             strip came back the same day). Everywhere else it is
+             `display: contents` — no box, so the three stay `.nav-right`'s
+             own flex items and the desktop row, its gaps and the slider's
+             measurements are untouched. -->
+        <div class="nav-looks">
 <!-- ── NO SEARCH BUTTON SINCE 2026-08-23 (user ask: "remove the
              search button and its functionalities"). `GlobalSearch.vue` — the
              magnifier chip plus the top-anchored dialog it opened over
@@ -360,6 +318,7 @@
             <q-tooltip>{{ pinnable ? (isCurrentPinned ? 'Unpin this' : 'Pin this') : 'Open a node, post, label or skeleton to pin it' }}</q-tooltip>
           </q-btn>
         </div>
+        </div>
       </div>
 
       <!-- ── ⭐ THE DASHBOARD BLOCK — the bar's RIGHT END (2026-09-02, user
@@ -457,12 +416,11 @@ import { useChatStore } from 'src/stores/chat'
 import { useDashboardStore } from 'src/stores/dashboard'
 import { useEventsStore } from 'src/stores/events'
 import { pinService } from 'src/services/pin.service'
-import FriezeBar from './FriezeBar.vue'
 import IdentityChip from 'src/components/identity/IdentityChip.vue'
 
 export default defineComponent({
   name: 'NavigationBar',
-  components: { FriezeBar, IdentityChip },
+  components: { IdentityChip },
   emits: ['toggle-drawer', 'open-maker', 'open-uploader', 'open-schema-builder', 'open-label-maker', 'pins-changed'],
   props: {
     // Increment to force a pin-state refresh from the parent (e.g. after the
@@ -652,7 +610,14 @@ export default defineComponent({
     let reconcileTimer = null
     let stripObserver = null
     const reconcileTrail = () => {
-      if (windows.isMobile) return
+      // ⚠ A PHONE HAS NO SLIDER, BUT IT STILL HAS TABS (2026-09-23). This
+      // returned bare on mobile, which skipped the `measureChips()` at the
+      // bottom — so after any resize or rotation the parked tabs kept the
+      // chip boxes of the PREVIOUS layout (measured: a 1440 → 375 resize left
+      // all four tabs at x ≈ 890–1260, off-screen). The chips move on a phone
+      // whenever the viewport does (the creation row is CENTRED there), so
+      // the tabs must be re-addressed even though nothing is reconciled.
+      if (windows.isMobile) { measureChips(); return }
       const bounds = trailBounds()
       const entries = TRAIL_CHIPS
         .filter((k) => chipEls[k])
@@ -739,15 +704,28 @@ export default defineComponent({
     // that the whole handle match the button, not the box inside its sweeps.
     // See `--minitab-flare` for why 7px and not the media bar's 9.
     const MINITAB_FLARE = 7
+    // ⭐ THE BODY'S FLOOR IS THE TAB'S OWN CONTENT (2026-09-23, user ask: on
+    // mobile, "make sure their respective attached minimized tabs match
+    // their width properly"). It was a flat 24px, which only ever bit on a
+    // PHONE: a 28px chip wanted a 14px body, got 24, and every tab spanned
+    // 38px over its 28px chip — overhanging it by 10px on the right and
+    // overlapping its neighbour's tab by 6. The creation chips are 33px on a
+    // phone now (the ≤600px block), so their bodies come out at 19px with no
+    // floor involved; the floor drops to what a glyph-only tab needs — 2px
+    // rims + the 12px glyph — and when it DOES bite (chat's 28px chip) the
+    // body CENTRES on its chip instead of hanging off one side.
+    const MINITAB_MIN_BODY = 16
     const minitabStyle = (key) => {
       const b = chipBoxes.value[key]
       // Un-measured (the first paint, or a chip the viewport has hidden):
       // the tab keeps its place in the strip's flow fallback instead of
       // jumping to x=0. `visibility`, not `display`, so it still measures.
       if (!b) return { position: 'relative', visibility: 'hidden' }
+      const width = Math.max(b.width - MINITAB_FLARE * 2, MINITAB_MIN_BODY)
       return {
-        left: `${b.left + MINITAB_FLARE}px`,
-        width: `${Math.max(b.width - MINITAB_FLARE * 2, 24)}px`,
+        // `(chip − body) / 2` IS the flare whenever the floor doesn't bite.
+        left: `${b.left + (b.width - width) / 2}px`,
+        width: `${width}px`,
         translate: `${windows.trailShiftOf(key)}px 0`
       }
     }
@@ -937,9 +915,15 @@ export default defineComponent({
     // pins widget carries the tack in its EXPANDED HEADER while it stands
     // (in its rebuilt bar row until 2026-09-02, when its column became the
     // trail strip), so the bar renders one only when that widget is absent
-    // — on mobile, where both strips hide, or if the panel is ever closed.
-    // Exactly one of the two is on screen at any moment.
-    const showTack = computed(() => windows.isMobile || !windows.panels.pins?.open)
+    // — on mobile, where both strips hid until 2026-09-23, or if the panel is
+    // ever closed. Exactly one of the two is on screen at any moment.
+    // ⭐ NOT ON A PHONE ANY MORE (2026-09-23, user ask: the mobile pin section
+    // should "match the style of the pin Bubble on desktop mode"): the pins
+    // strip parks in the tack's own 41px seat there now, and its expanded
+    // header carries the tack exactly as on the desktop — so the phone clause
+    // left and the rule is the desktop's alone: a bar tack only while the
+    // pins widget is closed.
+    const showTack = computed(() => !windows.panels.pins?.open)
 
     return {
       pinnable,
@@ -1647,6 +1631,10 @@ export default defineComponent({
   // scope: there is still only one number, and moving it moves the band,
   // every chip in it and the stack strip together. The odd-parity warning
   // travelled with the declaration.
+  // ⚠ ONE CONSUMER LEFT (2026-09-23): the band was deleted (user ask) and the
+  // stack strip stopped reading the dial on 2026-09-05, so `--nav-trail-h`
+  // sizes the CHIPS alone now (via `--nav-chip-h`). And since the band went,
+  // this coat is the ground under the whole row, chips' gaps included.
   background: var(--plaque-coat);
   // ── Top lip --grey-6 (2026-08-17, user ask) ──
   // It was --brown-3 from the end of 2026-07-25 (brown-4 for one day before
@@ -1683,440 +1671,15 @@ export default defineComponent({
   // right beneath it, which is why there is no right inset left here.
 }
 
-// ── THE TRAIL (2026-08-23) ──────────────────────────────────
-// The band the buttons stand on — see the template note for what it is and
-// why it is absolute. Only its BOX lives here; its three paints come from the
-// side-chrome frieze rule in `_components.scss`, which `.nav-frieze` joins by
-// name, exactly as StackPanel and PinsDrawer keep their own heights beside
-// that same shared palette.
-//
-// ⚠ CENTRED BY ARITHMETIC, NOT BY `top: 50%` — and the formula PAIRS WITH THE
-// HEIGHT'S PARITY (2026-08-23; the first half was caught by the witness flow,
-// not by eye). An absolutely positioned box lays out against its ancestor's
-// PADDING box, and this bar is 32px INCLUDING a 1px `border-top` lip — so that
-// box is 31px, an ODD number, and a plain `top: 50%` + half-height translate
-// put the band on HALF PIXELS, which is exactly the fuzz this band's row
-// arithmetic exists to prevent. Two formulas land on whole pixels, one per
-// parity, and they differ by exactly the lip:
-//
-//   ODD  height → `(--nav-bar-h - 1px - --frieze-bar-h) / 2`   ← today's, 25px
-//        centres the band in the bar's FIELD: equal cream above and below,
-//        with the lip drawn on top of the upper margin. An odd band fits an
-//        odd box exactly; it cannot centre on the 32px outer box at all.
-//   EVEN height → `(--nav-bar-h - --frieze-bar-h) / 2 - 1px`
-//        centres on the OUTER box and borrows the lip's pixel to do it (the
-//        24px band's rule for the hour it stood).
-//
-// SWAP THE FORMULA IF THE HEIGHT CHANGES PARITY, or the band goes fuzzy for a
-// reason nothing on screen explains.
-.nav-frieze {
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: calc((var(--nav-bar-h) - 1px - var(--frieze-bar-h)) / 2);
-  // Under the button row, over the empty middle. THE one z-pair on this bar.
-  z-index: 0;
-
-  // ── ⭐⭐ 25px ON `auto 29px` SINCE 2026-09-10 PM — THE BAND THAT *IS* ITS
-  // BUTTONS (chip and band congruent since the gap ask; the mask sized so its
-  // ink fills the band since the padding ask; the height one rung back off
-  // 29px since the lips ask). The block below is the 2026-08-23 → 08-30
-  // record — its arithmetic still teaches this bar's zero-sum, but every
-  // number in it has moved.
-  // ── 21px ON `auto 19px` — THE BAND THAT CONTAINS ITS BUTTONS (⚠ THE FIT
-  // IS FROM 2026-08-30's CLOSING ASK, the height is the block below's own;
-  // that ask moved the CHIP, not the band — `--nav-chip-h` = band − 2px,
-  // the interior, so the rung arithmetic here is untouched and the cream
-  // margins are still 5px a side. A 25px pass was tried and rejected the
-  // same sitting.) 2026-08-23,
-  // two asks: "considerably more padding … between the top and bottom edges of
-  // the footer bar and the frieze bar. Also inside the frieze bar, between the
-  // top and bottom edges and the friezes … kind of the same height as the left
-  // drawer inner friezes, without deformating the frieze pattern" took it from
-  // 24px to 17px; "make the frieze bar slightly thicker … and then adjust the
-  // inner buttons height so they fit well inside the frieze bar" brought it
-  // here). Everything on this bar is ZERO-SUM in 32px and the arithmetic says
-  // so exactly: at 1px a row the ink is 11px (11 inked rows of 13), so
-  // `band + 2×cream = 31` and every 2px of band converts 1px of cream into 1px
-  // of plate. Crisp rungs, all odd: 15 (2px plate / 8px cream — the drawer's
-  // literal recipe) → 17 (3 / 7) → **21 (5 / 5)** → 23 (6 / 4) → 25 (7 / 3).
-  //
-  // WHY 21 AND NOT 19, when the ask said "slightly": the second half of it —
-  // buttons INSIDE the band, with "very tiny" padding "so we can have big
-  // icons" — sets the floor. A chip needs a 2px shoulder of band above and
-  // below to read as contained, and its glyph gets the chip less its two 1px
-  // rims, so the chain is band − 4 = chip, chip − 2 = icon. At 19px that lands
-  // a 13px glyph, SMALLER than the 14px this bar already had; at 21px it lands
-  // 15px, which is the first rung where "fit inside" and "big icons" are both
-  // true. Going further is a straight trade of cream for glyph: 23px gives a
-  // 17px icon on 4px of cream, 25px a 19px icon on 3px.
-  //
-  // ⚠ THE ROWS ARE 1px NOW, NOT 2px, AND THAT IS THE POINT, NOT A COST — it is
-  // the drawer's exact fit (`auto 13px`: the 231×143 file tiling at 21×13), so
-  // the two surfaces draw ONE pattern at ONE scale, which is precisely what
-  // "the same height as the left drawer inner friezes, without deformating"
-  // asks for. 2px rows cannot survive at this thickness at all: their ink alone
-  // is 22px, so a 2px-row band is 24px at its very thinnest and there is no
-  // cream left to give. The trimmed-to-ink trick the 24px band used (mask
-  // overflowing the box so the empty rows fall outside) is the OPPOSITE move
-  // and went with it — the whole file sits inside the box again, plus room.
-  //
-  // ⭐ SO THE FIT IS NOT STATED HERE ANYMORE: it comes from the shared chrome
-  // frieze rule in `_components.scss` along with the three paints, exactly as
-  // it does for the drawer's four bands and the stack/pins' three. This band
-  // now differs from those seven in ONE number — its height, 17px against
-  // their 15px — which is the least a fourth wearer has ever differed by, and
-  // the right amount for a rule that exists so a shared treatment is shared by
-  // NAME. (It restated `auto 26px` for the hour it ran 2px rows; that override
-  // is deleted, not merely equal to the inherited value.)
-  --frieze-bar-h: var(--nav-trail-h);
-
-  // ── ITS OWN COLORWAY — GREY-8 PLATE, CREAM MOTIF (⚠ BOTH halves are
-  // HISTORY since 2026-08-30 — the cream motif went in the morning, the
-  // grey-8 plate with the evening's SWAP; the band wears the bar's own coat
-  // under a flat grey-6 meander now — see the ⭐ block at the dials)
-  // (2026-08-23, three asks:
-  // "make the frieze bar's from the footer bar background color light-cream
-  // and paint the inner friezes grey-3 and grey-4", then "make the footer
-  // bar's inner frieze bar's background grey-6 and the inner friezes
-  // light-cream" — the same two families, swapped — then "try grey-8 on the
-  // background", two steps deeper on the plate alone). THIS IS WHY `.nav-frieze`
-  // IS NOT IN `_components.scss`'s GROUPED RULE: that rule is one PALETTE
-  // shared by name, and a band stating its own three paints has nothing left
-  // to take from it. The trio was a quartet for half a day and is a trio again.
-  //
-  // The swap put the band back in the family's NORMAL orientation — a LIGHT
-  // motif on a DARK plate, like the side chrome's grey-2/-4 on grey-8 and the
-  // component's own brown-2/-1 on brown-4 — after one hour inverted, which is
-  // the only inverted frieze the platform has ever drawn. Two consequences of
-  // coming back, both worth knowing:
-  //  · THE CARVE IS LEGAL AGAIN. FriezeBar's groove reads only when the ink is
-  //    lighter than the plate it is cut into, so the inverted hour forbade it
-  //    outright; it is still OFF below, but now for the trio's reason alone (at
-  //    band scale the black/white flanks read as grime) rather than by law.
-  //  · THE BAND IS LOUD NOW, where the cream-on-cream hour made it a
-  //    watermark: `--light-cream` on `--grey-8` is about **4.4:1**, the
-  //    strongest this band has read — cream on `--grey-6` gave 2.4:1 for the
-  //    hour between, and that pairing had a tie this one gives up (grey-6 is
-  //    the bar's own top lip and the side chrome's line ink, so the plate was
-  //    drawn in the ink the bar's structural lines already use, with the chips'
-  //    `--grey-6` rims matching the plate exactly).
-  //  · WHAT THE DEEPER PLATE BUYS INSTEAD is a tie to the OTHER bands:
-  //    `--grey-8` is the side chrome trio's own plate ("keep the dark
-  //    background", `_components.scss`), so the drawer's dividers, the
-  //    stack/pins bands and this trail all stand on ONE plate again and differ
-  //    only in the motif's hue — cool greys up the sides, warm cream along the
-  //    floor. That is a closer relation to the rule this band left than it had
-  //    at grey-6, and it is the reason this pick is not just "darker".
-  //  · AND THE CHIPS' RIMS INVERT THEIR ROLE: `--grey-6` on `--grey-8` is a
-  //    LIGHTER hairline on a darker plate, where at grey-6 the rim and plate
-  //    were one tone and the chip's edge fell entirely to its cream face. Each
-  //    chip is now outlined rather than merely cut out.
-  //
-  // ⚠ BOTH WAVES TOOK ONE TONE for the cream era (2026-08-23 → 08-30), which
-  // was new for this component then. Everywhere else the two masks are told
-  // apart by VALUE as well as by shape; the ask named one colour for "the
-  // inner friezes", so the interleave read as a SINGLE meander — flatter, and
-  // the right answer for a band this size.
-  // ⭐ THE TOP RAIL'S BAND, FOR PART OF 2026-08-30 (user ask: "put the same
-  // inner friezebar of the top header bar on the footer bar inner
-  // friezebar"; ⚠ SUPERSEDED the same day by the SWAP — the ⭐ block at the
-  // dials below) —
-  // the same sitting that took the header back to `slim` put this trail in
-  // the same dress: ONE wave (mask `b`, the template's `slim`), `--teal-11`
-  // flat fallback, and the header's own cyan→indigo `-paint` ramp down the
-  // wave. What moves is the BAND'S LOOK; what deliberately does not is this
-  // bar's ARCHITECTURE: the 21px trail height (buttons ride inside it — the
-  // header band is 13px between two rules, a composition this bar has no
-  // room for), the `auto 13px` fit and the carve staying off. Wave ONE's
-  // dial LEFT with the layer (slim v-ifs it out — the dressed-but-undrawn
-  // trap); if the second depth ever comes back, it starts by taking `slim`
-  // off the template, not by re-dialling here. One ramp spans the layer box
-  // (19px inner against the header's 11px), so the 11px of ink samples the
-  // ramp's middle rather than its full run — the shared thing is the recipe
-  // and the two A100 accents, exactly the relation the header band already
-  // has with the post card's pair.
-  // ── ⭐ THE SWAP (2026-08-30, the sitting's last ask: "invert the frieze
-  // pattern on the top nav bar with the bottom footer nav bar one") ──────
-  // This trail had preserved the header's OLD dress (the ⭐ block above);
-  // the swap hands it back upstairs and takes the header's recolor in
-  // trade: plate = THE BAR'S OWN `--plaque-coat` (the very layer list
-  // `.nav-bar` paints — legal in this dial because FriezeBar spends it in a
-  // `background:` shorthand, the one slot a layer list may fill), wave =
-  // flat `--grey-6`, the ramp deleted with its `-paint` dial. The plate
-  // composites to the bar's exact rgb, so the band VANISHES into the bar
-  // and the buttons ride a bare meander — no plate stripe, no frame, the
-  // bar's top lip its one structural line, exactly the presentation the
-  // header wore between the recolor and this ask.
-  // ⚠ VALUE-INVERTED AGAIN (ink darker than plate) — the second time this
-  // band has drawn that relation (the cream hour was the first) — so THE
-  // CARVE IS FORBIDDEN BY LAW AGAIN, not just by the trio's grime reason:
-  // FriezeBar's groove reads only when the ink is lighter than its plate.
-  // ⚠ The grey-8 plate-ties argument in the colorway block above (one plate
-  // with the side trio) is SUPERSEDED with the plate; the block stands as
-  // the record of how the band got here. (The swap's ONE-wave half lasted
-  // one ask — the block below returns the pattern to the drawer's two.)
-  // ── ⭐ THE BAND TOOK A GREY VEIL AND STEPPED ITS INKS LIGHTER (2026-08-30,
-  // the ask after the thickening: "add to its background a grey-4 60% veil
-  // for a grey effect and for the svg patterns use grey-5 and grey-6") ───
-  // The plate is the coat UNDER a 60% `--grey-4` wash now — one more
-  // gradient layer stacked over `--plaque-coat` (var substitution splices
-  // the coat's own two layers in after it, all in `background:` where a
-  // layer list is legal; the rgba is grey-4's literal, the same way the
-  // coat states its grey-3 veil). Composite ≈ rgb(234,231,226): the band
-  // READS AGAIN — a soft grey stripe on the cream bar, the "grey effect" —
-  // ending the vanished-plate hour (the swap's "band and bar composite to
-  // the same rgb" below is that hour's record). The waves stepped one
-  // lighter with it, grey-5/grey-6 over grey-6/grey-7, keeping the one-step
-  // interleave; both still darker than the veiled plate, so the
-  // value-inverted relation and the carve ban hold.
-  // ── ⭐⭐ THE HEADER'S BAND, WHOLE (2026-09-10, user ask: "put the same
-  // frieze bar from the header on the footer, including coloration but
-  // adjusting the bar's height and making sure the buttons look good
-  // there") — EVERY PARAGRAPH ABOVE IS HISTORY FROM HERE DOWN ───────────
-  // The plate is `--grey-8` again, and this time it arrives as the TOP
-  // RAIL'S plate rather than as the side trio's: `.media-tabs__frieze`'s
-  // four dials come down here letter for letter — grey-8 plate, both waves
-  // `--plaque-flat`, `auto 13px`, no rules — with `counter` on the mount and
-  // the −11px re-phase that finishes it. There is no veil, no coat and no
-  // layer list left in this dial: it is one flat `<color>`, which is the
-  // first time since 2026-08-30's swap that this band has not been the bar
-  // wearing a wash of itself.
-  //
-  // THREE THINGS THE FLAT DARK PLATE BUYS, and they are the answer to the
-  // ask's second half — "making sure the buttons look good there":
-  //  · THE CHIPS ARE CUT OUT, NOT OUTLINED. Their face is `--plaque-flat`,
-  //    the very cream this plate is two families under (≈4.4:1), so each
-  //    chip's top and bottom edge is now drawn by VALUE where it used to
-  //    need a 1px rule to exist at all. That is why the two rules could go
-  //    (their tombstone below) and why the chips do not want their
-  //    horizontal rims back: a grey line inside a cream/grey-8 seam is a
-  //    smudge on an edge that is already the strongest on the bar.
-  //  · THE 1px SHOULDER DRAWS AT LAST. `--nav-chip-h` is band − 2px, so a
-  //    chip has always left one row of band above and below itself; on the
-  //    cream-on-cream plate that row was invisible and the composition read
-  //    as chips floating on the bar. In grey-8 it reads as exactly what it
-  //    is — the trail holding its buttons — which is the reading the whole
-  //    2026-08-30 thread of asks was reaching for with rules and seams.
-  //    ⚠⚠ AND IT DREW TOO WELL — THE SHOULDER IS GONE (2026-09-10 PM, the
-  //    very next ask: "there is a little gap between the buttons and the top
-  //    part of the footer navigation bar. The gap is on the frieze bar").
-  //    Sampled off the composited bar it was one row of rgb(97,97,97) at each
-  //    end of every chip, exactly as designed and asserted green — and a
-  //    shoulder you can SEE is a gap. `--nav-chip-h` IS `--nav-trail-h` now
-  //    (_tokens.scss) and chip and band are congruent, edge for edge. What
-  //    the paragraph above leaves behind is the lesson rather than the
-  //    arrangement: a 1px relation is worth whatever its PLATE is worth, so
-  //    changing a plate's value re-opens every one of them.
-  //  · THE GLASS RIMS GET A GROUND. The four creation chips clip their face
-  //    at `padding-box` so their translucent sheet shows the BAND through it
-  //    (`.nav-bar .create-btn`); over a dark plate that sheet finally reads
-  //    as glass rather than as cream on cream.
-  // ⚠ VALUE-INVERTED NO LONGER: the ink is LIGHTER than its plate for the
-  // first time since the cream hour of 2026-08-23, so the carve ban below is
-  // back to the trio's grime reason alone and is no longer a law of physics.
-  // It stays `none` — 1px strokes with black/white flanks are grime at any
-  // scale, and the rail proves the band reads without it.
-  --frieze-bar-base: var(--grey-8, #616161);
-  // ── ⭐ AND TWO RULES FRAME IT (2026-08-30, two asks: "put a thin grey-4
-  // border on the top and bottom borders of this inner friezebar", then
-  // "pls make the new borders grey-5"): 1px each, the platform's line
-  // weight. Grey-4, the veil's own tone, held one pass — at ~10 levels off
-  // the veiled plate it barely drew — and grey-5 stood for the hour after,
-  // WAVE ONE's ink, matching the chips that shared these very rows.
-  // ⚠ `--grey-6` SINCE THE CLOSING ASK ("they don't look like they're
-  // inside the frieze bar section"), and the tone change is half of that
-  // fix: the chips gave up a row at each end (--nav-chip-h, _tokens.scss),
-  // so these two rows are the band's ALONE now — no longer shared, no
-  // longer obliged to match the chips' ink, and free to be the STRONGER
-  // line, which is what makes the band read as the thing the chips sit in.
-  // Grey-6 is this bar's own top-lip ink, so the bar's three structural
-  // lines are one tone, and it is already wave two's, so the band still
-  // adds no ink of its own. ~2.4:1 on the veiled plate, the same reading
-  // the lip gets on the coat. ⚠ THESE TWO ROWS ARE THE ONLY HORIZONTAL
-  // LINES ON THE BAND, and the chips depend on it: since the gap-closing
-  // ask they draw no horizontal rims of their own, so this rule IS every
-  // chip's top and bottom edge and it has to stay a uniform 1px end to
-  // end. Giving the chips their rims back (in any ink) re-opens the seam
-  // the ask closed.
-  // ⚠ `border-box` pays them out of the 21px band: the layer (padless —
-  // `--frieze-bar-pad: 0` below) is 19px, exactly what the `auto 19px` mask
-  // fills and exactly the chip height — nothing clips, nothing else moves
-  // (the centring formula reads the band's OUTER box).
-  // ── ⭐⭐ AND THE TWO RULES ARE DELETED (2026-09-10, the same ask) ──────
-  // The header band has no frame — "including coloration" is the plate and
-  // the ink and nothing between them — and on this band the frame had one
-  // job left that the plate now does better: being every chip's top and
-  // bottom edge. Grey-6 on grey-8 is ~1.3:1 and would have drawn a muddy
-  // halo between the plate and the cream bar instead of the crisp step the
-  // dark plate gives for free.
-  // ⚠ THE LAYER GREW 19 → 21px WITH THEM — and to the band's full 25px when
-  // the afternoon's asks resized it — which is the whole reason the fit moves
-  // below: `border-box` was paying the two rules out of the band, so the
-  // padless layer was the band less 2px and `auto 19px` filled it exactly.
-  // The layer IS the band now, which is what lets the mask be sized straight
-  // off `--nav-trail-h`. The centring formula reads the band's OUTER box, so
-  // none of it ever touched that.
-  // ⚠ THE CHIPS' HORIZONTAL RIMS STAY OFF (`.nav-btn`, _components.scss).
-  // They came off in 2026-08-30's last ask because a grey-5 rim under a
-  // grey-6 rule read as a pale seam; the rule is gone and the argument
-  // survives it inverted — the chip's cream face against the grey-8 plate
-  // IS the edge, and any line drawn in that seam can only dull it. ⭐ And
-  // since 2026-09-10 PM there is nowhere left to draw one: chip and band are
-  // congruent, so a horizontal rim would land ON the band's own edge.
-  // ── ⭐ THE SECOND DEPTH CAME BACK (2026-08-30, the day's last ask:
-  // "changing the svg-pattern to the one on the inner friezebars from the
-  // left drawer, with the 2 svgs well drawn instead of the single tiny
-  // one. For the first SVG, use grey-8 and for the other grey-6") ───────
-  // `slim` came OFF the mount — the exact route the note below always
-  // named — so layer ONE renders again and takes its first dial here.
-  // The asked-for grey-8/grey-6 pair held one pass; the follow-up ask
-  // ("invert the colors on each svg and use grey-7 instead of grey-8")
-  // settled it: wave one (mask `a`) grey-6, wave two (mask `b`) grey-7 —
-  // the LIGHTER ink on the thick wave, one step apart instead of two,
-  // and both greys still DARKER than the coat plate, so the
-  // value-inverted relation holds for both waves and the carve stays
-  // forbidden by law.
-  // "Well drawn instead of the single tiny one": the fixed fit below
-  // draws both masks whole — nothing is squeezed. (It sat at the drawer's
-  // own `auto 13px` for one pass; the thickening ask below took it to
-  // `auto 17px` on a padless band.)
-  // (grey-6/grey-7 held from the inversion ask until the veil ask stepped
-  // both one lighter — the walk lives on the veil note above.)
-  // ── ⭐⭐ BOTH WAVES ARE THE BAR'S OWN CREAM (2026-09-10, the same ask) ──
-  // `--plaque-flat` — `--plaque-coat`'s composite measured as a flat
-  // `<color>` (#f8f2e4), which is what a wave fill must be (it is a
-  // `background-color`; the coat is a layer list and only the plate dial can
-  // spend it). This is the top rail's own pair since 2026-09-07's cream ask,
-  // arriving here unchanged, so the window's two horizontal bands draw their
-  // meanders in ONE ink again — and it is the same ink the chips standing in
-  // this band are faced in, so band, buttons and the bar under them are one
-  // material at three densities: a solid tile, a 1px key, a sheet.
-  // ⚠ ONE TONE FOR BOTH MASKS, which this band has drawn once before (the
-  // cream era, 2026-08-23 → 08-30) and rejected as a SINGLE flattened
-  // meander. It is not that here, for the reason the rail records: the pair
-  // is OPPOSED and re-phased, so DIRECTION and PHASE tell the two waves
-  // apart where colour used to have to. Take `counter` or the shift off and
-  // the cream era's objection comes straight back.
-  --frieze-bar-wave-one: var(--plaque-flat, #f8f2e4);
-  --frieze-bar-wave-two: var(--plaque-flat, #f8f2e4);
-  // The carve stays off — for the grime reason above AND, since the swap
-  // re-inverted the band, by the lighter-ink law again.
-  // ── ⭐ THE PATTERN GREW OFF THE PIXEL GRID (2026-08-30, the ask after the
-  // two waves landed: "make the pattern slightly thicker by reducing
-  // padding and size of outer components from the frieze bar") ──────────
-  // Two moves, exactly the levers the ask names: the component's 1px pads
-  // go to 0 through `--frieze-bar-pad` (the dial published for the header's
-  // identical ask), opening the layer from 19px to the band's full 21px,
-  // and the fit rises `auto 13px` → `auto 17px` — the masks draw ~1.31px a
-  // row, centered by the component's own `mask-position: center`. ⚠ This
-  // knowingly leaves the trio's 1px-per-row pixel grid: an upscale
-  // antialiases stroke edges (soft, not the sub-pixel mush the squeezes
-  // made — thickening is the ask, softness is its price). The crisp rungs
-  // remain 13n: `auto 13px` to return, `auto 26px` if the band ever has
-  // ~28px to spend. (The last line of this note used to read "the band
-  // itself did NOT grow, because `--nav-trail-h` is also every chip's
-  // height, so growing the band grows the buttons" — that constraint is
-  // GONE: the chip height split off into the derived `--nav-chip-h` on
-  // 2026-08-30's closing ask, and the band grew to 25px the same edit.)
-  //
-  // ⭐ `auto 17px` → `auto 19px` WITH THE CLOSING ASK, and the number is not
-  // free-hand: the padless layer is the band less its two rules, 19px, and
-  // that is EXACTLY the chip height too — so the mask fills its layer edge
-  // to edge and the meander running through the 6px gaps starts and stops
-  // on the very rows the chips do. The motif and the chips read as one row
-  // of objects lying in the band rather than two things of different sizes.
-  // (Same ~1.31px-a-row upscale as before, same softness, same escape hatch
-  // at 13n.)
-  --frieze-bar-pad: 0;
-  // ── ⭐⭐ BACK ON THE PIXEL GRID, AT THE RAIL'S OWN SCALE (2026-09-10, the
-  // same ask: "the same frieze bar … but adjusting the bar's height") ─────
-  // `auto 19px` → **`auto 13px`**, the top rail's fit and the family's
-  // canonical one: the 231 × 143 file at its natural grid, 21 × 13 cells,
-  // 1px a motif row, nothing squeezed and nothing upscaled. It ends the
-  // ~1.31px-a-row antialiasing the thickening ask knowingly bought (the
-  // paragraph above is its record) and it is the ONE reading of the ask that
-  // makes this band and the header's the same DRAWING rather than the same
-  // shapes at two weights.
-  //
-  // WHAT "ADJUSTING THE HEIGHT" MEANS HERE, exactly: the band stays 21px
-  // (`--nav-trail-h`) because a row of buttons stands in it, while the
-  // header's is 13px of pure ornament. The mask is 13px in a 21px layer and
-  // the component centres it (`mask-position: center`), so the motif is the
-  // rail's key with 4px of plate above and below it.
-  // ⚠⚠ SUPERSEDED THE SAME DAY, PM: that spare plate is exactly the "inner
-  // vertical padding" the next ask asked to spend, so the mask is sized to
-  // the BAND now (`--trail-mask-h`, the block above) rather than borrowed
-  // from the rail, and the band itself walked 21 → 29 → 25px. The two bands
-  // still share every paint; they no longer share a scale. This paragraph is
-  // the record of the morning's reading.
-  // ⚠ THE 13n LAW STILL RULES the alternatives, and they are worth knowing
-  // before anyone reaches for a bolder band: `auto 26px` (2px a row) needs
-  // ~28px of layer and there is no room — everything on this bar is zero-sum
-  // in 31px. Between them there is nothing crisp; a fit that fills a 21px
-  // layer is off-grid by construction.
-  // ── ⭐⭐ AND THE MOTIF FILLS THE BAND, EDGE TO EDGE (2026-09-10 PM, user
-  // ask: "reduce the inner vertical padding from the frieze bar on the footer
-  // bar and make the svg patterns bigger so they are practically touching the
-  // top and bottom borders of the footer bar") ────────────────────────────
-  // The 13px mask centred in a 21px layer left 4px of bare plate above and
-  // below the key — the "inner vertical padding" the ask names, and it was
-  // the honest price of borrowing the rail's 13px drawing for a taller band.
-  // The ask spends it: the band went to 29px (`--nav-trail-h`, _tokens.scss)
-  // and THE MASK IS SIZED SO ITS INK FILLS THAT EXACTLY.
-  //
-  // THE ARITHMETIC, and it is the mask's own anatomy rather than a taste
-  // number: the 231 × 143 file is a 13-ROW GRID WHOSE FIRST AND LAST ROWS ARE
-  // EMPTY, so at a fit of `auto Npx` the drawn ink is `11N / 13`. Setting that
-  // equal to the layer gives `N = 13 × band / 11`. At the band's settled 25px
-  // (`--nav-trail-h`, walked 21 → 29 → 25 across this sitting's three asks —
-  // the last one being "make the footer bar lips bigger") that is
-  // `13 × 25 / 11 = 29.5` → **`auto 29px`**: ink 24.5px in a 25px layer,
-  // ~0.2px of plate at each end. The two empty rows (2.2px each) fall OUTSIDE
-  // the box, which is the slim variant's own trick — nothing is clipped, only
-  // blank rows leave.
-  // ⚠ ROUND DOWN, NOT UP, WHEN THE DIVISION IS NOT WHOLE: 29px leaves a fifth
-  // of a pixel of plate, 30px would crop a fifth of a pixel of INK — and a
-  // cropped outer row antialiases the spirals' own edge, which is the one
-  // place this motif shows wear.
-  // ⚠ KNOWINGLY OFF THE 13n PIXEL GRID, and this is where that law stops
-  // paying: crisp rungs are `auto 26px` (ink 22px — 1.5px of padding back at
-  // each end) and `auto 39px` (ink 33px — 4px of INK cropped at each end,
-  // which flattens the outer spirals). Neither fills a 25px band. At 2.2px A ROW the price is
-  // also far smaller than it was at 1px: a stroke that wide carries a half-pixel
-  // of soft edge instead of smearing into a grey row, which is the mush the
-  // squeeze era produced. Thickening is the ask; softness is its price.
-  //
-  // ⭐ THE FIT IS A LOCAL DIAL NOW (`--trail-mask-h`) AND THE PHASE READS IT.
-  // The two have to move together — see the shift's own note — and the gotcha
-  // that pairing generated is a *copied number drifting from its fit*. A
-  // declared dial makes the coupling structural: change this one line and the
-  // opposition re-phases itself.
-  --trail-mask-h: 29px;
-  --frieze-bar-fit: auto var(--trail-mask-h);
-  // ── ⭐⭐ AND WAVE ONE IS PULLED 11px LEFT, WHICH IS WHAT FINISHES
-  // `counter` (2026-09-10, the same ask — the mount takes the prop) ───────
-  // The two masks are ONE meander offset by half a tile, and mirroring layer
-  // one throws that offset away: both motifs come to rest on nearly the same
-  // columns and paint each other out (20 of the tile's 21 columns collide,
-  // measured on the header band the day `counter` shipped — it reads as one
-  // clotted wave). −11px is the only offset in the tile with ZERO collisions,
-  // and it lands the tile SYMMETRIC about the centre rule, rows 1–5 mirroring
-  // 7–11 with the layers exchanged.
-  // ⚠ IT IS 11 COLUMNS, NOT 11 PIXELS. `shift = columns × N / 13` for a fit
-  // of `auto Npx` — the columns are the constant, the pixels a reading of
-  // them through the fit — so this is WRITTEN AS THAT FORMULA rather than as
-  // a number (⭐ 2026-09-10 PM, when the band left the header's 13px fit for
-  // its own one and the header's verbatim −11px would silently have become
-  // wrong: at `auto 29px` eleven columns are −24.5px — and the band's fit
-  // moved TWICE more that same sitting, 34 → 29, which the formula absorbed
-  // without an edit. That is the whole case for writing it this way). The band carried
-  // the rail's literal −11px for the hours it also carried the rail's fit,
-  // which is the only condition under which the two may be the same number.
-  // Now `--trail-mask-h` feeds both and the pair cannot drift.
-  --frieze-bar-wave-one-shift: calc(var(--trail-mask-h) * -11 / 13);
-  --frieze-bar-carve: none;
-}
+// ── THE TRAIL BAND IS DELETED (2026-09-23, user ask — see the template
+// tombstone). `.nav-frieze` was the one absolutely positioned child of this
+// bar: its box (`--frieze-bar-h: var(--nav-trail-h)`, centred on the 31px
+// padding box by the odd-parity formula) and the header rail's dress. With it
+// gone the bar has no positioned content and no z-pair; the rows it covered
+// are painted by `.nav-bar`'s own `background: var(--plaque-coat)` above,
+// which is exactly the "same creamy color on the rest of the bar" the ask
+// names. `--nav-trail-h` survives as the CHIPS' height dial alone (through
+// `--nav-chip-h`, _tokens.scss).
 
 // ── Three sections ─────────────────────────────────────────
 // Each is a full-height grid cell (the bar stretches them) that centers its own
@@ -2127,13 +1690,10 @@ export default defineComponent({
 .nav-left, .nav-right, .nav-end {
   display: flex;
   align-items: center;
-  // ON the trail (2026-08-23). These are unpositioned grid cells by default,
-  // and a positioned sibling paints over unpositioned content no matter what
-  // order it is written in — so without this pair the band would swallow the
-  // whole button row. `.nav-center` is deliberately left flat: it is empty,
-  // and the trail is supposed to cross it.
-  position: relative;
-  z-index: 1;
+  // (`position: relative; z-index: 1` stood here from 2026-08-23 to lift the
+  // three cells over the trail band — a positioned sibling paints over
+  // unpositioned content. The band was deleted 2026-09-23, so the lift went
+  // with it: nothing on this bar is positioned any more.)
 }
 // ── SINCE 2026-08-31 THIS CELL IS THE IDENTITY SECTION (user ask: the
 // drawer's profile/organizations block moved "inside the footer nav bar, on
@@ -2176,8 +1736,15 @@ export default defineComponent({
 // way right, stops ON the strip's left rim, as POST dragged left stops on the
 // stack strip's right one. It replaces `.nav-right--railed`'s 42px reserve
 // for the parked pins COLUMN (2026-08-02 → 09-02; a covered create button
-// was what minted it). The mobile block zeroes it — both strips hide there.
+// was what minted it). The mobile block zeroes it — the phone's pins strip
+// (41px since 2026-09-23) is reserved inside the centring grid instead.
 .nav-right { gap: 6px; padding-left: 5px; padding-right: var(--pins-strip-w); } // the pins strip's own width since 2026-09-03 (--stack-w before)
+
+// The lookers' group (chat + tack) — BOXLESS off a phone (2026-09-23): its
+// three children stay `.nav-right`'s own flex items, so the 6px gap, the
+// tack's −6px butt and every slider measurement read exactly as before. The
+// ≤600px block gives it a box, as the centring grid's right-hand cell.
+.nav-looks { display: contents; }
 
 // ── ⭐ THE DASHBOARD BLOCK (2026-09-02, user ask) — `.nav-left`'s MIRROR at
 // the bar's right end: a full-height grid cell `--nav-dash-w` wide whose
@@ -2745,10 +2312,12 @@ export default defineComponent({
 // ── MOBILE (2026-08-02) ────────────────────────────────────
 // Kept in sync with the 600px breakpoint in `css/_components.scss` and
 // MOBILE_MQ in `stores/windows.js`. The bar has ONE job at 375px: hold both
-// rail blocks at their full 42px — they are the ONLY way to reach the drawer
-// (burger) and to pin the page (tack) on a phone, since the stack/pins side
-// widgets are hidden at this width — and fit the middle cluster beside them
-// without a single button riding over another.
+// end blocks at their full 42px and fit the middle cluster beside them
+// without a single button riding over another. (⚠ It said the rail blocks
+// were "the ONLY way to reach the drawer (burger) and to pin the page (tack)
+// on a phone, since the stack/pins side widgets are hidden at this width" —
+// true until 2026-09-23, when both strips came back to the phone in one
+// bubble each and took the tack's job with them; see `showTack`.)
 //
 // The rail blocks are already `flex: 0 0 auto` and the slack track is
 // `minmax(0, 1fr)`, so the compression all happens in the right cluster:
@@ -2756,12 +2325,58 @@ export default defineComponent({
 // enough here to read as one group without them), and each button loses its
 // side padding down to the icon plus a hair.
 @media (max-width: 600px) {
+  // ── ⭐ THE CREATION ROW IS CENTRED ON A PHONE (2026-09-23, user ask: "for
+  // mobile version only, center the schemas/posts/labels/upload buttons") ──
+  // Until today the slack sat LEFT of the cluster (`.nav-center`), so the four
+  // chips were packed against chat with ~90px of bare bar beside the identity
+  // cell. The bar is SYMMETRIC at its two ends — identity and dashboard are
+  // both 42px (`--nav-id-w` = `--nav-dash-w`) — so once the middle cell takes
+  // the whole run between them it is centred on the screen, and a three-track
+  // grid inside it centres the row:
+  //
+  //   minmax(0, 1fr)   auto   minmax(max-content, 1fr)
+  //   (empty)          row    the lookers (chat + tack)
+  //
+  // The outer tracks are EQUAL fr shares, which is what centres the middle
+  // one; the right one's `max-content` floor is what keeps chat and the tack
+  // whole. When the lookers need more than their half (69px — which happens
+  // below 375px with the 144px row), the grid gives the right track its
+  // content width and the left one the rest, so the row slides left by
+  // EXACTLY the deficit instead of colliding: 7px at 360, 27px at 320, still
+  // 4px clear of chat. Centred outright at 375 and up.
+  .nav-bar { grid-template-columns: auto minmax(0, 1fr) auto; }
+  .nav-center { display: none; }
+  // ⭐ AND THE TWO OUTER TRACKS ARE THE TWO STRIPS' SEATS (2026-09-23, when
+  // the stack and pins strips came back to the phone — user ask). Both are
+  // fixed overlays outside this grid, each `--strip-phone-w` (41px) wide at
+  // its own end — the stack beside the identity cell, the pins beside the
+  // dashboard block — so each track reserves one: the left by its `minmax`
+  // floor, the right through `.nav-looks`' padding (chat + the pins seat =
+  // 69px, the very sum chat + tack made). At 375 both fit in their 69.5px
+  // halves and the row stays centred to the pixel; the shift-by-deficit law
+  // above still covers anything narrower.
   .nav-right {
-    gap: 4px;
-    padding-left: 3px;
-    // No pins strip on a phone (both footer strips hide ≤600px), so no
-    // `--stack-w` reserve either — the fallback tack takes the cluster's end.
-    padding-right: 0;
+    display: grid;
+    grid-template-columns: minmax(var(--strip-phone-w), 1fr) auto minmax(max-content, 1fr);
+    column-gap: 4px;
+    // No `--pins-strip-w` padding reserve here on a phone (the strips' seats
+    // are the two outer TRACKS, above) — and no side padding at all: any
+    // asymmetry here is an off-centre row.
+    padding: 0;
+  }
+  .create-row { grid-column: 2; }
+  .nav-looks {
+    grid-column: 3;
+    justify-self: end;
+    align-self: stretch;
+    display: flex;
+    align-items: center;
+    gap: 0;
+    // The PINS STRIP's seat (PinsDrawer, `right: var(--nav-dash-w)`): chat
+    // butts its left rim exactly as it butted the tack slot that stood on
+    // these pixels until 2026-09-23 — the tack no longer renders on a phone
+    // (`showTack`), so chat is this group's only child here.
+    padding-right: var(--strip-phone-w);
   }
 
   // The ONE remaining `.nav-divider` is the tack slot's, and mobile is exactly
@@ -2784,6 +2399,19 @@ export default defineComponent({
     min-width: 28px;
     padding: 0 4px;
   }
+
+  // ── ⭐ AND THE FOUR CREATION CHIPS ARE WIDER (2026-09-23, same ask: "make
+  // them slightly wider") — 28 → 33px. Still wordless (the words are gated at
+  // 1024px), so the extra 5px is face either side of the 15px glyph. 33 is a
+  // BUDGET, not a taste pick — the widest chip that keeps the row exactly
+  // centred at 375px, this project's reference phone: the middle cell is
+  // 291px there, the lookers need 69 + a 4px gap on each side, so the row may
+  // be 145px, and 4 × 33 + 3 × 4 = 144. (36px was tried first and slid the
+  // row 5.5px left of centre at 375.) Odd on purpose too: 33 − 2px rims − 8px
+  // pad = 23, so the 15px glyph sits on whole pixels. The tab each chip parks
+  // gets a `33 − 2 × 7px flare` = 19px body — its 12px glyph inside 2px rims.
+  // Chat keeps the 28px floor above.
+  .nav-bar .create-btn { min-width: 33px; }
 
   // No grips on a phone (2026-08-30, the slider pass): six handles+hairlines
   // cost ~90px this bar does not have at 375px, the docks run edge to edge
@@ -2812,16 +2440,30 @@ export default defineComponent({
   // The creation row's own gap follows `.nav-right`'s down.
   .create-row { gap: 4px; }
 
-  // The tack butts against `.nav-right`'s gap, which just shrank.
-  .tack-slot { margin-left: -4px; }
+  // (`.tack-slot { margin-left: -4px }` stood here — the tack butting chat on
+  // a phone. The tack stopped rendering on phones 2026-09-23; the pins strip
+  // took its seat, and `.nav-looks`' padding is that seat.)
 
-  // Parked tabs stand on the same band. ⚠ On a phone the tabs are still
-  // ADDRESSED to their chips (`minitabStyle` measures whatever is mounted),
-  // which is what keeps the pairing true at the width where it matters most —
-  // but the chips are word-less down here, so the label has to give: what is
-  // left is the glyph, its meta, and as much of the name as a ~40px chip can
-  // hold. `trailShiftOf` reads 0 on mobile, so nothing translates.
-  .minitab { padding: 2px 4px 0; gap: 3px; }
-  .minitab__label { max-width: 9ch; }
+  // ── ⭐ A PHONE TAB IS GLYPH-ONLY, LIKE ITS CHIP (2026-09-23, user ask:
+  // "make sure their respective attached minimized tabs match their width
+  // properly"). The tabs were always ADDRESSED to their chips here
+  // (`minitabStyle` measures whatever is mounted), but two things broke the
+  // match: the 24px body floor (the tab's own 16px now — see minitabStyle)
+  // and the NAME, which kept `max-width: 9ch` and a 3px gap in a body that
+  // never had room for it — at the old 28px chips the label clipped to
+  // nothing and shoved the glyph off-centre. A chip down here is its glyph, so
+  // its tab is too: the name and the draft count go (the tab's `title` still
+  // says what it restores), the side padding goes, and the glyph centres in
+  // the 19px body whose flares land on the chip's two rims. `trailShiftOf`
+  // reads 0 on mobile, so nothing translates.
+  .minitab { padding: 2px 0 0; gap: 0; }
+  .minitab__label, .minitab__meta { display: none; }
+}
+
+// ⚠ UNDER 346px THE STACK STRIP STANDS DOWN (StackPanel's own ≤345px rule —
+// the bar's minimum with both strips is 346px), so its seat does too: the left
+// track's floor returns to 0 and the centred row may slide the whole way left.
+@media (max-width: 345px) {
+  .nav-right { grid-template-columns: minmax(0, 1fr) auto minmax(max-content, 1fr); }
 }
 </style>

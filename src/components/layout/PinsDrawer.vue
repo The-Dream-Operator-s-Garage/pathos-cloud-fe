@@ -40,8 +40,10 @@
        coordinate, see scrollToNewest), y expanded.
        ⚠ THE TACK LIVES IN THE EXPANDED HEADER NOW: the `.pins-footer` row the
        column rebuilt around it (2026-08-02) went with the column. The bar
-       keeps its fallback tack for mobile (NavigationBar `showTack`), where
-       both strips hide. -->
+       kept a fallback tack for mobile (NavigationBar `showTack`), where both
+       strips hid — until 2026-09-23, when this strip came back to the phone
+       in the tack's own 41px seat, one bubble wide (the style block's phone
+       rule). -->
   <aside
     v-if="win.open"
     class="pins-window dock-window"
@@ -114,7 +116,7 @@
            opens the element's viewer; an expanded row also parks the panel so
            the destination lands in full view. -->
       <SidePanelItem
-        v-for="p in listPins"
+        v-for="p in shownPins"
         :key="p.pin_link_id"
         class="pins-item"
         :collapsed="win.minimized"
@@ -236,6 +238,14 @@ export default defineComponent({
     // right→left (newest at the left beside the head glyph).
     const listPins = computed(() =>
       [...pins.value].sort((a, b) => (a.pin_skeleton_id || 0) - (b.pin_skeleton_id || 0)))
+    // ⭐ ONE BUBBLE ON A PHONE (2026-09-23, user ask: "show only the last
+    // pinned item inside a Bubble"). The parked lane holds the NEWEST pin
+    // alone there — `listPins`' last element, the spine's append order (a
+    // re-pin mints a new, higher PIN skeleton, so "last pinned" is exactly
+    // this). The expanded column still lists every pin: that is the section
+    // the head glyph's tap extends upward "to explore other pinned items".
+    const shownPins = computed(() =>
+      windows.isMobile && win.value.minimized ? listPins.value.slice(-1) : listPins.value)
     // target_ref → refs summary ({ primary, route, … }): real titles for the
     // parked tooltips and the real viewer route for taps (a pinned post's
     // target_type is 'skeleton', but its summary routes to /posts/:id).
@@ -356,8 +366,9 @@ export default defineComponent({
         if (isCurrentPinned.value) await pinService.unpin(t.targetType, t.targetId)
         else await pinService.pin(t.targetType, t.targetId)
         await load()
-        // The bar still carries a fallback tack (mobile) whose count rides on
-        // this signal, and MainLayout routes it back down as `refreshKey`.
+        // The bar's fallback tack (only while this widget is closed — it left
+        // the phone 2026-09-23) reads its count off this signal, and
+        // MainLayout routes it back down as `refreshKey`.
         emit('changed')
       } catch (_) { /* ignore — surface via tooltip later */ }
     }
@@ -390,7 +401,14 @@ export default defineComponent({
     // back. The head glyph keeps its tap for touch screens.
     let hoverTimer = null
     const onHoverEnter = () => {
-      if (!win.value.minimized) return
+      // ⚠ NEVER ON A PHONE (2026-09-23, when the strip came back there): a
+      // tap fires `mouseenter` before its click, so tapping the bubble would
+      // navigate AND pop the panel open 150ms later — and iOS treats a
+      // hover handler that changes the page as "first tap = hover", eating
+      // the click outright. The head glyph's tap is the phone's way up.
+      // (`mouseleave` stays armed: a tap OUTSIDE the open panel fires it,
+      // which parks the panel exactly like the pointer leaving it.)
+      if (windows.isMobile || !win.value.minimized) return
       hoverTimer = setTimeout(() => { windows.restorePanel('pins') }, 150)
     }
     // ⚠ A HEIGHT TOGGLE CAN LEAVE THE POINTER OUTSIDE (2026-09-06 PM): the
@@ -469,7 +487,7 @@ export default defineComponent({
     // to lie over the bar's right end as a column; nothing changed.)
     const EDGE_Z = 3120
 
-    return { win, windows, pins, listPins, summaries, loading, copiedId, listEl, kindKeyOf, hashOf, isCurrent, openPin, onHoverEnter, onHoverLeave, toggleMax, railTitle, onUnpin, onCopy, onHistory, openSkeleton, skeletonOpening, pinnable, isCurrentPinned, onTack, EDGE_Z }
+    return { win, windows, pins, listPins, shownPins, summaries, loading, copiedId, listEl, kindKeyOf, hashOf, isCurrent, openPin, onHoverEnter, onHoverLeave, toggleMax, railTitle, onUnpin, onCopy, onHistory, openSkeleton, skeletonOpening, pinnable, isCurrentPinned, onTack, EDGE_Z }
   }
 })
 </script>
@@ -829,5 +847,20 @@ export default defineComponent({
 .pin-unpin:hover {
   background: rgba(193, 0, 21, 0.12);
   color: #b30418;
+}
+
+// ── ⭐ THE PHONE (2026-09-23, user ask: "for the pin section on the mobile
+// version, make it match the style of the pin Bubble on desktop mode and show
+// only the last pinned item inside a Bubble AND make sure I can extend the
+// section vertically from the footer nav tab to explore other pinned items").
+// The strip is THIS strip — same lane, same bubble, same night well — at
+// `--pins-strip-w` = `--strip-phone-w` (41px, the retired tack's footprint;
+// _tokens.scss), holding the newest pin alone (`shownPins`). The one number
+// that moves here is the head glyph's box: its bare 15px icon, the 5px of air
+// the desktop's 20px box carries being exactly what one bubble cannot spare.
+// Tapping it extends the panel upward (`restorePanel`); tapping the panel's
+// bottom bar — or anywhere outside it — parks it again.
+@media (max-width: 600px) {
+  .pins-side-head { width: 15px; }
 }
 </style>
