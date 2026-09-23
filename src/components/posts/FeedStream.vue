@@ -880,7 +880,10 @@
                  pill is thinner and takes its row; the LABEL RAIL is the row
                  under it. The band is the card's labeling section now — the
                  next two comments say how. The org badge beside the name is
-                 gone (it is a seat inside the pill, `is-active`). -->
+                 gone (it is a seat inside the pill, `is-active`).
+                 ⭐ 2026-09-22 PM5 — the author pill's name is set in
+                 NASALIZATION (`--font-display`, on `.post-square__identity`);
+                 the moment pill keeps the chip's Space Mono. -->
             <div class="post-square__byline">
               <!-- THE AUTHOR PILL — TWO ROWS TALL (2026-09-22, user ask: "make
                    the author chip twice as tall and keep the layout and
@@ -5305,7 +5308,9 @@ export default defineComponent({
 // grey-8 words). Restated rather than reused because MicroChip is
 // address-bound (it resolves and verifies what it names); these two name a
 // person and a time in words. ⚠ Keep the dials in step with the chip's — a
-// pill that drifts is a second object.
+// pill that drifts is a second object. (One deliberate departure: the AUTHOR
+// pill's FACE — Nasalization since 2026-09-22 PM5, a name rather than an
+// address; see `.post-square__identity`. Size, line, spacing stay these.)
 .post-square__pill {
   // ⭐ SLIGHTLY TALLER THAN THE CHIP (2026-09-21, later ask: "make both pills
   // slightly higher"): the height is a DIAL, `--pill-h` 20px, against the
@@ -6713,6 +6718,19 @@ export default defineComponent({
   // hover wash in the ACCENT — as the moment pill reads the moments kind's.
   --kind-accent: var(--entity-accent, #546e7a);
   --kind-ink: var(--entity-ink, #263238);
+  // ⭐ THE DISPLAY FACE (2026-09-22 PM5, user ask: "help me using
+  // nasalization on the author chip on the post cards") — the pill's words
+  // leave the nano chip's Space Mono for `--font-display`, the face the
+  // footer's identity square already sets the same name in
+  // (`.identity-chip__name`): a NAME needs no fixed advance. The rest stays
+  // the pill's — 0.72em, the 1.4 line, 0.02em (not the `.nasalization`
+  // utility's 0.05em, meant for headings with room), and 400: the face ships
+  // ONE weight, so 600/700 would be synthetic bold that re-measures the pill
+  // (specs/gotchas.md). Measured on the swap: ~9% NARROWER than Space Mono
+  // here (allegue 44.6 → 40.6px) and the ink (9.31 up / 2.14 down) inside
+  // the name's 14.11px line box, so its ellipsis clip cuts no descender.
+  // The seats' monograms pin their own Space Mono: the name is all it reaches.
+  font-family: var(--font-display);
   // ⭐ THE VEIL (2026-09-22 PM4, user ask: "apply the same veil on the author
   // chip used on the post cards and the button on the footer") —
   // `--identity-coat`: the identity window's coat, the entity family's pale
@@ -6892,9 +6910,10 @@ export default defineComponent({
   padding: 1px 6px;
 }
 
-// The name — the pill's words, on the pill's own face and size (Space Mono
-// 0.72em off `.post-square__pill`; the display face and the 700 weight went
-// with the identity block on 2026-09-21).
+// The name — the pill's words, at the pill's own size (0.72em off
+// `.post-square__pill`). The display face and the 700 weight went with the
+// identity block on 2026-09-21; the FACE came back alone on 2026-09-22 PM5
+// (Nasalization, set on `.post-square__identity`) — the 700 stays gone.
 .post-square__identity-name {
   // The grid's top-right cell since 2026-09-22 PM (`grid-area: name`); the
   // 14.1px line box centred in the 15px row.
