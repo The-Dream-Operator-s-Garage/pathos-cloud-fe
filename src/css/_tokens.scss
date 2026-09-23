@@ -1031,6 +1031,10 @@ $warning:   #F2C037;
   // composite ≈ rgb(238, 239, 239), a cool ice-white that reads blue-ish
   // beside the warm bar by contrast (blue-grey has no bluer light step;
   // -1 is the family's own "ice"). Two numbers to tune: the step, the alpha.
+  // ⭐ TWO surfaces read it since PM6 — the window and the footer chip: the
+  // feed card's author pill LEFT the veil (user ask: "paint the background of
+  // all three elements on the label section of the postcards light-cream")
+  // for the byline's flat `--byline-coat` (FeedStream.vue).
   --identity-veil: rgba(236, 239, 241, 0.9);
   --identity-coat:
     linear-gradient(var(--identity-veil), var(--identity-veil)),

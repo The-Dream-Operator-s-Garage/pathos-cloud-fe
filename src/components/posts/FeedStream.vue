@@ -883,7 +883,10 @@
                  gone (it is a seat inside the pill, `is-active`).
                  ⭐ 2026-09-22 PM5 — the author pill's name is set in
                  NASALIZATION (`--font-display`, on `.post-square__identity`);
-                 the moment pill keeps the chip's Space Mono. -->
+                 the moment pill keeps the chip's Space Mono.
+                 ⭐ PM6 — all three elements (author pill, moment pill, rail
+                 row) are painted flat LIGHT-CREAM off one dial on the band,
+                 `--byline-coat`. -->
             <div class="post-square__byline">
               <!-- THE AUTHOR PILL — TWO ROWS TALL (2026-09-22, user ask: "make
                    the author chip twice as tall and keep the layout and
@@ -5281,6 +5284,18 @@ export default defineComponent({
   // its 1px pads and its rule (was 45). Tune the two numbers, nothing else.
   --row-h: 16px;
   --row-gap: 2px;
+  // ⭐ THE SECTION'S COAT (2026-09-22 PM6, user ask: "paint the background of
+  // all three elements on the label section of the postcards light-cream"):
+  // ONE dial the author pill, the moment pill and the rail row all read —
+  // `--light-cream` FLAT, the sheet the chip family wears under its veils.
+  // The author pill's blue-grey identity veil (PM4) and the moment pill's
+  // `--plaque-coat` grey-3 @30% both came off here; the card around them is
+  // the same cream under a grey-3 @75% veil (`.post-square::before`), so the
+  // three read as the card's cream showing through it. A COLOUR, not a layer
+  // list: the pills' hover `color-mix()`es over it (over `--plaque-coat`'s
+  // list the mix was invalid and the moment pill's hover painted NOTHING —
+  // fixed by the same stroke).
+  --byline-coat: var(--light-cream, #fcf3e0);
   display: flex;
   align-items: center;
   justify-content: flex-start;
@@ -5308,9 +5323,11 @@ export default defineComponent({
 // grey-8 words). Restated rather than reused because MicroChip is
 // address-bound (it resolves and verifies what it names); these two name a
 // person and a time in words. ⚠ Keep the dials in step with the chip's — a
-// pill that drifts is a second object. (One deliberate departure: the AUTHOR
-// pill's FACE — Nasalization since 2026-09-22 PM5, a name rather than an
-// address; see `.post-square__identity`. Size, line, spacing stay these.)
+// pill that drifts is a second object. (Two deliberate departures: the AUTHOR
+// pill's typeface — Nasalization since 2026-09-22 PM5, a name rather than an
+// address, see `.post-square__identity` — and BOTH pills' COAT since PM6,
+// the band's `--byline-coat` (flat light-cream) where the chip keeps
+// `--plaque-coat`'s grey-3 veil. Size, line, spacing, rim stay these.)
 .post-square__pill {
   // ⭐ SLIGHTLY TALLER THAN THE CHIP (2026-09-21, later ask: "make both pills
   // slightly higher"): the height is a DIAL, `--pill-h` 20px, against the
@@ -5331,7 +5348,7 @@ export default defineComponent({
   padding: 0 6px;
   border-radius: calc(var(--chip-half-h) * var(--round));
   border: 1px solid rgba(var(--ink-rgb), 0.18);
-  background: var(--plaque-coat, #f8f2e4);
+  background: var(--byline-coat, var(--light-cream, #fcf3e0)); // the band's dial (PM6; was `--plaque-coat`)
   color: var(--kind-ink, var(--grey-8, #424242));
   font-family: 'Space Mono', monospace;
   font-size: 0.72em;
@@ -5343,8 +5360,12 @@ export default defineComponent({
   text-decoration: none;
   vertical-align: middle;
   transition: background 0.12s, color 0.12s, border-color 0.12s;
-  // Hover — the chip's 12% wash of the accent over the cream.
-  &:hover { background: color-mix(in srgb, var(--kind-accent, var(--ink)) 12%, var(--plaque-coat, #f8f2e4)); }
+  // Hover — the chip's 12% wash of the accent over the cream. ⚠ The second
+  // colour must be a COLOUR: `color-mix()` over a layer list (the old
+  // `--plaque-coat`) is invalid at computed-value time, and `background`
+  // then falls back to transparent — the moment pill's hover drew nothing
+  // until 2026-09-22 PM6.
+  &:hover { background: color-mix(in srgb, var(--kind-accent, var(--ink)) 12%, var(--byline-coat, var(--light-cream, #fcf3e0))); }
 }
 // The author's face — the profile picture at the pill's INNER height less a
 // 1px ring (16px inside the 20px pill; see `.post-square__identity`),
@@ -5947,6 +5968,22 @@ export default defineComponent({
 // 0` below — 2026-08-10's arithmetic, kept). `.post-square__rail-strip` has
 // no rule and no consumer.
 
+// THE RAIL ROW'S COAT (2026-09-22 PM6, user ask: "paint the background of all
+// three elements on the label section of the postcards light-cream") — the
+// section's third element is the ROW, not the scroller: the rail and its `+`
+// cell on one pad in the band's `--byline-coat`, exactly as wide as the
+// moment pill above it (each is its row), so the right column reads as two
+// pads of one width. The corner by the chip's law off the row's height — 70%
+// of half of `--row-h` = 5.6px, the moment pill's own. NO RIM: a 1px border
+// would come out of a 16px row its plates fill exactly (border-box — the
+// zero-sum-strip gotcha) and the rail's `overflow-y: hidden` would shave
+// them; the coat alone is the ask.
+.post-square__rail-row {
+  --rail-corner: calc(var(--row-h) / 2 * 0.7);
+  background: var(--byline-coat, var(--light-cream, #fcf3e0));
+  border-radius: var(--rail-corner);
+}
+
 .post-square__rail {
   display: flex;
   flex-wrap: nowrap;
@@ -5975,7 +6012,12 @@ export default defineComponent({
   height: var(--row-h);
   padding: 0 2px;
   border: 0;
-  border-radius: 0;
+  // Still no coat of its own — the ROW under it paints since PM6 (above).
+  // Its LEFT corners follow the row's: a scroller clips its plates to its own
+  // rounded box, so a plate scrolled past the lead is cut on the pad's curve
+  // instead of squaring off over the card beside it. The right end stays
+  // square, inside the pad, where the overflow is meant to show as a cut.
+  border-radius: var(--rail-corner, 0) 0 0 var(--rail-corner, 0);
   background: transparent;
   overflow-x: auto;
   overflow-y: hidden;
@@ -6731,20 +6773,15 @@ export default defineComponent({
   // the name's 14.11px line box, so its ellipsis clip cuts no descender.
   // The seats' monograms pin their own Space Mono: the name is all it reaches.
   font-family: var(--font-display);
-  // ⭐ THE VEIL (2026-09-22 PM4, user ask: "apply the same veil on the author
-  // chip used on the post cards and the button on the footer") —
-  // `--identity-coat`: the identity window's coat, the entity family's pale
-  // (blue-grey-1) at 40% over the same light-cream sheet every pill wears
-  // (the nano pill's `--plaque-coat` is that sheet under the bar's grey-3).
-  // A layer list, so the hover restates it under the pill's 12% accent wash
-  // as a third layer (the base pill's `color-mix` over a list would be
-  // dropped as invalid).
-  background: var(--identity-coat, var(--plaque-coat));
-  &:hover {
-    background:
-      linear-gradient(color-mix(in srgb, var(--kind-accent) 12%, transparent), color-mix(in srgb, var(--kind-accent) 12%, transparent)),
-      var(--identity-coat, var(--plaque-coat));
-  }
+  // THE VEIL CAME OFF (2026-09-22 PM6, user ask: "paint the background of
+  // all three elements on the label section of the postcards light-cream").
+  // From PM4 this pill wore `--identity-coat` — the identity window's
+  // blue-grey-1 veil over the cream, a layer list, so it restated the hover
+  // as a third layer. It paints the BASE pill's coat now, the band's
+  // `--byline-coat` (flat light-cream), and takes the base pill's hover: a
+  // 12% wash of `--kind-accent` (the entity accent, above) mixed into that
+  // colour. The footer's identity square and the identity window keep the
+  // veil.
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
   grid-template-rows: calc(var(--row-h) - 1px) calc(var(--row-h) - 1px);
