@@ -982,27 +982,81 @@
                    labeling section" the ask named. -->
               <div class="post-square__byline-col">
                 <div class="post-square__byline-row">
-                  <component
-                    :is="item.moment?.id ? 'router-link' : 'span'"
-                    :to="item.moment?.id ? '/moments/' + item.moment.id : undefined"
-                    class="post-square__pill post-square__when"
-                    :style="momentPillStyle"
-                    :title="momentLine(item) + (item.moment?.id ? ' — open moment' : '')"
-                    @click.stop
-                  >
-                    <q-icon :name="GLOBE_CLOCK" size="10px" class="post-square__pill-icon" />
-                    <span class="post-square__when-text">{{ momentWhen(item) }}</span>
-                    <!-- The WHERE, when there is one (2026-09-21, user ask: "put the
-                         'globe_location_pin' next to the location if the location
-                         is available"): the chip's `/` separator's cousin, a
-                         middle dot, then the pin glyph (in the font — `sym_o_`) in
-                         the same gold, then the place — the one run that yields. -->
-                    <template v-if="item.moment?.place">
-                      <span class="post-square__when-sep" aria-hidden="true">·</span>
-                      <q-icon name="sym_o_globe_location_pin" size="10px" class="post-square__pill-icon post-square__pill-pin" />
+                  <!-- THE MOMENT PLATE (2026-09-22 PM8, user ask: "copy the
+                       verified container and then … put the time and space
+                       pill inside another container that looks the same, but
+                       uses the globe_clock icon instead of the verified one …
+                       separate the time and space pill into two different
+                       pills and make them denser by reducing the outer
+                       paddings so they fit well inside the new container …
+                       the pill's length adapt to cover the full length of the
+                       container they're in that must cover the whole width of
+                       the available row"; then "use the clock icon on the time
+                       pill and the 'location_on' for the location one"). The
+                       row's one object is the LABEL PLATE'S BOX restated
+                       (`.post-square__moment` shares `.post-square__bundle`'s
+                       rule — one plate, two wearers) stretched to the row, its
+                       HEAD the moment's own `globe_clock` where the label plate
+                       shows `verified`, and on it the two pills the one moment
+                       pill split in two: TIME (`schedule` + when) and SPACE
+                       (`location_on` + place), each grown to share the plate's
+                       length, both still the moment's door (`#/moments/<id>`,
+                       the capture-phase door → the moment window). The `·`
+                       seam went with the split: the gap between the pills is
+                       the seam now. ⚠ FLYOUT HANDLING DELIBERATELY UNCHANGED
+                       ("leave the flyout handling for later"): both pills open
+                       the moment as the one pill did; what the time pill and
+                       the space pill should each open is the next ask, not
+                       this one. The kind's two colour dials ride the PLATE
+                       (`momentPillStyle`) so the head, both pills and their
+                       hover wash all read them by inheritance. -->
+                  <div class="post-square__moment" :style="momentPillStyle">
+                    <!-- THE HEAD — the label plate's origin cell, restated for
+                         the moment: `globe_clock` (utils/glyphs.js — the font
+                         lacks it) at the verified badge's 12px, in the kind's
+                         gold, the whole "when · where" line on its tooltip and
+                         for assistive tech, exactly as the label head carries
+                         its root's name. -->
+                    <span
+                      class="post-square__moment-head"
+                      role="img"
+                      :title="momentLine(item)"
+                      :aria-label="'When and where — ' + momentLine(item)"
+                    >
+                      <q-icon :name="GLOBE_CLOCK" size="12px" class="post-square__moment-glyph" />
+                    </span>
+                    <!-- THE TIME PILL — the clock ligature (`schedule`, the
+                         glyph the moment window's bar and the composer's when
+                         chip already wear) then the when. It never yields
+                         (`.is-time` — grow, no shrink): a trimmed place is
+                         better than a trimmed date, the 2026-08-10 argument. -->
+                    <component
+                      :is="item.moment?.id ? 'router-link' : 'span'"
+                      :to="item.moment?.id ? '/moments/' + item.moment.id : undefined"
+                      class="post-square__pill post-square__when is-time"
+                      :title="momentWhen(item) + (item.moment?.id ? ' — open moment' : '')"
+                      @click.stop
+                    >
+                      <q-icon name="schedule" size="10px" class="post-square__pill-icon" />
+                      <span class="post-square__when-text">{{ momentWhen(item) }}</span>
+                    </component>
+                    <!-- THE SPACE PILL, when there is a where (the 2026-09-21
+                         "put the pin next to the location if the location is
+                         available" ask, kept): `location_on` (user ask — was
+                         `sym_o_globe_location_pin`) then the place, the run
+                         that ellipsizes. -->
+                    <component
+                      v-if="item.moment?.place"
+                      :is="item.moment?.id ? 'router-link' : 'span'"
+                      :to="item.moment?.id ? '/moments/' + item.moment.id : undefined"
+                      class="post-square__pill post-square__when is-space"
+                      :title="item.moment.place + (item.moment?.id ? ' — open moment' : '')"
+                      @click.stop
+                    >
+                      <q-icon name="location_on" size="10px" class="post-square__pill-icon post-square__pill-pin" />
                       <span class="post-square__when-place">{{ item.moment.place }}</span>
-                    </template>
-                  </component>
+                    </component>
+                  </div>
                   <span
                     v-if="sortOrder === 'heat' && item.heat != null"
                     class="post-square__heat"
@@ -5553,27 +5607,53 @@ export default defineComponent({
 // pill that yields: `flex: 0 1 auto` + the text's ellipsis, so on a narrow
 // card the place goes before the date does and the author never loses a
 // letter. Hover lifts the words to the accent, the chip's own gesture.
+// ⭐ 2026-09-22 PM8 — TWO PILLS ON A PLATE (user ask; the template's note has
+// the words): the one pill split into TIME (`.is-time`) and SPACE
+// (`.is-space`), both lying on `.post-square__moment` — the label plate's box
+// (its rule is the bundle's, down with the rail family) stretched to the row.
+// The pill's ROW-height dial (16, "the pill IS the row" since the PM dense
+// pass; 18 that morning, 20 at birth) is gone: the plate is the row now, and
+// the pills inside it take the MEMBER's numbers — the label plate's own
+// nesting — so the two plates read as one object twice:
+//   · 12px in the plate's 14 (a 1px lane a side, `align-items: center`);
+//   · `0 3px` pads (the pill's 6 halved — "reducing the outer paddings"),
+//     a 2px gap glyph → words;
+//   · 0.5px rim (the member's weight; the pill's 18% ink hairline kept as the
+//     colour), 3px corners (the member's step under the plate's 5 — NOT the
+//     chip's law: 70% of 6 would be 4.2, less than a pixel under the plate's
+//     corner, and a nested corner has to step);
+//   · 0.62em on a unit line — the MEMBER's type, not the chip's 0.72.
+//     ⚠ Not taste, geometry: 10.08px Space Mono at `line-height: 1` has a
+//     1.48em content area (ascender 1120 / descender −361), so in a 12px
+//     border-box its baseline lands ~9px down and a `p` or `y` descender
+//     (~0.27em) runs ~1px past the box — CLIPPED by the pill's own
+//     `overflow: hidden`, visibly, on every "Sep". At 8.68px the tail ends
+//     inside the box. (The members never met this: they are uppercase.)
+//     gotchas.md has the rule of thumb.
+// Both pills GROW (`flex: 1 1 auto`) so together they cover the plate's whole
+// inner length — the ask — the slack split evenly; the time pill alone fills
+// it when the moment has no place. `min-width: 0` on the space pill lets its
+// place ellipsize; the time pill never shrinks (`1 0 auto`).
 .post-square__when {
-  // ⭐ 2026-09-22 — THINNER AND FULL-WIDTH (user ask: "make the moment chip
-  // thinner and extend its width to its container so it occupies all
-  // available space"): `--pill-h` 18 against the band's row unit of 20 (the
-  // corner follows the chip's LAW — 70% of 9 = 6.3px, the foot chip's own
-  // family), and `flex: 1 1 auto` so it takes the column's whole first row;
-  // the heat plate, when the heat lens is on, is the one rigid thing after
-  // it. `0 1 auto` before this — it hugged its words beside the author.
-  // `--row-h` since 2026-09-22 PM (was 18): the pill IS the row — 16px, its
-  // words' line box plus two borders; corner by the law, 70% of 8 = 5.6px.
-  --pill-h: var(--row-h);
+  --pill-h: 12px;
   flex: 1 1 auto;
-  width: 100%;
+  min-width: 0;
+  padding: 0 3px;
+  gap: 2px;
+  font-size: 0.62em;
+  line-height: 1;
+  border-width: 0.5px;
+  border-radius: 3px;
+  &.is-time { flex: 1 0 auto; }
   &:hover .post-square__when-text,
   &:hover .post-square__when-place { color: var(--kind-accent, currentColor); }
 }
 // The WHEN never yields; the WHERE does (the 2026-08-10 argument: a trimmed
 // place is better than a trimmed date, and the author beside them never
-// loses a letter either way). The pin glyph leads the place (2026-09-21).
+// loses a letter either way). The pin glyph leads the place (2026-09-21;
+// `location_on` since PM8). The `·` seam (`.post-square__when-sep`) went
+// with the split — the plate's gap is the seam.
 .post-square__when-text { flex: 0 0 auto; }
-.post-square__when-sep { flex: 0 0 auto; opacity: 0.55; }
 .post-square__when-place {
   flex: 0 1 auto;
   min-width: 0;
@@ -6159,7 +6239,17 @@ export default defineComponent({
 //
 // No padding of its own beyond a hair: the members carry their own, and the
 // plate is a holder.
-.post-square__bundle {
+// ⭐ 2026-09-22 PM8 — TWO WEARERS, ONE RULE (user ask: "copy the verified
+// container … another container that looks the same"): the byline's MOMENT
+// PLATE (`.post-square__moment`, row 1 of the right column) is this box
+// verbatim — the coat, the rim, the corners, the pads, the clip, the hover
+// rim — stated ONCE as a selector list rather than restated, so the two
+// plates cannot drift into two objects (the drift the pill rule warns of).
+// What differs is below in each plate's own rule: the bundle is rigid in a
+// scroller, the moment plate is stretched to its row; the bundle's head
+// answers hover in the entity ink, the moment's in the kind's.
+.post-square__bundle,
+.post-square__moment {
   display: inline-flex;
   align-items: center;
   gap: 3px;
@@ -6322,9 +6412,43 @@ export default defineComponent({
     // ⭐ 2026-09-22 PM7 — the mark and the seam are GONE (the head states
     // the origin); what answers with the plate is the VERIFIED BADGE, one
     // step deeper in its own family: the entity accent → the entity ink.
-    .post-square__bundle-verified { color: var(--entity-ink, #263238); }
+    // (PM8: that answer is each wearer's own — the bundle's just below,
+    // the moment plate's with its head's rule.)
   }
 }
+.post-square__bundle:hover .post-square__bundle-verified { color: var(--entity-ink, #263238); }
+
+// THE MOMENT PLATE'S OWN RULE (2026-09-22 PM8) — everything the shared box
+// above does not say. It is the byline's first row, so where the bundle is
+// rigid inside a scroller this one is STRETCHED to the row: `flex: 1 1 auto`
+// + `width: 100%` (the old moment pill's pair, so the heat plate — when the
+// heat lens is on — still stands rigid after it and this gives), `min-width:
+// 0` so the space pill inside can ellipsize. The kind's dials arrive inline
+// (`momentPillStyle` on the element) and the head, both pills and their
+// hover wash read them by inheritance.
+.post-square__moment {
+  flex: 1 1 auto;
+  width: 100%;
+  min-width: 0;
+}
+// THE HEAD — `.post-square__bundle-root`'s box (the −1px tuck that brings the
+// glyph to 2px off the rim) without its words (a moment head is never a
+// spelt name). The glyph is the verified badge's twin: 12px, the KIND's
+// accent at rest (gold, kinds.js — where the label head wears the entity
+// family's blue-grey), the kind's INK under the pointer, no opacity dial (the
+// pills' 10px glyphs keep the chip's 0.85).
+.post-square__moment-head {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+  margin-left: -1px;
+  line-height: 0;
+}
+.post-square__moment-glyph {
+  flex: 0 0 auto;
+  color: var(--kind-accent, #c79a00);
+}
+.post-square__moment:hover .post-square__moment-glyph { color: var(--kind-ink, #5f4700); }
 
 // (THE SEAM — `::` between the tree and its labels, `.post-square__bundle-sep`,
 // the card's own "this term qualifies the next" separator, bold, pulled in
