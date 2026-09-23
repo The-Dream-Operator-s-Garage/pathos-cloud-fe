@@ -417,7 +417,7 @@ $cyan-14: #00b8d4;
 // and `blue-grey-10` (Material 900) its INK. Hand-minted like every family
 // here (the sheet never imports Quasar's palette). Their consumers are the
 // two entity dials below, and `utils/kinds.js` mirrors the hexes.
-$blue-grey-1:  #eceff1; // the family's pale — the identity window's VEIL (2026-09-22 PM4)
+$blue-grey-2:  #cfd8dc; // Material 100 — the identity VEIL (2026-09-22 PM4b; -1 @40% was invisible over the cream)
 $blue-grey-7:  #546e7a;
 $blue-grey-10: #263238;
 
@@ -1012,13 +1012,18 @@ $warning:   #F2C037;
   // color. Help me applying the same onto the identity window extendable
   // from the footer bar") — the creation docks' recipe (`--labels-coat`
   // below: the family's -1 at 40% over `--light-cream`) in the ENTITY
-  // family: `$blue-grey-1` (236, 239, 241) @40% over the cream. Composite
-  // ≈ rgb(246, 241, 235), a cool cream a few points off the bar's grey-3
-  // veil — the window reads as the person's, not the bar's. Read by
+  // family. ⭐ PM4b — ONE STEP DEEPER AND HALF (user ask: "the veil is not
+  // visible on the identity window nor the author chip … make it more
+  // intense"): `$blue-grey-2` (207, 216, 220) @50%. The -1 @40% composited
+  // to ≈ rgb(246, 241, 235), two points off the bar's own grey-3 wash —
+  // blue-grey has no hue to carry a pale tint the way red-1 carries the
+  // labels'; it needs mass. -2 @50% composites to ≈ rgb(230, 230, 222), a
+  // cool grey-cream the eye reads beside the bar. Tune the two numbers
+  // here (step, alpha) — the three surfaces follow. Read by
   // `.identity-dock`'s `background` DIRECTLY (not through `--dock-coat`:
   // that dial is the six bottom docks' one declaration, and fsck's
   // `dock-coat` witness guards it — this window paints its own list).
-  --identity-veil: rgba(236, 239, 241, 0.4);
+  --identity-veil: rgba(207, 216, 220, 0.5);
   --identity-coat:
     linear-gradient(var(--identity-veil), var(--identity-veil)),
     var(--light-cream);
