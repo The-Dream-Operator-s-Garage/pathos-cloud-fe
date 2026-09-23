@@ -698,7 +698,11 @@
 
                  — an EDIT cell stands first after the name, on the posts
                  the acting entity owns (see the cell's own note), and the
-                 name is back in Nasalization, a step under the pit's size. -->
+                 name is back in Nasalization, a step under the pit's size.
+                 ⭐ AND THE SAME NIGHT (user ask: "please use the same font on
+                 the post card's title as in the post cards content
+                 container, but make it bold"): the name left Nasalization
+                 again for the PIT's face, BOLD, keeping that smaller size. -->
             <div class="post-square__cap">
               <!-- THE EXPAND LEAD stood here from 2026-08-09 until 2026-09-23
                    (user ask) — an `expand` glyph in its own cell at the card's
@@ -4484,6 +4488,9 @@ export default defineComponent({
   // and try nasalization font on it"): 0.8 of the card = 11.2px — between
   // the 10.07 Nasalization it read at this morning ("a little bigger", the
   // afternoon said) and the pit's 12.32 Inter it read at this afternoon.
+  // KEPT when the face went back to the pit's, bold, the same night (EVE2) —
+  // that ask named the face and the weight, and this is the size the
+  // "slightly smaller" ask chose.
   --cap-title-scale: 0.8;
   // The ceiling — the LOWER of two limits, so whichever bites first wins:
   //
@@ -5548,6 +5555,12 @@ export default defineComponent({
 // card's new `--cap-title-scale` (0.8 = 11.2px), tracked 0.02em like the rest
 // of the strip; floor, corner, rim, width, centring and the 18/16 box are
 // unchanged. The declaration has the numbers.
+//
+// ⭐ 2026-09-23 EVE2 — THE PIT'S FACE, BOLD (user ask: "please use the same
+// font on the post card's title as in the post cards content container, but
+// make it bold"): the family is the pit's `--font-body` again, at 700 and the
+// pit's own tracking; the size stays the evening's 11.2px. The declaration
+// has the why.
 .post-square__cap-title-chip {
   flex: 1 1 auto;
   min-width: 0;
@@ -5558,19 +5571,24 @@ export default defineComponent({
   height: 18px;
   margin: 0;
   font: inherit;
-  // ⭐ NASALIZATION AGAIN, A STEP SMALLER (2026-09-23 EVE, user ask: "make
-  // the title section of the headers have slightly smaller font and try
-  // nasalization font on it"): the strip's own display face — `font:
-  // inherit` already carries the cap's `--font-display`; the family is
-  // restated so the walk reads here — at `--cap-title-scale` of the card
-  // (0.8, 11.2px; the pit's 0.88 / 12.32px Inter until tonight), with the
-  // strip's 0.02em tracking where Inter took none. The 16px line still
-  // clears it: Nasalization's content area is 1.188em (hhea 924 + 264 on a
-  // 1000 em) = 13.31px here.
-  font-family: var(--font-display);
+  // ⭐ THE PIT'S FACE, BOLD (2026-09-23 EVE2, user ask: "please use the same
+  // font on the post card's title as in the post cards content container,
+  // but make it bold"). The walk, one evening: the pit's Inter at 12.32px
+  // (PM) → Nasalization at 11.2px, 0.02em (EVE: "slightly smaller … try
+  // nasalization") → THIS: `--font-body`, the very token the pit inherits
+  // through `body`, so the two faces cannot drift apart; 700; the pit's own
+  // tracking (none — `font: inherit` does not carry letter-spacing, so the
+  // strip's 0.02em is reset here). The SIZE stays the EVE pass's
+  // `--cap-title-scale` (0.8 = 11.2px): this ask named the face and the
+  // weight, and the smaller size was its own ask. ⚠ `--font-body` is a
+  // SYSTEM stack — no Inter web font ships (app.scss loads only Space Mono
+  // and Nasalization), so the pit draws Inter where it is installed, else
+  // Helvetica Neue / system-ui — and every member has a real bold cut, so
+  // 700 is drawn, never synthesized. Still 18px on the 16px line.
+  font-family: var(--font-body, 'Inter', 'Helvetica Neue', system-ui, sans-serif);
   font-size: calc(var(--cap-title-scale, 0.8) / var(--cap-scale, 0.62) * 1em);
-  font-weight: 400;
-  letter-spacing: 0.02em;
+  font-weight: 700;
+  letter-spacing: normal;
   line-height: 16px;
   color: var(--ink, #2C3D4E);
   padding: 0 4px;
