@@ -365,21 +365,24 @@ export default defineComponent({
 // The header row on the shared coat, ruled and inked in the family's dials —
 // `--dock-rule` under it, `--dock-ink` on the glyph and title, `--dock-ink-mute`
 // on the meta. The same three the board's head wears at the bar's other end.
-// ⭐ THE DARK CAP (2026-09-22 PM4c, user ask: "use like the darkest tones on
-// the frieze bar below the header and also paint the header!"): the head is
-// the entity family's blue-grey-9 (`--identity-head`), its glyph and title
-// the family's ice (-1), the meta -3, and the rule under it is the FRIEZE's
-// base (-10) so the two read as one dark band. The board's three head dials
-// (`--dock-rule` / `--dock-ink` / `--dock-ink-mute`) still dress the BODY —
-// the wells' rules and the section titles — this is the cap alone.
+// ⭐ THE HEAD IS THE BODY'S COAT (2026-09-22 PM4d, user ask: "paint the
+// header with the same color as the body of the window"; PM4c had it
+// blue-grey-9 for one commit): `--identity-head` = `--identity-coat`, the
+// veil over the cream — one material from the head to the floor — with the
+// entity family's INK on the glyph and title and its ACCENT on the meta so
+// the words read on the light coat and tie to the slate frieze under them.
+// The rule under the head is the FRIEZE's floor (-10), so head → frieze
+// reads as a light band then a dark one cut into it. The board's three head
+// dials (`--dock-rule` / `--dock-ink` / `--dock-ink-mute`) still dress the
+// BODY — the wells' rules and the section titles.
 .identity-dock .dock-bar {
-  background: var(--identity-head, #37474f);
+  background: var(--identity-head, var(--identity-coat));
   border-bottom: 1px solid var(--identity-frieze, #263238);
 }
 
 .identity-dock .dock-bar__icon,
-.identity-dock .dock-bar__title { color: var(--identity-head-ink, #eceff1); }
-.identity-dock .dock-bar__meta { color: var(--identity-head-mute, #b0bec5); text-transform: none; }
+.identity-dock .dock-bar__title { color: var(--identity-head-ink, #263238); }
+.identity-dock .dock-bar__meta { color: var(--identity-head-mute, #546e7a); text-transform: none; }
 
 // The slim frieze under the head, on the family's FLOOR (-10) with its wave
 // carved in -8 — the "darkest tones" of the ask. `.flyout-window__frieze`

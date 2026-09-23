@@ -417,10 +417,8 @@ $cyan-14: #00b8d4;
 // and `blue-grey-10` (Material 900) its INK. Hand-minted like every family
 // here (the sheet never imports Quasar's palette). Their consumers are the
 // two entity dials below, and `utils/kinds.js` mirrors the hexes.
-$blue-grey-1:  #eceff1; // Material 50  — the identity VEIL (at 90%: PM4c) and the dark head's title ink
-$blue-grey-3:  #b0bec5; // Material 200 — the dark head's meta ink
+$blue-grey-1:  #eceff1; // Material 50  — the identity VEIL (at 90%: PM4c)
 $blue-grey-8:  #455a64; // Material 700 — the identity frieze's wave
-$blue-grey-9:  #37474f; // Material 800 — the identity window's HEAD
 $blue-grey-7:  #546e7a;
 $blue-grey-10: #263238;
 
@@ -1037,18 +1035,20 @@ $warning:   #F2C037;
   --identity-coat:
     linear-gradient(var(--identity-veil), var(--identity-veil)),
     var(--light-cream);
-  // ⭐ THE DARK CAP (2026-09-22 PM4c, user ask: "for the identity window,
-  // please use like the darkest tones on the frieze bar below the header
-  // and also paint the header!"): the window's HEAD is blue-grey-9 with
-  // the family's ice (-1) for its title and glyph and -3 for the meta; the
-  // slim FRIEZE under it is blue-grey-10 — the family's floor — with its
-  // wave carved in -8. The head's own rule under it is the frieze's base,
-  // so head → frieze reads as one dark band with a motif cut in its lower
-  // half. (Before this the head was the shared coat under grey rules and
-  // brown ink, the frieze the flyout family's grey-9 — the board's.)
-  --identity-head: #{$blue-grey-9};
-  --identity-head-ink: #{$blue-grey-1};
-  --identity-head-mute: #{$blue-grey-3};
+  // ⭐ THE HEAD AND THE FRIEZE (2026-09-22 PM4c/d, user asks: "use like the
+  // darkest tones on the frieze bar below the header and also paint the
+  // header!" → "paint the header with the same color as the body of the
+  // window"): the HEAD wears the window's own coat — `--identity-coat`, the
+  // veil over the cream, exactly the body — with the family's INK on its
+  // title and glyph and the ACCENT on the meta; the slim FRIEZE under it is
+  // blue-grey-10, the family's floor, with its wave carved in -8, and the
+  // head's rule under it is that same floor, so the frieze reads as a dark
+  // band cut into a light window. (PM4c painted the head blue-grey-9 for
+  // one commit — "nooo".) Before this the head was the shared plaque coat
+  // under grey rules and brown ink, the frieze the flyout family's grey-9.
+  --identity-head: var(--identity-coat);
+  --identity-head-ink: var(--entity-ink);
+  --identity-head-mute: var(--entity-accent);
   --identity-frieze: #{$blue-grey-10};
   --identity-frieze-wave: #{$blue-grey-8};
   --cyan-11: #{$cyan-11};      // (It held the post window's GLOW for one ask on 2026-09-05; the set walked to the -3s the same day — see `--cyan-3`.) Quasar cyan-11 (accent A100) — the WARM END of the RGB HAIRLINE's gradient filling (2026-08-07, user ask, `layout/RgbHairline.vue`), running to `--indigo-11` down a 3px band held between two `--grey-6` rules. The third A100 taken into service (with `--teal-11` and `--indigo-11`): a mark made of two hues is built from accents at ONE index, so it reads as a ramp turning colour rather than as a bright tone fading into a dull one. (It was "the only level of the cyan family" when written; `--cyan-9`/`--cyan-10` arrived 2026-08-09 for the post card byline.) (It HELD the side-chrome frieze weave's cold CENTRE for part of 2026-08-17's sitting, lost the role to `--teal-11` in that sitting's hue walk, and the weave itself went sober grey on 2026-08-21 — the trio rule in `_components.scss` is flat greys now)
