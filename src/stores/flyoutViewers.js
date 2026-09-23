@@ -165,7 +165,15 @@ export const useFlyoutViewersStore = defineStore('flyoutViewers', {
     //                 moments / paths / links / secrets: the kind's Mini panel
     //                 as the element face, the surround walk as the skeleton),
     //   rect: {x,y,w,h}|null, natural: {w,h}|null, minimized, maximized,
-    //   label, icon }
+    //   label, icon, view }
+    // `view` (2026-09-23, the feed card's EDIT door) is the FACE the window
+    // was asked for or last switched to — 'element' | 'skeleton' — and null
+    // while nobody has chosen, which means the kind's own default (posts,
+    // nodes, entities and elements on the element; a bare ref on the
+    // skeleton). It lives HERE rather than in the window because a door has
+    // to be able to ask for a face before the window exists (the edit button
+    // spawns a post straight onto its skeleton) and the feed has to be able
+    // to read which posts stand on it (the edit button's lit state).
     // `node`/`item` arrive ENRICHED from their triggers (NodeMini's card,
     // the feed's item) — the viewer never re-fetches what it was handed.
     // `rect` stays null until the fit engine places the window (the shell
@@ -183,6 +191,12 @@ export const useFlyoutViewersStore = defineStore('flyoutViewers', {
     // hold an OPEN (not parked) window right now.
     openPostIds: (s) => s.viewers
       .filter(v => !v.minimized && v.target.kind === 'post')
+      .map(v => String(v.target.item.skeleton_id)),
+    // …and which of those stand on the SKELETON face — the posts being
+    // EDITED (2026-09-23): the cap's edit button lights off this the way
+    // its flyout button lights off `openPostIds`.
+    editPostIds: (s) => s.viewers
+      .filter(v => !v.minimized && v.target.kind === 'post' && v.view === 'skeleton')
       .map(v => String(v.target.item.skeleton_id))
   },
 
@@ -213,6 +227,11 @@ export const useFlyoutViewersStore = defineStore('flyoutViewers', {
         // an event at all (it would spam the sub-stack with noise).
         const wasParked = existing.minimized
         existing.minimized = false
+        // A door that names a FACE turns the window to it (2026-09-23 — the
+        // card's edit button on a post whose window is already up on the
+        // postcard): fronting it on whatever face it happened to show would
+        // answer a different press than the one made.
+        if (opts.view) existing.view = opts.view
         this.focus(existing.id)
         if (wasParked) this._record('RESTORE_WINDOW', existing)
         this._persist()
@@ -227,7 +246,8 @@ export const useFlyoutViewersStore = defineStore('flyoutViewers', {
         minimized: !!opts.minimized,
         maximized: !!opts.maximized,
         label: opts.label || '',
-        icon: opts.icon || ''
+        icon: opts.icon || '',
+        view: opts.view || null
       }
       this.viewers.push(viewer)
       if (!viewer.minimized) this.focus(id)
@@ -277,7 +297,10 @@ export const useFlyoutViewersStore = defineStore('flyoutViewers', {
               minimized: !!v.minimized,
               maximized: !!v.maximized,
               label: v.label || '',
-              icon: v.icon || ''
+              icon: v.icon || '',
+              // The face it was left on (2026-09-23) — a window parked
+              // mid-edit comes back on the grid, not on the postcard.
+              view: v.view || null
             })
           }
           navService.saveWindows(rows)
@@ -304,6 +327,7 @@ export const useFlyoutViewersStore = defineStore('flyoutViewers', {
             maximized: !!w.maximized,
             label: w.label || '',
             icon: w.icon || '',
+            view: w.view || null,
             rehydrating: true
           })
         }
@@ -315,9 +339,12 @@ export const useFlyoutViewersStore = defineStore('flyoutViewers', {
       if (!node || !node.id) return null
       return this.spawn({ kind: 'node', node })
     },
-    spawnPost (item) {
+    // `opts.view` (2026-09-23): the face to open on — the card cap's EDIT
+    // button asks for 'skeleton' (the post read as its slots); the flyout
+    // button asks for nothing, the kind's default, the postcard.
+    spawnPost (item, opts = {}) {
       if (!item || item.skeleton_id == null) return null
-      return this.spawn({ kind: 'post', item })
+      return this.spawn({ kind: 'post', item }, { view: opts.view || null })
     },
     spawnRef (ref) {
       if (ref == null || ref === '') return null
@@ -388,6 +415,16 @@ export const useFlyoutViewersStore = defineStore('flyoutViewers', {
           if (place?.targetRoute) useNavStore().renameStop(place.targetRoute, label)
         } catch (_) { /* cosmetic */ }
       }
+      this._persist()
+    },
+
+    // The window's VIEW SWITCH writes through here (2026-09-23): the face
+    // is store state now (see `view` in the state note), so the feed's edit
+    // button can read it and the tray can keep it.
+    setView (id, view) {
+      const v = this.byId(id)
+      if (!v) return
+      v.view = view === 'skeleton' ? 'skeleton' : 'element'
       this._persist()
     },
 

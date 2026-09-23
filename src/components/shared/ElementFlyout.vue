@@ -26,7 +26,9 @@
   · post (the card cap's open_in_new / the foot's references button):
     element view = THE POSTCARD ITSELF through FeedStream's embed mode —
     same markup, same scoped styles, none of the feed's furniture.
-    Skeleton view = SkeletonTable on the post's skeleton id.
+    Skeleton view = SkeletonTable on the post's skeleton id — where the
+    cap's EDIT button (2026-09-23) opens the window. (POST cells are the
+    grid's PLUMBING, read-only there: the posting seam writes them.)
   · ref (the `?flyout=` door): opens on the skeleton face, self-resolving;
     a ref that RESOLVES to a POST instance fetches its feed item through
     the hash lens and RETARGETS the window into a post; a `nodes/<hash>`
@@ -57,7 +59,11 @@
 
   DEFAULT VIEW follows the KIND: posts, nodes, entities and elements open
   on the ELEMENT, the skeleton one header press away; a bare schema IS its
-  skeleton and offers no switch.
+  skeleton and offers no switch. A DOOR MAY ASK FOR A FACE (2026-09-23):
+  the view is the store record's `view` — null means the kind's default —
+  so the feed card's edit button spawns a post straight onto its skeleton,
+  and the switch writes the choice back (`setView`) where the feed and the
+  tray can read it.
 
   GEOMETRY: inline style off the store's rect; the fit engine places a
   fresh window in the arena (the docks' half, cascaded), gestures roam the
@@ -590,8 +596,23 @@ export default defineComponent({
     // element | skeleton, per window. Posts and nodes OPEN ON THE ELEMENT
     // (user ask) — the skeleton is the head switch away; a bare ref opens
     // on the skeleton, which for a schema is the only face there is.
-    const view = ref('element')
-    const userToggled = ref(false)
+    // ⭐ STORE STATE since 2026-09-23 (user ask: an EDIT button on the feed
+    // card that opens "the post flyout viewer of the post but on the
+    // skeleton configuration"): the face is the store record's `view` and
+    // this window reads it — null (nobody chose) falls back to the KIND's
+    // default, so a ref that retargets into a post still turns to the
+    // postcard, while a door that ASKED for the skeleton keeps it through
+    // the retarget. The switch writes through `setView`. (The local ref and
+    // its `userToggled` flag — written, never read since the fusion — went
+    // with the move.)
+    const kindView = () => {
+      const k = target.value?.kind
+      return (k === 'node' || k === 'post' || k === 'entity' || k === 'element') ? 'element' : 'skeleton'
+    }
+    const view = computed({
+      get: () => viewer.value?.view || kindView(),
+      set: (v) => { if (viewer.value) store.setView(viewer.value.id, v) }
+    })
 
     // ── THE LAYOUT (2026-09-06 PM) — vertical | horizontal, a view
     // setting for the skeleton face (see the bar note). Remembered per
@@ -732,10 +753,14 @@ export default defineComponent({
       refFailed.value = false
       nodeWalk.value = null
       nodeWalkFailed.value = false
-      userToggled.value = false
       entityInfo.value = null
       const k = target.value?.kind
-      view.value = (k === 'node' || k === 'post' || k === 'entity' || k === 'element') ? 'element' : 'skeleton'
+      // The FACE is not reset here any more (2026-09-23 — it is the store's
+      // `view`, whose null IS the kind's default). A window already standing
+      // on the skeleton when its target lands — a rehydrated node window
+      // left on its walk — gets the walk now: the `view` watch above fires
+      // only on a flip, and a face that did not change is no flip.
+      if (view.value === 'skeleton' && (k === 'node' || k === 'element')) loadNodeWalk()
       if (k === 'ref') resolveRef()
     }
     watch(targetIdentity, resetFor, { immediate: true })
@@ -774,7 +799,6 @@ export default defineComponent({
       !!targetNode.value || !!targetItem.value || !!targetElement.value ||
       (!!targetEntity.value && entitySkeletonId.value != null))
     const swapView = () => {
-      userToggled.value = true
       view.value = view.value === 'element' ? 'skeleton' : 'element'
     }
 

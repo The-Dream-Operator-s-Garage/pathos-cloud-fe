@@ -688,7 +688,17 @@
                  — the marks lead the fact cell again, the pill FILLS the
                  cell and centres its name, set in the PIT's own face, size
                  and ink (Inter at the pit's 0.88 of the card, 12.32px — was
-                 Nasalization at 10.07). -->
+                 Nasalization at 10.07). ⭐ THAT EVENING (user asks: "adding
+                 first a button of edition on the headers, at the right of
+                 the title container" and "make the title section of the
+                 headers have slightly smaller font and try nasalization font
+                 on it"):
+
+                   [marks] (origin…) [═══ name ═══] │ [EDIT] │ share │ pin │ flyout
+
+                 — an EDIT cell stands first after the name, on the posts
+                 the acting entity owns (see the cell's own note), and the
+                 name is back in Nasalization, a step under the pit's size. -->
             <div class="post-square__cap">
               <!-- THE EXPAND LEAD stood here from 2026-08-09 until 2026-09-23
                    (user ask) — an `expand` glyph in its own cell at the card's
@@ -799,6 +809,42 @@
                 </span>
               </div>
               <span class="post-square__cap-rule" aria-hidden="true" />
+
+              <!-- ⭐ THE EDIT DOOR (2026-09-23, user ask: "adding first a
+                   button of edition on the headers, at the right of the title
+                   container. Then, when clicking on that button, open the
+                   post flyout viewer of the post but on the skeleton
+                   configuration"). The first control after the name, in the
+                   strip's one cell dial and ruled on both sides like every
+                   other: it spawns the post's flyout window ONTO ITS
+                   SKELETON FACE (`spawnPost(item, { view: 'skeleton' })`) —
+                   the post read as its slots. A window already up on this
+                   post turns to that face and comes forward; inside that
+                   window's own postcard the press turns the window it sits
+                   in. OWNER-ONLY: drawn when the post's `owner_id` is the
+                   ACTING entity — the grid's own write rule (`canWrite`) — so
+                   a stranger's card keeps the three cells. ⚠ The door is the
+                   ask's FIRST step: POST is on SkeletonTable's PLUMBING list
+                   (its cells are written by the posting seam, never by hand
+                   in a grid), so the face it opens still reads its cells
+                   read-only; the write path is the owner's
+                   `PUT /skeletons/:id/content` seam, not yet wired here. Lit
+                   while the post's window stands on the skeleton — the flyout
+                   button's `openIds`, one face deeper. -->
+              <template v-if="canEdit(item)">
+                <div class="post-square__cap-cell">
+                  <button
+                    type="button"
+                    class="post-square__cap-act post-square__cap-edit"
+                    :class="{ 'is-on': isEditing(item) }"
+                    title="Edit this post — opens its skeleton in the flyout viewer"
+                    @click.stop="editPost(item)"
+                  >
+                    <q-icon name="edit" size="13px" />
+                  </button>
+                </div>
+                <span class="post-square__cap-rule" aria-hidden="true" />
+              </template>
 
               <!-- THE CONTROL LANE. Every control here acts on the POST
                    ITSELF, so each addresses it as the skeleton it is:
@@ -1602,6 +1648,8 @@ import OrgLogoChip from 'src/components/organizations/OrgLogoChip.vue'
 import { roleBadgeGlyph, roleBadgeTitle } from 'src/utils/roleBadges'
 import { orgService } from 'src/services/org.service'
 import { useFlyoutViewersStore } from 'src/stores/flyoutViewers'
+// The cap's EDIT door (2026-09-23) asks who is acting — the grid's own gate.
+import { useAuthStore } from 'src/stores/auth'
 import PostMicro from 'src/components/posts/PostMicro.vue'
 // The cap chips a post's PARENT, which may be a post, a node or some other
 // element — so it reaches for the generic chip rather than PostMicro.
@@ -2682,6 +2730,20 @@ export default defineComponent({
     const isOpen = (item) =>
       props.openIds.some((id) => String(id) === String(item.skeleton_id))
 
+    // ── THE EDIT DOOR (2026-09-23, user ask) ────────────────────────────
+    // The cap's edit button opens the post's flyout window on its SKELETON
+    // face (the store's per-window `view`). Drawn for the OWNER alone:
+    // `owner_id` against the acting entity is SkeletonTable's `canWrite`,
+    // the gate every cell of that grid asks (POST cells themselves are still
+    // PLUMBING there — see the template note). Lit off the store
+    // (`editPostIds`), not a prop: the embedded postcard has no FeedPage to
+    // hand it one, and the store is where the face lives.
+    const auth = useAuthStore()
+    const canEdit = (item) => item.owner_id != null && item.owner_id === auth.entityId
+    const isEditing = (item) =>
+      flyouts.editPostIds.some((id) => String(id) === String(item.skeleton_id))
+    const editPost = (item) => { flyouts.spawnPost(item, { view: 'skeleton' }) }
+
     // ── THE FOOT'S COPY (2026-08-10, user ask) ──────────────────────────
     // The PATHCHAIN ADDRESS — `skeletons/<hash>`, the string the chip beside
     // this button is showing a truncated slice of, and the one this post
@@ -3028,6 +3090,9 @@ export default defineComponent({
       roleBadgeGlyph,
       roleBadgeTitle,
       isOpen,
+      canEdit,
+      isEditing,
+      editPost,
       copiedId,
       copyAddress,
       shareOpen,
@@ -4411,8 +4476,15 @@ export default defineComponent({
   // the CAP at 0.62. The name's pill lives in the cap and must land on the
   // pit's size — `calc(var(--pit-scale) / var(--cap-scale) * 1em)` there —
   // and an `em` in a custom property would resolve at the reader, not here.
+  // (The pill left the pit's size that evening for a scale of its own, the
+  // same arithmetic over `--cap-title-scale` — below.)
   --pit-scale: 0.88;
   --cap-scale: 0.62;
+  // ⭐ THE NAME'S OWN SCALE (2026-09-23 EVE, user ask: "slightly smaller font
+  // and try nasalization font on it"): 0.8 of the card = 11.2px — between
+  // the 10.07 Nasalization it read at this morning ("a little bigger", the
+  // afternoon said) and the pit's 12.32 Inter it read at this afternoon.
+  --cap-title-scale: 0.8;
   // The ceiling — the LOWER of two limits, so whichever bites first wins:
   //
   //   width  — `--post-square-max` is the column's measured width, published by
@@ -5232,7 +5304,9 @@ export default defineComponent({
 
 // THE CONTROL CELL (2026-09-13, user ask) — ONE box for all five controls
 // (⭐ THREE since 2026-09-23 — share │ pin │ flyout; the strip is 22 now,
-// 2 + 16 + 2 + the closing border — see `.post-square__cap`):
+// 2 + 16 + 2 + the closing border — see `.post-square__cap`; FOUR on a post
+// the acting entity owns since that evening — edit │ share │ pin │ flyout,
+// the EDIT door first after the name, in this same box):
 // the expand lead at the card's left edge (its own `__cap-lead` from
 // 2026-08-09 until today) and the four at the right (a padded `__cap-side`
 // LANE holding them all, rules slipped between, over the same span). Rigid
@@ -5467,6 +5541,13 @@ export default defineComponent({
 //     14px line (gotchas: size the type to the box);
 //   · `0 4px` pads (the mark left, so the glyph-first asymmetry went with it)
 //     and no gap — the name is the pill's one member.
+//
+// ⭐ 2026-09-23 EVE — NASALIZATION, A STEP SMALLER (user ask: "make the title
+// section of the headers have slightly smaller font and try nasalization font
+// on it"): the family went back to the strip's `--font-display` at the
+// card's new `--cap-title-scale` (0.8 = 11.2px), tracked 0.02em like the rest
+// of the strip; floor, corner, rim, width, centring and the 18/16 box are
+// unchanged. The declaration has the numbers.
 .post-square__cap-title-chip {
   flex: 1 1 auto;
   min-width: 0;
@@ -5477,10 +5558,19 @@ export default defineComponent({
   height: 18px;
   margin: 0;
   font: inherit;
-  font-family: var(--font-body, 'Inter', 'Helvetica Neue', system-ui, sans-serif);
-  font-size: calc(var(--pit-scale, 0.88) / var(--cap-scale, 0.62) * 1em);
+  // ⭐ NASALIZATION AGAIN, A STEP SMALLER (2026-09-23 EVE, user ask: "make
+  // the title section of the headers have slightly smaller font and try
+  // nasalization font on it"): the strip's own display face — `font:
+  // inherit` already carries the cap's `--font-display`; the family is
+  // restated so the walk reads here — at `--cap-title-scale` of the card
+  // (0.8, 11.2px; the pit's 0.88 / 12.32px Inter until tonight), with the
+  // strip's 0.02em tracking where Inter took none. The 16px line still
+  // clears it: Nasalization's content area is 1.188em (hhea 924 + 264 on a
+  // 1000 em) = 13.31px here.
+  font-family: var(--font-display);
+  font-size: calc(var(--cap-title-scale, 0.8) / var(--cap-scale, 0.62) * 1em);
   font-weight: 400;
-  letter-spacing: normal;
+  letter-spacing: 0.02em;
   line-height: 16px;
   color: var(--ink, #2C3D4E);
   padding: 0 4px;
