@@ -1037,48 +1037,63 @@
                          That is why there are no hairlines between the cells the
                          way the CAP and the FOOT divide theirs: a rule and a rim
                          in the same three pixels would be the same seam drawn
-                         twice. -->
+                         twice.
+                         ⭐ 2026-09-22 PM7 — THE PLATE IS ITS LABELS' AUTHOR
+                         LAYER (user asks: "Instead of the icon that is hard to
+                         see, use a 'verified' material icon instead and remove
+                         the '::' text … on each label, use a tiny label icon on
+                         its left … when we have labels that were added by
+                         another entity, we want to display their profile pic
+                         there (instead of the verified icon)"; then "make the
+                         labels's author layer background color the same as the
+                         entity part on the footer bar … Then, for each
+                         individual label, then make those light-cream"). Its
+                         head states WHO the tree belongs to, not the root's
+                         word:
+
+                           [ ✓ │ 🏷 INSTANTIATION │ 🏷 POST › ORIGINAL ]
+                           [ 🙂 │ 🏷 MEMORY › PROJECT ]
+
+                         the `verified` badge for the platform's own vocabulary
+                         (`system_label` off the feed), the OWNER'S FACE for
+                         anyone else's tree — a door to their entity window,
+                         like every face on the card. The root's name moved to
+                         the head's tooltip (each label's still carries the
+                         whole chain); the `::` seam is gone. One plate per
+                         tree AND origin (`labelBundles`). The sheet wears the
+                         footer identity square's coat, the labels on it the
+                         cream. -->
                     <div
                       v-for="b in labelBundles(item)"
-                      :key="b.root"
+                      :key="b.key"
                       class="post-square__bundle"
+                      :class="b.platform ? 'is-platform' : 'is-entity'"
                     >
-                      <!-- THE ROOT CELL. A masked SHAPE, not an `<img>`
-                           (2026-08-10, the hover ask): the mark is painted as a
-                           background colour clipped to the artwork's alpha, so
-                           ONE dial — `background-color` — carries both its
-                           resting grey and its hover tone. An `<img>` cannot do
-                           that: its bitmap draws above any background, so a tint
-                           would sit under the original rather than replace it.
-                           The registry's `src` arrives as a custom property
-                           because the mask lives in CSS and the address lives in
-                           `utils/labelRoots.js`; it is a repo-controlled
-                           constant, never user data. A markless root spells its
-                           name here instead, and the bundle is otherwise
-                           identical — the registry is additive. -->
-                      <span class="post-square__bundle-root" :title="b.root">
-                        <span
-                          v-if="b.mark"
-                          class="post-square__label-mark"
-                          role="img"
-                          :aria-label="b.root"
-                          :style="{ '--label-mark-src': 'url(' + b.mark.src + ')' }"
-                        />
+                      <!-- THE HEAD — the tree's ORIGIN (2026-09-22 PM7). It was
+                           the tree's MARK (a masked `favicon.ico` planet off
+                           `utils/labelRoots.js`, 2026-08-10 → today, retired with
+                           the registry: "hard to see") or its spelt NAME. A root
+                           that arrives with neither flag nor owner (an API older
+                           than the card) still spells its name — nothing is
+                           dropped silently. -->
+                      <span
+                        class="post-square__bundle-root"
+                        :title="bundleOrigin(b)"
+                        :role="b.platform ? 'img' : undefined"
+                        :aria-label="b.platform ? bundleOrigin(b) : undefined"
+                      >
+                        <q-icon v-if="b.platform" name="verified" size="12px" class="post-square__bundle-verified" />
+                        <a
+                          v-else-if="b.owner"
+                          :href="'#/entities/' + b.owner.id"
+                          class="post-square__bundle-face"
+                          :aria-label="bundleOrigin(b) + ' — open profile'"
+                          @click.stop
+                        >
+                          <EntityAvatar :entity="b.owner" :size="12" />
+                        </a>
                         <span v-else class="mono">{{ b.root }}</span>
                       </span>
-
-                      <!-- The seam between the tree and its labels (2026-08-10,
-                           user ask) — `::`, the card's own separator: the CAP
-                           divides its origin clause with it and the FOOT's
-                           address chip reads `post :: skeleton :: <hash>` in it.
-                           So the bundle says the same thing the rest of the card
-                           says when one term qualifies the next, and the rail
-                           stops being the only strip that states that relation
-                           with nothing at all. Decorative — the tree is already
-                           named by the root cell's `title` and the mark's
-                           `aria-label`, and a screen reader has no use for the
-                           punctuation. -->
-                      <span class="post-square__bundle-sep mono" aria-hidden="true">::</span>
 
                       <!-- One ruled cell per label of the tree. Each is still the
                            LINK to that label's page, and the funnel beside it
@@ -1105,9 +1120,18 @@
                             :title="lp.path"
                             @click.stop
                           >
+                            <!-- THE LABEL GLYPH (2026-09-22 PM7, user ask: "on
+                                 each label, use a tiny label icon on its left") —
+                                 `label`, a Material Icons LIGATURE (the bare-name
+                                 trap: a missing one draws its NAME; the witness
+                                 measures the glyph box), inside the link so the
+                                 mark is part of the label it marks, in its ink. -->
+                            <q-icon name="label" size="10px" class="post-square__label-glyph" />
                             <!-- The path's TAIL, step by step, the leaf carrying
                                  the weight. The root is not among them — the
-                                 bundle said it — but `lp.path` still carries the
+                                 bundle's head stands for it (its origin since
+                                 2026-09-22 PM7, the root's name on the head's
+                                 tooltip) — and `lp.path` still carries the
                                  whole chain on the tooltip, so the full
                                  classification is one hover away as it always
                                  was. -->
@@ -1498,9 +1522,10 @@ import PostMicro from 'src/components/posts/PostMicro.vue'
 import MicroChip from 'src/components/shared/MicroChip.vue'
 import MarkdownBody from 'src/components/shared/MarkdownBody.vue'
 import ConversationPicker from 'src/components/chat/ConversationPicker.vue'
-// A label tree whose ROOT has a mark draws it instead of spelling the root's
-// name — see the module for the registry and for why it is a front-end one.
-import { rootMark } from 'src/utils/labelRoots'
+// (`utils/labelRoots.js` — the root-MARK registry, the PATHCHAIN planet on
+// the rail's plates — was imported here 2026-08-10 → 2026-09-22 PM7 and
+// deleted with its one consumer: the plate's head states the tree's ORIGIN
+// now, the `verified` badge or the owner's face. See `labelBundles`.)
 
 // FilterSpec symbols → a concrete window, in the VIEWER's OWN timezone —
 // the deterministic half of "yesterday" the model never touches (P4: LLM
@@ -2797,7 +2822,11 @@ export default defineComponent({
         .map(l => ({
           id: l.id,
           names: l.chain.map(c => c.name),
-          path: l.chain.map(c => c.name).join(' > ')
+          path: l.chain.map(c => c.name).join(' > '),
+          // The tree and its ORIGIN (2026-09-22 PM7) — see `labelBundles`.
+          rootId: l.chain[0].id,
+          system: !!l.system_label,
+          owner: l.owner || null
         }))
         .sort((a, b) => {
           const plumbing = (p) => (p.names[0] === 'PATHCHAIN' ? 1 : 0)
@@ -2824,18 +2853,45 @@ export default defineComponent({
     //
     // A bare-ROOT label (a chain of one) has no tail to spell, so it states
     // its own name in the member cell rather than rendering an empty one.
+    //
+    // ⭐ KEYED BY ROOT ID AND ORIGIN SINCE 2026-09-22 PM7, not the root's
+    // NAME — the plate's head states WHO the tree belongs to now (the
+    // `verified` badge for the platform's `system_label` vocabulary, the
+    // owner's face for anyone else's), and a name cannot say that: a FORK of
+    // PATHCHAIN is a root named PATHCHAIN owned by its forker (forks are
+    // never `system_label`), and keyed by name its labels would have lain on
+    // the platform's plate under the verified badge. Every label's owner is
+    // its root's today (only a tree's owner appends to it; a suggestion is
+    // minted by the decider), so the origin half of the key splits nothing
+    // yet — it is the honest key if that ever changes.
     const labelBundles = (item) => {
       const groups = new Map()
       for (const lp of labelPaths(item)) {
-        const root = lp.names[0]
-        if (!groups.has(root)) groups.set(root, { root, mark: rootMark(root), items: [] })
-        groups.get(root).items.push({
+        const key = `${lp.rootId}:${lp.system ? 'platform' : (lp.owner?.id ?? '?')}`
+        if (!groups.has(key)) {
+          groups.set(key, {
+            key,
+            root: lp.names[0],
+            platform: lp.system,
+            owner: lp.system ? null : lp.owner,
+            items: []
+          })
+        }
+        groups.get(key).items.push({
           id: lp.id,
           path: lp.path,
           names: lp.names.length > 1 ? lp.names.slice(1) : lp.names
         })
       }
       return [...groups.values()]
+    }
+
+    // The plate head's words (2026-09-22 PM7) — its tooltip, the verified
+    // badge's name for assistive tech, the face door's label. The root's
+    // NAME lives here now that the head draws the origin instead of it.
+    const bundleOrigin = (b) => {
+      if (b.platform) return `${b.root} — the platform's own labels (verified)`
+      return b.owner ? `${b.root} — labels by ${authorName(b.owner)}` : b.root
     }
 
     // What the card renders. `body` is the WHOLE markdown body, present
@@ -2881,7 +2937,6 @@ export default defineComponent({
       isExpanded,
       toggleExpand,
       hashFilter,
-      rootMark,
       capIcons,
       capKindTitle,
       originClauses,
@@ -2891,6 +2946,7 @@ export default defineComponent({
       togglePin,
       labelPaths,
       labelBundles,
+      bundleOrigin,
       postBody,
       LENS_OPTS,
       maxHops,
@@ -5978,9 +6034,17 @@ export default defineComponent({
 // would come out of a 16px row its plates fill exactly (border-box — the
 // zero-sum-strip gotcha) and the rail's `overflow-y: hidden` would shave
 // them; the coat alone is the ask.
+// ⭐ THE CARD'S OWN COAT SINCE 2026-09-22 PM7 (user ask: "make the label
+// scroll background color the same color as the card's background instead
+// of light-cream") — `--card-coat`, the card's sandwich (its grey-3 @75%
+// veil over the cream) as ONE value, so the pad composites to exactly the
+// card around it (≈ rgb(241,239,234)) and the plates are what read. The
+// token's first consumer since NodeMini left it on 2026-09-21. The pad, its
+// corner and the scroller's matching clip stay: the pad is the ROW still,
+// just in the card's tone (the two pills above keep `--byline-coat`).
 .post-square__rail-row {
   --rail-corner: calc(var(--row-h) / 2 * 0.7);
-  background: var(--byline-coat, var(--light-cream, #fcf3e0));
+  background: var(--card-coat, var(--light-cream, #fcf3e0));
   border-radius: var(--rail-corner);
 }
 
@@ -6195,7 +6259,20 @@ export default defineComponent({
   // -6, so the rail reads as three tones of one material — band, sheet,
   // token — which is what a two-tier stack is for. The card's warmth stays
   // the CARD's, which is arguably where it belonged.
-  background: var(--grey-3, #eeeeee);
+  // ⭐ THE AUTHOR LAYER SINCE 2026-09-22 PM7 (user ask: "make the labels's
+  // author layer background color the same as the entity part on the footer
+  // bar, with a thin grey-blue veil") — `--identity-coat`, the FOOTER
+  // IDENTITY SQUARE's coat verbatim (`IdentityChip.vue`: the entity family's
+  // blue-grey-1 veil at 90% over the cream, ≈ rgb(238,239,239)), so the
+  // sheet a tree's labels lie on is the entity material now: it belongs to
+  // their author, whose badge or face stands at its head. Three surfaces read
+  // the one dial (the identity window, the footer chip, these plates) — tune
+  // the veil in _tokens.scss, never here. The members on it went light-cream
+  // the same ask, so the rail reads card (warm grey) → author sheet (cool) →
+  // label tokens (warm cream). A LAYER LIST: nothing may `color-mix()` over it
+  // (the byline pills' PM6 hover trap), which is why the hover below moves
+  // only the rim.
+  background: var(--identity-coat, var(--grey-3, #eeeeee));
 
   // ── THE PLATE'S HOVER ──────────────────────────────────────────────
   // Two dials, and the ask that set them is precise about what NOT to do:
@@ -6211,7 +6288,10 @@ export default defineComponent({
   // ask's arithmetic, not an oversight — it reads as the sheet lifting to
   // meet what lies on it.
   &:hover {
-    background: var(--grey-2, #f5f5f5);
+    // (The coat lifted to `--grey-2` here until 2026-09-22 PM7 — the note
+    // above is that step's record. On the author layer's blue-grey veil a
+    // neutral grey-2 would swap the MATERIAL under the pointer, not step its
+    // tone, so the sheet holds and the rim below is the state.)
     // ⭐ `--red-7` SINCE 2026-09-13 (the red re-family) — the labels window's
     // own contrast index, off `--deep-purple-11`. Not the family's A100 (the
     // old rim's index): `--red-11` (#ff8a80) is LIGHTER than the resting
@@ -6239,62 +6319,70 @@ export default defineComponent({
     // ("a mark this size wants the step the text does not need") priced
     // indigo's -8 against its -9; red-9 (#c62828) already carries the ink
     // weight both wanted, and one index is one fewer dial to keep in step.
-    .post-square__label-mark { background-color: var(--red-10, #b71c1c); }
-    .post-square__bundle-sep { color: var(--red-10, #b71c1c); }
+    // ⭐ 2026-09-22 PM7 — the mark and the seam are GONE (the head states
+    // the origin); what answers with the plate is the VERIFIED BADGE, one
+    // step deeper in its own family: the entity accent → the entity ink.
+    .post-square__bundle-verified { color: var(--entity-ink, #263238); }
   }
 }
 
-// THE SEAM between the tree and its labels — `::`, the card's own separator
-// for "this term qualifies the next" (the CAP's origin clause and the FOOT's
-// `post :: skeleton :: <hash>` chip both use it). It takes the MARK's tone
-// rather than the labels' ink, because it belongs to the root's side of the
-// plate: mark and seam are one utterance, and the members answer it.
-.post-square__bundle-sep {
-  flex: 0 0 auto;
-  font-size: 0.62em;
-  letter-spacing: 0.03em;
-  // PULLED IN ON BOTH SIDES (2026-08-10, user ask). The plate's 4px flex gap
-  // is right between the MARK and a member plate, and too much around two
-  // colons: punctuation is not an object in the row, it is the joint between
-  // two, and a joint set at the row's own rhythm reads as a third item. -2px
-  // a side halves the gap to 2px and the seam closes up against what it
-  // joins. (It is also why the tracking below is left alone — `0.03em`
-  // spaces the two colons from each OTHER, which is the rail's letterform
-  // rhythm and belongs.)
-  margin: 0 -2px;
-  // BOLD, and `--grey-9` with the mark (2026-08-10, same ask). Two colons
-  // are four dots of ink; at 8.7em-scaled mono in a normal weight they were
-  // the faintest thing on a plate that had just gone neutral, and the seam
-  // has to hold its own against a 26px drawing on one side and a bordered
-  // plate on the other. Weight is the cheap dial for that — it costs no
-  // space, where a size bump would push both neighbours apart.
-  font-weight: 700;
-  // ⭐ red-9 since 2026-09-22 (the ink re-family; was grey-9) — the root's
-  // side of the plate speaks in the labels' dark red, red-10 under the
-  // pointer with the mark.
-  color: var(--red-9, #c62828);
-}
+// (THE SEAM — `::` between the tree and its labels, `.post-square__bundle-sep`,
+// the card's own "this term qualifies the next" separator, bold, pulled in
+// -2px a side, red-9 with the mark — stood here 2026-08-10 → 2026-09-22 PM7
+// and went on the ask that retired the mark: "remove the '::' text". With the
+// head stating WHO rather than WHICH ROOT, there is no qualifier to join —
+// the badge and the labels sit a plate's gap apart.)
 
-// THE ROOT CELL — the tree, stated once, at the plate's left edge: its mark
-// when the registry has one, its name when it does not.
+// THE HEAD — the tree's ORIGIN, stated once, at the plate's left edge
+// (2026-09-22 PM7; it was the tree's MARK when the registry had one and its
+// NAME when not): the `verified` badge for the platform's own vocabulary,
+// the owner's FACE for anyone else's tree, the name only as a fallback.
 .post-square__bundle-root {
   display: inline-flex;
   align-items: center;
   flex: 0 0 auto;
-  // TRIMMED AT THE LEFT, THEN GIVEN A LITTLE BACK (2026-08-10, two asks).
-  // The mark already returns its own transparent margin (see
-  // `.post-square__label-mark`), so what stood on this side was the plate's
-  // full 4px of padding against a drawing that begins at its box edge — a
-  // mark is not TEXT and does not want a text's lead-in. `-3px` cut it to
-  // one, which read as the planet falling off the plate's left rim; `-1px`
-  // is the settled value, a 3px lead that is clearly deliberate air rather
-  // than leftover padding. The members keep the full 4px — they are plates
-  // in their own right and do want the inset.
+  // TRIMMED AT THE LEFT, THEN GIVEN A LITTLE BACK (2026-08-10, two asks) —
+  // settled at `-1px` against the old planet mark, which began at its box
+  // edge. It holds for the badge and the face too: both are pictures, not
+  // TEXT, and a picture does not want a text's lead-in — the plate's 3px
+  // pad less this 1px is a 2px lead, the members' own inset from the rim.
   margin-left: -1px;
+  // The fallback NAME's type (a root with neither flag nor owner) — the
+  // labels' face, size and red ink. The badge and the face size themselves.
   font-size: 0.62em;
   text-transform: uppercase;
   letter-spacing: 0.03em;
   color: var(--red-9, #c62828); // ⭐ 2026-09-22 — the ink re-family (was ink at .62)
+}
+
+// THE VERIFIED BADGE (2026-09-22 PM7, user ask: "Instead of the icon that is
+// hard to see, use a 'verified' material icon") — 12px in the plate's 14px
+// content box, the Material Icons LIGATURE the label pages already wear for
+// `system_label` (LabelSquares / LabelMini / LabelDetailPage), so a system
+// tree is marked the same way everywhere. In the ENTITY family's ACCENT
+// (blue-grey-7), the same ask's "also make the icons that color" — the author
+// layer's glyph in the author layer's family; the ink (blue-grey-10) under
+// the pointer, with the plate (the hover block above). The planet it
+// replaced read its 26px drawing as a ~5px object at this size.
+.post-square__bundle-verified {
+  flex: 0 0 auto;
+  color: var(--entity-accent, #546e7a);
+}
+
+// THE OWNER'S FACE (2026-09-22 PM7, user ask: "when we have labels that were
+// added by another entity, we want to display their profile pic there") — a
+// 12px EntityAvatar (the tile every face wears: 26% corner ≈ 3.1px, the
+// members' 3, and its 18% ink hairline) inside a `#/entities/<id>` anchor, so
+// the capture-phase door (`utils/entityDoor.js`) opens the owner's entity
+// window: every face on the card is a door. `.post-square__seat-face`'s
+// anchor rules one row up, restated.
+.post-square__bundle-face {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+  line-height: 0;
+  text-decoration: none;
+  color: inherit;
 }
 
 // A MEMBER — one label of the tree, as a plate of its own (2026-08-10, the
@@ -6364,7 +6452,14 @@ export default defineComponent({
   // `5px` since 2026-08-10's last rail ask (it was 3px) — the innermost tier
   // of the rail's nested radius family, rail 10 › bundle 7 › HERE.
   border-radius: 3px; // 2026-09-22: bundle 5 › member 3 (was 7 › 5 under the rail's 10)
-  background: var(--grey-2, #f5f5f5);
+  // ⭐ LIGHT-CREAM SINCE 2026-09-22 PM7 (user ask: "for each individual
+  // label, then make those light-cream"), off the `--grey-2` of the walk
+  // above — FLAT, the sheet the byline's two pills wear (`--byline-coat`'s
+  // value, stated directly: these are tokens on the author layer, not the
+  // band's elements). The tiers read by hue now as well as by depth: warm
+  // cream labels on the cool blue-grey author sheet, the 0.5px grey-5 rim
+  // still each token's one edge.
+  background: var(--light-cream, #fcf3e0);
 }
 
 // The label itself — a bare run of text inside its member plate. It held the
@@ -6434,91 +6529,29 @@ export default defineComponent({
   }
 }
 
-// THE ROOT MARK (2026-08-10, user ask) — a label tree's own icon, standing
-// where its root's name would be spelt. Today that is one tree, PATHCHAIN,
-// wearing the pathos mark the browser tab wears (`utils/labelRoots.js`).
-//
-// SIZED PAST ITS OWN SLOT (2026-08-10, four "bigger" asks: 11 → 15 → 20 → 24
-// → 28). It began at 11px, matched to the chip's content box, and read small
-// for two reasons that compound: an icon matched to a cap height always reads
-// smaller than the letters beside it (a letterform's mass is its stroke, a
-// mark's is its whole square), and this artwork was drawn for a browser tab,
-// so it carries a wide transparent margin of its own — at 11px the PLANET
-// itself was about 5px of that.
-//
-// So the image is drawn at 28px and pulled back to an 11px LAYOUT box with
-// `margin: -8.5px 0`. Nothing around it moves at any step: the plate stays
-// 20.03px and the rail band 26px (34 with the strip's padding and rim since
-// 2026-08-10's last rail ask), so the pit's `--media-max-h` constant is
-// untouched by this dial.
-//
-// ⚠ THE CEILING IS ~38px, AND IT IS ARITHMETIC — recompute it if the plate's
-// height ever changes. The image overhangs the bundle's padding box (19.03px;
-// what `overflow: hidden` clips to) by (S−19.03)/2 each way, and that cut is
-// free only while it lands in the favicon's transparent margin. MEASURED off
-// the artwork's alpha channel (48×48 canvas, ink box x 6→41 / y 14→35): the
-// planet's pixels start 29.2% of the way down and end 25% up from the bottom,
-// so the binding condition is (S−19.03)/2 ≤ 0.25·S, i.e. S ≤ ~38. At 28 there
-// are 2.5px of slack on the tighter edge. (The ceiling was 32 while this sat
-// in a 16px chip — it moved because the BOX moved, which is the point of
-// writing the condition down rather than the number.) The planet is also only
-// 46% of its canvas TALL, which is why a mark this size still reads as a
-// small object: reason about the ink box, never the canvas.
-//
-// ITS COLOUR IS A MASK (2026-08-10, hover ask): the element paints a flat
-// `background-color` clipped to the artwork's ALPHA, so the mark is whatever
-// tone the state wants and the drawing is unchanged. That replaced a
-// `filter: grayscale(1) brightness(0.55)` over an `<img>`, which got to the
-// same grey by a longer road and could not be recoloured at all — a bitmap
-// draws above its own background, so a tint sits under the original instead
-// of replacing it.
-//
-// ⚠ THIS ONLY WORKS BECAUSE THE ALPHA IS THE DRAWING. Measured on the
-// artwork: inside its ink box just 14% of pixels are fully opaque, 41% are
-// partial and 45% clear — the planet is a LINE DRAWING whose strokes live in
-// the alpha channel, so the silhouette is the picture and its soft edges
-// survive. A mark drawn as a solid block with its detail in COLOUR would
-// mask down to a filled blob; check the alpha before adding one to the
-// registry.
-//
-// `--grey-8` at rest, after a two-ask walk -7 → -5 → here. -7 is where the
-// old `grayscale(1) brightness(0.55)` filter chain had landed the artwork
-// (cream → ≈#dcdcdc → ×0.55 ≈ #797979); -5 was the reasoning that a mark at
-// 28px states itself by AREA and can afford to go quiet; -8 is the answer to
-// what that actually looked like — at -5 the planet went thin and grey on a
-// cream plate, and the drawing is a LINE work, so its mass is stroke and it
-// needs ink the way the letters beside it do. It shares the tone with the
-// `::` seam (same ask), which is the pairing that matters: mark and seam are
-// the root's side of the plate speaking, and both now sit a step DEEPER than
-// the members' `rgba(ink, .62)` — the tree is stated more firmly than the
-// labels it holds, which is the reverse of the earlier reasoning and the one
-// the eye preferred. It stays a NEUTRAL either way: the rail's one hue is
-// the cream plate, never a badge repeated on every plumbing bundle.
-.post-square__label-mark {
-  display: block;
-  width: 26px;
-  height: 26px;
-  // ⚠ THE HORIZONTAL PULL IS THE ARTWORK'S OWN MARGIN, GIVEN BACK
-  // (2026-08-10, "there's too much padding between the planet and the ::").
-  // The gap that reads on screen is never just the flex gap: this favicon's
-  // ink box is x 6→41 of a 48px canvas, so 12.5% of every edge is empty
-  // artwork — 3.5px a side at 28px — and it stacks on top of the 4px the
-  // plate puts between its cells, making the seam sit ~7.5px from a planet
-  // that looks like it ends 4px earlier. `-3.5px` on each side shrinks the
-  // LAYOUT box to the ink box (28 − 7 = 21px, which is the measured ink
-  // width of 0.75 × 28), so the plate's gap is measured from the drawing
-  // rather than from its packaging. Keep the two numbers in step: this is
-  // `size × 0.125`, and it changes whenever the size does.
-  margin: -7.5px -3.25px;
-  background-color: var(--red-9, #c62828); // ⭐ 2026-09-22 — the ink re-family (was grey-9); red-10 on the plate's hover
-  // `--label-mark-src` comes down from the registry, per root, inline.
-  -webkit-mask: var(--label-mark-src) center / contain no-repeat;
-  mask: var(--label-mark-src) center / contain no-repeat;
-}
+// (THE ROOT MARK — `.post-square__label-mark`, 2026-08-10 → 2026-09-22 PM7:
+// the PATHCHAIN tree drawn as the pathos planet, `favicon.ico` painted as a
+// flat colour through a CSS mask off `utils/labelRoots.js`, sized 26px and
+// pulled back to the plate by the favicon's own transparent margin — RETIRED
+// on the ask "Instead of the icon that is hard to see, use a 'verified'
+// material icon": the planet is only 46% of its canvas tall, so even drawn
+// past its slot it read as a ~5px object. The registry went with it (no
+// consumer left). Its arithmetic — the ~38px overhang ceiling, the
+// alpha-is-the-drawing test for a masked mark — is in git history for the
+// next tree that wants a drawn mark: `git log -S label-mark`.)
 
-// Its HOVER tone lives with the plate (`.post-square__bundle:hover`) — the
-// mark states the TREE, so it answers when the pointer is anywhere in the
-// tree's plate, not only when it is over one of the labels.
+// THE LABEL GLYPH (2026-09-22 PM7, user ask: "on each label, use a tiny label
+// icon on its left") — Material `label` at 10px (the byline's glyph size),
+// the first thing in the link: the tag's ~6px of ink sits at the 8.68px
+// type's cap height, so the pair reads as one token. It inherits the label's
+// ink — red-9, red-10 under the pointer — because this morning's ask set the
+// labels' "text and icons" in dark red; the author layer's glyph (the
+// verified badge) is the one in the entity blue-grey. 2px to the first step:
+// the steps' own `›` joint is 4px, and a mark hugs what it marks.
+.post-square__label-glyph {
+  flex: 0 0 auto;
+  margin-right: 2px;
+}
 
 // The leaf takes the hover ink too (2026-08-10) — it carries its own resting
 // colour, so without this it would sit at `rgba(ink, .9)` while every

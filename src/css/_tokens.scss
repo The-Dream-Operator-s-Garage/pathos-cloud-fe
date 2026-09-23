@@ -1035,6 +1035,10 @@ $warning:   #F2C037;
   // feed card's author pill LEFT the veil (user ask: "paint the background of
   // all three elements on the label section of the postcards light-cream")
   // for the byline's flat `--byline-coat` (FeedStream.vue).
+  // ⭐ THREE since PM7 — the feed card's LABEL PLATES wear `--identity-coat`
+  // (user ask: "make the labels's author layer background color the same as
+  // the entity part on the footer bar"): the sheet a tree's labels lie on is
+  // their author's, in the entity material (`.post-square__bundle`).
   --identity-veil: rgba(236, 239, 241, 0.9);
   --identity-coat:
     linear-gradient(var(--identity-veil), var(--identity-veil)),
@@ -1445,6 +1449,10 @@ $warning:   #F2C037;
   // card's `::before` is the one thing reading `--card-veil` and nothing reads
   // `--card-coat`. Both stay minted: the sandwich is still the card's surface
   // in one value for the next panel that has to wear it.
+  // ⭐ THAT PANEL ARRIVED 2026-09-22 PM7 (user ask: "make the label scroll
+  // background color the same color as the card's background instead of
+  // light-cream"): the byline's RAIL ROW (`.post-square__rail-row`) paints
+  // `--card-coat`, so the pad composites to the card around it exactly.
   --card-veil: rgba(238, 238, 238, 0.75);
   --card-coat:
     linear-gradient(var(--card-veil), var(--card-veil)),
