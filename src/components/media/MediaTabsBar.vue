@@ -155,6 +155,19 @@
          the band itself is click-through paint; disabled on the history
          stack's first entry it stays visible but mutes — an affordance
          that vanishes teaches nothing. -->
+    <!-- ── ⭐ ON A PHONE THE PAIR IS TWO ARROWS AND NO WORDS (2026-09-26,
+         user ask: "on the mobile versions only, make the top nav bar not
+         display the 'back' or 'forward' labels since they take up a lot of
+         space. Also use different signs for back and forward. find bigger
+         material arrows"). ≤600px (`MOBILE_Q` = the style block's query):
+         the words hide (`display: none`, style block), the glyph becomes the
+         LONG arrow of Material Symbols — `sym_o_arrow_left_alt` here,
+         `sym_o_arrow_right_alt` on Forward — which spans the full em box
+         where `arrow_back`'s head-heavy arrow uses two thirds of it, drawn
+         at 15px in the 17px face instead of the desktop's 12px; the blocks
+         close to glyph + pads (~33px) and the parked-tab row's right inset
+         follows Forward down (90 → 40px). The desktop pair is untouched:
+         `arrow_back` / `arrow_forward` at 12px beside their words. -->
     <button
       type="button"
       class="media-tabs__back nasalization"
@@ -163,7 +176,7 @@
       title="Back"
       @click="goBack"
     >
-      <q-icon name="arrow_back" size="12px" class="media-tabs__glyph" />
+      <q-icon :name="isPhone ? 'sym_o_arrow_left_alt' : 'arrow_back'" :size="isPhone ? '15px' : '12px'" class="media-tabs__glyph" />
       <span class="media-tabs__name">back</span>
     </button>
     <!-- FORWARD — the pair's other half at the rail's RIGHT end (the ask
@@ -183,7 +196,7 @@
       @click="goForward"
     >
       <span class="media-tabs__name">forward</span>
-      <q-icon name="arrow_forward" size="12px" class="media-tabs__glyph" />
+      <q-icon :name="isPhone ? 'sym_o_arrow_right_alt' : 'arrow_forward'" :size="isPhone ? '15px' : '12px'" class="media-tabs__glyph" />
     </button>
     <TransitionGroup ref="rowEl" tag="div" name="mtab" class="media-tabs__row nasalization" appear>
       <button
@@ -202,12 +215,20 @@
 </template>
 
 <script>
-import { defineComponent, computed, ref, watch } from 'vue'
+import { defineComponent, computed, ref, watch, onMounted, onBeforeUnmount } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useFlyoutViewersStore } from 'src/stores/flyoutViewers'
 import FriezeBar from 'src/components/layout/FriezeBar.vue'
 import { useAurora } from 'src/composables/useAurora'
 import { iconForTarget, titleOfTarget } from 'src/utils/mediaKind'
+
+// ── THE PHONE QUERY (2026-09-26, user ask: on mobile the Back/Forward pair
+// drops its words and wears bigger arrows). The SAME STRING the style block's
+// `@media` uses, on purpose — FeedHeadBox's lesson: `$q.screen.lt.sm` fires
+// UNDER 600px where `max-width: 600px` is 600 inclusive, so at exactly 600px
+// the JS and the CSS would disagree about which pair is standing. One string,
+// one answer.
+const MOBILE_Q = '(max-width: 600px)'
 
 export default defineComponent({
   name: 'MediaTabsBar',
@@ -223,6 +244,26 @@ export default defineComponent({
     // dial). See the template note and composables/useAurora.js.
     const frieze = ref(null)
     useAurora(frieze)
+
+    // ── THE PAIR ON A PHONE (2026-09-26, user ask: "on the mobile versions
+    // only, make the top nav bar not display the 'back' or 'forward' labels
+    // since they take up a lot of space. Also use different signs for back
+    // and forward. find bigger material arrows") — `isPhone` picks the
+    // GLYPH (a name is not a style, so CSS cannot swap it): the long arrows
+    // `sym_o_arrow_left_alt` / `sym_o_arrow_right_alt` at 15px, Material
+    // Symbols' full-width arrows, where the desktop keeps `arrow_back` /
+    // `arrow_forward` at 12px beside their words. The WORDS hide in the style
+    // block's `@media` (same query, `MOBILE_Q` above).
+    const isPhone = ref(false)
+    let phoneMq = null
+    const syncPhone = (e) => { isPhone.value = e.matches }
+    onMounted(() => {
+      if (typeof window === 'undefined' || !window.matchMedia) return
+      phoneMq = window.matchMedia(MOBILE_Q)
+      isPhone.value = phoneMq.matches
+      phoneMq.addEventListener('change', syncPhone)
+    })
+    onBeforeUnmount(() => { if (phoneMq) phoneMq.removeEventListener('change', syncPhone) })
 
     // ── The BACK + FORWARD pair (2026-08-31) — Back relocated from the
     // hidden drawer, Forward re-surfaced with it (its last surface was the
@@ -319,7 +360,7 @@ export default defineComponent({
     // The first pass had this component claim and release the space as it
     // mounted, which worked and made the whole page hop 4px whenever a
     // viewer parked — a band that is permanent has no such moment.
-    return { tabs, frieze, canGoBack, goBack, canGoForward, goForward }
+    return { tabs, frieze, isPhone, canGoBack, goBack, canGoForward, goForward }
   }
 })
 </script>
@@ -1098,6 +1139,31 @@ export default defineComponent({
 .media-tabs__forward {
   right: 0;
   border-left: 1px solid var(--grey-6, #9e9e9e);
+}
+
+// ── ⭐ THE PAIR ON A PHONE (2026-09-26, user ask: no "back"/"forward" words
+// on mobile — "they take up a lot of space" — and bigger, different arrows).
+// The WORDS leave here; the GLYPH swap is the template's (`isPhone`, the same
+// `MOBILE_Q` string — a name is not a style). With the word gone the gap
+// goes with it and each block is glyph + pads: 9 + 15 + 9 = 33px, where the
+// desktop's Forward measures ~76. The parked-tab row cleared Forward with a
+// static `right: 90px` (its note: "if the Forward block ever grows … this
+// moves with it") — it shrinks with it too: 40px = the 33px block + the
+// same daylight-over-the-tab-gap reading the desktop number has.
+@media (max-width: 600px) {
+  .media-tabs__back,
+  .media-tabs__forward {
+    gap: 0;
+  }
+
+  .media-tabs__back .media-tabs__name,
+  .media-tabs__forward .media-tabs__name {
+    display: none;
+  }
+
+  .media-tabs__row {
+    right: 40px;
+  }
 }
 
 // Park/restore choreography: a tab slides down out of the band when a

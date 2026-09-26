@@ -1,12 +1,22 @@
 <template>
   <q-page class="auth-page" :style-fn="() => ({})">
+    <!-- ── ⭐ NO FLOATING TEXT, ONE FACE (2026-09-26, user ask: "for the very
+         landing page, please make sure we use nasalization on all fonts in
+         there and also remove any help additional extra boxes with text. we
+         do not want text there floating"). GONE: the tagline under the
+         slogan, the two subtitles under enter/join, the italic epigraph
+         under the enter CTA, and both secret fields' `hint` lines — every
+         piece of text that explained rather than did. KEPT: the wordmark and
+         the slogan (the brand, not help), the field labels, the CTAs, the
+         "lost your password?" control (a door to recovery, not a note) and
+         validation messages. The FONT is one rule on `.auth-page` — see the
+         style block. -->
     <div class="auth-hero">
       <div class="auth-wordmark nasalization">pathos.cloud</div>
       <div class="auth-slogan">
         <span class="auth-slogan__rest">Set your mind at rest.</span>
         <span class="auth-slogan__blaze">Set your heart ablaze.</span>
       </div>
-      <div class="auth-tagline">cryptographically-secured knowledge paths</div>
     </div>
 
     <!-- ── THE PLAQUE — one carved brown module (the docks' coat) framed by
@@ -18,7 +28,6 @@
         <section class="auth-half">
           <div class="auth-half__head">
             <div class="auth-half__title nasalization">{{ recovering ? 'recover' : 'enter' }}</div>
-            <div class="auth-half__sub">{{ recovering ? 'your inviter vouches you back in' : 'the chain remembers you' }}</div>
           </div>
 
           <q-form v-if="!recovering" class="auth-form" @submit.prevent="handleLogin">
@@ -45,8 +54,7 @@
               </div>
               <q-input v-model="recoverForm.secret" label="Recovery secret" outlined dense
                 class="auth-field auth-field--secret" label-color="brown-8" color="teal-10"
-                hint="ask the person who invited you to mint one"
-                :rules="[v => !!v || 'Required']" />
+                  :rules="[v => !!v || 'Required']" />
             </div>
             <q-input v-model="recoverForm.username" label="Username" outlined dense
               class="auth-field" label-color="brown-8" color="teal-10"
@@ -60,11 +68,6 @@
               back to log in
             </button>
           </q-form>
-
-          <div v-if="!recovering" class="auth-epigraph">
-            what moves through the chain cannot be silently rewritten —
-            every statement keeps its origin, its history, its audience
-          </div>
         </section>
 
         <div class="auth-plaque__divide" aria-hidden="true" />
@@ -72,7 +75,6 @@
         <section class="auth-half">
           <div class="auth-half__head">
             <div class="auth-half__title nasalization">join</div>
-            <div class="auth-half__sub">every entity arrives invited</div>
           </div>
           <q-form class="auth-form" @submit.prevent="handleRegister">
             <div class="auth-secret">
@@ -82,8 +84,7 @@
               </div>
               <q-input v-model="registerForm.secret" label="Invite secret" outlined dense
                 class="auth-field auth-field--secret" label-color="brown-8" color="teal-10"
-                hint="a vouch from someone already inside"
-                :rules="[v => !!v || 'Required']" />
+                  :rules="[v => !!v || 'Required']" />
             </div>
             <q-input v-model="registerForm.username" label="Choose username" outlined dense
               class="auth-field" label-color="brown-8" color="teal-10"
@@ -189,6 +190,15 @@ export default defineComponent({
 <style scoped lang="scss">
 // ── The auth surface: dark starfield canvas (body--dark), one warm plaque.
 .auth-page {
+  // ── ⭐ ONE FACE (2026-09-26, user ask: "use nasalization on all fonts in
+  // there"). Set once on the page and INHERITED by everything under it —
+  // the slogan, the field labels and typed text (normalize gives inputs and
+  // buttons `font-family: inherit`), the toggle, validation messages, the
+  // error line. The `.nasalization` utility stays on the pieces that already
+  // wore it (their tracking is theirs); this only makes the rest match. The
+  // icons keep their own font — Quasar sets `font-family` on `.material-icons`
+  // explicitly, so the ligatures never see this.
+  font-family: var(--font-display);
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -242,13 +252,9 @@ export default defineComponent({
   filter: drop-shadow(0 0 12px rgba(255, 110, 64, 0.38));
 }
 
-.auth-tagline {
-  margin-top: 7px;
-  font-size: 0.74em;
-  letter-spacing: 0.08em;
-  color: var(--brown-3);
-  opacity: 0.85;
-}
+// (`.auth-tagline` — "cryptographically-secured knowledge paths", 0.74em
+// brown-3 under the slogan — DELETED 2026-09-26 with the no-floating-text
+// ask; the template note at the hero has the list.)
 
 // ── PLAQUE — the docks' brown-1 module coat with the uneven-border device
 // (1px box, heavier foot) and both friezes flush to its edges. The halo is
@@ -287,12 +293,8 @@ export default defineComponent({
   color: var(--brown-8);
 }
 
-.auth-half__sub {
-  margin-top: 3px;
-  font-size: 0.78em;
-  color: var(--brown-4);
-  letter-spacing: 0.03em;
-}
+// (`.auth-half__sub` — the 0.78em brown-4 line under each half's title —
+// DELETED 2026-09-26 with the no-floating-text ask.)
 
 // The divide reads vertical between the halves and becomes a horizontal
 // hairline when the flex wrap stacks them.
@@ -404,14 +406,7 @@ export default defineComponent({
   &:hover { color: var(--brown-8); }
 }
 
-// Quiet thesis line filling the enter half's slack under its CTA.
-.auth-epigraph {
-  margin-top: 22px;
-  font-size: 0.72em;
-  font-style: italic;
-  line-height: 1.6;
-  letter-spacing: 0.02em;
-  color: var(--brown-4);
-  max-width: 34ch;
-}
+// (`.auth-epigraph` — the italic thesis line that filled the enter half's
+// slack under its CTA — DELETED 2026-09-26 with the no-floating-text ask; the
+// slack stands empty, which is the ask.)
 </style>
