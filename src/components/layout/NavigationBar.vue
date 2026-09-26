@@ -1731,6 +1731,27 @@ export default defineComponent({
 // inside the band (the 2026-09-10 gap ask) — and a rule is never under a
 // chip: the "a box cannot look inside a box it is congruent with" gotcha was
 // about rules INSIDE the congruent box; these stand outside it.
+//
+// ⭐ THE CHECKER (2026-09-26, user ask: "help me creating a checkered svg
+// pattern of 4 squares of height. Then put the pattern as the inner frieze
+// bar middle background, making sure it not distorts. then paint the darker
+// parts of the checkerboard with a quasar brown tone that combines well with
+// the other already existing background color basis"). The lane's paint is
+// TWO layers now, longhands so each reads alone: the veil stays its
+// `background-color` (the light squares are that veil, seen through the open
+// half of the tile), and `--nav-band-check` (_tokens.scss, beside the three
+// dials above — the why of the tone and the encoding live there) is its
+// `background-image`: a 4 × 4 checker SVG whose dark squares are `$brown-2`.
+// NOT DISTORTING is one declaration — `background-size: auto 100%`: "as tall
+// as the lane's interior, as wide as the tile's own ratio says". The tile is
+// square, so the 25px interior sets both sides (25 × 25 — four 6.25px
+// squares of height, snapped crisp by the SVG's own `crispEdges`) and no
+// width of bar can rubber the squares: `100% 100%` would have stretched one
+// tile across the whole bar; `contain` would have chosen the same 25 × 25
+// today but would follow the WIDTH the day the lane is narrower than tall.
+// The board repeats from the padding box's top-left, so its phase is the
+// lane's own corner and the four rows of squares stand inside the rules —
+// the rules are still the same rows, and still `--nav-band-rule`.
 .nav-bar::before {
   content: '';
   position: absolute;
@@ -1741,7 +1762,11 @@ export default defineComponent({
   box-sizing: border-box;                  // 27 OUTSIDE — the rules are rows of the band, not added to it
   z-index: -1;
   pointer-events: none;
-  background: var(--nav-band-veil);
+  background-color: var(--nav-band-veil);  // the light squares — the 09-25 basis, untouched
+  background-image: var(--nav-band-check); // the board — dark squares $brown-2, the rest open
+  background-size: auto 100%;              // 25 × 25: height = the lane's interior, width = the tile's own 1:1 — never stretched
+  background-repeat: repeat;
+  background-origin: padding-box;          // phase 0 at the lane's corner, inside the rules
   border-top: 1px solid var(--nav-band-rule);
   border-bottom: 1px solid var(--nav-band-rule);
 }

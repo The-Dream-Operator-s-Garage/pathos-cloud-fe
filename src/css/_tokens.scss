@@ -1,3 +1,11 @@
+// `@use` MUST precede every other rule of a file — this one included, though
+// it is only ever `@import`ed (app.scss, quasar.variables.scss → every SFC
+// style block): a used module's members stay private to this file, which is
+// exactly what the footer band's checker dial needs (§ THE FOOTER BAND — it
+// strips the `#` off a colour with `string.slice(meta.inspect(...))`; the
+// global `str-slice`/`inspect` are deprecated in Dart Sass ≥ 1.80).
+@use 'sass:string';
+@use 'sass:meta';
 // ──────────────────────────────────────────────────────────────
 // DESIGN TOKENS — pathos.cloud, faithful port of the old aesthetic
 //
@@ -2089,6 +2097,36 @@ $warning:   #F2C037;
   --nav-band-h: calc(var(--nav-chip-h) + 2px);
   --nav-band-veil: #{rgba($grey-4, 0.6)};
   --nav-band-rule: var(--grey-6);
+  // ⭐ THE CHECKER (2026-09-26, user ask: "help me creating a checkered svg
+  // pattern of 4 squares of height. Then put the pattern as the inner frieze
+  // bar middle background, making sure it not distorts. then paint the darker
+  // parts of the checkerboard with a quasar brown tone that combines well with
+  // the other already existing background color basis"). The band's
+  // `background-image` (`.nav-bar::before`, NavigationBar.vue): ONE SVG tile,
+  // a 4 × 4 checker — viewBox `0 0 4 4`, the eight dark unit squares on one
+  // path, the other eight left OPEN so the veil under it shows through: the
+  // light squares ARE the existing basis, rgb(233,231,225), untouched — inlined
+  // as a data URI so this sheet stays the one colour source. The dark squares'
+  // INK is `$nav-band-check-ink` = `$brown-2` (#d7ccc8, rgb(215,204,200)): the
+  // brown family's WELL tone (-2 = "the wells + the frieze band's lighter
+  // wave" in the mapping above, and this lane is a recessed well), one soft
+  // step under the veil (1.27:1) so the section still reads as the darker grey
+  // lane the 09-25 ask made it, now textured — and, the deciding reason, a step
+  // LIGHTER than `$brown-3`, which is what the cells' hairlines crossing this
+  // band are drawn in: a brown-3 board would swallow those lines square by
+  // square. Walk the ink here (`$brown-3` for a louder board) and nothing
+  // else moves. ⚠ ENCODING: a `#` inside a data URI starts the FRAGMENT and
+  // truncates the SVG, so the hex rides in as `%23` + its six digits —
+  // `string.slice(meta.inspect($ink), 2)` strips the hash (the `@use` pair at
+  // the top of this file exists for this one line); `<` `>` `'` are
+  // `%3C` `%3E` `%27` for the same reason. `shape-rendering='crispEdges'`
+  // snaps the 6.25px squares to whole device pixels (6 · 7 · 6 · 6 rows at
+  // 1×) instead of feathering every second edge. SIZE is on the rule:
+  // `background-size: auto 100%` — the tile is SQUARE, so the lane's 25px
+  // interior sets BOTH sides and the board can never stretch (25 × 25, four
+  // squares of height, the width following the SVG's own 1:1 ratio).
+  $nav-band-check-ink: $brown-2;
+  --nav-band-check: url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 4 4%27 shape-rendering=%27crispEdges%27%3E%3Cpath fill=%27%23#{string.slice(meta.inspect($nav-band-check-ink), 2)}%27 d=%27M0 0h1v1H0zM2 0h1v1H2zM1 1h1v1H1zM3 1h1v1H3zM0 2h1v1H0zM2 2h1v1H2zM1 3h1v1H1zM3 3h1v1H3z%27/%3E%3C/svg%3E");
 
   // TOTAL height of the bottom chrome — the bar's row PLUS the floor frieze
   // band standing under it (2026-08-02, user ask: "a dark brown frieze bar
