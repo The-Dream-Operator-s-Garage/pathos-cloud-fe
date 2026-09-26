@@ -281,6 +281,13 @@ export default defineComponent({
 // is a different element's background and is untouched, which is the whole
 // point: gradient on the wave, flat tone on the plate.
 //
+// ⭐ 2026-09-26 — THE PAINT CAN BE ALIVE: the top rail's host feeds this dial
+// `var(--aurora-paint, none)`, an inline gradient `composables/useAurora.js`
+// rewrites at ≤30fps (a slow sky of the palette's -11 pastels; user ask).
+// Nothing here had to change for that, and the two properties above are
+// exactly why: the paint fills the box once, the mask shapes it, the plate
+// never sees it. Any band that wants the sky is two lines on its host.
+//
 // Two properties of the fill worth stating, since both are the default and both
 // are load-bearing. It spans the WHOLE BAR, once: a gradient has no intrinsic
 // size, so it fills the background positioning area — the box, not the mask's

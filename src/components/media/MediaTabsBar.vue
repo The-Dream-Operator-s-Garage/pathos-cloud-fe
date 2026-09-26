@@ -124,7 +124,23 @@
          footer trail's band went 2026-09-23), so the variant is unhosted
          now; its recipe and the −11px lesson stay in FriezeBar for the next
          band that wants the opposed pair. -->
-    <FriezeBar slim class="media-tabs__frieze" />
+    <!-- ── ⭐ THE AURORA (2026-09-26, user ask: "take a good pastel color
+         palette from all the -11 quasar tones of our color palette and then
+         build a gradient that slowly twists in a pretty loop of random smooth
+         slow gradients of those colors transmutating into another. like a
+         sunrise-sunset endless thing … apply it onto the friezebar svg inside
+         the top header nav bar pls. make it move smooth to my eyes") ─────
+         The band's WAVE IS PAINTED BY A LIVE GRADIENT now: `ref="frieze"`
+         hands this element to `useAurora` (setup), which writes
+         `--aurora-paint` inline at ≤30fps, and the style block's dial hands
+         it to FriezeBar's `-paint` seam. Nine pastel stops off a WHEEL of the
+         palette's -11 accents in hue order, an arc of ~3 tones across the
+         width drifting right, breathing and bending, the wheel turning once
+         every ~4 min — the composable's header has the whole construction.
+         Nothing geometric moved: still `slim`, one wave, mask `b`, 13px,
+         `auto 13px`, pad 0, carve none; the plate stays `--grey-8`, which is
+         what makes pastels read as ink. Reduced motion holds one frame. -->
+    <FriezeBar ref="frieze" slim class="media-tabs__frieze" />
     <!-- ── THE BACK BUTTON (2026-08-31, user ask: "relocate the back button
          from the left drawer into the top header nav bar"; the drawer is
          hidden the same day) — INSIDE the rail since the follow-up ask
@@ -190,6 +206,7 @@ import { defineComponent, computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useFlyoutViewersStore } from 'src/stores/flyoutViewers'
 import FriezeBar from 'src/components/layout/FriezeBar.vue'
+import { useAurora } from 'src/composables/useAurora'
 import { iconForTarget, titleOfTarget } from 'src/utils/mediaKind'
 
 export default defineComponent({
@@ -199,6 +216,13 @@ export default defineComponent({
     const store = useFlyoutViewersStore()
     const route = useRoute()
     const router = useRouter()
+
+    // ── THE AURORA (2026-09-26) — the sky painted into the rail's frieze
+    // wave. `frieze` is the FriezeBar's instance; the composable takes its
+    // `$el` and writes `--aurora-paint` on it (the style block wires the
+    // dial). See the template note and composables/useAurora.js.
+    const frieze = ref(null)
+    useAurora(frieze)
 
     // ── The BACK + FORWARD pair (2026-08-31) — Back relocated from the
     // hidden drawer, Forward re-surfaced with it (its last surface was the
@@ -295,7 +319,7 @@ export default defineComponent({
     // The first pass had this component claim and release the space as it
     // mounted, which worked and made the whole page hop 4px whenever a
     // viewer parked — a band that is permanent has no such moment.
-    return { tabs, canGoBack, goBack, canGoForward, goForward }
+    return { tabs, frieze, canGoBack, goBack, canGoForward, goForward }
   }
 })
 </script>
@@ -671,6 +695,35 @@ export default defineComponent({
   // flanks = grime), which is a reason that could be argued with rather than
   // a geometric impossibility.
   --frieze-bar-wave-two: var(--plaque-flat, #f8f2e4);
+  // ── ⭐ THE AURORA (2026-09-26, user ask: "take a good pastel color palette
+  // from all the -11 quasar tones of our color palette and then build a
+  // gradient that slowly twists in a pretty loop of random smooth slow
+  // gradients of those colors transmutating into another. like a
+  // sunrise-sunset endless thing … apply it onto the friezebar svg inside the
+  // top header nav bar") ────────────────────────────────────────────────────
+  // The wave's PAINT is alive. `composables/useAurora.js`, mounted on this
+  // element from setup (`ref="frieze"` → `$el`), writes `--aurora-paint`
+  // inline — a nine-stop `linear-gradient(90deg, …)` re-drawn at ≤30fps, its
+  // colours sampled off a WHEEL of the palette's nine A100s in hue order (red
+  // → deep-orange → orange → yellow → lime → teal → cyan → indigo →
+  // deep-purple; five of them minted for it, see `$red-11`) — and this dial
+  // hands the paint to FriezeBar's `-paint` seam, where it fills the motif
+  // and nothing else (the note there: a gradient fills the background
+  // positioning area once, the mask decides the shape, the plate is another
+  // element's background). What moves: the wheel turns once every ~4 min
+  // (speed wobbling ±40% on smooth noise, never backwards), the visible ARC
+  // breathes around three tones across the width, and a small bend
+  // stretches and squeezes the bands as they drift right. Wall-time driven
+  // (no integration), so a background tab comes back to where the sky would
+  // be. NOTHING GEOMETRIC MOVED: 13px band, `auto 13px`, pad 0, carve none,
+  // one wave, mask `b` — the witness's HD law now reads "every pixel is the
+  // plate or its column's ink", which is the same law with a moving ink.
+  // ⚠ The cream dial above is the never-seen FALLBACK again (its 08-22 →
+  // 08-30 role): `var(--aurora-paint, none)` is `none` until the first frame
+  // and under a script-less render, and the flat cream is what shows then.
+  // ⚠ Reduced motion: the composable paints ONE frame and holds it — the sky
+  // stands, it does not vanish.
+  --frieze-bar-wave-two-paint: var(--aurora-paint, none);
   // ── ⭐ THE OPPOSED WAVE'S INK — THE SAME RAMP, RUN THE OTHER WAY
   // (2026-09-07; ⚠ SUPERSEDED THE SAME SITTING by the cream ask — the ⭐
   // block at wave two's dial. This paragraph is the record of the hour the
