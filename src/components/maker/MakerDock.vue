@@ -43,6 +43,13 @@
         </div>
       </header>
 
+      <!-- The band between the header and the tabs (2026-09-26, user ask):
+           the dashboard window's slim frieze in this window's tones — plate
+           = the family's darkest rung via `--dock-frieze` (set below), wave
+           = the platform's cream. Recipe: `.dock-window__frieze`,
+           `_components.scss`. -->
+      <FriezeBar slim class="dock-window__frieze" />
+
       <!-- ── Draft tabs — one per unposted item. Comment drafts (parent
            set) carry a reply icon so they read as replies at a glance. ── -->
       <div class="dock-tabs">
@@ -81,6 +88,7 @@ import { defineComponent, computed } from 'vue'
 import { useQuasar } from 'quasar'
 import { useRouter } from 'vue-router'
 import PostMakerSurface from './PostMakerSurface.vue'
+import FriezeBar from 'src/components/layout/FriezeBar.vue'
 import { useMakerStore, draftLabel } from 'src/stores/maker'
 import { useWindowsStore } from 'src/stores/windows'
 import { useNavStore } from 'src/stores/navigation'
@@ -88,7 +96,7 @@ import { gotoCommentThread } from 'src/utils/threadNav'
 
 export default defineComponent({
   name: 'MakerDock',
-  components: { PostMakerSurface },
+  components: { PostMakerSurface, FriezeBar },
   emits: ['created'],
 
   setup (props, { emit }) {
@@ -222,6 +230,10 @@ export default defineComponent({
   --dock-ink: var(--maker-contrast);
   --dock-ink-mute: var(--indigo-4);
   --dock-well: var(--indigo-1);
+  // The band under the header's PLATE (2026-09-26): the family's darkest
+  // rung, Material 900. The wave is the platform's cream, stated once on
+  // `.dock-window__frieze` in `_components.scss` — not a per-window dial.
+  --dock-frieze: var(--indigo-10);
 }
 
 // The one brown in the shared chrome that is NOT a dial — a tab's hover ink

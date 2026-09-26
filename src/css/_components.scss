@@ -645,6 +645,11 @@
 // `.dock-bar`, `.dock-tab`) plus once again inside the mobile block — a
 // modifier would have had to out-specify each of them separately, and the
 // mobile `border-left` restatement would have quietly won against it.
+// ⭐ 2026-09-26: `--dock-frieze` is the SEVENTH dial — the PLATE of the band
+// under the header (`.dock-window__frieze`, inside this rule). Each of the
+// four maker-family docks points it at its family's darkest rung; unset it
+// is the dashboard's `--grey-9`, so a dock without a colorway wears exactly
+// the dashboard window's band.
 .dock-window--creation {
   // ── THE OPEN-WINDOW LIGHT IS GONE (2026-09-07, user ask: "remove the glow
   // effect from their borders. Make them project a thin grey shadow
@@ -933,6 +938,40 @@
     left: 8px;
     top: 0;
     bottom: 0;
+  }
+
+  // ── THE BAND UNDER THE HEADER (2026-09-26, user ask: "a little frieze bar
+  // like the dashboard window friezebar for all the creative windows of the
+  // nav bar … a thin simple elegant frieze bar between the header and the
+  // tabs, but in their given color tone — use the darkest tone for the
+  // background and then the dashboard cream color + veil on the svg") ────
+  // The dashboard window's `.flyout-window__frieze` recipe — a `FriezeBar
+  // slim` (half height, the one wave, slim's half-carve), `flex: 0 0 auto` so
+  // the shell's column never squashes it — mounted between `.dock-bar` and
+  // `.dock-tabs` in the four maker-family docks (between the bar and the
+  // body in the label maker, which has no tab strip). The two tones the ask
+  // names are stated here, once, and reached as this chrome's dials:
+  //  · the PLATE is `--dock-frieze`, the colorway's seventh dial: each dock
+  //    points it at its family's DARKEST rung — `--indigo-10` (post maker),
+  //    `--teal-10` (uploader), `--red-10` (label maker), `--yellow-deep`
+  //    (schema builder: hand-mixed, yellow's own 900 being the family's
+  //    ceiling). Unset, the dashboard's `--grey-9`.
+  //  · the WAVE is `--plaque-flat` — the nav bar's cream-under-veil coat as
+  //    the one `<color>` a wave fill can take (the same reason the feed
+  //    container's bands and the top rail's inlaid band draw their meanders
+  //    in it: a wave is a `background-color` slot, and the coat is a layer
+  //    list). NOT a dial. The ask's whole point is that the motif is the
+  //    dashboard's material on every window and only the plate carries the
+  //    family; a second dial would invite the drift it rules out.
+  // Cream on a Material 900 plate is carve-legal — the ink is lighter than
+  // the plaque it is cut into — so slim's half-carve stays on, as on the
+  // dashboard's band (whose wave is FriezeBar's default `--brown-1`; that
+  // band and chat's `.chat-dock__frieze` are the same object under their own
+  // names and did not move). Witness: `flow-dock-frieze.mjs`.
+  .dock-window__frieze {
+    flex: 0 0 auto;
+    --frieze-bar-base: var(--dock-frieze, var(--grey-9));
+    --frieze-bar-wave-two: var(--plaque-flat);
   }
 
   // The tab strip on the plaque: resting tabs are the wells' --brown-2 in

@@ -39,6 +39,13 @@
         </div>
       </header>
 
+      <!-- The band between the header and the tabs (2026-09-26, user ask):
+           the dashboard window's slim frieze in this window's tones — plate
+           = the family's darkest rung via `--dock-frieze` (set below), wave
+           = the platform's cream. Recipe: `.dock-window__frieze`,
+           `_components.scss`. -->
+      <FriezeBar slim class="dock-window__frieze" />
+
       <!-- ── Upload tabs — one per upload in course. The glyph reads the
            tab's CONTENT (files, then link, then note) now that the three
            methods are simultaneous sections and no tab has a mode. ── -->
@@ -281,6 +288,7 @@
 import { defineComponent, ref, computed, watch, nextTick, onMounted, onBeforeUnmount } from 'vue'
 import { useQuasar } from 'quasar'
 import MakerHeader from './MakerHeader.vue'
+import FriezeBar from 'src/components/layout/FriezeBar.vue'
 import FileExplorer from './FileExplorer.vue'
 import MarkdownBody from 'src/components/shared/MarkdownBody.vue'
 import { useUploaderStore, uploadLabel } from 'src/stores/uploader'
@@ -315,7 +323,7 @@ const KIND_ICON = { text: 'notes', image: 'image', video: 'movie', audio: 'music
 
 export default defineComponent({
   name: 'UploaderDock',
-  components: { MakerHeader, FileExplorer, MarkdownBody },
+  components: { MakerHeader, FileExplorer, MarkdownBody, FriezeBar },
   emits: ['created'],
 
   setup (props, { emit }) {
@@ -909,6 +917,10 @@ export default defineComponent({
   --dock-ink: var(--uploader-contrast);
   --dock-ink-mute: var(--teal-4);
   --dock-well: var(--teal-1);
+  // The band under the header's PLATE (2026-09-26): the family's darkest
+  // rung, Material 900. The wave is the platform's cream, stated once on
+  // `.dock-window__frieze` in `_components.scss` — not a per-window dial.
+  --dock-frieze: var(--teal-10);
   --maker-contrast: var(--uploader-contrast);
   --maker-pale: var(--teal-1);
   --maker-deep: var(--teal-9);

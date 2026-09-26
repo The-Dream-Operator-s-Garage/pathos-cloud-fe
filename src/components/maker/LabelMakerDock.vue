@@ -38,6 +38,14 @@
         </div>
       </header>
 
+      <!-- The band under the header (2026-09-26, user ask): the dashboard
+           window's slim frieze in this window's tones — plate = the family's
+           darkest rung via `--dock-frieze` (set below), wave = the platform's
+           cream. This window has no tab strip, so the band sits between the
+           bar and the body. Recipe: `.dock-window__frieze`,
+           `_components.scss`. -->
+      <FriezeBar slim class="dock-window__frieze" />
+
       <div class="dock-body">
         <!-- ── LEFT: the recursive tree browser / search. Appendable:
              every unraveled layer ends with an add row — inline create on
@@ -252,6 +260,7 @@ import { useWindowsStore } from 'src/stores/windows'
 import { useAuthStore } from 'src/stores/auth'
 import { labelService } from 'src/services/label.service'
 import { useNavStore } from 'src/stores/navigation'
+import FriezeBar from 'src/components/layout/FriezeBar.vue'
 import LabelTreeMini from 'src/components/labels/LabelTreeMini.vue'
 import LabelMiniMaker from 'src/components/labels/LabelMiniMaker.vue'
 
@@ -260,7 +269,7 @@ import LabelMiniMaker from 'src/components/labels/LabelMiniMaker.vue'
 // the selection (right): child/brother appends, rename, re-hang, fork.
 export default defineComponent({
   name: 'LabelMakerDock',
-  components: { LabelTreeMini, LabelMiniMaker },
+  components: { FriezeBar, LabelTreeMini, LabelMiniMaker },
 
   setup () {
     const store = useLabelMakerStore()
@@ -551,6 +560,10 @@ export default defineComponent({
   --dock-ink: var(--labels-contrast);
   --dock-ink-mute: var(--red-4);
   --dock-well: var(--red-1);
+  // The band under the header's PLATE (2026-09-26): the family's darkest
+  // rung, Material 900. The wave is the platform's cream, stated once on
+  // `.dock-window__frieze` in `_components.scss` — not a per-window dial.
+  --dock-frieze: var(--red-10);
   --ltm-accent: var(--labels-contrast);
   --ltm-accent-rgb: var(--red-7-rgb);
   --q-primary: var(--labels-contrast);

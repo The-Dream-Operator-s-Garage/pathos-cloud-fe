@@ -42,6 +42,13 @@
         </div>
       </header>
 
+      <!-- The band between the header and the tabs (2026-09-26, user ask):
+           the dashboard window's slim frieze in this window's tones — plate
+           = the family's darkest rung via `--dock-frieze` (set below), wave
+           = the platform's cream. Recipe: `.dock-window__frieze`,
+           `_components.scss`. -->
+      <FriezeBar slim class="dock-window__frieze" />
+
       <!-- ── Work tabs — one per schema in progress ── -->
       <div class="dock-tabs">
         <button
@@ -267,6 +274,7 @@ import { useAuthStore } from 'src/stores/auth'
 import { useNavStore } from 'src/stores/navigation'
 import { skeletonService } from 'src/services/skeleton.service'
 import { kindFor } from 'src/utils/kinds'
+import FriezeBar from 'src/components/layout/FriezeBar.vue'
 import LabelFieldPicker from 'src/components/labels/LabelFieldPicker.vue'
 
 // Every referenceable pathchain element kind — mirrors the API's
@@ -285,7 +293,7 @@ const KIND_OPTIONS = [
 
 export default defineComponent({
   name: 'SchemaBuilderDock',
-  components: { LabelFieldPicker },
+  components: { FriezeBar, LabelFieldPicker },
 
   setup () {
     const $q = useQuasar()
@@ -578,6 +586,12 @@ export default defineComponent({
   --dock-ink: var(--schemas-contrast);
   --dock-ink-mute: var(--yellow-9);
   --dock-well: var(--yellow-1);
+  // The band under the header's PLATE (2026-09-26): the family's darkest
+  // rung — `--yellow-deep`, the hand-mixed step, since yellow's own 900 is
+  // the family's ceiling and reads as the contrast here, not as a plate.
+  // The wave is the platform's cream, stated once on `.dock-window__frieze`
+  // in `_components.scss` — not a per-window dial.
+  --dock-frieze: var(--yellow-deep);
   --ltm-accent: var(--schemas-contrast);
   --ltm-accent-rgb: var(--yellow-10-rgb);
   --q-primary: var(--schemas-contrast);
