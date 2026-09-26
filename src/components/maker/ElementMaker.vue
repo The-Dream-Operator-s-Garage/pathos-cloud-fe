@@ -58,7 +58,7 @@
           <q-select v-model="form.typeId" :options="nodeTypeOptions" label="Type"
             :dark="false" outlined dense emit-value map-options :disable="mode !== 'make'" />
           <NoteEditor v-if="form.typeId === 1"
-            v-model="form.content" :show-save="false" initial-mode="split" height="280px"
+            v-model="form.content" :show-save="false" initial-mode="live" height="280px"
             :readonly="mode === 'fork'" />
           <q-input v-else v-model="form.content"
             :label="nodeContentLabel" :dark="false" outlined dense autogrow
@@ -73,7 +73,7 @@
             v-model="form.typeId" :options="nodeTypeOptions" label="Type"
             :dark="false" outlined dense emit-value map-options />
           <NoteEditor v-if="form.typeId === 1"
-            v-model="form.content" :show-save="false" initial-mode="split" height="320px"
+            v-model="form.content" :show-save="false" initial-mode="live" height="320px"
             :readonly="mode === 'fork'" />
           <q-input v-else v-model="form.content"
             :label="nodeContentLabel" :dark="false" outlined dense autogrow

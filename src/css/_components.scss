@@ -991,6 +991,38 @@
   }
 }
 
+// ── THE INPUT FACE (2026-09-26, user ask: "extend the usage of nasalization
+// to the creative windows so they all have a matching input font. However,
+// keep raw text with the distinctive font it already has") ──────────────────
+// The FOUR CREATION WINDOWS type in the display face. ONE dial,
+// `--input-font`, declared on the four roots — the same four the frieze band
+// went to the same day; chat and the dashboard share the footprint below and
+// are not creative windows, so they are not named here and keep their faces.
+// The selector list catches every field that states no face of its own
+// (Quasar's `.q-field__native` is the <input> itself in a q-input and the
+// value <div> in a q-select; `.q-field__input` is a select's filter input);
+// a field that DOES state a face reads the dial where it states it —
+// UploaderDock's `.note-box`, NoteEditor's `.live-field`
+// (`var(--input-font, inherit)`, so the node editor page keeps the prose
+// face). The one deliberate exception is RAW TEXT: NoteEditor's raw layout
+// `.note-textarea` keeps Space Mono, the hash face, and needs no exception
+// rule — its own scoped class rule (0,2,0) outranks these element selectors
+// (0,1,1). ⚠ Never raise these to `!important` or add `.mono` to the list:
+// either would take the raw face too.
+.maker-dock,
+.uploader-dock,
+.schema-dock,
+.label-dock {
+  --input-font: var(--font-display);
+
+  input,
+  textarea,
+  .q-field__native,
+  .q-field__input {
+    font-family: var(--input-font);
+  }
+}
+
 // ── CHAT COLORWAY (2026-08-03, user ask: "use green-1 as the main color for
 // the chat window, and also remove the transparency from the background";
 // hue-swapped green → lime 2026-08-05, "even clearer tones"). The chat dock

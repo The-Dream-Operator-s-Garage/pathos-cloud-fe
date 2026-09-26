@@ -34,7 +34,7 @@
             v-model="editContent"
             :show-save="true"
             :saving="saving"
-            initial-mode="split"
+            initial-mode="live"
             height="560px"
             @save="saveNote"
           />

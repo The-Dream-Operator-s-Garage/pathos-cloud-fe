@@ -1076,6 +1076,11 @@ export default defineComponent({
   background: #fff;
   color: var(--ink);
   font: inherit;
+  // THE INPUT FACE (2026-09-26): the creation windows type in the display
+  // face through `--input-font` (`_components.scss`); this box states its own
+  // font, so it reads the dial itself — `font: inherit` alone would outrank
+  // the window's element rule and keep the prose face.
+  font-family: var(--input-font, inherit);
   font-size: 0.85em;
   line-height: 1.45;
 

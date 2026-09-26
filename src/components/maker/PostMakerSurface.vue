@@ -61,12 +61,17 @@
           </template>
         </MakerHeader>
 
+        <!-- THE EDITOR IS ONE PANE SINCE 2026-09-26 (user ask): the `live`
+             layout renders the draft block by block and opens the block
+             under the caret as its source, the `raw` layout is the bare
+             source — the writer's standing choice (localStorage), so no
+             `initial-mode` is stated here; embeds and phones no longer need
+             the 'edit' fallback a split pane forced on them. -->
         <NoteEditor
           ref="editorRef"
           class="maker-surface__note"
           :model-value="draft.content"
           :show-save="false"
-          :initial-mode="embed || isMobile ? 'edit' : 'split'"
           :height="embed ? '200px' : '100%'"
           @update:model-value="patch({ content: $event })"
           @insert-skeleton="addDraftGrid"
@@ -179,7 +184,6 @@ import NoteEditor from 'src/components/nodes/NoteEditor.vue'
 import DraftSkeletonGrid from './DraftSkeletonGrid.vue'
 import { useMakerStore } from 'src/stores/maker'
 import { useNavStore } from 'src/stores/navigation'
-import { useWindowsStore } from 'src/stores/windows'
 import { postService } from 'src/services/post.service'
 import { nodeService } from 'src/services/node.service'
 import { skeletonService } from 'src/services/skeleton.service'
@@ -202,10 +206,6 @@ export default defineComponent({
     const router = useRouter()
     const store = useMakerStore()
     store.load()
-    // Phones open the editor in edit mode — a 375px split pane leaves no
-    // room to write (change request #675); the toggle stays a tap away.
-    const windows = useWindowsStore()
-    const isMobile = computed(() => windows.isMobile)
 
     const editorRef = ref(null)
     const posting = ref(false)
@@ -439,7 +439,6 @@ export default defineComponent({
 
     return {
       store,
-      isMobile,
       draft,
       patch,
       invokeRef,
@@ -486,8 +485,9 @@ export default defineComponent({
   // is one line because custom properties INHERIT ACROSS COMPONENT
   // BOUNDARIES — scoped styles fence selectors, never inheritance. So this
   // repaints, in one place and in every window this surface is mounted in:
-  //   · the previewer's Edit │ Split │ Preview toggle (NoteEditor's
-  //     `toggle-color="primary"` — the component is shared with the node
+  //   · the editor's Live │ Raw layout switch — Edit │ Split │ Preview until
+  //     2026-09-26 — and the open block's lit left rule (NoteEditor's
+  //     `toggle-color="primary"` + `.live-field`'s `--q-primary` border; the component is shared with the node
   //     editor, which keeps the brand, as asked; the uploader stopped
   //     mounting NoteEditor with 2026-08-26's three-methods rework, and
   //     declares its own `--q-primary`, teal, at `.uploader-dock`);
