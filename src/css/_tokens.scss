@@ -2039,6 +2039,29 @@ $warning:   #F2C037;
   // split; the derivation is just `identity` now.
   --nav-chip-h: var(--nav-trail-h);
 
+  // ⭐ THE FOOTER BAND — BACK AS PAINT (2026-09-25, user ask: "it used to have
+  // a frieze bar in the middle. now that section is painted light-cream with
+  // a veil. Make the veil more opaque and grey. a slightly darker tone of
+  // gray. Also put it thin visible borders on top and bottom"). Three dials
+  // for `.nav-bar::before` (NavigationBar.vue — a pseudo-element LANE across
+  // the bar's middle, not a FriezeBar and not a layer on the bar's own
+  // `background`; the why is on the rule). The HEIGHT derives from the chip
+  // height above — the chips are the band's interior, one rule each side —
+  // so one edit to `--nav-trail-h` still moves chips and band together, as it
+  // did while `.nav-frieze` stood (2026-08-23 → 09-23). The VEIL is the
+  // coat's own construction one rung darker and twice as opaque: `$grey-4` at
+  // 60%, laid OVER `--plaque-coat` (not in place of it — the band's cream is
+  // the bar's), compositing to rgb(233,231,225) — MEASURED off the bar; the
+  // arithmetic says 233.6/231.2/225.6 — against the coat's rgb(248,242,228). The RULES are the bar's lip tone, `--grey-6`, so the
+  // bar draws ONE line material — lip, band rules, and on the very same rows
+  // both strips' lane rims (their `--strip-rule`). Walk the veil here — tone
+  // or strength — and nothing else needs to move.
+  // ⚠ KEEP THE PARITY: chip 25 → band 27 → 2px of cream each side of the
+  // 31px row. An even chip height puts the band on a half pixel.
+  --nav-band-h: calc(var(--nav-chip-h) + 2px);
+  --nav-band-veil: #{rgba($grey-4, 0.6)};
+  --nav-band-rule: var(--grey-6);
+
   // TOTAL height of the bottom chrome — the bar's row PLUS the floor frieze
   // band standing under it (2026-08-02, user ask: "a dark brown frieze bar
   // below the nav footer bar, the ones from inside the left drawer"). That

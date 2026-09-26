@@ -12,7 +12,13 @@
            plate, cream counter-meander). Nothing replaces it: the rows it
            covered now show `.nav-bar`'s own `--plaque-coat`, so the bar is
            one cream sheet end to end and the chips stand on it directly.
-           Its walk (seven dresses, 21 → 29 → 25px) is in git. ── -->
+           Its walk (seven dresses, 21 → 29 → 25px) is in git.
+           ⭐ 2026-09-25 (user ask: "it used to have a frieze bar in the
+           middle. now that section is painted light-cream with a veil. Make
+           the veil more opaque and grey … thin visible borders on top and
+           bottom"): THE ROWS ARE A LANE AGAIN, AS PAINT — `.nav-bar::before`
+           in the style block, a veiled stripe between two rules, no element
+           here and no FriezeBar. ── -->
 
       <!-- ── LEFT: the drawer column continued down through the bar — but
            ONLY WHILE THERE IS NO DRAWER (2026-08-02). The drawer runs to the
@@ -1510,7 +1516,9 @@ export default defineComponent({
 // 200 since the sober pass; it was the A100s for one ask before that), the chip's face is
 // `--plaque-flat` cream, and the band around it is NOT the dark `--grey-8`
 // plate the top rail and side trio wear — the footer trail is `--light-cream`
-// under a 60% `--grey-4` veil, ~rgb(234,231,226). There is nowhere on this bar
+// under a 60% `--grey-4` veil, ~rgb(234,231,226) (⚠ false from 2026-09-10,
+// grey-8 plate, and from 09-23, no band at all; TRUE AGAIN since 2026-09-25 —
+// `.nav-bar::before`, the same veil). There is nowhere on this bar
 // for a light tone to be luminous by brightness, so it reads by BLOOM instead.
 // (The windows have it easier: they stand over the feed's `--grey-8` field.)
 //
@@ -1665,6 +1673,13 @@ export default defineComponent({
   // strip all seat their bottom edges.
   height: var(--nav-bar-h);
   position: relative;
+  // ⭐ 2026-09-25 — ITS OWN STACKING CONTEXT, for the band below: with the
+  // bar isolated, a `z-index: -1` child paints ABOVE this coat and UNDER
+  // every in-flow cell, hairline and chip — no z-lift on the sections (the
+  // 2026-08-23 pair, retired 09-23, stays retired). Nothing in the bar
+  // carries a z-index, so the context traps nothing; the minitab strip is a
+  // fixed SIBLING of the footer, outside it.
+  isolation: isolate;
   user-select: none;
   // The pinned side panel (expanded panel OR parked column) sits ON TOP of the
   // bar and covers no buttons — the pin tack occupies that same 42px column
@@ -1680,6 +1695,56 @@ export default defineComponent({
 // which is exactly the "same creamy color on the rest of the bar" the ask
 // names. `--nav-trail-h` survives as the CHIPS' height dial alone (through
 // `--nav-chip-h`, _tokens.scss).
+
+// ── ⭐ THE BAND IS BACK — AS PAINT (2026-09-25, user ask: "it used to have a
+// frieze bar in the middle. now that section is painted light-cream with a
+// veil. Make the veil more opaque and grey. a slightly darker tone of gray.
+// Also put it thin visible borders on top and bottom") ──────────────────
+// The rows the frieze covered are a LANE again: the bar's cream under a
+// SECOND veil — `--nav-band-veil`, `--grey-4` at 60%, one rung darker and
+// twice as opaque as the coat's own grey-3 at 30% — between two 1px
+// `--nav-band-rule` lines (`--grey-6`, the bar's lip tone, so the bar draws
+// ONE line material). Three dials, in `_tokens.scss` beside the chip height
+// the band derives from.
+//
+// It is a `::before` — NOT a FriezeBar, and NOT a layer on `.nav-bar`'s own
+// `background`: four witnesses (dock-plaque, chip-family, identity-dock,
+// stack-footer) read that background as THE COAT and compare other surfaces
+// to it by identity, so a band layer there fails every one of them for a
+// tone that is not theirs. And it is NOT the 2026-08-23 construction either
+// (band at z 0, the three cells lifted to z 1): `isolation: isolate` on the
+// bar above makes the bar its own stacking context, so `z-index: -1` lands
+// this box ABOVE the coat and UNDER everything in the bar — the cells'
+// brown-3 hairlines run through it unbroken, the chips stand on it, the
+// identity plate and the dashboard button cover it as they covered the old
+// band — and no cell needs a lift.
+//
+// GEOMETRY — the odd-parity law, unchanged: an abspos box lays out against
+// the bar's 31px PADDING box, so the band is `--nav-chip-h + 2px` = 27px —
+// the chips' 25px INTERIOR plus one rule each side — and
+// `(32 − 1 − 27) / 2 = 2px` of cream shows above and below it. That is the
+// strips' own lane arithmetic (`2 shoulder · 1 rim · 25 · 1 rim · 2
+// shoulder`, StackPanel/PinsDrawer since 2026-09-06), so the band's rules
+// land on the SAME ROWS as both strips' lane rims and the bar's middle reads
+// as one lane from the identity cell to the dashboard block. The chips fill
+// the interior edge to edge and touch the rules from inside — no shoulder
+// inside the band (the 2026-09-10 gap ask) — and a rule is never under a
+// chip: the "a box cannot look inside a box it is congruent with" gotcha was
+// about rules INSIDE the congruent box; these stand outside it.
+.nav-bar::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc((var(--nav-bar-h) - 1px - var(--nav-band-h)) / 2);
+  height: var(--nav-band-h);
+  box-sizing: border-box;                  // 27 OUTSIDE — the rules are rows of the band, not added to it
+  z-index: -1;
+  pointer-events: none;
+  background: var(--nav-band-veil);
+  border-top: 1px solid var(--nav-band-rule);
+  border-bottom: 1px solid var(--nav-band-rule);
+}
 
 // ── Three sections ─────────────────────────────────────────
 // Each is a full-height grid cell (the bar stretches them) that centers its own
