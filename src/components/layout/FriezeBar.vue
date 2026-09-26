@@ -126,6 +126,18 @@ export default defineComponent({
     // collide, measured on the header band the day this shipped — it reads as
     // one clotted wave, not two). The style block's phase-dial note has the
     // columns → px conversion; the top rail's own 11px is derived there.
+    //
+    // ⚠ UNHOSTED SINCE 2026-09-26. The top rail — this variant's first host
+    // and, after the footer trail's band went (2026-09-23), its only one —
+    // took `slim` back (user ask: the pair "looks weird doubled out"). The
+    // reason is in the −11px phase itself: the collision-free offset is also
+    // the SYMMETRIC one, and at ONE ink a symmetric pair reads as a motif and
+    // its reflection — a chain of closed medallions — rather than as two
+    // waves meeting. The recipe stays: the four mask rules below and the
+    // re-phasing law above are what the next opposed band needs, and both
+    // were measured, not guessed. (A `counter` band that wants to read as
+    // TWO waves needs its halves told apart by VALUE — the reversed ramp the
+    // rail wore for an hour on 09-07 — not by direction and phase alone.)
     counter: { type: Boolean, default: false }
   }
 })
@@ -356,6 +368,8 @@ export default defineComponent({
 // put, so the half-tile offset that used to read as ONE meander at double
 // density now reads as two meanders meeting. Only layer one moves, and it
 // moves to a file that already exists.
+// ⚠ NO MOUNT CARRIES IT SINCE 2026-09-26 (see the prop): the rules stay for
+// the recipe, which was measured and is the expensive part.
 //
 // FOUR RULES, one per corner of the square the three blocks above define,
 // because `counter` has to answer "the mirror of what layer one would

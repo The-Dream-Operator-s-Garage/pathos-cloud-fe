@@ -96,8 +96,35 @@
          one-line template edit: every default `slim` was carrying here is
          already stated as a dial below — `--frieze-bar-h`, `auto 13px`,
          `carve: none`, `pad: 0` — so the band is the same 13px at 1px a row
-         it has been since 2026-08-27; only the second layer appears. -->
-    <FriezeBar counter class="media-tabs__frieze" />
+         it has been since 2026-08-27; only the second layer appears.
+         ⭐ ONE WAVE AGAIN SINCE 2026-09-26 (user ask: "the top nav header
+         bar's inner frieze looks weird doubled out like that. Let it be a
+         single HD thin svg tire" — read as *tira*, a strip). `counter` came
+         OFF and `slim` went back ON, the second time this band has walked
+         that way (2026-08-30: "change the double svg pattern to the
+         single-SVG one"). What "doubled out" names is the −11px phase
+         itself: the offset that FINISHED `counter` is the one where the
+         tile is SYMMETRIC about the centre rule, and at ONE ink a symmetric
+         pair does not read as two waves meeting — it reads as one motif and
+         its reflection, a chain of closed medallions, each 21-column tile a
+         diamond bracketing two mirrored spirals. The device that made the
+         pair legible is what made it look doubled. So the ask is answered
+         by the variant the platform already names for it — `slim` IS the
+         single thin wave (one layer, mask `b`, the wave with the centre
+         rule, the same pattern the feed's bands draw) — and "HD" is the
+         pixel-drawn fit `slim` reads through the dials since 08-30:
+         `auto 13px` in the 13px band, one motif cell per CSS pixel,
+         crispEdges, two tones and not one blended pixel in the band (the
+         witness samples the paint to say so). Nothing in the geometry
+         moved: band 13px, rail 18px, pad 0, carve none. Wave one's dials
+         LEFT WITH THE LAYER again — the tone and the −11px shift — since
+         `slim` v-ifs the layer out and a dial on an undrawn band is the
+         trap FriezeBar's slim notes name; the 09-07 record stands in the
+         style block as tombstones. ⚠ THIS WAS `counter`'s LAST HOST (the
+         footer trail's band went 2026-09-23), so the variant is unhosted
+         now; its recipe and the −11px lesson stay in FriezeBar for the next
+         band that wants the opposed pair. -->
+    <FriezeBar slim class="media-tabs__frieze" />
     <!-- ── THE BACK BUTTON (2026-08-31, user ask: "relocate the back button
          from the left drawer into the top header nav bar"; the drawer is
          hidden the same day) — INSIDE the rail since the follow-up ask
@@ -678,7 +705,14 @@ export default defineComponent({
   // back on over. (It stays `none` under the pixel-drawn law regardless.)
   // ⭐ NOW `--plaque-flat` LIKE ITS TWIN (the cream ask) — the reversal above
   // is history and the two waves are ONE ink; see wave two's block.
-  --frieze-bar-wave-one: var(--plaque-flat, #f8f2e4);
+  // ⭐ AND GONE WITH THE LAYER, 2026-09-26 (the "doubled out" ask — the
+  // template comment has it): `slim` is back on the mount, layer one is
+  // v-if'd out of the DOM, and a dial on a band that isn't drawn is the
+  // exact trap FriezeBar's slim notes name — the same reason these dials
+  // left on 2026-08-30. The declaration was `var(--plaque-flat, #f8f2e4)`.
+  // If the second wave ever returns it comes back WITH the layer, as it did
+  // on 09-07, never ahead of it. (The witness reads the host's own rules for
+  // this property and fails if a dial dresses the undrawn layer.)
   // ── ⭐ AND THE OPPOSED WAVE IS PULLED 11px LEFT (2026-09-07, the ask right
   // after the pattern landed: "move the new line a little to the left so that
   // it fills up the space in between that the other svg left … well
@@ -704,7 +738,12 @@ export default defineComponent({
   // number MUST move with it — `shift = columns × N / 13` for a fit of
   // `auto Npx` (the next crisp step, `auto 26px`, would want 22px). The
   // COLUMN COUNT is the constant; the pixels are a reading of it.
-  --frieze-bar-wave-one-shift: -11px;
+  // ⭐ TOMBSTONE, 2026-09-26: `--frieze-bar-wave-one-shift: -11px` left with
+  // the layer it phased (the wave-one tombstone above). The measurement
+  // stands — −11 columns is still the one collision-free phase of the
+  // opposed pair at `auto 13px` — and so does its other property, which is
+  // what retired the pair: −11 is also the SYMMETRIC phase, and at one ink a
+  // reflection reads as a doubled motif rather than as two waves meeting.
 }
 
 // ── …ON EVERY ROUTE, /feed INCLUDED AGAIN (2026-08-24, user ask: "make the
