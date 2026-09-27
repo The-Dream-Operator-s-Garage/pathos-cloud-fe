@@ -692,7 +692,19 @@ export default defineComponent({
   // (History: this dial was `--indigo-9` for the three days before 08-27's
   // composition pass took it to -7, so -8 is a level the bars have not stood
   // on since 2026-08-24 and lands exactly between their last two settings.)
-  --frieze-bar-v-base: var(--indigo-8, #303f9f);
+  // ⭐ TO THE BOTTOM OF THE SCALE, 2026-09-26 (user ask: "for the feed
+  // container's side friezebars and also for the inner frieze bars inside
+  // talavero's boards, make sure we're using the darkest indigo quasar tone
+  // that there is for all of them as background color") — `--indigo-8` →
+  // **`--indigo-10`**, Material 700 → 900. "The darkest there is" is -10 and
+  // not a higher number: Quasar's `-11…-14` are the A-series ACCENTS
+  // (A100–A700), all brighter. Again the plate ALONE — motif, both `--grey-6`
+  // rules, the rail's coat and the 13px recipe are the 08-27 composition
+  // verbatim — and now ONE plate with the board's two inner posts
+  // (`.feed-head__post`, FeedHeadBox.vue, moved in the same ask), the four
+  // vertical friezes on this surface on one ground for the first time since
+  // the 08-27 pass took these bars off the posts' -9.
+  --frieze-bar-v-base: var(--indigo-10, #1a237e);
   --frieze-bar-v-wave-one: var(--plaque-flat, #f8f2e4);
   --frieze-bar-v-wave-two: var(--plaque-flat, #f8f2e4);
   --frieze-bar-v-edge: var(--grey-6, #9e9e9e);

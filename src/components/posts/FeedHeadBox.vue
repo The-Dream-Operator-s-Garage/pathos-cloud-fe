@@ -824,7 +824,11 @@ export default defineComponent({
       posts' motif is now 242 on -9 rather than on -10).
    ⚠ `--indigo-6` had been ROLELESS since 2026-08-08 and is load-bearing again;
    `--indigo-10` is out of this file entirely. Check `_tokens.scss` before
-   assuming either is free. ── */
+   assuming either is free.
+   ⭐ 2026-09-26 UNDID THE SHIFT FOR ONE ROW (user ask: the darkest indigo as
+   the background of every vertical frieze on the feed surface) — the posts'
+   plaque is `--indigo-10` again, so `-10` is back in this file, on that one
+   dial. The other four rows of the map stand. ── */
 // ── THE BOX ─────────────────────────────────────────────────────────
 // Absolute against `.feed-stream-pane` (which is the container's field
 // between the two frieze bars), spanning it lip to lip: `left/right: 0` is
@@ -1490,7 +1494,22 @@ export default defineComponent({
   // board's edges are cut from the same material as its rooms rather than from
   // a family of their own. It is also a LIFT: #FCF3E0 (242) against brown-2's
   // 188 on an indigo-10 plate, so the motif reads where it used to be texture.
-  --frieze-bar-v-base: var(--indigo-9, #283593);
+  // ⭐ BACK ON `--indigo-10` SINCE 2026-09-26 (user ask: "for the feed
+  // container's side friezebars and also for the inner frieze bars inside
+  // talavero's boards, make sure we're using the darkest indigo quasar tone
+  // that there is for all of them as background color") — Material 900, the
+  // darkest stop Quasar ships (`-11…-14` are the brighter A-series accents,
+  // not deeper tones), and the plate these posts stood on from 2026-08-08
+  // until the 08-24 ladder shift. It undoes that shift for THIS DIAL ALONE:
+  // the rest of the box keeps its lighter ladder (plate, walls and handle
+  // -8, frame -7), so the posts are two steps under the board's structural
+  // ink instead of one — the deepest object on the board again. And it is
+  // ONE plate with the container's own bars (`.feed-container__edge`,
+  // FeedPage.vue, moved in the same ask): all four vertical friezes on the
+  // feed surface stand on one ground, the first time since 2026-08-27.
+  // ⚠ The side rims below stay `--indigo-7` — three steps lighter than the
+  // plate now, two before; the ask named the background only.
+  --frieze-bar-v-base: var(--indigo-10, #1a237e);
   --frieze-bar-v-wave-one: var(--light-cream, #FCF3E0);
   --frieze-bar-v-wave-two: var(--light-cream, #FCF3E0);
   // ── BOTH SIDE EDGES, 1px `--indigo-8` (2026-08-07, user ask) ─────────────
