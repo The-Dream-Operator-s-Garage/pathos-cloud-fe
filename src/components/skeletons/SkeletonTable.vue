@@ -79,6 +79,7 @@
               'is-dragover': c.kind === 'key' && dragOver === keyId(c.row)
             }"
             :style="c.kind === 'key' ? keyStyle(c.row) : null"
+            :title="c.kind === 'key' ? keyTitle(c.row) : null"
             :draggable="c.kind === 'key' && canEditKeys && !picker ? 'true' : null"
             @dragstart="c.kind === 'key' && canEditKeys && onKeyDragStart(c.row, $event)"
             @dragover="c.kind === 'key' && canEditKeys && onKeyDragOver(c.row, $event)"
@@ -88,13 +89,38 @@
           >
             <!-- ── A KEY ─────────────────────────────────────────────── -->
             <template v-if="c.kind === 'key'">
-              <span
-                class="skel-table__key-name mono"
-                :class="{ 'is-editable': canEditKeys }"
-                :title="keyTitle(c.row)"
-                @click.stop="canEditKeys && openPicker(c.row)"
-              >{{ c.row.slotName }}</span>
+              <!-- THE KEY IS A LABEL NANO REFERENCE (2026-09-27, user ask:
+                   "make sure we're using label nano references for the
+                   skeleton keys … I want to directly be able to access the
+                   label/key"). A key is the K link's target — a LABEL
+                   element — and it is drawn as that label's stock MicroChip:
+                   the label glyph, the key's NAME in the hash slot
+                   (`display`; the address `labels/<hash>` rides the
+                   tooltip), the label's OWN light off the walk
+                   (`slotLabelIntegrity`, no summary fetch per key), and THE
+                   DOOR — the chip's root click and its ⤢ open the label's
+                   window (LabelMini + its surround), the way every nano chip
+                   opens its element. No type word: the glyph says "label",
+                   and five keys saying it five times is noise. The rename
+                   moved off the name onto a tool beside × and history — a
+                   chip's click is its door, by the chip family's law. -->
+              <MicroChip
+                class="skel-table__key-chip"
+                kind="labels"
+                :id="c.row.slotLabelId"
+                :path="c.row.slotLabelPath || ''"
+                :display="c.row.slotName"
+                :show-type="false"
+                :integrity="c.row.slotLabelIntegrity || null"
+              />
               <span class="skel-table__key-tools">
+                <button
+                  v-if="canEditKeys"
+                  type="button"
+                  class="skel-table__key-rename"
+                  :title="'rename ' + c.row.slotName + ' — pick another label'"
+                  @click.stop.prevent="openPicker(c.row)"
+                ><q-icon name="swap_horiz" size="10px" /></button>
                 <button
                   v-if="canEditKeys"
                   type="button"
@@ -358,6 +384,7 @@ import { defineComponent, defineAsyncComponent, ref, computed, onMounted, watch,
 import InfoChip from 'src/components/shared/InfoChip.vue'
 import GithubPrCard from 'src/components/dev/GithubPrCard.vue'
 import LabelPicker from 'src/components/maker/LabelPicker.vue'
+import MicroChip from 'src/components/shared/MicroChip.vue'
 import { skeletonService } from 'src/services/skeleton.service'
 import { refService } from 'src/services/ref.service'
 import { pathService } from 'src/services/path.service'
@@ -391,7 +418,7 @@ const BARE_REF = /^\s*([a-z]+\/[0-9a-f]{16,})\s*$/i
 
 export default defineComponent({
   name: 'SkeletonTable',
-  components: { InfoChip, GithubPrCard, LabelPicker, SkeletonMini },
+  components: { InfoChip, GithubPrCard, LabelPicker, MicroChip, SkeletonMini },
   props: {
     // Pre-walked mode: the walk's `skeleton` head + `slots` array, handed
     // down by a host that already batched the read.
@@ -586,7 +613,7 @@ export default defineComponent({
     const keyTitle = (row) => {
       const parts = [row.expectedKind ? 'accepts ' + row.expectedKind : 'any content']
       if (row.unit) parts.push(row.unit.symbol || row.unit.label)
-      if (canEditKeys.value) parts.push('click to rename (pick a label) · drag to reorder')
+      if (canEditKeys.value) parts.push('⇄ rename (pick another label) · × remove · drag to reorder')
       return parts.join(' · ')
     }
     const usedLabelIds = computed(() => rows.value.map(r => r.slotLabelId).filter(Boolean))
@@ -977,19 +1004,13 @@ export default defineComponent({
 }
 .is-col .skel-table__key { border-right: 1px solid var(--st-rule); }
 
-.skel-table__key-name {
-  display: inline-block;
+// THE KEY CHIP (2026-09-27): the stock nano pill, unrestyled — a host
+// bounds the chip's WRAPPER, never its hash (the chip family's PM4 law);
+// here the cell is the wrapper, so the pill may take the cell's width and
+// its elastic hash slot (the key's NAME) ellipsises at the cell's edge.
+.skel-table__key-chip {
   max-width: 100%;
-  font-size: 0.68em;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--st-ink);
-  word-break: break-word;
   vertical-align: middle;
-
-  &.is-editable { cursor: pointer; }
-  &.is-editable:hover { box-shadow: inset 0 -1px 0 var(--st-hover); }
 }
 
 .skel-table__key-tools {
@@ -1003,6 +1024,7 @@ export default defineComponent({
 }
 
 .skel-table__key-x,
+.skel-table__key-rename,
 .skel-table__hist,
 .skel-table__unfold,
 .skel-table__nest-unbind,

@@ -313,7 +313,20 @@
               </thead>
               <tbody>
                 <tr v-for="s in slots" :key="s.slotName">
-                  <td class="col-field"><span class="mono">{{ s.slotName }}</span></td>
+                  <!-- THE KEY IS A LABEL NANO REFERENCE (2026-09-27): the
+                       schema's fields ARE labels — each is the stock chip,
+                       name in the hash slot, the door into the label window. -->
+                  <td class="col-field">
+                    <MicroChip
+                      class="col-field__chip"
+                      kind="labels"
+                      :id="s.slotLabelId"
+                      :path="s.slotLabelPath || ''"
+                      :display="s.slotName"
+                      :show-type="false"
+                      :integrity="s.slotLabelIntegrity || null"
+                    />
+                  </td>
                   <td class="col-accepts">
                     <span class="kind-chip" :style="{ '--kind-color': s.expectedKind ? kindColor(s.expectedKind) : 'rgba(90,100,110,0.8)' }">
                       {{ s.expectedKind || 'any' }}
@@ -505,6 +518,7 @@ import SlotRenderer from 'src/components/skeletons/SlotRenderer.vue'
 import SkeletonSquares from 'src/components/skeletons/SkeletonSquares.vue'
 import SkeletonUsages from 'src/components/skeletons/SkeletonUsages.vue'
 import SkeletonInstanceEditor from 'src/components/skeletons/SkeletonInstanceEditor.vue'
+import MicroChip from 'src/components/shared/MicroChip.vue'
 import LabelSlider from 'src/components/labels/LabelSlider.vue'
 import MomentInfo from 'src/components/moments/MomentInfo.vue'
 import EntityInfo from 'src/components/entities/EntityInfo.vue'
@@ -570,6 +584,7 @@ export default defineComponent({
   name: 'SkeletonPage',
   components: {
     GithubPrCard,
+    MicroChip,
     SlotRenderer,
     SkeletonSquares,
     SkeletonUsages,
@@ -1027,6 +1042,7 @@ export default defineComponent({
   }
   td { padding: 8px 14px; border-bottom: 1px solid #f2f4f8; }
   .col-field { width: 60%; font-size: 0.86em; color: #1F2A38; font-weight: 600; }
+  .col-field__chip { max-width: 100%; vertical-align: middle; }
 }
 .schema-hint {
   display: flex;

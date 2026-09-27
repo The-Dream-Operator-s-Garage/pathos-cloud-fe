@@ -29,7 +29,18 @@
             @drop.prevent="onDrop(s, $event)"
           >
             <td class="col-label">
-              <span class="mono field-name">{{ s.slotName }}</span>
+              <!-- THE KEY IS A LABEL NANO REFERENCE (2026-09-27): the same
+                   chip the grid wears — name in the hash slot, the label's
+                   own light off the walk, the door into the label window. -->
+              <MicroChip
+                class="field-name"
+                kind="labels"
+                :id="s.slotLabelId"
+                :path="s.slotLabelPath || ''"
+                :display="s.slotName"
+                :show-type="false"
+                :integrity="s.slotLabelIntegrity || null"
+              />
             </td>
             <td class="col-constraint">
               <span class="kind-chip" :style="kindChipStyle(s.expectedKind)">
@@ -159,6 +170,7 @@
 <script>
 import { defineComponent, ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import ElementMini from 'src/components/shared/ElementMini.vue'
+import MicroChip from 'src/components/shared/MicroChip.vue'
 import SlotRefPicker from 'src/components/maker/SlotRefPicker.vue'
 import { skeletonService } from 'src/services/skeleton.service'
 import { momentService } from 'src/services/moment.service'
@@ -173,7 +185,7 @@ const TEXTABLE = (kind) => !kind || kind === 'nodes'
 
 export default defineComponent({
   name: 'SkeletonInstanceEditor',
-  components: { ElementMini, SlotRefPicker },
+  components: { ElementMini, MicroChip, SlotRefPicker },
   props: {
     skeletonId: { type: Number, required: true },
     slots: { type: Array, default: () => [] }
@@ -427,11 +439,11 @@ export default defineComponent({
   &.is-dragover td { background: rgba(0, 130, 156, 0.08); }
 }
 
+// THE KEY CHIP (2026-09-27): the stock nano pill, unrestyled — the cell
+// bounds it, its hash slot (the key's NAME) ellipsises at the edge.
 .field-name {
-  font-size: 0.82em;
-  font-weight: 700;
-  color: #1F2A38;
-  word-break: break-word;
+  max-width: 100%;
+  vertical-align: middle;
 }
 
 .kind-chip {
