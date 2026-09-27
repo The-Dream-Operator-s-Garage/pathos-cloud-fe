@@ -39,7 +39,6 @@
 
   <div
     v-else
-    ref="rootEl"
     class="skel-table"
     :class="['is-' + axis, { 'is-nested': depth > 0, 'is-editable': canEditCells, 'is-keys-editable': canEditKeys, 'is-horizontal': layout === 'horizontal' }]"
   >
@@ -240,11 +239,18 @@
                 </span>
               </template>
 
-              <!-- A LIST in a cell (phase 6): a paths-kind slot renders its
-                   members — skeletons as nested grids, the rest as chips —
-                   with a drop zone that appends and a × that splices. An
-                   EMPTY paths-kind cell offers the drop zone too: the first
-                   drop makes it a list. -->
+              <!-- A LIST in a cell (phase 6): a paths-kind slot IS a path, and
+                   since 2026-09-27 it wears THE PATH VIEWER (user ask: "make
+                   sure we're using the new path viewers to display stuff
+                   inside skeletons") — PathMini on the pre-walked row + steps,
+                   laid the way this grid is laid (`layout`), its members as
+                   minis when the grid is `enriched` (the skeleton members
+                   nest as SkeletonMini through the lane, the 2026-09-06 PM
+                   rule — newest 24 unfold, the rest are chips) and as chips
+                   otherwise; a × per member for the owner (the lane emits
+                   `remove(step)`), the drop line in the mini's tail slot, the
+                   drop zone on this wrapper. An EMPTY paths-kind cell offers
+                   the drop zone alone: the first drop makes it a list. -->
               <div v-else-if="isListRow(c.row)" :data-list="c.row.slotName" class="skel-table__list" :class="{ 'is-dragover': listDragOver === c.row.slotName }"
                 @dragover="canEditCells && onListDragOver(c.row, $event)"
                 @dragleave="listDragOver = null"
@@ -252,59 +258,23 @@
               >
                 <div v-if="listOf(c.row).loading" class="skel-table__list-line"><q-spinner size="10px" /></div>
                 <div v-else-if="!listOf(c.row).steps.length" class="skel-table__list-line skel-table__empty">{{ canEditCells ? 'drop a skeleton here' : '(empty list)' }}</div>
-                <!-- MEMBERS (2026-09-06 PM): a skeleton member UNFOLDS into
-                     the SKELETON MINI when `enriched` (the flyout) — the
-                     newest LIST_UNFOLD_MAX of a depth-0 list, since the
-                     NAVIGATION skeleton's PATH_REF holds hundreds of stops
-                     and each mini is a walk — or into a bare nested grid
-                     otherwise (the dashboards' 2026-09-01 face, unchanged).
-                     Every member past the budget, and every member of a
-                     deeper list, is a NAMED STRIP: the skeleton's own NAME
-                     (a stop's title, an act's "Uploaded image" — free, it
-                     rode the path walk), its chip, and an unfold. -->
-                <div v-for="(st, idx) in listOf(c.row).steps" :key="st.link.id" class="skel-table__member">
-                  <template v-if="st.target?.kind === 'skeleton' && st.target.skeleton?.path">
-                    <InfoChip
-                      v-if="visited.includes(st.target.skeleton.path)"
-                      dense kind="skeletons" :address="st.target.skeleton.path"
-                    />
-                    <template v-else-if="memberUnfolds(c.row, idx, st)">
-                      <SkeletonMini
-                        v-if="enriched"
-                        :ref-or-id="st.target.skeleton.id"
-                        :depth="depth + 1"
-                        :visited="visitedNext"
-                        :readonly="readonly"
-                        :layout="layout"
-                        enriched
-                      />
-                      <SkeletonTable
-                        v-else
-                        :ref-or-id="st.target.skeleton.path"
-                        :depth="depth + 1"
-                        :visited="visitedNext"
-                        :readonly="readonly"
-                        :layout="layout"
-                      />
-                    </template>
-                    <span v-else class="skel-table__strip" :class="{ 'skel-table__strip--named': enriched }">
-                      <!-- (2026-09-21 PM6) a nested SCHEMA keeps the schema mark; a populated one wears the mitre -->
-                      <q-icon v-if="enriched" :name="st.target.skeleton.is_schema ? 'schema' : 'sym_o_mitre'" size="11px" class="skel-table__strip-glyph" />
-                      <span v-if="enriched" class="skel-table__strip-name" :title="st.target.skeleton.name">{{ st.target.skeleton.name }}</span>
-                      <InfoChip dense kind="skeletons" :address="st.target.skeleton.path" />
-                      <button type="button" class="skel-table__unfold" title="unfold" @click.stop.prevent="expand(st.target.skeleton.path)"><q-icon name="unfold_more" size="12px" /></button>
-                    </span>
+                <PathMini
+                  v-else
+                  :path="listOf(c.row).pathRow || { path: c.row.ref }"
+                  :steps="listOf(c.row).steps"
+                  :layout="layout || (axis === 'row' ? 'horizontal' : 'vertical')"
+                  :mode="enriched ? 'enriched' : 'reference'"
+                  :depth="depth"
+                  :visited="visitedNext"
+                  :readonly="readonly"
+                  :removable="canEditCells"
+                  rest-at-end
+                  @remove="removeMember(c.row, $event)"
+                >
+                  <template v-if="canEditCells" #tail>
+                    <div class="skel-table__list-line skel-table__list-drop">drop a skeleton to add</div>
                   </template>
-                  <InfoChip v-else dense :kind="memberKind(st)" :address="memberAddress(st)" />
-                  <button
-                    v-if="canEditCells"
-                    type="button"
-                    class="skel-table__member-x"
-                    title="remove from the list"
-                    @click.stop.prevent="removeMember(c.row, st)"
-                  ><q-icon name="close" size="10px" /></button>
-                </div>
-                <div v-if="canEditCells && listOf(c.row).steps.length" class="skel-table__list-line skel-table__list-drop">drop a skeleton to add</div>
+                </PathMini>
               </div>
 
               <span
@@ -388,11 +358,13 @@ const PLUMBING = new Set(['POST', 'CHAT', 'MESSAGE', 'POLL', 'PINS', 'NAVIGATION
 // or the two modules deadlock at evaluation (whichever loads first sees the
 // other as undefined in its `components` map).
 const SkeletonMini = defineAsyncComponent(() => import('src/components/skeletons/SkeletonMini.vue'))
+// The path viewer for list cells (2026-09-27) — async for the same reason:
+// PathMini → PathLane → SkeletonMini → this grid is a cycle for the bundler.
+const PathMini = defineAsyncComponent(() => import('src/components/paths/PathMini.vue'))
 
 // How many skeleton members of a depth-0 list unfold into minis on their
 // own when `enriched` — the NEWEST ones (a nav ledger's tail is the part
 // being read). Older members are named strips, one click to unfold.
-const LIST_UNFOLD_MAX = 24
 
 // A pasted reference in a cell binds the element instead of minting a
 // NOTE that says `[[pathos:…]]`. Both dresses: the chip grammar (with or
@@ -402,7 +374,7 @@ const BARE_REF = /^\s*([a-z]+\/[0-9a-f]{16,})\s*$/i
 
 export default defineComponent({
   name: 'SkeletonTable',
-  components: { InfoChip, GithubPrCard, LabelPicker, MicroChip, SkeletonMini },
+  components: { InfoChip, GithubPrCard, LabelPicker, MicroChip, SkeletonMini, PathMini },
   props: {
     // Pre-walked mode: the walk's `skeleton` head + `slots` array, handed
     // down by a host that already batched the read.
@@ -429,7 +401,7 @@ export default defineComponent({
     layout: { type: String, default: null },
     // Nested skeletons — a cell's, a list's members — render as the
     // SKELETON MINI (chrome + name + provenance foot) instead of a bare
-    // grid; and long lists unfold their newest LIST_UNFOLD_MAX only. The
+    // grid; and long lists unfold their newest 24 only (PathLane's budget). The
     // flyout viewer sets it, and since 2026-09-17 SkeletonMini passes it
     // by default — the feed and the board nest the way the flyout does;
     // only a host mounting this grid BARE (a page, a draft) still gets
@@ -728,7 +700,7 @@ export default defineComponent({
       const key = row.slotName
       const cur = lists.value[key]
       if (!cur || cur.ref !== (row.ref || '')) {
-        lists.value[key] = { loading: !!row.ref, steps: [], ref: row.ref || '' }
+        lists.value[key] = { loading: !!row.ref, steps: [], pathRow: null, ref: row.ref || '' }
         if (row.ref) loadList(row)
       }
       return lists.value[key]
@@ -738,57 +710,15 @@ export default defineComponent({
       try {
         const r = await pathService.byHash(row.ref, 'forward')
         const steps = (r?.steps || []).filter(st => st.link)
-        lists.value[key] = { loading: false, steps, ref: row.ref || '' }
-        nextTick(() => scrollListToEnd(key))
+        lists.value[key] = { loading: false, steps, pathRow: r?.path || null, ref: row.ref || '' }
       } catch (_) {
-        lists.value[key] = { loading: false, steps: [], ref: row.ref || '' }
+        lists.value[key] = { loading: false, steps: [], pathRow: null, ref: row.ref || '' }
       }
     }
-    // A HORIZONTAL list rests scrolled to its newest end (2026-09-06 PM) —
-    // the footer strip's own law ("the newest step lands beside the glyph"):
-    // a navigation ledger read left → right has its present at the right,
-    // and a lane that opened on its oldest member would show the wrong end.
-    // The list element is looked up by its `data-list` attribute at pin time
-    // — an axis flip re-creates the cells, and a function ref can be nulled
-    // for the old element after it was set for the new one.
-    const rootEl = ref(null)
-    const listElOf = (key) => rootEl.value?.querySelector(`.skel-table__list[data-list="${key}"]`) || null
-    // ⚠ The members ARRIVE AFTER the list does — each mini walks its own
-    // skeleton — so one scroll at load lands mid-row once they widen it.
-    // Re-pin as the members resize, for the first seconds only, then let go
-    // so a user's own scroll is never fought.
-    const scrollListToEnd = (key) => {
-      const el = listElOf(key)
-      if (!el || props.layout !== 'horizontal') return
-      el.scrollLeft = el.scrollWidth
-      if (typeof ResizeObserver === 'undefined') return
-      const ro = new ResizeObserver(() => { el.scrollLeft = el.scrollWidth })
-      for (const m of el.children) ro.observe(m)
-      setTimeout(() => ro.disconnect(), 3500)
-    }
-    watch(() => props.layout, (v) => {
-      if (v === 'horizontal') nextTick(() => { for (const r of rows.value) if (isListRow(r)) scrollListToEnd(r.slotName) })
-    })
-    // Which skeleton members unfold on their own (see the template note):
-    // anything the user unfolded; every member at depth < 2 when the grid is
-    // bare (the 2026-09-01 rule); when `enriched`, the newest
-    // LIST_UNFOLD_MAX of a depth-0 list only.
-    const memberUnfolds = (row, idx, st) => {
-      const path = st.target?.skeleton?.path
-      if (path && expanded.value.includes(path)) return true
-      if (!props.enriched) return props.depth < 2
-      if (props.depth !== 0) return false
-      const n = listOf(row).steps.length
-      return idx >= n - LIST_UNFOLD_MAX
-    }
-    const memberKind = (st) => {
-      const k = st.target?.kind || st.link?.target_type || 'unknown'
-      return ({ skeleton: 'skeletons', node: 'nodes', label: 'labels', entity: 'entities', path: 'paths' })[k] || k
-    }
-    const memberAddress = (st) => {
-      const t = st.target || {}
-      return t.skeleton?.path || t.node?.path || t.label?.path || t.entity?.path || t.path?.path || ''
-    }
+    // (The list's own member rendering — `memberUnfolds` / `memberKind` /
+    // `memberAddress`, the LIST_UNFOLD_MAX budget and the horizontal rest-
+    // at-the-newest-end scroll — moved into PathLane on 2026-09-27: the cell
+    // mounts the path viewer and the lane owns those laws.)
     const listDragOver = ref(null)
     const onListDragOver = (row, ev) => { ev.preventDefault(); listDragOver.value = row.slotName }
     const refFromDrag = (ev) => {
@@ -868,10 +798,6 @@ export default defineComponent({
       listOf,
       isListRow,
       rowColWidths,
-      rootEl,
-      memberUnfolds,
-      memberKind,
-      memberAddress,
       listDragOver,
       onListDragOver,
       onListDrop,
@@ -1040,6 +966,11 @@ export default defineComponent({
 }
 
 // ── lists (phase 6) ──────────────────────────────────────────────────
+// A paths-kind cell is a wrapper around the PATH VIEWER since 2026-09-27
+// (PathMini — its lane lays the members along its own axis and scrolls
+// them; the member rows, the named strips and the horizontal row-scroll
+// this block drew 2026-09-01 → 09-27 are the lane's now). What stays here
+// is the drop zone, its two lines, and the dragover ring.
 .skel-table__list {
   display: flex;
   flex-direction: column;
@@ -1047,50 +978,13 @@ export default defineComponent({
   min-width: 0;
   border-radius: 4px;
   &.is-dragover { outline: 2px dashed var(--st-hover); outline-offset: 1px; }
+  // the viewer's lane caps itself at 360px on a page; in a cell the grid's
+  // own scroll bounds it, so the cap comes off
+  :deep(.path-mini) { --path-mini-max-h: none; }
 }
 .skel-table__list-line { font-size: 0.9em; }
-
-// THE HORIZONTAL LAYOUT (2026-09-06 PM): a list flows left → right — the
-// footer strip's own direction, oldest at the left — and scrolls on the x
-// axis inside its cell; members take a card's width so a mini reads.
-.is-horizontal .skel-table__list {
-  flex-direction: row;
-  align-items: flex-start;
-  overflow-x: auto;
-  overflow-y: hidden;
-  max-width: 100%;
-  padding-bottom: 2px;
-  scrollbar-width: thin;
-}
-.is-horizontal .skel-table__member {
-  flex: 0 0 auto;
-  min-width: 180px;
-  max-width: 320px;
-}
+.is-horizontal .skel-table__list { max-width: 100%; }
 .is-horizontal .skel-table__list-line { flex: 0 0 auto; }
-
-// THE NAMED STRIP (2026-09-06 PM, `enriched` lists): the member's own
-// NAME leads — a stop's title, an act's past-tense label — with the chip
-// and the unfold after it.
-.skel-table__strip--named {
-  align-items: center;
-  gap: 5px;
-  padding: 2px 4px;
-  border: 1px solid var(--st-rule);
-  border-radius: 4px;
-  background: rgba(255, 255, 255, 0.35);
-}
-.skel-table__strip-glyph { flex: 0 0 auto; color: var(--st-ink-mute); }
-.skel-table__strip-name {
-  flex: 1 1 auto;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-size: 0.92em;
-  font-weight: 600;
-  color: var(--st-ink);
-}
 .skel-table__list-drop {
   font-size: 0.8em;
   font-style: italic;
@@ -1098,29 +992,10 @@ export default defineComponent({
   border: 1px dashed var(--st-rule);
   border-radius: 4px;
   padding: 2px 6px;
+  margin: 4px 6px 2px;
   text-align: center;
   opacity: 0.7;
   .skel-table__list:hover & { opacity: 1; }
-}
-.skel-table__member {
-  position: relative;
-  display: flex;
-  align-items: flex-start;
-  gap: 4px;
-  min-width: 0;
-  > :first-child { flex: 1 1 auto; min-width: 0; }
-}
-.skel-table__member-x {
-  flex: 0 0 auto;
-  display: inline-flex;
-  align-items: center;
-  padding: 0 2px;
-  border: none;
-  background: none;
-  color: var(--st-ink-mute);
-  cursor: pointer;
-  opacity: 0.55;
-  &:hover { color: var(--coral-deep, #c05a4e); opacity: 1; }
 }
 
 // ── the corner ───────────────────────────────────────────────────────

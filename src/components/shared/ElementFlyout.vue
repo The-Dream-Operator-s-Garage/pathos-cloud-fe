@@ -222,6 +222,17 @@
       <div v-else-if="showing === 'element' && isMomentTarget" class="element-flyout__moment">
         <MomentFace :key="'moment:' + targetElement.address" :id="momentFaceId" @loaded="onMomentLoaded" />
       </div>
+      <!-- THE LINK FACE (2026-09-27, user ask: "a flyout link viewer to display
+           the links information … opens when clicking on the references"): a
+           `links/…` element target draws `LinkFace` — the chain around the
+           link, its facts, its target as a Mini, the decoded buffer — in the
+           moment face's box, where the fifth target's LinkMini stood. Every
+           link nano chip (the path viewer's bonds, a post body's ref) opens
+           it through the chips' door. `loaded` retitles the window off the
+           read. -->
+      <div v-else-if="showing === 'element' && isLinkTarget" class="element-flyout__link">
+        <LinkFace :key="'link:' + targetElement.address" :id="linkFaceId" @loaded="onLinkLoaded" />
+      </div>
       <div v-else-if="showing === 'element'" class="element-flyout__element">
         <ElementMini :key="'element:' + targetElement.address" :address="targetElement.address" />
       </div>
@@ -425,6 +436,7 @@ import SkeletonTable from 'src/components/skeletons/SkeletonTable.vue'
 import InfoChip from 'src/components/shared/InfoChip.vue'
 import EntityFace from 'src/components/entities/EntityFace.vue'
 import ElementMini from 'src/components/shared/ElementMini.vue'
+import LinkFace from 'src/components/links/LinkFace.vue'
 import MomentFace from 'src/components/moments/MomentFace.vue'
 import { useFlyoutViewersStore } from 'src/stores/flyoutViewers'
 import { useWindowsStore } from 'src/stores/windows'
@@ -468,13 +480,16 @@ const ELEMENT_BOX = { w: 4, h: 3 }
 // the tiny map, the decoded buffer, the minted list — so it opens on the
 // post's portrait, not the element's landscape 4:3.
 const MOMENT_BOX = { w: 4, h: 5 }
+// The link face (2026-09-27): the chain, the facts, the target's Mini and
+// the decoded buffer stack — the moment's tall box.
+const LINK_BOX = { w: 4, h: 5 }
 // The ref prefixes the ELEMENT target answers for; nodes, entities and
 // skeletons (posts included) keep their own windows.
 const ELEMENT_PREFIXES = new Set(['labels', 'moments', 'paths', 'links', 'secrets'])
 
 export default defineComponent({
   name: 'ElementFlyout',
-  components: { ConversationPicker, FriezeBar, MediaViewerBody, FeedStream, SkeletonTable, InfoChip, EntityFace, ElementMini, MomentFace },
+  components: { ConversationPicker, FriezeBar, MediaViewerBody, FeedStream, SkeletonTable, InfoChip, EntityFace, ElementMini, MomentFace, LinkFace },
   props: {
     viewerId: { type: String, required: true }
   },
@@ -519,6 +534,29 @@ export default defineComponent({
     // page in a box — instead of the kind's Mini. The face loads by the
     // summary's id when the ref door resolved one, else by the address's hash
     // (the route's own contract: id or hash).
+    // A `links/…` element target wears the LINK FACE (2026-09-27) — the same
+    // contract as the moment's below: by the summary's id when the ref door
+    // resolved one, else by the address's hash; the read retitles the window
+    // `link #id → kind #target`.
+    const isLinkTarget = computed(() => elementPrefix.value === 'links')
+    const linkFaceId = computed(() => {
+      const t = targetElement.value
+      if (!t) return null
+      return t.summary?.id ?? String(t.address || '').split('/').pop()
+    })
+    const onLinkLoaded = (r) => {
+      const l = r?.link
+      const t = targetElement.value
+      if (!l || !viewer.value || !t || elementPrefix.value !== 'links') return
+      const sum = t.summary || {}
+      const primary = `link #${l.id} → ${l.target_type || 'element'} #${l.target_id ?? '?'}`
+      if (sum.id != null && sum.primary === primary) return
+      store.retarget(viewer.value.id, {
+        kind: 'element',
+        address: t.address,
+        summary: { ...sum, id: sum.id ?? l.id, primary, route: sum.route || ('/links/' + l.id) }
+      })
+    }
     const isMomentTarget = computed(() => elementPrefix.value === 'moments')
     const momentFaceId = computed(() => {
       const t = targetElement.value
@@ -880,7 +918,7 @@ export default defineComponent({
       if (targetNode.value) return probeNaturalSize(targetNode.value)
       if (targetItem.value) return { ...POST_BOX }
       if (targetEntity.value) return { ...ENTITY_BOX }
-      if (targetElement.value) return isMomentTarget.value ? { ...MOMENT_BOX } : { ...ELEMENT_BOX }
+      if (targetElement.value) return isMomentTarget.value ? { ...MOMENT_BOX } : (isLinkTarget.value ? { ...LINK_BOX } : { ...ELEMENT_BOX })
       return { ...TABLE_BOX }
     }
     const place = async () => {
@@ -1213,6 +1251,9 @@ export default defineComponent({
       isMomentTarget,
       momentFaceId,
       onMomentLoaded,
+      isLinkTarget,
+      linkFaceId,
+      onLinkLoaded,
       facePrefix,
       refFailed,
       nodeWalk,
@@ -1480,11 +1521,16 @@ export default defineComponent({
   overflow: auto;
   padding: 8px;
   :deep(.element-mini) { max-width: none; }
+  // a PATH's viewer (2026-09-27): this wrapper is the scroller, so the
+  // lane's own 360px cap comes off — one scrollbar, not one inside another
+  :deep(.path-mini) { --path-mini-max-h: none; }
 }
 
 // The moment face's well (2026-09-21) — the entity face's box, verbatim:
-// the face is its own scrolling surface on the grey-3 bed.
-.element-flyout__moment {
+// the face is its own scrolling surface on the grey-3 bed. The LINK face
+// (2026-09-27) takes the same well.
+.element-flyout__moment,
+.element-flyout__link {
   flex: 1 1 auto;
   min-width: 0;
   min-height: 0;

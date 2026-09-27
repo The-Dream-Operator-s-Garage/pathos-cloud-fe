@@ -1,347 +1,466 @@
 <template>
-  <!-- A read-only miniature for PATH skeleton rows. Same chrome family as
-       PostMini via shared/MiniPanel; the icon, accent, and route all
-       point at the path side of the world. Clicking routes to the full
-       /paths/:id viewer. Footer carries votes (no other interactions). -->
-  <MiniPanel :to="targetRoute">
-    <template #title>
-      <q-icon name="route" size="13px" class="q-mr-xs path-mini__icon" />
-      {{ effectiveTitle }}
-    </template>
+  <!-- THE PATH MINI (rebuilt 2026-09-27, user ask: "a path viewer to display
+       a path of elements either vertically or horizontally … belongs to the
+       mini family … expandable into its flyout viewer … the node mini
+       viewer's layout, but paint the contrast stuff using lime quasar tones
+       instead of teal … reference the right nano chip on top and adapt the
+       information on the mini footer"). The face a PATH wears wherever it is
+       quoted — a `![[pathos:paths/…]]` embed in a post, a skeleton grid's
+       paths-kind cell, the file tree, a label's usages, the element window.
+       NodeMini's grammar, one hue over: MiniPanel's chrome with its OWN
+       header ROW of hairline-split zones —
+         chip+copy │ name │ MODE │ LAYOUT │ open
+       — the PATH nano pill (`PathMicro`, collapsed: `icon / 993fa6… ●`) with
+       the copy control, the name (`path #415 · 43 steps`, or the title when
+       one is set), the two switches this viewer adds to the row, and the
+       corner that spawns the path's own window. The body is the LANE
+       (`PathLane`): the members along an axis, a bond per link. The FOOT is
+       adapted to a path — what the skeleton mini's says about its schema and
+       keys, said about members: `route · 43 steps · by claude · 43 paths`.
+       THE TWO SWITCHES (per path AND per sub-path):
+       · LAYOUT — vertical (a column, y-scroll) ⇄ horizontal (a row,
+         x-scroll). `swap_horiz` offers horizontal, `swap_vert` vertical.
+       · MODE — enriched (the members' minis) ⇄ reference (their nano chips).
+         `short_text` offers reference, `view_agenda` offers enriched.
+       A top-level mini remembers both per browser (`pathos_path_layout`,
+       `pathos_path_mode`); a nested one opens in its host lane's layout and
+       in REFERENCE (a sub-path unfolds on the reader's word — 43 nested
+       minis each walking their own steps is not a default), and its
+       switches flip only itself. A host that passes `layout` re-lays the
+       mini when it flips (the grid's toggle).
+       Self-resolving: given the row alone (`path`) it walks the steps
+       itself (`GET /paths/by-hash`, forward); given `steps` it draws.
+       COLORWAY: the `--path-*` ladder (_tokens.scss) — lime-1 coat, lime-3
+       hairlines, lime-9 hover + rail, lime-10 head ink; the chip's own
+       glyph/ink off kinds.js. Dials `--path-mini-coat/-rule/-rule-hover/
+       -head-ink` re-tone one tree, NodeMini's pattern. -->
+  <div v-if="loading && !row" class="path-mini__loading">
+    <q-spinner size="14px" color="primary" />
+  </div>
+  <InfoChip v-else-if="failed" kind="paths" :address="addressOf" :label="pathLabel" />
+  <div
+    v-else
+    class="path-mini"
+    :class="{ 'is-nested': depth > 0, 'is-horizontal': shownLayout === 'horizontal', 'mode-reference': shownMode === 'reference' }"
+  >
+    <MiniPanel body-fit>
+      <template #head>
+        <!-- THE ADDRESS CHIP + ITS COPY: what it is first (NodeMini's
+             reading). The pill is the chips' collapsed state; the corner is
+             this panel's door. -->
+        <span class="path-mini__zone path-mini__zone--chip">
+          <PathMicro :id="row.id" :path="row.path" :integrity="row.integrity || null" collapsed />
+          <button
+            type="button"
+            class="path-mini__copy"
+            :class="{ 'is-copied': copied }"
+            :title="copied ? 'hash copied' : 'copy the full path hash'"
+            @click.stop.prevent="copyHash"
+          >
+            <q-icon :name="copied ? 'check' : 'content_copy'" size="10px" />
+          </button>
+        </span>
 
-    <template #chips>
-      <span v-if="authorDisplayName" class="mini-author-chip" :title="path.author?.path">
-        <EntityName :entity="path.author" />
-        <span class="mini-sep">|</span>
-        <span class="mini-hash mono">entity/{{ shortHash(path.author?.path, 8) }}</span>
-      </span>
+        <!-- THE NAME — the one elastic zone -->
+        <span class="path-mini__zone path-mini__zone--name" :title="nameTitle">
+          <span class="path-mini__name-text">{{ pathLabel }}</span>
+        </span>
 
-      <span v-if="path.kind" class="mini-chip-kind">
-        <q-icon name="account_tree" size="11px" class="q-mr-xs" />
-        {{ path.kind }}
-      </span>
-
-      <span v-if="path.forked_from_id" class="mini-chip-fork">
-        <q-icon name="alt_route" size="11px" class="q-mr-xs" />
-        fork of #{{ path.forked_from_id }}
-      </span>
-
-      <span v-if="path.created_at" class="mini-chip-fact" :title="path.created_at">
-        <q-icon name="schedule" size="11px" class="q-mr-xs" />
-        {{ timeAgo }}
-      </span>
-    </template>
-
-    <template v-if="labels && labels.length" #labels>
-      <span v-for="(l, i) in displayLabels" :key="l.id || i" class="mini-label-chip">
-        {{ l.name }}
-      </span>
-      <span v-if="labels.length > displayLabels.length" class="mini-label-more">
-        +{{ labels.length - displayLabels.length }}
-      </span>
-    </template>
-
-    <template #hash>
-      <PathMicro :id="path.id" :path="path.path" collapsed />
-    </template>
-
-    <template #body>
-      <!-- When the walked steps are supplied, the body becomes a little
-           horizontal strip of the path's elements: image nodes render as
-           thumbnails (a path of photos reads as a slider), everything
-           else as its micro form. Scrolls sideways when it overflows. -->
-      <div v-if="displaySteps.length" class="path-mini__strip" @click.stop.prevent>
-        <component
-          :is="s.route ? 'router-link' : 'span'"
-          v-for="s in displaySteps"
-          :key="s.key"
-          :to="s.route"
-          class="path-mini__step"
-          :class="{ 'is-media': s.image }"
-          :title="s.title"
+        <!-- THE MODE SWITCH — wears the glyph of the mode it OFFERS -->
+        <button
+          type="button"
+          class="path-mini__zone path-mini__zone--mode"
+          :class="{ 'is-reference': shownMode === 'reference' }"
+          :title="modeTitle"
+          @click.stop.prevent="toggleMode"
         >
-          <img v-if="s.image" :src="s.image" :alt="s.title" />
-          <span v-else class="path-mini__step-chip">
-            <q-icon :name="s.icon" size="12px" />
-            <span class="mono">{{ s.short }}</span>
-          </span>
-        </component>
-        <span v-if="hiddenSteps > 0" class="path-mini__more">+{{ hiddenSteps }}</span>
-      </div>
-      <div v-else-if="path.step_count != null" class="path-mini__summary">
-        <q-icon name="format_list_numbered" size="12px" class="q-mr-xs" />
-        {{ path.step_count }} step{{ path.step_count === 1 ? '' : 's' }}
-      </div>
-      <div v-else-if="path.excerpt" class="path-mini__excerpt">{{ path.excerpt }}</div>
-      <div v-else class="path-mini__empty">(no description)</div>
-    </template>
+          <q-icon :name="shownMode === 'enriched' ? 'short_text' : 'view_agenda'" size="10px" />
+        </button>
 
-    <template #foot>
-      <span class="vote-pill" :class="{ 'is-up': votes.viewer_vote === 1 }">
-        <q-icon name="arrow_upward" size="11px" /> {{ votes.up || 0 }}
-      </span>
-      <span class="vote-pill" :class="{ 'is-down': votes.viewer_vote === -1 }">
-        <q-icon name="arrow_downward" size="11px" /> {{ votes.down || 0 }}
-      </span>
-      <q-space />
-      <span class="path-mini__open">open <q-icon name="open_in_new" size="11px" /></span>
-    </template>
-  </MiniPanel>
+        <!-- THE LAYOUT SWITCH — wears the glyph of the layout it OFFERS
+             (SkeletonMini's switch, verbatim) -->
+        <button
+          type="button"
+          class="path-mini__zone path-mini__zone--layout"
+          :class="{ 'is-horizontal': shownLayout === 'horizontal' }"
+          :title="layoutTitle"
+          @click.stop.prevent="toggleLayout"
+        >
+          <q-icon :name="shownLayout === 'horizontal' ? 'swap_vert' : 'swap_horiz'" size="10px" />
+        </button>
+
+        <!-- THE CORNER: this path in its own floating window -->
+        <button
+          type="button"
+          class="path-mini__zone path-mini__zone--open"
+          title="open in the flyout viewer"
+          @click.stop.prevent="openViewer"
+        >
+          <q-icon name="open_in_full" size="10px" />
+        </button>
+      </template>
+
+      <template #body>
+        <div v-if="loading" class="path-mini__loading"><q-spinner size="12px" color="primary" /></div>
+        <div v-else-if="!walked.length" class="path-mini__empty">(empty path)<slot name="tail" /></div>
+        <PathLane
+          v-else
+          :steps="walked"
+          :layout="shownLayout"
+          :mode="shownMode"
+          :depth="depth"
+          :visited="visited"
+          :self="row.path || ''"
+          :readonly="readonly"
+          :removable="removable"
+          :rest-at-end="restAtEnd"
+          @remove="$emit('remove', $event)"
+        >
+          <template #tail><slot name="tail" /></template>
+        </PathLane>
+      </template>
+
+      <!-- THE FOOT, adapted to a path: steps · author · what the members are -->
+      <template #foot>
+        <span class="path-mini__foot-line" :title="footTitle">
+          <q-icon :name="pathKind.icon" size="10px" />
+          <span class="path-mini__foot-steps mono">{{ stepCount }} {{ stepCount === 1 ? 'step' : 'steps' }}</span>
+          <template v-if="authorName">
+            <span class="path-mini__foot-dot">·</span>
+            <span class="path-mini__foot-author">by {{ authorName }}</span>
+          </template>
+          <template v-if="kindTally">
+            <span class="path-mini__foot-dot">·</span>
+            <span class="path-mini__foot-kinds">{{ kindTally }}</span>
+          </template>
+        </span>
+      </template>
+    </MiniPanel>
+  </div>
 </template>
 
 <script>
-import { defineComponent, computed } from 'vue'
+import { defineComponent, ref, computed, watch, onMounted } from 'vue'
 import MiniPanel from 'src/components/shared/MiniPanel.vue'
+import InfoChip from 'src/components/shared/InfoChip.vue'
 import PathMicro from './PathMicro.vue'
-import EntityName from 'src/components/entities/EntityName.vue'
+import PathLane from './PathLane.vue'
+import { pathService } from 'src/services/path.service'
+import { useFlyoutViewersStore } from 'src/stores/flyoutViewers'
+import { kindFor, hashOf, isHash } from 'src/utils/kinds'
+
+// The two preferences' keys — the flyout's `pathos_skeleton_layout` pattern,
+// one setting per surface for the top-level mini.
+const LAYOUT_KEY = 'pathos_path_layout'
+const MODE_KEY = 'pathos_path_mode'
+const readPref = (key, allowed, fallback) => {
+  try {
+    const v = localStorage.getItem(key)
+    return allowed.includes(v) ? v : fallback
+  } catch (_) { return fallback }
+}
+const writePref = (key, v) => { try { localStorage.setItem(key, v) } catch (_) { /* preference only */ } }
+
+const PLURAL = { node: 'nodes', label: 'labels', entity: 'entities', path: 'paths', skeleton: 'skeletons', post: 'posts', moment: 'moments', secret: 'secrets', link: 'links' }
 
 export default defineComponent({
   name: 'PathMini',
-  components: { MiniPanel, PathMicro, EntityName },
+  components: { MiniPanel, InfoChip, PathMicro, PathLane },
   props: {
-    // Path-skeleton shape (enriched). Compatible with the postSkeletonService
-    // _enrichChild output plus optional PATH-specific fields (kind,
-    // step_count). Votes optional but rendered when present.
-    path: { type: Object, required: true },
-    labels: { type: Array, default: () => [] },
-    // Walked steps from pathService (each { link, target: { kind, … } }).
-    // When present, the body renders the element strip / image slider.
+    // The path row ({ id, path, step_count, created_at, owner_id, author?,
+    // integrity?, title? }) — the file tree's, a walk's nested target, the
+    // grid's list. Optional when `refOrId` is given.
+    path: { type: Object, default: null },
+    // Pre-walked steps (pathService, forward). null → the mini walks them.
     steps: { type: Array, default: null },
-    to: { type: String, default: null }
+    // Self-resolving address 'paths/<hash>' or a bare row id.
+    refOrId: { type: [String, Number], default: null },
+    // Kept for the callers that pass it (the file tree, the label usages);
+    // the header states the path, not its labels.
+    labels: { type: Array, default: () => [] },
+    to: { type: String, default: null },
+    // 'vertical' | 'horizontal' | null. Given: the layout this mini OPENS in
+    // and follows when the host flips (a nested lane's, the grid's toggle).
+    // null: the top-level default — the browser's remembered choice.
+    layout: { type: String, default: null },
+    // 'enriched' | 'reference' | null. Given: the mode this mini opens in.
+    // null: remembered (top level) / reference (nested).
+    mode: { type: String, default: null },
+    depth: { type: Number, default: 0 },
+    visited: { type: Array, default: () => [] },
+    readonly: { type: Boolean, default: false },
+    // The grid's list: a × per member (emits `remove(step)`), and the lane
+    // rests at its newest end when horizontal.
+    removable: { type: Boolean, default: false },
+    restAtEnd: { type: Boolean, default: false }
   },
-  setup (props) {
-    const targetRoute = computed(() => props.to || `/paths/${props.path.id}`)
+  emits: ['remove', 'resolved'],
+  setup (props, { emit }) {
+    const flyouts = useFlyoutViewersStore()
+    const pathKind = kindFor('paths')
 
-    const authorDisplayName = computed(() => {
-      const a = props.path.author
-      if (!a) return ''
-      return a.display_name || a.username || ('entity #' + a.id)
+    // ── the row + the walk ─────────────────────────────────────────────
+    const loading = ref(false)
+    const failed = ref(false)
+    const fetched = ref(null) // { row, steps } when this mini walked
+    const row = computed(() => fetched.value?.row || props.path || null)
+    const walked = computed(() => (Array.isArray(props.steps) ? props.steps : (fetched.value?.steps || [])))
+    const addressOf = computed(() => {
+      if (row.value?.path) return row.value.path
+      return typeof props.refOrId === 'string' && props.refOrId.includes('/') ? props.refOrId : ''
     })
 
-    const effectiveTitle = computed(() =>
-      props.path.title || 'Path #' + props.path.id
-    )
-
-    const displayLabels = computed(() => (props.labels || []).slice(0, 3))
-
-    const votes = computed(() => props.path.votes || {})
-
-    // Element strip: one entry per step target, image nodes as thumbs.
-    const STEP_CAP = 12
-    const STEP_ICONS = { node: 'adjust', label: 'label_important', path: 'route', skeleton: 'sym_o_mitre', entity: 'person' }
-    const displaySteps = computed(() => {
-      if (!Array.isArray(props.steps) || !props.steps.length) return []
-      return props.steps.slice(0, STEP_CAP).map((s, i) => {
-        const t = s.target || {}
-        const row = t.node || t.label || t.path || t.skeleton || t.entity || null
-        const image = (t.kind === 'node' && t.node?.file?.kind === 'image') ? t.node.file.url : null
-        const route =
-          t.kind === 'node' && row ? `/nodes/${row.id}`
-            : t.kind === 'label' && row ? `/labels/${row.id}`
-              : t.kind === 'path' && row ? `/paths/${row.id}`
-                : t.kind === 'skeleton' && row ? `/posts/${row.id}`
-                  : t.kind === 'entity' && row ? `/entities/${row.id}` : null
-        const short = row?.path ? shortHash(row.path, 6) : (t.kind || '?')
-        return {
-          key: s.link?.id || i,
-          image,
-          route,
-          icon: STEP_ICONS[t.kind] || 'circle',
-          short,
-          title: `${t.kind || 'element'}${row?.id != null ? ' #' + row.id : ''}`
+    const load = async () => {
+      if (Array.isArray(props.steps)) { emit('resolved', row.value); return }
+      const hash = hashOf(row.value?.path || (typeof props.refOrId === 'string' ? props.refOrId : ''))
+      const id = row.value?.id ?? (props.refOrId != null && !isHash(String(props.refOrId)) ? Number(props.refOrId) : null)
+      if (!hash && !id) { failed.value = true; return }
+      loading.value = true
+      failed.value = false
+      try {
+        const r = isHash(hash) ? await pathService.byHash(hash, 'forward') : await pathService.byId(id, 'forward')
+        if (r?.success && r.path) {
+          fetched.value = { row: { ...r.path, author: r.owner || row.value?.author || null }, steps: r.steps || [] }
+          emit('resolved', fetched.value.row)
+        } else if (!row.value) {
+          failed.value = true
         }
-      })
-    })
-    const hiddenSteps = computed(() =>
-      Array.isArray(props.steps) ? Math.max(0, props.steps.length - STEP_CAP) : 0)
+      } catch (_) {
+        // a 403 with the row in hand still draws the head; without one, the chip
+        if (!row.value) failed.value = true
+      }
+      loading.value = false
+    }
+    onMounted(load)
+    watch(() => [props.path?.path, props.path?.id, props.refOrId, props.steps], load)
 
-    const shortHash = (p, len = 12) => {
-      const h = (p || '').includes('/') ? (p || '').split('/').pop() : p
-      return h ? h.slice(0, len) : ''
+    // ── the head ───────────────────────────────────────────────────────
+    const stepCount = computed(() => (walked.value.length || row.value?.step_count || 0))
+    const pathLabel = computed(() => {
+      const t = String(row.value?.title || '').trim()
+      if (t) return t
+      const id = row.value?.id
+      const n = stepCount.value
+      return `path${id != null ? ' #' + id : ''} · ${n} ${n === 1 ? 'step' : 'steps'}`
+    })
+    const nameTitle = computed(() => row.value?.path || pathLabel.value)
+
+    const copied = ref(false)
+    const copyHash = async () => {
+      const full = hashOf(row.value?.path || '')
+      if (!full) return
+      try {
+        await navigator.clipboard.writeText(full)
+        copied.value = true
+        setTimeout(() => { copied.value = false }, 1600)
+      } catch (e) { /* clipboard denied — the glyph simply never flips */ }
     }
 
-    const timeAgo = computed(() => {
-      const iso = props.path.created_at
-      if (!iso) return ''
-      const d = Date.now() - new Date(iso).getTime()
-      if (d < 0) return ''
-      const s = Math.floor(d / 1000)
-      if (s < 60) return `${s}s ago`
-      const m = Math.floor(s / 60)
-      if (m < 60) return `${m}m ago`
-      const h = Math.floor(m / 60)
-      if (h < 24) return `${h}h ago`
-      const days = Math.floor(h / 24)
-      if (days < 30) return `${days}d ago`
-      try { return new Date(iso).toLocaleDateString() } catch (_) { return iso }
+    const openViewer = () => { if (row.value?.path) flyouts.spawnRef(row.value.path) }
+
+    // ── the layout ─────────────────────────────────────────────────────
+    const localLayout = ref(props.layout || (props.depth === 0 ? readPref(LAYOUT_KEY, ['vertical', 'horizontal'], 'vertical') : 'vertical'))
+    watch(() => props.layout, (v) => { if (v === 'vertical' || v === 'horizontal') localLayout.value = v })
+    const shownLayout = computed(() => (localLayout.value === 'horizontal' ? 'horizontal' : 'vertical'))
+    const setLayout = (v) => {
+      localLayout.value = v === 'horizontal' ? 'horizontal' : 'vertical'
+      if (props.depth === 0 && props.layout == null) writePref(LAYOUT_KEY, localLayout.value)
+    }
+    const toggleLayout = () => setLayout(shownLayout.value === 'horizontal' ? 'vertical' : 'horizontal')
+    const layoutTitle = computed(() => (shownLayout.value === 'horizontal'
+      ? 'Lay the path out vertically — the members down a column, scrolling down'
+      : 'Lay the path out horizontally — the members along a row, scrolling sideways'))
+
+    // ── the mode ───────────────────────────────────────────────────────
+    const localMode = ref(props.mode || (props.depth === 0 ? readPref(MODE_KEY, ['enriched', 'reference'], 'enriched') : 'reference'))
+    watch(() => props.mode, (v) => { if (v === 'enriched' || v === 'reference') localMode.value = v })
+    const shownMode = computed(() => (localMode.value === 'reference' ? 'reference' : 'enriched'))
+    const setMode = (v) => {
+      localMode.value = v === 'reference' ? 'reference' : 'enriched'
+      if (props.depth === 0 && props.mode == null) writePref(MODE_KEY, localMode.value)
+    }
+    const toggleMode = () => setMode(shownMode.value === 'enriched' ? 'reference' : 'enriched')
+    const modeTitle = computed(() => (shownMode.value === 'enriched'
+      ? 'Show the members as references — their nano chips'
+      : 'Show the members enriched — their mini viewers'))
+
+    // ── the foot ───────────────────────────────────────────────────────
+    const authorName = computed(() => {
+      const a = row.value?.author || row.value?.owner || null
+      if (!a) return ''
+      return a.display_name || a.username || a.profile?.username || ''
     })
+    const kindTally = computed(() => {
+      const counts = {}
+      for (const st of walked.value) {
+        const k = st.target?.kind || st.link?.target_type || 'unknown'
+        counts[k] = (counts[k] || 0) + 1
+      }
+      const parts = Object.entries(counts)
+        .sort((a, b) => b[1] - a[1])
+        .map(([k, n]) => `${n} ${n === 1 ? k : (PLURAL[k] || k)}`)
+      return parts.join(' · ')
+    })
+    const footTitle = computed(() => [row.value?.path, authorName.value && `by ${authorName.value}`, kindTally.value].filter(Boolean).join(' · '))
 
     return {
-      targetRoute,
-      authorDisplayName,
-      effectiveTitle,
-      displayLabels,
-      votes,
-      shortHash,
-      timeAgo,
-      displaySteps,
-      hiddenSteps
+      pathKind,
+      loading,
+      failed,
+      row,
+      walked,
+      addressOf,
+      stepCount,
+      pathLabel,
+      nameTitle,
+      copied,
+      copyHash,
+      openViewer,
+      shownLayout,
+      toggleLayout,
+      layoutTitle,
+      shownMode,
+      toggleMode,
+      modeTitle,
+      authorName,
+      kindTally,
+      footTitle
     }
   }
 })
 </script>
 
 <style lang="scss" scoped>
-.path-mini__icon { color: var(--coral-deep); vertical-align: middle; }
+.path-mini__loading { padding: 6px 0; text-align: center; }
 
-.path-mini__summary {
-  font-size: 0.84em;
-  color: #2C3D4E;
-  display: inline-flex;
-  align-items: center;
+.path-mini {
+  // NodeMini's dial pattern, the path family's ladder as the defaults
+  // (`--path-*`, _tokens.scss): a host re-tones one tree by writing the
+  // `--path-mini-*` dials; the lane inside reads `--path-lane-*` and falls
+  // back to the same ladder.
+  --pm-ink: var(--path-mini-head-ink, var(--path-ink, #827717));
+  --pm-rule: var(--path-mini-rule, var(--path-rule, #e6ee9c));
+  --path-lane-ink: var(--pm-ink);
+  --path-lane-rule: var(--pm-rule);
+  --path-lane-bond: var(--path-mini-bond, var(--path-bond, #9e9d24));
+  --path-lane-max-h: var(--path-mini-max-h, 360px);
+
+  :deep(.mini-panel) {
+    --panel-chrome: var(--path-mini-coat, var(--path-coat, #f9fbe7));
+    --panel-body: var(--path-mini-coat, var(--path-coat, #f9fbe7));
+    --panel-rule: var(--pm-rule);
+  }
+  :deep(.mini-panel--hover):hover {
+    --panel-rule: var(--path-mini-rule-hover, var(--path-hover, #9e9d24));
+  }
+  // The header is one ROW of zones split by full-height hairlines. The
+  // `flex-direction` and `gap` are RESETS: MiniPanel's default head is a
+  // flex COLUMN with a 4px gap (the tower NodeMini paid for on 2026-08-23
+  // and SkeletonMini again on 09-17).
+  :deep(.mini-panel__head--own) {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    gap: 0;
+    min-width: 0;
+    padding: 0;
+  }
+  :deep(.mini-panel__body) {
+    padding: 0;
+    min-height: 0;
+  }
+  :deep(.mini-panel__foot) {
+    padding: 1px 0;
+    gap: 0;
+  }
 }
 
-.path-mini__excerpt {
-  font-size: 0.84em;
-  line-height: 1.4;
-  color: #2C3D4E;
-  white-space: pre-wrap;
-  word-break: break-word;
+// ── the header zones (NodeMini's grammar) ────────────────────────────────
+.path-mini__zone {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  padding: 1px 4px;
+  color: var(--pm-ink);
+  white-space: nowrap;
+  overflow: hidden;
+  & + & { border-left: 1px solid var(--pm-rule); }
+}
+.path-mini__zone--chip {
+  flex: 0 1 auto;
+  // the ONE pair of dials every mini's chip zone reads (2026-09-21 PM8)
+  padding: var(--mini-chip-zone-pad, 2px 4px 2px 2px);
+  gap: var(--mini-chip-zone-gap, 2px);
+}
+.path-mini__zone--name {
+  flex: 1 1 auto;
+  justify-content: center;
+}
+.path-mini__name-text {
+  flex: 0 1 auto;
+  min-width: 0;
+  font-family: var(--font-display);
+  font-size: 0.76em;
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.path-mini__copy,
+.path-mini__zone--mode,
+.path-mini__zone--layout,
+.path-mini__zone--open {
+  appearance: none;
+  background: none;
+  border: 0;
+  font: inherit;
+  cursor: pointer;
+  color: inherit;
+}
+.path-mini__copy {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+  margin-left: 3px;
+  padding: 0;
+  opacity: 0.6;
+  transition: opacity 0.12s, color 0.12s;
+  &:hover { opacity: 1; }
+  &.is-copied { opacity: 1; color: var(--positive, #21ba45); }
+}
+.path-mini__zone--mode,
+.path-mini__zone--layout {
+  flex: 0 0 auto;
+  &:hover { color: var(--path-mini-rule-hover, var(--path-hover, #9e9d24)); }
+}
+.path-mini__zone--open {
+  flex: 0 0 auto;
+  &:hover { color: var(--coral-deep, #d35f5f); }
 }
 
 .path-mini__empty {
+  padding: 6px 8px;
   font-size: 0.78em;
-  color: #8995a8;
+  color: var(--pm-ink);
+  opacity: 0.7;
   font-style: italic;
+  text-align: center;
 }
 
-// The element strip — horizontal, scrollable, image-first.
-.path-mini__strip {
+// ── the foot ─────────────────────────────────────────────────────────────
+:deep(.mini-panel__foot) .path-mini__foot-line,
+.path-mini__foot-line {
   display: flex;
-  gap: 6px;
   align-items: center;
-  overflow-x: auto;
-  padding: 2px 0 4px;
-  scrollbar-width: thin;
-}
-
-.path-mini__step {
-  flex-shrink: 0;
-  text-decoration: none;
-
-  &.is-media img {
-    display: block;
-    width: 72px;
-    height: 54px;
-    object-fit: cover;
-    border-radius: 4px;
-    border: 1px solid rgba(var(--ink-rgb), 0.15);
-    transition: transform 0.1s, border-color 0.1s;
-  }
-  &.is-media:hover img {
-    transform: scale(1.04);
-    border-color: rgba(var(--ink-rgb), 0.45);
-  }
-}
-
-.path-mini__step-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  padding: 2px 7px;
-  border-radius: 10px;
-  border: 1px solid rgba(var(--ink-rgb), 0.15);
-  background: rgba(var(--ink-rgb), 0.05);
-  color: #5b6c82;
-  font-size: 0.72em;
-  &:hover { border-color: rgba(var(--ink-rgb), 0.4); }
-}
-
-.path-mini__more {
-  flex-shrink: 0;
-  font-size: 0.72em;
-  color: #8995a8;
-}
-
-.mini-chip-fact, .mini-chip-kind, .mini-chip-fork {
-  display: inline-flex;
-  align-items: center;
-}
-
-.mini-chip-kind {
-  text-transform: lowercase;
-  background: rgba(var(--coral-rgb), 0.08);
-  border: 1px solid rgba(var(--coral-rgb), 0.30);
-  color: var(--coral-deep);
-  padding: 1px 7px;
-  border-radius: 9px;
-}
-
-.mini-chip-fork {
-  color: #b07020;
-  background: #fff7ea;
-  border: 1px solid #e8cca0;
-  padding: 1px 7px;
-  border-radius: 9px;
-}
-
-.mini-author-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  padding: 2px 7px;
-  background: #f0ecfb;
-  border: 1px solid #c1b8e6;
-  border-radius: 10px;
-  color: #4f3e98;
-  font-size: 0.92em;
-  .mini-sep  { opacity: 0.4; margin: 0 1px; }
-  .mini-hash { font-size: 0.82em; opacity: 0.75; }
-}
-
-.mini-label-chip {
-  font-size: 0.68em;
-  padding: 1px 6px;
-  border-radius: 3px;
-  background: rgba(var(--ink-rgb), 0.08);
-  color: rgba(var(--ink-rgb), 0.78);
-  border: 1px solid rgba(var(--ink-rgb), 0.12);
+  justify-content: center;
+  gap: 4px;
+  width: 100%;
+  min-width: 0;
   white-space: nowrap;
+  overflow: hidden;
+  font-size: 0.7em;
+  color: var(--pm-ink);
 }
-
-.mini-label-more {
-  font-size: 0.68em;
-  color: #8995a8;
-}
-
-.vote-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
-  padding: 1px 6px;
-  border-radius: 4px;
-  background: rgba(var(--ink-rgb), 0.06);
-  border: 1px solid rgba(var(--ink-rgb), 0.12);
-  color: #5b6c82;
-  font-size: 0.84em;
-
-  &.is-up {
-    background: rgba(126, 187, 105, 0.15);
-    border-color: rgba(126, 187, 105, 0.45);
-    color: #3d7a2a;
-  }
-  &.is-down {
-    background: rgba(211, 95, 95, 0.12);
-    border-color: rgba(211, 95, 95, 0.4);
-    color: #b14848;
-  }
-}
-
-.path-mini__open {
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  color: #5b6c82;
-  font-size: 0.92em;
-}
+.path-mini__foot-author,
+.path-mini__foot-kinds { overflow: hidden; text-overflow: ellipsis; }
+.path-mini__foot-dot { opacity: 0.5; }
 </style>

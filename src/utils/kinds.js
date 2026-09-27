@@ -85,14 +85,20 @@ export const KINDS = {
   // post-as-document drawing the chips wore since July. Every chip reads it
   // here, so the card's cap and its foot pill are one drawing.
   posts: { kind: 'post', icon: 'sym_o_post', color: '#3f51b5', ink: '#1a237e', route: (id) => `/posts/${id}` },
-  // ⭐ BLUE since 2026-09-22 PM — blue-9 (Material 800) / blue-10 (900): the
-  // entities took blue-grey that evening, and one family cannot carry two
-  // kinds in every `--kind-accent` consumer (chips, strips, the ref
-  // browser). Not cyan: cyan-9 beside the nodes' teal-7 is the "two teals a
-  // step apart read as one" this row already refused once. A path is a
-  // ROUTE, drawn in the map's blue. (Blue-grey-7 #455a64 / blue-grey-10
-  // 09-21 → this pass; teal-8 before the nodes took teal.)
-  paths: { kind: 'path', icon: 'route', color: '#1565c0', ink: '#0d47a1', route: (id) => `/paths/${id}` },
+  // ⭐ LIME since 2026-09-27 (user ask: "create a path viewer … paint the
+  // path viewer contrast stuff using lime quasar tones instead of teal … make
+  // sure to reference the right nano chip on top"): a PATH is a KIND with a
+  // viewer of its own now (PathMini / PathLane), and a kind's chip wears its
+  // viewer's colorway — the nodes' teal, the populated skeletons' brown. The
+  // accent is lime-10 (Material 900, `--path-accent`), NOT the family's
+  // Material-600 rung the other kinds use: lime-7 reads 1.9:1 on cream and a
+  // glyph in it vanishes. The ink is `$lime-deep` (#5f5710, `--path-chip-ink`),
+  // the hand-mixed step below 900 — "ink = the icon's darkest Quasar tone"
+  // would have made glyph and text one colour here. Both hexes MIRROR the
+  // `--path-*` ladder in _tokens.scss (move them together). (Blue-9 / blue-10
+  // 2026-09-22 PM → this pass; blue-grey-7 09-21; teal-8 before the nodes
+  // took teal.)
+  paths: { kind: 'path', icon: 'route', color: '#827717', ink: '#5f5710', route: (id) => `/paths/${id}` },
   // red-7 = `--labels-contrast`, the LABELS button's rim (the label maker
   // went red on 09-07; the chips stayed violet-in-this-file / teal-on-the-
   // chip for two weeks — this closes that gap).

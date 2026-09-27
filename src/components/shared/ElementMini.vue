@@ -18,7 +18,9 @@
     </div>
 
     <NodeMini v-else-if="shape.kind === 'node' && shape.node" :node="shape.node" />
-    <PathMini v-else-if="shape.kind === 'path' && shape.path" :path="shape.path" :steps="shape.steps" />
+    <!-- A PATH wears the path viewer (rebuilt 2026-09-27): depth/visited
+         ride so a nested lane cannot re-enter an ancestor. -->
+    <PathMini v-else-if="shape.kind === 'path' && shape.path" :path="shape.path" :steps="shape.steps" :depth="depth" :visited="visited" />
     <PostMini v-else-if="shape.kind === 'post' && shape.post" :post="shape.post" />
     <LabelMini v-else-if="shape.kind === 'label' && shape.label" :label="shape.label" />
     <EntityMini v-else-if="shape.kind === 'entity' && shape.entity" :entity="shape.entity" />

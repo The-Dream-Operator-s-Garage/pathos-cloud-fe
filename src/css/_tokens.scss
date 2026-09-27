@@ -159,6 +159,23 @@ $lime-2: #f0f4c3;
 $lime-3: #e6ee9c;
 $lime-4: #dce775;
 $lime-10: #827717;
+// ⭐ 2026-09-27 — THE PATH FAMILY'S RUNGS (user ask: the path viewer "using
+// lime quasar tones instead of teal"). Lime had five levels (chat's -1..-4 +
+// the -10 ink) and the aurora's -11; a PANEL colorway needs the middle of the
+// ramp too: -6/-7/-8 for washes, -9 (Material 800) as the hover DARKENING
+// (SkeletonMini's brown-6 role — the resting -3 hairline has to answer the
+// pointer by weight, and lime's light rungs cannot), and `$lime-deep`, the
+// hand-mixed step BELOW 900, as the family's chip INK (h54 s70 l22%, 6.55:1
+// on the coat): lime-10 is the darkest Quasar rung and already the ACCENT
+// (`kinds.js paths.color`), so "ink = the icon's darkest tone" — the chips'
+// law — would have made glyph and text one colour. The uploader wore -9 and
+// -deep for two days in 2026-09-05 → 09-07 and both were retired under the
+// no-consumer rule; they are minted again here with a consumer of their own.
+$lime-6: #d4e157;
+$lime-7: #c0ca33;
+$lime-8: #afb42b;
+$lime-9: #9e9d24;
+$lime-deep: #5f5710;
 $lime-11: #f4ff81;  // ⭐ 2026-09-26: a seat on the AURORA'S WHEEL (see `$red-11`) — the family's A100; chat's five levels above are untouched.
 // (THE UPLOADER'S TWO EXTRA LIMES — `$lime-9` the mute and `$lime-deep` the
 // hand-mixed deep step — stood here 2026-09-05 → 2026-09-07, while the
@@ -926,6 +943,17 @@ $warning:   #F2C037;
   --lime-4: #{$lime-4};              // Quasar lime-4 — the active conversation row's rim and MY bubble's rim, the one place a line is allowed to be a step heavier (⇔ brown-4)
   --lime-10: #{$lime-10};            // Quasar lime-10 (Material 900) — the colorway's INK (⇔ brown-8 / indigo-8, though those sit at 700): the header's glyph + title, the column's section heading, the conversation rows' names, AND the frieze band's plaque base — see the family note above for why this family's ink sits two steps deeper than its siblings'
   --lime-11: #{$lime-11};            // ⭐ 2026-09-26: THE AURORA'S WHEEL, seat 5 — Quasar lime-11 (A100); see `--red-11`.
+  // ⭐ 2026-09-27 — THE PATH FAMILY (user ask: "create a path viewer … use the
+  // node mini viewer's layout, but paint the path viewer contrast stuff using
+  // lime quasar tones instead of teal"). Lime is now a KIND's colorway, the
+  // way teal is the nodes' and brown the populated skeletons': PathMini /
+  // PathLane / the path chip (`kinds.js paths`) read the `--path-*` ladder
+  // below, and these are its rungs. See `$lime-6` for why -9 and -deep exist.
+  --lime-6: #{$lime-6};              // Quasar lime-6 (Material 500) — the lane's selected-item wash
+  --lime-7: #{$lime-7};              // Quasar lime-7 (Material 600) — reserved: the family's Material-600 rung, where the other kinds' ACCENTS sit; lime's reads 1.9:1 on cream, so the accent had to go to -10
+  --lime-8: #{$lime-8};              // Quasar lime-8 (Material 700) — reserved (2.2:1; under the 3:1 floor for text)
+  --lime-9: #{$lime-9};              // Quasar lime-9 (Material 800) — `--path-hover`: the panel's line system when the pointer is on it, and `--path-bond`, the 1px rail the link chips ride
+  --lime-deep: #{$lime-deep};        // the hand-mixed step below 900 — `--path-chip-ink`: every path chip's text (`kinds.js paths.ink`); 6.55:1 on the coat
 
   // (THE UPLOADER'S LIME MAP — `--lime-9`, `--lime-deep`, `--lime-10-rgb` —
   // stood here 2026-09-05 → 2026-09-07; the uploader is TEAL again, see its
@@ -1906,6 +1934,24 @@ $warning:   #F2C037;
   --skeleton-accent:      var(--brown-7);
   --skeleton-ink:         var(--brown-8);
   --skeleton-chip-ink:    var(--brown-10);
+
+  // ⭐ 2026-09-27 — THE PATH FAMILY'S LADDER (user ask: the path viewer in
+  // lime). The skeleton ladder above, one hue over: a PATH is drawn in lime
+  // wherever it stands — PathMini's chrome, PathLane's rail, the path chip's
+  // glyph and text (`kinds.js paths` MIRRORS -accent / -chip-ink as literals).
+  // CONSUMED with fallbacks by PathMini / PathLane; a host re-tones one tree
+  // by writing `--path-mini-*` — these are the defaults those dials fall
+  // back to. Note the accent sits at -10, not the family's Material 600: lime
+  // has no rung between 2.0:1 and its 900 (the `$lime-6` note).
+  --path-coat:            var(--lime-1);
+  --path-well:            var(--lime-2);
+  --path-rule:            var(--lime-3);
+  --path-rule-strong:     var(--lime-4);
+  --path-hover:           var(--lime-9);
+  --path-bond:            var(--lime-9);
+  --path-accent:          var(--lime-10);
+  --path-ink:             var(--lime-10);
+  --path-chip-ink:        var(--lime-deep);
 
   --border-ink:     1px solid rgba(var(--ink-rgb), 0.18);
   --border-hair:    1px solid rgba(var(--ink-rgb), 0.10);
