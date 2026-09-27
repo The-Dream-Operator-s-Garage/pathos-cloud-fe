@@ -315,11 +315,15 @@
                 <tr v-for="s in slots" :key="s.slotName">
                   <!-- THE KEY IS A LABEL NANO REFERENCE (2026-09-27): the
                        schema's fields ARE labels — each is the stock chip,
-                       name in the hash slot, the door into the label window. -->
+                       name in the hash slot, the door into the label window.
+                       PM: the DENSE form with the `label` glyph, as the grid
+                       (no seam, no ⤢, tighter, 5px light; root = door). -->
                   <td class="col-field">
                     <MicroChip
                       class="col-field__chip"
                       kind="labels"
+                      dense
+                      icon="label"
                       :id="s.slotLabelId"
                       :path="s.slotLabelPath || ''"
                       :display="s.slotName"

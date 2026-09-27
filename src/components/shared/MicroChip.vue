@@ -41,7 +41,7 @@
        file tree is the same object. -->
   <span
     class="micro-chip"
-    :class="['kind-' + meta.kind, { 'is-open': opensOnClick, 'is-collapsed': collapsed, 'is-extended': !collapsed, 'no-type': !typeShown, 'pioneer-gold': pioneer }]"
+    :class="['kind-' + meta.kind, { 'is-open': opensOnClick, 'is-collapsed': collapsed, 'is-extended': !collapsed, 'is-dense': dense, 'no-type': !typeShown, 'pioneer-gold': pioneer }]"
     :style="accentStyle"
     :title="tooltip"
     :role="opensOnClick ? 'button' : null"
@@ -70,8 +70,12 @@
     </template>
     <!-- THE ONE SEAM (⭐ PM7): a `/` before the hash in both states — the
          address dialect's own separator (`post / hash`, `[node] / hash`).
-         PM3 → PM6 drew `::` twice, around the type word. -->
-    <span class="micro-chip__sep">/</span>
+         PM3 → PM6 drew `::` twice, around the type word.
+         ⭐ 2026-09-27 PM — the DENSE form draws NO seam (user ask, the
+         skeleton viewers' key chips: "remove the '/' from the nano chips
+         used on the skeleton viewers"): a key's NAME stands in the hash
+         slot, a name is not an address, and the slash read as one. -->
+    <span v-if="!dense" class="micro-chip__sep">/</span>
     <span class="micro-chip__hash mono">{{ hashText }}</span>
     <!-- The integrity traffic light (integrity-debt plan, 2026-08-08): green
          = this element's chain proof verified on the last read; red = a
@@ -109,9 +113,13 @@
          file tree's RefChip reveals in-tree; its door still opens).
          `open_in_full`, NodeMini's corner glyph, one size down. EXTENDED
          state only (PM3): the collapsed pill stands in a panel header whose
-         corner already is this door. -->
+         corner already is this door. Not in the DENSE form either (⭐
+         2026-09-27 PM, user ask: "remove the expand button"): there the
+         ROOT stays the door — `canOpen` is untouched, only the glyph goes.
+         (`expand=false` would have taken the root click with it: it gates
+         `canOpen`, not the mark.) -->
     <span
-      v-if="canOpen && !collapsed"
+      v-if="canOpen && !collapsed && !dense"
       class="micro-chip__open"
       :title="'open this ' + meta.kind + ' in the flyout viewer'"
       @click.stop.prevent="openFlyout"
@@ -148,6 +156,18 @@ export default defineComponent({
     // light and a `|`.) Every Mini's `#hash` slot passes it;
     // a RefMicro in prose never does.
     collapsed: { type: Boolean, default: false },
+    // ⭐ 2026-09-27 PM — THE DENSE FORM (user asks, the skeleton viewers' key
+    // chips: "remove the '/' … make them slightly denser, reducing their
+    // padding and making their fonts slightly smaller … remove the expand
+    // button and make their inner green verification dot slightly smaller"):
+    // the EXTENDED anatomy without its seam and without the door GLYPH (the
+    // root stays the door), on a tighter box — padding 0 4px, gap 2, 0.66em,
+    // no min-width — with a 5px light. The stock pill's address grammar
+    // (`icon type / hash ● ⤢`) is for a chip standing alone in prose or a
+    // strip; a grid of keys is a COLUMN of these, and read as twenty
+    // addresses. Orthogonal to `collapsed`; hosts: SkeletonTable's keys,
+    // SkeletonInstanceEditor's Field column, SkeletonPage's Fields table.
+    dense: { type: Boolean, default: false },
     // Show the type word in the EXTENDED state (default). Set false for a
     // hash-only chip; the collapsed state never shows it either way.
     showType: { type: Boolean, default: true },
@@ -391,6 +411,20 @@ export default defineComponent({
 }
 
 .micro-chip.no-type { min-width: 8ch; }
+
+// ⭐ 2026-09-27 PM — THE DENSE FORM (the skeleton viewers' key chips): the
+// same pill on a tighter box — padding 0 4px (stock 1px 6px), gap 2 (3),
+// 0.66em (0.72), no min-width (a one-letter key hugs its letter; `.no-type`
+// would hold it at 8ch) — no seam and no door glyph (template), and a 5px
+// light (6). Stands AFTER `.no-type` on purpose: equal specificity, the
+// later rule wins the min-width.
+.micro-chip.is-dense {
+  padding: 0 4px;
+  gap: 2px;
+  font-size: 0.66em;
+  min-width: 0;
+  .micro-chip__integrity { width: 5px; height: 5px; }
+}
 
 // THE COLLAPSED PILL (2026-09-21 PM3) prints its whole text — six digits and
 // the ellipsis it states itself — so it needs no room to adapt into and no

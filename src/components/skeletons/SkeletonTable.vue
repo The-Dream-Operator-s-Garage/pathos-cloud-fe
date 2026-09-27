@@ -102,11 +102,25 @@
                    window (LabelMini + its surround), the way every nano chip
                    opens its element. No type word: the glyph says "label",
                    and five keys saying it five times is noise. The rename
-                   moved off the name onto a tool beside × and history — a
-                   chip's click is its door, by the chip family's law. -->
+                   moved off the name onto a tool beside × — a chip's click
+                   is its door, by the chip family's law.
+                   ⭐ 2026-09-27 PM (user asks, the same sitting): the chip
+                   is MicroChip's DENSE form — no `/` seam (a name is not an
+                   address), no ⤢ glyph (the root stays the door), tighter
+                   box, smaller type, 5px light — and its glyph is `label`,
+                   the glyph the post cards' label plates wear ("use the
+                   same icon … as in the other nano chips … on the post
+                   cards label section"), by the host `icon` override:
+                   kinds.js keeps `label_important`, mirroring the footer's
+                   LABELS button as the one-source rule asks. The per-key
+                   HISTORY tool (`.skel-table__hist` + its popover) is GONE
+                   from beside the key ("remove the version icon"); the
+                   endpoint stays, probe-skeleton-keys reads it. -->
               <MicroChip
                 class="skel-table__key-chip"
                 kind="labels"
+                dense
+                icon="label"
                 :id="c.row.slotLabelId"
                 :path="c.row.slotLabelPath || ''"
                 :display="c.row.slotName"
@@ -128,13 +142,6 @@
                   :title="'remove key ' + c.row.slotName"
                   @click.stop.prevent="removeKey(c.row)"
                 ><q-icon name="close" size="10px" /></button>
-                <button
-                  v-if="head.id != null"
-                  type="button"
-                  class="skel-table__hist"
-                  :title="c.row.slotName + ' — history'"
-                  @click.stop.prevent="toggleHistory(c.row.slotName)"
-                ><q-icon name="history" size="10px" /></button>
               </span>
 
               <!-- The label picker: a key is a label, and only ever
@@ -147,29 +154,6 @@
                   </button>
                 </div>
                 <LabelPicker compact :exclude-ids="usedLabelIds" @picked="onPicked" />
-              </div>
-
-              <!-- History popover: the cell's rebind chain AND the key's
-                   own rename chain, one pane. -->
-              <div v-if="historyOpen === c.row.slotName" class="skel-table__hist-pop" @click.stop>
-                <div v-if="historyLoading" class="skel-table__hist-line"><q-spinner size="10px" /></div>
-                <template v-else>
-                  <div class="skel-table__hist-title">values</div>
-                  <div v-if="!historyRows.length" class="skel-table__hist-line">(no versions)</div>
-                  <div v-for="v in historyRows" :key="'v' + v.valueLinkId" class="skel-table__hist-line" :class="{ 'is-dead': v.deleted }">
-                    <span class="skel-table__hist-actor">{{ v.actor?.username || '?' }}</span>
-                    <span class="skel-table__hist-val">{{ v.textValue != null ? v.textValue : (v.ref ? v.ref.slice(0, 18) + '…' : '(unbound)') }}</span>
-                    <span class="skel-table__hist-when">{{ histWhen(v) }}</span>
-                  </div>
-                  <template v-if="historyKeys.length > 1">
-                    <div class="skel-table__hist-title">key</div>
-                    <div v-for="k in historyKeys" :key="'k' + k.keyLinkId" class="skel-table__hist-line" :class="{ 'is-dead': k.deleted }">
-                      <span class="skel-table__hist-actor">{{ k.actor?.username || '?' }}</span>
-                      <span class="skel-table__hist-val mono">{{ k.name }}</span>
-                      <span class="skel-table__hist-when">{{ histWhen(k) }}</span>
-                    </div>
-                  </template>
-                </template>
               </div>
             </template>
 
@@ -622,7 +606,6 @@ export default defineComponent({
     const picker = ref(null) // { for: keyId | '+' }
     const openPicker = (row) => {
       picker.value = { for: row ? keyId(row) : '+' }
-      historyOpen.value = null
       editing.value = null
     }
     const onPicked = async (leaf) => {
@@ -700,7 +683,6 @@ export default defineComponent({
     const beginEdit = (row) => {
       editing.value = row.slotName
       editText.value = row.textValue || (row.ref ? `[[pathos:${row.ref}]]` : '')
-      historyOpen.value = null
       picker.value = null
       nextTick(() => {
         const el = Array.isArray(editInput.value) ? editInput.value[0] : editInput.value
@@ -846,34 +828,6 @@ export default defineComponent({
       head.value.path ? [...props.visited, head.value.path] : props.visited
     )
 
-    // ── history popover ──────────────────────────────────────────────
-    const historyOpen = ref(null)
-    const historyLoading = ref(false)
-    const historyRows = ref([])
-    const historyKeys = ref([])
-    const toggleHistory = async (slotName) => {
-      if (historyOpen.value === slotName) { historyOpen.value = null; return }
-      historyOpen.value = slotName
-      picker.value = null
-      historyLoading.value = true
-      historyRows.value = []
-      historyKeys.value = []
-      try {
-        const r = await skeletonService.history(head.value.id, { slot: slotName })
-        if (r.success) {
-          historyRows.value = (r.slots?.[0]?.versions || []).slice(0, 20)
-          historyKeys.value = (r.slots?.[0]?.keys || []).slice(0, 20)
-        }
-      } catch (_) { /* the empty line stands */ }
-      historyLoading.value = false
-    }
-    const histWhen = (v) => {
-      const iso = v.moment?.time_utc
-      if (!iso) return ''
-      const d = new Date(iso)
-      return Number.isNaN(d.getTime()) ? '' : d.toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
-    }
-
     return {
       loading,
       failed,
@@ -921,13 +875,7 @@ export default defineComponent({
       listDragOver,
       onListDragOver,
       onListDrop,
-      removeMember,
-      historyOpen,
-      historyLoading,
-      historyRows,
-      historyKeys,
-      toggleHistory,
-      histWhen
+      removeMember
     }
   }
 })
@@ -1025,7 +973,6 @@ export default defineComponent({
 
 .skel-table__key-x,
 .skel-table__key-rename,
-.skel-table__hist,
 .skel-table__unfold,
 .skel-table__nest-unbind,
 .skel-table__picker-x,
@@ -1228,8 +1175,7 @@ export default defineComponent({
 .skel-table__ok:hover { color: #2e8b57; border-color: #2e8b57; }
 .skel-table__cancel:hover { color: var(--coral-deep); border-color: var(--coral-deep); }
 
-.skel-table__picker,
-.skel-table__hist-pop {
+.skel-table__picker {
   position: absolute;
   z-index: 5;
   left: 0;
@@ -1255,22 +1201,4 @@ export default defineComponent({
   color: var(--st-ink-mute);
   b { color: var(--st-ink); }
 }
-.skel-table__hist-title {
-  font-size: 0.6em;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--st-ink-mute);
-  margin: 2px 0;
-}
-.skel-table__hist-line {
-  display: flex;
-  gap: 6px;
-  align-items: baseline;
-  font-size: 0.68em;
-  padding: 1px 0;
-  &.is-dead { opacity: 0.55; text-decoration: line-through; }
-}
-.skel-table__hist-actor { color: var(--st-ink-mute); flex: 0 0 auto; }
-.skel-table__hist-val { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--st-ink); }
-.skel-table__hist-when { color: var(--st-ink-mute); flex: 0 0 auto; }
 </style>

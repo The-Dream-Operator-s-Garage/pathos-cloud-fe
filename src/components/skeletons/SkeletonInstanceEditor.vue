@@ -31,10 +31,14 @@
             <td class="col-label">
               <!-- THE KEY IS A LABEL NANO REFERENCE (2026-09-27): the same
                    chip the grid wears — name in the hash slot, the label's
-                   own light off the walk, the door into the label window. -->
+                   own light off the walk, the door into the label window.
+                   PM: the DENSE form with the `label` glyph, as the grid
+                   (no seam, no ⤢, tighter, 5px light; root = door). -->
               <MicroChip
                 class="field-name"
                 kind="labels"
+                dense
+                icon="label"
                 :id="s.slotLabelId"
                 :path="s.slotLabelPath || ''"
                 :display="s.slotName"
