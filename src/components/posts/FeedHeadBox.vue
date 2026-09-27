@@ -75,9 +75,21 @@
          across the box instead of repeating. Absolute, so they can span the
          whole inner height (handle, body and lane alike) while the three rows
          inset past them; `pointer-events: none` rides along from the
-         component, so neither one takes a press off the drag bar. -->
-    <FriezeBarVertical slim lip="right" class="feed-head__post feed-head__post--l" />
-    <FriezeBarVerticalB slim lip="left" class="feed-head__post feed-head__post--r" />
+         component, so neither one takes a press off the drag bar.
+         ⭐ THE PAIR RUNS INVERTED SINCE 2026-09-26 — B on the LEFT, A on the
+         RIGHT (user ask: "for the friezebars inside talavero's board, help me
+         inverting the svgs horizontally so they look both mirrored"). Before
+         it, each post was the container's own bar again (same component, same
+         side, same mask) standing ~11px inboard of it — decoded pixels scored
+         each post an exact COPY of its neighbour, so every edge of the feed
+         read as one spiral drawn twice. Swapped, each post REFLECTS the bar
+         beside it and the two posts still reflect each other across the box:
+         four bars, three mirror lines. The swap is the whole change because A
+         and B are one stylesheet apart from their mask files (verified by
+         diff); `lip` stays the INWARD side on each (`right` on the left post,
+         `left` on the right one — both components take either value). -->
+    <FriezeBarVerticalB slim lip="right" class="feed-head__post feed-head__post--l" />
+    <FriezeBarVertical slim lip="left" class="feed-head__post feed-head__post--r" />
 
     <div class="feed-head__inner">
       <!-- THE INNER HEADER — the handle. `tabindex` + the arrow keys are not

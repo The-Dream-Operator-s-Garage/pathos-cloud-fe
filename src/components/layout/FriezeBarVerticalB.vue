@@ -3,6 +3,12 @@
        its wave pattern MIRRORED HORIZONTALLY, so a pair of bars framing a box
        reflect each other across the box's centre line instead of repeating.
        A goes on the left, B on the right (FeedPage's feed container).
+       ⭐ FeedHeadBox's two inner posts run the pair THE OTHER WAY ROUND since
+       2026-09-26 (user ask: "inverting the svgs horizontally so they look
+       both mirrored") — B on the left, A on the right — so each post
+       reflects the container bar standing beside it instead of repeating it.
+       Nothing here changed for that: the order is the host's choice, and
+       `lip` takes either side.
 
        Everything else is A, unchanged and deliberately so:
 
