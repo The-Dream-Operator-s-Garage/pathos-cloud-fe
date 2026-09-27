@@ -131,7 +131,14 @@
              trail's two fixed flanks (the parked stack strip / burger slot on
              the left, the tack divider or the railed reserve on the right),
              so a chip STOPS at whatever it meets — no pushing, no tunneling,
-             no reordering. The grip swallows its own clicks (a handle is not
+             no reordering. ⭐ 2026-09-26: THE TWO STRIPS ARE BODIES OF THE
+             SAME SLIDER (user ask: "on desktop mode, add them the '::' icon
+             and make them draggable across the footer bar, like the
+             creation buttons there") — each carries the chips' grip hoisted
+             (`.strip-grip`, _components.scss) in its own template, the
+             walls are the identity section and the dashboard block alone,
+             and the geometry moved to `utils/trailSlider.js` so the three
+             components share one drag. The grip swallows its own clicks (a handle is not
              an opener); the chip's body keeps the window toggle, and the
              window each chip opens rides the same offset live — see
              `--trail-shift` in `.dock-window--creation`. Layout never moves:
@@ -413,7 +420,8 @@
 <script>
 import { defineComponent, ref, computed, watch, nextTick, onMounted, onBeforeUnmount } from 'vue'
 import { useRoute } from 'vue-router'
-import { useWindowsStore } from 'src/stores/windows'
+import { useWindowsStore, TRAIL_CHIPS } from 'src/stores/windows'
+import { setTrailChip, startTrailDrag, reconcileTrail as reconcileSlider } from 'src/utils/trailSlider'
 import { useMakerStore, draftLabel } from 'src/stores/maker'
 import { useUploaderStore, uploadLabel } from 'src/stores/uploader'
 import { useSchemaBuilderStore, builderLabel } from 'src/stores/schemaBuilder'
@@ -512,107 +520,44 @@ export default defineComponent({
 
     // ── THE TRAIL IS A SLIDER (2026-08-30) — the drag machinery ──────────
     // FIVE draggable chips (six until 2026-09-02, when the dashboard chip
-    // became the bar's full-height end block); state (one px offset each)
-    // lives in the windows store so the docks can ride it. This component
-    // owns everything geometric: measuring, clamping, reconciling. See the
+    // became the bar's full-height end block) ⭐ AND THE TWO STRIPS since
+    // 2026-09-26 (user ask: "on desktop mode, add them the '::' icon and make
+    // them draggable across the footer bar, like the creation buttons
+    // there"); state (one px offset each) lives in the windows store so the
+    // docks can ride it. ⭐ The GEOMETRY — measuring, clamping every body
+    // against every other and the two walls, reconciling — LEFT this
+    // component for `utils/trailSlider.js` the same day: the strips are
+    // mounted by MainLayout and carry their own grips, so the one drag has
+    // three callers now and the walls are the two end cells alone (the
+    // parked strips were the flanks until then). This bar still registers
+    // its five chips (the `:ref`s below), styles each off its offset, and
+    // owns the HOUSEKEEPING — when to reconcile (mount, resize, a parked
+    // strip changing size) and the tab measurement that follows. See the
     // template note.
-    const TRAIL_CHIPS = ['maker', 'schemaBuilder', 'labelMaker', 'uploader', 'chat']
     const chipEls = {}
     const setChip = (key) => (inst) => {
-      chipEls[key] = inst ? (inst.$el || inst) : null
+      const el = inst ? (inst.$el || inst) : null
+      chipEls[key] = el
+      setTrailChip(key, el)
     }
     // `translate`, not `transform`: it never collides with a transition class,
     // and it does not disturb the flex/grid layout the chips are seated in.
     const chipStyle = (key) => ({ translate: windows.trailShiftOf(key) + 'px 0' })
 
-    // The slider's two fixed flanks. LEFT: the identity section at the bar's
-    // left end (2026-08-31 — it replaced the burger's 42px rail slot when
-    // the drawer was hidden; measured live rather than read off --nav-id-w
-    // so the media override follows for free) — or the parked stack strip
-    // riding the band beside it, whose z 3130 would bury any chip dragged
-    // beneath it. RIGHT (mirrored since 2026-09-02): the parked PINS strip
-    // riding the band before the dashboard block, opaque at z 3120 for the
-    // same reason — else the cluster's content edge (its `--stack-w`
-    // padding is that strip's reserve), or the tack's divider on mobile.
-    const trailBounds = () => {
-      let left = 42
-      const idSection = document.querySelector('.nav-bar .nav-left')
-      if (idSection) {
-        const r = idSection.getBoundingClientRect()
-        if (r.width > 0) left = Math.max(left, r.right)
-      }
-      const strip = document.querySelector('.stack-window.is-parked')
-      if (strip) {
-        const r = strip.getBoundingClientRect()
-        if (r.width > 0) left = Math.max(left, r.right)
-      }
-      let right = window.innerWidth
-      const divider = document.querySelector('.nav-bar .nav-divider')
-      if (divider) {
-        right = divider.getBoundingClientRect().left
-      } else {
-        const nr = document.querySelector('.nav-bar .nav-right')
-        if (nr) right = nr.getBoundingClientRect().right - parseFloat(getComputedStyle(nr).paddingRight || '0')
-      }
-      const pinsStrip = document.querySelector('.pins-window.is-parked')
-      if (pinsStrip) {
-        const r = pinsStrip.getBoundingClientRect()
-        if (r.width > 0) right = Math.min(right, r.left)
-      }
-      return { left, right }
-    }
-
-    const startChipDrag = (key, e) => {
-      if (windows.isMobile) return
-      e.preventDefault()
-      e.stopPropagation()
-      const el = chipEls[key]
-      if (!el) return
-      const grip = e.currentTarget
-      // Capture retargets every later pointer event — and the trailing
-      // click — onto the grip, whose @click.stop swallows it: releasing a
-      // drag over the chip's own body must not toggle its window.
-      try { grip.setPointerCapture(e.pointerId) } catch (_) { /* older engines — window listeners still work */ }
-      const startX = e.clientX
-      const startOffset = windows.trailShiftOf(key)
-      const rect = el.getBoundingClientRect()
-      const bounds = trailBounds()
-      // Clamp the WHOLE GESTURE once, at pointer-down: the other five chips
-      // and the two flanks are walls that do not move during this drag, so a
-      // min/max pair per direction blocks at contact and a fast pointer
-      // cannot tunnel through a chip between two move events.
-      let minD = bounds.left - rect.left
-      let maxD = bounds.right - rect.right
-      for (const k of TRAIL_CHIPS) {
-        if (k === key || !chipEls[k]) continue
-        const o = chipEls[k].getBoundingClientRect()
-        if (!o.width) continue
-        if (o.left >= rect.right) maxD = Math.min(maxD, o.left - rect.right)
-        else if (o.right <= rect.left) minD = Math.max(minD, o.right - rect.left)
-        // A chip already overlapping (a stale persisted state) is no wall —
-        // the drag is exactly how the user frees it.
-      }
-      const move = (ev) => {
-        const d = Math.min(Math.max(ev.clientX - startX, minD), maxD)
-        windows.setTrailOffset(key, startOffset + d)
-      }
-      const up = () => {
-        grip.removeEventListener('pointermove', move)
-        grip.removeEventListener('pointerup', up)
-        grip.removeEventListener('pointercancel', up)
-        windows.persistTrail()
-      }
-      grip.addEventListener('pointermove', move)
-      grip.addEventListener('pointerup', up)
-      grip.addEventListener('pointercancel', up)
-    }
+    // The grip's pointerdown → the shared slider (`utils/trailSlider.js`):
+    // it captures the pointer on the grip, clamps the whole gesture once
+    // against every other body and the two walls, writes the offset on each
+    // move and persists on release. Kept as a named handler so the five
+    // templates read as they always did.
+    const startChipDrag = (key, e) => { startTrailDrag(key, e) }
 
     // Persisted offsets were measured against SOME OTHER layout — another
-    // viewport width, another word gate, a longer stack strip. Reconcile
-    // walks the chips in visual order and shoves any that landed out of
-    // bounds or into each other back to legality: one left-to-right pass off
-    // the left flank, one right-to-left pass off the right. Runs after
-    // mount, on resize, and whenever the parked strip grows a step.
+    // viewport width, another word gate, another strip width. The shared
+    // module's `reconcileTrail` walks every body in visual order and shoves
+    // any that landed out of bounds or into each other back to legality
+    // (one pass off each wall); this bar decides WHEN — after mount, on
+    // resize, and whenever a parked strip changes size — and re-measures
+    // the tabs' seats afterwards.
     let reconcileTimer = null
     let stripObserver = null
     const reconcileTrail = () => {
@@ -622,42 +567,9 @@ export default defineComponent({
       // chip boxes of the PREVIOUS layout (measured: a 1440 → 375 resize left
       // all four tabs at x ≈ 890–1260, off-screen). The chips move on a phone
       // whenever the viewport does (the creation row is CENTRED there), so
-      // the tabs must be re-addressed even though nothing is reconciled.
-      if (windows.isMobile) { measureChips(); return }
-      const bounds = trailBounds()
-      const entries = TRAIL_CHIPS
-        .filter((k) => chipEls[k])
-        .map((k) => {
-          const r = chipEls[k].getBoundingClientRect()
-          return { k, left: r.left, right: r.right, w: r.width }
-        })
-        .filter((x) => x.w > 0)
-        .sort((a, b) => a.left - b.left)
-      let moved = false
-      let edge = bounds.left
-      for (const it of entries) {
-        if (it.left < edge - 0.5) {
-          const d = edge - it.left
-          windows.setTrailOffset(it.k, windows.trailShiftOf(it.k) + d)
-          it.left += d
-          it.right += d
-          moved = true
-        }
-        edge = it.right
-      }
-      edge = bounds.right
-      for (let i = entries.length - 1; i >= 0; i--) {
-        const it = entries[i]
-        if (it.right > edge + 0.5) {
-          const d = it.right - edge
-          windows.setTrailOffset(it.k, windows.trailShiftOf(it.k) - d)
-          it.left -= d
-          it.right -= d
-          moved = true
-        }
-        edge = it.left
-      }
-      if (moved) windows.persistTrail()
+      // the tabs must be re-addressed even though nothing is reconciled
+      // (the module itself returns bare on a phone).
+      reconcileSlider()
       measureChips()
     }
     const queueReconcile = () => {
@@ -835,7 +747,9 @@ export default defineComponent({
     // absolute layer now and every tab is addressed to its chip, so there is
     // no strip end to hug and no side-widget inset to clear: a tab cannot
     // collide with the pins strip because the CHIP it stands on cannot, and
-    // keeping the chips off that strip is `trailBounds`'s job already.)
+    // keeping the chips off that strip is the slider's clamp's job already —
+    // `utils/trailSlider.js` since 2026-09-26, when the strip became a body
+    // of the slider rather than its wall.)
 
     // ── Minitab strip — one folder tab per minimized dock. Only the maker
     // and uploader park here; the stack/pins side panels narrow into
@@ -1824,11 +1738,19 @@ export default defineComponent({
 // `--stack-w` wide, opaque at z 3120), so the cluster keeps its chips out
 // from under it by exactly the strip's width — the chat chip, dragged all the
 // way right, stops ON the strip's left rim, as POST dragged left stops on the
-// stack strip's right one. It replaces `.nav-right--railed`'s 42px reserve
+// stack strip's right one (⭐ 2026-09-26: the reserve is the strip's SEAT now
+// — the strip itself is a body of the slider and may stand off it; the chips
+// stop on the strip wherever it is, and on the dashboard block's hairline
+// when it has moved away, `utils/trailSlider.js`). It replaces `.nav-right--railed`'s 42px reserve
 // for the parked pins COLUMN (2026-08-02 → 09-02; a covered create button
 // was what minted it). The mobile block zeroes it — the phone's pins strip
 // (41px since 2026-09-23) is reserved inside the centring grid instead.
-.nav-right { gap: 6px; padding-left: 5px; padding-right: var(--pins-strip-w); } // the pins strip's own width since 2026-09-03 (--stack-w before)
+// ⭐ PLUS THE ROW'S OWN GAP (2026-09-26): the pins strip is a BODY of the
+// slider now, and a body glued to its neighbour at rest cannot start a drag —
+// the chat chip's right edge stood ON the strip's left edge (measured 1285 =
+// 1285), so the strip could move only after chat had. One 6px gap, the same
+// one that separates every two chips on this row, gives it the first pixel.
+.nav-right { gap: 6px; padding-left: 5px; padding-right: calc(var(--pins-strip-w) + 6px); } // the pins strip's own width since 2026-09-03 (--stack-w before) + the row gap since 2026-09-26
 
 // The lookers' group (chat + tack) — BOXLESS off a phone (2026-09-23): its
 // three children stay `.nav-right`'s own flex items, so the 6px gap, the
@@ -2501,7 +2423,14 @@ export default defineComponent({
   // pad = 23, so the 15px glyph sits on whole pixels. The tab each chip parks
   // gets a `33 − 2 × 7px flare` = 19px body — its 12px glyph inside 2px rims.
   // Chat keeps the 28px floor above.
-  .nav-bar .create-btn { min-width: 33px; }
+  // ⭐ 33 → 31px on 2026-09-26, BY THE SAME BUDGET: the two strips grew 41 →
+  // 45px for the bubble's shoulders (`--strip-phone-w`), so the lookers need
+  // 73 + a 4px gap on each side of the 291px cell, the row may be 137px, and
+  // 4 × 31 + 3 × 4 = 136 (33 would slide the row 3.5px left of centre — the
+  // 36px slip again, smaller). Still odd: 31 − 2 − 8 = 21, whole pixels round
+  // the glyph. The parked tab's body follows: 31 − 14 = 17px around its 12px
+  // glyph. The width is what the centring leaves, as it was on 09-23.
+  .nav-bar .create-btn { min-width: 31px; }
 
   // No grips on a phone (2026-08-30, the slider pass): six handles+hairlines
   // cost ~90px this bar does not have at 375px, the docks run edge to edge
@@ -2550,10 +2479,13 @@ export default defineComponent({
   .minitab__label, .minitab__meta { display: none; }
 }
 
-// ⚠ UNDER 346px THE STACK STRIP STANDS DOWN (StackPanel's own ≤345px rule —
-// the bar's minimum with both strips is 346px), so its seat does too: the left
-// track's floor returns to 0 and the centred row may slide the whole way left.
-@media (max-width: 345px) {
+// ⚠ UNDER 354px THE STACK STRIP STANDS DOWN (StackPanel's own ≤353px rule —
+// the bar's minimum with both strips is 354px: identity 42 + stack 45 + the
+// centred row 144 + chat 28 + pins 45 + dashboard 42 + two 4px gaps; 346
+// while the strips were 41px, until 2026-09-26's bubble shoulders), so its
+// seat does too: the left track's floor returns to 0 and the centred row may
+// slide the whole way left.
+@media (max-width: 353px) {
   .nav-right { grid-template-columns: minmax(0, 1fr) auto minmax(max-content, 1fr); }
 }
 </style>

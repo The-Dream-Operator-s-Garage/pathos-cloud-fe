@@ -432,6 +432,53 @@
   }
 }
 
+// ── THE STRIPS' GRIP (2026-09-26, user ask: "on desktop mode, add them the
+// '::' icon and make them draggable across the footer bar, like the creation
+// buttons there") — `.nav-btn__grip` + `__grip-rule` above, HOISTED for the
+// two footer strips (StackPanel / PinsDrawer, whose parked faces are not
+// `.nav-btn`s and cannot reach the nested rule). Same anatomy to the pixel:
+// the chip is `1 rim · 5 pad · 11 glyph · 2 gap · 1 hairline` (measured:
+// grip at +6, rule at +19), and the strip's own 1px vertical plays the rim,
+// so the handle's padding states the chip's `pad` and content gap outright.
+// The grip LEADS in the DOM in both strips — first child, as in every chip —
+// and the pins strip's `row-reverse` reflects it to the RIGHT end, which is
+// what puts each strip's handle beside the wall it was born against (the
+// identity section, the dashboard block): the two strips keep mirroring
+// each other across the bar. `utils/trailSlider.js` owns the pointer logic.
+//
+// The inks are the strips' own, by the chips' two laws: the hairline is the
+// body's side-rim ink (`--brown-3`, the bar's inner-hairline doctrine the
+// strips' verticals took on 2026-09-05 — a chip's is its `--chip-rim`), and
+// the glyph is the bar's structural grey (`--grey-6`, the chips' default
+// `--chip-grip`), a step under the head glyph's `--ink-1`: a handle, not
+// content. A drag-only zone — `@click.stop` in the templates, and the
+// strips' hover-expand skips it (their `onHoverEnter`).
+.strip-grip {
+  display: inline-flex;
+  align-items: center;
+  align-self: stretch;
+  flex: 0 0 auto;
+  padding: 0 2px 0 5px;
+  color: var(--grey-6);
+  cursor: grab;
+  // Pointer events drive the drag on touch screens too — without this the
+  // browser claims a horizontal swipe for scrolling before the strip moves.
+  touch-action: none;
+
+  &:active { cursor: grabbing; }
+}
+.strip-grip-rule {
+  width: 1px;
+  align-self: stretch;
+  flex: 0 0 auto;
+  background: var(--brown-3);
+}
+// The pins strip is `row-reverse`, so its handle stands at the RIGHT end and
+// the padding has to turn with it: 5px toward the strip's outer rim, 2px
+// toward the hairline — measured, the glyph sat 3px from the rim and 5px from
+// the rule before this line, the chip anatomy backwards.
+.pins-window .strip-grip { padding: 0 5px 0 2px; }
+
 // ── DOCK WINDOW CHROME — shared by the bottom-docked windows rising from
 // the navigation bar (MakerDock, UploaderDock, StackPanel, PinsDrawer):
 // glass shell, thin header bar, Mac-style traffic lights, folder-tab strip

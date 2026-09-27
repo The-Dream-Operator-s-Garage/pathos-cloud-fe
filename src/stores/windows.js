@@ -63,11 +63,21 @@ const TRAIL_KEY = 'pathos_nav_trail'
 // two end blocks (the identity section, the dashboard block — ⭐ the
 // dashboard chip LEFT the trail on 2026-09-02, user ask: "remove the
 // draggable properties from the dashboard button and make the button occupy
-// the whole height like the identity section") and the two strips (stack at
-// the left run, pins at the right) are NOT here — they are the trail's
-// fixed flanks, the walls the drag clamps against. A stale persisted
+// the whole height like the identity section") are NOT here — they are the
+// trail's fixed flanks, the walls the drag clamps against. A stale persisted
 // `dashboard` key is simply not read.
-const TRAIL_CHIPS = ['maker', 'schemaBuilder', 'labelMaker', 'uploader', 'chat']
+// ⭐ 2026-09-26 (user ask: "on desktop mode, add them the '::' icon and make
+// them draggable across the footer bar, like the creation buttons there"):
+// the TWO STRIPS — stack at the left run, pins at the right — are MOVABLE
+// BODIES of the slider now, with an offset each under their panel keys.
+// They were the trail's flanks from 2026-08-30 / 09-02 until then; the walls
+// are the two end cells alone since. The geometry (measuring, clamping,
+// reconciling) lives in `utils/trailSlider.js`, which every one of the
+// three components that carries a grip calls; only the OFFSETS live here.
+// Exported so that module and NavigationBar read ONE list.
+export const TRAIL_CHIPS = ['maker', 'schemaBuilder', 'labelMaker', 'uploader', 'chat']
+export const TRAIL_STRIPS = ['stack', 'pins']
+const TRAIL_KEYS = [...TRAIL_CHIPS, ...TRAIL_STRIPS]
 // ⭐ 2026-09-21 PM6: the builder's chip is `schemaBuilder` (the footer word
 // went SKELETONS → SCHEMAS — that window mints SCHEMAS; the populated
 // skeleton is the brown family now, see kinds.js). An offset saved under
@@ -77,10 +87,10 @@ const TRAIL_LEGACY_KEYS = { schemaBuilder: 'skeletonBuilder' }
 
 function loadTrailOffsets () {
   const out = {}
-  for (const k of TRAIL_CHIPS) out[k] = 0
+  for (const k of TRAIL_KEYS) out[k] = 0
   try {
     const saved = JSON.parse(localStorage.getItem(TRAIL_KEY))
-    for (const k of TRAIL_CHIPS) {
+    for (const k of TRAIL_KEYS) {
       const v = saved?.[k] ?? saved?.[TRAIL_LEGACY_KEYS[k]]
       if (typeof v === 'number' && isFinite(v)) out[k] = Math.round(v)
     }
@@ -169,9 +179,10 @@ export const useWindowsStore = defineStore('windows', {
     dockRight () { return 0 },
     footerPanelInset () { return 0 },
 
-    // How far a trail chip stands off its flow seat — and, one binding away,
-    // how far the window it opens rides with it. 0 on mobile: the chips
-    // lose their grips there and the docks go edge to edge.
+    // How far a trail chip — or, since 2026-09-26, a strip — stands off its
+    // flow seat, and, one binding away, how far the window it opens rides
+    // with it. 0 on mobile: the chips and strips lose their grips there and
+    // the docks go edge to edge.
     trailShiftOf () {
       return (key) => (this.isMobile ? 0 : this.trailOffsets[key] || 0)
     },

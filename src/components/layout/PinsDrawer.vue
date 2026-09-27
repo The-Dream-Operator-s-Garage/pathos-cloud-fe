@@ -44,14 +44,44 @@
        strips hid — until 2026-09-23, when this strip came back to the phone
        in the tack's own 41px seat, one bubble wide (the style block's phone
        rule). -->
+  <!-- ⭐ 2026-09-26 — A BUBBLE WITH A HANDLE, the stack's, mirrored (two user
+       asks, one sitting): the parked lane sits in the coat on
+       `--strip-shoulder` (2px) of air on ALL FOUR sides with all four corners
+       at `--strip-lane-radius` — it stood flush against the dashboard block's
+       hairline and against the head glyph, rounded at its free end alone
+       ("their inner scroll is cut to be sticking to their neighbour … for the
+       pins one, it is sticking to the dashboard section") — and, on desktop,
+       the strip carries the chips' grip (`.strip-grip`) and is a BODY of the
+       trail slider ("add them the '::' icon and make them draggable across
+       the footer bar, like the creation buttons there"; `utils/trailSlider.js`).
+       The grip is the DOM's first child, as in every chip, and `row-reverse`
+       reflects it to the strip's RIGHT end — beside the dashboard block, the
+       wall this strip was born against, as the stack's stands beside the
+       identity section. -->
   <aside
     v-if="win.open"
     class="pins-window dock-window"
     :class="{ 'is-parked': win.minimized, 'is-max': win.maximized }"
-    :style="{ zIndex: EDGE_Z }"
+    :style="{ zIndex: EDGE_Z, translate: windows.trailShiftOf('pins') + 'px 0' }"
     @mouseenter="onHoverEnter"
     @mouseleave="onHoverLeave"
   >
+    <!-- ⭐ THE GRIP (2026-09-26) — StackPanel's, reflected: DOM-first, so
+         `row-reverse` seats the handle and its hairline at the strip's RIGHT
+         end. Dragging it walks the whole strip along the bar (the `translate`
+         on the root, off `windows.trailOffsets.pins`, persisted — negative
+         leftward from the `right: var(--nav-dash-w)` seat), clamped at
+         contact with the dashboard block's hairline on the right and CHAT —
+         or whatever chip stands last — on the left; the expanded panel rises
+         from wherever the strip stands. Desktop only; drag-only zone; the
+         hover-expand skips it (`onHoverEnter`). -->
+    <template v-if="win.minimized && !windows.isMobile">
+      <span class="strip-grip" @pointerdown="onGripDown" @click.stop
+        @mouseenter="clearHover" @mouseleave="onGripLeave">
+        <q-icon name="drag_indicator" size="11px" />
+      </span>
+      <span class="strip-grip-rule" @mouseenter="clearHover" @mouseleave="onGripLeave" />
+    </template>
     <!-- THE THIN HEADER (2026-09-06 PM) — StackPanel's, on the pins: the
          house traffic cluster (red + yellow park — this widget is never
          closed; green = full height), the name, and at the right the door
@@ -205,6 +235,7 @@
 import { defineComponent, ref, reactive, computed, watch, nextTick } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useWindowsStore } from 'src/stores/windows'
+import { startTrailDrag } from 'src/utils/trailSlider'
 import { pinService } from 'src/services/pin.service'
 import { refService } from 'src/services/ref.service'
 import { timeAgo as fmtTimeAgo } from 'src/utils/time'
@@ -400,7 +431,17 @@ export default defineComponent({
     // pointer crossing the bar doesn't pop it open), and leaving parks it
     // back. The head glyph keeps its tap for touch screens.
     let hoverTimer = null
-    const onHoverEnter = () => {
+    const clearHover = () => {
+      if (hoverTimer) {
+        clearTimeout(hoverTimer)
+        hoverTimer = null
+      }
+    }
+    const armHover = () => {
+      if (hoverTimer) return
+      hoverTimer = setTimeout(() => { hoverTimer = null; windows.restorePanel('pins') }, 150)
+    }
+    const onHoverEnter = (e) => {
       // ⚠ NEVER ON A PHONE (2026-09-23, when the strip came back there): a
       // tap fires `mouseenter` before its click, so tapping the bubble would
       // navigate AND pop the panel open 150ms later — and iOS treats a
@@ -409,7 +450,23 @@ export default defineComponent({
       // (`mouseleave` stays armed: a tap OUTSIDE the open panel fires it,
       // which parks the panel exactly like the pointer leaving it.)
       if (windows.isMobile || !win.value.minimized) return
-      hoverTimer = setTimeout(() => { windows.restorePanel('pins') }, 150)
+      // ⭐ NOT THROUGH THE HANDLE (2026-09-26) — StackPanel's `onHoverEnter`
+      // carries the argument: a pointer arriving over the grip is reaching
+      // for a drag, and the panel it would pop takes the grip away. Arm only
+      // over the face; `onGripLeave` arms when the pointer crosses onto it.
+      const under = e && document.elementFromPoint(e.clientX, e.clientY)
+      if (under && under.closest('.strip-grip, .strip-grip-rule')) return
+      armHover()
+    }
+    const isHandle = (el) => !!(el && el.closest && el.closest('.strip-grip, .strip-grip-rule'))
+    const onGripLeave = (e) => {
+      if (windows.isMobile || !win.value.minimized) return
+      const root = e.currentTarget && e.currentTarget.parentElement
+      if (e.relatedTarget && root && root.contains(e.relatedTarget) && !isHandle(e.relatedTarget)) armHover()
+    }
+    const onGripDown = (e) => {
+      clearHover()
+      startTrailDrag('pins', e)
     }
     // ⚠ A HEIGHT TOGGLE CAN LEAVE THE POINTER OUTSIDE (2026-09-06 PM): the
     // green light restores the cap, the panel SHRINKS under the pointer
@@ -424,10 +481,7 @@ export default defineComponent({
       windows.toggleMaximizePanel('pins')
     }
     const onHoverLeave = () => {
-      if (hoverTimer) {
-        clearTimeout(hoverTimer)
-        hoverTimer = null
-      }
+      clearHover()
       if (Date.now() < settleUntil) return
       if (!win.value.minimized) windows.minimizePanel('pins')
     }
@@ -487,7 +541,7 @@ export default defineComponent({
     // to lie over the bar's right end as a column; nothing changed.)
     const EDGE_Z = 3120
 
-    return { win, windows, pins, listPins, shownPins, summaries, loading, copiedId, listEl, kindKeyOf, hashOf, isCurrent, openPin, onHoverEnter, onHoverLeave, toggleMax, railTitle, onUnpin, onCopy, onHistory, openSkeleton, skeletonOpening, pinnable, isCurrentPinned, onTack, EDGE_Z }
+    return { win, windows, pins, listPins, shownPins, summaries, loading, copiedId, listEl, kindKeyOf, hashOf, isCurrent, openPin, onHoverEnter, onHoverLeave, clearHover, onGripLeave, onGripDown, toggleMax, railTitle, onUnpin, onCopy, onHistory, openSkeleton, skeletonOpening, pinnable, isCurrentPinned, onTack, EDGE_Z }
   }
 })
 </script>
@@ -500,7 +554,9 @@ export default defineComponent({
 // bar … the extended version … copy the style that the stack bar already
 // has"). Read StackPanel.vue's style block for the arguments behind each
 // number; this file states only where the mirror differs: `right` for
-// `left`, `row-reverse` for `row`, the lane's LEFT end rounded, the cast
+// `left`, `row-reverse` for `row`, the lane's LEFT end rounded (⭐ all four
+// corners since 2026-09-26 — the bubble; and the grip at the RIGHT end, by
+// the same `row-reverse`), the cast
 // thrown leftward, the head glyph at the left. The right-edge column's own
 // styles (2026-07-24 → 09-02: the `--dock-rail-w` parked column, the
 // `.pins-footer` rebuilt bar row around the tack, the top-left free corner)
@@ -579,7 +635,7 @@ export default defineComponent({
     align-items: center;
     height: calc(var(--nav-bar-h) - 1px);
     bottom: 0;
-    width: var(--pins-strip-w); // three pills + glyph (2026-09-03; --stack-w until then)
+    width: var(--pins-strip-w); // three pills + glyph (2026-09-03; --stack-w until then) + the grip zone and the bubble's two shoulders (2026-09-26: 113px)
     // The guard the stack's 48vw cap is, mirrored: never into the docks'
     // left half — moot at `--stack-w` 240px, stated for the day the dial
     // moves.
@@ -791,7 +847,7 @@ export default defineComponent({
     // it — the two must not drift apart again, see the note above).
     flex: 1 1 auto;
     min-width: 0;
-    margin: 0;
+    // (`margin: 0` stood here until 2026-09-26 — see THE BUBBLE below.)
     // ⭐ THE ITEMS BREATHE, 2026-09-06 (user ask: "add a little padding at the
     // top and bottom of the bar's items"). 2px of well shows above and below
     // every tile — they sat flush against the lane's rim before, which read
@@ -803,9 +859,20 @@ export default defineComponent({
     //   2 shoulder + 1 rim + 2 pad + 21 tile + 2 pad + 1 rim + 2 shoulder
     // The two text lines still fit — title 9 + 1 gap + sub 8 = 18 of the 21.
     padding: 2px 1px;
+    // ⭐ THE BUBBLE (2026-09-26, user ask: "for the pins one, it is sticking
+    // to the dashboard section … all 4 inner borders rounded … equally thick
+    // padding around the scroll's border … like inside of a bubble") —
+    // StackPanel's `.stack-list.is-parked` carries the argument: the lane's
+    // `--strip-shoulder` (2px) of coat on all four sides in place of the old
+    // flush margin, all four corners at `--strip-lane-radius` in place of the
+    // left-end-only curve (`7 0 0 7`). The 31px row stays zero-sum. Read
+    // left to right on desktop, the strip is now:
+    //   1 rim · 20 head · 2 · 68 lane · 2 · 1 hairline · 19 grip zone · 1 rim
+    // = `--pins-strip-w` 113 (90 until this day); three pills still in view.
+    margin: var(--strip-shoulder);
     background: var(--strip-well);
     border: 1px solid var(--strip-rule);
-    border-radius: var(--strip-lane-radius) 0 0 var(--strip-lane-radius);
+    border-radius: var(--strip-lane-radius);
     overflow-x: auto;
     overflow-y: hidden;
     scrollbar-width: none;

@@ -2452,10 +2452,32 @@ $warning:   #F2C037;
   // curves in one 25px box, none of them agreeing. ONE dial now paints the
   // lane's rounded end AND every tile in it, so "match" is by construction
   // rather than by two numbers that happen to be close. ⚠ Both strips read
-  // it; the lane rounds one END (the stack its right, the pins its left) and
-  // the tiles round all four corners — same radius, different corners.
+  // it. The lane rounded one END (the stack its right, the pins its left)
+  // from 2026-08-30 until ⭐ 2026-09-26, when the user asked for "all 4 inner
+  // borders rounded … like inside of a bubble": lane and tiles round all four
+  // corners now — same radius, same corners.
   --strip-lane-radius: 7px;
-  --pins-strip-w: 90px;
+  // ⭐ THE BUBBLE'S SHOULDER (2026-09-26, user ask: the strips' "inner scroll
+  // is cut to be sticking to their neighbour … help me making all 4 inner
+  // borders rounded and adding equally thick padding around the scroll's
+  // border. this way the elements are like inside of a bubble"). The coat
+  // showing around each lane, ONE number on all four sides: the lane's
+  // `margin` in both `.is-parked` blocks (StackPanel / PinsDrawer). Until
+  // this day the lane was flush against the strip's edge on its neighbour's
+  // side (the identity section for the stack, the dashboard block for the
+  // pins) and against the head glyph on the other, and only the vertical
+  // pair existed — as the centring LEFTOVER of the 31px row, not a property.
+  // ⚠ The row is still zero-sum: 2 shoulder + 1 rim + 2 pad + 21 tile +
+  // 2 pad + 1 rim + 2 shoulder = 31, so this dial and `--side-item-h` move
+  // TOGETHER — the strip's `overflow: hidden` clips a lane that outgrows it.
+  --strip-shoulder: 2px;
+  // ⭐ 90 → 113px on 2026-09-26 (user ask: the '::' grip + the bubble). The
+  // strip pays for a HANDLE the chips' own way (`.strip-grip` in
+  // _components.scss — 1 rim + 5 pad + 11 glyph + 2 gap + 1 hairline, the
+  // chip's `grip 6 · rule 19` to the pixel) and for the lane's two horizontal
+  // shoulders: 1 + 20 head + 2 + 68 lane + 2 + 1 + 2 + 11 + 5 + 1 = 113.
+  // Three pills still in view; `.nav-right`'s reserve follows the dial.
+  --pins-strip-w: 113px;
   // ⭐ THE PHONE'S STRIP WIDTH (2026-09-23, user ask: on mobile the pin
   // section should "match the style of the pin Bubble on desktop mode and show
   // only the last pinned item inside a Bubble", and the stack section come
@@ -2469,7 +2491,12 @@ $warning:   #F2C037;
   // arithmetic (NavigationBar's ≤600px block). Read by PinsDrawer (through
   // `--pins-strip-w`, re-pointed at this in the phone block at the end of
   // this file), StackPanel's phone rules and NavigationBar's grid reserves.
-  --strip-phone-w: 41px;
+  // ⭐ 41 → 45px on 2026-09-26: the bubble's two horizontal shoulders
+  // (`--strip-shoulder` × 2) — a phone strip has no grip, so that is the
+  // whole difference. The stand-down width moved with it: identity 42 +
+  // stack 45 + the centred row 144 + chat 28 + pins 45 + dashboard 42 + two
+  // 4px gaps = 354, so the stack strip stands down at ≤353px (345 before).
+  --strip-phone-w: 45px;
 
   // The parked rail's THIN dimension — the pins widget's icon-column WIDTH
   // at the right edge. It WAS also the stack widget's left offset and the

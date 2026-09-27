@@ -51,14 +51,48 @@
        list scrolls past its cap, the parked strip shows the newest three
        steps (sliding back only to keep the current one in view) and never
        scrolls. -->
+  <!-- ⭐ 2026-09-26 — A BUBBLE WITH A HANDLE (two user asks, one sitting): the
+       parked lane sits in the coat on `--strip-shoulder` (2px) of air on ALL
+       FOUR sides with all four corners at `--strip-lane-radius` — it stood
+       flush against the identity section's hairline and against the head
+       glyph, rounded at its free end alone ("their inner scroll is cut to be
+       sticking to their neighbour … make all 4 inner borders rounded and add
+       equally thick padding around the scroll's border … like inside of a
+       bubble") — and, on desktop, the strip LEADS with the chips' grip
+       (`.strip-grip`) and is a BODY of the trail slider: dragged by the
+       handle, clamped at contact, persisted, the panel rising from wherever
+       it stands ("add them the '::' icon and make them draggable across the
+       footer bar, like the creation buttons there"; `utils/trailSlider.js`).
+       The pins strip took both in the same ask, mirrored. -->
   <section
     v-if="win.open"
     class="stack-window dock-window"
     :class="{ 'is-parked': win.minimized, 'is-max': win.maximized }"
-    :style="{ zIndex: EDGE_Z }"
+    :style="{ zIndex: EDGE_Z, translate: windows.trailShiftOf('stack') + 'px 0' }"
     @mouseenter="onHoverEnter"
     @mouseleave="onHoverLeave"
   >
+    <!-- ⭐ THE GRIP (2026-09-26) — the chips' handle, hoisted (`.strip-grip` +
+         `.strip-grip-rule`, _components.scss), LEADING the parked strip
+         exactly as it leads every chip: `drag_indicator` behind a hairline
+         at the strip's LEFT end, beside the identity section. Dragging it
+         walks the whole strip along the bar (the `translate` on the root
+         above, off `windows.trailOffsets.stack`, persisted), clamped at
+         contact with the identity section's hairline on the left and POST —
+         or whatever chip stands first — on the right; the expanded panel
+         rises from wherever the strip stands, since both faces are this one
+         element. Desktop only: a phone has no slider (`windows.isMobile`),
+         and the phone bubble's 45px arithmetic has no seat for it. A DRAG-ONLY
+         zone: the click is swallowed, and the hover-expand skips the handle
+         (`onHoverEnter`) — a strip that expanded under a pointer on its way
+         to the grip would take the grip away with it. -->
+    <template v-if="win.minimized && !windows.isMobile">
+      <span class="strip-grip" @pointerdown="onGripDown" @click.stop
+        @mouseenter="clearHover" @mouseleave="onGripLeave">
+        <q-icon name="drag_indicator" size="11px" />
+      </span>
+      <span class="strip-grip-rule" @mouseenter="clearHover" @mouseleave="onGripLeave" />
+    </template>
     <!-- THE THIN HEADER (2026-09-06 PM, user ask: "add them a thin header
          with traffic light buttons, title and add a button on the right that
          opens up a flyout skeleton view of the stacks of items they carry").
@@ -229,6 +263,7 @@ import { defineComponent, computed, reactive, ref, watch, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { useNavStore } from 'src/stores/navigation'
 import { useWindowsStore } from 'src/stores/windows'
+import { startTrailDrag } from 'src/utils/trailSlider'
 import { typeIcon, chipKind } from './navTypeIcons'
 import { actionIcon, actionLabel } from 'src/utils/navActions'
 import { kindFor, prefixFor } from 'src/utils/kinds'
@@ -381,12 +416,48 @@ export default defineComponent({
     // parks it back. The head glyph / amber dot keep their taps for touch
     // screens, where hover doesn't exist.
     let hoverTimer = null
-    const onHoverEnter = () => {
+    const clearHover = () => {
+      if (hoverTimer) {
+        clearTimeout(hoverTimer)
+        hoverTimer = null
+      }
+    }
+    const armHover = () => {
+      if (hoverTimer) return
+      hoverTimer = setTimeout(() => { hoverTimer = null; windows.restorePanel('stack') }, 150)
+    }
+    const onHoverEnter = (e) => {
       // ⚠ NEVER ON A PHONE (2026-09-23) — a tap fires `mouseenter` first;
       // see PinsDrawer's `onHoverEnter` for the whole argument. The head
       // glyph (or the lone tile) is the phone's tap up.
       if (windows.isMobile || !win.value.minimized) return
-      hoverTimer = setTimeout(() => { windows.restorePanel('stack') }, 150)
+      // ⭐ NOT THROUGH THE HANDLE (2026-09-26): `mouseenter` fires on the
+      // strip's box however the pointer came in, and a pointer arriving over
+      // the grip is reaching for a drag, not for the panel — 150ms later the
+      // panel would stand and the grip (a parked-face thing) would be gone
+      // from under it. So the intent timer arms only when the pointer enters
+      // over the strip's FACE; a pointer crossing from the handle onto the
+      // face arms it then (`onGripLeave`). ⚠ Still `mouseenter` on the root,
+      // NOT `mouseover`: a panel parked from its own bottom bar leaves the
+      // pointer INSIDE the strip, and a re-arming `mouseover` would pop it
+      // straight back open on the next pixel of movement.
+      const under = e && document.elementFromPoint(e.clientX, e.clientY)
+      if (under && under.closest('.strip-grip, .strip-grip-rule')) return
+      armHover()
+    }
+    // The pointer left the handle: onto the face (arm, as an enter would
+    // have) or out of the strip altogether (the root's own leave follows).
+    const isHandle = (el) => !!(el && el.closest && el.closest('.strip-grip, .strip-grip-rule'))
+    const onGripLeave = (e) => {
+      if (windows.isMobile || !win.value.minimized) return
+      const root = e.currentTarget && e.currentTarget.parentElement
+      if (e.relatedTarget && root && root.contains(e.relatedTarget) && !isHandle(e.relatedTarget)) armHover()
+    }
+    // The grip's pointerdown: disarm the hover (the pointer IS on the strip)
+    // and hand the gesture to the shared slider.
+    const onGripDown = (e) => {
+      clearHover()
+      startTrailDrag('stack', e)
     }
     // ⚠ A HEIGHT TOGGLE CAN LEAVE THE POINTER OUTSIDE (2026-09-06 PM): the
     // green light restores the cap, the panel SHRINKS under the pointer
@@ -401,10 +472,7 @@ export default defineComponent({
       windows.toggleMaximizePanel('stack')
     }
     const onHoverLeave = () => {
-      if (hoverTimer) {
-        clearTimeout(hoverTimer)
-        hoverTimer = null
-      }
+      clearHover()
       if (Date.now() < settleUntil) return
       if (!win.value.minimized) windows.minimizePanel('stack')
     }
@@ -501,6 +569,9 @@ export default defineComponent({
       jumpToIndex,
       onHoverEnter,
       onHoverLeave,
+      clearHover,
+      onGripLeave,
+      onGripDown,
       toggleMax,
       authorOf,
       typeIcon,
@@ -762,7 +833,9 @@ export default defineComponent({
 // choice; the width law is the strip's, not the tile's):
 // `(100% − 2 gaps) / 3`, flex-basis percentages resolving against the lane.
 // At `--stack-w` 240: 240 − 2 strip rims − 20 glyph − 2 lane rims − 2 lane
-// pad = 214 of lane, less 2 × 2px gaps = 210 → 70px a tile. Fixed thirds,
+// pad = 214 of lane, less 2 × 2px gaps = 210 → 70px a tile (⭐ 2026-09-26:
+// the lane is 195 — 240 − 2 rims − 19 grip zone − 2 × 2 shoulders − 20
+// glyph — so 191 of content and 147px for the wide tile). Fixed thirds,
 // not `flex: 1` — one step alone takes one slot, not the whole lane, so the
 // strip reads as three seats whatever the count. Height still comes from
 // the strip-scoped `--side-item-h: 17px` the rail face reads. (20px glyph-
@@ -790,7 +863,8 @@ export default defineComponent({
 }
 // THE WIDE TILE — the last slot, always (2026-09-06: "2 tiny ones on the
 // left and then the large one on the right"). It takes whatever the two
-// pills leave, which is ~170px of the 240px lane, and its two text lines
+// pills leave, which is ~170px of the 240px lane (147px since 2026-09-26's
+// grip and shoulders — the arithmetic above), and its two text lines
 // ellipsize inside that. `.is-current` IS the newest stop now that the
 // widget reads the ledger rather than the cursor, so this rule can no
 // longer land in the middle of the row.
@@ -994,7 +1068,8 @@ export default defineComponent({
     // three tiles take their thirds of that.
     flex: 1 1 auto;
     min-width: 0;
-    margin: 0;
+    // (`margin: 0` stood here from 2026-08-30 to 2026-09-26 — the lane ran
+    // flush to the strip's edge; see THE BUBBLE at the end of this block.)
     // ⚠ THE 1px OF AIR BECAME THE RIM (2026-08-31, user ask: "add a thin
     // border to the inner rounded border of the inner scroll"). The lane was
     // the ONE place the widget's own two-face law — floor `--grey-4`, rim
@@ -1026,9 +1101,29 @@ export default defineComponent({
     //   2 shoulder + 1 rim + 2 pad + 21 tile + 2 pad + 1 rim + 2 shoulder
     // The two text lines still fit — title 9 + 1 gap + sub 8 = 18 of the 21.
     padding: 2px 1px;
+    // ⭐ THE BUBBLE (2026-09-26, user ask: the lane "is cut to be sticking to
+    // their neighbour … help me making all 4 inner borders rounded and adding
+    // equally thick padding around the scroll's border. this way the elements
+    // are like inside of a bubble"). `--strip-shoulder` (2px, _tokens.scss) of
+    // coat on ALL FOUR sides — the lane stood flush against the strip's left
+    // edge (the identity section's hairline, one rim over) and against the
+    // head glyph, and its vertical 2px was the centring LEFTOVER of the 31px
+    // row, not a stated property. The four are one number now, and the row
+    // is still zero-sum: 2 + 1 + 2 + 21 + 2 + 1 + 2 = 31, so `align-items:
+    // center` has nothing left to split and `--side-item-h` moves WITH the
+    // dial (the shell's `overflow: hidden` clips a lane that outgrows it).
+    // And all four corners round at the lane's own `--strip-lane-radius`:
+    // the free-end-only curve (`0 7 7 0`, 2026-08-30's "rounded corners on
+    // the right side only") made sense while the lane's left edge WAS the
+    // strip's; a lane with coat on every side is a box, and a box rounds all
+    // its corners or none. The rim stops doubling against anything.
+    // Horizontally the strip now reads (desktop, at `--stack-w` 240):
+    //   1 rim · 19 grip zone · 2 · 195 lane · 2 · 20 head · 1 rim
+    // — 25px of lane paid for the handle and the two shoulders.
+    margin: var(--strip-shoulder);
     background: var(--strip-well);
     border: 1px solid var(--strip-rule);
-    border-radius: 0 var(--strip-lane-radius) var(--strip-lane-radius) 0;
+    border-radius: var(--strip-lane-radius);
     overflow-x: auto;
     overflow-y: hidden;
     scrollbar-width: none;
@@ -1068,11 +1163,13 @@ export default defineComponent({
     padding: 0;
   }
 }
-// ⚠ UNDER 346px THE BAR HAS NO SEAT FOR IT: identity 42 + stack 41 + the
-// centred creation row 144 + chat 28 + pins 41 + dashboard 42 + two 4px gaps
-// is 346px, so on the narrowest phones the stack strip stands down (the pins
-// keep their seat) — NavigationBar drops its left reserve at the same width.
-@media (max-width: 345px) {
+// ⚠ UNDER 354px THE BAR HAS NO SEAT FOR IT: identity 42 + stack 45 + the
+// centred creation row 144 + chat 28 + pins 45 + dashboard 42 + two 4px gaps
+// is 354px (346 while the strips were 41px, until 2026-09-26's bubble
+// shoulders), so on the narrowest phones the stack strip stands down (the
+// pins keep their seat) — NavigationBar drops its left reserve at the same
+// width.
+@media (max-width: 353px) {
   .stack-window { display: none; }
 }
 </style>
