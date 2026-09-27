@@ -6266,20 +6266,39 @@ export default defineComponent({
 // without hyphenation a single long word pushes a line into rivers of white.
 // Hyphenation lets the breaks fall inside words instead, which is what keeps
 // the spacing even.
+// ⭐ 2026-09-27 PM — THE PROSE SKIN STOPS AT A TELEPORTED SLOT (user ask:
+// "make sure we're using the same skeleton mini viewer on the post cards as
+// in the dashboard window … remove the other if needed"). There was no
+// other: the card and the board mount ONE SkeletonMini. But MarkdownBody
+// teleports a block embed INTO `.markdown-body`, and every element rule
+// below is a `:deep` descendant rule of higher specificity than any
+// component's scoped rule — so the mini's `<table class="skel-table__grid">`
+// wore THIS block's markdown-table skin (`display: block; width:
+// max-content` — the grid collapsed to 111px in a 570px panel — hairline
+// borders on every cell, a grey bold `th`, an 0.85em margin under it), and
+// read as a second, different viewer. `$prose` is the boundary: `:where()`
+// adds NO specificity (the cascade inside the card is unchanged), `:not(
+// .pathos-ref-slot *)` keeps each rule off anything that stands inside a
+// ref slot — the embedded minis AND the inline chips. The `.element-mini`
+// rule at the end targets the embed itself and stays. The inherited type
+// (size, leading, alignment) is put back by MarkdownBody's own
+// `.pathos-ref-embed` rule.
+$prose: ':where(:not(.pathos-ref-slot *))';
+
 .post-square__md :deep(.markdown-body) {
   // No leading/trailing gap — the pit's own padding is the frame.
   > :first-child { margin-top: 0; }
   > :last-child  { margin-bottom: 0; }
 
-  p, ul, ol, pre, blockquote, table, dl { margin: 0 0 0.85em; }
+  p#{$prose}, ul#{$prose}, ol#{$prose}, pre#{$prose}, blockquote#{$prose}, table#{$prose}, dl#{$prose} { margin: 0 0 0.85em; }
 
-  p, li {
+  p#{$prose}, li#{$prose} {
     text-align: justify;
     hyphens: auto;
     -webkit-hyphens: auto;
   }
 
-  h1, h2, h3, h4, h5, h6 {
+  h1#{$prose}, h2#{$prose}, h3#{$prose}, h4#{$prose}, h5#{$prose}, h6#{$prose} {
     font-family: 'Space Mono', monospace;
     font-weight: 700;
     line-height: 1.25;
@@ -6289,30 +6308,30 @@ export default defineComponent({
     margin: 1.15em 0 0.35em;
     color: var(--ink, #2C3D4E);
   }
-  h1 { font-size: 1.14em; }
-  h2 { font-size: 1.06em; }
-  h3 { font-size: 1em; }
-  h4, h5, h6 {
+  h1#{$prose} { font-size: 1.14em; }
+  h2#{$prose} { font-size: 1.06em; }
+  h3#{$prose} { font-size: 1em; }
+  h4#{$prose}, h5#{$prose}, h6#{$prose} {
     font-size: 0.94em;
     text-transform: uppercase;
     letter-spacing: 0.04em;
     color: rgba(var(--ink-rgb), 0.72);
   }
 
-  ul, ol { padding-left: 1.4em; }
-  ul { list-style: disc; }
-  ol { list-style: decimal; }
+  ul#{$prose}, ol#{$prose} { padding-left: 1.4em; }
+  ul#{$prose} { list-style: disc; }
+  ol#{$prose} { list-style: decimal; }
   // Items were `0.08em` apart — visually zero, so a list read as one wrapped
   // paragraph with bullets in it rather than a set of distinct points.
-  li { margin: 0.3em 0; }
-  li > p { margin: 0; }
-  li > ul, li > ol { margin: 0.3em 0 0; }
+  li#{$prose} { margin: 0.3em 0; }
+  li > p#{$prose} { margin: 0; }
+  li > ul#{$prose}, li > ol#{$prose} { margin: 0.3em 0 0; }
 
-  strong { font-weight: 700; }
-  em { font-style: italic; }
-  del { opacity: 0.6; }
+  strong#{$prose} { font-weight: 700; }
+  em#{$prose} { font-style: italic; }
+  del#{$prose} { opacity: 0.6; }
 
-  a {
+  a#{$prose} {
     color: #00829c;
     text-decoration: none;
     &:hover { text-decoration: underline; }
@@ -6324,9 +6343,9 @@ export default defineComponent({
   // not in the source — `entity_type` broke across two lines as `entity_-` /
   // `type`, which a reader cannot distinguish from a token that contains one.
   // Prose can be hyphenated; a name that must be typed back exactly cannot.
-  code, pre, kbd, samp { hyphens: none; -webkit-hyphens: none; }
+  code#{$prose}, pre#{$prose}, kbd#{$prose}, samp#{$prose} { hyphens: none; -webkit-hyphens: none; }
 
-  code {
+  code#{$prose} {
     font-family: 'Space Mono', monospace;
     font-size: 0.9em;
     padding: 0 4px;
@@ -6336,7 +6355,7 @@ export default defineComponent({
 
   // Fences keep their own scroller so a long line cannot widen the card —
   // which, at a percentage-sized container, would widen the feed box itself.
-  pre {
+  pre#{$prose} {
     font-size: 0.9em;
     line-height: 1.35;
     padding: 6px 8px;
@@ -6346,23 +6365,23 @@ export default defineComponent({
     code { padding: 0; background: none; }
   }
 
-  blockquote {
+  blockquote#{$prose} {
     padding-left: 8px;
     border-left: 2px solid rgba(var(--ink-rgb), 0.25);
     color: rgba(var(--ink-rgb), 0.72);
     font-style: italic;
   }
 
-  hr {
+  hr#{$prose} {
     border: 0;
     border-top: 1px solid rgba(var(--ink-rgb), 0.16);
     margin: 1em 0;
   }
 
-  img { display: block; max-width: 100%; height: auto; border-radius: 6px; }
+  img#{$prose} { display: block; max-width: 100%; height: auto; border-radius: 6px; }
 
   // A table wider than the card scrolls in place, same reasoning as `pre`.
-  table {
+  table#{$prose} {
     display: block;
     width: max-content;
     max-width: 100%;
@@ -6370,10 +6389,10 @@ export default defineComponent({
     border-collapse: collapse;
     font-size: 0.92em;
   }
-  th, td { border: 1px solid rgba(var(--ink-rgb), 0.14); padding: 2px 6px; text-align: left; }
-  th { background: rgba(var(--ink-rgb), 0.06); font-weight: 700; }
+  th#{$prose}, td#{$prose} { border: 1px solid rgba(var(--ink-rgb), 0.14); padding: 2px 6px; text-align: left; }
+  th#{$prose} { background: rgba(var(--ink-rgb), 0.06); font-weight: 700; }
 
-  input[type="checkbox"] { margin: 0 4px 0 0; vertical-align: middle; }
+  input[type="checkbox"]#{$prose} { margin: 0 4px 0 0; vertical-align: middle; }
 
   // A `![[pathos:…]]` BLOCK EMBED renders a full Mini panel (MarkdownBody
   // teleports one in whatever the surface's inline chip tier is). Its own

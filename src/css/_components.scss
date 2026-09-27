@@ -1744,22 +1744,27 @@
 // Global stylesheet: plain descendant selectors (`:deep()` only works in
 // scoped SFC styles and is ignored by the browser here). Ink-on-paper
 // palette shared with the label/node/post subject panels.
+// ⭐ 2026-09-27 PM — the same boundary as FeedStream's card skin (see its
+// `$prose` note): a block embed teleported into `.md-rendered` prose is a
+// component, not prose; every element rule below stops at a ref slot.
+$prose: ':where(:not(.pathos-ref-slot *))';
+
 .md-rendered {
   color: var(--ink);
   font-size: 0.92em;
   line-height: 1.8;
-  h1, h2, h3 {
+  h1#{$prose}, h2#{$prose}, h3#{$prose} {
     color: var(--ink);
     font-family: var(--font-display);
     margin: 1em 0 0.4em;
     @include inset-font;
   }
-  h1 { font-size: 1.5em; border-bottom: 1px solid rgba(var(--ink-rgb), 0.22); padding-bottom: .3em; }
-  h2 { font-size: 1.2em; }
-  h3 { font-size: 1.05em; }
-  p  { margin: 0.6em 0; }
-  a  { color: #00829c; text-decoration: none; &:hover { text-decoration: underline; } }
-  code {
+  h1#{$prose} { font-size: 1.5em; border-bottom: 1px solid rgba(var(--ink-rgb), 0.22); padding-bottom: .3em; }
+  h2#{$prose} { font-size: 1.2em; }
+  h3#{$prose} { font-size: 1.05em; }
+  p#{$prose} { margin: 0.6em 0; }
+  a#{$prose} { color: #00829c; text-decoration: none; &:hover { text-decoration: underline; } }
+  code#{$prose} {
     background: rgba(var(--ink-rgb), 0.10);
     color: var(--ink);
     padding: 1px 5px;
@@ -1767,7 +1772,7 @@
     font-family: var(--font-mono);
     font-size: 0.88em;
   }
-  pre {
+  pre#{$prose} {
     background: #f6f8fb;
     border: 1px solid rgba(var(--ink-rgb), 0.18);
     border-radius: 6px;
@@ -1775,23 +1780,23 @@
     overflow-x: auto;
     code { background: transparent; padding: 0; color: var(--ink); }
   }
-  blockquote {
+  blockquote#{$prose} {
     border-left: 3px solid rgba(var(--ink-rgb), 0.45);
     margin: 0.8em 0;
     padding: 4px 12px;
     color: var(--ink-soft);
     font-style: italic;
   }
-  ul, ol { padding-left: 1.4em; margin: 0.5em 0; }
-  hr { border: none; border-top: 1px solid rgba(var(--ink-rgb), 0.22); margin: 1em 0; }
-  table {
+  ul#{$prose}, ol#{$prose} { padding-left: 1.4em; margin: 0.5em 0; }
+  hr#{$prose} { border: none; border-top: 1px solid rgba(var(--ink-rgb), 0.22); margin: 1em 0; }
+  table#{$prose} {
     width: 100%;
     border-collapse: collapse;
     font-size: 0.88em;
     th, td { border: 1px solid rgba(var(--ink-rgb), 0.20); padding: 6px 10px; }
     th     { background: rgba(var(--ink-rgb), 0.10); color: var(--ink); }
   }
-  img { max-width: 100%; border-radius: 4px; }
+  img#{$prose} { max-width: 100%; border-radius: 4px; }
 }
 
 // ── NAV RETURN HALO — "you came back from here" ──

@@ -182,9 +182,33 @@ export default defineComponent({
   }
 
   // ![[pathos:…]] block embeds get figure treatment on every surface.
+  // ⭐ 2026-09-27 PM — THE EMBED SLOT IS A BOUNDARY (user ask: "make sure
+  // we're using the same skeleton mini viewer on the post cards as in the
+  // dashboard window"). It always WAS the same component — SkeletonMini on
+  // both — but a block embed is teleported INTO the prose, and the prose's
+  // type flowed into it: the feed card's pit runs at `--pit-scale` (0.88 →
+  // 12.32px, the board's cell 14px) and justifies its paragraphs, so the
+  // mini's names, foot and grid came out smaller and justified. An embedded
+  // mini is the ELEMENT'S face, not the host's paragraph: the slot puts the
+  // inherited type back on the body's own — the reading size and leading,
+  // the body face, start-aligned, no hyphenation, no tracking — so the face
+  // measures the same in a card, a post page and a board cell. Inline chip
+  // slots (`.pathos-ref-slot` without `-embed`) keep flowing with the text:
+  // a chip in a sentence is sized by the sentence. The hosts' ELEMENT rules
+  // (`table`, `th`, `a`…) are not inherited and cannot be stopped here;
+  // each prose skin excludes the slot's subtree itself (`$prose` in
+  // FeedStream's `.post-square__md` block and `_components.scss`'s
+  // `.md-rendered`).
   :deep(.pathos-ref-embed) {
     display: block;
     margin: 10px 0;
+    font: 400 var(--font-size-body, 14px) / 1.5 var(--font-body, 'Inter', 'Helvetica Neue', system-ui, sans-serif);
+    letter-spacing: normal;
+    text-align: start;
+    text-transform: none;
+    hyphens: manual;
+    -webkit-hyphens: manual;
+    color: var(--ink);
   }
 }
 </style>

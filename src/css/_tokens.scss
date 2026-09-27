@@ -1925,6 +1925,12 @@ $warning:   #F2C037;
   // name pill can wear the content's face by name (user ask) instead of
   // copying the stack out of app.scss.
   --font-body:      'Inter', 'Helvetica Neue', system-ui, sans-serif;
+  // The READING SIZE — Quasar's body (14px, line-height 1.5), the size every
+  // surface that is NOT prose inherits (a dashboard cell, a dock, a panel).
+  // A token since 2026-09-27 PM so a teleported embed inside prose can put
+  // itself back on it by name (MarkdownBody's `.pathos-ref-embed` boundary:
+  // a mini in a card is the element's face, not the card's type).
+  --font-size-body: 14px;
 
   // ── MERCURY PLAQUE — the chrome surfaces (drawer / footer / stack /
   // pins) wear FLAT pastel plaques: clean single colors, deliberately NO
