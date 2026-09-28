@@ -108,6 +108,9 @@ export const ACTIONS = {
   CREATE_NOTE: { label: 'Wrote a note', icon: 'sticky_note_2', group: 'author' },
   CREATE_LINK: { label: 'Saved a link', icon: 'link', group: 'author' },
   NOTE_TO_POST: { label: 'Turned note into post', icon: 'move_up', group: 'author' },
+  // The link section's Post plate (2026-09-28): the link is minted AND
+  // handed to the maker as a draft that shows it as its player.
+  LINK_TO_POST: { label: 'Turned link into post', icon: 'move_up', group: 'author' },
   // The post maker's own: a fresh tab, a grid drafted into the body (the
   // ⟪skeleton⟫ token — it mints as SKELETON_CREATE once its keys are set).
   NEW_DRAFT: { label: 'Started a draft', icon: 'post_add', group: 'author' },

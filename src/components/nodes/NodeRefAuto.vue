@@ -18,11 +18,10 @@
 import { defineComponent, defineAsyncComponent, ref, computed, onMounted, watch } from 'vue'
 import RefMicro from 'src/components/shared/RefMicro.vue'
 import { nodeService } from 'src/services/node.service'
-
-// The file kinds whose preview is the thing itself — same set NodeMini
-// renders as media bodies (binary stays a one-line chip-sized row, so the
-// micro chip serves it better inline).
-const MEDIA_FILE_KINDS = new Set(['image', 'video', 'audio'])
+// The one law behind "point at it" vs "show it" — shared with the maker's
+// RefBrowser since 2026-09-28, which stamps the same nodes `mini` when
+// they are staged so the body carries the `!` outright.
+import { isShowableNode } from 'src/utils/showable'
 
 export default defineComponent({
   name: 'NodeRefAuto',
@@ -46,10 +45,7 @@ export default defineComponent({
   setup (props, { emit }) {
     const node = ref(null)
 
-    const media = computed(() => {
-      const n = node.value
-      return !!n && (!!n.embed || MEDIA_FILE_KINDS.has(n.file?.kind))
-    })
+    const media = computed(() => isShowableNode(node.value))
 
     const hash = computed(() => {
       const p = (props.address || '').trim().split('/')

@@ -10,9 +10,17 @@
        click meant for the play button must not navigate the panel away
        (the same guard NodeMini's <video>/<audio> branches carry). -->
   <figure class="embed-frame" @click.stop.prevent>
+    <!-- THE BUDGET PROBE (card mode, 2026-09-28): a custom property keeps
+         its expression (`max(120px, calc(…))`) until it lands on a
+         property, so the surface's `--media-max-h` cannot be READ as a
+         number — only measured. This invisible strip is exactly as tall
+         as the budget (capped at the card's full rung) and a
+         ResizeObserver turns it into `budget`, from which the box picks
+         its rung below. -->
+    <div v-if="isCard" ref="budgetEl" class="embed-frame__budget" :style="budgetStyle" aria-hidden="true" />
     <div
       class="embed-frame__box"
-      :class="{ 'embed-frame__box--page': isPage }"
+      :class="{ 'embed-frame__box--page': isPage, 'embed-frame__box--card': isCard }"
       :style="boxStyle"
     >
       <iframe
@@ -50,16 +58,23 @@
 </template>
 
 <script>
-import { defineComponent, computed } from 'vue'
+import { defineComponent, computed, ref, watch, onMounted, onBeforeUnmount } from 'vue'
+
+// A card never shrinks a rung by more than a fifth before stepping down
+// to the provider's next design: 352 at 0.91 is still the full Spotify
+// card; at 0.7 its type is small and the compact design reads better.
+const CARD_SHRINK_FLOOR = 0.8
 
 export default defineComponent({
   name: 'EmbedFrame',
   props: {
-    // { provider, src, title, allow, aspect, icon, mode, zoom, url, rule }
-    // — never HTML. `icon` is the rule's caption icon (a video rule says
-    // play_circle, an article rule says menu_book); `mode` picks the
-    // geometry (player = ratio-locked, page = full-width document);
-    // `zoom` shrinks a page's rendering (see the --page styles).
+    // { provider, src, title, allow, aspect, icon, mode, zoom, height,
+    // heights, url, rule } — never HTML. `icon` is the rule's caption icon
+    // (a video rule says play_circle, an article rule says menu_book, a
+    // music rule music_note); `mode` picks the geometry (player =
+    // ratio-locked, page = full-width document, card = full-width at one
+    // of the rule's fixed `heights`); `zoom` shrinks a page's rendering
+    // (see the --page styles).
     embed: { type: Object, required: true },
     // The provider + source line under the frame. Off on surfaces that
     // already state the link (the node viewer prints its address above).
@@ -74,6 +89,67 @@ export default defineComponent({
     // aspect machinery below does not apply to it.
     const isPage = computed(() => props.embed?.mode === 'page')
 
+    // A 'card' (2026-09-28, Spotify) is the THIRD geometry: the provider
+    // draws its own card at a few FIXED heights — 352px for Spotify's
+    // full player, 152 for its compact one — responsive in width, and at
+    // any other height it draws the nearer design and leaves the rest of
+    // the frame transparent. So neither the ratio nor the surface's
+    // budget describes it: the rule's LADDER does. The rungs are the
+    // rule's word, re-clamped here because they land on a style (the
+    // descriptor is input like any other); a card with no usable rung is
+    // a player.
+    const rungs = computed(() => {
+      const e = props.embed || {}
+      const list = Array.isArray(e.heights) && e.heights.length ? e.heights : [e.height]
+      return [...new Set(list.map(Number).filter(h => h >= 80 && h <= 1200))].sort((a, b) => b - a)
+    })
+    const isCard = computed(() => props.embed?.mode === 'card' && rungs.value.length > 0)
+
+    // The surface's height budget as a NUMBER — measured off the probe
+    // strip in the template (null until the first measure, so the box
+    // starts on the CSS `min()` form and snaps once the observer speaks).
+    const budgetEl = ref(null)
+    const budget = ref(null)
+    const budgetStyle = computed(() => ({
+      height: `min(${rungs.value[0] || 0}px, var(--media-max-h, ${rungs.value[0] || 0}px))`
+    }))
+    let ro = null
+    const observe = () => {
+      if (ro) { ro.disconnect(); ro = null }
+      const el = budgetEl.value
+      if (!el || typeof ResizeObserver === 'undefined') return
+      ro = new ResizeObserver((entries) => {
+        const h = entries[0]?.contentRect?.height
+        if (Number.isFinite(h) && h > 0) budget.value = h
+      })
+      ro.observe(el)
+      const h = el.getBoundingClientRect().height
+      if (h > 0) budget.value = h
+    }
+    onMounted(observe)
+    watch(budgetEl, observe)
+    onBeforeUnmount(() => { if (ro) ro.disconnect() })
+
+    // The rung the budget affords: walk the ladder largest first and take
+    // the first rung that fits natively, or fits after a shrink of at
+    // most a fifth (CARD_SHRINK_FLOOR); when even the smallest rung needs
+    // more, that one shrinks as far as it must. `h` is the box's height,
+    // `z` the scale the iframe is drawn at — the page mode's zoom
+    // mechanics, so the provider always lays out at one of ITS heights
+    // and the frame never holds a transparent remainder.
+    const cardFit = computed(() => {
+      const ladder = rungs.value
+      const b = budget.value
+      if (!ladder.length) return null
+      if (b == null) return { h: null, z: 1 }
+      for (const r of ladder) {
+        if (b >= r) return { h: r, z: 1 }
+        if (b >= r * CARD_SHRINK_FLOOR) return { h: b, z: b / r }
+      }
+      const r = ladder[ladder.length - 1]
+      return { h: Math.min(b, r), z: Math.min(b, r) / r }
+    })
+
     // The ratio as a NUMBER, published as `--embed-ratio` beside the
     // `aspect-ratio` itself. A surface that has to bound the frame can only
     // bound its WIDTH without breaking the ratio (height is derived), and
@@ -82,6 +158,17 @@ export default defineComponent({
     // HEIGHT budget (`--media-max-h`) and never has to know the rule's
     // aspect — which it could not, a 4:3 rule needing a 4:3 width.
     const boxStyle = computed(() => {
+      if (isCard.value) {
+        const fit = cardFit.value
+        const full = rungs.value[0]
+        return {
+          // Unmeasured: the largest rung bounded by the budget in CSS;
+          // measured: the chosen rung (or the shrunken box), and the zoom
+          // that lays the iframe out at the provider's own height.
+          '--embed-height': fit?.h ? `${fit.h}px` : `min(${full}px, var(--media-max-h, ${full}px))`,
+          '--embed-zoom': String(fit?.z || 1)
+        }
+      }
       if (isPage.value) {
         // Page mode: no ratio — only the zoom, re-clamped here because it
         // lands on a transform (the descriptor is input like any other).
@@ -100,7 +187,7 @@ export default defineComponent({
       return raw.replace(/^https?:\/\/(www\.)?/, '')
     })
 
-    return { provider, isPage, boxStyle, prettyUrl }
+    return { provider, isPage, isCard, boxStyle, budgetEl, budgetStyle, prettyUrl }
   }
 })
 </script>
@@ -109,6 +196,8 @@ export default defineComponent({
 .embed-frame {
   margin: 0;
   width: 100%;
+  // The budget probe is absolutely positioned against the figure.
+  position: relative;
 }
 
 // The frame keeps the RATIO the rule declared and takes whatever width the
@@ -172,6 +261,51 @@ export default defineComponent({
     transform: scale(var(--embed-zoom, 1));
     transform-origin: 0 0;
   }
+}
+
+// A CARD (mode: 'card', 2026-09-28) is the third geometry: full width like
+// a page, but its height is one of the RULE's fixed rungs (`--embed-height`
+// — Spotify's player is 352px or 152px tall at any width), never the
+// surface's budget as such: the script above measures the budget off the
+// probe strip and picks the rung it affords, shrinking one by at most a
+// fifth (`--embed-zoom`, the page mode's mechanics — the iframe laid out at
+// the provider's own height and transform-scaled down) before stepping to
+// the next. So a card quoted into a feed card's pit never pushes the play
+// button below the fold AND never holds a transparent remainder under a
+// card the provider drew smaller than the box. The frame is TRANSPARENT
+// with no rim: the provider draws its own rounded card inside the iframe
+// (Spotify's snippet asks for `border-radius: 12px`, which is the card's
+// own corner, so the box wears the same radius and nothing else) — a black
+// bed and a hairline around it would show as a dark mat at the corners.
+.embed-frame__box--card {
+  aspect-ratio: auto;
+  max-width: 100%;
+  height: var(--embed-height, 352px);
+  background: transparent;
+  border: 0;
+  border-radius: 12px;
+
+  iframe {
+    inset: auto;
+    top: 0;
+    left: 0;
+    width: calc(100% / var(--embed-zoom, 1));
+    height: calc(100% / var(--embed-zoom, 1));
+    transform: scale(var(--embed-zoom, 1));
+    transform-origin: 0 0;
+  }
+}
+
+// The budget probe: out of flow, invisible, exactly as tall as the
+// surface's `--media-max-h` (capped at the card's full rung) — measured,
+// never seen.
+.embed-frame__budget {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 1px;
+  visibility: hidden;
+  pointer-events: none;
 }
 
 .embed-frame__cap {

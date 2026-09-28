@@ -341,14 +341,19 @@ export default defineComponent({
       if (!d.parent) {
         const missing = d.references.filter(x => !body.includes(x.address))
         if (missing.length) {
-          // Each appended ref keeps its chosen preview tier: the sigil
-          // rides INSIDE the list item (after "- "), so the markdown list
-          // marker and the display marker never collide.
-          const line = (x) => {
+          // Each appended ref keeps its chosen preview tier. A chip rides
+          // INSIDE a list item (the sigil after "- ", so the markdown list
+          // marker and the display marker never collide); a MINI — the
+          // player, the picture — stands on a line of its own, since a
+          // bullet beside a player reads as a list of one (2026-09-28).
+          const ref = (x) => {
             const label = (x.primary || '').replace(/[[\]|]/g, '').trim()
-            return `- ${sigilOf(x)}[[pathos:${x.address}${label ? '|' + label : ''}]]`
+            return `${sigilOf(x)}[[pathos:${x.address}${label ? '|' + label : ''}]]`
           }
-          body += '\n\n---\n\n**References**\n\n' + missing.map(line).join('\n')
+          const blocks = missing.filter(x => x.display === 'mini').map(ref)
+          const chips = missing.filter(x => x.display !== 'mini').map(x => `- ${ref(x)}`)
+          const parts = [...blocks, chips.join('\n')].filter(Boolean)
+          body += '\n\n---\n\n**References**\n\n' + parts.join('\n\n')
         }
       }
       return body

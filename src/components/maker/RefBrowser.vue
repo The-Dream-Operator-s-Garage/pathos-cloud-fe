@@ -171,7 +171,9 @@ import { defineComponent, ref, computed, onMounted } from 'vue'
 import InfoChip from 'src/components/shared/InfoChip.vue'
 import SkeletonMini from 'src/components/skeletons/SkeletonMini.vue'
 import { refService } from 'src/services/ref.service'
+import { nodeService } from 'src/services/node.service'
 import { kindFor } from 'src/utils/kinds'
+import { isShowableNode } from 'src/utils/showable'
 import { useNavStore } from 'src/stores/navigation'
 
 // Reference kinds a CONTENT path can carry (posts are skeletons).
@@ -242,11 +244,27 @@ export default defineComponent({
 
     const emitRefs = (list) => emit('update:references', list)
 
-    const add = (r) => {
+    const add = async (r) => {
       if (isAdded(r.address)) return
       // A skeleton reads as its grid: the mini tier is its default stamp
       // (the `auto` tier is node-only — a bare skeleton ref stays a chip).
-      const mini = String(r.address || '').startsWith('skeletons/')
+      const address = String(r.address || '')
+      let mini = address.startsWith('skeletons/')
+      // A SHOWABLE node — a URL an EMBED_RULE recognizes, a picture, a
+      // video — reads as its player, so it takes the mini stamp too
+      // (2026-09-28, user ask: the enriched previewer BY DEFAULT). One
+      // by-path read, the very one the AUTO tier would make on every
+      // surface later; the body then carries the `!` outright and the
+      // player shows wherever the post is read, AUTO surface or not. A
+      // locked or vanished node keeps the chip.
+      if (address.startsWith('nodes/')) {
+        try {
+          const probe = await nodeService.getByPath(address.split('/')[1])
+          mini = isShowableNode(probe?.node)
+        } catch (_) { /* the chip stands */ }
+        // A second click while the probe ran already staged it.
+        if (isAdded(r.address)) return
+      }
       emitRefs([...props.references, { address: r.address, primary: r.primary || '', ...(mini ? { display: 'mini' } : {}) }])
       // THE SUB-STACK (2026-09-06 PM): staging a reference on the draft is
       // the act "Attached" — the element it points at is the target.

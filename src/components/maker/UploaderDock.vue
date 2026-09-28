@@ -167,11 +167,18 @@
               </div>
             </section>
 
-            <!-- LINK — 15%: one input, its button in the head row. The URL
+            <!-- LINK — 15%: one input, its buttons in the head row. The URL
                  is still resolved against the EMBED_RULE skeletons as it is
                  typed (POST /embeds/resolve); at this height the player
                  preview has no room, so recognition shows as the head's
-                 hint line instead of as the frame itself. -->
+                 hint line instead of as the frame itself. Two plates since
+                 2026-09-28 (user ask: "if I upload a youtube one, make sure
+                 the enriched previewer showcases it on a post"): Save link
+                 mints the LINK node; Post mints it AND opens a maker draft
+                 whose body is the node's block embed, so the post opens on
+                 the player. A pasted <iframe> snippet is unwrapped to its
+                 src on the way in (utils/embedMarkup.js) — the platform
+                 keeps the address and derives the frame. -->
             <section class="method method--link">
               <div class="method__head">
                 <span class="method__label">Link</span>
@@ -180,17 +187,24 @@
                 </span>
                 <q-space />
                 <q-btn
+                  unelevated dense no-caps size="sm" icon="post_add"
+                  class="method__submit" label="Post"
+                  title="Save this link and open a post draft that shows it as its player"
+                  :loading="isBusy('link') && linkPosting" :disable="!canSubmit('link')"
+                  @click="linkToPost"
+                />
+                <q-btn
                   unelevated dense no-caps size="sm" icon="add_link"
                   class="method__submit" label="Save link"
-                  :loading="isBusy('link')" :disable="!canSubmit('link')"
+                  :loading="isBusy('link') && !linkPosting" :disable="!canSubmit('link')"
                   @click="submit('link')"
                 />
               </div>
               <q-input
                 :model-value="upload.linkUrl" :dark="false" outlined dense hide-bottom-space
-                placeholder="https://example.com/page"
+                placeholder="https://example.com/page — or paste an embed <iframe>"
                 :error="!!linkHint"
-                @update:model-value="linkHint = ''; patch({ linkUrl: $event })"
+                @update:model-value="linkHint = ''; patch({ linkUrl: unwrapLinkInput($event) })"
                 @keyup.enter="submit('link')"
               >
                 <template #prepend><q-icon name="link" /></template>
@@ -301,6 +315,7 @@ import { labelService } from 'src/services/label.service'
 import { embedService } from 'src/services/embed.service'
 import { formatBytes } from 'src/utils/nodeContent'
 import { extractPathosRefs } from 'src/utils/pathosRefs'
+import { unwrapLinkInput } from 'src/utils/embedMarkup'
 
 const KIND_BY_EXT = {
   md: 'text',
@@ -722,6 +737,100 @@ export default defineComponent({
       }, 700)
     }
 
+    // The host a link names, for the sub-stack's label and a draft's chip
+    // label when no EMBED_RULE has a better word.
+    const hostOf = (url) => { try { return new URL(url).hostname.replace(/^www\./, '') } catch (_) { return 'link' } }
+
+    // ── THE LINK MINT, shared by the section's two plates (2026-09-28) ──
+    // Creates the LINK node and logs the act; answers the enriched node
+    // (already carrying `embed` when a rule recognizes it) or null, with
+    // the section's hint set and the tab back to idle on failure. The
+    // caller decides what the fresh node is for.
+    const mintLink = async (u) => {
+      const url = u.linkUrl.trim()
+      const r = await nodeService.create({
+        content: url,
+        typeId: 3,
+        labelIds: u.labelIds,
+        authorEntityId: u.authorEntityId
+      })
+      if (!r.success) {
+        linkHint.value = r.error?.message || 'Invalid link'
+        store.patchUpload(u.id, { status: 'idle', busyKind: null })
+        return null
+      }
+      // THE SUB-STACK (2026-09-06 PM): "Saved a link".
+      try {
+        useNavStore().recordAction('CREATE_LINK', {
+          targetType: 'node',
+          targetId: r.node?.id ?? null,
+          targetLabel: hostOf(url),
+          targetPath: r.node?.path || null
+        })
+      } catch (_) { /* a link must never fail because its log did */ }
+      store.patchUpload(u.id, { linkUrl: '' })
+      return r.node
+    }
+
+    // ── THE LINK'S POST PLATE (2026-09-28, user ask: "if I upload a
+    // youtube one, make sure the enriched previewer is used to showcase
+    // the element on a post") — the note section's toPost, for a link:
+    // mint the LINK node, then hand it to the maker as a draft whose body
+    // IS the node's block embed, `![[pathos:nodes/<hash>|<provider>]]`.
+    // The `!` is the point: a bare ref would bloom only on AUTO surfaces
+    // (the feed, the post viewer); the block form shows the player
+    // wherever the post is read. The chip's label is the rule's provider
+    // when one recognized the URL, the host otherwise. Nothing but the
+    // node is minted here — the post waits for the maker. ──
+    const linkPosting = ref(false)
+    const linkToPost = async () => {
+      const u = upload.value
+      if (!u || !canSubmit('link') || isBusy('link')) return
+      const id = u.id
+      linkHint.value = ''
+      linkPosting.value = true
+      store.patchUpload(id, { status: 'busy', busyKind: 'link', errors: [] })
+      try {
+        const provider = linkEmbed.value?.provider || ''
+        const node = await mintLink(u)
+        if (!node?.path) return
+        const label = (provider || node.embed?.provider || hostOf(node.content || '')).replace(/[[\]|]/g, '').trim()
+        const maker = useMakerStore()
+        maker.load()
+        const d = maker.addDraft()
+        maker.patchDraft(d.id, {
+          content: `![[pathos:${node.path}|${label}]]\n`,
+          authorEntityId: u.authorEntityId,
+          labelIds: [...u.labelIds],
+          labels: u.labels.map(l => ({ ...l })),
+          references: [{ address: node.path, primary: label, display: 'mini' }]
+        })
+        store.patchUpload(id, { status: 'idle', busyKind: null })
+        refreshKey.value++
+        const t = store.uploads.find(x => x.id === id)
+        if (t && !hasWork(t)) store.removeUpload(id)
+        if (store.isOpen) store.minimize()
+        // THE SUB-STACK: the hand-off is its own act — the link left this
+        // window for the maker's draft. Deliberately no `created` emit:
+        // MainLayout answers a lone node by navigating to its viewer,
+        // and the post window is where this one is going.
+        try {
+          useNavStore().recordAction('LINK_TO_POST', {
+            targetType: 'node',
+            targetId: node.id ?? null,
+            targetLabel: label,
+            targetPath: node.path
+          })
+        } catch (_) { /* cosmetic */ }
+        maker.open()
+      } catch (e) {
+        linkHint.value = e?.response?.data?.error?.message || e?.message || 'Could not save the link'
+        store.patchUpload(id, { status: 'idle', busyKind: null })
+      } finally {
+        linkPosting.value = false
+      }
+    }
+
     const submit = async (kind) => {
       const u = upload.value
       if (!u || !canSubmit(kind)) return
@@ -730,28 +839,8 @@ export default defineComponent({
       store.patchUpload(id, { status: 'busy', busyKind: kind, errors: [] })
       try {
         if (kind === 'link') {
-          const r = await nodeService.create({
-            content: u.linkUrl.trim(),
-            typeId: 3,
-            labelIds: u.labelIds,
-            authorEntityId: u.authorEntityId
-          })
-          if (r.success) {
-            // THE SUB-STACK (2026-09-06 PM): "Saved a link".
-            try {
-              useNavStore().recordAction('CREATE_LINK', {
-                targetType: 'node',
-                targetId: r.node?.id ?? null,
-                targetLabel: (() => { try { return new URL(u.linkUrl.trim()).hostname } catch (_) { return 'link' } })(),
-                targetPath: r.node?.path || null
-              })
-            } catch (_) { /* a link must never fail because its log did */ }
-            store.patchUpload(id, { linkUrl: '' })
-            finish(id, [r.node])
-          } else {
-            linkHint.value = r.error?.message || 'Invalid link'
-            store.patchUpload(id, { status: 'idle', busyKind: null })
-          }
+          const node = await mintLink(u)
+          if (node) finish(id, [node])
           return
         }
 
@@ -843,6 +932,9 @@ export default defineComponent({
       previewKindOf,
       linkHint,
       linkEmbed,
+      linkPosting,
+      linkToPost,
+      unwrapLinkInput,
       isBusy,
       canSubmit,
       filesLabel,
@@ -1007,6 +1099,17 @@ export default defineComponent({
   flex-direction: column;
   gap: 6px;
   min-height: 0;
+  // ⚠ `min-width: 0` is load-bearing (2026-09-28). A grid item's default
+  // `min-width: auto` is its MIN-CONTENT width, and the link head's
+  // recognition hint is `white-space: nowrap` — so the moment a rule
+  // recognized a URL, the link section asked the grid for label + the
+  // whole hint + its plates (468px in a 300px editor column), the grid's
+  // tracks grew to it, and every section's plates were drawn UNDER the
+  // explorer aside (a click on Post landed on a file row). The ellipsis
+  // on `.method__hint` never got to work because the item itself refused
+  // to shrink. Pre-existing since the hint replaced the frame preview
+  // (2026-08-26); surfaced by the second plate.
+  min-width: 0;
 }
 
 .method__head {
@@ -1041,6 +1144,12 @@ export default defineComponent({
 // scope-attribute trick to beat them without `!important`. ──
 .method__submit {
   min-height: 0;
+  // A plate never wraps its word and never gives way — the head's HINT is
+  // the piece that shrinks (ellipsis), now that the section itself can
+  // (`.method { min-width: 0 }` above). Without this, "Save link" broke
+  // onto two lines at the resting 300px column once it had a sibling.
+  flex: 0 0 auto;
+  white-space: nowrap;
   padding: 2px 10px;
   border: 1px solid var(--uploader-contrast);
   border-radius: 4px;
