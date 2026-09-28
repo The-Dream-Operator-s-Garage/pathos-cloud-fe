@@ -137,9 +137,14 @@ function makeNoise (rand, periods) {
   return noise
 }
 
-// The painter: (wall-time ms) → the gradient string. Seeds drawn here, once
-// per mount, so every page load is its own sky.
-export function makeAuroraPainter (tones, { period = 240, span = 3, stops = 9, rand = Math.random } = {}) {
+// The STOPS: (wall-time ms) → the colour-stop list, `rgb(…) x%, …`, without
+// a direction. Seeds drawn here, once per mount, so every page load is its
+// own sky. Split out of the painter on 2026-09-28 so ONE sky can be laid down
+// TWICE — the top rail's two friezes run at each other, the right one the
+// left one's horizontal mirror, and a mirrored gradient is the same stops
+// under `270deg` instead of `90deg`. Two painters would be two skies (two
+// seed draws); one stop-list under two angles is one sky reflected.
+export function makeAuroraStops (tones, { period = 240, span = 3, stops = 9, rand = Math.random } = {}) {
   const speedNoise = makeNoise(rand, [67, 101, 149])
   const spanNoise = makeNoise(rand, [83, 127, 173])
   const bendNoise = makeNoise(rand, [59, 113, 191])
@@ -160,8 +165,16 @@ export function makeAuroraPainter (tones, { period = 240, span = 3, stops = 9, r
       const [r, g, bl] = sampleWheel(tones, u)
       parts.push(`rgb(${r}, ${g}, ${bl}) ${Math.round(x * 1000) / 10}%`)
     }
-    return `linear-gradient(90deg, ${parts.join(', ')})`
+    return parts.join(', ')
   }
+}
+
+// The painter: (wall-time ms) → the gradient string, run along the strip
+// (`90deg`, colours drifting right). `angle` turns it: `270deg` is the same
+// sky seen in a mirror, drifting left.
+export function makeAuroraPainter (tones, { angle = '90deg', ...options } = {}) {
+  const stops = makeAuroraStops(tones, options)
+  return (nowMs) => `linear-gradient(${angle}, ${stops(nowMs)})`
 }
 
 /**
@@ -169,6 +182,12 @@ export function makeAuroraPainter (tones, { period = 240, span = 3, stops = 9, r
  * @param host  a template ref — an element, or a component (its `$el` is used)
  * @param options
  *   property  the inline custom property written on the host (`--aurora-paint`)
+ *   mirror    a SECOND property carrying the same sky reflected — the same
+ *             stops under `270deg` (`null`: not written). The top rail's two
+ *             friezes read one each, so the pair converges on the seam
+ *             between them (2026-09-28, user ask: the right band "must have
+ *             its inner svg pattern and animation mirrored vertically so both
+ *             frieze bars converge to the middle").
  *   period    seconds for one full turn of the wheel (240)
  *   span      tones visible across the width, at rest (3)
  *   stops     colour stops sampled across the width (9)
@@ -177,6 +196,7 @@ export function makeAuroraPainter (tones, { period = 240, span = 3, stops = 9, r
  */
 export function useAurora (host, {
   property = '--aurora-paint',
+  mirror = null,
   period = 240,
   span = 3,
   stops = 9,
@@ -187,7 +207,7 @@ export function useAurora (host, {
   let raf = 0
   let last = -Infinity
   let media = null
-  let painter = null
+  let sky = null // the stop sampler — (ms) → `rgb(…) 0%, …`
 
   // The host may be an element or a component. ⚠ A component's `$el` is NOT
   // always its root element: a template that opens with a comment (FriezeBar
@@ -202,8 +222,15 @@ export function useAurora (host, {
     return n || null
   }
 
+  // One sample of the stops a frame, laid down once or twice: the host's
+  // property at 90deg and, when asked, its mirror at 270deg — the same
+  // colours at the same instant, so the two bands that read them are one
+  // sky and its reflection, never two skies.
   const paint = (now) => {
-    if (el && painter) el.style.setProperty(property, painter(now))
+    if (!el || !sky) return
+    const s = sky(now)
+    el.style.setProperty(property, `linear-gradient(90deg, ${s})`)
+    if (mirror) el.style.setProperty(mirror, `linear-gradient(270deg, ${s})`)
   }
 
   const loop = (now) => {
@@ -226,7 +253,7 @@ export function useAurora (host, {
     if (typeof window === 'undefined') return
     el = elementOf(host)
     if (!el || !(el instanceof Element)) return
-    painter = makeAuroraPainter(resolveWheel(wheel), { period, span, stops })
+    sky = makeAuroraStops(resolveWheel(wheel), { period, span, stops })
     media = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)') : null
     if (media && media.addEventListener) media.addEventListener('change', run)
     run()
@@ -236,10 +263,13 @@ export function useAurora (host, {
     if (raf) cancelAnimationFrame(raf)
     raf = 0
     if (media && media.removeEventListener) media.removeEventListener('change', run)
-    if (el) el.style.removeProperty(property)
+    if (el) {
+      el.style.removeProperty(property)
+      if (mirror) el.style.removeProperty(mirror)
+    }
     el = null
-    painter = null
+    sky = null
   })
 
-  return { property }
+  return { property, mirror }
 }

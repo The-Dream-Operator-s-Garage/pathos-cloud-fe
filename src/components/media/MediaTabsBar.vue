@@ -133,14 +133,90 @@
          The band's WAVE IS PAINTED BY A LIVE GRADIENT now: `ref="frieze"`
          hands this element to `useAurora` (setup), which writes
          `--aurora-paint` inline at ≤30fps, and the style block's dial hands
-         it to FriezeBar's `-paint` seam. Nine pastel stops off a WHEEL of the
+         it to FriezeBar's `-paint` seam (⭐ 2026-09-28: the mount is
+         `ref="band"`, the ROW both friezes stand in, and it writes the
+         mirror property beside it — the next note). Nine pastel stops off a WHEEL of the
          palette's -11 accents in hue order, an arc of ~3 tones across the
          width drifting right, breathing and bending, the wheel turning once
          every ~4 min — the composable's header has the whole construction.
          Nothing geometric moved: still `slim`, one wave, mask `b`, 13px,
          `auto 13px`, pad 0, carve none; the plate stays `--grey-8`, which is
          what makes pastels read as ink. Reduced motion holds one frame. -->
-    <FriezeBar ref="frieze" slim class="media-tabs__frieze" />
+    <!-- ── ⭐ THE BAND IS TWO FRIEZES AND A SLIDING SEAM (2026-09-28, user
+         ask: "split it internally in two parts separated by a slidable
+         section incrusted in the middle by default … place [the logo]
+         inside the slidable section … frame it inside of a cream colored
+         hexagonal frame i can slide across the top nav bar … split the
+         inner friezebar with color animation into two frieze bars, except
+         the second one, on the right side must have its inner svg pattern
+         and animation mirrored vertically so both frieze bars converge to
+         the middle … if i slide the new logo frame, the friezes expand or
+         contract horizontally accordingly"; then, the same sitting: "add to
+         it a bottom tab, just like the top nav bar tabs that attach to the
+         bottom, but just make it read in bold nasalization 'pathos.cloud'
+         and let the image logo framed above") ─────────────────────────
+         `.media-tabs__band` is a flex ROW at the band's 13px — LEFT frieze │
+         SEAM │ RIGHT frieze — standing where the one band stood. The left
+         one is the band as it was (slim, mask b-mirror, the sky at 90deg)
+         with its mask ANCHORED AT ITS RIGHT EDGE (`--frieze-bar-wave-two-
+         shift: 100%`); the right one wears `flip` — mask b PLAIN, which by
+         construction is b-mirror reflected — anchored at its left edge, and
+         reads the sky's MIRROR (`--aurora-paint-mirror`: the same nine stops
+         at the same instant under 270deg, written beside `--aurora-paint`
+         by the ONE `useAurora` mount, on this row now). Both tiles meet at
+         the seam as a motif and its reflection, and both skies drift TOWARD
+         the seam. A mask swap and a second angle — never a `scaleX(-1)`,
+         FriezeBar's law (a transform mirrors the carve's light with the
+         motif).
+         THE SEAM sits at `--logo-frac` of the band's travel (0 = the left
+         end, 1 = the right, 0.5 = the middle and the default): the left
+         frieze's basis is `(100% − seam) × frac`, the right takes the rest,
+         so dragging the badge grows one band by the pixels it takes from
+         the other. Drag = pointer capture on the seam; arrow keys walk it
+         2% (10% with shift), Home/End to the ends; the fraction is
+         remembered under `pathos_header_logo_x` and CLAMPED so the hexagon
+         never rides under the Back/Forward plates (their boxes measured, so
+         the phone's 33px pair clamps differently from the desktop's 59/76).
+         THE BADGE: a flat-top HEXAGON — grey-6 rim, cream frame
+         (`--plaque-flat`), the planet on its own dark field — standing
+         INSIDE the bar, the rail's full 18px from its top edge to its rim,
+         40px wide (stretched, not regular: the bar is the height it has),
+         the art cropped to the planet's band (⚠ the first cut hung a 38px
+         regular hexagon BELOW the rail with the plate 20px under it —
+         "why is it floating?" — and was reshaped the same sitting). Beneath
+         it the NAME PLATE is a PARKED TAB — `.media-tabs__tab`, the very
+         class, hanging from the same line (`top: 100%` of the rail's
+         padding box, y=17) with the same flares, face, rim and corners —
+         that reads "pathos.cloud" in bold Nasalization; only its weight and
+         its cursor are its own. The seam's gap is NARROWER than the hexagon,
+         so the friezes' ends tuck under its diagonal wedges and the badge
+         reads as set INTO the band. -->
+    <div ref="band" class="media-tabs__band" :style="{ '--logo-frac': logoFrac }">
+      <FriezeBar slim class="media-tabs__frieze media-tabs__frieze--left" />
+      <div
+        ref="logo"
+        class="media-tabs__logo"
+        role="slider"
+        aria-label="pathos.cloud — slide the logo along the bar"
+        aria-orientation="horizontal"
+        :aria-valuemin="0"
+        :aria-valuemax="100"
+        :aria-valuenow="logoPct"
+        tabindex="0"
+        title="pathos.cloud — drag along the bar"
+        @pointerdown="logoDown"
+        @pointermove="logoMove"
+        @pointerup="logoUp"
+        @pointercancel="logoUp"
+        @keydown="logoKey"
+      >
+        <div class="media-tabs__badge">
+          <div class="media-tabs__hex"><div class="media-tabs__hex-face" /></div>
+          <div class="media-tabs__tab media-tabs__plate nasalization">pathos.cloud</div>
+        </div>
+      </div>
+      <FriezeBar slim flip class="media-tabs__frieze media-tabs__frieze--right" />
+    </div>
     <!-- ── THE BACK BUTTON (2026-08-31, user ask: "relocate the back button
          from the left drawer into the top header nav bar"; the drawer is
          hidden the same day) — INSIDE the rail since the follow-up ask
@@ -169,6 +245,7 @@
          follows Forward down (90 → 40px). The desktop pair is untouched:
          `arrow_back` / `arrow_forward` at 12px beside their words. -->
     <button
+      ref="backEl"
       type="button"
       class="media-tabs__back nasalization"
       :class="{ 'is-disabled': !canGoBack }"
@@ -188,6 +265,7 @@
          the pair's OWN traversal ledger (`forwardDepth`; the script's note
          walks the three ready-made truths that each failed first). -->
     <button
+      ref="forwardEl"
       type="button"
       class="media-tabs__forward nasalization"
       :class="{ 'is-disabled': !canGoForward }"
@@ -239,11 +317,97 @@ export default defineComponent({
     const router = useRouter()
 
     // ── THE AURORA (2026-09-26) — the sky painted into the rail's frieze
-    // wave. `frieze` is the FriezeBar's instance; the composable takes its
-    // `$el` and writes `--aurora-paint` on it (the style block wires the
-    // dial). See the template note and composables/useAurora.js.
-    const frieze = ref(null)
-    useAurora(frieze)
+    // wave. The composable writes `--aurora-paint` inline on its host and
+    // the style block wires the dial. ⭐ 2026-09-28: the host is `band`, the
+    // ROW the two friezes stand in (a custom property inherits DOWN, and
+    // both bands must read one sky), and `mirror` asks for the second
+    // property — the same stops at 270deg — the right frieze reads. See the
+    // template note and composables/useAurora.js.
+    const band = ref(null)
+    useAurora(band, { mirror: '--aurora-paint-mirror' })
+
+    // ── THE SEAM (2026-09-28, user ask: a slidable logo section splitting
+    // the band, "the friezes expand or contract horizontally accordingly").
+    // `logoFrac` ∈ [0, 1] is where the seam stands along the band's TRAVEL
+    // (band width − seam width); the style block turns it into the left
+    // frieze's flex-basis and the right one takes the rest. Remembered in
+    // localStorage; 0.5 — the middle — when nothing is remembered.
+    //
+    // The legal range is measured, not stated: the hexagon overhangs the
+    // seam on both sides (`over`), and it must never ride under the
+    // Back/Forward plates, whose widths differ by viewport (59/76 on the
+    // desktop, 33 each on a phone). `travel()` reads all four boxes at the
+    // start of a drag (and once at mount, to clamp a remembered fraction
+    // to this viewport's plates).
+    const logo = ref(null)
+    const backEl = ref(null)
+    const forwardEl = ref(null)
+    const LOGO_KEY = 'pathos_header_logo_x'
+    const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v))
+    const recall = () => {
+      try {
+        const v = parseFloat(localStorage.getItem(LOGO_KEY))
+        return Number.isFinite(v) ? clamp(v, 0, 1) : 0.5
+      } catch { return 0.5 }
+    }
+    const logoFrac = ref(recall())
+    const logoPct = computed(() => Math.round(logoFrac.value * 100))
+    const remember = () => {
+      try { localStorage.setItem(LOGO_KEY, String(logoFrac.value)) } catch { /* private mode: the seam still slides */ }
+    }
+    const travel = () => {
+      const row = band.value ? band.value.getBoundingClientRect() : { left: 0, width: 0 }
+      const seam = logo.value ? logo.value.getBoundingClientRect() : { width: 0 }
+      const hex = logo.value && logo.value.querySelector('.media-tabs__hex')
+      const over = hex ? Math.max(0, (hex.getBoundingClientRect().width - seam.width) / 2) : 0
+      const span = Math.max(1, row.width - seam.width)
+      const backW = backEl.value ? backEl.value.getBoundingClientRect().width : 0
+      const fwdW = forwardEl.value ? forwardEl.value.getBoundingClientRect().width : 0
+      return {
+        left: row.left,
+        span,
+        min: clamp((backW + over) / span, 0, 1),
+        max: clamp((row.width - fwdW - over - seam.width) / span, 0, 1)
+      }
+    }
+    // Pointer capture: the seam keeps receiving moves once grabbed, wherever
+    // the pointer wanders (off the 13px row is where it wanders first).
+    // `dx` is the grab's offset from the seam's left edge, so the badge does
+    // not jump to the pointer on the first move.
+    let drag = null
+    const logoDown = (e) => {
+      if (e.pointerType === 'mouse' && e.button !== 0) return
+      const t = travel()
+      drag = { id: e.pointerId, t, dx: e.clientX - (t.left + logoFrac.value * t.span) }
+      e.currentTarget.setPointerCapture(e.pointerId)
+      e.preventDefault()
+    }
+    const logoMove = (e) => {
+      if (!drag || e.pointerId !== drag.id) return
+      logoFrac.value = clamp((e.clientX - drag.dx - drag.t.left) / drag.t.span, drag.t.min, drag.t.max)
+    }
+    const logoUp = (e) => {
+      if (!drag || e.pointerId !== drag.id) return
+      drag = null
+      remember()
+    }
+    const logoKey = (e) => {
+      const step = e.shiftKey ? 0.1 : 0.02
+      const t = travel()
+      let next = null
+      if (e.key === 'ArrowLeft') next = logoFrac.value - step
+      else if (e.key === 'ArrowRight') next = logoFrac.value + step
+      else if (e.key === 'Home') next = t.min
+      else if (e.key === 'End') next = t.max
+      if (next === null) return
+      e.preventDefault()
+      logoFrac.value = clamp(next, t.min, t.max)
+      remember()
+    }
+    onMounted(() => {
+      const t = travel()
+      logoFrac.value = clamp(logoFrac.value, t.min, t.max)
+    })
 
     // ── THE PAIR ON A PHONE (2026-09-26, user ask: "on the mobile versions
     // only, make the top nav bar not display the 'back' or 'forward' labels
@@ -360,7 +524,24 @@ export default defineComponent({
     // The first pass had this component claim and release the space as it
     // mounted, which worked and made the whole page hop 4px whenever a
     // viewer parked — a band that is permanent has no such moment.
-    return { tabs, frieze, isPhone, canGoBack, goBack, canGoForward, goForward }
+    return {
+      tabs,
+      isPhone,
+      canGoBack,
+      goBack,
+      canGoForward,
+      goForward,
+      band,
+      logo,
+      backEl,
+      forwardEl,
+      logoFrac,
+      logoPct,
+      logoDown,
+      logoMove,
+      logoUp,
+      logoKey
+    }
   }
 })
 </script>
@@ -597,7 +778,9 @@ export default defineComponent({
 // `flex: 0 0 auto` is load-bearing: the bar states a height, and in a flex
 // column an item that MAY shrink will.
 .media-tabs__frieze {
-  flex: 0 0 auto;
+  // (`flex: 0 0 auto` stood here while the band was the rail's flex item;
+  // since 2026-09-28 the ROW `.media-tabs__band` is that item and each
+  // frieze's width is the row's business — the `--left`/`--right` rules.)
   --frieze-bar-h: var(--media-tabs-frieze-h);
   // ── ⭐ THE SWAP (2026-08-30, the sitting's last ask: "invert the frieze
   // pattern on the top nav bar with the bottom footer nav bar one") ──────
@@ -764,7 +947,10 @@ export default defineComponent({
   // and under a script-less render, and the flat cream is what shows then.
   // ⚠ Reduced motion: the composable paints ONE frame and holds it — the sky
   // stands, it does not vanish.
-  --frieze-bar-wave-two-paint: var(--aurora-paint, none);
+  // ⭐ 2026-09-28: THE WIRE MOVED TO THE TWO SIDES — `.media-tabs__frieze--left`
+  // reads `var(--aurora-paint, none)` exactly as this rule did, and
+  // `--right` reads the sky's mirror, `var(--aurora-paint-mirror, none)`.
+  // Both properties are written inline on the ROW the friezes stand in.
   // ── ⭐ THE OPPOSED WAVE'S INK — THE SAME RAMP, RUN THE OTHER WAY
   // (2026-09-07; ⚠ SUPERSEDED THE SAME SITTING by the cream ask — the ⭐
   // block at wave two's dial. This paragraph is the record of the hour the
@@ -838,6 +1024,211 @@ export default defineComponent({
   // opposed pair at `auto 13px` — and so does its other property, which is
   // what retired the pair: −11 is also the SYMMETRIC phase, and at one ink a
   // reflection reads as a doubled motif rather than as two waves meeting.
+}
+
+// ── ⭐ THE BAND IS A ROW (2026-09-28, user ask: two friezes converging on a
+// slidable logo seam — the template note carries the ask in full) ─────────
+// `.media-tabs__band` is the flex item the band used to be — `flex: 0 0
+// auto` in the rail's column, the band's own 13px tall — and INSIDE it a
+// flex row: left frieze │ seam │ right frieze. The friezes' dials are
+// unchanged and shared (`.media-tabs__frieze` above); what the row adds is
+// WIDTH — the left band's basis is the seam's fraction of the travel, the
+// right band the remainder — and which way each one faces.
+// `--logo-frac` is written inline on this row by the component (the drag).
+// `--media-tabs-seam-w` is the gap the row leaves for the badge, NARROWER
+// than the hexagon (`--media-tabs-hex-w`) so the friezes' ends tuck under
+// its diagonal edges and the badge reads as set INTO the band
+// ("incrusted"), not laid across it.
+.media-tabs__band {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: stretch;
+  height: var(--media-tabs-frieze-h);
+  // 24 × 40: at the band's top and bottom rows the hexagon's diagonals stand
+  // 7.8px in from its box, so a gap of 24 (8px of overhang each side) keeps
+  // every frieze end under opaque badge at every row of the band.
+  --media-tabs-seam-w: 24px;
+  --media-tabs-hex-w: 40px;
+  --media-tabs-hex-h: var(--media-tabs-h);
+}
+
+// THE LEFT FRIEZE — the band as it was (mask b-mirror, the sky at 90deg)
+// with ONE change: its mask is anchored at its RIGHT edge — `100%` through
+// the shift dial, which is a `mask-position` length; a percentage is legal
+// there and reads "the tile's right edge on the box's right edge", tiling
+// leftward from it. Anchored at the SEAM the motif stays glued to the badge
+// as it slides and feeds in from the screen's left edge; anchored at the
+// screen edge the two halves would phase against each other at the seam
+// and the reflection would hold at exactly one width.
+.media-tabs__frieze--left {
+  flex: 0 0 calc((100% - var(--media-tabs-seam-w)) * var(--logo-frac, 0.5));
+  --frieze-bar-wave-two-shift: 100%;
+  --frieze-bar-wave-two-paint: var(--aurora-paint, none);
+}
+
+// THE RIGHT FRIEZE — `flip` on the mount (mask b PLAIN, the `-mirror` file's
+// own reflection: an asset swap and never a transform, FriezeBar's law),
+// anchored at ITS left edge, which is the seam, and painted with the sky's
+// MIRROR — `--aurora-paint-mirror`, the same nine stops at the same instant
+// under `270deg`, so its colours drift LEFT toward the seam as the left
+// band's drift right toward it. Two reflections about one seam: the motif
+// and the sky both converge on the badge.
+.media-tabs__frieze--right {
+  flex: 1 1 0;
+  --frieze-bar-wave-two-paint: var(--aurora-paint-mirror, none);
+}
+
+// ── THE GLASS (2026-09-28, user ask: "on top of the frieze bars, add a thin
+// very light gray layer on top, with thin clearer borders. This new layer
+// must be very translucid and also have a little blurring factor, so it
+// looks like a thin subtle light glass cover on top of the gradient-animated
+// friezebars") ───────────────────────────────────────────────────────────
+// An OVERLAY on each frieze — `::after`, `inset: 0`, the band's full 13px —
+// and not an inset shadow on the element (the 08-27 lesson, restated at the
+// lips' tombstone above: an element-level inset shadow paints UNDER the wave
+// layers). Three things make it glass: a wash of grey-3 at 16% (#eeeeee,
+// stated as rgba because a token is a `<color>`, not a channel triple), two
+// 1px rules of white at 34% on its top and bottom edges — the "clearer
+// borders", lighter than the wash, landing on the mask's two empty edge
+// rows — and a `backdrop-filter` blur, the "little blurring factor":
+// enough to soften the meander's pixel stairs under the pane, not enough
+// to lose a 1px stroke. Plate and sky beneath are untouched. ⚠ The first
+// cut ran 16% / 42% / 0.7px and was walked DOWN the same sitting ("less
+// blurry and also less opaque"): wash 8%, rules 34%, blur 0.35px.
+// ⚠ This RETIRES the witness's pixel-exact "HD" law (every pixel the plate
+// or its column's ink): under a blurred, tinted pane no pixel is either
+// exactly. The witness now measures the pane and the band's unchanged
+// dials under it — the drawing is still `auto 13px` on the grid.
+// ⚠ `position: relative` is BACK on the band for the overlay — the same
+// anchor the lips' cast had and lost (08-30). This is a wash the ask wants
+// across the whole band, so the bloom that retired the cast is the point.
+.media-tabs__frieze {
+  position: relative;
+  min-width: 0;
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    box-sizing: border-box;
+    pointer-events: none;
+    background: rgba(238, 238, 238, 0.08);
+    border-top: 1px solid rgba(255, 255, 255, 0.34);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.34);
+    backdrop-filter: blur(0.35px);
+    -webkit-backdrop-filter: blur(0.35px);
+  }
+}
+
+// ── THE SEAM AND THE BADGE (2026-09-28) ─────────────────────────────────
+// `.media-tabs__logo` is the row's middle item — the seam's width of band
+// left EMPTY (the rail's coat shows through: no plate, no sky) — and the
+// one thing on this click-through rail that can be GRABBED. It is 13px tall
+// like its neighbours; the badge hangs from it ABSOLUTELY, up to the rail's
+// top edge and down past the rim, so the row's height never learns the
+// badge's. `z-index: 1` puts it over the RIGHT frieze, which follows it in
+// the DOM and would otherwise paint across the hexagon's right shoulder.
+// `touch-action: none` so a finger drags the seam instead of the page.
+.media-tabs__logo {
+  flex: 0 0 var(--media-tabs-seam-w);
+  position: relative;
+  z-index: 1;
+  pointer-events: auto;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  outline: none;
+
+  &:active { cursor: grabbing; }
+  &:focus-visible .media-tabs__hex { --hex-rim: var(--indigo-6, #3f51b5); }
+}
+
+// The badge — a column centred on the seam, its top on the rail's top edge
+// (`-lead` lifts it out of the band by the lead's 2px): the hexagon fills
+// the rail's height, the plate hangs under it from the rail's own bottom
+// line. No cast of its own — the parked tabs wear none either (the rail's
+// cast falls behind them), and a `drop-shadow` here would halo the hexagon
+// onto the bar it stands in. (If one is ever wanted: on THIS box as a
+// `filter: drop-shadow`, never on the hexagon — `clip-path` clips a
+// box-shadow with the box, a filter on the parent follows the silhouette.)
+.media-tabs__badge {
+  position: absolute;
+  top: calc(-1 * var(--media-tabs-lead));
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+// THE HEXAGON — flat-top, `--media-tabs-hex-w` (40) wide and the RAIL'S
+// height (`--media-tabs-hex-h` = `--media-tabs-h`, 18px) tall: stretched,
+// not regular — the bar is the height it has, and the badge lives inside
+// it (user ask: "fits inside the top nav bar"). Three nested clip-paths of
+// ONE percent polygon (so it follows the box): the element is the RIM
+// (grey-6, the rail's own line ink, 1px), its `::before` the FRAME (cream,
+// `--plaque-flat`, 1.5px), the face the planet. The insets are wider than
+// they are tall (1.5 : 1, the diagonals' run over their rise) so the frame
+// reads about one thickness along the slanted edges as along the flat ones.
+.media-tabs__hex {
+  --hex-rim: var(--grey-6, #9e9e9e);
+  --hex-cut: polygon(25% 0, 75% 0, 100% 50%, 75% 100%, 25% 100%, 0 50%);
+  position: relative;
+  width: var(--media-tabs-hex-w);
+  height: var(--media-tabs-hex-h);
+  clip-path: var(--hex-cut);
+  background: var(--hex-rim);
+  transition: background 0.12s;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 1px 1.5px;
+    clip-path: var(--hex-cut);
+    background: var(--plaque-flat, #f8f2e4);
+  }
+}
+
+// The planet: the supplied art (1024², cream on a near-black starfield —
+// #131613 sampled at its corners), CROPPED TO THE PLANET'S BAND (user ask:
+// "cropping the image on top and bottom a little more"): `auto 190%` of the
+// face's 13px draws the file 24.7px tall and centres it, so the starfield
+// above and below the planet falls outside the face and the body with its
+// ring fills the height; the face's own dark, the file's field colour,
+// fills the width the art does not (32.6px face, ~25px art), seamlessly.
+// Rim + frame = 2.5px; the face insets by that vertically and 3.7px
+// horizontally.
+.media-tabs__hex-face {
+  position: absolute;
+  inset: 2.5px 3.7px;
+  clip-path: var(--hex-cut);
+  background: #131613 url('../../assets/logo/pathos-planet.webp') center / auto 190% no-repeat;
+}
+
+// THE NAME PLATE — A PARKED TAB (user ask: "the bottom tab must match the
+// other ones' positions … why is it floating?"). It wears `.media-tabs__tab`
+// ITSELF — face, rim, 9px corners, the two flares, the hover lift and the
+// press dip — so it is cut from the tabs' material by construction, not by
+// restatement, and it hangs from the SAME LINE: the hexagon ends on the
+// rail's rim (y=18) and `margin-top: -1px` seats the plate's top at y=17,
+// the rail's padding-box underside, where `.media-tabs__row` hangs the
+// parked tabs. The flares curve into the rail's face exactly as theirs do.
+// What is its own: BOLD (the face ships one weight; the browser's synthesis
+// on a display face this wide reads as intended), a 15px floor so a
+// text-only tab stands as tall as a glyph-bearing one (12px glyph + 2px
+// pad + 1px rim = 15px — the floor is on the BORDER box: the theme sizes
+// everything border-box, so a 12px floor here measured 12px, not 15), the
+// seam's grab cursor, and no shrink floor or cap (it is not in the row's
+// flex). The class pair outranks `.media-tabs__tab` on specificity,
+// wherever the two rules sit.
+.media-tabs__tab.media-tabs__plate {
+  margin-top: -1px;
+  min-height: 15px;
+  min-width: 0;
+  max-width: none;
+  flex: none;
+  font-weight: 700;
+  cursor: inherit;
 }
 
 // ── …ON EVERY ROUTE, /feed INCLUDED AGAIN (2026-08-24, user ask: "make the
