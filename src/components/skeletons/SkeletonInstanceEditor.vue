@@ -95,22 +95,44 @@
               <template v-else>
                 <div v-if="s.ref" class="cell-value" @click.stop>
                   <ElementMini class="cell-mini" :address="s.ref" :label="s.textValue || ''" />
+                  <!-- THE FIELD LOCKS (slot locks, 2026-09-27): a LOCKED field
+                       shows a lock and no tools (the platform writes it; the
+                       API refuses a hand with 40304); a CHAINED field shows
+                       the pioneer's gold bead when the chain agrees with the
+                       record (red when it contradicts it) and no tools — the
+                       value is derived from the element's origin, never
+                       edited. The grid (SkeletonTable) draws the same marks. -->
                   <div class="cell-value__tools">
                     <span v-if="saving === s.slotName" class="cell-saving"><q-spinner size="12px" /></span>
-                    <button v-if="canText(s)" type="button" class="cell-btn" title="Edit text" @click="beginEdit(s)">
-                      <q-icon name="edit" size="13px" />
-                    </button>
-                    <button v-if="isDateSlot(s)" type="button" class="cell-btn" title="Pick a date" @click="beginEdit(s)">
-                      <q-icon name="event" size="13px" />
-                    </button>
-                    <button type="button" class="cell-btn cell-btn--danger" title="Clear" @click="clearSlot(s)">
-                      <q-icon name="close" size="13px" />
-                    </button>
+                    <span v-if="lockOf(s) !== 'unlocked'" class="cell-lock" :class="lockClass(s)" :title="lockTitle(s)">
+                      <q-icon v-if="lockOf(s) === 'locked'" name="lock" size="12px" />
+                      <i v-else class="cell-bead" />
+                    </span>
+                    <template v-else>
+                      <button v-if="canText(s)" type="button" class="cell-btn" title="Edit text" @click="beginEdit(s)">
+                        <q-icon name="edit" size="13px" />
+                      </button>
+                      <button v-if="isDateSlot(s)" type="button" class="cell-btn" title="Pick a date" @click="beginEdit(s)">
+                        <q-icon name="event" size="13px" />
+                      </button>
+                      <button type="button" class="cell-btn cell-btn--danger" title="Clear" @click="clearSlot(s)">
+                        <q-icon name="close" size="13px" />
+                      </button>
+                    </template>
                   </div>
                 </div>
-                <div v-else class="cell-empty">
-                  <q-icon :name="isDateSlot(s) ? 'event' : 'edit'" size="12px" class="q-mr-xs" />
-                  <span>{{ emptyHint(s) }}</span>
+                <div v-else class="cell-empty" :class="{ 'is-held': lockOf(s) !== 'unlocked' }" :title="lockOf(s) !== 'unlocked' ? lockTitle(s) : null">
+                  <template v-if="lockOf(s) !== 'unlocked'">
+                    <span class="cell-lock" :class="lockClass(s)">
+                      <q-icon v-if="lockOf(s) === 'locked'" name="lock" size="12px" />
+                      <i v-else class="cell-bead" />
+                    </span>
+                    <span>{{ lockOf(s) === 'chained' ? 'unbound — the chain fills this' : 'unbound — the platform fills this' }}</span>
+                  </template>
+                  <template v-else>
+                    <q-icon :name="isDateSlot(s) ? 'event' : 'edit'" size="12px" class="q-mr-xs" />
+                    <span>{{ emptyHint(s) }}</span>
+                  </template>
                   <span v-if="saving === s.slotName" class="cell-saving"><q-spinner size="12px" /></span>
                 </div>
               </template>
@@ -222,7 +244,24 @@ export default defineComponent({
     const isDateSlot = (s) => s.expectedKind === 'moments'
     const editingDate = ref(null)
     const editDate = ref('')
+    // The field locks (slot locks, 2026-09-27): a locked or chained field
+    // is not the hand's — no editor, no clear, no drop; the API would
+    // refuse with 40304 anyway, and a desk must not offer what the seam
+    // refuses.
+    const lockOf = (s) => s?.lock || 'unlocked'
+    const lockClass = (s) => 'is-' + lockOf(s) + (lockOf(s) === 'chained' ? ' chain-' + (s.chain?.status || 'unresolved') : '')
+    const lockTitle = (s) => {
+      if (lockOf(s) === 'locked') return 'locked — the platform writes this field, not a hand'
+      const c = s.chain
+      const base = `chained to the pathchain (${s.origin})`
+      if (!c) return base
+      if (c.status === 'ok') return `${base} — verified: the value is the chain's own fact`
+      if (c.status === 'violated') return `${base} — CONTRADICTED: the chain says ${c.expected}, the record binds ${c.actual || 'nothing'}`
+      if (c.status === 'unbound') return `${base} — nothing bound yet; the chain says ${c.expected}`
+      return `${base} — origin unreadable`
+    }
     const beginEdit = (s) => {
+      if (lockOf(s) !== 'unlocked') { selectedSlot.value = s.slotName; return }
       if (editing.value === s.slotName || editingDate.value === s.slotName) return
       selectedSlot.value = s.slotName
       if (isDateSlot(s)) {
@@ -278,7 +317,7 @@ export default defineComponent({
       } finally { saving.value = null }
     }
 
-    const clearSlot = (s) => bind(s.slotName, '')
+    const clearSlot = (s) => { if (lockOf(s) === 'unlocked') bind(s.slotName, '') }
 
     // Accept a picked / dragged / fresh element. `payload` = { kind, address }.
     const compatible = (slot, payloadKind) => {
@@ -292,6 +331,12 @@ export default defineComponent({
     }
 
     const assignTo = (slot, payload) => {
+      if (lockOf(slot) !== 'unlocked') {
+        flashErr(lockOf(slot) === 'chained'
+          ? `${slot.slotName} is chained to the pathchain (${slot.origin}) — derived, never set by hand`
+          : `${slot.slotName} is locked — the platform writes it`)
+        return
+      }
       if (!compatible(slot, payload.kind)) {
         flashErr(`${slot.slotName} accepts ${slot.expectedKind}, not ${payload.kind}`)
         return
@@ -304,7 +349,7 @@ export default defineComponent({
     const assign = (payload) => {
       let slot = props.slots.find(s => s.slotName === selectedSlot.value)
       if (!slot) {
-        slot = props.slots.find(s => !s.ref && compatible(s, payload.kind))
+        slot = props.slots.find(s => !s.ref && (s.lock || 'unlocked') === 'unlocked' && compatible(s, payload.kind))
         if (!slot) { flashErr('Select a field first (click a row)'); return }
       }
       assignTo(slot, payload)
@@ -337,6 +382,9 @@ export default defineComponent({
     const colorFor = (k) => kindFor(k).color
 
     return {
+      lockOf,
+      lockClass,
+      lockTitle,
       selectedSlot,
       selectedKind,
       selectSlot,
@@ -485,6 +533,32 @@ export default defineComponent({
   gap: 4px;
   flex-shrink: 0;
 }
+
+// THE FIELD LOCKS (slot locks, 2026-09-27): the lock glyph on a locked
+// field, the pioneer's gold bead (`--verdict-chained`, the one source with
+// the chips) on a chained one — red when the chain is contradicted,
+// hollow while unbound.
+.cell-lock {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(var(--ink-rgb), 0.45);
+  &.is-chained { color: var(--verdict-chained-rim, #a67c00); }
+}
+.cell-bead {
+  display: inline-block;
+  box-sizing: border-box;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: 1px solid var(--verdict-chained-rim, #a67c00);
+  background: var(--verdict-chained, #d5a72a);
+  box-shadow: var(--verdict-chained-glow, none);
+  .chain-violated & { background: #a03d3d; border-color: #a03d3d; box-shadow: 0 0 0 2px rgba(160, 61, 61, 0.25); }
+  .chain-unbound &,
+  .chain-unresolved & { background: transparent; box-shadow: none; }
+}
+.cell-empty.is-held { gap: 6px; opacity: 0.85; cursor: default; }
 
 .cell-empty {
   display: inline-flex;

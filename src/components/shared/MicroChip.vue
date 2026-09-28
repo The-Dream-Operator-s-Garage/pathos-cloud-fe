@@ -201,6 +201,14 @@ export default defineComponent({
     // report }). 'ok' → green, 'violated' → red (click opens the report
     // flyout), 'exempt'/null → no dot.
     integrity: { type: Object, default: null },
+    // THE CHAIN VERDICT (slot locks, 2026-09-27): a skeleton cell whose
+    // field is CHAINED hands its `slot.chain` in — { status: ok | violated
+    // | unbound | unresolved, origin, expected, actual }. An ok chain
+    // paints the light GOLD (the pioneer's carved metal at bead scale —
+    // "this value IS the chain's own fact, re-derived and verified"); a
+    // contradicted chain paints it red like any violated verdict; the two
+    // unproven states leave the element's own light in charge.
+    chain: { type: Object, default: null },
     // ⚠ RETIRED 2026-09-21 PM3 — the light's place is the grammar's, not a
     // caller's: FIRST for PM3 → PM6, AFTER THE HASH since PM7. Accepted,
     // ignored.
@@ -293,11 +301,27 @@ export default defineComponent({
     })
     const integrityCard = computed(() => props.integrity || resolvedIntegrity.value)
 
+    const chainState = computed(() => {
+      const s = props.chain?.status
+      return s === 'ok' || s === 'violated' ? s : null
+    })
     const integrityState = computed(() => {
       const s = integrityCard.value?.status
+      // The chain's verdict outranks the element's own when it speaks
+      // (gold for ok, red for contradicted); a violated ELEMENT stays red
+      // whatever the chain says — a fact bound to a broken file is not
+      // gold.
+      if (chainState.value === 'violated') return 'violated'
+      if (chainState.value === 'ok' && s !== 'violated') return 'chained'
       return s === 'ok' || s === 'violated' ? s : null
     })
     const integrityTitle = computed(() => {
+      if (integrityState.value === 'chained') {
+        return `chained to the pathchain (${props.chain?.origin}) — the value is the chain's own fact, re-derived and verified`
+      }
+      if (chainState.value === 'violated') {
+        return `chain contradicted (${props.chain?.origin}): the chain says ${props.chain?.expected}, the record binds ${props.chain?.actual || 'nothing'}`
+      }
       if (integrityState.value === 'ok') {
         // Green says the check that EXISTS for this kind passed: a signed
         // sidecar for nodes / links / paths / skeletons, the chain file for
@@ -525,6 +549,14 @@ export default defineComponent({
   &.integrity-ok {
     background: var(--verdict-ok, #8bc34a);
     border: 1px solid var(--verdict-ok-rim, #689f38);
+  }
+  // ⭐ THE CHAINED BEAD (slot locks, 2026-09-27): the pioneer's carved gold
+  // at bead scale — `--verdict-chained` in _tokens.scss, the one source
+  // with InfoChip's and the grid's cell bead.
+  &.integrity-chained {
+    background: var(--verdict-chained, #d5a72a);
+    border: 1px solid var(--verdict-chained-rim, #a67c00);
+    box-shadow: var(--verdict-chained-glow, none);
   }
   &.integrity-violated {
     background: #a03d3d;

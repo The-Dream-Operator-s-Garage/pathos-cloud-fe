@@ -82,7 +82,11 @@ export default defineComponent({
     dense: { type: Boolean, default: false },
     // Golden one-and-only treatment. Usually learned from the resolved
     // summary; pass explicitly when `primary` suppresses resolution.
-    pioneer: { type: Boolean, default: false }
+    pioneer: { type: Boolean, default: false },
+    // THE CHAIN VERDICT (slot locks, 2026-09-27) — MicroChip's `chain`
+    // prop at Info scale: a skeleton cell's `slot.chain`; ok → the gold
+    // bead, violated → red, the unproven states → the element's own light.
+    chain: { type: Object, default: null }
   },
   setup (props) {
     const router = useRouter()
@@ -164,11 +168,23 @@ export default defineComponent({
 
     // The integrity verdict rides the summary (integrity-debt plan):
     // 'ok' → green, 'violated' → red + click routes to Talavero's report.
+    const chainState = computed(() => {
+      const s = props.chain?.status
+      return s === 'ok' || s === 'violated' ? s : null
+    })
     const integrityState = computed(() => {
       const s = resolved.value?.integrity?.status
+      if (chainState.value === 'violated') return 'violated'
+      if (chainState.value === 'ok' && s !== 'violated') return 'chained'
       return s === 'ok' || s === 'violated' ? s : null
     })
     const integrityTitle = computed(() => {
+      if (integrityState.value === 'chained') {
+        return `chained to the pathchain (${props.chain?.origin}) — the value is the chain's own fact, re-derived and verified`
+      }
+      if (chainState.value === 'violated') {
+        return `chain contradicted (${props.chain?.origin}): the chain says ${props.chain?.expected}, the record binds ${props.chain?.actual || 'nothing'}`
+      }
       if (integrityState.value === 'ok') {
         // Names the depth of the proof, as MicroChip does: the unsigned four
         // kinds verify on their chain file alone.
@@ -305,6 +321,13 @@ export default defineComponent({
   &.integrity-ok {
     background: var(--verdict-ok, #8bc34a);
     border: 1px solid var(--verdict-ok-rim, #689f38);
+  }
+  // The chained bead (slot locks, 2026-09-27) — the pioneer's gold at bead
+  // scale, `--verdict-chained` (one source with MicroChip and the grid).
+  &.integrity-chained {
+    background: var(--verdict-chained, #d5a72a);
+    border: 1px solid var(--verdict-chained-rim, #a67c00);
+    box-shadow: var(--verdict-chained-glow, none);
   }
   &.integrity-violated {
     background: #a03d3d;

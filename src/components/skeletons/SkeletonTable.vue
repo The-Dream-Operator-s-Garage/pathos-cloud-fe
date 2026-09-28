@@ -84,7 +84,7 @@
             @dragover="c.kind === 'key' && canEditKeys && onKeyDragOver(c.row, $event)"
             @dragleave="c.kind === 'key' && (dragOver = null)"
             @drop="c.kind === 'key' ? onKeyDrop(c.row, $event) : (c.kind === 'cell' && onCellDrop(c.row, $event))"
-            @dragenter="c.kind === 'cell' && canEditCells && $event.preventDefault()"
+            @dragenter="c.kind === 'cell' && rowEditable(c.row) && $event.preventDefault()"
           >
             <!-- ── A KEY ─────────────────────────────────────────────── -->
             <template v-if="c.kind === 'key'">
@@ -126,6 +126,27 @@
                 :show-type="false"
                 :integrity="c.row.slotLabelIntegrity || null"
               />
+              <!-- THE KEY'S LOCK (slot locks, 2026-09-27): on a schema head
+                   the owner CYCLES the field's declaration — unlocked →
+                   locked → chained (a chained key asks for its origin
+                   expression) → unlocked — through PUT /slots/:name/lock;
+                   on an instance the declaration shows as a still mark, so
+                   the map of what the platform writes and what the chain
+                   derives is readable on every grid. -->
+              <button
+                v-if="canEditKeys && head.is_schema"
+                type="button"
+                class="skel-table__key-lock"
+                :class="'is-' + lockOf(c.row)"
+                :title="keyLockTitle(c.row) + ' — click to cycle unlocked → locked → chained'"
+                @click.stop.prevent="cycleLock(c.row)"
+              ><q-icon :name="lockGlyph(c.row)" size="10px" /></button>
+              <span
+                v-else-if="lockOf(c.row) !== 'unlocked'"
+                class="skel-table__key-lock is-static"
+                :class="'is-' + lockOf(c.row)"
+                :title="keyLockTitle(c.row)"
+              ><q-icon :name="lockGlyph(c.row)" size="10px" /></span>
               <span class="skel-table__key-tools">
                 <button
                   v-if="canEditKeys"
@@ -221,7 +242,7 @@
                     :layout="layout"
                   />
                   <button
-                    v-if="canEditCells"
+                    v-if="rowEditable(c.row)"
                     type="button"
                     class="skel-table__nest-unbind"
                     title="replace this reference"
@@ -229,7 +250,7 @@
                   ><q-icon name="edit" size="10px" /></button>
                 </div>
                 <span v-else class="skel-table__strip">
-                  <InfoChip dense kind="skeletons" :address="c.row.ref" />
+                  <InfoChip dense kind="skeletons" :address="c.row.ref" :chain="chainOf(c.row)" />
                   <button
                     type="button"
                     class="skel-table__unfold"
@@ -252,12 +273,12 @@
                    drop zone on this wrapper. An EMPTY paths-kind cell offers
                    the drop zone alone: the first drop makes it a list. -->
               <div v-else-if="isListRow(c.row)" :data-list="c.row.slotName" class="skel-table__list" :class="{ 'is-dragover': listDragOver === c.row.slotName }"
-                @dragover="canEditCells && onListDragOver(c.row, $event)"
+                @dragover="rowEditable(c.row) && onListDragOver(c.row, $event)"
                 @dragleave="listDragOver = null"
-                @drop="canEditCells && onListDrop(c.row, $event)"
+                @drop="rowEditable(c.row) && onListDrop(c.row, $event)"
               >
                 <div v-if="listOf(c.row).loading" class="skel-table__list-line"><q-spinner size="10px" /></div>
-                <div v-else-if="!listOf(c.row).steps.length" class="skel-table__list-line skel-table__empty">{{ canEditCells ? 'drop a skeleton here' : '(empty list)' }}</div>
+                <div v-else-if="!listOf(c.row).steps.length" class="skel-table__list-line skel-table__empty">{{ rowEditable(c.row) ? 'drop a skeleton here' : '(empty list)' }}</div>
                 <PathMini
                   v-else
                   :path="listOf(c.row).pathRow || { path: c.row.ref }"
@@ -267,11 +288,11 @@
                   :depth="depth"
                   :visited="visitedNext"
                   :readonly="readonly"
-                  :removable="canEditCells"
+                  :removable="rowEditable(c.row)"
                   rest-at-end
                   @remove="removeMember(c.row, $event)"
                 >
-                  <template v-if="canEditCells" #tail>
+                  <template v-if="rowEditable(c.row)" #tail>
                     <div class="skel-table__list-line skel-table__list-drop">drop a skeleton to add</div>
                   </template>
                 </PathMini>
@@ -280,13 +301,15 @@
               <span
                 v-else-if="c.row.textValue"
                 class="skel-table__text"
-                :class="{ 'is-editable': canEditCells }"
-                @click="canEditCells && beginEdit(c.row)"
+                :class="{ 'is-editable': rowEditable(c.row) }"
+                @click="rowEditable(c.row) && beginEdit(c.row)"
               >{{ c.row.textValue }}</span>
               <span v-else-if="c.row.ref" class="skel-table__refcell">
-                <InfoChip dense :kind="c.row.refKind || 'unknown'" :address="c.row.ref" />
+                <!-- A CHAINED cell's chip wears the chain's verdict — the
+                     gold bead (slot locks, 2026-09-27). -->
+                <InfoChip dense :kind="c.row.refKind || 'unknown'" :address="c.row.ref" :chain="chainOf(c.row)" />
                 <button
-                  v-if="canEditCells"
+                  v-if="rowEditable(c.row)"
                   type="button"
                   class="skel-table__nest-unbind"
                   title="replace this reference"
@@ -296,9 +319,28 @@
               <span
                 v-else
                 class="skel-table__empty"
-                :class="{ 'is-editable': canEditCells }"
-                @click="canEditCells && beginEdit(c.row)"
-              >{{ c.row.value_withheld ? 'withheld' : (canEditCells ? 'tap to set' : 'unbound') }}</span>
+                :class="{ 'is-editable': rowEditable(c.row) }"
+                @click="rowEditable(c.row) && beginEdit(c.row)"
+              >{{ c.row.value_withheld ? 'withheld' : (rowEditable(c.row) ? 'tap to set' : 'unbound') }}</span>
+
+              <!-- THE FIELD'S LOCK MARK (slot locks, 2026-09-27, user ask:
+                   "locked/unlocked/chained … a golden metallic dot like the
+                   pioneer"). A LOCKED cell wears a small lock — the
+                   platform writes it, the hand's edit is refused (40304);
+                   a CHAINED cell wears the pioneer's gold bead when the
+                   chain agrees with the record, red when it contradicts
+                   it, a hollow bead while unbound. A cell whose chip
+                   already carries the light (a reference cell) draws no
+                   second bead — the chip's is the chain's. -->
+              <span
+                v-if="lockMark(c.row)"
+                class="skel-table__lock"
+                :class="lockMark(c.row).cls"
+                :title="lockMark(c.row).title"
+              >
+                <q-icon v-if="lockMark(c.row).icon" :name="lockMark(c.row).icon" size="9px" />
+                <i v-else class="skel-table__bead" />
+              </span>
             </template>
 
             <!-- ── THE GHOST CELL under/after the ghost key ──────────── -->
@@ -335,6 +377,7 @@
 
 <script>
 import { defineComponent, defineAsyncComponent, ref, computed, onMounted, watch, nextTick } from 'vue'
+import { useQuasar } from 'quasar'
 import InfoChip from 'src/components/shared/InfoChip.vue'
 import GithubPrCard from 'src/components/dev/GithubPrCard.vue'
 import LabelPicker from 'src/components/maker/LabelPicker.vue'
@@ -417,6 +460,7 @@ export default defineComponent({
   emits: ['resolved', 'changed', 'update:layout'],
   setup (props, { emit }) {
     const auth = useAuthStore()
+    const $q = useQuasar()
     const loading = ref(false)
     const failed = ref(false)
     const walked = ref(null)
@@ -569,8 +613,78 @@ export default defineComponent({
     const keyTitle = (row) => {
       const parts = [row.expectedKind ? 'accepts ' + row.expectedKind : 'any content']
       if (row.unit) parts.push(row.unit.symbol || row.unit.label)
+      if (lockOf(row) !== 'unlocked') parts.push(keyLockTitle(row))
       if (canEditKeys.value) parts.push('⇄ rename (pick another label) · × remove · drag to reorder')
       return parts.join(' · ')
+    }
+
+    // ── THE FIELD LOCKS (slot locks, 2026-09-27) ──────────────────────
+    // Every slot walks with `lock` ('unlocked' | 'locked' | 'chained'),
+    // `origin` (the chained expression) and, when chained, `chain` — the
+    // verdict { status, origin, expected, actual }. A cell is the hand's to
+    // edit only while its field is unlocked; the API refuses the rest with
+    // 40304, so the grid must not offer what the seam will refuse.
+    const lockOf = (row) => row?.lock || 'unlocked'
+    const chainOf = (row) => (lockOf(row) === 'chained' ? (row.chain || null) : null)
+    const rowEditable = (row) => canEditCells.value && lockOf(row) === 'unlocked'
+    const lockGlyph = (row) => ({ locked: 'lock', chained: 'link' }[lockOf(row)] || 'lock_open')
+    const keyLockTitle = (row) => {
+      const lock = lockOf(row)
+      if (lock === 'locked') return 'locked — the platform writes this field, not a hand'
+      if (lock === 'chained') {
+        const c = row.chain
+        const base = `chained to the pathchain (${row.origin})`
+        if (!c) return base
+        if (c.status === 'ok') return `${base} — verified: the value is the chain's own fact`
+        if (c.status === 'violated') return `${base} — CONTRADICTED: the chain says ${c.expected}, the record binds ${c.actual || 'nothing'}`
+        if (c.status === 'unbound') return `${base} — nothing bound yet; the chain says ${c.expected}`
+        return `${base} — origin unreadable${c.reason ? ': ' + c.reason : ''}`
+      }
+      return 'unlocked — the owner edits this field'
+    }
+    // Does this cell's CHIP already carry the light? A plain reference
+    // cell (and a folded skeleton strip) draws InfoChip with `chain`, so
+    // the cell itself draws no second bead.
+    const chipCarriesLight = (row) => {
+      if (!row.ref || isListRow(row)) return false
+      if (row.refKind !== 'skeletons') return true
+      return !(props.depth < 2 || expanded.value.includes(row.ref))
+    }
+    const lockMark = (row) => {
+      const lock = lockOf(row)
+      if (lock === 'locked') return { icon: 'lock', cls: 'is-locked', title: keyLockTitle(row) }
+      if (lock === 'chained') {
+        if (chipCarriesLight(row)) return null
+        const status = row.chain?.status || 'unresolved'
+        return { icon: null, cls: 'is-chained chain-' + status, title: keyLockTitle(row) }
+      }
+      return null
+    }
+    // Cycle the declaration on the head: unlocked → locked → chained →
+    // unlocked. A chained key asks for its origin expression (the
+    // API validates it against the head's own field names).
+    const cycleLock = async (row) => {
+      if (headId.value == null) return
+      const cur = lockOf(row)
+      const next = cur === 'unlocked' ? 'locked' : (cur === 'locked' ? 'chained' : 'unlocked')
+      let origin = null
+      if (next === 'chained') {
+        origin = await new Promise((resolve) => {
+          $q.dialog({
+            title: `Chain ${row.slotName} to the pathchain`,
+            message: 'The origin expression the platform derives this field from: owner · moment · ancestor, a step further (owner.ancestor, owner.moment), or a sibling field\'s element (TARGET.owner, MEMBER.moment).',
+            prompt: { model: row.origin || 'owner', type: 'text', dense: true },
+            cancel: { flat: true, label: 'Cancel' },
+            ok: { flat: true, label: 'Chain' }
+          }).onOk((v) => resolve(String(v || '').trim())).onCancel(() => resolve(null)).onDismiss(() => resolve(null))
+        })
+        if (!origin) return
+      }
+      try {
+        const r = await skeletonService.setSlotLock(headId.value, row.slotName, { lock: next, origin })
+        if (!r.success) { flash(errOf(r, null, 'Could not change the lock')); return }
+        await refresh()
+      } catch (e) { flash(errOf(null, e, 'Could not change the lock')) }
     }
     const usedLabelIds = computed(() => rows.value.map(r => r.slotLabelId).filter(Boolean))
 
@@ -676,7 +790,7 @@ export default defineComponent({
       await bind(row, m ? m[1].toLowerCase() : { text })
     }
     const onCellDrop = async (row, ev) => {
-      if (!canEditCells.value) return
+      if (!rowEditable(row)) return
       let ref = ''
       try {
         const raw = ev.dataTransfer.getData('application/x-pathos-ref')
@@ -768,6 +882,13 @@ export default defineComponent({
       isGithubPr,
       canEditKeys,
       canEditCells,
+      lockOf,
+      chainOf,
+      rowEditable,
+      lockGlyph,
+      keyLockTitle,
+      lockMark,
+      cycleLock,
       axis,
       flipAxis,
       matrix,
@@ -950,6 +1071,57 @@ export default defineComponent({
   align-items: center;
   gap: 4px;
   max-width: 100%;
+}
+
+// ── THE FIELD LOCKS (slot locks, 2026-09-27) ─────────────────────────
+// The cell's mark: a 9px lock on a LOCKED cell, the pioneer's gold bead on
+// a CHAINED one (`--verdict-chained`, the one source with the chips'
+// lights), red when the chain is contradicted, hollow while unbound.
+.skel-table__lock {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 4px;
+  vertical-align: middle;
+  color: var(--st-ink-mute);
+  &.is-locked { opacity: 0.7; }
+}
+.skel-table__bead {
+  display: inline-block;
+  box-sizing: border-box;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  border: 1px solid var(--verdict-chained-rim, #a67c00);
+  background: var(--verdict-chained, #d5a72a);
+  box-shadow: var(--verdict-chained-glow, none);
+  .chain-violated & {
+    background: #a03d3d;
+    border-color: #a03d3d;
+    box-shadow: 0 0 0 2px rgba(160, 61, 61, 0.25);
+  }
+  .chain-unbound &,
+  .chain-unresolved & {
+    background: transparent;
+    box-shadow: none;
+  }
+}
+// The key's declaration: a still mark on an instance, a cycling tool on
+// the head (unlocked → locked → chained). The chained glyph is inked in
+// the bead's gold so the key and its cell say the same thing.
+.skel-table__key-lock {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 3px;
+  padding: 0 1px;
+  border: none;
+  background: none;
+  color: var(--st-ink-mute);
+  vertical-align: middle;
+  font: inherit;
+  &.is-chained { color: var(--verdict-chained-rim, #a67c00); }
+  &:not(.is-static) { cursor: pointer; opacity: 0.55; }
+  &:not(.is-static):hover { opacity: 1; color: var(--st-hover); }
+  &.is-static { opacity: 0.75; }
 }
 .skel-table__nest {
   position: relative;

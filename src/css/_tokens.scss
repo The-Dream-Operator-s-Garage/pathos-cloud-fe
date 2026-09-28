@@ -1207,6 +1207,20 @@ $warning:   #F2C037;
   // state) keeps the claim palette's #a03d3d in each chip.
   --verdict-ok:     #8bc34a;   // light-green-6
   --verdict-ok-rim: #689f38;   // light-green-8 (PM7 — darker than the fill; was light-green-3)
+  // ⭐ THE CHAINED BEAD (slot locks, 2026-09-27, user ask: "use a golden
+  // metallic dot like the pioneer instead of the green dot to indicate
+  // that"): a field CHAINED to the pathchain — its value derived from the
+  // element's origin (an entity's register moment, its ancestor, a
+  // record's minting entity…) and re-verified on every walk — wears the
+  // pioneer's carved gold at bead scale where an ordinary verified value
+  // wears the light-green: `.pioneer-gold`'s own five stops
+  // (_components.scss), its #a67c00 rim, a lit crest and a dark foot so
+  // the 6px disc reads as metal and not as a yellow dot. Read by
+  // MicroChip, InfoChip and SkeletonTable's cell bead. A CONTRADICTED
+  // chain keeps the red of every violated verdict.
+  --verdict-chained:      linear-gradient(160deg, #f9e492 0%, #eeca52 35%, #d5a72a 58%, #efc953 80%, #bd8c10 100%);
+  --verdict-chained-rim:  #a67c00;
+  --verdict-chained-glow: inset 0 1px 1px rgba(255, 250, 222, 0.85), inset 0 -1px 1px rgba(120, 80, 0, 0.45);
 
   // ── PRESENTATION TOKENS ──
   // Heavier rounding to match the inspiration's pill-and-pebble vocabulary.

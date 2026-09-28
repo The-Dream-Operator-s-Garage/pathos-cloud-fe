@@ -113,6 +113,14 @@ export const skeletonService = {
     const { data } = await api.delete(`/skeletons/${headId}/slots/${encodeURIComponent(slotName)}`)
     return data
   },
+  // A key's LOCK declaration on the head (slot locks, 2026-09-27):
+  // { lock: 'unlocked' | 'locked' | 'chained', origin? } — a chained key
+  // needs an origin expression (owner · moment · owner.ancestor ·
+  // FIELD.owner …). Same gate as rename/remove.
+  async setSlotLock (headId, slotName, { lock, origin = null }) {
+    const { data } = await api.put(`/skeletons/${headId}/slots/${encodeURIComponent(slotName)}/lock`, { lock, origin })
+    return data
+  },
   // AXIS ('col' | 'row') on the skeleton's own header; ORDER (label ids)
   // on its head's — both versioned NOTEs, like the lock.
   async setAxis (id, axis) {

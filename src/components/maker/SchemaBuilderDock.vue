@@ -186,6 +186,16 @@
               <span class="kind-chip" :style="kindChipStyle(s.kind)">
                 {{ s.kind || 'any' }}
               </span>
+              <!-- The field's LOCK declaration (slot locks, 2026-09-27):
+                   locked = the platform's seams write it; chained = derived
+                   from the chain origin named after the ⛓ (gold, the
+                   bead's colour). Changed from the head's grid, not here. -->
+              <span
+                v-if="s.lock && s.lock !== 'unlocked'"
+                class="lock-chip"
+                :class="'is-' + s.lock"
+                :title="s.lock === 'chained' ? 'chained to the pathchain: ' + s.origin : 'locked — the platform writes this field'"
+              >{{ s.lock === 'chained' ? '⛓ ' + s.origin : 'locked' }}</span>
               <q-icon name="lock" size="12px" class="field-row__lock" />
             </div>
           </div>
@@ -207,6 +217,29 @@
                 :options="kindOptions" emit-value map-options
                 label="constraint"
                 @update:model-value="patchField(i, { kind: $event })"
+              />
+              <!-- THE CREATION STRATEGY (slot locks, 2026-09-27): a field
+                   is declared unlocked (the owner's), LOCKED (the
+                   platform's seams write it, a hand's edit is refused) or
+                   CHAINED (derived from the record's chain origin — the
+                   expression typed beside it, e.g. owner · moment ·
+                   owner.ancestor · TARGET.moment — bound at every
+                   instantiation and verified on every read; the viewers
+                   draw it with the pioneer's gold bead). -->
+              <q-select
+                :model-value="f.lock || null" :dark="false" outlined dense
+                class="field-row__lock-select"
+                :options="lockOptions" emit-value map-options
+                label="lock"
+                @update:model-value="patchField(i, { lock: $event, origin: $event === 'chained' ? (f.origin || 'owner') : '' })"
+              />
+              <q-input
+                v-if="f.lock === 'chained'"
+                :model-value="f.origin" :dark="false" outlined dense
+                class="field-row__origin mono"
+                label="origin"
+                placeholder="owner · moment · owner.ancestor · FIELD.owner"
+                @update:model-value="patchField(i, { origin: $event })"
               />
               <button type="button" class="field-row__remove" title="Remove field"
                 :disabled="draft.fields.length === 1 && !draft.templateId"
@@ -279,6 +312,14 @@ import LabelFieldPicker from 'src/components/labels/LabelFieldPicker.vue'
 
 // Every referenceable pathchain element kind — mirrors the API's
 // VALID_SLOT_KINDS (secrets stay out: their hash is the invite credential).
+// The three field locks (slot locks, 2026-09-27) — mirrors the API's
+// LOCK_STATES; null submits as unlocked (no declaration row).
+const LOCK_OPTIONS = [
+  { label: 'unlocked — the owner edits it', value: null },
+  { label: 'locked — the platform writes it', value: 'locked' },
+  { label: 'chained — derived from the chain', value: 'chained' }
+]
+
 const KIND_OPTIONS = [
   { label: 'any element', value: null },
   { label: 'entities', value: 'entities' },
@@ -423,10 +464,10 @@ export default defineComponent({
       const fields = draft.value.fields.map((f, j) => j === i ? { ...f, ...p } : f)
       patch({ fields })
     }
-    const addField = () => patch({ fields: [...draft.value.fields, { labelId: null, name: '', kind: null }] })
+    const addField = () => patch({ fields: [...draft.value.fields, { labelId: null, name: '', kind: null, lock: null, origin: '' }] })
     const removeField = (i) => {
       const fields = draft.value.fields.filter((_, j) => j !== i)
-      patch({ fields: fields.length ? fields : [{ labelId: null, name: '', kind: null }] })
+      patch({ fields: fields.length ? fields : [{ labelId: null, name: '', kind: null, lock: null, origin: '' }] })
     }
 
     // A field is filled once a label backs it (legacy drafts may still carry
@@ -445,8 +486,14 @@ export default defineComponent({
       if (!d) return
       busy.value = true
       try {
-        const slots = cleanFields.value.map(f =>
-          f.labelId ? { labelId: f.labelId, kind: f.kind } : { name: f.name, kind: f.kind })
+        const slots = cleanFields.value.map(f => ({
+          ...(f.labelId ? { labelId: f.labelId } : { name: f.name }),
+          kind: f.kind,
+          // The lock declaration rides the spec (slot locks, 2026-09-27);
+          // the API validates a chained origin against the field list.
+          ...(f.lock ? { lock: f.lock } : {}),
+          ...(f.lock === 'chained' ? { origin: (f.origin || '').trim() } : {})
+        }))
         const wasExtend = !!d.templateId
         const wasFork = !wasExtend && !!d.forkOf
         const r = wasExtend
@@ -463,13 +510,13 @@ export default defineComponent({
               targetType: 'skeleton', targetId: r.skeleton.id, targetLabel: r.skeleton.name || d.name || 'schema', targetPath: r.skeleton.path || null
             })
           } catch (_) { /* a mint must never fail because its log did */ }
-          const slotsOut = (r.slots || []).map(s => ({ slotName: s.slotName, kind: s.kind || null }))
+          const slotsOut = (r.slots || []).map(s => ({ slotName: s.slotName, kind: s.kind || null, lock: s.lock || 'unlocked', origin: s.origin || null }))
           patch({
             templateId: r.skeleton.id,
             name: r.skeleton.name,
             template: { id: r.skeleton.id, name: r.skeleton.name, slots: slotsOut },
             forkOf: null,
-            fields: [{ labelId: null, name: '', kind: null }]
+            fields: [{ labelId: null, name: '', kind: null, lock: null, origin: '' }]
           })
           flash(wasExtend ? 'Fields added.' : (wasFork ? 'Schema forked.' : 'Schema created.'))
           loadTemplates()
@@ -501,6 +548,7 @@ export default defineComponent({
       askDiscard,
       kindChipStyle,
       kindOptions: KIND_OPTIONS,
+      lockOptions: LOCK_OPTIONS,
       // start
       templates,
       templatesLoading,
@@ -848,6 +896,23 @@ export default defineComponent({
 
 .field-row__input { flex: 1; }
 .field-row__kind { width: 160px; flex-shrink: 0; }
+// The lock declaration + a chained field's origin (slot locks, 2026-09-27).
+.field-row__lock-select { width: 150px; flex-shrink: 0; }
+.field-row__origin { width: 170px; flex-shrink: 0; }
+.lock-chip {
+  display: inline-flex;
+  align-items: center;
+  height: 18px;
+  padding: 0 8px;
+  border-radius: var(--radius-pill);
+  font-family: var(--font-mono);
+  font-size: 0.62em;
+  letter-spacing: 0.02em;
+  flex-shrink: 0;
+  color: rgba(var(--ink-rgb), 0.7);
+  background: rgba(var(--ink-rgb), 0.08);
+  &.is-chained { color: #5f4700; background: var(--verdict-chained, #d5a72a); border: 1px solid var(--verdict-chained-rim, #a67c00); }
+}
 
 .field-row__name {
   font-size: 0.78em;

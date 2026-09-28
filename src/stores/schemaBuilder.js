@@ -40,7 +40,9 @@ const blankDraft = () => ({
   name: '',
   // A field IS a label: labelId + its display name (legacy drafts may still
   // carry a bare name, which submits through the SLOT-leaf path).
-  fields: [{ labelId: null, name: '', kind: null }],
+  // A field's LOCK (slot locks, 2026-09-27): null 'unlocked' | 'locked' |
+  // 'chained' (+ `origin`, the expression the platform derives it from).
+  fields: [{ labelId: null, name: '', kind: null, lock: null, origin: '' }],
   // set once the schema exists on the server: 'define' then appends new
   // fields via /skeletons/:id/slots instead of re-creating.
   templateId: null,
@@ -164,7 +166,7 @@ export const useSchemaBuilderStore = defineStore('schemaBuilder', {
       const isSchema = !!sk.is_schema
       if (!isSchema) return 'instance'
 
-      const slots = (walk.slots || []).map(s => ({ slotName: s.slotName, labelId: s.slotLabelId || null, kind: s.expectedKind || null }))
+      const slots = (walk.slots || []).map(s => ({ slotName: s.slotName, labelId: s.slotLabelId || null, kind: s.expectedKind || null, lock: s.lock || 'unlocked', origin: s.origin || null }))
       const isMine = sk.owner_id === viewerEntityId
 
       if (isMine) {
@@ -198,7 +200,7 @@ export const useSchemaBuilderStore = defineStore('schemaBuilder', {
       this.load()
       const sk = walk.skeleton
       if (!sk?.is_schema) return 'instance'
-      const slots = (walk.slots || []).map(s => ({ slotName: s.slotName, labelId: s.slotLabelId || null, kind: s.expectedKind || null }))
+      const slots = (walk.slots || []).map(s => ({ slotName: s.slotName, labelId: s.slotLabelId || null, kind: s.expectedKind || null, lock: s.lock || 'unlocked', origin: s.origin || null }))
       this._forkDraftFrom(sk, slots)
       return 'fork'
     },
@@ -211,7 +213,7 @@ export const useSchemaBuilderStore = defineStore('schemaBuilder', {
       d.template = null
       d.forkOf = { id: sk.id, name: sk.name }
       d.fields = slots.length
-        ? slots.map(s => ({ labelId: s.labelId || null, name: s.slotName, kind: s.kind || null }))
+        ? slots.map(s => ({ labelId: s.labelId || null, name: s.slotName, kind: s.kind || null, lock: s.lock === 'unlocked' ? null : (s.lock || null), origin: s.origin || '' }))
         : [{ labelId: null, name: '', kind: null }]
       this.activeId = d.id
       this._show()
