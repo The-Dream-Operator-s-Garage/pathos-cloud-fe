@@ -178,21 +178,22 @@
          never rides under the Back/Forward plates (their boxes measured, so
          the phone's 33px pair clamps differently from the desktop's 59/76).
          THE BADGE: a flat-top HEXAGON — grey-6 rim, cream frame
-         (`--plaque-flat`), the planet on its own dark field — from the
-         rail's top edge DOWN TO THE PARKED TABS' FLOOR (y=32: the tabs hang
-         from 17 and stand 15), 38 wide, so it stands in the bar and hangs
-         under it exactly as far as a tab does, the art cropped to the
-         planet. ⭐ THE PLATE IS GONE (2026-09-28, the sitting's last ask:
-         "remove the text from the tab of this icon and then use that space
-         for the hexagon frame so the icon looks bigger") — for one hour a
-         name plate cut as a parked tab (`.media-tabs__tab` itself, "pathos.
-         cloud" in bold Nasalization) hung under an 18px hexagon; the
-         hexagon took the plate's 14px and the name lives in the `title`.
-         (⚠ Before that, the first cut hung a 38px regular hexagon BELOW the
-         rail with the plate 20px under it — "why is it floating?".) The
-         seam's gap is NARROWER than the hexagon — 6px against 38 — so the
-         friezes' ends run under its wedges at every row of the band and
-         the badge reads as set INTO the band. -->
+         (`--plaque-flat`), the planet on its own dark field — INSIDE THE
+         BAR: the rail's 18px from its top edge to its rim, 40 wide
+         (stretched; the bar is the height it has), rim and frame ONE PIXEL
+         each so the face is 34 × 14, and the art scaled until the planet's
+         body fills that height (user ask, the sitting's last: "constraint
+         the pathos.cloud icon frame to be inside the top navigation bar …
+         crop it all around and reduce padding so it can be distinguished").
+         The walk that got here, all 2026-09-28: a 38px regular hexagon
+         BELOW the rail with a name plate 20px under it ("why is it
+         floating?") → 40 × 18 inside the bar with a plate that WAS a parked
+         tab reading "pathos.cloud" → the plate's text removed and its 14px
+         given to a 38 × 32 hexagon ("so the icon looks bigger") → back
+         inside the bar, cropped and thinned. The name lives in the seam's
+         `title`. The seam's gap is NARROWER than the hexagon — 24 against
+         40 — so the friezes' ends run under its wedges at every row of the
+         band and the badge reads as set INTO the band. -->
     <div ref="band" class="media-tabs__band" :style="{ '--logo-frac': logoFrac }">
       <FriezeBar slim class="media-tabs__frieze media-tabs__frieze--left" />
       <div
@@ -1045,16 +1046,16 @@ export default defineComponent({
   display: flex;
   align-items: stretch;
   height: var(--media-tabs-frieze-h);
-  // 6 × 38 × 32: the hexagon's upper diagonals run from its left vertex
-  // (y=16) to its top-left vertex (x=9.5), so at the band's top row (y=2)
-  // the wedge stands 8.3px in from the box; a gap of 6 leaves 16px of
-  // overhang each side, and every frieze end is under opaque badge at every
-  // row of the band. (24 × 40 × 18 while the hexagon was the bar's height.)
-  --media-tabs-seam-w: 6px;
-  --media-tabs-hex-w: 38px;
-  // the rail's 18 + the 14 a parked tab hangs below it (top 17, 15 tall →
-  // floor 32): the hexagon's bottom is the tabs' floor line.
-  --media-tabs-hex-h: calc(var(--media-tabs-h) + 14px);
+  // 24 × 40 × 18: the hexagon's upper diagonals run from its left vertex
+  // (y=9) to its top-left vertex (x=10), so at the band's top row (y=2) the
+  // wedge stands 7.8px in from the box; a gap of 24 leaves 8px of overhang
+  // each side, and every frieze end is under opaque badge at every row of
+  // the band. (6 × 38 × 32 for the hour the hexagon hung to the tabs'
+  // floor: steeper wedges, 8.3px in, 16px of overhang.)
+  --media-tabs-seam-w: 24px;
+  --media-tabs-hex-w: 40px;
+  // the rail's own height: the badge lives INSIDE the bar (user ask).
+  --media-tabs-hex-h: var(--media-tabs-h);
 }
 
 // THE LEFT FRIEZE — the band as it was (mask b-mirror, the sky at 90deg)
@@ -1098,8 +1099,10 @@ export default defineComponent({
 // rows — and a `backdrop-filter` blur, the "little blurring factor":
 // enough to soften the meander's pixel stairs under the pane, not enough
 // to lose a 1px stroke. Plate and sky beneath are untouched. ⚠ The first
-// cut ran 16% / 42% / 0.7px and was walked DOWN the same sitting ("less
-// blurry and also less opaque"): wash 8%, rules 34%, blur 0.35px.
+// cut ran 16% / 42% / 0.7px and was walked DOWN the same sitting, twice
+// ("less blurry and also less opaque" → wash 8%, rules 34%, blur 0.35px;
+// then "even slightly less opaque and less blurry" → wash 5%, blur 0.2px,
+// the rules held at 34% so the pane keeps its edges).
 // ⚠ This RETIRES the witness's pixel-exact "HD" law (every pixel the plate
 // or its column's ink): under a blurred, tinted pane no pixel is either
 // exactly. The witness now measures the pane and the band's unchanged
@@ -1117,11 +1120,11 @@ export default defineComponent({
     inset: 0;
     box-sizing: border-box;
     pointer-events: none;
-    background: rgba(238, 238, 238, 0.08);
+    background: rgba(238, 238, 238, 0.05);
     border-top: 1px solid rgba(255, 255, 255, 0.34);
     border-bottom: 1px solid rgba(255, 255, 255, 0.34);
-    backdrop-filter: blur(0.35px);
-    -webkit-backdrop-filter: blur(0.35px);
+    backdrop-filter: blur(0.2px);
+    -webkit-backdrop-filter: blur(0.2px);
   }
 }
 
@@ -1149,8 +1152,8 @@ export default defineComponent({
 }
 
 // The badge — centred on the seam, its top on the rail's top edge (`-lead`
-// lifts it out of the band by the lead's 2px): the hexagon stands in the
-// rail and hangs below it to the parked tabs' floor. No cast of its own —
+// lifts it out of the band by the lead's 2px), its bottom on the rim: the
+// hexagon is the rail's height and lives inside it. No cast of its own —
 // the parked tabs wear none either (the rail's cast falls behind them), and
 // a `drop-shadow` here would halo the hexagon onto the bar it stands in. (If one is ever wanted: on THIS box as a
 // `filter: drop-shadow`, never on the hexagon — `clip-path` clips a
@@ -1165,17 +1168,18 @@ export default defineComponent({
   align-items: center;
 }
 
-// THE HEXAGON — flat-top, `--media-tabs-hex-w` (38) wide and
-// `--media-tabs-hex-h` (32: the rail's 18 + a parked tab's 14 below it)
-// tall — a hair wider than regular (38 × 32.9 would be), standing in the
-// bar and hanging under it to the tabs' floor (user asks: "fits inside the
-// top nav bar", then "use that space [the tab's] for the hexagon frame so
-// the icon looks bigger"). Three nested clip-paths of ONE percent polygon
-// (so it follows the box): the element is the RIM (grey-6, the rail's own
-// line ink, 1px), its `::before` the FRAME (cream, `--plaque-flat`, 1.5px),
-// the face the planet. The insets are 1.155× (1/cos 30°) wider than tall,
-// because insetting a near-regular hexagon's BOX uniformly thins its
-// diagonal edges by that factor — the frame reads one thickness all round.
+// THE HEXAGON — flat-top, `--media-tabs-hex-w` (40) wide and the RAIL'S
+// height (`--media-tabs-hex-h` = `--media-tabs-h`, 18) tall: stretched, not
+// regular — the bar is the height it has and the badge lives inside it
+// (user asks: "fits inside the top nav bar"; after an hour at 38 × 32
+// hanging to the tabs' floor, "constraint the … frame to be inside the top
+// navigation bar … reduce padding so it can be distinguished"). Three
+// nested clip-paths of ONE percent polygon (so it follows the box): the
+// element is the RIM (grey-6, the rail's own line ink, 1px), its `::before`
+// the FRAME (cream, `--plaque-flat`, ONE pixel — it was 1.5, and 2.5 with
+// the rim is 5 of an 18px badge spent on chrome), the face the planet. The
+// insets are 1.5× wider than tall (the diagonals' run over their rise on
+// this box) so the frame reads about one thickness along the slants.
 .media-tabs__hex {
   --hex-rim: var(--grey-6, #9e9e9e);
   --hex-cut: polygon(25% 0, 75% 0, 100% 50%, 75% 100%, 25% 100%, 0 50%);
@@ -1189,26 +1193,27 @@ export default defineComponent({
   &::before {
     content: '';
     position: absolute;
-    inset: 1px 1.155px;
+    inset: 1px 1.5px;
     clip-path: var(--hex-cut);
     background: var(--plaque-flat, #f8f2e4);
   }
 }
 
 // The planet: the supplied art (1024², cream on a near-black starfield —
-// #131613 sampled at its corners), CROPPED TO THE PLANET (user ask:
-// "cropping the image on top and bottom a little more"): `auto 130%` of the
-// face's 27px draws the file ~35px tall and centres it, so the starfield
-// above and below falls outside the face while the body (~14px) with its
-// ring (~25px wide) sits whole inside the hexagon's diagonals — 140% and
-// up clips the ring's lower-left tip on the slant; the face's own dark, the
-// file's field colour, fills whatever the art does not, seamlessly. Rim +
-// frame = 2.5px; the face insets by that vertically and 2.9px horizontally.
+// #131613 sampled at its corners), CROPPED ALL AROUND to the planet (user
+// ask: "crop it all around … so it can be distinguished"): `auto 235%` of
+// the face's 14px draws the file ~33px tall and centres it — the body
+// (31–72% of the file) stands ~13.5px, filling the face's height with a
+// quarter-pixel of field top and bottom, the ring ~23px wide; the ring's
+// two tips graze the diagonals by ~1px (the ring passes behind the frame),
+// which is the trade for a body this size. The face's own dark, the file's
+// field colour, fills the half-pixel the art does not, seamlessly. Rim +
+// frame = 2px; the face insets by that vertically and 3px horizontally.
 .media-tabs__hex-face {
   position: absolute;
-  inset: 2.5px 2.9px;
+  inset: 2px 3px;
   clip-path: var(--hex-cut);
-  background: #131613 url('../../assets/logo/pathos-planet.webp') center / auto 130% no-repeat;
+  background: #131613 url('../../assets/logo/pathos-planet.webp') center / auto 235% no-repeat;
 }
 
 // ⭐ TOMBSTONE — THE NAME PLATE (2026-09-28, one hour). Under the 18px
