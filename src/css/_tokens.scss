@@ -2191,8 +2191,30 @@ $warning:   #F2C037;
   // `background-size: auto 100%` — the tile is SQUARE, so the lane's 25px
   // interior sets BOTH sides and the board can never stretch (25 × 25, four
   // squares of height, the width following the SVG's own 1:1 ratio).
-  $nav-band-check-ink: $brown-2;
-  --nav-band-check: url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 4 4%27 shape-rendering=%27crispEdges%27%3E%3Cpath fill=%27%23#{string.slice(meta.inspect($nav-band-check-ink), 2)}%27 d=%27M0 0h1v1H0zM2 0h1v1H2zM1 1h1v1H1zM3 1h1v1H3zM0 2h1v1H0zM2 2h1v1H2zM1 3h1v1H1zM3 3h1v1H3z%27/%3E%3C/svg%3E");
+  // ⭐ THE BOARD TURNED INSIDE OUT (2026-09-28, user ask: "We have a
+  // checkered grid pattern as the inner bar's background … colored with
+  // cream and brown. I want the cream check squares to be still cream but
+  // add to them a very thin grey border to each. Now, for the brown ones, I
+  // want them to be transparent so that I can see the starry background
+  // behind. Make the layers behind transparent so this is possible without
+  // altering the look of the other layers"). The tile paints the OTHER
+  // eight squares now: the light ones, in `$nav-band-check-cream` — the
+  // exact colour they read as until today, the 60% grey-4 veil composited
+  // over the bar's flat coat (0.6 · #e0e0e0 + 0.4 · #f8f2e4 = rgb(233,231,
+  // 225)), stated flat because the veil is GONE from the lane (the squares
+  // carry their own cream now) — each with a 1px line of `$nav-band-check-
+  // line` (`$grey-5`, one rung under the rules' grey-6: "very thin grey")
+  // drawn INSIDE it as a second path, an 0.84-unit square inset 0.08 with a
+  // 0.16-unit stroke — a stroke centred on the square's own edge would lie
+  // half in the open square next door; 0.16 units is one device pixel at
+  // the tile's 6.25px/unit, snapped by `crispEdges`. The eight squares the
+  // brown ink painted are OPEN — holes to whatever stands under the lane,
+  // which is the page's starfield now that the bar's coat has left these
+  // rows (NavigationBar's `.nav-bar` note). `$nav-band-check-ink` (the
+  // `$brown-2` of the 09-26 board) is retired with its squares.
+  $nav-band-check-cream: #e9e7e1;
+  $nav-band-check-line: $grey-5;
+  --nav-band-check: url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 4 4%27 shape-rendering=%27crispEdges%27%3E%3Cpath fill=%27%23#{string.slice(meta.inspect($nav-band-check-cream), 2)}%27 d=%27M1 0h1v1H1zM3 0h1v1H3zM0 1h1v1H0zM2 1h1v1H2zM1 2h1v1H1zM3 2h1v1H3zM0 3h1v1H0zM2 3h1v1H2z%27/%3E%3Cpath fill=%27none%27 stroke=%27%23#{string.slice(meta.inspect($nav-band-check-line), 2)}%27 stroke-width=%27.16%27 d=%27M1.08 .08h.84v.84h-.84zM3.08 .08h.84v.84h-.84zM.08 1.08h.84v.84h-.84zM2.08 1.08h.84v.84h-.84zM1.08 2.08h.84v.84h-.84zM3.08 2.08h.84v.84h-.84zM.08 3.08h.84v.84h-.84zM2.08 3.08h.84v.84h-.84z%27/%3E%3C/svg%3E");
 
   // TOTAL height of the bottom chrome — the bar's row PLUS the floor frieze
   // band standing under it (2026-08-02, user ask: "a dark brown frieze bar
@@ -2400,7 +2422,16 @@ $warning:   #F2C037;
   // same 2px lips, and the split states each band's own choice — the header
   // spends its two spare pixels on pixel-drawn ink against its rules, the
   // feed on a padded plate around a softer meander.
-  --media-tabs-band: calc(18px - var(--media-tabs-rim));
+  // ⭐ 22px TOTAL SINCE 2026-09-28 (user ask: "make the frieze bars from the
+  // top nav bar a little thicker/taller too. Make sure the SVG pattern
+  // adjusts well"): lead 2 · band 17 · pad 2 · rim 1. The band grew by 4 and
+  // the DRAWING did not — the pixel-drawn motif stays `auto 13px` and sits
+  // centred on rows 2–14 (MediaTabsBar's fit note has why: a 13-row mask's
+  // only clean steps are 13 and 26), so the extra height is plate under the
+  // glass pane, 2px above and below the meander. Every top-anchored surface
+  // follows through `--media-tabs-h` as always; the seam's hexagon follows
+  // through `--media-tabs-hex-h` (= this rail's height).
+  --media-tabs-band: calc(22px - var(--media-tabs-rim));
   // ⚠ THE `+ Npx` IS THE RIM, and the two must move together. The band is
   // `border-box`, so its `height` has to carry the rim's own pixels or the
   // FACE thins by exactly what the rim gains; and this token is what every

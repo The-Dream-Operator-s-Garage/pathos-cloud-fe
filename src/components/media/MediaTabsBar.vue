@@ -177,14 +177,23 @@
          remembered under `pathos_header_logo_x` and CLAMPED so the hexagon
          never rides under the Back/Forward plates (their boxes measured, so
          the phone's 33px pair clamps differently from the desktop's 59/76).
-         THE BADGE: a flat-top HEXAGON — grey-6 rim, cream frame
-         (`--plaque-flat`), the planet on its own dark field — INSIDE THE
-         BAR: the rail's 18px from its top edge to its rim, 40 wide
-         (stretched; the bar is the height it has), rim and frame ONE PIXEL
-         each so the face is 34 × 14, and the art scaled until the planet's
-         body fills that height (user ask, the sitting's last: "constraint
-         the pathos.cloud icon frame to be inside the top navigation bar …
-         crop it all around and reduce padding so it can be distinguished").
+         THE BADGE: a flat-top HEXAGON WITH ROUNDED CORNERS — a cream frame
+         (`--plaque-flat`, the outermost layer: no rim; 4px at the sides,
+         and above and below EXACTLY the rail's 2px cream lead and pad)
+         around a face of THE DARKEST INDIGO (`--indigo-10`; for an hour
+         the page's own starfield layers) with the cream planet mark over
+         it, centred by measurement — INSIDE THE BAR: the rail's face, 46
+         × 21, top edge to rim, the face the band's own 38 × 17 (user asks: "constraint the pathos.cloud icon frame to be
+         inside the top navigation bar … crop it all around and reduce
+         padding so it can be distinguished"; then "use this logo instead
+         [a transparent PNG] … make the background match how the stars of
+         the main background look … make the frame bolder/thicker and also
+         make its corners be rounded. make sure it is sticking to the very
+         top. it has a slight gap from the top right now" — ⚠ the "gap"
+         was the 1px GREY-6 RIM the frame wore outside the cream: measured,
+         the badge's row 0 was the rim and the cream began at row 1, and
+         against the rail's cream top a grey line above a cream frame reads
+         as a gap. The rim is GONE; the frame is the top row).
          The walk that got here, all 2026-09-28: a 38px regular hexagon
          BELOW the rail with a name plate 20px under it ("why is it
          floating?") → 40 × 18 inside the bar with a plate that WAS a parked
@@ -827,6 +836,23 @@ export default defineComponent({
   // one the side trio and the feed's bands already use, and the HEIGHT paid
   // for it (`--media-tabs-band` walked 14 → 17px face, total 15 → 18px —
   // the arithmetic and the floor argument live on that token):
+  //  ⭐ 2026-09-28 — THE BAND IS 17px AND THE DRAWING FILLS IT (user asks:
+  //    "make the frieze bars from the top nav bar a little thicker/taller
+  //    too. Make sure the SVG pattern adjusts well", then — the first cut
+  //    kept the motif at `auto 13px` centred with two rows of plate above
+  //    and below — "make sure the svg pattern covers the full height of its
+  //    container. it is currently centered but there is extra space above
+  //    and below"): `--media-tabs-band` grew 18 → 22 total (band 13 → 17)
+  //    and the fit FOLLOWS THE BAND — `auto var(--media-tabs-frieze-h)`,
+  //    the 13-row mask drawn at 17px, 1.31px a row. ⚠ NOT PIXEL-DRAWN ANY
+  //    MORE: the masks carry `shape-rendering="crispEdges"`, so the rows
+  //    snap to whole pixels rather than blur — heights 1,2,1,1,2,1,1,1,2,1,
+  //    1,2,1 (four rows doubled; the centre rule, mask row 6, lands on
+  //    band row 8 as a single pixel). Crisp but not uniform: the price of a
+  //    band that is neither 13 nor 26 (a 13-row mask's only uniform fits
+  //    are 1px and 2px a row). If the unevenness ever reads, the clean move
+  //    is 26 in a 31px rail, which doubles the drawing — the ask called 26
+  //    more than "a little".
   //  · FIT `auto 13px` — the 231×143 file at its natural grid, 1px per row,
   //    tiling at exactly 21×13. The band's inner is the full 13px since the
   //    rules left (2026-08-30; it was 11px between the pad-removal ask and
@@ -840,7 +866,7 @@ export default defineComponent({
   // ⚠ The three numbers move together or not at all: this fit, the 11px
   // inner, and the band height that yields it. The next clean step is
   // `auto 26px` (2px a row) in a 30px band.
-  --frieze-bar-fit: auto 13px;
+  --frieze-bar-fit: auto var(--media-tabs-frieze-h); // ⭐ 09-28: the band's own height (17) — `auto 13px` from 08-27 until then
   --frieze-bar-carve: none;
   // ── ⭐ THE PAD IS GONE AND THE INK STANDS ON THE RULES (2026-08-27, user
   // ask: "removing the inner padding between the svg and the top and bottom
@@ -1046,16 +1072,24 @@ export default defineComponent({
   display: flex;
   align-items: stretch;
   height: var(--media-tabs-frieze-h);
-  // 24 × 40 × 18: the hexagon's upper diagonals run from its left vertex
-  // (y=9) to its top-left vertex (x=10), so at the band's top row (y=2) the
-  // wedge stands 7.8px in from the box; a gap of 24 leaves 8px of overhang
-  // each side, and every frieze end is under opaque badge at every row of
-  // the band. (6 × 38 × 32 for the hour the hexagon hung to the tabs'
-  // floor: steeper wedges, 8.3px in, 16px of overhang.)
+  // 24 × 46 × 21: the hexagon's upper diagonals run from its left vertex
+  // (y=10.5) to its top-left vertex (x=11.5), so at the band's top row (y=2)
+  // the wedge stands 9.3px in from the box (the rounded corner adds nothing
+  // there); a gap of 24 leaves 11px of overhang each side, and every
+  // frieze end is under opaque badge at every row of the band. (24 × 44 ×
+  // 18 before the rail grew; 24 × 40 with a 1px rim before that; 6 × 38 ×
+  // 32 for the hour the hexagon hung to the tabs' floor.)
   --media-tabs-seam-w: 24px;
-  --media-tabs-hex-w: 40px;
-  // the rail's own height: the badge lives INSIDE the bar (user ask).
-  --media-tabs-hex-h: var(--media-tabs-h);
+  --media-tabs-hex-w: 46px;
+  // THE RAIL'S FACE — `--media-tabs-band` (21: lead + band + pad), NOT
+  // `--media-tabs-h` (22, which counts the rim): the badge stands on the
+  // bar's edge line and never over or past it (user ask, the sitting's
+  // last word on it: "constrained to the top nav header bar's height (not
+  // the friezebar height!) … renders exactly within the header height and
+  // not like overlapped and slipped to the bottom"). Top at the bar's top
+  // edge, bottom on the rim, the rim running UNBROKEN beneath it — unlike
+  // a parked tab, which hangs through the line.
+  --media-tabs-hex-h: var(--media-tabs-band);
 }
 
 // THE LEFT FRIEZE — the band as it was (mask b-mirror, the sky at 90deg)
@@ -1148,7 +1182,7 @@ export default defineComponent({
   outline: none;
 
   &:active { cursor: grabbing; }
-  &:focus-visible .media-tabs__hex { --hex-rim: var(--indigo-6, #3f51b5); }
+  &:focus-visible .media-tabs__hex { --hex-frame: var(--indigo-6, #3f51b5); }
 }
 
 // The badge — centred on the seam, its top on the rail's top edge (`-lead`
@@ -1168,52 +1202,85 @@ export default defineComponent({
   align-items: center;
 }
 
-// THE HEXAGON — flat-top, `--media-tabs-hex-w` (40) wide and the RAIL'S
-// height (`--media-tabs-hex-h` = `--media-tabs-h`, 18) tall: stretched, not
+// THE HEXAGON — flat-top, `--media-tabs-hex-w` (46) wide and the RAIL'S
+// FACE (`--media-tabs-hex-h` = `--media-tabs-band`, 21: the bar's height
+// above its rim, since the band grew this sitting — 18 for the hour
+// before, when it also covered the rim) tall: stretched, not
 // regular — the bar is the height it has and the badge lives inside it
 // (user asks: "fits inside the top nav bar"; after an hour at 38 × 32
 // hanging to the tabs' floor, "constraint the … frame to be inside the top
-// navigation bar … reduce padding so it can be distinguished"). Three
-// nested clip-paths of ONE percent polygon (so it follows the box): the
-// element is the RIM (grey-6, the rail's own line ink, 1px), its `::before`
-// the FRAME (cream, `--plaque-flat`, ONE pixel — it was 1.5, and 2.5 with
-// the rim is 5 of an 18px badge spent on chrome), the face the planet. The
-// insets are 1.5× wider than tall (the diagonals' run over their rise on
-// this box) so the frame reads about one thickness along the slants.
+// navigation bar … reduce padding so it can be distinguished"; then "make
+// the frame bolder/thicker and also make its corners be rounded. make sure
+// it is sticking to the very top"). TWO nested clip-paths now, and they
+// are `path()`s in PIXELS, not percent polygons: a rounded corner is a
+// curve, and a `polygon()` has none — each corner is cut 3.2px along both
+// edges and joined by a quadratic through the vertex (the inner outline
+// below is the same construction at 2.5px on the face's box; a percent
+// polygon could stretch with the box, a px path is drawn for THIS 46 × 21
+// and its face, which is the price of the curves). The element is THE
+// FRAME ITSELF — cream, `--plaque-flat`, the outermost layer, so its top
+// row IS the badge's top row. ⭐ THE FRAME IS BOLD AT THE SIDES ONLY (the
+// ask after "bolder": "instead of making the whole logo frame bolder, make
+// the sides bolder only so we have a little more vertical space") — the
+// face insets 2px top and bottom (the rail's lead and pad, exactly) and
+// 4px at the sides, so the cream reads as two shoulders on the band and
+// the mark takes the band's own 17 rows. ⚠ THE GREY RIM IS GONE (the sitting's last
+// ask: "it has a slight gap from the top right now"): a 1px `--grey-6`
+// hexagon wrapped the cream frame until then (`::before` inset `1px
+// 1.5px`), and measured at the badge's centre column the rows read rim,
+// cream, face — so from the top edge the eye met a grey line, then the
+// frame: a gap. The rail's own rim runs UNDER the badge's width now, the
+// way it runs under a parked tab. Focus paints the frame indigo instead.
 .media-tabs__hex {
-  --hex-rim: var(--grey-6, #9e9e9e);
-  --hex-cut: polygon(25% 0, 75% 0, 100% 50%, 75% 100%, 25% 100%, 0 50%);
+  --hex-frame: var(--plaque-flat, #f8f2e4);
   position: relative;
   width: var(--media-tabs-hex-w);
   height: var(--media-tabs-hex-h);
-  clip-path: var(--hex-cut);
-  background: var(--hex-rim);
+  clip-path: path('M 8.915 2.36 Q 11.5 0 15 0 L 31 0 Q 34.5 0 37.085 2.36 L 43.415 8.14 Q 46 10.5 43.415 12.86 L 37.085 18.64 Q 34.5 21 31 21 L 15 21 Q 11.5 21 8.915 18.64 L 2.585 12.86 Q 0 10.5 2.585 8.14 Z');
+  background: var(--hex-frame);
   transition: background 0.12s;
-
-  &::before {
-    content: '';
-    position: absolute;
-    inset: 1px 1.5px;
-    clip-path: var(--hex-cut);
-    background: var(--plaque-flat, #f8f2e4);
-  }
 }
 
-// The planet: the supplied art (1024², cream on a near-black starfield —
-// #131613 sampled at its corners), CROPPED ALL AROUND to the planet (user
-// ask: "crop it all around … so it can be distinguished"): `auto 235%` of
-// the face's 14px draws the file ~33px tall and centres it — the body
-// (31–72% of the file) stands ~13.5px, filling the face's height with a
-// quarter-pixel of field top and bottom, the ring ~23px wide; the ring's
-// two tips graze the diagonals by ~1px (the ring passes behind the frame),
-// which is the trade for a body this size. The face's own dark, the file's
-// field colour, fills the half-pixel the art does not, seamlessly. Rim +
-// frame = 2px; the face insets by that vertically and 3px horizontally.
+// THE FACE — THE DARKEST INDIGO with the planet mark over it. The art is
+// `assets/logo/pathos-planet-cream.png` (354², the cream planet on a
+// TRANSPARENT ground — the second supplied file, replacing the first's
+// starfield webp); under it the face is `--indigo-10`, Quasar's deepest
+// indigo (user ask, the sitting's last on the face: "try making the
+// background color of the hexagon's frame icon the darkest tone of quasar
+// indigo"). ⚠ For the hour before, the face wore THE BODY'S EXACT LAYER
+// LIST from app.scss ("make the background match how the stars of the
+// main background look": the grey-3 veil at 16%, the 700 × 700
+// starfield-noise tile repeated, black) — the tile's base rect is OPAQUE
+// black, so a colour cannot sit under it; the indigo replaces all three
+// layers rather than joining them. That list is one line to restore.
+// CROPPED ALL AROUND to the planet:
+// `auto 170%` of the face's 17px draws the file ~29px tall and centres
+// the PLANET (see the measurement note below) — it stands ~12.6px in the
+// 17px face, ~20px wide with its ring well inside the diagonals (at 190%
+// on the 19px face it stood 16.6 and its lower-left
+// tip grazes the slant by half a pixel; 200% and up clips it). The frame
+// is 4px at the sides (the vertical space ask) and 2px above and below —
+// ⭐ EXACTLY THE RAIL'S CREAM LEAD AND PAD (user ask: "make the frame top
+// and bottom borders align with the cream lines on top and below the
+// friezebar"): the face is the band's own 17 rows, y 2–19, so the frame's
+// top band IS the lead and its bottom band IS the pad, and the badge reads
+// as the band's own two cream lines closing round the mark. 38 × 17; its
+// outline the rounded hexagon at that size. (`auto 215%` on a 37 × 13 face
+// for the hour the rail was 18px; 1px above and below for the hour after.)
+// ⭐ CENTRED BY MEASUREMENT (user ask: "make sure the logo is well centered
+// inside its hexagonal frame. make it a little tinier if necessary"): the
+// PNG's opaque box is x 53–301, y 109–262 — its centre sits 8.5 file px
+// BELOW the file's centre, which `center` alone had honoured, so the mark
+// hung low. At `auto 170%` of the 17px face (the file 28.9px tall, the
+// planet ~12.6 tall and ~20 wide, two rows of sky above and below) that
+// offset is 0.69px, and the position lifts the image by exactly that.
 .media-tabs__hex-face {
   position: absolute;
-  inset: 2px 3px;
-  clip-path: var(--hex-cut);
-  background: #131613 url('../../assets/logo/pathos-planet.webp') center / auto 235% no-repeat;
+  inset: 2px 4px;
+  clip-path: path('M 7.637 1.667 Q 9.5 0 12 0 L 26 0 Q 28.5 0 30.363 1.667 L 36.137 6.833 Q 38 8.5 36.137 10.167 L 30.363 15.333 Q 28.5 17 26 17 L 12 17 Q 9.5 17 7.637 15.333 L 1.863 10.167 Q 0 8.5 1.863 6.833 Z');
+  background:
+    url('../../assets/logo/pathos-planet-cream.png') 50% calc(50% - 0.69px) / auto 170% no-repeat,
+    var(--indigo-10, #1a237e);
 }
 
 // ⭐ TOMBSTONE — THE NAME PLATE (2026-09-28, one hour). Under the 18px

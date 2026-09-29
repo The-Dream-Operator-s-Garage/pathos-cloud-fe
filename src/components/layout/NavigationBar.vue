@@ -1557,7 +1557,27 @@ export default defineComponent({
   // stack strip stopped reading the dial on 2026-09-05, so `--nav-trail-h`
   // sizes the CHIPS alone now (via `--nav-chip-h`). And since the band went,
   // this coat is the ground under the whole row, chips' gaps included.
-  background: var(--plaque-coat);
+  // ⭐ THE COAT LEAVES THE LANE'S ROWS (2026-09-28, user ask: the board's
+  // brown squares "transparent so that I can see the starry background
+  // behind. Make the layers behind transparent so this is possible without
+  // altering the look of the other layers"). `var(--plaque-coat)` painted
+  // this whole box until today; the only opaque layers under the lane were
+  // that coat and the lane's own veil (the footer host, the page container
+  // and the layout are transparent down to the body's starfield — probed
+  // with elementsFromPoint), so the coat is now painted ONLY on the two
+  // margin rows above and below the lane — `--plaque-flat`, the coat's
+  // measured composite, as two flat gradient layers sized to the lane's
+  // own offset (the same arithmetic `.nav-bar::before` uses for `top`, so
+  // the two can never disagree) — and the lane's rows are open. Every cell
+  // that stands on the bar wears its own coat (the identity chip, the
+  // strips, the buttons; the witnesses that compared them to THIS box's
+  // coat read the chrome coat off the top rail now), so nothing else
+  // changed its look. ⚠ `background-color` is gone with the coat: a colour
+  // layer fills the whole box and cannot be kept to two rows.
+  --nav-bar-margin: calc((var(--nav-bar-h) - 1px - var(--nav-band-h)) / 2);
+  background:
+    linear-gradient(var(--plaque-flat), var(--plaque-flat)) top / 100% var(--nav-bar-margin) no-repeat,
+    linear-gradient(var(--plaque-flat), var(--plaque-flat)) bottom / 100% var(--nav-bar-margin) no-repeat;
   // ── Top lip --grey-6 (2026-08-17, user ask) ──
   // It was --brown-3 from the end of 2026-07-25 (brown-4 for one day before
   // that), and the argument for brown-3 was a JOINT that no longer exists:
@@ -1676,8 +1696,16 @@ export default defineComponent({
   box-sizing: border-box;                  // 27 OUTSIDE — the rules are rows of the band, not added to it
   z-index: -1;
   pointer-events: none;
-  background-color: var(--nav-band-veil);  // the light squares — the 09-25 basis, untouched
-  background-image: var(--nav-band-check); // the board — dark squares $brown-2, the rest open
+  // ⭐ 2026-09-28 — THE VEIL IS GONE FROM THE LANE and the board is INSIDE
+  // OUT (user ask: cream squares "still cream" with "a very thin grey
+  // border", brown squares "transparent so that I can see the starry
+  // background behind"): the tile paints the LIGHT squares itself now, in
+  // the very colour the veil-over-coat gave them, each with a 1px grey-5
+  // line inside, and leaves the dark eight OPEN — and with no colour here
+  // and no coat under these rows (`.nav-bar` above), open means the page's
+  // starfield. `background-color: var(--nav-band-veil)` stood here from
+  // 09-25; the token stays declared for the record.
+  background-image: var(--nav-band-check); // the board — cream squares with a hairline, the rest OPEN to the stars
   background-size: auto 100%;              // 25 × 25: height = the lane's interior, width = the tile's own 1:1 — never stretched
   background-repeat: repeat;
   background-origin: padding-box;          // phase 0 at the lane's corner, inside the rules
