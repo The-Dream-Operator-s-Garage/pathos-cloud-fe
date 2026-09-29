@@ -178,12 +178,13 @@
          never rides under the Back/Forward plates (their boxes measured, so
          the phone's 33px pair clamps differently from the desktop's 59/76).
          THE BADGE: a flat-top HEXAGON WITH ROUNDED CORNERS — a cream frame
-         (`--plaque-flat`, the outermost layer: no rim; 4px at the sides,
-         and above and below EXACTLY the rail's 2px cream lead and pad)
+         (`--plaque-flat` — THE RAIL'S OWN LIPS wrapped round: 2px of
+         coat, the 1px grey-6 rule, the 1px grey-8 pad, exactly the feed
+         rails' recipe the rail itself wears now, under a thin cast)
          around a face of THE DARKEST INDIGO (`--indigo-10`; for an hour
          the page's own starfield layers) with the cream planet mark over
-         it, centred by measurement — INSIDE THE BAR: the rail's face, 46
-         × 21, top edge to rim, the face the band's own 38 × 17 (user asks: "constraint the pathos.cloud icon frame to be
+         it, centred by measurement — INSIDE THE BAR: the rail's face, 48
+         × 21, top edge to rim, the face the band's own 37.6 × 13 (user asks: "constraint the pathos.cloud icon frame to be
          inside the top navigation bar … crop it all around and reduce
          padding so it can be distinguished"; then "use this logo instead
          [a transparent PNG] … make the background match how the stars of
@@ -809,6 +810,25 @@ export default defineComponent({
   // paragraphs below stand as that sitting's record; the dials here are the
   // law.
   --frieze-bar-base: var(--grey-8, #616161);
+  // ── ⭐ THE RULES ARE BACK — THE FEED RAILS' LIPS, TURNED VERTICAL (2026-
+  // 09-28, user ask: "the nav lips are way too thick now. Try using the
+  // same proportions as the feed container friezebars, but adapt them to
+  // the verticalness of the top header bar. … use gray instead of the
+  // indigo color pallette of the feed frieze bars and also we're still
+  // using the gradient animated frieze bars as they are"). The feed's
+  // vertical band (`.feed-container__edge`, FeedPage) is rule 1 · pad 1 ·
+  // layer 9 · pad 1 · rule 1 on an `--indigo-10` plate inside a 2px coat
+  // rail; this band is the same anatomy on ITS plate — `--grey-8`, the
+  // grey the ask names — round ITS drawing: the two 1px `--grey-6` rules
+  // below (deleted 08-30, back by this ask), `--frieze-bar-pad: 1px` (the
+  // dial's own default, zeroed since 08-27, restored), the 13px pixel-drawn
+  // aurora band between them untouched. The element is 17px border-box
+  // (`--media-tabs-frieze-h` = the 21px face less the 2px lips), the
+  // drawing 13 of it: 1 + 1 + 13 + 1 + 1. The glass pane (`::after`, inset
+  // 0) covers the padding box — pads and drawing — inside the rules, so
+  // its light edge lines fall on the pads: a bevel inside the rule.
+  border-top: 1px solid var(--grey-6, #9e9e9e);
+  border-bottom: 1px solid var(--grey-6, #9e9e9e);
   // ── ⭐ THE TWO RULES ARE GONE (2026-08-30, the recolor's follow-up ask:
   // "remove the top and bottom borders of the inner frieze bar") ─────────
   // The 1px grey-6 border-top/-bottom pair stood here from the band's card
@@ -836,6 +856,16 @@ export default defineComponent({
   // one the side trio and the feed's bands already use, and the HEIGHT paid
   // for it (`--media-tabs-band` walked 14 → 17px face, total 15 → 18px —
   // the arithmetic and the floor argument live on that token):
+  //  ⭐⭐ 2026-09-28, LATER — THE BAND IS 13 AGAIN AND THE LIPS ARE 4 (user
+  //    ask: "make the frieze bars … go back to their original thickness,
+  //    they're huge now. to adapt the logo frame, just make the top and
+  //    bottom lips of the top nav bar thicker"): `--media-tabs-lead` and
+  //    `--media-tabs-frieze-pad` are 4px each (_tokens.scss), the rail
+  //    keeps its 22, and the dial below — `auto var(--media-tabs-frieze-h)`
+  //    — resolves to `auto 13px` once more: pixel-drawn, one motif cell per
+  //    CSS pixel, the 08-27 law back in force. The 17px hour is recorded in
+  //    the block that follows; the dial's FORM stays (it follows the band),
+  //    only the band it follows is 13 again.
   //  ⭐ 2026-09-28 — THE BAND IS 17px AND THE DRAWING FILLS IT (user asks:
   //    "make the frieze bars from the top nav bar a little thicker/taller
   //    too. Make sure the SVG pattern adjusts well", then — the first cut
@@ -866,7 +896,7 @@ export default defineComponent({
   // ⚠ The three numbers move together or not at all: this fit, the 11px
   // inner, and the band height that yields it. The next clean step is
   // `auto 26px` (2px a row) in a 30px band.
-  --frieze-bar-fit: auto var(--media-tabs-frieze-h); // ⭐ 09-28: the band's own height (17) — `auto 13px` from 08-27 until then
+  --frieze-bar-fit: auto 13px; // ⭐ 09-28: the DRAWING's 13 — a literal again, since the band element is 17 with its rules and pads (it followed the band for the 17px-band hour; `auto 13px` from 08-27 until then)
   --frieze-bar-carve: none;
   // ── ⭐ THE PAD IS GONE AND THE INK STANDS ON THE RULES (2026-08-27, user
   // ask: "removing the inner padding between the svg and the top and bottom
@@ -879,7 +909,7 @@ export default defineComponent({
   // until the rules left (2026-08-30): the inner is 13px now, the mask fits
   // exactly, and the redrawn-gap objection is void with plate = coat (see
   // the rules' tombstone above).
-  --frieze-bar-pad: 0;
+  --frieze-bar-pad: 1px; // ⭐ 09-28: the feed rails' pad, restored (0 from 08-27 until the rules came back)
   // ── ⭐ THE LIPS' CAST IS GONE (2026-08-30, user ask: "there is a grey veil
   // on top of the inner frieze bar … removing it") ──────────────────────────
   // An `::after` overlay stood here from 2026-08-27 — `inset: 0` + an inset
@@ -1072,15 +1102,16 @@ export default defineComponent({
   display: flex;
   align-items: stretch;
   height: var(--media-tabs-frieze-h);
-  // 24 × 46 × 21: the hexagon's upper diagonals run from its left vertex
-  // (y=10.5) to its top-left vertex (x=11.5), so at the band's top row (y=2)
-  // the wedge stands 9.3px in from the box (the rounded corner adds nothing
-  // there); a gap of 24 leaves 11px of overhang each side, and every
-  // frieze end is under opaque badge at every row of the band. (24 × 44 ×
-  // 18 before the rail grew; 24 × 40 with a 1px rim before that; 6 × 38 ×
-  // 32 for the hour the hexagon hung to the tabs' floor.)
+  // 24 × 48 × 21: the hexagon's upper diagonals run from its left vertex
+  // (y=10.5) to its top-left vertex (x=12), so at the band's top row (y=2)
+  // the wedge stands 9.7px in from the box (the rounded corner adds nothing
+  // there); a gap of 24 leaves 12px of overhang each side, and every
+  // frieze end is under opaque badge at every row of the band. (52 × 25 on
+  // the 26px rail for an hour; 46 × 21 before; 44 × 18 before the rail
+  // grew; 40 with a 1px rim before that; 6 × 38 × 32 for the hour the
+  // hexagon hung to the tabs' floor.)
   --media-tabs-seam-w: 24px;
-  --media-tabs-hex-w: 46px;
+  --media-tabs-hex-w: 48px;
   // THE RAIL'S FACE — `--media-tabs-band` (21: lead + band + pad), NOT
   // `--media-tabs-h` (22, which counts the rim): the badge stands on the
   // bar's edge line and never over or past it (user ask, the sitting's
@@ -1182,16 +1213,22 @@ export default defineComponent({
   outline: none;
 
   &:active { cursor: grabbing; }
-  &:focus-visible .media-tabs__hex { --hex-frame: var(--indigo-6, #3f51b5); }
+  &:focus-visible .media-tabs__hex { --hex-rule: var(--indigo-6, #3f51b5); }
 }
 
 // The badge — centred on the seam, its top on the rail's top edge (`-lead`
 // lifts it out of the band by the lead's 2px), its bottom on the rim: the
-// hexagon is the rail's height and lives inside it. No cast of its own —
-// the parked tabs wear none either (the rail's cast falls behind them), and
-// a `drop-shadow` here would halo the hexagon onto the bar it stands in. (If one is ever wanted: on THIS box as a
-// `filter: drop-shadow`, never on the hexagon — `clip-path` clips a
-// box-shadow with the box, a filter on the parent follows the silhouette.)
+// hexagon is the rail's face and lives inside it. ⭐ A THIN CAST OVER THE
+// FRIEZES (2026-09-28, user asks: "make the logo project a thin shadow over
+// the friezes", then "add to it a little shadow on top of the bar"):
+// `drop-shadow` on THIS box, never on the hexagon —
+// `clip-path` clips a box-shadow with the box, a filter on the parent
+// follows the clipped silhouette — 1px down, 2px soft, the deep ink at
+// 40%: on the grey-8 plate under the pane it reads as a hairline of
+// shade along the badge's lower edges, and it vanishes into the rail's
+// cream lips above and below (the badge stands over the friezes at z 1,
+// so the cast lands on the band, not under it). It wore no cast from the
+// plate's hour to this ask — the parked tabs wear none.
 .media-tabs__badge {
   position: absolute;
   top: calc(-1 * var(--media-tabs-lead));
@@ -1200,87 +1237,85 @@ export default defineComponent({
   display: flex;
   flex-direction: column;
   align-items: center;
+  filter: drop-shadow(0 1px 2px rgba(var(--ink-rgb-deep), 0.4));
 }
 
-// THE HEXAGON — flat-top, `--media-tabs-hex-w` (46) wide and the RAIL'S
+// THE HEXAGON — flat-top, `--media-tabs-hex-w` (48) wide and the RAIL'S
 // FACE (`--media-tabs-hex-h` = `--media-tabs-band`, 21: the bar's height
-// above its rim, since the band grew this sitting — 18 for the hour
-// before, when it also covered the rim) tall: stretched, not
-// regular — the bar is the height it has and the badge lives inside it
-// (user asks: "fits inside the top nav bar"; after an hour at 38 × 32
-// hanging to the tabs' floor, "constraint the … frame to be inside the top
-// navigation bar … reduce padding so it can be distinguished"; then "make
-// the frame bolder/thicker and also make its corners be rounded. make sure
-// it is sticking to the very top"). TWO nested clip-paths now, and they
-// are `path()`s in PIXELS, not percent polygons: a rounded corner is a
-// curve, and a `polygon()` has none — each corner is cut 3.2px along both
-// edges and joined by a quadratic through the vertex (the inner outline
-// below is the same construction at 2.5px on the face's box; a percent
-// polygon could stretch with the box, a px path is drawn for THIS 46 × 21
-// and its face, which is the price of the curves). The element is THE
-// FRAME ITSELF — cream, `--plaque-flat`, the outermost layer, so its top
-// row IS the badge's top row. ⭐ THE FRAME IS BOLD AT THE SIDES ONLY (the
-// ask after "bolder": "instead of making the whole logo frame bolder, make
-// the sides bolder only so we have a little more vertical space") — the
-// face insets 2px top and bottom (the rail's lead and pad, exactly) and
-// 4px at the sides, so the cream reads as two shoulders on the band and
-// the mark takes the band's own 17 rows. ⚠ THE GREY RIM IS GONE (the sitting's last
-// ask: "it has a slight gap from the top right now"): a 1px `--grey-6`
-// hexagon wrapped the cream frame until then (`::before` inset `1px
-// 1.5px`), and measured at the badge's centre column the rows read rim,
-// cream, face — so from the top edge the eye met a grey line, then the
-// frame: a gap. The rail's own rim runs UNDER the badge's width now, the
-// way it runs under a parked tab. Focus paints the frame indigo instead.
+// above its rim) tall — stretched, not regular: the bar is the height it
+// has and the badge lives inside it (user asks: "fits inside the top nav
+// bar"; "constrained to the top nav header bar's height … not like
+// overlapped and slipped to the bottom"). FOUR nested clip-paths — all
+// `path()`s in PIXELS with six quadratic corners (a `polygon()` has no
+// curves; the numbers are generated from the vertices, each corner cut
+// along both edges and joined through the vertex; a px path is drawn for
+// THIS box, the price of the curves) — and ⭐ THEY ARE THE LIPS' OWN
+// LAYERS (the sitting's last ask on the badge: "for the frame, adapt it to
+// look exactly like the lips of the friezebars so it matches the
+// aesthetic"): reading inward exactly as the rail reads down from its top
+// edge — the COAT, 2px of cream `--plaque-flat` (the element); the RULE,
+// 1px of `--grey-6` (`::before`, inset 2px / 2.6px — the sides' inset is
+// 1.3× the top's, the diagonals' run over their rise on this box, so the
+// ring reads one thickness round); the PAD, 1px of the band's `--grey-8`
+// plate (`.media-tabs__hex-face`, the element, inset 3px / 3.9px); and
+// the FACE (its `::before`, inset 4px / 5.2px → 37.6 × 13 on the band's
+// own rows). The badge's cross-section IS the rail's: coat · rule · pad ·
+// drawing · pad · rule · coat, 21px, its face rows the band's drawing
+// rows. (The morning walked outline → none → outline; this is neither: the
+// grey line is the RULE, inside the coat, where the band's own rule is.)
 .media-tabs__hex {
-  --hex-frame: var(--plaque-flat, #f8f2e4);
+  --hex-coat: var(--plaque-flat, #f8f2e4);
+  --hex-rule: var(--grey-6, #9e9e9e);
   position: relative;
   width: var(--media-tabs-hex-w);
   height: var(--media-tabs-hex-h);
-  clip-path: path('M 8.915 2.36 Q 11.5 0 15 0 L 31 0 Q 34.5 0 37.085 2.36 L 43.415 8.14 Q 46 10.5 43.415 12.86 L 37.085 18.64 Q 34.5 21 31 21 L 15 21 Q 11.5 21 8.915 18.64 L 2.585 12.86 Q 0 10.5 2.585 8.14 Z');
-  background: var(--hex-frame);
-  transition: background 0.12s;
+  clip-path: path('M 9.366 2.305 Q 12 0 15.5 0 L 32.5 0 Q 36 0 38.634 2.305 L 45.366 8.195 Q 48 10.5 45.366 12.805 L 38.634 18.695 Q 36 21 32.5 21 L 15.5 21 Q 12 21 9.366 18.695 L 2.634 12.805 Q 0 10.5 2.634 8.195 Z');
+  background: var(--hex-coat);
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 2px 2.6px;
+    clip-path: path('M 8.351 1.866 Q 10.7 0 13.7 0 L 29.1 0 Q 32.1 0 34.449 1.866 L 40.451 6.634 Q 42.8 8.5 40.451 10.366 L 34.449 15.134 Q 32.1 17 29.1 17 L 13.7 17 Q 10.7 17 8.351 15.134 L 2.349 10.366 Q 0 8.5 2.349 6.634 Z');
+    background: var(--hex-rule);
+    transition: background 0.12s;
+  }
 }
 
-// THE FACE — THE DARKEST INDIGO with the planet mark over it. The art is
+// THE PAD AND THE FACE — this element is the 1px pad ring in the band's
+// own plate (`--grey-8`, the grey the ask names in place of the feed
+// rail's `--indigo-10`), and its `::before` is the face: `--grey-9`,
+// Quasar's grey-9 (user asks, the sitting's last on the face: "make the
+// background color of the hexagonal logo on the headbar a dark tone of
+// grey instead of indigo", then "make the grey less dark" — grey-10 for a
+// minute; grey-9 is one step under the pad's grey-8, so the pad ring
+// still reads as a line; `--indigo-10` for the hour before, the page's
+// starfield layers for the hour before that — the tile's base rect is
+// opaque black, a colour cannot sit under it), with the mark over it —
 // `assets/logo/pathos-planet-cream.png` (354², the cream planet on a
-// TRANSPARENT ground — the second supplied file, replacing the first's
-// starfield webp); under it the face is `--indigo-10`, Quasar's deepest
-// indigo (user ask, the sitting's last on the face: "try making the
-// background color of the hexagon's frame icon the darkest tone of quasar
-// indigo"). ⚠ For the hour before, the face wore THE BODY'S EXACT LAYER
-// LIST from app.scss ("make the background match how the stars of the
-// main background look": the grey-3 veil at 16%, the 700 × 700
-// starfield-noise tile repeated, black) — the tile's base rect is OPAQUE
-// black, so a colour cannot sit under it; the indigo replaces all three
-// layers rather than joining them. That list is one line to restore.
-// CROPPED ALL AROUND to the planet:
-// `auto 170%` of the face's 17px draws the file ~29px tall and centres
-// the PLANET (see the measurement note below) — it stands ~12.6px in the
-// 17px face, ~20px wide with its ring well inside the diagonals (at 190%
-// on the 19px face it stood 16.6 and its lower-left
-// tip grazes the slant by half a pixel; 200% and up clips it). The frame
-// is 4px at the sides (the vertical space ask) and 2px above and below —
-// ⭐ EXACTLY THE RAIL'S CREAM LEAD AND PAD (user ask: "make the frame top
-// and bottom borders align with the cream lines on top and below the
-// friezebar"): the face is the band's own 17 rows, y 2–19, so the frame's
-// top band IS the lead and its bottom band IS the pad, and the badge reads
-// as the band's own two cream lines closing round the mark. 38 × 17; its
-// outline the rounded hexagon at that size. (`auto 215%` on a 37 × 13 face
-// for the hour the rail was 18px; 1px above and below for the hour after.)
-// ⭐ CENTRED BY MEASUREMENT (user ask: "make sure the logo is well centered
-// inside its hexagonal frame. make it a little tinier if necessary"): the
-// PNG's opaque box is x 53–301, y 109–262 — its centre sits 8.5 file px
-// BELOW the file's centre, which `center` alone had honoured, so the mark
-// hung low. At `auto 170%` of the 17px face (the file 28.9px tall, the
-// planet ~12.6 tall and ~20 wide, two rows of sky above and below) that
-// offset is 0.69px, and the position lifts the image by exactly that.
+// TRANSPARENT ground, the second supplied file), CROPPED ALL AROUND to the
+// planet ("make sure the icon is perfectly visible"): `auto 215%` of the
+// face's 13px draws the file 28px tall — the planet ~12.2px tall and
+// ~19.7 wide, half a row of indigo above and below, the ring's tips 2px
+// inside the slants — and CENTRED BY MEASUREMENT: the PNG's opaque box is
+// x 53–301, y 109–262, its centre 8.5 file px BELOW the file's centre
+// (which `center` alone had honoured, so the mark hung low); at this
+// scale that is 0.67px, and the position lifts the image by exactly that.
 .media-tabs__hex-face {
   position: absolute;
-  inset: 2px 4px;
-  clip-path: path('M 7.637 1.667 Q 9.5 0 12 0 L 26 0 Q 28.5 0 30.363 1.667 L 36.137 6.833 Q 38 8.5 36.137 10.167 L 30.363 15.333 Q 28.5 17 26 17 L 12 17 Q 9.5 17 7.637 15.333 L 1.863 10.167 Q 0 8.5 1.863 6.833 Z');
-  background:
-    url('../../assets/logo/pathos-planet-cream.png') 50% calc(50% - 0.69px) / auto 170% no-repeat,
-    var(--indigo-10, #1a237e);
+  inset: 3px 3.9px;
+  clip-path: path('M 7.886 1.615 Q 10.05 0 12.75 0 L 27.45 0 Q 30.15 0 32.314 1.615 L 38.036 5.885 Q 40.2 7.5 38.036 9.115 L 32.314 13.385 Q 30.15 15 27.45 15 L 12.75 15 Q 10.05 15 7.886 13.385 L 2.164 9.115 Q 0 7.5 2.164 5.885 Z');
+  background: var(--grey-8, #616161);
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 1px 1.3px;
+    clip-path: path('M 7.344 1.422 Q 9.4 0 11.9 0 L 25.7 0 Q 28.2 0 30.256 1.422 L 35.544 5.078 Q 37.6 6.5 35.544 7.922 L 30.256 11.578 Q 28.2 13 25.7 13 L 11.9 13 Q 9.4 13 7.344 11.578 L 2.056 7.922 Q 0 6.5 2.056 5.078 Z');
+    background:
+      url('../../assets/logo/pathos-planet-cream.png') 50% calc(50% - 0.67px) / auto 215% no-repeat,
+      var(--grey-9, #424242);
+  }
 }
 
 // ⭐ TOMBSTONE — THE NAME PLATE (2026-09-28, one hour). Under the 18px
@@ -1372,6 +1407,27 @@ export default defineComponent({
 // `--indigo-10` ink in the display face. `--mtab-face` exists so the flares
 // can follow the face through hover and press — they are painted by a
 // gradient and cannot inherit `background`.
+// ── ⭐ THE TABS WEAR THE WINDOW THEY RESTORE (2026-09-28, user ask: "for
+// all the tabs that hang off the header nav bar, they open flyout windows
+// that are grey. Help me make the tabs match the flyout's background
+// color. Also help me slightly reducing the padding around their text and
+// making their text slightly bigger. then, also add to the tabs a thin
+// border on the top so they look separated from the header bar") ───────
+// Four moves on the rule below, each marked ⭐ 09-28 on its line. (1) THE
+// FACE is `--grey-4` — the coat `.element-flyout` paints — so a tab and the
+// window it restores are one material again (they parted on 2026-08-17,
+// when the strip took the rail's cream; the `--grey-4` token's note has
+// that walk); hover lifts one rung to `--grey-3`, press lays `--grey-5`.
+// (2) PADDING `0 8px 1px` and (3) TYPE `0.7em` — the text a step larger in
+// a box a step tighter. (4) A TOP EDGE: the rim runs on all four sides,
+// and since the tab hangs from the rail's padding-box underside its top
+// border lands ON the rail's rim row in the rail's own ink — the line runs
+// unbroken across the tab and the tab reads as hung from it, separated,
+// not grown out of it. ⚠ THE FLARES ARE RETIRED WITH IT: the two concave
+// fillets curved the tab's shoulders up INTO the bar, painting the joint
+// in the face colour over the rim — a joint and a separating line cannot
+// both be true, and the ask is the line (tombstone inside the rule; the
+// row's 9px side padding they needed is untouched).
 .media-tabs__tab {
   // ── THE TAB REJOINED THE BAND (2026-08-17, user ask, reported off the
   // SKELETON FLYOUT's minimize — every flyout and viewer parks on this same
@@ -1381,7 +1437,7 @@ export default defineComponent({
   // also consumed inside the flares' gradient stops, where a background layer
   // list is illegal. Tab and band are one material again — the state the
   // strip was built in and lost for the hour the band alone wore the coat.
-  --mtab-face: var(--plaque-flat, #f8f2e4);
+  --mtab-face: var(--grey-4, #e0e0e0); // ⭐ 09-28: the flyout window's own coat (ElementFlyout.vue) — `--plaque-flat` from 08-17 until then
   // The rim matches the band's, thickness and tone: `--media-tabs-rim` of
   // `--grey-6`, so the line runs band → flare → tab unbroken again. The tab
   // has no top edge (it flows OUT of the band), so what this paints is the
@@ -1425,10 +1481,9 @@ export default defineComponent({
   // either one and move `--media-tabs-park-h` in the same commit.
   min-width: 46px; // the shrink floor: glyph + a sliver of name
   max-width: 180px;
-  padding: 0 10px 2px;
+  padding: 0 8px 1px; // ⭐ 09-28: a step tighter (0 10px 2px until then)
   line-height: 1;
-  border: var(--mtab-rim) solid var(--mtab-rim-ink);
-  border-top: none; // it flows out of the band, so it has no top edge
+  border: var(--mtab-rim) solid var(--mtab-rim-ink); // ⭐ 09-28: ALL FOUR SIDES — the top edge lands on the rail's rim row in the rail's ink (`border-top: none`, "it flows out of the band", until then)
   border-radius: 0 0 9px 9px;
   background: var(--mtab-face);
   // Ink --grey-8 (2026-08-17, user ask), from `--indigo-10`. The tab stopped
@@ -1437,7 +1492,7 @@ export default defineComponent({
   // enough at 0.62em (5.9:1 on this face) and a whole family away from the
   // rail's own `--grey-6` rim, so mark and edge never read as one weight.
   color: var(--grey-8, #616161);
-  font-size: 0.62em;
+  font-size: 0.7em; // ⭐ 09-28: a step larger (0.62em until then)
   cursor: pointer;
   transition: background 0.12s, padding-bottom 0.12s, transform 0.12s;
 
@@ -1456,8 +1511,8 @@ export default defineComponent({
   // The reach is spelled in the PAD since 2026-08-24, not in a height: with
   // the box content-sized there is no height to grow, and growing the pad
   // grows the same edge by the same +3px the `height: 22px → 25px` did.
-  &:hover { --mtab-face: var(--light-cream, #fcf3e0); padding-bottom: 5px; }
-  &:active { --mtab-face: var(--grey-3, #eeeeee); transform: translateY(1px); }
+  &:hover { --mtab-face: var(--grey-3, #eeeeee); padding-bottom: 4px; } // ⭐ 09-28: one rung lighter than the face (light-cream on the cream face until then)
+  &:active { --mtab-face: var(--grey-5, #bdbdbd); transform: translateY(1px); } // ⭐ 09-28: one rung darker (grey-3 until then)
 
   // ── THE FLARES ──
   // A concave fillet at each top corner, so the tab does not butt into the
@@ -1483,15 +1538,16 @@ export default defineComponent({
   // doubled. The arc thickens INWARD — its outer boundary stays at 8.9/9.1px,
   // where the face begins and the tab's own edge stands — so the sweep still
   // lands exactly where it did and only the line drawn along it got heavier.
-  &::before,
-  &::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    width: calc(9px + var(--mtab-rim));
-    height: 9px;
-    pointer-events: none;
-  }
+  // ⭐ TOMBSTONE — THE FLARES (2026-08-17 → 2026-09-28). Two 9px concave
+  // fillets, `::before` at `left: -9px` and `::after` at `right: -9px`,
+  // `top: 0`, `width: calc(9px + var(--mtab-rim))`, `height: 9px`, each a
+  // `radial-gradient(circle at <corner>, transparent calc(9px − rim −
+  // .1px), var(--mtab-rim-ink) calc(9px − rim + .1px), var(--mtab-rim-ink)
+  // 8.9px, var(--mtab-face) 9.1px)` — the arc's half of the rim line and
+  // the joint's inside in the face colour, curving the tab's shoulders up
+  // into the bar so one line ran band → flare → tab. Retired when the tab
+  // took a TOP EDGE (the note above the rule): a fillet paints the joint
+  // over the rim, a separating line paints the rim over the joint.
 
   &::before {
     left: -9px;
