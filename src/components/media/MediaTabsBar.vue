@@ -216,9 +216,8 @@
         :aria-valuemin="0"
         :aria-valuemax="100"
         :aria-valuenow="logoPct"
-        :aria-disabled="anchored ? 'true' : null"
         tabindex="0"
-        :title="anchored ? 'pathos.cloud — on the feed\'s rail' : 'pathos.cloud — drag along the bar'"
+        :title="anchored ? 'pathos.cloud — drag to resize the feed with its rail' : 'pathos.cloud — drag along the bar'"
         @pointerdown="logoDown"
         @pointermove="logoMove"
         @pointerup="logoUp"
@@ -325,7 +324,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useFlyoutViewersStore } from 'src/stores/flyoutViewers'
 import FriezeBar from 'src/components/layout/FriezeBar.vue'
 import { useAurora } from 'src/composables/useAurora'
-import { seamAnchor } from 'src/composables/useSeamAnchor'
+import { seamAnchor, gripSeam, nudgeSeam } from 'src/composables/useSeamAnchor'
 import { iconForTarget, titleOfTarget } from 'src/utils/mediaKind'
 
 // ── THE PHONE QUERY (2026-09-26, user ask: on mobile the Back/Forward pair
@@ -404,8 +403,10 @@ export default defineComponent({
     // not jump to the pointer on the first move.
     let drag = null
     const logoDown = (e) => {
-      if (anchored.value) return
       if (e.pointerType === 'mouse' && e.button !== 0) return
+      // Anchored: the press belongs to the feed's right rail (THE GRIP) —
+      // the rail resizes, publishes, and `follow` carries the badge along.
+      if (anchored.value) { gripSeam(e); return }
       const t = travel()
       drag = { id: e.pointerId, t, dx: e.clientX - (t.left + logoFrac.value * t.span) }
       e.currentTarget.setPointerCapture(e.pointerId)
@@ -421,7 +422,12 @@ export default defineComponent({
       remember()
     }
     const logoKey = (e) => {
-      if (anchored.value) return
+      if (anchored.value) {
+        const px = e.shiftKey ? 40 : 8
+        const dx = e.key === 'ArrowLeft' ? -px : e.key === 'ArrowRight' ? px : 0
+        if (dx && nudgeSeam(dx)) e.preventDefault()
+        return
+      }
       const step = e.shiftKey ? 0.1 : 0.02
       const t = travel()
       let next = null
@@ -441,8 +447,9 @@ export default defineComponent({
     // feed page's RIGHT rail is centred, or null when no page claims the
     // seam. While a value stands the seam FOLLOWS it — the fraction that
     // puts the hexagon's centre on that x, clamped to the plates exactly as
-    // a drag is — and the seam's own drag and keys are refused (the slider
-    // is `aria-disabled`, the cursor plain). The remembered fraction is
+    // a drag is. ⭐ PM: its drag and arrow keys are no longer refused —
+    // they are HANDED to the rail (`gripSeam` / `nudgeSeam`, THE GRIP), so
+    // badge and rail move as one piece. The remembered fraction is
     // untouched by the follow: released, the seam goes back to it. On a
     // phone the rail's centre sits under the Forward plate (the container
     // is 95% wide there), so the clamp holds the badge at the plate's edge
@@ -1262,10 +1269,10 @@ export default defineComponent({
   &:active { cursor: grabbing; }
   &:focus-visible .media-tabs__hex { --hex-rule: var(--indigo-6, #3f51b5); }
   // ⭐ 2026-09-29: ANCHORED — the feed page's right rail holds the seam
-  // (composables/useSeamAnchor; the script's `follow`). Nothing to grab:
-  // the handlers refuse the pointer and the keys, and the cursor says so.
+  // (composables/useSeamAnchor; the script's `follow`). PM: grabbing the
+  // badge grabs the RAIL (THE GRIP), so it wears the rail's cursor.
   &.is-anchored,
-  &.is-anchored:active { cursor: default; }
+  &.is-anchored:active { cursor: col-resize; }
 }
 
 // The badge — centred on the seam, its top on the rail's top edge (`-lead`

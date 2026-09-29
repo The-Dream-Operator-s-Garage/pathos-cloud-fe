@@ -386,11 +386,34 @@ export default defineComponent({
     // container mid-flight and park the badge where the rail was passing.
     const railR = ref(null)
     let settleRaf = 0
+    // ⭐ THE GRIP (2026-09-29 PM, "make sure i can drag them together"): the
+    // badge's press IS a right-rail press — `onRailDown` captures on the
+    // event's own currentTarget, so the badge keeps the pointer and the
+    // rail lights as it does for its own drag. `nudge` is the keyboard's
+    // twin: the same right-anchored width clamp, by px.
+    const seamGrip = {
+      down: (e) => onRailDown(e, 'r'),
+      nudge: (dx) => {
+        const track = trackEl.value
+        const box = boxEl.value
+        if (!track || !box) return
+        const tr = track.getBoundingClientRect()
+        const br = box.getBoundingClientRect()
+        trackW = track.clientWidth
+        if (!trackW) return
+        const l = br.left - tr.left + track.scrollLeft
+        const { minW } = limits()
+        const w = Math.min(Math.max(br.width + dx, minW), Math.max(minW, trackW - GAP - l))
+        leftPct.value = l / trackW
+        widthPct.value = w / trackW
+        persist()
+      }
+    }
     const publish = () => {
       const el = railR.value
       if (!el) return
       const r = el.getBoundingClientRect()
-      anchorSeam(r.width ? r.left + r.width / 2 : null)
+      anchorSeam(r.width ? r.left + r.width / 2 : null, seamGrip)
     }
     const settle = () => {
       const until = performance.now() + 320

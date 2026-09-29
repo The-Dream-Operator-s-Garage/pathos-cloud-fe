@@ -10,7 +10,7 @@
 // container, every drag of its rails, every scroll of the track — and
 // releases it on unmount; `MediaTabsBar` watches it and, while a value
 // stands, slides its seam so the hexagon is centred on it (clamped to the
-// Back/Forward plates like a drag would be) and refuses its own drag. When
+// Back/Forward plates like a drag would be). When
 // the value is null the seam is free again and goes back to the fraction it
 // remembers (`pathos_header_logo_x`).
 //
@@ -19,15 +19,40 @@
 // beside it already set the precedent for "a composable that owns a
 // window-wide fact". Whoever claims it owns it — a second publisher would
 // have to arbitrate here, not in the rail.
+//
+// ⭐ THE GRIP (2026-09-29 PM, user ask: "make sure i can drag them
+// together"): the anchor used to be one-way — the badge followed and refused
+// its own drag. Now the publisher also hands over a GRIP, `{ down, nudge }`:
+// a press on the badge is passed to the rail's own resize gesture (`down`
+// takes the pointerdown event and captures on whatever element it came
+// from), and the arrow keys nudge the rail by px. The badge never moves
+// itself while anchored; the rail moves, publishes, and the badge follows —
+// one gesture, one source of truth, so the two cannot drift apart.
 import { ref } from 'vue'
 
 export const seamAnchor = ref(null)
+let grip = null
 
-export function anchorSeam (x) {
+export function anchorSeam (x, handle) {
   const v = Number.isFinite(x) ? Math.round(x * 10) / 10 : null
+  if (handle) grip = handle
   if (seamAnchor.value !== v) seamAnchor.value = v
 }
 
 export function releaseSeam () {
+  grip = null
   if (seamAnchor.value !== null) seamAnchor.value = null
+}
+
+// true when a publisher took the gesture — the caller must then leave it be.
+export function gripSeam (e) {
+  if (!grip || seamAnchor.value == null) return false
+  grip.down(e)
+  return true
+}
+
+export function nudgeSeam (dx) {
+  if (!grip || seamAnchor.value == null) return false
+  grip.nudge(dx)
+  return true
 }
