@@ -2506,6 +2506,15 @@ $warning:   #F2C037;
   // of a height declaration. Witnessed by `fsck --static`'s `tab-hang`, which
   // sums those two out of that file and compares the total here.
   --media-tabs-park-h: 14px;
+  // ⭐ 2026-09-29 — THE WALL (user ask, phones only: "a thin grey bar on the
+  // right of the screen where [the tabs are] gonna be sticking"): the width
+  // of the strip `MediaTabsBar` stands down the screen's right edge at
+  // ≤600px, the parked tabs turned a quarter-turn clockwise against it. Rim
+  // included (`--media-tabs-rim` on its page side) — 1 + 6 of the tabs'
+  // grey-4 face. Nothing reserves space for it: it rides over the page's
+  // right edge, click-through, the way the top rail's tabs ride over the
+  // page's top.
+  --media-tabs-wall-w: 7px;
 
   // The two edge widgets' expanded-height caps, both presentations. They were
   // minted as a 70/30 split of one 90vh right-edge BAND (2026-07-24 — an even

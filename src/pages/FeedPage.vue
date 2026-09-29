@@ -113,6 +113,7 @@
           />
         </div>
         <div
+          ref="railR"
           class="feed-container__rail feed-container__rail--r"
           :title="railTitle"
           @pointerdown="onRailDown($event, 'r')"
@@ -134,6 +135,7 @@ import { useFlyoutViewersStore } from 'src/stores/flyoutViewers'
 import FriezeBarVertical from 'src/components/layout/FriezeBarVertical.vue'
 import FriezeBarVerticalB from 'src/components/layout/FriezeBarVerticalB.vue'
 import FeedStream from 'src/components/posts/FeedStream.vue'
+import { anchorSeam, releaseSeam } from 'src/composables/useSeamAnchor'
 
 // ── THE CONTAINER'S GEOMETRY (2026-08-18, user ask) ──────────────────────
 // Three numbers and one flag are all this surface's new sizing needs, and
@@ -370,6 +372,37 @@ export default defineComponent({
     // is why this is a ResizeObserver and not a `resize` listener) or shrink
     // the window and a stored fraction can fall under 25vw or push the box
     // into the rail.
+    // ── THE RIGHT RAIL ANCHORS THE TOP RAIL'S BADGE (2026-09-29, user ask:
+    // the hexagon "sticking to the frieze bar below, both aligned and
+    // centered horizontally") ────────────────────────────────────────────
+    // While this page stands, the centre of its right rail is published
+    // through `useSeamAnchor` and `MediaTabsBar` slides its seam onto it.
+    // The rail moves for four reasons and each one publishes: the track
+    // resizes (the ResizeObserver below), the container is dragged wider
+    // or narrower (the two refs), the track scrolls sideways, and the
+    // 0.18s flex/margin transition the container runs AFTER a change —
+    // which is why `settle` measures every frame for a little longer than
+    // the transition lasts instead of once: a single read would catch the
+    // container mid-flight and park the badge where the rail was passing.
+    const railR = ref(null)
+    let settleRaf = 0
+    const publish = () => {
+      const el = railR.value
+      if (!el) return
+      const r = el.getBoundingClientRect()
+      anchorSeam(r.width ? r.left + r.width / 2 : null)
+    }
+    const settle = () => {
+      const until = performance.now() + 320
+      const tick = () => {
+        publish()
+        settleRaf = performance.now() < until ? requestAnimationFrame(tick) : 0
+      }
+      cancelAnimationFrame(settleRaf)
+      settleRaf = requestAnimationFrame(tick)
+    }
+    watch([widthPct, leftPct], settle)
+
     let ro = null
     const reclamp = () => {
       const track = trackEl.value
@@ -393,14 +426,20 @@ export default defineComponent({
 
     onMounted(() => {
       restore()
+      settle()
+      if (trackEl.value) trackEl.value.addEventListener('scroll', publish, { passive: true })
       if (typeof ResizeObserver === 'undefined') return
-      ro = new ResizeObserver(reclamp)
+      ro = new ResizeObserver(() => { reclamp(); settle() })
       if (trackEl.value) ro.observe(trackEl.value)
+      if (boxEl.value) ro.observe(boxEl.value)
     })
 
     onBeforeUnmount(() => {
       if (ro) ro.disconnect()
       ro = null
+      cancelAnimationFrame(settleRaf)
+      if (trackEl.value) trackEl.value.removeEventListener('scroll', publish)
+      releaseSeam()
       teardown()
     })
 
@@ -410,6 +449,7 @@ export default defineComponent({
       onSelect,
       trackEl,
       boxEl,
+      railR,
       boxStyle,
       sizing,
       railTitle,

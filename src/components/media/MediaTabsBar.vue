@@ -209,14 +209,16 @@
       <div
         ref="logo"
         class="media-tabs__logo"
+        :class="{ 'is-anchored': anchored }"
         role="slider"
         aria-label="pathos.cloud — slide the logo along the bar"
         aria-orientation="horizontal"
         :aria-valuemin="0"
         :aria-valuemax="100"
         :aria-valuenow="logoPct"
+        :aria-disabled="anchored ? 'true' : null"
         tabindex="0"
-        title="pathos.cloud — drag along the bar"
+        :title="anchored ? 'pathos.cloud — on the feed\'s rail' : 'pathos.cloud — drag along the bar'"
         @pointerdown="logoDown"
         @pointermove="logoMove"
         @pointerup="logoUp"
@@ -288,6 +290,19 @@
       <span class="media-tabs__name">forward</span>
       <q-icon :name="isPhone ? 'sym_o_arrow_right_alt' : 'arrow_forward'" :size="isPhone ? '15px' : '12px'" class="media-tabs__glyph" />
     </button>
+    <!-- ── ⭐ THE WALL (2026-09-29, user ask, phones only: "rearrange the
+         tabs by rotating them 90 degrees to the right and adding a thin grey
+         bar on the right of the screen where they're gonna be sticking") ──
+         On a phone the parked tabs do not hang under the rail: the row
+         below is turned a quarter-turn clockwise and stood along the
+         screen's RIGHT edge, and this is the strip it sticks to — a thin
+         grey bar from the rail's rim down to the footer's lip, the tabs'
+         own face (`--grey-4`) with a 1px `--grey-6` rim on its page side,
+         the rail's doctrine in a second orientation: ALWAYS MOUNTED, so
+         the tabs' home stands there empty as readily as full. Decorative
+         (`aria-hidden`, click-through) and `display: none` above 600px —
+         the phone block in the style block is the only place it draws. -->
+    <div class="media-tabs__wall" aria-hidden="true" />
     <TransitionGroup ref="rowEl" tag="div" name="mtab" class="media-tabs__row nasalization" appear>
       <button
         v-for="t in tabs"
@@ -310,6 +325,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useFlyoutViewersStore } from 'src/stores/flyoutViewers'
 import FriezeBar from 'src/components/layout/FriezeBar.vue'
 import { useAurora } from 'src/composables/useAurora'
+import { seamAnchor } from 'src/composables/useSeamAnchor'
 import { iconForTarget, titleOfTarget } from 'src/utils/mediaKind'
 
 // ── THE PHONE QUERY (2026-09-26, user ask: on mobile the Back/Forward pair
@@ -388,6 +404,7 @@ export default defineComponent({
     // not jump to the pointer on the first move.
     let drag = null
     const logoDown = (e) => {
+      if (anchored.value) return
       if (e.pointerType === 'mouse' && e.button !== 0) return
       const t = travel()
       drag = { id: e.pointerId, t, dx: e.clientX - (t.left + logoFrac.value * t.span) }
@@ -404,6 +421,7 @@ export default defineComponent({
       remember()
     }
     const logoKey = (e) => {
+      if (anchored.value) return
       const step = e.shiftKey ? 0.1 : 0.02
       const t = travel()
       let next = null
@@ -416,9 +434,37 @@ export default defineComponent({
       logoFrac.value = clamp(next, t.min, t.max)
       remember()
     }
+    // ── ⭐ THE SEAM IS ANCHORED WHILE THE FEED STANDS (2026-09-29, user ask:
+    // the hexagon "sticking to the frieze bar below, both aligned and
+    // centered horizontally") ──────────────────────────────────────────────
+    // `seamAnchor` (composables/useSeamAnchor) is the viewport x where the
+    // feed page's RIGHT rail is centred, or null when no page claims the
+    // seam. While a value stands the seam FOLLOWS it — the fraction that
+    // puts the hexagon's centre on that x, clamped to the plates exactly as
+    // a drag is — and the seam's own drag and keys are refused (the slider
+    // is `aria-disabled`, the cursor plain). The remembered fraction is
+    // untouched by the follow: released, the seam goes back to it. On a
+    // phone the rail's centre sits under the Forward plate (the container
+    // is 95% wide there), so the clamp holds the badge at the plate's edge
+    // — as close as it can get without covering the arrow.
+    const anchored = computed(() => seamAnchor.value != null)
+    const follow = () => {
+      const x = seamAnchor.value
+      if (x == null) return
+      const t = travel()
+      const seamW = logo.value ? logo.value.getBoundingClientRect().width : 24
+      logoFrac.value = clamp((x - seamW / 2 - t.left) / t.span, t.min, t.max)
+    }
+    watch(seamAnchor, (x) => {
+      if (x == null) {
+        const t = travel()
+        logoFrac.value = clamp(recall(), t.min, t.max)
+      } else follow()
+    })
     onMounted(() => {
       const t = travel()
       logoFrac.value = clamp(logoFrac.value, t.min, t.max)
+      follow()
     })
 
     // ── THE PAIR ON A PHONE (2026-09-26, user ask: "on the mobile versions
@@ -549,6 +595,7 @@ export default defineComponent({
       forwardEl,
       logoFrac,
       logoPct,
+      anchored,
       logoDown,
       logoMove,
       logoUp,
@@ -1214,6 +1261,11 @@ export default defineComponent({
 
   &:active { cursor: grabbing; }
   &:focus-visible .media-tabs__hex { --hex-rule: var(--indigo-6, #3f51b5); }
+  // ⭐ 2026-09-29: ANCHORED — the feed page's right rail holds the seam
+  // (composables/useSeamAnchor; the script's `follow`). Nothing to grab:
+  // the handlers refuse the pointer and the keys, and the cursor says so.
+  &.is-anchored,
+  &.is-anchored:active { cursor: default; }
 }
 
 // The badge — centred on the seam, its top on the rail's top edge (`-lead`
@@ -1366,6 +1418,7 @@ export default defineComponent({
 // room for the hover's extra 3px and the press's 1px dip, so neither can
 // raise a stray scrollbar.
 .media-tabs__row {
+  --mtab-gap: 6px; // the slot between tabs — the web (in the tab rule) spans exactly this
   position: absolute;
   top: 100%;
   // ── CLEAR OF THE FORWARD BUTTON (2026-08-31 — the pair moved INTO the
@@ -1386,7 +1439,7 @@ export default defineComponent({
   right: 90px;
   max-width: 50vw;
   display: flex;
-  gap: 6px;
+  gap: var(--mtab-gap);
   padding: 0 9px 5px;
   overflow-x: auto;
   overflow-y: hidden;
@@ -1444,6 +1497,8 @@ export default defineComponent({
   // bottom sweep and the two sides — one continuous edge with the rail's.
   --mtab-rim: var(--media-tabs-rim, 2px);
   --mtab-rim-ink: var(--grey-6, #9e9e9e);
+  --mtab-r: 9px; // the two free corners' radius — the web's geometry below is derived from it and the gap
+  --mtab-web-r: 6px; // THE WEB'S ARC: the one radius tangent to both neighbours' corners — sqrt((gap/2 + r)² + r²) − r = sqrt(12² + 9²) − 9 = 6 for gap 6, r 9. Change the gap or the radius and this must be re-derived
   pointer-events: auto; // the one clickable thing on a click-through band
   position: relative; // the two flares are absolute to this box
   display: inline-flex;
@@ -1484,7 +1539,7 @@ export default defineComponent({
   padding: 0 8px 1px; // ⭐ 09-28: a step tighter (0 10px 2px until then)
   line-height: 1;
   border: var(--mtab-rim) solid var(--mtab-rim-ink); // ⭐ 09-28: ALL FOUR SIDES — the top edge lands on the rail's rim row in the rail's ink (`border-top: none`, "it flows out of the band", until then)
-  border-radius: 0 0 9px 9px;
+  border-radius: 0 0 var(--mtab-r) var(--mtab-r);
   background: var(--mtab-face);
   // Ink --grey-8 (2026-08-17, user ask), from `--indigo-10`. The tab stopped
   // being the one indigo-written thing on a neutral strip when the strip went
@@ -1494,7 +1549,7 @@ export default defineComponent({
   color: var(--grey-8, #616161);
   font-size: 0.7em; // ⭐ 09-28: a step larger (0.62em until then)
   cursor: pointer;
-  transition: background 0.12s, padding-bottom 0.12s, transform 0.12s;
+  transition: background 0.12s, transform 0.12s;
 
   // Hover pulls the tab a little further out of the band — the same
   // "this one will answer" cue the side widgets use, stated as reach —
@@ -1511,7 +1566,7 @@ export default defineComponent({
   // The reach is spelled in the PAD since 2026-08-24, not in a height: with
   // the box content-sized there is no height to grow, and growing the pad
   // grows the same edge by the same +3px the `height: 22px → 25px` did.
-  &:hover { --mtab-face: var(--grey-3, #eeeeee); padding-bottom: 4px; } // ⭐ 09-28: one rung lighter than the face (light-cream on the cream face until then)
+  &:hover { --mtab-face: var(--grey-3, #eeeeee); } // ⭐ 09-28: one rung lighter than the face (light-cream on the cream face until then). ⚠ 09-29: the hover DROP (`padding-bottom: 4px`, the tab reaching 3px lower) is RETIRED — a tab webbed to its neighbours cannot sink alone: the webs are laid to its corners at rest, and a lowered corner tears both tangencies
   &:active { --mtab-face: var(--grey-5, #bdbdbd); transform: translateY(1px); } // ⭐ 09-28: one rung darker (grey-3 until then)
 
   // ⭐ TOMBSTONE — THE FLARES (2026-08-17 → 2026-09-28). Two 9px concave
@@ -1524,6 +1579,53 @@ export default defineComponent({
   // into the bar so one line ran band → flare → tab. Retired when the tab
   // took a TOP EDGE (the note above the rule): a fillet paints the joint
   // over the rim, a separating line paints the rim over the joint.
+
+  // ── ⭐ THE WEB (2026-09-29, user ask: "adding a curve effect on the bottom
+  // part of the tabs so that this curve touches the next tab on the right.
+  // This way they look like they all belong together") ──────────────────
+  // Between every tab and the one to its right, the gap is FILLED — the
+  // tabs' own face, from the rail's rim row down — and its foot is a
+  // concave arc TANGENT to both tabs' rounded corners, so the row's bottom
+  // edge is one smooth line: corner ⌣ web ⌢ corner ⌣ … the way a row of
+  // hanging tiles reads when a hem joins their feet. The rim runs the whole
+  // way — the tab's own around its corner, the web's 1px along its arc,
+  // and a top row of ink where the web meets the rail's rim, so that line
+  // is not broken across the gap either. The two vertical rims between
+  // neighbours stay: they are what still says "two tabs" inside one strip.
+  // GEOMETRY (box coordinates, the box being gap + 2r wide and the tab's
+  // full outer height, its top on the tab's outer top, its foot on the
+  // tab's outer bottom): the left tab's corner circle is centred at
+  // (0, H − r), the right tab's at (W, H − r), the arc's at (W/2, H) with
+  // radius --mtab-web-r; tangency needs (W/2)² + r² = (r + ρ)² — see the
+  // dial above. The DRAWING is two layers: the background is the arc's
+  // rim (a radial ring 1px outside ρ) then the face; the MASK cuts out the
+  // three discs — the two corners (which the tabs draw themselves) and the
+  // air under the arc — with `intersect`, so the web never paints a pixel
+  // that belongs to a tab. Half-pixel fades on every edge for
+  // anti-aliasing. Prefixed twins for WebKit's older composite keywords.
+  &:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    top: calc(-1 * var(--mtab-rim));
+    bottom: calc(-1 * var(--mtab-rim));
+    left: calc(100% + var(--mtab-rim) - var(--mtab-r));
+    width: calc(var(--mtab-gap) + 2 * var(--mtab-r));
+    box-sizing: border-box;
+    pointer-events: none;
+    border-top: var(--mtab-rim) solid var(--mtab-rim-ink);
+    background:
+      radial-gradient(circle at 50% 100%, var(--mtab-rim-ink) calc(var(--mtab-web-r) + var(--mtab-rim) - 0.4px), var(--mtab-face) calc(var(--mtab-web-r) + var(--mtab-rim) + 0.4px));
+    -webkit-mask-image:
+      radial-gradient(circle at 0 calc(100% - var(--mtab-r)), transparent calc(var(--mtab-r) - 0.4px), #000 calc(var(--mtab-r) + 0.4px)),
+      radial-gradient(circle at 100% calc(100% - var(--mtab-r)), transparent calc(var(--mtab-r) - 0.4px), #000 calc(var(--mtab-r) + 0.4px)),
+      radial-gradient(circle at 50% 100%, transparent calc(var(--mtab-web-r) - 0.4px), #000 calc(var(--mtab-web-r) + 0.4px));
+    -webkit-mask-composite: source-in;
+    mask-image:
+      radial-gradient(circle at 0 calc(100% - var(--mtab-r)), transparent calc(var(--mtab-r) - 0.4px), #000 calc(var(--mtab-r) + 0.4px)),
+      radial-gradient(circle at 100% calc(100% - var(--mtab-r)), transparent calc(var(--mtab-r) - 0.4px), #000 calc(var(--mtab-r) + 0.4px)),
+      radial-gradient(circle at 50% 100%, transparent calc(var(--mtab-web-r) - 0.4px), #000 calc(var(--mtab-web-r) + 0.4px));
+    mask-composite: intersect;
+  }
 }
 
 .media-tabs__glyph {
@@ -1622,6 +1724,8 @@ export default defineComponent({
 // static `right: 90px` (its note: "if the Forward block ever grows … this
 // moves with it") — it shrinks with it too: 40px = the 33px block + the
 // same daylight-over-the-tab-gap reading the desktop number has.
+.media-tabs__wall { display: none; } // phones only — the block below draws it; this rule must stay ABOVE it (equal specificity, source order decides)
+
 @media (max-width: 600px) {
   .media-tabs__back,
   .media-tabs__forward {
@@ -1633,8 +1737,42 @@ export default defineComponent({
     display: none;
   }
 
+  // ── ⭐ THE TABS STAND ON THE RIGHT EDGE (2026-09-29, user ask: "rotate
+  // them 90 degrees to the right and add a thin grey bar on the right of
+  // the screen where they're gonna be sticking") ──────────────────────────
+  // THE WALL: a strip from the rail's rim to the footer's lip down the
+  // screen's right edge — the tabs' face with their rim on its page side.
+  // THE ROW: the same row, turned a quarter-turn CLOCKWISE by a transform
+  // about its top-left corner, so its top edge (where the tabs' top rims
+  // are) runs DOWN the wall and its tabs hang LEFT into the page with
+  // their rounded ends and their webs, and the names read top-to-bottom
+  // like a spine. Layout never learns of the turn: the row is laid out
+  // flat (`left` puts its corner one rim in from the wall's edge, so the
+  // tabs' top rim is the wall's rim; `max-width` is the wall's height),
+  // scrolls on its own x — a finger dragging up the wall — and every
+  // desktop law inside it (the gap, the webs, the enter slide from the
+  // rail = from the wall here) turns with it for free. (`right: 40px`,
+  // the phone's Forward plate, was the row's only phone rule until then.)
+  .media-tabs__wall {
+    display: block;
+    position: fixed;
+    top: var(--media-tabs-h);
+    right: 0;
+    bottom: var(--nav-footer-h);
+    width: var(--media-tabs-wall-w);
+    box-sizing: border-box;
+    background: var(--grey-4, #e0e0e0);
+    border-left: var(--media-tabs-rim) solid var(--grey-6, #9e9e9e);
+    pointer-events: none;
+  }
   .media-tabs__row {
-    right: 40px;
+    position: fixed;
+    top: var(--media-tabs-h);
+    right: auto;
+    left: calc(100vw - var(--media-tabs-wall-w) + var(--media-tabs-rim));
+    max-width: calc(100vh - var(--media-tabs-h) - var(--nav-footer-h));
+    transform-origin: 0 0;
+    transform: rotate(90deg);
   }
 }
 
@@ -1643,6 +1781,7 @@ export default defineComponent({
 // back into it when restored; .mtab-move eases the row closing ranks. A
 // leaving tab keeps its flex slot for its 120ms — absolute repositioning
 // would snap it to the row's start, a worse artifact than the brief hold.
+
 .mtab-enter-active { transition: opacity 0.16s ease, transform 0.16s ease; }
 .mtab-leave-active { transition: opacity 0.12s ease, transform 0.12s ease; }
 .mtab-enter-from,
