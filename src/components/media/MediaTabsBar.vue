@@ -1514,30 +1514,6 @@ export default defineComponent({
   &:hover { --mtab-face: var(--grey-3, #eeeeee); padding-bottom: 4px; } // ⭐ 09-28: one rung lighter than the face (light-cream on the cream face until then)
   &:active { --mtab-face: var(--grey-5, #bdbdbd); transform: translateY(1px); } // ⭐ 09-28: one rung darker (grey-3 until then)
 
-  // ── THE FLARES ──
-  // A concave fillet at each top corner, so the tab does not butt into the
-  // band at a right angle but SWEEPS out of it — the bell curve. Each is a
-  // 9px square (plus 1px of overlap INTO the tab, which covers the stub of
-  // side border that would otherwise cross the sweep) filled with the tab's
-  // face except a quarter-disc carved out of the corner nearest the tab.
-  // The two extra colour stops draw the rim along that arc IN THE RIM'S OWN
-  // TONE — they are the fillet's half of the one continuous line, so they
-  // move whenever the border does (grey-6 → indigo-4, 2026-08-06) or the
-  // edge changes colour halfway through its sweep — and the arc
-  // meets the tab's own border exactly where its tangent turns vertical, so
-  // one continuous line runs band → flare → tab.
-  //
-  // Radial gradients, not borders: an INVERTED radius has no border-radius
-  // spelling. `pointer-events: none` keeps the flares out of the hit box —
-  // they are 9px of paint hanging over the crown strip.
-  // Both dimensions and every stop below follow `--mtab-rim` (2026-08-17), so
-  // the fillet's half of the line is the same weight as the tab's border and
-  // the band's rim. The WIDTH is 9px of sweep plus the rim's own pixels: that
-  // overlap lies over the stub of side border which would otherwise cross the
-  // sweep, and a 1px overlap stopped covering it the moment the border
-  // doubled. The arc thickens INWARD — its outer boundary stays at 8.9/9.1px,
-  // where the face begins and the tab's own edge stands — so the sweep still
-  // lands exactly where it did and only the line drawn along it got heavier.
   // ⭐ TOMBSTONE — THE FLARES (2026-08-17 → 2026-09-28). Two 9px concave
   // fillets, `::before` at `left: -9px` and `::after` at `right: -9px`,
   // `top: 0`, `width: calc(9px + var(--mtab-rim))`, `height: 9px`, each a
@@ -1548,22 +1524,6 @@ export default defineComponent({
   // into the bar so one line ran band → flare → tab. Retired when the tab
   // took a TOP EDGE (the note above the rule): a fillet paints the joint
   // over the rim, a separating line paints the rim over the joint.
-
-  &::before {
-    left: -9px;
-    background: radial-gradient(circle at 0 100%,
-      transparent calc(9px - var(--mtab-rim) - 0.1px),
-      var(--mtab-rim-ink) calc(9px - var(--mtab-rim) + 0.1px),
-      var(--mtab-rim-ink) 8.9px, var(--mtab-face) 9.1px);
-  }
-
-  &::after {
-    right: -9px;
-    background: radial-gradient(circle at 100% 100%,
-      transparent calc(9px - var(--mtab-rim) - 0.1px),
-      var(--mtab-rim-ink) calc(9px - var(--mtab-rim) + 0.1px),
-      var(--mtab-rim-ink) 8.9px, var(--mtab-face) 9.1px);
-  }
 }
 
 .media-tabs__glyph {
