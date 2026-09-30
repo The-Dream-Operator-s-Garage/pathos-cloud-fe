@@ -1610,9 +1610,33 @@ export default defineComponent({
   // air under the arc — with `intersect`, so the web never paints a pixel
   // that belongs to a tab. Half-pixel fades on every edge for
   // anti-aliasing. Prefixed twins for WebKit's older composite keywords.
+  // ── ⭐ THE WEB FITS THE TABS (2026-09-29 PM, user ask: "the membrane behind
+  // the flyout window tabs … doesn't match the tab's shape. there is like a
+  // square edge … smoothing out the edges with the tab edges. Also … a thin
+  // border on the top border that touches the top nav bar") ──────────────
+  // The box-minus-three-discs web above painted face into the box's two
+  // bottom corners — the AIR under each tab's rounded corner, outside both
+  // the corner disc and the arc disc — so every webbed corner read square;
+  // and the neighbours' inner side rims showed through as a square channel
+  // (the next tab, a later sibling, painted its left rim over the web). The
+  // true fillet between three tangent circles is the TRIANGLE of their
+  // centres — (0, H−r), (W, H−r), (W/2, H) — minus the discs; its two slant
+  // sides pass exactly through the tangent points, so the tab's rim hands
+  // off to the web's arc ring there and nowhere else. So: (1) `clip-path`
+  // = that triangle ∪ the strip above it, the strip only rim-to-rim wide
+  // (x ∈ [r − rim, W − r + rim]) so the web never sits on a tab's face or
+  // writing; (2) the corner discs shrink to `r − rim − 0.8` (the extra 0.8 swallows the rim's anti-aliased inner edge, which otherwise ghosts as a faint arc) — the tabs' inner
+  // rims (the straight side and the corner arc down to the tangent point)
+  // are INSIDE the membrane now and get painted over in face; (3) `z-index:
+  // 1` so the web paints over the right-hand tab too. (4) THE TOP LINE is
+  // the web's own `border-top` in the rail's ink, on the rail's rim row
+  // (the row hangs off the padding box, so it lands on it — measured
+  // `9e` across the whole gap), clipped with the strip to the rims so it
+  // joins the two tabs' top borders edge to edge.
   &:not(:last-child)::after {
     content: '';
     position: absolute;
+    z-index: 1;
     top: calc(-1 * var(--mtab-rim));
     bottom: calc(-1 * var(--mtab-rim));
     left: calc(100% + var(--mtab-rim) - var(--mtab-r));
@@ -1622,14 +1646,23 @@ export default defineComponent({
     border-top: var(--mtab-rim) solid var(--mtab-rim-ink);
     background:
       radial-gradient(circle at 50% 100%, var(--mtab-rim-ink) calc(var(--mtab-web-r) + var(--mtab-rim) - 0.4px), var(--mtab-face) calc(var(--mtab-web-r) + var(--mtab-rim) + 0.4px));
+    clip-path: polygon(
+      calc(var(--mtab-r) - var(--mtab-rim)) 0,
+      calc(100% - var(--mtab-r) + var(--mtab-rim)) 0,
+      calc(100% - var(--mtab-r) + var(--mtab-rim)) calc(100% - var(--mtab-r)),
+      100% calc(100% - var(--mtab-r)),
+      50% 100%,
+      0 calc(100% - var(--mtab-r)),
+      calc(var(--mtab-r) - var(--mtab-rim)) calc(100% - var(--mtab-r))
+    );
     -webkit-mask-image:
-      radial-gradient(circle at 0 calc(100% - var(--mtab-r)), transparent calc(var(--mtab-r) - 0.4px), #000 calc(var(--mtab-r) + 0.4px)),
-      radial-gradient(circle at 100% calc(100% - var(--mtab-r)), transparent calc(var(--mtab-r) - 0.4px), #000 calc(var(--mtab-r) + 0.4px)),
+      radial-gradient(circle at 0 calc(100% - var(--mtab-r)), transparent calc(var(--mtab-r) - var(--mtab-rim) - 1.2px), #000 calc(var(--mtab-r) - var(--mtab-rim) - 0.4px)),
+      radial-gradient(circle at 100% calc(100% - var(--mtab-r)), transparent calc(var(--mtab-r) - var(--mtab-rim) - 1.2px), #000 calc(var(--mtab-r) - var(--mtab-rim) - 0.4px)),
       radial-gradient(circle at 50% 100%, transparent calc(var(--mtab-web-r) - 0.4px), #000 calc(var(--mtab-web-r) + 0.4px));
     -webkit-mask-composite: source-in;
     mask-image:
-      radial-gradient(circle at 0 calc(100% - var(--mtab-r)), transparent calc(var(--mtab-r) - 0.4px), #000 calc(var(--mtab-r) + 0.4px)),
-      radial-gradient(circle at 100% calc(100% - var(--mtab-r)), transparent calc(var(--mtab-r) - 0.4px), #000 calc(var(--mtab-r) + 0.4px)),
+      radial-gradient(circle at 0 calc(100% - var(--mtab-r)), transparent calc(var(--mtab-r) - var(--mtab-rim) - 1.2px), #000 calc(var(--mtab-r) - var(--mtab-rim) - 0.4px)),
+      radial-gradient(circle at 100% calc(100% - var(--mtab-r)), transparent calc(var(--mtab-r) - var(--mtab-rim) - 1.2px), #000 calc(var(--mtab-r) - var(--mtab-rim) - 0.4px)),
       radial-gradient(circle at 50% 100%, transparent calc(var(--mtab-web-r) - 0.4px), #000 calc(var(--mtab-web-r) + 0.4px));
     mask-composite: intersect;
   }
