@@ -3,19 +3,36 @@
        duplicated styles in PostMini/PathMini so EntityMini, NodeMini,
        LabelMini reuse the same panel surface. Each Mini fills the named
        slots; the panel handles spacing, borders, hover state, and the
-       optional router-link wrapper. -->
+       optional router-link wrapper.
+
+       ⭐ 2026-09-30 — THE FAMILY BASIS (user ask: "take as layout the node
+       mini viewer … refactor the whole family … use the nano pills icons and
+       coloring … make them all the same background color as the node viewer
+       … slightly transparent and blurry"). Three things every Mini used to
+       restate now live here:
+       · THE GLASS — one translucent `--mini-coat` on the article (+ a
+         backdrop blur on the top-level panel), so a panel nested in a panel
+         composites one layer darker. The zones inside (head / body / foot)
+         paint NOTHING by default — a zone that also painted the coat would
+         lay the glass twice and read two levels deep;
+       · THE ROW — `#head` is a ROW of hairline-split zones (`MiniHead`), so
+         the row reset every own-head Mini wrote is the default here;
+       · THE KIND — `kind` hands the nano pill's two colours to the whole
+         panel as `--mini-accent` (the pill's glyph) and `--mini-ink` (its
+         text, Material 900), read by the head, the foot and the body. -->
   <component
     :is="rootTag"
     :to="to"
     class="mini-panel-link"
     :data-nav-focus="typeof to === 'string' ? to : null"
   >
-    <article class="mini-panel" :class="{ 'mini-panel--hover': !!to }">
+    <article class="mini-panel" :class="panelClass" :style="kindStyle">
       <!-- The default head is a STACK of zones (title / chips / labels /
            hash), one per line. A Mini that composes its own header ROW
            passes #head instead and takes the whole zone — the panel keeps
-           only the head's tone and its divider. NodeMini is the one caller
-           (icon | title | chip | open, split by vertical hairlines). -->
+           only the head's tone and its divider. Every family Mini does, via
+           `MiniHead` (chip+copy │ name │ switches │ open); the stack is kept
+           for the plain list rows that still use it. -->
       <header v-if="$slots.head" class="mini-panel__head mini-panel__head--own">
         <slot name="head" />
       </header>
@@ -55,6 +72,7 @@
 
 <script>
 import { defineComponent, computed } from 'vue'
+import { kindFor } from 'src/utils/kinds'
 
 export default defineComponent({
   name: 'MiniPanel',
@@ -64,11 +82,24 @@ export default defineComponent({
     // The body slot holds something whose SIZE IS ITS MEANING — a picture,
     // a player, an embedded frame — rather than a few lines of excerpt.
     // Drops the 110px cap and the scroller; see the note on the style.
-    bodyFit: { type: Boolean, default: false }
+    bodyFit: { type: Boolean, default: false },
+    // The element kind this panel shows ('nodes', 'posts', … — a kinds.js
+    // prefix or slug). Its two nano-pill colours ride the article as
+    // `--mini-accent` / `--mini-ink`; empty = the panel's slate defaults.
+    kind: { type: String, default: '' }
   },
   setup (props) {
     const rootTag = computed(() => props.to ? 'router-link' : 'div')
-    return { rootTag }
+    const meta = computed(() => (props.kind ? kindFor(props.kind) : null))
+    const kindStyle = computed(() => (meta.value
+      ? { '--mini-accent': meta.value.color, '--mini-ink': meta.value.ink }
+      : null))
+    const panelClass = computed(() => ({
+      'mini-panel--hover': !!props.to,
+      'mini-panel--family': !!meta.value,
+      ['mini-panel--' + (meta.value?.kind || '')]: !!meta.value
+    }))
+    return { rootTag, kindStyle, panelClass }
   }
 })
 </script>
@@ -102,9 +133,28 @@ export default defineComponent({
 }
 
 .mini-panel {
-  --panel-chrome: #f4f7fb;
-  --panel-body:   #ffffff;
-  --panel-rule:   #e2e6ed;
+  // ── THE GLASS (2026-09-30) ──────────────────────────────────────────────
+  // ONE coat, on the article, for every kind: `--mini-coat` (_tokens.scss —
+  // grey-10 at 8%, the tone and the ratio are argued there). `--panel-coat`
+  // is the seam a Mini may re-point; `--panel-chrome` / `--panel-body` paint
+  // the ZONES and are transparent now, because a zone painting the same
+  // translucent coat over the article's would double it (head and body
+  // reading one nesting level deeper than the panel they belong to). Before
+  // this pass the chrome was `#f4f7fb` and the body white — the two-tone
+  // panel NodeMini, PathMini and SkeletonMini each flattened by writing both
+  // dials into their own colorway.
+  --panel-coat:   var(--mini-coat, rgba(33, 33, 33, 0.08));
+  --panel-chrome: transparent;
+  --panel-body:   transparent;
+  // THE LINES — the same tone at a fixed share, so a rule is always one step
+  // darker than the glass it sits on, at any depth (22% ≈ grey-5 over one
+  // layer: NodeMini's resting line; the hover's 58% ≈ grey-7, its hover). The
+  // header's zone hairlines (MiniHead) read `--panel-rule` too, so the pointer
+  // repaints the WHOLE line system by writing one property — NodeMini's
+  // 2026-07-26 rule, now the family's. (Coral 45% was the family hover until
+  // this pass; NodeMini had overridden it since July.)
+  --panel-rule:   var(--mini-rule, rgba(33, 33, 33, 0.22));
+  --panel-rule-hover: var(--mini-rule-hover, rgba(33, 33, 33, 0.58));
   --panel-ink:    #2C3D4E;
   --panel-ink-1:  #1F2A38;
   --panel-ink-2:  #5b6c82;
@@ -112,7 +162,15 @@ export default defineComponent({
 
   display: flex;
   flex-direction: column;
-  background: var(--panel-body);
+  // Every panel starts its own text world: a family body centres what it
+  // shows (below), and `text-align` inherits — a panel nested in that body
+  // would otherwise arrive centred.
+  text-align: left;
+  background: var(--panel-coat);
+  // "…and blurry." The frost is for what passes BEHIND a panel; see the
+  // nested rule below for why only the top-level panel draws it.
+  -webkit-backdrop-filter: blur(var(--mini-blur, 6px));
+  backdrop-filter: blur(var(--mini-blur, 6px));
   border: 1px solid var(--panel-rule);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-card);
@@ -122,8 +180,19 @@ export default defineComponent({
   & > * + * { border-top: 1px solid var(--panel-rule); }
 }
 
+// A NESTED panel draws no blur. In flow, what stands behind it is its host
+// panel's own flat glass — a blur of a flat colour is that colour — and every
+// `backdrop-filter` is a compositing layer of its own (the path-viewer fixture
+// stacks ~90 panels four deep). The coat still composites, which is the whole
+// darkening feature; only the no-op frost is skipped.
+.mini-panel .mini-panel {
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
 .mini-panel--hover:hover {
-  border-color: rgba(var(--coral-rgb), 0.45);
+  --panel-rule: var(--panel-rule-hover);
+  border-color: var(--panel-rule-hover);
   box-shadow: 0 4px 14px rgba(var(--ink-rgb), 0.10);
   transform: translateY(-1px);
 }
@@ -134,6 +203,21 @@ export default defineComponent({
   display: flex;
   flex-direction: column;
   gap: 4px;
+}
+
+// THE ROW (2026-09-30 — the family default). An own head is a ROW of zones
+// divided by FULL-HEIGHT hairlines, so the zones carry the padding and the
+// header none (a padded header insets the rules short of both edges);
+// `align-items: stretch` runs each rule the band's whole height. The
+// `flex-direction` and `gap` are RESETS of the stack above — inheriting them
+// stacked the zones into a tower, the gotcha NodeMini paid on 2026-08-23 and
+// SkeletonMini again on 09-17, which every own-head Mini then restated.
+.mini-panel__head--own {
+  flex-direction: row;
+  align-items: stretch;
+  gap: 0;
+  padding: 0;
+  min-width: 0;
 }
 
 .mini-panel__title {
@@ -194,6 +278,20 @@ export default defineComponent({
 .mini-panel__body--fit {
   max-height: none;
   overflow: visible;
+}
+
+// THE FAMILY BODY (2026-09-30) — a panel that states its `kind` is a member
+// of the homogenized family and takes NodeMini's body metrics (the
+// 2026-08-23 density ask): no side padding — media meet the border, prose
+// brings its own 4px — 2px of air off the divider, and the showcased item
+// CENTRED (text bodies opt back out to `justify`). The legacy `7px 10px`
+// above stays for panels that declare no kind (SkeletonMini's grid, the
+// label-usage list rows). A CHILD chain, so a family panel never re-pads a
+// panel nested in its body.
+.mini-panel--family > .mini-panel__body {
+  padding: 2px 0;
+  min-height: 0;
+  text-align: center;
 }
 
 .mini-panel__foot {

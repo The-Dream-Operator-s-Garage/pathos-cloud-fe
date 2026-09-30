@@ -9,6 +9,11 @@
        summary before that). Secrets render SecretMini since 2026-09-21
        (the element window's face); unresolvable refs degrade to an
        InfoChip, locked ones to the LockedChip.
+       ⭐ 2026-09-30 (the family map): every one of the nine kinds reaches
+       its Mini by ADDRESS (+ the `posts/` and `files/` aliases) and by
+       PRE-RESOLVED row (+ moment / link / secret, which the path walk now
+       resolves) — and every Mini wears the one basis (MiniPanel's glass,
+       MiniHead's row, MiniFoot's line).
        Used by post content-element rails, by MarkdownBody's inline
        reference rendering on post surfaces, and by the skeleton
        instance viewers' populated field rows. -->
@@ -97,7 +102,7 @@ export default defineComponent({
       // Reconstruct a chip address from a pre-resolved target row.
       const el = props.element
       if (!el) return ''
-      const row = el.node || el.label || el.path || el.skeleton || el.entity
+      const row = el.node || el.label || el.path || el.skeleton || el.entity || el.moment || el.link || el.secret
       return row?.path || ''
     })
 
@@ -112,6 +117,13 @@ export default defineComponent({
       if (el.kind === 'node' && el.node) return { kind: 'node', node: el.node }
       if (el.kind === 'label' && el.label) return { kind: 'label', label: el.label }
       if (el.kind === 'entity' && el.entity) return { kind: 'entity', entity: el.entity }
+      // (2026-09-30 — the family map's dispatch gaps) a walk's MOMENT, LINK
+      // and SECRET targets carry their rows since pathService's resolver
+      // learnt them; before, a path member of those kinds fell through to
+      // the InfoChip even in the lane's enriched mode.
+      if (el.kind === 'moment' && el.moment) return { kind: 'moment', moment: el.moment, human: el.human || null }
+      if (el.kind === 'link' && el.link) return { kind: 'link', link: el.link, target: el.target || null, parentPath: el.parentPath || null }
+      if (el.kind === 'secret' && el.secret) return { kind: 'secret', secret: el.secret, owner: el.owner || null, receiver: el.receiver || null }
       if (el.kind === 'path' && el.path) {
         // Fetch the walked steps so the Mini can render its element strip.
         try {
@@ -134,17 +146,20 @@ export default defineComponent({
         const r = await postService.get(id)
         if (r.success && r.post) {
           const p = r.post
+          // The read carries no author object and no votes (it never did —
+          // the old PostMini printed ↑0 ↓0 on every quoted post); the new
+          // foot states the OWNER (resolved by id through the entity cache)
+          // and the content node's birth, which the read does carry.
           return {
             kind: 'post',
             post: {
               id: p.id,
               path: p.path,
               title: p.title,
-              excerpt: (bodyOf(p.node) || '').slice(0, 200),
-              created_at: p.created_at,
-              forked_from_id: p.forked_from_id,
-              author: null,
-              votes: {}
+              excerpt: (bodyOf(p.node) || '').slice(0, 800),
+              owner_id: p.owner_id ?? null,
+              created_at: p.created_at || p.node?.createdAt || null,
+              forked_from_id: p.forked_from_id ?? null
             }
           }
         }
@@ -165,6 +180,11 @@ export default defineComponent({
             const r = await pathService.byHash(ref_.hash, 'forward')
             return r.success ? { kind: 'path', path: { ...r.path, author: r.owner }, steps: r.steps } : { kind: null }
           }
+          // A POST is a skeleton by address; a `posts/<hash>` ref (the pill's
+          // own spelling, and what an author copies off a post chip) resolves
+          // exactly as its `skeletons/<hash>` twin — /refs/summary maps the
+          // prefix itself (2026-09-30; it fell through to the InfoChip).
+          case 'posts':
           case 'skeletons': {
             const s = await refService.summary(addr)
             // The locked stub CARRIES an id (the hash stays visible by
@@ -183,8 +203,11 @@ export default defineComponent({
             const r = await labelService.get(s.summary.id)
             return r.success ? { kind: 'label', label: r.label } : { kind: null }
           }
+          // `files/<hash>` is the entity REGISTRY's alias (kinds.js) — the
+          // same entity, the same Mini.
+          case 'files':
           case 'entities': {
-            const s = await refService.summary(addr)
+            const s = await refService.summary(`entities/${ref_.hash}`)
             if (!s.success || s.summary?.id == null) return { kind: null }
             const r = await entityService.get(s.summary.id)
             return r.success ? { kind: 'entity', entity: r.entity } : { kind: null }

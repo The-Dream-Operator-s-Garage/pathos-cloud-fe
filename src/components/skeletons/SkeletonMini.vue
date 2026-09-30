@@ -570,29 +570,28 @@ export default defineComponent({
   --sm-ink: var(--skel-mini-head-ink, var(--skeleton-ink, #5d4037));
   --sm-rule: var(--skel-mini-rule, var(--skeleton-rule, #bcaaa4));
 
-  :deep(.mini-panel) {
-    --panel-chrome: var(--skel-mini-coat, var(--skeleton-coat, #efebe9));
-    --panel-body: var(--skel-mini-coat, var(--skeleton-coat, #efebe9));
+  // ⭐ 2026-09-30 — THE FAMILY GLASS, AND NO MORE LEAK (user ask: "make them
+  // all the same background color as the node viewer … slightly transparent
+  // and blurry"; this viewer's LAYOUT was excluded from that pass and is
+  // untouched). Two changes, both to the coat:
+  // · the COAT is the family's `--mini-coat` (MiniPanel's `--panel-coat`,
+  //   through this viewer's own `--skel-mini-coat` dial) instead of the
+  //   brown-1 `--skeleton-coat` painted on the chrome and the body — and the
+  //   GRID inside goes transparent over it (`.skel-mini__scroll` below), or
+  //   its own brown-1 would cover the glass and stop the darkening a nested
+  //   skeleton is meant to show. The brown stays where the nano pill puts
+  //   it: the lines, the keys' column, the ink, the SCHEMA badge, the mitre;
+  // · the selectors are a CHILD chain. `:deep(.mini-panel)` matched every
+  //   panel BELOW this one too, so a node, a path or a post in a grid cell
+  //   wore the skeleton's brown coat and rules — one of the reasons embedded
+  //   viewers looked inconsistent. (The row reset that stood here is
+  //   MiniPanel's default now.)
+  > :deep(.mini-panel-link > .mini-panel) {
+    --panel-coat: var(--skel-mini-coat, var(--mini-coat, rgba(33, 33, 33, 0.08)));
     --panel-rule: var(--sm-rule);
   }
-  :deep(.mini-panel--hover):hover {
+  > :deep(.mini-panel-link > .mini-panel--hover):hover {
     --panel-rule: var(--skel-mini-rule-hover, var(--skeleton-hover, #795548));
-  }
-  // The header is one ROW of zones, split by full-height vertical
-  // hairlines — which is why the zone padding lives on the zones and not
-  // on the header (a padded header would inset the rules).
-  // `flex-direction` and `gap` are RESETS, not decoration (2026-09-17):
-  // MiniPanel's default head is a flex COLUMN of zones with a 4px gap, and
-  // an override that only said `display: flex` inherited both — the chip,
-  // the name, the lock and the corner stacked into a tower, one per line.
-  // NodeMini paid for this exact lesson on 2026-08-23 (gotchas.md).
-  :deep(.mini-panel__head--own) {
-    display: flex;
-    flex-direction: row;
-    align-items: stretch;
-    gap: 0;
-    min-width: 0;
-    padding: 0;
   }
 }
 
@@ -748,8 +747,23 @@ export default defineComponent({
 // the custom property inherits, and a cap inside a cap is a scrollbar
 // inside a scrollbar (2026-09-17).
 .skel-mini__scroll {
+  // The grid lies on the panel's glass (2026-09-30): its own coat dial goes
+  // transparent inside a mini, so the family coat shows through the cells
+  // and a skeleton nested in one composites a level darker. The keys'
+  // column keeps its brown-2; a bare grid outside a mini keeps brown-1.
+  --skel-table-coat: transparent;
   max-height: var(--skel-mini-max-h, none);
   overflow: auto;
+}
+// …and a NESTED grid too. SkeletonTable washes a nested grid in 35% WHITE
+// (`.skel-table.is-nested`, a lighter well inside the brown parent grid) —
+// inside a mini that wash LIGHTENS every skeleton nested in another, the
+// exact opposite of the glass's darkening (measured 2026-09-30: a depth-2
+// skeleton read lighter than its depth-1 host). The nested mini already
+// wears its own glass; its grid lies on it bare. Four classes, to outrank
+// the table's own three.
+.skel-mini__scroll > :deep(.skel-table.is-nested) {
+  background: transparent;
 }
 .skel-mini.is-nested .skel-mini__scroll {
   max-height: none;

@@ -30,10 +30,17 @@
        mini when it flips (the grid's toggle).
        Self-resolving: given the row alone (`path`) it walks the steps
        itself (`GET /paths/by-hash`, forward); given `steps` it draws.
-       COLORWAY: the `--path-*` ladder (_tokens.scss) — lime-1 coat, lime-3
-       hairlines, lime-9 hover + rail, lime-10 head ink; the chip's own
-       glyph/ink off kinds.js. Dials `--path-mini-coat/-rule/-rule-hover/
-       -head-ink` re-tone one tree, NodeMini's pattern. -->
+       ⭐ 2026-09-30 — ON THE FAMILY BASIS (user ask: "the post and path mini
+       viewers look odd compared to the node and skeleton mini viewers …
+       take as layout the node mini viewer … use the nano pills icons and
+       coloring … the same background color as the node viewer"). The head
+       is `MiniHead` (the two switches are its switch zones, the corner its
+       door), the foot `MiniFoot`, the coat the family glass — the lime-1
+       coat and lime-3 hairlines are gone (they also LEAKED: `:deep(.mini-
+       panel)` repainted every mini nested in the lane lime). What stays
+       lime is what the nano pill says: the ink (`--mini-ink` = kinds.js
+       paths.ink, lime-deep), the glyph tone (lime-10) and the lane's BONDS
+       — the rail is the path's own accent. -->
   <div v-if="loading && !row" class="path-mini__loading">
     <q-spinner size="14px" color="primary" />
   </div>
@@ -43,61 +50,20 @@
     class="path-mini"
     :class="{ 'is-nested': depth > 0, 'is-horizontal': shownLayout === 'horizontal', 'mode-reference': shownMode === 'reference' }"
   >
-    <MiniPanel body-fit>
+    <MiniPanel kind="paths" body-fit>
       <template #head>
-        <!-- THE ADDRESS CHIP + ITS COPY: what it is first (NodeMini's
-             reading). The pill is the chips' collapsed state; the corner is
-             this panel's door. -->
-        <span class="path-mini__zone path-mini__zone--chip">
-          <PathMicro :id="row.id" :path="row.path" :integrity="row.integrity || null" collapsed />
-          <button
-            type="button"
-            class="path-mini__copy"
-            :class="{ 'is-copied': copied }"
-            :title="copied ? 'hash copied' : 'copy the full path hash'"
-            @click.stop.prevent="copyHash"
-          >
-            <q-icon :name="copied ? 'check' : 'content_copy'" size="10px" />
-          </button>
-        </span>
-
-        <!-- THE NAME — the one elastic zone -->
-        <span class="path-mini__zone path-mini__zone--name" :title="nameTitle">
-          <span class="path-mini__name-text">{{ pathLabel }}</span>
-        </span>
-
-        <!-- THE MODE SWITCH — wears the glyph of the mode it OFFERS -->
-        <button
-          type="button"
-          class="path-mini__zone path-mini__zone--mode"
-          :class="{ 'is-reference': shownMode === 'reference' }"
-          :title="modeTitle"
-          @click.stop.prevent="toggleMode"
-        >
-          <q-icon :name="shownMode === 'enriched' ? 'short_text' : 'view_agenda'" size="10px" />
-        </button>
-
-        <!-- THE LAYOUT SWITCH — wears the glyph of the layout it OFFERS
-             (SkeletonMini's switch, verbatim) -->
-        <button
-          type="button"
-          class="path-mini__zone path-mini__zone--layout"
-          :class="{ 'is-horizontal': shownLayout === 'horizontal' }"
-          :title="layoutTitle"
-          @click.stop.prevent="toggleLayout"
-        >
-          <q-icon :name="shownLayout === 'horizontal' ? 'swap_vert' : 'swap_horiz'" size="10px" />
-        </button>
-
-        <!-- THE CORNER: this path in its own floating window -->
-        <button
-          type="button"
-          class="path-mini__zone path-mini__zone--open"
-          title="open in the flyout viewer"
-          @click.stop.prevent="openViewer"
-        >
-          <q-icon name="open_in_full" size="10px" />
-        </button>
+        <!-- chip+copy │ name │ MODE │ LAYOUT │ open — each switch wears the
+             glyph of what it OFFERS (SkeletonMini's switch, verbatim) -->
+        <MiniHead
+          kind="paths"
+          :id="row.id"
+          :path="row.path"
+          :integrity="row.integrity || null"
+          :name="pathLabel"
+          :name-title="nameTitle"
+          :switches="switches"
+          @open="openViewer"
+        />
       </template>
 
       <template #body>
@@ -122,18 +88,7 @@
 
       <!-- THE FOOT, adapted to a path: steps · author · what the members are -->
       <template #foot>
-        <span class="path-mini__foot-line" :title="footTitle">
-          <q-icon :name="pathKind.icon" size="10px" />
-          <span class="path-mini__foot-steps mono">{{ stepCount }} {{ stepCount === 1 ? 'step' : 'steps' }}</span>
-          <template v-if="authorName">
-            <span class="path-mini__foot-dot">·</span>
-            <span class="path-mini__foot-author">by {{ authorName }}</span>
-          </template>
-          <template v-if="kindTally">
-            <span class="path-mini__foot-dot">·</span>
-            <span class="path-mini__foot-kinds">{{ kindTally }}</span>
-          </template>
-        </span>
+        <MiniFoot kind="paths" :facts="footFacts" :title="footTitle" />
       </template>
     </MiniPanel>
   </div>
@@ -142,12 +97,13 @@
 <script>
 import { defineComponent, ref, computed, watch, onMounted } from 'vue'
 import MiniPanel from 'src/components/shared/MiniPanel.vue'
+import MiniHead from 'src/components/shared/MiniHead.vue'
+import MiniFoot from 'src/components/shared/MiniFoot.vue'
 import InfoChip from 'src/components/shared/InfoChip.vue'
-import PathMicro from './PathMicro.vue'
 import PathLane from './PathLane.vue'
 import { pathService } from 'src/services/path.service'
 import { useFlyoutViewersStore } from 'src/stores/flyoutViewers'
-import { kindFor, hashOf, isHash } from 'src/utils/kinds'
+import { hashOf, isHash } from 'src/utils/kinds'
 
 // The two preferences' keys — the flyout's `pathos_skeleton_layout` pattern,
 // one setting per surface for the top-level mini.
@@ -165,7 +121,7 @@ const PLURAL = { node: 'nodes', label: 'labels', entity: 'entities', path: 'path
 
 export default defineComponent({
   name: 'PathMini',
-  components: { MiniPanel, InfoChip, PathMicro, PathLane },
+  components: { MiniPanel, MiniHead, MiniFoot, InfoChip, PathLane },
   props: {
     // The path row ({ id, path, step_count, created_at, owner_id, author?,
     // integrity?, title? }) — the file tree's, a walk's nested target, the
@@ -197,7 +153,6 @@ export default defineComponent({
   emits: ['remove', 'resolved'],
   setup (props, { emit }) {
     const flyouts = useFlyoutViewersStore()
-    const pathKind = kindFor('paths')
 
     // ── the row + the walk ─────────────────────────────────────────────
     const loading = ref(false)
@@ -245,16 +200,7 @@ export default defineComponent({
     })
     const nameTitle = computed(() => row.value?.path || pathLabel.value)
 
-    const copied = ref(false)
-    const copyHash = async () => {
-      const full = hashOf(row.value?.path || '')
-      if (!full) return
-      try {
-        await navigator.clipboard.writeText(full)
-        copied.value = true
-        setTimeout(() => { copied.value = false }, 1600)
-      } catch (e) { /* clipboard denied — the glyph simply never flips */ }
-    }
+    // (The copy glyph is MiniHead's since 2026-09-30.)
 
     const openViewer = () => { if (row.value?.path) flyouts.spawnRef(row.value.path) }
 
@@ -284,6 +230,26 @@ export default defineComponent({
       ? 'Show the members as references — their nano chips'
       : 'Show the members enriched — their mini viewers'))
 
+    // The head's two switch zones (MiniHead): the MODE, then the LAYOUT —
+    // each wearing the glyph of what it OFFERS, `is-reference` /
+    // `is-horizontal` stating the current one (the witnesses read them).
+    const switches = computed(() => [
+      {
+        key: 'mode',
+        icon: shownMode.value === 'enriched' ? 'short_text' : 'view_agenda',
+        title: modeTitle.value,
+        cls: { 'is-reference': shownMode.value === 'reference' },
+        onClick: toggleMode
+      },
+      {
+        key: 'layout',
+        icon: shownLayout.value === 'horizontal' ? 'swap_vert' : 'swap_horiz',
+        title: layoutTitle.value,
+        cls: { 'is-horizontal': shownLayout.value === 'horizontal' },
+        onClick: toggleLayout
+      }
+    ])
+
     // ── the foot ───────────────────────────────────────────────────────
     const authorName = computed(() => {
       const a = row.value?.author || row.value?.owner || null
@@ -302,9 +268,13 @@ export default defineComponent({
       return parts.join(' · ')
     })
     const footTitle = computed(() => [row.value?.path, authorName.value && `by ${authorName.value}`, kindTally.value].filter(Boolean).join(' · '))
+    const footFacts = computed(() => [
+      { text: `${stepCount.value} ${stepCount.value === 1 ? 'step' : 'steps'}`, mono: true },
+      authorName.value && `by ${authorName.value}`,
+      kindTally.value
+    ])
 
     return {
-      pathKind,
       loading,
       failed,
       row,
@@ -313,8 +283,6 @@ export default defineComponent({
       stepCount,
       pathLabel,
       nameTitle,
-      copied,
-      copyHash,
       openViewer,
       shownLayout,
       toggleLayout,
@@ -322,9 +290,11 @@ export default defineComponent({
       shownMode,
       toggleMode,
       modeTitle,
+      switches,
       authorName,
       kindTally,
-      footTitle
+      footTitle,
+      footFacts
     }
   }
 })
@@ -333,134 +303,34 @@ export default defineComponent({
 <style lang="scss" scoped>
 .path-mini__loading { padding: 6px 0; text-align: center; }
 
+// ── WHAT THE PATH STILL OWNS (2026-09-30) ────────────────────────────────
+// The coat, the lines, the hover, the head row and its zones, the foot line
+// are the FAMILY's now (MiniPanel `kind="paths"`, MiniHead, MiniFoot). They
+// stood here as the lime colorway of 2026-09-27 — `--path-mini-coat/-rule/
+// -rule-hover/-head-ink` dials, never set by a host — written as bare
+// `:deep(.mini-panel…)` rules, which reach EVERY panel below this one: the
+// lane's node / post / label minis all wore the path's lime coat and its
+// 1px-0 foot. What is left is the lane's contract and this panel's own body.
 .path-mini {
-  // NodeMini's dial pattern, the path family's ladder as the defaults
-  // (`--path-*`, _tokens.scss): a host re-tones one tree by writing the
-  // `--path-mini-*` dials; the lane inside reads `--path-lane-*` and falls
-  // back to the same ladder.
-  --pm-ink: var(--path-mini-head-ink, var(--path-ink, #827717));
-  --pm-rule: var(--path-mini-rule, var(--path-rule, #e6ee9c));
-  --path-lane-ink: var(--pm-ink);
-  --path-lane-rule: var(--pm-rule);
+  // The lane's two dials a host still sets: its scroll cap (the flyout's
+  // element face uncaps it) and the bond rail's tone (the path's accent).
   --path-lane-bond: var(--path-mini-bond, var(--path-bond, #9e9d24));
   --path-lane-max-h: var(--path-mini-max-h, 360px);
-
-  :deep(.mini-panel) {
-    --panel-chrome: var(--path-mini-coat, var(--path-coat, #f9fbe7));
-    --panel-body: var(--path-mini-coat, var(--path-coat, #f9fbe7));
-    --panel-rule: var(--pm-rule);
-  }
-  :deep(.mini-panel--hover):hover {
-    --panel-rule: var(--path-mini-rule-hover, var(--path-hover, #9e9d24));
-  }
-  // The header is one ROW of zones split by full-height hairlines. The
-  // `flex-direction` and `gap` are RESETS: MiniPanel's default head is a
-  // flex COLUMN with a 4px gap (the tower NodeMini paid for on 2026-08-23
-  // and SkeletonMini again on 09-17).
-  :deep(.mini-panel__head--own) {
-    display: flex;
-    flex-direction: row;
-    align-items: stretch;
-    gap: 0;
-    min-width: 0;
-    padding: 0;
-  }
-  :deep(.mini-panel__body) {
-    padding: 0;
-    min-height: 0;
-  }
-  :deep(.mini-panel__foot) {
-    padding: 1px 0;
-    gap: 0;
-  }
 }
 
-// ── the header zones (NodeMini's grammar) ────────────────────────────────
-.path-mini__zone {
-  display: flex;
-  align-items: center;
-  min-width: 0;
-  padding: 1px 4px;
-  color: var(--pm-ink);
-  white-space: nowrap;
-  overflow: hidden;
-  & + & { border-left: 1px solid var(--pm-rule); }
-}
-.path-mini__zone--chip {
-  flex: 0 1 auto;
-  // the ONE pair of dials every mini's chip zone reads (2026-09-21 PM8)
-  padding: var(--mini-chip-zone-pad, 2px 4px 2px 2px);
-  gap: var(--mini-chip-zone-gap, 2px);
-}
-.path-mini__zone--name {
-  flex: 1 1 auto;
-  justify-content: center;
-}
-.path-mini__name-text {
-  flex: 0 1 auto;
-  min-width: 0;
-  font-family: var(--font-display);
-  font-size: 0.76em;
-  text-align: center;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.path-mini__copy,
-.path-mini__zone--mode,
-.path-mini__zone--layout,
-.path-mini__zone--open {
-  appearance: none;
-  background: none;
-  border: 0;
-  font: inherit;
-  cursor: pointer;
-  color: inherit;
-}
-.path-mini__copy {
-  display: inline-flex;
-  align-items: center;
-  flex: 0 0 auto;
-  margin-left: 3px;
+// THIS panel's body only (a CHILD chain — the lane nests minis, and a bare
+// `:deep(.mini-panel__body)` would un-pad every one of them): the lane runs
+// edge to edge and brings its own padding.
+.path-mini > :deep(.mini-panel-link > .mini-panel > .mini-panel__body) {
   padding: 0;
-  opacity: 0.6;
-  transition: opacity 0.12s, color 0.12s;
-  &:hover { opacity: 1; }
-  &.is-copied { opacity: 1; color: var(--positive, #21ba45); }
-}
-.path-mini__zone--mode,
-.path-mini__zone--layout {
-  flex: 0 0 auto;
-  &:hover { color: var(--path-mini-rule-hover, var(--path-hover, #9e9d24)); }
-}
-.path-mini__zone--open {
-  flex: 0 0 auto;
-  &:hover { color: var(--coral-deep, #d35f5f); }
 }
 
 .path-mini__empty {
   padding: 6px 8px;
   font-size: 0.78em;
-  color: var(--pm-ink);
+  color: var(--mini-ink, var(--path-ink, #827717));
   opacity: 0.7;
   font-style: italic;
   text-align: center;
 }
-
-// ── the foot ─────────────────────────────────────────────────────────────
-:deep(.mini-panel__foot) .path-mini__foot-line,
-.path-mini__foot-line {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  width: 100%;
-  min-width: 0;
-  white-space: nowrap;
-  overflow: hidden;
-  font-size: 0.7em;
-  color: var(--pm-ink);
-}
-.path-mini__foot-author,
-.path-mini__foot-kinds { overflow: hidden; text-overflow: ellipsis; }
-.path-mini__foot-dot { opacity: 0.5; }
 </style>

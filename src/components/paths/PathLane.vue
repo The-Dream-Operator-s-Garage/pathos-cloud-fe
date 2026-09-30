@@ -17,9 +17,12 @@
        walk's verdict on it); a click opens the link's window (the flyout's
        link face). The item is the member in the lane's MODE:
          enriched    the member's Mini — NodeMini, LabelMini, EntityMini,
-                     PostMini / SkeletonMini (the grid's own nesting rules,
-                     `layout` + `readonly` handed down), and a nested
-                     PathMini for a path (which owns its own switches);
+                     MomentMini, LinkMini (their rows ride the walk since
+                     2026-09-30), PostMini / SkeletonMini (the grid's own
+                     nesting rules, `layout` + `readonly` handed down), and a
+                     nested PathMini for a path (which owns its own
+                     switches) — every one on the family basis, so each
+                     level of nesting composites one more layer of glass;
          reference   the member's nano chip, extended (`icon type / hash ● ⤢`).
        BUDGETS: enriched draws minis for the NEWEST `ENRICH_MAX` members and
        chips for the rest (the grid's LIST_UNFOLD_MAX rule — the NAVIGATION
@@ -187,7 +190,10 @@ export default defineComponent({
     const prefixOf = (st) => PREFIX[kindOf(st)] || 'unknown'
     const rowOf = (st) => {
       const t = st.target || {}
-      return t.skeleton || t.node || t.label || t.entity || t.path || t.moment || t.secret || null
+      // (moment / secret / link rows ride the walk since 2026-09-30 — the
+      // resolver learnt the three kinds; before, their members drew an
+      // address-less chip even in enriched mode)
+      return t.skeleton || t.node || t.label || t.entity || t.path || t.moment || t.secret || t.link || null
     }
     const hasRow = (st) => !!rowOf(st)
     const idOf = (st) => rowOf(st)?.id ?? st.target?.id ?? st.link?.target_id ?? null

@@ -10,6 +10,8 @@
 // "what do I render for this node" — use them instead of reading
 // node.content directly, which for file nodes is just the address string.
 
+import { stripPathosRefs } from './pathosRefs'
+
 export const isFileNode = (node) => !!node?.file
 
 // The human-readable body: resolved file text for file-backed nodes,
@@ -34,6 +36,26 @@ export const excerptOf = (node, max = 140) => {
     return `${node.file.kind} · .${node.file.ext}`
   }
   return bodyOf(node).slice(0, max)
+}
+
+// A markdown body as ONE PLAIN RUN, for a Mini's excerpt (2026-09-30 — the
+// family pass; NodeMini and PostMini both read it). The old excerpt only
+// deleted the characters `#*`_~[]`, which turned `[[pathos:nodes/…|My
+// label]]` into `pathos:nodes/…|My label` and `[text](url)` into
+// `text(url)`. Here refs become their labels (`stripPathosRefs` — an
+// unlabeled one its `kind/short-hash…`), links their text, code fences drop
+// out, block markers (headings, quotes, list bullets) and emphasis go, and
+// the line structure survives for `pre-wrap`. Cut at `max` with a stated `…`.
+export const plainExcerpt = (markdown, max = 400) => {
+  const s = stripPathosRefs(String(markdown || ''))
+    .replace(/(```|~~~)[\s\S]*?\1/g, ' ')
+    .replace(/!?\[([^\]]*)\]\([^)]*\)/g, '$1')
+    .replace(/^[ \t]{0,3}(?:#{1,6}|>|[-*+]|\d+[.)])[ \t]+/gm, '')
+    .replace(/[*_~`]+/g, '')
+    .replace(/[ \t]+/g, ' ')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim()
+  return s.length > max ? s.slice(0, max).trimEnd() + '…' : s
 }
 
 export const formatBytes = (n) => {

@@ -1,29 +1,29 @@
 <template>
-  <!-- LabelMini. Same MiniPanel chrome as the rest of the family; the body
-       is a HORIZONTAL ancestry slider (the same gesture as the LabelSlider /
-       LabelViewer chips on the node viewer): the full chain is recovered
-       recursively on mount and rendered root › … › this, one chip per
-       ancestor, scrolling sideways when it overflows. Every chip routes to
-       that label's viewer; the current label is highlighted. -->
-  <MiniPanel :to="targetRoute">
-    <template #title>
-      <q-icon name="label_important" size="13px" class="q-mr-xs label-mini__icon" />
-      {{ effectiveTitle }}
-    </template>
+  <!-- THE LABEL MINI — the face a label wears wherever it is quoted. The
+       body is a HORIZONTAL ancestry slider (the LabelSlider / LabelViewer
+       gesture): the chain recovered on mount, root › … › this, one step per
+       ancestor, scrolling sideways when it overflows; every step routes to
+       that label's viewer and the current one is lit.
 
-    <template #chips>
-      <span v-if="label.author_id != null" class="mini-chip-fact">
-        <q-icon name="person" size="11px" class="q-mr-xs" />
-        author #{{ label.author_id }}
-      </span>
-      <span v-if="label.system_label" class="mini-chip-kind">
-        <q-icon name="verified" size="11px" class="q-mr-xs" />
-        system
-      </span>
-    </template>
-
-    <template #hash>
-      <LabelMicro :id="label.id" :path="label.path" :nav="false" collapsed />
+       ⭐ REBUILT 2026-09-30 ON THE FAMILY BASIS (user ask: "take as layout
+       the node mini viewer … use the nano pills icons and coloring to
+       re-color all the other ones"). It was the default STACK head (icon +
+       name / author # + system / the chip, 66px) and its slider was still
+       drawn in `#00829c` — the teal the label CHIPS left on 2026-09-21 for
+       the labels button's red. NodeMini's grammar now, in the label pill's
+       red:
+         HEAD  chip+copy │ label name │ open        (MiniHead)
+         BODY  the ancestry slider, lit in red-7 / lettered in red-10
+         FOOT  🏷 by allegue · system · depth 3      (MiniFoot) -->
+  <MiniPanel kind="labels" :to="targetRoute">
+    <template #head>
+      <MiniHead
+        kind="labels"
+        :id="label.id"
+        :path="label.path"
+        :integrity="label.integrity || null"
+        :name="effectiveTitle"
+      />
     </template>
 
     <template #body>
@@ -50,19 +50,25 @@
         <q-icon name="flag" size="11px" class="q-mr-xs" /> root label
       </div>
     </template>
+
+    <template v-if="footFacts.length" #foot>
+      <MiniFoot kind="labels" :facts="footFacts" />
+    </template>
   </MiniPanel>
 </template>
 
 <script>
-import { defineComponent, computed, ref, onMounted, watch } from 'vue'
+import { defineComponent, computed, ref, onMounted, watch, watchEffect } from 'vue'
 import { useRouter } from 'vue-router'
 import MiniPanel from 'src/components/shared/MiniPanel.vue'
-import LabelMicro from './LabelMicro.vue'
+import MiniHead from 'src/components/shared/MiniHead.vue'
+import MiniFoot from 'src/components/shared/MiniFoot.vue'
 import { recoverAncestry } from 'src/utils/labelChain'
+import { entitySummary } from 'src/utils/entityDisplay'
 
 export default defineComponent({
   name: 'LabelMini',
-  components: { MiniPanel, LabelMicro },
+  components: { MiniPanel, MiniHead, MiniFoot },
   props: {
     // Label shape: { id, path, name|text, ancestor_id, author_id, system_label }
     label: { type: Object, required: true },
@@ -74,7 +80,7 @@ export default defineComponent({
     const targetRoute = computed(() => props.to || `/labels/${props.label.id}`)
 
     const effectiveTitle = computed(() =>
-      props.label.name || props.label.text || `Label #${props.label.id}`
+      props.label.name || props.label.text || `label #${props.label.id}`
     )
 
     const chain = ref([]) // [root, ..., this label]
@@ -91,22 +97,42 @@ export default defineComponent({
 
     const goTo = (step) => { if (step?.id) router.push(`/labels/${step.id}`) }
 
-    return { targetRoute, effectiveTitle, chain, loadingChain, goTo }
+    // ── the foot: who made it, whether the platform owns it, how deep ────
+    const author = ref('')
+    watchEffect(() => {
+      const id = props.label.author_id
+      if (id == null) { author.value = ''; return }
+      entitySummary({ id }).then((s) => { author.value = s?.primary || `#${id}` })
+    })
+    const footFacts = computed(() => [
+      author.value && `by ${author.value}`,
+      props.label.system_label && 'system',
+      chain.value.length > 1 ? `depth ${chain.value.length - 1}` : (chain.value.length === 1 ? 'root' : '')
+    ].filter(Boolean))
+
+    return { targetRoute, effectiveTitle, chain, loadingChain, goTo, footFacts }
   }
 })
 </script>
 
 <style lang="scss" scoped>
-.label-mini__icon { color: #00829c; vertical-align: middle; }
-
+// The slider in the LABEL PILL's colours: `--mini-accent` (red-7, the pill's
+// glyph) washes the lit step and the pointer's, `--mini-ink` (red-10, the
+// pill's text) letters them. `color-mix` keeps the washes one declaration
+// each off the two panel tones (was a hard `rgba(0, 130, 156, …)` teal).
 .label-mini__slider {
   display: flex;
   align-items: center;
+  // Centred like every family body — but SAFE: a plain `center` on an
+  // overflowing row pushes the root off the scrollable start, where no
+  // scroll can reach it. Engines without `safe` keep the old flush start.
+  justify-content: flex-start;
+  justify-content: safe center;
   gap: 3px;
   flex-wrap: nowrap;
   white-space: nowrap;
   overflow-x: auto;
-  padding: 2px 1px;
+  padding: 2px 4px;
   scrollbar-width: thin;
   scrollbar-color: rgba(var(--ink-rgb), 0.3) transparent;
 
@@ -121,7 +147,7 @@ export default defineComponent({
   padding: 1px 8px;
   border-radius: 9px;
   border: 1px solid rgba(var(--ink-rgb), 0.16);
-  background: rgba(var(--ink-rgb), 0.05);
+  background: rgba(255, 255, 255, 0.45);
   color: #5b6c82;
   font-family: 'Space Mono', monospace;
   font-size: 0.72em;
@@ -132,18 +158,19 @@ export default defineComponent({
   transition: background 0.12s, color 0.12s, border-color 0.12s;
 
   &:hover {
-    background: rgba(0, 130, 156, 0.10);
-    border-color: rgba(0, 130, 156, 0.35);
-    color: #00829c;
+    background: color-mix(in srgb, var(--mini-accent, #e53935) 10%, transparent);
+    border-color: color-mix(in srgb, var(--mini-accent, #e53935) 40%, transparent);
+    color: var(--mini-ink, #b71c1c);
   }
 
   &.is-current {
-    background: rgba(0, 130, 156, 0.12);
-    border-color: rgba(0, 130, 156, 0.45);
-    color: #00829c;
+    background: color-mix(in srgb, var(--mini-accent, #e53935) 14%, transparent);
+    border-color: color-mix(in srgb, var(--mini-accent, #e53935) 50%, transparent);
+    color: var(--mini-ink, #b71c1c);
     font-weight: 700;
   }
 
+  // The root keeps its flag in the carved gold — the chain's origin mark.
   &.is-root .q-icon { color: #c79a00; }
 }
 
@@ -154,7 +181,7 @@ export default defineComponent({
 
 .label-mini__loading {
   font-size: 0.78em;
-  color: #8995a8;
+  color: #5b6c82;
   display: inline-flex;
   align-items: center;
   gap: 4px;
@@ -162,22 +189,9 @@ export default defineComponent({
 
 .label-mini__root {
   font-size: 0.78em;
-  color: #00829c;
+  color: var(--mini-ink, #b71c1c);
   display: inline-flex;
   align-items: center;
   font-style: italic;
-}
-
-.mini-chip-fact, .mini-chip-kind {
-  display: inline-flex;
-  align-items: center;
-}
-
-.mini-chip-kind {
-  background: rgba(0, 130, 156, 0.08);
-  border: 1px solid rgba(0, 130, 156, 0.25);
-  color: #00829c;
-  padding: 1px 7px;
-  border-radius: 9px;
 }
 </style>

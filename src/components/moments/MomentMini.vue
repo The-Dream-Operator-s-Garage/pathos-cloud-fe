@@ -1,30 +1,44 @@
 <template>
-  <MiniPanel :to="targetRoute">
-    <template #title>
-      <q-icon name="schedule" size="13px" class="q-mr-xs moment-mini__icon" />
-      {{ headline }}
-    </template>
+  <!-- THE MOMENT MINI — a moment (a when, and often a where) quoted into a
+       post, a path lane, a skeleton's date field, the file tree.
 
-    <template #chips>
-      <span v-if="human?.place" class="mini-chip-fact">
-        <q-icon name="place" size="11px" class="q-mr-xs" />
-        {{ human.place }}
-      </span>
-      <span v-if="ago" class="mini-chip-fact" :title="moment.time_utc || ''">
-        <q-icon name="history" size="11px" class="q-mr-xs" />
-        {{ ago }}
-      </span>
-    </template>
-
-    <template #hash>
-      <MomentMicro :id="moment.id" :path="moment.path" collapsed />
+       ⭐ REBUILT 2026-09-30 ON THE FAMILY BASIS (user ask: "take as layout
+       the node mini viewer … use the nano pills icons and coloring"). It was
+       the default STACK head (clock + date / place + ago / the chip) over two
+       mono lines. NodeMini's grammar now, in the moment pill's carved gold:
+         HEAD  chip+copy │ Tue, 23 Jun 2026 · 4:01 AM │ open   (MiniHead)
+         BODY  the thing itself, as a node shows its picture — the tiny
+               WORLD MAP with its pin when the moment is located
+               (MomentFace's own map), else the raw UTC stamp
+         FOOT  🕓 Mexico City, MX · 3d ago                   (MiniFoot)
+       All client-side moment formatting is UTC (the chips' rule). -->
+  <MiniPanel kind="moments" :to="targetRoute">
+    <template #head>
+      <MiniHead
+        kind="moments"
+        :id="moment.id"
+        :path="moment.path"
+        :integrity="moment.integrity || null"
+        :name="headline"
+        :name-title="moment.time_utc ? `${headline} (UTC ${moment.time_utc})` : headline"
+      />
     </template>
 
     <template #body>
-      <div class="moment-mini__facts mono">
-        <div>{{ moment.time_utc }}</div>
-        <div v-if="hasCoords">{{ moment.space_x }}, {{ moment.space_y }}</div>
-      </div>
+      <MomentWorldMap
+        v-if="hasCoords"
+        class="moment-mini__map"
+        :lat="moment.space_x"
+        :lon="moment.space_y"
+        :city="human?.city || ''"
+        :country="human?.country || ''"
+        :place="human?.place || ''"
+      />
+      <div v-else class="moment-mini__facts mono">{{ moment.time_utc || '(no time)' }}</div>
+    </template>
+
+    <template v-if="footFacts.length" #foot>
+      <MiniFoot kind="moments" :facts="footFacts" />
     </template>
   </MiniPanel>
 </template>
@@ -34,15 +48,17 @@ import { defineComponent, computed } from 'vue'
 import { date } from 'quasar'
 import { timeAgo } from 'src/utils/time'
 import MiniPanel from 'src/components/shared/MiniPanel.vue'
-import MomentMicro from './MomentMicro.vue'
+import MiniHead from 'src/components/shared/MiniHead.vue'
+import MiniFoot from 'src/components/shared/MiniFoot.vue'
+import MomentWorldMap from './MomentWorldMap.vue'
 
 export default defineComponent({
   name: 'MomentMini',
-  components: { MiniPanel, MomentMicro },
+  components: { MiniPanel, MiniHead, MiniFoot, MomentWorldMap },
   props: {
     // Moment row { id, path, space_x, space_y, space_z, time, time_utc }.
     moment: { type: Object, required: true },
-    // Optional server-resolved { datetime, place } lines.
+    // Optional server-resolved { datetime, place, city, country } lines.
     human: { type: Object, default: null },
     to: { type: String, default: null }
   },
@@ -66,20 +82,28 @@ export default defineComponent({
     const hasCoords = computed(() =>
       Number(props.moment?.space_x) !== 0 || Number(props.moment?.space_y) !== 0)
 
-    return { targetRoute, headline, ago, hasCoords }
+    const footFacts = computed(() => [
+      props.human?.place || (hasCoords.value ? `${props.moment.space_x}, ${props.moment.space_y}` : ''),
+      ago.value && { text: ago.value, title: props.moment.time_utc || '' }
+    ].filter(Boolean))
+
+    return { targetRoute, headline, hasCoords, footFacts }
   }
 })
 </script>
 
 <style lang="scss" scoped>
-.moment-mini__icon { color: #c79a00; }
-.mini-chip-fact {
-  display: inline-flex;
-  align-items: center;
+// The map is a figure in the family body's centre — capped to a thumbnail's
+// width, its own caption kept (the place under the pin).
+.moment-mini__map {
+  max-width: 220px;
+  margin: 2px auto;
 }
+
 .moment-mini__facts {
   font-size: 0.78em;
-  color: rgba(var(--ink-rgb), 0.6);
   line-height: 1.5;
+  color: #5b6c82;
+  padding: 2px 4px;
 }
 </style>

@@ -1,226 +1,144 @@
 <template>
-  <!-- A read-only miniature mirror of PostViewerPage's .subject-panel.
-       Renders the post's identity header (title, author chip, file path,
-       time, hash) and a tiny content viewport. Footer shows the votes
-       row — no replies, fork CTAs, composer, or attachment forms.
-       Refactored onto shared/MiniPanel chrome so it stays in sync with
-       the rest of the XMini family. -->
-  <MiniPanel :to="targetRoute">
-    <template #title>
-      {{ effectiveTitle || '(untitled)' }}
-    </template>
+  <!-- THE POST MINI — the face a post wears wherever it is quoted: a
+       `![[pathos:posts/…]]` / `![[pathos:skeletons/…]]` embed in another
+       post, a path lane's member, the file tree, a link's target.
 
-    <template #chips>
-      <span v-if="authorDisplayName" class="mini-author-chip" :title="post.author?.path">
-        <EntityName :entity="post.author" />
-        <span class="mini-sep">|</span>
-        <span class="mini-hash mono">entity/{{ shortHash(post.author?.path, 8) }}</span>
-      </span>
-
-      <span v-if="post.provenance" class="mini-chip-fact">
-        <q-icon name="verified" size="11px" class="q-mr-xs" />
-        {{ post.provenance }}
-      </span>
-
-      <span v-if="post.created_at" class="mini-chip-fact" :title="post.created_at">
-        <q-icon name="schedule" size="11px" class="q-mr-xs" />
-        {{ timeAgo }}
-      </span>
-    </template>
-
-    <template v-if="labels && labels.length" #labels>
-      <span v-for="(l, i) in displayLabels" :key="l.id || i" class="mini-label-chip">
-        {{ l.name }}
-      </span>
-      <span v-if="labels.length > displayLabels.length" class="mini-label-more">
-        +{{ labels.length - displayLabels.length }}
-      </span>
-    </template>
-
-    <template #hash>
-      <PostMicro :id="post.id" :path="targetHashPath" collapsed />
+       ⭐ REBUILT 2026-09-30 ON THE FAMILY BASIS (user ask: "the post and path
+       mini viewers look odd compared to the node and skeleton mini viewers
+       … it is very probable to go and reference posts inside posts … take as
+       layout the node mini viewer"). It was the last Mini on MiniPanel's
+       default STACK head — title / author chip / provenance + time / label
+       chips / hash, five lines before the body — over a white body and a
+       votes foot, a 48px head beside the node's 22px. NodeMini's grammar now:
+         HEAD  chip+copy │ title │ open        (MiniHead)
+         BODY  the post's words — a plain excerpt, justified
+         FOOT  ◻ by allegue · 3h ago · fork   (MiniFoot)
+       · the chip is the post's COLLAPSED nano pill (`sym_o_post / 993fa6… ●`,
+         its verdict self-resolved); the corner opens the post's window (the
+         ref door on its `skeletons/` address, which steps a POST instance
+         forward to its card);
+       · the title, else the skeleton's name (the path viewer pages hand in a
+         raw skeleton row), else `post #id` — never a borrowed content path;
+       · the VOTES are gone, by NodeMini's rule ("a preview reports what the
+         element IS; its activity is read in its own viewer") — and in the
+         embed path they had never been real: ElementMini's post read carries
+         no votes, so every quoted post printed ↑0 ↓0. The label chips went
+         with the stack head (every post carries its classification markers
+         — POST · ORIGINAL — and three of them said nothing about the post).
+       See dashboard/doc/ui-reference.md. -->
+  <MiniPanel kind="posts" :to="targetRoute">
+    <template #head>
+      <MiniHead
+        kind="posts"
+        :id="post.id"
+        :path="postAddress"
+        :integrity="post.integrity || null"
+        :name="postLabel"
+      />
     </template>
 
     <template #body>
-      <div v-if="!excerpt" class="post-mini__empty">(no content)</div>
-      <div v-else class="post-mini__excerpt">{{ excerpt }}</div>
+      <div v-if="excerpt" class="post-mini__excerpt">{{ excerpt }}</div>
+      <div v-else class="post-mini__empty">(no words — open the post)</div>
     </template>
 
-    <template #foot>
-      <span class="vote-pill" :class="{ 'is-up': votes.viewer_vote === 1 }">
-        <q-icon name="arrow_upward" size="11px" /> {{ votes.up || 0 }}
-      </span>
-      <span class="vote-pill" :class="{ 'is-down': votes.viewer_vote === -1 }">
-        <q-icon name="arrow_downward" size="11px" /> {{ votes.down || 0 }}
-      </span>
-      <q-space />
-      <span class="post-mini__open">open <q-icon name="open_in_new" size="11px" /></span>
+    <template v-if="footFacts.length" #foot>
+      <MiniFoot kind="posts" :facts="footFacts" :title="footTitle" />
     </template>
   </MiniPanel>
 </template>
 
 <script>
-import { defineComponent, computed } from 'vue'
+import { defineComponent, computed, ref, watchEffect } from 'vue'
 import MiniPanel from 'src/components/shared/MiniPanel.vue'
-import PostMicro from './PostMicro.vue'
-import EntityName from 'src/components/entities/EntityName.vue'
+import MiniHead from 'src/components/shared/MiniHead.vue'
+import MiniFoot from 'src/components/shared/MiniFoot.vue'
+import { hashOf } from 'src/utils/kinds'
+import { plainExcerpt } from 'src/utils/nodeContent'
+import { timeAgo } from 'src/utils/time'
+import { entitySummary } from 'src/utils/entityDisplay'
 
 export default defineComponent({
   name: 'PostMini',
-  components: { MiniPanel, PostMicro, EntityName },
+  components: { MiniPanel, MiniHead, MiniFoot },
   props: {
-    // Enriched post shape from pathService._enrichSkeletonTarget:
-    //   { id, path, title, excerpt, author, provenance,
-    //     moment_id, created_at, forked_from_id, votes }
+    // The post: { id, path, title?, excerpt?, author?, owner_id?,
+    // created_at?, forked_from_id?, integrity? } — ElementMini's read of
+    // GET /posts/:id, pathService's enriched target, or (the path viewer
+    // pages) a raw skeleton row { id, path, name, owner_id, created_at }.
     post: { type: Object, required: true },
+    // Kept for the callers that pass it; the classification markers every
+    // post carries are not what a preview is for.
     labels: { type: Array, default: () => [] },
     to: { type: String, default: null }
   },
   setup (props) {
     const targetRoute = computed(() => props.to || `/posts/${props.post.id}`)
 
-    // HashLink/Micro kind inference reads the prefix. PostMicro takes
-    // either a path or an id; we pass `posts/<hash>` so the tooltip is
-    // accurate and routing falls back if id is absent.
-    const targetHashPath = computed(() => {
-      const raw = props.post.path || ''
-      const hash = raw.includes('/') ? raw.split('/').pop() : raw
-      return `posts/${hash}`
+    // The chip's address. A post's own `path` is `skeletons/<hash>`; the
+    // pill states it as `posts/<hash>` (its kind), and its door maps it
+    // back (MiniHead / MicroChip).
+    const postAddress = computed(() => {
+      const h = hashOf(props.post.path || '')
+      return h ? `posts/${h}` : ''
     })
 
-    const authorDisplayName = computed(() => {
+    const postLabel = computed(() => {
+      const t = String(props.post.title || '').trim()
+      if (t) return t
+      const n = String(props.post.name || '').trim()
+      if (n && n !== 'POST') return n
+      return `post #${props.post.id}`
+    })
+
+    // The post's WORDS: its markdown as one plain run — refs as their
+    // labels (`stripPathosRefs`), links as their text, block markers and
+    // emphasis gone (the old regex left `pathos:nodes/…|label` behind).
+    const excerpt = computed(() => plainExcerpt(props.post.excerpt || '', 400))
+
+    // ── the foot: who, when, whether it is a fork ─────────────────────
+    const author = ref('')
+    watchEffect(() => {
       const a = props.post.author
-      if (!a) return ''
-      return a.display_name || a.username || ('entity #' + a.id)
+      const named = a && (a.display_name || a.username)
+      if (named) { author.value = named; return }
+      const id = a?.id ?? props.post.owner_id
+      if (id == null) { author.value = ''; return }
+      entitySummary({ id }).then((s) => { author.value = s?.primary || '' })
     })
+    const when = computed(() => timeAgo(props.post.created_at || null) || '')
+    const footFacts = computed(() => [
+      author.value && `by ${author.value}`,
+      when.value && { text: when.value, title: props.post.created_at || '' },
+      props.post.forked_from_id != null && { text: 'fork', title: `forked from post #${props.post.forked_from_id}` }
+    ].filter(Boolean))
+    const footTitle = computed(() => [
+      props.post.path,
+      author.value && `by ${author.value}`,
+      props.post.created_at
+    ].filter(Boolean).join(' · '))
 
-    // Title only. A post with no TITLE reads '(untitled)' — it never
-    // borrows its CONTENT node's source path, which is seed provenance
-    // rather than a name the author gave the post.
-    const effectiveTitle = computed(() => props.post.title || '')
-
-    const excerpt = computed(() => {
-      const raw = props.post.excerpt || ''
-      return raw.replace(/[#*`_~[\]]/g, '').trim()
-    })
-
-    const displayLabels = computed(() => (props.labels || []).slice(0, 3))
-
-    const votes = computed(() => props.post.votes || {})
-
-    const shortHash = (p, len = 12) => {
-      const h = (p || '').includes('/') ? (p || '').split('/').pop() : p
-      return h ? h.slice(0, len) : ''
-    }
-
-    const timeAgo = computed(() => {
-      const iso = props.post.created_at
-      if (!iso) return ''
-      const d = Date.now() - new Date(iso).getTime()
-      if (d < 0) return ''
-      const s = Math.floor(d / 1000)
-      if (s < 60) return `${s}s ago`
-      const m = Math.floor(s / 60)
-      if (m < 60) return `${m}m ago`
-      const h = Math.floor(m / 60)
-      if (h < 24) return `${h}h ago`
-      const days = Math.floor(h / 24)
-      if (days < 30) return `${days}d ago`
-      try { return new Date(iso).toLocaleDateString() } catch (_) { return iso }
-    })
-
-    return {
-      targetRoute,
-      targetHashPath,
-      authorDisplayName,
-      effectiveTitle,
-      excerpt,
-      displayLabels,
-      votes,
-      shortHash,
-      timeAgo
-    }
+    return { targetRoute, postAddress, postLabel, excerpt, footFacts, footTitle }
   }
 })
 </script>
 
 <style lang="scss" scoped>
-.post-mini__empty {
-  font-size: 0.78em;
-  color: #8995a8;
-  font-style: italic;
-}
-
+// NodeMini's excerpt, verbatim: prose keeps a 4px side inset where the family
+// body gave its padding up, and justifies out of the body's centring.
 .post-mini__excerpt {
   font-size: 0.84em;
   line-height: 1.4;
   color: #2C3D4E;
   white-space: pre-wrap;
   word-break: break-word;
+  text-align: justify;
+  padding: 0 4px;
 }
 
-.mini-author-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  padding: 2px 7px;
-  background: #f0ecfb;
-  border: 1px solid #c1b8e6;
-  border-radius: 10px;
-  color: #4f3e98;
-  font-size: 0.92em;
-  .mini-sep  { opacity: 0.4; margin: 0 1px; }
-  .mini-hash { font-size: 0.82em; opacity: 0.75; }
-}
-
-.mini-chip-fact {
-  display: inline-flex;
-  align-items: center;
-}
-
-.mini-label-chip {
-  font-size: 0.68em;
-  padding: 1px 6px;
-  border-radius: 3px;
-  background: rgba(var(--ink-rgb), 0.08);
-  color: rgba(var(--ink-rgb), 0.78);
-  border: 1px solid rgba(var(--ink-rgb), 0.12);
-  white-space: nowrap;
-}
-
-.mini-label-more {
-  font-size: 0.68em;
-  color: #8995a8;
-}
-
-.vote-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
-  padding: 1px 6px;
-  border-radius: 4px;
-  background: rgba(var(--ink-rgb), 0.06);
-  border: 1px solid rgba(var(--ink-rgb), 0.12);
+.post-mini__empty {
+  font-size: 0.78em;
   color: #5b6c82;
-  font-size: 0.84em;
-
-  &.is-up {
-    background: rgba(126, 187, 105, 0.15);
-    border-color: rgba(126, 187, 105, 0.45);
-    color: #3d7a2a;
-  }
-  &.is-down {
-    background: rgba(211, 95, 95, 0.12);
-    border-color: rgba(211, 95, 95, 0.4);
-    color: #b14848;
-  }
-}
-
-.post-mini__open {
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  color: #5b6c82;
-  font-size: 0.92em;
+  font-style: italic;
 }
 </style>

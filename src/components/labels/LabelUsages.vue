@@ -65,18 +65,19 @@
           <q-icon name="sym_o_mitre" size="12px" style="color:var(--skeleton-accent, #6d4c41);" />
           skeletons <span class="label-usages__total">{{ totals.skeletons }}</span>
         </div>
+        <!-- A HEAD-ONLY family panel (2026-09-30): the mini family's row —
+             the skeleton's collapsed pill + copy │ its name │ the corner —
+             instead of MiniPanel's old stacked title + extended chip. A
+             usage row names the skeleton; its grid is one click away. -->
         <MiniPanel
           v-for="s in usages.skeletons"
           :key="'s' + s.id"
+          kind="skeletons"
           :to="`/skeletons/${s.id}`"
           class="q-mb-sm"
         >
-          <template #title>
-            <q-icon name="sym_o_mitre" size="13px" class="q-mr-xs" style="color:var(--skeleton-accent, #6d4c41);" />
-            {{ s.name || `Skeleton #${s.id}` }}
-          </template>
-          <template #hash>
-            <MicroChip kind="skeletons" :id="s.id" :path="s.path" :show-type="true" />
+          <template #head>
+            <MiniHead kind="skeletons" :id="s.id" :path="s.path" :name="s.name || `skeleton #${s.id}`" />
           </template>
         </MiniPanel>
         <div v-if="totals.skeletons > usages.skeletons.length" class="label-usages__more">
@@ -91,7 +92,7 @@
 import { defineComponent, ref, watch, onMounted } from 'vue'
 import { labelService } from 'src/services/label.service'
 import MiniPanel from 'src/components/shared/MiniPanel.vue'
-import MicroChip from 'src/components/shared/MicroChip.vue'
+import MiniHead from 'src/components/shared/MiniHead.vue'
 import EntityMini from 'src/components/entities/EntityMini.vue'
 import NodeMini from 'src/components/nodes/NodeMini.vue'
 import PathMini from 'src/components/paths/PathMini.vue'
@@ -100,7 +101,7 @@ const EMPTY = { entities: [], nodes: [], paths: [], skeletons: [] }
 
 export default defineComponent({
   name: 'LabelUsages',
-  components: { MiniPanel, MicroChip, EntityMini, NodeMini, PathMini },
+  components: { MiniPanel, MiniHead, EntityMini, NodeMini, PathMini },
   props: {
     label: { type: Object, default: null }
   },
