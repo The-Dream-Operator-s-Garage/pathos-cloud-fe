@@ -2515,6 +2515,20 @@ $warning:   #F2C037;
   // right edge, click-through, the way the top rail's tabs ride over the
   // page's top.
   --media-tabs-wall-w: 7px;
+  // ⭐ THE BACK PLATE'S WIDTH, STATED (2026-09-30): 3px pad + the 19px double
+  // chevron + 3px pad + its 1px right rule. MediaTabsBar sizes `.media-tabs__back`
+  // by it and the STACK STRIP, which moved into the rail that day, seats
+  // `left:` on it — the two stand edge to edge, so they read one number.
+  --media-tabs-back-w: 26px;
+  // ⭐ THE HEADER STACK'S WIDTH (2026-09-30, user ask: the stack moved from the
+  // footer's left run to the top rail beside Back, "longer horizontally so
+  // all the main element's information is displayed on a single line"). Both
+  // faces read it — the glass strip and the panel that hangs from it — the
+  // one-width law `--stack-w` stated for the footer seat. ⭐ 228 since the
+  // same sitting's "make the main item … like half as long. it's huge right
+  // now": the wide tile measured 305px at 380 and ~153 now (the pieces
+  // ellipsize — time first, then the act, then the hash, the title last).
+  --stack-head-w: 228px;
 
   // The two edge widgets' expanded-height caps, both presentations. They were
   // minted as a 70/30 split of one 90vh right-edge BAND (2026-07-24 — an even

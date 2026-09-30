@@ -64,35 +64,35 @@
        it stands ("add them the '::' icon and make them draggable across the
        footer bar, like the creation buttons there"; `utils/trailSlider.js`).
        The pins strip took both in the same ask, mirrored. -->
+  <!-- ⭐⭐ 2026-09-30 — UP INTO THE HEADER RAIL, A GLASS PANE, NO HANDLE (user
+       ask: "take the stack section from the footer nav bar … put it on the
+       header nav bar instead, next to the '<<' button. Adapt it to be longer
+       horizontally so all the main element's information is displayed on a
+       single line. Also, remove from the section the drag handle and make its
+       background transparent and slightly blurry so the frieze behind's shape
+       is slightly visible. make its background look like a glass window").
+       The parked strip stands on the TOP rail's face (`top: 0`, the rail's
+       `--media-tabs-band` tall) beside MediaTabsBar's Back plate
+       (`left: var(--media-tabs-back-w)`), `--stack-head-w` wide, over the
+       left frieze; its face is GLASS — a faint cream tint, `backdrop-filter`
+       blur so the wave and its aurora read through it softened, a bright
+       top edge and a hairline rim. The lane's night well is gone with the
+       coat (the tiles stand on the glass itself) and the WIDE tile letters
+       ONE line — title · hash · last act · when — through SidePanelItem's
+       `inline`. The grip and the footer slider went with the footer:
+       `stack` is no longer a trail body (`utils/trailSlider.js`,
+       `stores/windows.js`). The expanded panel HANGS from the rail now
+       (the footer's rising posture turned over) — same seat, same width.
+       Everything below that speaks of the footer bar is the record of the
+       seat it left. -->
   <section
     v-if="win.open"
     class="stack-window dock-window"
     :class="{ 'is-parked': win.minimized, 'is-max': win.maximized }"
-    :style="{ zIndex: EDGE_Z, translate: windows.trailShiftOf('stack') + 'px 0' }"
+    :style="{ zIndex: EDGE_Z }"
     @mouseenter="onHoverEnter"
     @mouseleave="onHoverLeave"
   >
-    <!-- ⭐ THE GRIP (2026-09-26) — the chips' handle, hoisted (`.strip-grip` +
-         `.strip-grip-rule`, _components.scss), LEADING the parked strip
-         exactly as it leads every chip: `drag_indicator` behind a hairline
-         at the strip's LEFT end, beside the identity section. Dragging it
-         walks the whole strip along the bar (the `translate` on the root
-         above, off `windows.trailOffsets.stack`, persisted), clamped at
-         contact with the identity section's hairline on the left and POST —
-         or whatever chip stands first — on the right; the expanded panel
-         rises from wherever the strip stands, since both faces are this one
-         element. Desktop only: a phone has no slider (`windows.isMobile`),
-         and the phone bubble's 45px arithmetic has no seat for it. A DRAG-ONLY
-         zone: the click is swallowed, and the hover-expand skips the handle
-         (`onHoverEnter`) — a strip that expanded under a pointer on its way
-         to the grip would take the grip away with it. -->
-    <template v-if="win.minimized && !windows.isMobile">
-      <span class="strip-grip" @pointerdown="onGripDown" @click.stop
-        @mouseenter="clearHover" @mouseleave="onGripLeave">
-        <q-icon name="drag_indicator" size="11px" />
-      </span>
-      <span class="strip-grip-rule" @mouseenter="clearHover" @mouseleave="onGripLeave" />
-    </template>
     <!-- THE THIN HEADER (2026-09-06 PM, user ask: "add them a thin header
          with traffic light buttons, title and add a button on the right that
          opens up a flyout skeleton view of the stacks of items they carry").
@@ -195,6 +195,7 @@
           + (i === currentIndex ? ' — you are here' : '')"
         rail-icon-size="12px"
         :wide-current="!windows.isMobile"
+        inline
         @activate="jumpToIndex(i)"
       >
         <template v-if="entry.isCheckpoint || entry.actions.length" #badges>
@@ -253,7 +254,7 @@
          buttons obey. -->
     <button v-else type="button" class="dock-side-head stack-side-head"
       @click="windows.restorePanel('stack')">
-      <q-icon name="layers" size="15px" />
+      <q-icon name="layers" :size="windows.isMobile ? '15px' : '19px'" />
     </button>
   </section>
 </template>
@@ -263,7 +264,6 @@ import { defineComponent, computed, reactive, ref, watch, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { useNavStore } from 'src/stores/navigation'
 import { useWindowsStore } from 'src/stores/windows'
-import { startTrailDrag } from 'src/utils/trailSlider'
 import { typeIcon, chipKind } from './navTypeIcons'
 import { actionIcon, actionLabel } from 'src/utils/navActions'
 import { kindFor, prefixFor } from 'src/utils/kinds'
@@ -426,38 +426,12 @@ export default defineComponent({
       if (hoverTimer) return
       hoverTimer = setTimeout(() => { hoverTimer = null; windows.restorePanel('stack') }, 150)
     }
-    const onHoverEnter = (e) => {
+    const onHoverEnter = () => {
       // ⚠ NEVER ON A PHONE (2026-09-23) — a tap fires `mouseenter` first;
       // see PinsDrawer's `onHoverEnter` for the whole argument. The head
       // glyph (or the lone tile) is the phone's tap up.
       if (windows.isMobile || !win.value.minimized) return
-      // ⭐ NOT THROUGH THE HANDLE (2026-09-26): `mouseenter` fires on the
-      // strip's box however the pointer came in, and a pointer arriving over
-      // the grip is reaching for a drag, not for the panel — 150ms later the
-      // panel would stand and the grip (a parked-face thing) would be gone
-      // from under it. So the intent timer arms only when the pointer enters
-      // over the strip's FACE; a pointer crossing from the handle onto the
-      // face arms it then (`onGripLeave`). ⚠ Still `mouseenter` on the root,
-      // NOT `mouseover`: a panel parked from its own bottom bar leaves the
-      // pointer INSIDE the strip, and a re-arming `mouseover` would pop it
-      // straight back open on the next pixel of movement.
-      const under = e && document.elementFromPoint(e.clientX, e.clientY)
-      if (under && under.closest('.strip-grip, .strip-grip-rule')) return
       armHover()
-    }
-    // The pointer left the handle: onto the face (arm, as an enter would
-    // have) or out of the strip altogether (the root's own leave follows).
-    const isHandle = (el) => !!(el && el.closest && el.closest('.strip-grip, .strip-grip-rule'))
-    const onGripLeave = (e) => {
-      if (windows.isMobile || !win.value.minimized) return
-      const root = e.currentTarget && e.currentTarget.parentElement
-      if (e.relatedTarget && root && root.contains(e.relatedTarget) && !isHandle(e.relatedTarget)) armHover()
-    }
-    // The grip's pointerdown: disarm the hover (the pointer IS on the strip)
-    // and hand the gesture to the shared slider.
-    const onGripDown = (e) => {
-      clearHover()
-      startTrailDrag('stack', e)
     }
     // ⚠ A HEIGHT TOGGLE CAN LEAVE THE POINTER OUTSIDE (2026-09-06 PM): the
     // green light restores the cap, the panel SHRINKS under the pointer
@@ -569,9 +543,6 @@ export default defineComponent({
       jumpToIndex,
       onHoverEnter,
       onHoverLeave,
-      clearHover,
-      onGripLeave,
-      onGripDown,
       toggleMax,
       authorOf,
       typeIcon,
@@ -629,11 +600,14 @@ export default defineComponent({
   // same seat and its bottom `--nav-bar-h` lies over the bar strip beneath
   // it — the header bar at its bottom IS this widget's bar row, the pins
   // column's own-the-strip arrangement without the rebuild.
-  top: auto;
-  bottom: 0;
-  left: var(--nav-id-w, var(--dock-rail-w));
+  // ⭐ THE HEADER SEAT SINCE 2026-09-30 (the component note): the rail's
+  // face, from its top edge, beside the Back plate. (The footer seat —
+  // `bottom: 0; left: var(--nav-id-w)` — until then.)
+  top: 0;
+  bottom: auto;
+  left: var(--media-tabs-back-w, 26px);
   right: auto;
-  border-bottom: none;
+  border-top: none;
   // The shared `--plaque-coat` since 2026-08-17 (user ask) — a --light-cream
   // sheet under a 30% --grey-3 veil, the same two layers the nav bar, the left
   // drawer and the pins widget took that session, so the window's chrome edges
@@ -658,14 +632,13 @@ export default defineComponent({
   // Parked, the cap is horizontal: 48vw, stopping short of the creation
   // docks' 50vw half (see the note at the top of this block).
   &:not(.is-parked) {
-    width: var(--stack-w);
-    max-width: 96vw;
+    width: var(--stack-head-w);
+    max-width: calc(100vw - var(--media-tabs-back-w, 26px) - 8px);
     height: auto;
-    bottom: 0;
-    // The cap grows by the bar's own height, exactly as the pins column's
-    // did when it took `bottom: 0`: the last --nav-footer-h is bar chrome
-    // the widget lies over, not space taken from the list.
-    max-height: calc(var(--dock-stack-h) + var(--nav-footer-h));
+    // HANGS from the rail since 2026-09-30: the cap grows by the rail's own
+    // height, the last-bar-over law the footer seat stated with
+    // `--nav-footer-h` — the top `--media-tabs-h` is rail the panel lies over.
+    max-height: calc(var(--dock-stack-h) + var(--media-tabs-h));
     background: var(--plaque-coat);
     // Rims on the three exposed edges (the floor stays bare); BOTH top
     // corners rounded since 2026-09-02 (user ask: "make sure the top edges
@@ -677,14 +650,15 @@ export default defineComponent({
     // a RIGHT-edge cast — `--shadow-side-edge` with the x-offset sign
     // flipped, the same mirroring the burger slot once did with that token
     // at this corner.
-    border-top: 1px solid var(--grey-6);
+    // Turned over with the seat (2026-09-30): the rims close the three
+    // edges that stand free BELOW the rail, the bottom corners round, and
+    // the cast falls downward.
+    border-bottom: 1px solid var(--grey-6);
     border-right: 1px solid var(--grey-6);
     border-left: 1px solid var(--grey-6);
-    border-top-left-radius: var(--radius-lg);
-    border-bottom-left-radius: 0;
-    border-top-right-radius: var(--radius-lg);
+    border-radius: 0 0 var(--radius-lg) var(--radius-lg);
     box-shadow:
-      0 -10px 40px rgba(var(--ink-rgb-deep), 0.18),
+      0 10px 40px rgba(var(--ink-rgb-deep), 0.18),
       5px 0 12px rgba(var(--ink-rgb-deep), 0.16);
   }
 
@@ -692,7 +666,7 @@ export default defineComponent({
   // the top tabs band — the room a ledger of hundreds of stops wants. The
   // panel still shrink-fits below it; only the ceiling moves.
   &:not(.is-parked).is-max {
-    max-height: calc(100vh - var(--media-tabs-h, 0px));
+    max-height: calc(100vh - var(--nav-footer-h, 0px));
   }
 
     // THE COAT'S NEGATIVE (2026-09-03, user ask: "invert the color palette
@@ -753,18 +727,20 @@ export default defineComponent({
     // 1px rim) and `align-items: center` splits the remaining 12 into whole
     // 6px shoulders of coat. Any future lane height must stay odd or the
     // rim lands on a half pixel.
-    height: calc(var(--nav-bar-h) - 1px);
-    bottom: 0;
+    // ⭐ THE RAIL'S FACE SINCE 2026-09-30 — `--media-tabs-band` (21px: the
+    // rail's height less its bottom rim, the Back plate's own box), where it
+    // was the footer's 31px content row.
+    height: var(--media-tabs-band);
     // FIXED at the widget's one width since 2026-09-02 (`width: auto` —
     // shrink-to-fit — from the relocation until then): the strip is exactly
     // as wide as the panel that rises out of it. The 48vw cap below stays
     // as the guard it always was.
-    width: var(--stack-w);
+    width: var(--stack-head-w);
     // The cap subtracts the LEFT FLANK's width — the identity section's
     // `--nav-id-w` since 2026-08-31 (the burger's `--dock-rail-w` before) —
     // so the strip's right edge still stops at 48vw, short of the creation
     // docks' 50vw half.
-    max-width: calc(48vw - var(--nav-id-w, var(--dock-rail-w)));
+    max-width: calc(50vw - var(--media-tabs-back-w, 26px));
     // THE BAR'S OWN COAT AGAIN (2026-09-05, the same ask's second half:
     // "make their background color the same as the footer bar"). The dial
     // is unchanged — `--strip-coat` points at `--plaque-coat` now
@@ -774,7 +750,24 @@ export default defineComponent({
     // items LANE keeps the night coat, where it now reads as the expanded
     // panel's `--grey-4` well does: a recess sunk into cream, two steps
     // deeper.
-    background: var(--strip-coat);
+    // ⭐⭐ GLASS (2026-09-30, user ask: "make its background transparent and
+    // slightly blurry so the frieze behind's shape is slightly visible. make
+    // its background look like a glass window"). A faint cream tint (the
+    // rail's own material, 16%), a 1.6px backdrop blur — enough to soften the
+    // wave's pixel-drawn motif and its aurora into a shape, not enough to
+    // erase it — a saturate lift so the pastels survive the frost, a
+    // brighter top highlight and a darker bottom line (the pane's two
+    // edges catching light), and a hairline rim all round. (`--strip-coat`,
+    // the bar's opaque plate, until then.)
+    // ⭐ DENSER GLASS (tenth follow-up, corrected: "less transparent.
+    // slightly more opaque pls") — 30/16/22% alpha; 22/10/16% for its first
+    // hour (and a mis-read 14/6/10% for one minute).
+    background: linear-gradient(180deg,
+      rgba(255, 255, 255, 0.30) 0%,
+      rgba(252, 243, 224, 0.16) 55%,
+      rgba(252, 243, 224, 0.22) 100%);
+    backdrop-filter: blur(1.6px) saturate(1.35);
+    -webkit-backdrop-filter: blur(1.6px) saturate(1.35);
     // ⚠ SIDES ONLY STILL, but in the BAR'S INK NOW (2026-09-05): `--brown-3`,
     // which is what `.nav-left`'s `border-right` and `.nav-end`'s
     // `border-left` draw — the bar's inner-hairline doctrine. It was
@@ -783,11 +776,12 @@ export default defineComponent({
     // is bounded by the bar's own lines instead. No horizontals: the bar's
     // `--grey-6` lip closes the row above and the window floor closes it
     // below, exactly as they do for the other two end cells.
-    border: 1px solid var(--brown-3);
-    border-top-width: 0;
-    border-bottom-width: 0;
-    border-radius: 0;
-    box-shadow: none;
+    border: 1px solid rgba(255, 255, 255, 0.45);
+    border-bottom-color: rgba(var(--ink-rgb-deep), 0.25);
+    border-radius: 0 0 5px 5px;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.35),
+      0 1px 3px rgba(var(--ink-rgb-deep), 0.18);
   }
 }
 
@@ -823,6 +817,54 @@ export default defineComponent({
   // inks its own glyph with. `--strip-ink` still faces the TILES, which
   // stand in the lane's night well and need the cream.
   color: var(--ink-1);
+}
+// (SUPERSEDED the same sitting by the kind-colour rule below — kept as the
+// record of the ask that made every tile OPAQUE and contrast-checked.)
+// ⭐ GREY INK ON OPAQUE CREAM (2026-09-30, the sitting's third follow-up:
+// "use grey fonts on the elements to find a good contrasting balance for
+// them. clear on clear does not help to read the text"). The glass stays
+// glass; everything standing ON it is an opaque `--light-cream` plate inked
+// in greys — grey-9 for what you read first (titles, the current glyph),
+// grey-7 for what follows (hash, act, time), grey-8 for the pills' glyphs —
+// and the kind colour keeps ONE job, each tile's rim. The head glyph gets a
+// plate of its own for the same reason (cream on glass for one pass).
+// ⭐ THE HEAD GLYPH, BARE AND BIGGER (2026-09-30, fourth follow-up: "remove
+// the bubble, make the icon bigger and paint it the same color as the cream
+// bubble"): no plate, 19px, `--light-cream` straight on the glass.
+.stack-window.is-parked .stack-side-head {
+  align-self: center;
+  width: 22px;
+  margin-right: 2px;
+  color: var(--light-cream);
+  background: none;
+  border: none;
+}
+// ⭐ THE ICON PILLS WEAR THEIR KIND (2026-09-30, fifth follow-up: "make
+// their backgrounds be the item kind color, following their direct sibling's
+// colors from the nano pill chips … a reasonably contrasting font color"):
+// the fill is kinds.js's `color` — the glyph colour the nano pill paints for
+// that kind — and the glyph is SidePanelItem's `--item-on`, light-cream or
+// the kind's `ink`, whichever contrasts more (amber moments/pioneer take the
+// ink; every other kind the cream). Page steps (no kind) fill grey-7. The
+// rim is the fill a step darker so neighbouring pills separate.
+// ⭐ AND THE WIDE TILE TOO (seventh follow-up: "for the main item … the
+// enriched one, make sure it follows the same colouring rules as the
+// icon-only items"): one rule for every parked tile — kind fill, `--item-on`
+// ink on the glyph AND every lettered piece (hash, act, time included, at
+// full strength; they stay quieter by size and weight alone).
+.stack-list.is-parked :deep(.side-item__btn--rail) {
+  background: var(--item-accent, var(--grey-7));
+  color: var(--item-on, var(--light-cream));
+  // ⭐ A THIN CREAM OUTLINE (2026-09-30, ninth follow-up: "add to all items
+  // inside the stack bar … a thin cream outline") — 1px `--light-cream`;
+  // the kind a step darker drew this line until then.
+  border: 1px solid var(--light-cream);
+}
+.stack-list.is-parked :deep(.side-item__rail-hash),
+.stack-list.is-parked :deep(.side-item__rail-line--sub),
+.stack-list.is-parked :deep(.side-item__rail-when) {
+  color: inherit;
+  opacity: 1;
 }
 
 // THE THREE TILES (2026-09-02, user ask: "shows up to 3 elements") — each
@@ -875,6 +917,12 @@ export default defineComponent({
   padding: 0 7px 0 4px;
   border-radius: var(--strip-lane-radius); // the lane's own curve (2026-09-06); a bespoke 10px until then
 }
+
+// (The wide tile rode the glass at 55% of its kind colour for one pass on
+// 2026-09-30 — the follow-up ask: "do not make the items of the stack be
+// translucid. make them completely opaque so they remain readable, but keep
+// the background translucid". Every tile keeps its OPAQUE face; only the
+// pane is glass.)
 
 // The glyph does not stretch with the tile: it stays a fixed 12px mark at
 // the capsule's left, and the two lines take the rest.
@@ -1120,10 +1168,15 @@ export default defineComponent({
     // Horizontally the strip now reads (desktop, at `--stack-w` 240):
     //   1 rim · 19 grip zone · 2 · 195 lane · 2 · 20 head · 1 rim
     // — 25px of lane paid for the handle and the two shoulders.
-    margin: var(--strip-shoulder);
-    background: var(--strip-well);
-    border: 1px solid var(--strip-rule);
-    border-radius: var(--strip-lane-radius);
+    // ⭐ ON THE GLASS SINCE 2026-09-30: no well, no rim, no shoulders — the
+    // tiles stand straight on the pane, 17px in the rail's 19px interior
+    // (21 less the pane's two rims), 1px of glass above and below.
+    --side-item-h: 17px;
+    margin: 0;
+    padding: 0 3px;
+    background: transparent;
+    border: none;
+    border-radius: 0;
     overflow-x: auto;
     overflow-y: hidden;
     scrollbar-width: none;
@@ -1136,6 +1189,11 @@ export default defineComponent({
 // are here" kind-colored bubble / solid inverted chip + the row anatomy live
 // in the item itself.
 .stack-item.is-past   { opacity: 0.55; }
+// ⭐ …but NOT on the header strip (2026-09-30, sixth follow-up: "for the
+// icon-only items … make sure they're not translucid either"): on the glass
+// a faded pill let the frieze through it. Every parked tile is OPAQUE; the
+// expanded list keeps the fade.
+.stack-list.is-parked .stack-item.is-past { opacity: 1; }
 // A stop reached through a FLOATING WINDOW rather than a page. Marked, not
 // recoloured: it is the same element and the same kind tone, and the only
 // thing that differs is the door. A dashed rim says "door" without
@@ -1146,8 +1204,8 @@ export default defineComponent({
 
 // ── ⭐ THE PHONE (2026-09-23, user ask: "put the stack section with a single
 // item … since it is gone"). The strip parks at `--strip-phone-w` (41px — the
-// pins strip's phone width, _tokens.scss) beside the identity cell, its
-// desktop seat, holding the CURRENT stop alone (`parkedSlots`) as a plain
+// pins strip's phone width, _tokens.scss) beside Back on the header rail
+// (since 2026-09-30; beside the footer's identity cell before), holding the CURRENT stop alone (`parkedSlots`) as a plain
 // glyph tile: the `.is-current` rule above grows that tile into the lettered
 // wide face, which has no room here, so it is put back to the tile every
 // other stop wears (the solid kind fill still marks it current). The head
@@ -1155,7 +1213,8 @@ export default defineComponent({
 // keeps `--stack-w` — it rises over the page, not the bar.
 @media (max-width: 600px) {
   .stack-window.is-parked { width: var(--strip-phone-w); }
-  .stack-side-head { width: 15px; }
+  .stack-side-head,
+  .stack-window.is-parked .stack-side-head { width: 15px; margin-right: 0; }
   .stack-list.is-parked :deep(.side-item__btn--rail.is-current) {
     flex: 0 0 var(--strip-tile-w);
     width: var(--strip-tile-w);
@@ -1163,13 +1222,6 @@ export default defineComponent({
     padding: 0;
   }
 }
-// ⚠ UNDER 354px THE BAR HAS NO SEAT FOR IT: identity 42 + stack 45 + the
-// centred creation row 144 + chat 28 + pins 45 + dashboard 42 + two 4px gaps
-// is 354px (346 while the strips were 41px, until 2026-09-26's bubble
-// shoulders), so on the narrowest phones the stack strip stands down (the
-// pins keep their seat) — NavigationBar drops its left reserve at the same
-// width.
-@media (max-width: 353px) {
-  .stack-window { display: none; }
-}
+// (The ≤353px stand-down — the FOOTER had no seat for the strip on the
+// narrowest phones — retired 2026-09-30 with the move to the header rail.)
 </style>

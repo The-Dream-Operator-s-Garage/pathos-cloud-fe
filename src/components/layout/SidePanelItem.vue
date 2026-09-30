@@ -40,7 +40,10 @@
          A stop with an empty sub-stack renders line one alone and stays
          vertically centred: an absent second line must read as nothing to
          report, never as a blank waiting to be filled. -->
-    <span v-if="lettered" class="side-item__rail-lines">
+    <!-- ⭐ INLINE (2026-09-30, the stack's move into the header rail): the
+         same three facts on ONE line — title · hash · last act · when — for
+         a host whose row is too short for two. -->
+    <span v-if="lettered" class="side-item__rail-lines" :class="{ 'is-inline': inline }">
       <span class="side-item__rail-line">
         <span class="side-item__rail-title">{{ title }}</span>
         <span v-if="railHash" class="side-item__rail-hash mono">{{ railHash }}</span>
@@ -49,6 +52,7 @@
         <q-icon v-if="subIcon" :name="subIcon" size="9px" class="side-item__rail-sub-icon" />
         <span class="side-item__rail-sub">{{ subLabel }}</span>
       </span>
+      <span v-if="inline && when" class="side-item__rail-when mono">{{ when }}</span>
     </span>
     <q-tooltip anchor="center left" self="center right">{{ tooltip || title }}</q-tooltip>
   </q-btn>
@@ -98,6 +102,21 @@ import MicroChip from 'src/components/shared/MicroChip.vue'
 
 // '#9b6cb0' → 'rgba(155, 108, 176, a)' — the bubble's soft fill derives from
 // the kind's hex accent without needing per-kind rgb tokens.
+const LIGHT_CREAM = '#fcf3e0'
+const luminance = (hex) => {
+  const h = hex.replace('#', '')
+  const [r, g, b] = [0, 2, 4].map(i => parseInt(h.slice(i, i + 2), 16) / 255)
+    .map(c => (c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4)))
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b
+}
+const contrast = (a, b) => {
+  const [hi, lo] = [luminance(a), luminance(b)].sort((x, y) => y - x)
+  return (hi + 0.05) / (lo + 0.05)
+}
+const onColorFor = (color, ink) => (
+  !ink || contrast(color, LIGHT_CREAM) >= contrast(color, ink) ? LIGHT_CREAM : ink
+)
+
 const softHex = (hex, alpha) => {
   const m = /^#([0-9a-f]{6})$/i.exec(hex || '')
   if (!m) return null
@@ -131,6 +150,9 @@ export default defineComponent({
     // learns the action vocabulary). Both empty ⇒ the tile is one line.
     subLabel: { type: String, default: '' },
     subIcon: { type: String, default: '' },
+    // Letter the wide face on ONE line instead of two (the header stack,
+    // 2026-09-30) — and add the visit's "x ago" at its end.
+    inline: { type: Boolean, default: false },
     // Creation timestamp for the "x ago" line (visit time for stack steps,
     // pin time for pins).
     time: { type: [Number, String, Date], default: null },
@@ -160,7 +182,11 @@ export default defineComponent({
       if (m.kind === 'unknown') return {}
       return {
         '--item-accent': m.color,
-        '--item-accent-soft': softHex(m.color, 0.14)
+        '--item-accent-soft': softHex(m.color, 0.14),
+        // The ink that reads ON a kind-colour fill (2026-09-30, the header
+        // stack's icon pills): light-cream or the kind's own darkest `ink`,
+        // whichever has the higher WCAG contrast against `color`.
+        '--item-on': onColorFor(m.color, m.ink)
       }
     })
 
@@ -236,8 +262,18 @@ export default defineComponent({
   // CENTRES and WRAPS `.q-btn__content`; both are undone here — the 09-02
   // face that "overlapped" was a title in a 70px glyph tile with the wrap
   // still on. The host sizes the tile; this rule only lays the row.
+  &--rail.is-labelled { overflow: hidden; }
   &--rail.is-labelled :deep(.q-btn__content) {
+    // ⚠ q-btn is a COLUMN flexbox that CENTRES this child, so without a
+    // stated width it sizes to its text and spills out of both ends of the
+    // tile (2026-09-30: 313px of content in a 305px tile) — pin it to the
+    // tile's content box and let the lines ellipsize inside.
+    align-self: stretch;
+    width: 100%;
+    max-width: 100%;
     flex-wrap: nowrap;
+    flex: 1 1 auto;
+    overflow: hidden;
     justify-content: flex-start;
     min-width: 0;
     gap: 4px;
@@ -377,6 +413,39 @@ export default defineComponent({
   font-size: 8px;
   line-height: 1;
   opacity: 0.8;
+  text-transform: none;
+}
+
+// ⭐ THE ONE-LINE FACE (2026-09-30): the column lays down into a row; the
+// sub line and the time follow the title, each behind a hairline dot.
+.side-item__rail-lines.is-inline {
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+  // ⭐ NOTHING OVERFLOWS (2026-09-30, user ask: "if the words don't fit
+  // inside the container … cutting them off"): every piece may shrink to
+  // nothing and ellipsizes; the extras give way FIRST (time, then the act,
+  // then the hash — larger flex-shrink), the title last.
+  overflow: hidden;
+  .side-item__rail-line { flex: 0 1 auto; min-width: 0; overflow: hidden; }
+  .side-item__rail-line--sub { flex-shrink: 4; }
+  .side-item__rail-hash { flex-shrink: 2; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .side-item__rail-when { flex: 0 8 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+  .side-item__rail-line--sub,
+  .side-item__rail-when {
+    &::before { content: '·'; margin-right: 6px; opacity: 0.6; }
+  }
+  .side-item__rail-line--sub { gap: 3px; }
+  .side-item__rail-title { font-size: 10px; }
+  .side-item__rail-hash,
+  .side-item__rail-sub { font-size: 9px; }
+}
+.side-item__rail-when {
+  flex: 0 0 auto;
+  font-size: 8px;
+  line-height: 1;
+  opacity: 0.7;
+  white-space: nowrap;
   text-transform: none;
 }
 

@@ -76,7 +76,9 @@ const TRAIL_KEY = 'pathos_nav_trail'
 // three components that carries a grip calls; only the OFFSETS live here.
 // Exported so that module and NavigationBar read ONE list.
 export const TRAIL_CHIPS = ['maker', 'schemaBuilder', 'labelMaker', 'uploader', 'chat']
-export const TRAIL_STRIPS = ['stack', 'pins']
+// ⭐ PINS ALONE SINCE 2026-09-30 — the stack strip moved up into the header
+// rail beside Back (StackPanel) and left the slider with the footer.
+export const TRAIL_STRIPS = ['pins']
 const TRAIL_KEYS = [...TRAIL_CHIPS, ...TRAIL_STRIPS]
 // ⭐ 2026-09-21 PM6: the builder's chip is `schemaBuilder` (the footer word
 // went SKELETONS → SCHEMAS — that window mints SCHEMAS; the populated

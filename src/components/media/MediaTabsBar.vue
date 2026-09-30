@@ -399,12 +399,23 @@ export default defineComponent({
       const hex = logo.value && logo.value.querySelector('.media-tabs__hex')
       const over = hex ? Math.max(0, (hex.getBoundingClientRect().width - seam.width) / 2) : 0
       const span = Math.max(1, row.width - seam.width)
-      const backW = backEl.value ? backEl.value.getBoundingClientRect().width : 0
-      const fwdW = forwardEl.value ? forwardEl.value.getBoundingClientRect().width : 0
+      // ⭐ THE STACK STRIP stands beside Back since 2026-09-30 (StackPanel's
+      // parked face, on the rail's face) — the seam's left wall is ITS right
+      // edge when it is there, so the hexagon never rides under the glass.
+      const stackEl = document.querySelector('.stack-window.is-parked')
+      const stackR = stackEl ? stackEl.getBoundingClientRect() : null
+      const backW = stackR && stackR.width > 0
+        ? stackR.right - row.left
+        : (backEl.value ? backEl.value.getBoundingClientRect().width : 0)
+      // ⭐ 2026-09-30: Forward rides the stack's right side, so it is the LEFT
+      // wall's last plate — and the right end is open to the screen edge.
+      const fwdR = forwardEl.value ? forwardEl.value.getBoundingClientRect().right - row.left : 0
+      const leftWall = Math.max(backW, fwdR)
+      const fwdW = 0
       return {
         left: row.left,
         span,
-        min: clamp((backW + over) / span, 0, 1),
+        min: clamp((leftWall + over) / span, 0, 1),
         max: clamp((row.width - fwdW - over - seam.width) / span, 0, 1)
       }
     }
@@ -491,6 +502,13 @@ export default defineComponent({
       const t = travel()
       logoFrac.value = clamp(logoFrac.value, t.min, t.max)
       follow()
+      // Once more after the stack strip (a sibling overlay, 2026-09-30) has
+      // painted — it is the seam's left wall now and may mount after us.
+      setTimeout(() => {
+        if (seamAnchor.value != null) return
+        const t2 = travel()
+        logoFrac.value = clamp(logoFrac.value, t2.min, t2.max)
+      }, 400)
     })
 
     // ── THE PAIR ON A PHONE — the `isPhone` glyph swap (2026-09-26, the long
@@ -868,7 +886,9 @@ export default defineComponent({
   // plate, which against a grey-8 plate is simply more plate. The recolor's
   // paragraphs below stand as that sitting's record; the dials here are the
   // law.
-  --frieze-bar-base: var(--grey-8, #616161);
+  // ⭐ GREY-9 SINCE 2026-09-30 (user ask: "make the background color of the
+  // top nav bar's frieze bar one tone of grey darker") — grey-8 until then.
+  --frieze-bar-base: var(--grey-9, #424242);
   // ── ⭐ THE RULES ARE BACK — THE FEED RAILS' LIPS, TURNED VERTICAL (2026-
   // 09-28, user ask: "the nav lips are way too thick now. Try using the
   // same proportions as the feed container friezebars, but adapt them to
@@ -1880,12 +1900,28 @@ export default defineComponent({
 
 .media-tabs__back {
   left: 0;
+  // ⭐ STATED WIDTH (2026-09-30): the header stack strip seats on this dial
+  // right beside the plate (StackPanel), so the plate cannot shrink-fit.
+  width: var(--media-tabs-back-w, 26px);
+  justify-content: center;
   border-right: 1px solid var(--grey-6, #9e9e9e);
 }
 
+// ⭐ FORWARD RIDES THE STACK'S RIGHT SIDE SINCE 2026-09-30 (user ask: "take
+// the >> button at the very right edge of the top header bar and then attach
+// it to the right side of the recently re-accomodated stack viewer"): Back ·
+// stack glass · Forward read as one cluster at the rail's left end. `left` is
+// Back's width + the strip's width — the strip's own `width`/`max-width`
+// restated (`min(--stack-head-w, 50vw − back)`; `--strip-phone-w` on a
+// phone), since CSS cannot measure a sibling. Its rule moved to its RIGHT
+// edge, the side that now meets the band; the glass closes its left. (At
+// `right: 0` with a left rule from 2026-08-31 until then.)
 .media-tabs__forward {
-  right: 0;
-  border-left: 1px solid var(--grey-6, #9e9e9e);
+  right: auto;
+  left: calc(var(--media-tabs-back-w, 26px) + min(var(--stack-head-w, 228px), 50vw - var(--media-tabs-back-w, 26px)));
+  width: var(--media-tabs-back-w, 26px);
+  justify-content: center;
+  border-right: 1px solid var(--grey-6, #9e9e9e);
 }
 
 // ⚠ 2026-09-29 EVE: HISTORY — the words are gone at EVERY width now and the
@@ -1903,6 +1939,7 @@ export default defineComponent({
 .media-tabs__wall { display: none; } // phones only — the block below draws it; this rule must stay ABOVE it (equal specificity, source order decides)
 
 @media (max-width: 600px) {
+  .media-tabs__forward { left: calc(var(--media-tabs-back-w, 26px) + var(--strip-phone-w, 45px)); }
   // (the pair's phone rules — `gap: 0` and the words' `display: none` —
   // retired 2026-09-29 EVE: no words and one glyph at every width now)
 

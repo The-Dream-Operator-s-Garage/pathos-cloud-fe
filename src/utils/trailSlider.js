@@ -38,11 +38,13 @@ import { useWindowsStore, TRAIL_CHIPS } from 'src/stores/windows'
 // strips are found by selector — each is ONE element with two faces, and
 // only the PARKED face is a body on the bar (the hover-expanded panel is a
 // transient overlay that is neither dragged nor allowed to shove anything).
-const STRIP_SELECTORS = { stack: '.stack-window.is-parked', pins: '.pins-window.is-parked' }
+// (The STACK strip was one until 2026-09-30, when it moved up into the
+// header rail beside Back — no grip, no slider there.)
+const STRIP_SELECTORS = { pins: '.pins-window.is-parked' }
 const chipEls = {}
 
 // Every body the slider knows, in the bar's own left-to-right order.
-export const TRAIL_MOVABLES = ['stack', ...TRAIL_CHIPS, 'pins']
+export const TRAIL_MOVABLES = [...TRAIL_CHIPS, 'pins']
 
 export function setTrailChip (key, el) { chipEls[key] = el || null }
 

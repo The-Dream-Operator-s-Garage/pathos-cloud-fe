@@ -710,7 +710,7 @@ export default defineComponent({
       setTimeout(reconcileTrail, 400)
       if (window.ResizeObserver) {
         setTimeout(() => {
-          const strips = [...document.querySelectorAll('.stack-window, .pins-window')]
+          const strips = [...document.querySelectorAll('.pins-window')]
           if (strips.length) {
             stripObserver = new ResizeObserver((entries) => {
               if (entries.some((e) => e.target.classList.contains('is-parked'))) queueReconcile()
@@ -2395,9 +2395,11 @@ export default defineComponent({
   // 69px, the very sum chat + tack made). At 375 both fit in their 69.5px
   // halves and the row stays centred to the pixel; the shift-by-deficit law
   // above still covers anything narrower.
+  // ⚠ 2026-09-30: the LEFT seat is gone — the stack strip moved up into the
+  // header rail beside Back — so the left track's floor is 0 again.
   .nav-right {
     display: grid;
-    grid-template-columns: minmax(var(--strip-phone-w), 1fr) auto minmax(max-content, 1fr);
+    grid-template-columns: minmax(0, 1fr) auto minmax(max-content, 1fr);
     column-gap: 4px;
     // No `--pins-strip-w` padding reserve here on a phone (the strips' seats
     // are the two outer TRACKS, above) — and no side padding at all: any
@@ -2507,13 +2509,6 @@ export default defineComponent({
   .minitab__label, .minitab__meta { display: none; }
 }
 
-// ⚠ UNDER 354px THE STACK STRIP STANDS DOWN (StackPanel's own ≤353px rule —
-// the bar's minimum with both strips is 354px: identity 42 + stack 45 + the
-// centred row 144 + chat 28 + pins 45 + dashboard 42 + two 4px gaps; 346
-// while the strips were 41px, until 2026-09-26's bubble shoulders), so its
-// seat does too: the left track's floor returns to 0 and the centred row may
-// slide the whole way left.
-@media (max-width: 353px) {
-  .nav-right { grid-template-columns: minmax(0, 1fr) auto minmax(max-content, 1fr); }
-}
+// (The ≤353px stack stand-down lived here until 2026-09-30 — the strip left
+// the footer for the header rail, and the left track has no floor to drop.)
 </style>
