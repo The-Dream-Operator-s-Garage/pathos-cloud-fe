@@ -886,9 +886,9 @@ export default defineComponent({
   // plate, which against a grey-8 plate is simply more plate. The recolor's
   // paragraphs below stand as that sitting's record; the dials here are the
   // law.
-  // ⭐ GREY-9 SINCE 2026-09-30 (user ask: "make the background color of the
-  // top nav bar's frieze bar one tone of grey darker") — grey-8 until then.
-  --frieze-bar-base: var(--grey-9, #424242);
+  // ⭐ GREY-8 AGAIN, 2026-09-30 PM (user ask: "go back 1 tone of grey
+  // lighter. it looks too dark") — the same day's grey-9 step reverted.
+  --frieze-bar-base: var(--grey-8, #616161);
   // ── ⭐ THE RULES ARE BACK — THE FEED RAILS' LIPS, TURNED VERTICAL (2026-
   // 09-28, user ask: "the nav lips are way too thick now. Try using the
   // same proportions as the feed container friezebars, but adapt them to
