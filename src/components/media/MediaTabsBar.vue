@@ -256,7 +256,19 @@
          at 15px in the 17px face instead of the desktop's 12px; the blocks
          close to glyph + pads (~33px) and the parked-tab row's right inset
          follows Forward down (90 → 40px). The desktop pair is untouched:
-         `arrow_back` / `arrow_forward` at 12px beside their words. -->
+         `arrow_back` / `arrow_forward` at 12px beside their words.
+         ⭐ 2026-09-29 EVE — NO WORDS ANYWHERE, DOUBLE CHEVRONS, DENSER (user
+         ask: "remove their text completely for both mobile and desktop
+         modes and also replace the icons with material
+         keyboard_double_arrow_left and keyboard_double_arrow_right icons.
+         Make the buttons containers denser by reducing their inner padding
+         and making the icons bigger"): one glyph per button at every width
+         — `sym_o_keyboard_double_arrow_left` / `_right` (Material Symbols,
+         the font the phone's long arrows already proved loaded) at 19px in
+         the 21px face, pads 9 → 3px; the `isPhone` glyph swap and its
+         matchMedia listener are gone with the words (a name that no longer
+         differs needs no query). The button's accessible name is its
+         `title` + `aria-label`. -->
     <button
       ref="backEl"
       type="button"
@@ -264,10 +276,10 @@
       :class="{ 'is-disabled': !canGoBack }"
       :disabled="!canGoBack"
       title="Back"
+      aria-label="Back"
       @click="goBack"
     >
-      <q-icon :name="isPhone ? 'sym_o_arrow_left_alt' : 'arrow_back'" :size="isPhone ? '15px' : '12px'" class="media-tabs__glyph" />
-      <span class="media-tabs__name">back</span>
+      <q-icon name="sym_o_keyboard_double_arrow_left" size="19px" class="media-tabs__glyph" />
     </button>
     <!-- FORWARD — the pair's other half at the rail's RIGHT end (the ask
          that followed the in-bar move: "add a forward one at the right end
@@ -284,10 +296,10 @@
       :class="{ 'is-disabled': !canGoForward }"
       :disabled="!canGoForward"
       title="Forward"
+      aria-label="Forward"
       @click="goForward"
     >
-      <span class="media-tabs__name">forward</span>
-      <q-icon :name="isPhone ? 'sym_o_arrow_right_alt' : 'arrow_forward'" :size="isPhone ? '15px' : '12px'" class="media-tabs__glyph" />
+      <q-icon name="sym_o_keyboard_double_arrow_right" size="19px" class="media-tabs__glyph" />
     </button>
     <!-- ── ⭐ THE WALL (2026-09-29, user ask, phones only: "rearrange the
          tabs by rotating them 90 degrees to the right and adding a thin grey
@@ -302,7 +314,11 @@
          (`aria-hidden`, click-through) and `display: none` above 600px —
          the phone block in the style block is the only place it draws. -->
     <div class="media-tabs__wall" aria-hidden="true" />
-    <TransitionGroup ref="rowEl" tag="div" name="mtab" class="media-tabs__row nasalization" appear>
+    <!-- ⭐ THE MEMBRANE (2026-09-29 EVE): the row paints it — a strip from
+         the feed's right rail (`seamEdge`) to the screen's right end, past
+         and under Forward, the tabs hanging out of it (style block). Only
+         while something is parked. -->
+    <TransitionGroup ref="rowEl" tag="div" name="mtab" class="media-tabs__row nasalization" :class="{ 'has-membrane': tabs.length > 0, 'is-railed': railed }" :style="membraneStyle" appear>
       <button
         v-for="t in tabs"
         :key="t.key"
@@ -319,21 +335,16 @@
 </template>
 
 <script>
-import { defineComponent, computed, ref, watch, onMounted, onBeforeUnmount } from 'vue'
+import { defineComponent, computed, ref, watch, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useFlyoutViewersStore } from 'src/stores/flyoutViewers'
 import FriezeBar from 'src/components/layout/FriezeBar.vue'
 import { useAurora } from 'src/composables/useAurora'
-import { seamAnchor, gripSeam, nudgeSeam } from 'src/composables/useSeamAnchor'
+import { seamAnchor, seamEdge, gripSeam, nudgeSeam } from 'src/composables/useSeamAnchor'
 import { iconForTarget, titleOfTarget } from 'src/utils/mediaKind'
 
-// ── THE PHONE QUERY (2026-09-26, user ask: on mobile the Back/Forward pair
-// drops its words and wears bigger arrows). The SAME STRING the style block's
-// `@media` uses, on purpose — FeedHeadBox's lesson: `$q.screen.lt.sm` fires
-// UNDER 600px where `max-width: 600px` is 600 inclusive, so at exactly 600px
-// the JS and the CSS would disagree about which pair is standing. One string,
-// one answer.
-const MOBILE_Q = '(max-width: 600px)'
+// (THE PHONE QUERY `MOBILE_Q` stood here 2026-09-26 → 09-29 EVE, feeding the
+// retired `isPhone` glyph swap — see the pair's template note.)
 
 export default defineComponent({
   name: 'MediaTabsBar',
@@ -455,6 +466,14 @@ export default defineComponent({
     // is 95% wide there), so the clamp holds the badge at the plate's edge
     // — as close as it can get without covering the arrow.
     const anchored = computed(() => seamAnchor.value != null)
+    // ⭐ THE MEMBRANE'S LEFT END (2026-09-29 EVE, user ask: "stick the
+    // membrane to the feed right frieze bar … and also … to the very right
+    // end of the screen, past and below the -> button") — while the feed
+    // publishes its right rail's edge the row starts THERE (viewport x = the
+    // bar's x: `.media-tabs` spans the viewport from 0); elsewhere it hugs
+    // its tabs from the right end as before.
+    const railed = computed(() => seamEdge.value != null)
+    const membraneStyle = computed(() => railed.value ? { '--mtab-row-l': `${seamEdge.value}px` } : null)
     const follow = () => {
       const x = seamAnchor.value
       if (x == null) return
@@ -474,25 +493,10 @@ export default defineComponent({
       follow()
     })
 
-    // ── THE PAIR ON A PHONE (2026-09-26, user ask: "on the mobile versions
-    // only, make the top nav bar not display the 'back' or 'forward' labels
-    // since they take up a lot of space. Also use different signs for back
-    // and forward. find bigger material arrows") — `isPhone` picks the
-    // GLYPH (a name is not a style, so CSS cannot swap it): the long arrows
-    // `sym_o_arrow_left_alt` / `sym_o_arrow_right_alt` at 15px, Material
-    // Symbols' full-width arrows, where the desktop keeps `arrow_back` /
-    // `arrow_forward` at 12px beside their words. The WORDS hide in the style
-    // block's `@media` (same query, `MOBILE_Q` above).
-    const isPhone = ref(false)
-    let phoneMq = null
-    const syncPhone = (e) => { isPhone.value = e.matches }
-    onMounted(() => {
-      if (typeof window === 'undefined' || !window.matchMedia) return
-      phoneMq = window.matchMedia(MOBILE_Q)
-      isPhone.value = phoneMq.matches
-      phoneMq.addEventListener('change', syncPhone)
-    })
-    onBeforeUnmount(() => { if (phoneMq) phoneMq.removeEventListener('change', syncPhone) })
+    // ── THE PAIR ON A PHONE — the `isPhone` glyph swap (2026-09-26, the long
+    // arrows at 15px on phones, `arrow_back`/`arrow_forward` at 12px beside
+    // the words on desktop) is RETIRED 2026-09-29 EVE: one double-chevron
+    // glyph at every width, no words anywhere (template note).
 
     // ── The BACK + FORWARD pair (2026-08-31) — Back relocated from the
     // hidden drawer, Forward re-surfaced with it (its last surface was the
@@ -591,7 +595,6 @@ export default defineComponent({
     // viewer parked — a band that is permanent has no such moment.
     return {
       tabs,
-      isPhone,
       canGoBack,
       goBack,
       canGoForward,
@@ -603,6 +606,8 @@ export default defineComponent({
       logoFrac,
       logoPct,
       anchored,
+      railed,
+      membraneStyle,
       logoDown,
       logoMove,
       logoUp,
@@ -1426,8 +1431,22 @@ export default defineComponent({
 // raise a stray scrollbar.
 .media-tabs__row {
   --mtab-gap: 6px; // the slot between tabs — the web (in the tab rule) spans exactly this
+  // ── ⭐ THE MEMBRANE HANGS FROM THE FRIEZE'S OWN RULE (2026-09-29 EVE, user
+  // ask: the tabs "have a border on their edge sticking to the top. help me
+  // making all their edges/borders have borders that look the same") ──
+  // Hung from the rail's rim row (`top: 100%`), the tabs' 1px top border
+  // stood under the bar's 2px cream pad (`--media-tabs-frieze-pad`) and the
+  // frieze's own grey-6 bottom rule — the top edge read as a STACK of lines
+  // (rule / cream / rule) where every other edge is one line on the stars.
+  // The row now starts ON the frieze's bottom rule, `--mtab-lift` (pad +
+  // rim) higher: over the membrane that rule IS its top border, the pad
+  // and the rim row under it are membrane face, and the tabs grow by the
+  // lift at the TOP (`padding-top`, the tab rule) — their bottoms, the
+  // strip's foot, the webs, the fillets and `--media-tabs-park-h` do not
+  // move.
+  --mtab-lift: calc(var(--media-tabs-frieze-pad) + var(--media-tabs-rim));
   position: absolute;
-  top: 100%;
+  top: calc(100% - var(--mtab-lift));
   // ── CLEAR OF THE FORWARD BUTTON (2026-08-31 — the pair moved INTO the
   // bar and Forward took the right end, so the corner this offset clears
   // changed hands again) ──
@@ -1443,7 +1462,11 @@ export default defineComponent({
   // stack got. ⚠ A static number because CSS cannot measure a sibling:
   // if the Forward block ever grows (a longer word, a bigger glyph), this
   // moves with it or the rightmost tab slides underneath.
-  right: 90px;
+  // ⭐ 2026-09-29 EVE: `right: 0` — the membrane runs to the screen's right
+  // end, past and under Forward (the row hangs BELOW the bar, so nothing
+  // there is covered); 90px cleared Forward until then (history above).
+  right: 0;
+  left: var(--mtab-row-l, auto); // the feed rail's right edge while railed (script), else hug the tabs
   max-width: 50vw;
   display: flex;
   gap: var(--mtab-gap);
@@ -1454,6 +1477,44 @@ export default defineComponent({
   &::-webkit-scrollbar { display: none; }
 
   > .media-tabs__tab:first-child { margin-left: auto; }
+
+  // ── THE TABS' DIALS LIVE ON THE ROW (2026-09-29 EVE) — the membrane below
+  // is the row's own paint and reads them; the tabs inherit them unchanged.
+  --mtab-rim: var(--media-tabs-rim, 1px);
+  // ⭐ 09-29 EVE: the membrane's outline — every edge of it: the strip's
+  // four, the tabs', the webs' and fillets' arcs — one step DARKER than the
+  // bar's `--grey-6` rim (user ask: "a darker grey tone thin border on all
+  // its borders"); `--grey-6` until then
+  --mtab-rim-ink: var(--grey-7, #757575);
+  --mtab-r: 9px; // the tabs' two free corners' radius — the webs' and fillets' geometry is derived from it
+  --mtab-web-r: 6px; // THE WEB'S ARC: sqrt((gap/2 + r)² + r²) − r = sqrt(12² + 9²) − 9 = 6 for gap 6, r 9. Re-derive if the gap or r moves
+  --mtab-fillet-x: 13.75px; // THE FILLET'S REACH: sqrt(r² + 2·r·web-r) = sqrt(81 + 108) — the fillet circle (radius web-r, under the strip's foot) sits this far out from the tab's corner centre. Re-derive with r / web-r
+  --mtab-h: calc(12px + 1px + 2 * var(--mtab-rim) + var(--mtab-lift)); // a tab's OUTER height: glyph + pad-bottom + two rims (the `tab-hang` arithmetic, rims included) + the lift — 18
+  --mtab-strip: calc(var(--mtab-h) - var(--mtab-r)); // the strip's depth: down to the corners' centres, where the tabs' sides turn — 9 from the frieze's rule (its foot on the same row as before the lift)
+  --mtab-membrane: var(--grey-4, #e0e0e0); // the membrane's face — the tabs' rest face, and NOT their hover/press face: the membrane holds still while a tab lights
+
+  // ── ⭐ THE MEMBRANE (2026-09-29 EVE, user ask: "stick the membrane to the
+  // feed right frieze bar on the right and also stick it to the very right
+  // end of the screen, past and below the -> button … Add to the membrane a
+  // darker grey tone thin border on all its borders") ──────────────────────
+  // The row's own BACKGROUND is the strip: the tabs' face, the row's full
+  // width, `--mtab-strip` deep from the rail's rim row, framed on all four
+  // sides in `--mtab-rim-ink`. A background (default `scroll` attachment)
+  // stays put while the row scrolls its tabs, so an overflowing row never
+  // drags its membrane along. The tabs hang out of it; the webs fill the
+  // gaps between them; the outermost two meet the strip's foot through a
+  // FILLET each (the tab rule). Railed (the feed's right rail published)
+  // the row runs rail edge → screen edge and loses its 50vw cap; elsewhere
+  // it hugs its tabs from the right end. Only while something is parked.
+  @media (min-width: 601px) { &.is-railed { max-width: none; } } // desktop only — the phone row's cap (the wall's height) must win
+  &.has-membrane {
+    background:
+      linear-gradient(var(--mtab-rim-ink), var(--mtab-rim-ink)) 0 0 / 100% var(--mtab-rim) no-repeat,
+      linear-gradient(var(--mtab-rim-ink), var(--mtab-rim-ink)) 0 calc(var(--mtab-strip) - var(--mtab-rim)) / 100% var(--mtab-rim) no-repeat,
+      linear-gradient(var(--mtab-rim-ink), var(--mtab-rim-ink)) 0 0 / var(--mtab-rim) var(--mtab-strip) no-repeat,
+      linear-gradient(var(--mtab-rim-ink), var(--mtab-rim-ink)) 100% 0 / var(--mtab-rim) var(--mtab-strip) no-repeat,
+      linear-gradient(var(--mtab-membrane), var(--mtab-membrane)) 0 0 / 100% var(--mtab-strip) no-repeat;
+  }
 }
 
 // A tab is a piece of the band pulled downward: the band's own face
@@ -1497,15 +1558,14 @@ export default defineComponent({
   // also consumed inside the flares' gradient stops, where a background layer
   // list is illegal. Tab and band are one material again — the state the
   // strip was built in and lost for the hour the band alone wore the coat.
-  --mtab-face: var(--grey-4, #e0e0e0); // ⭐ 09-28: the flyout window's own coat (ElementFlyout.vue) — `--plaque-flat` from 08-17 until then
+  --mtab-face: var(--mtab-membrane); // ⭐ 09-28: the flyout window's own coat (ElementFlyout.vue), `--grey-4` — `--plaque-flat` from 08-17 until then. ⭐ 09-29 EVE: through the membrane's dial (the row)
   // The rim matches the band's, thickness and tone: `--media-tabs-rim` of
   // `--grey-6`, so the line runs band → flare → tab unbroken again. The tab
   // has no top edge (it flows OUT of the band), so what this paints is the
   // bottom sweep and the two sides — one continuous edge with the rail's.
-  --mtab-rim: var(--media-tabs-rim, 2px);
-  --mtab-rim-ink: var(--grey-6, #9e9e9e);
-  --mtab-r: 9px; // the two free corners' radius — the web's geometry below is derived from it and the gap
-  --mtab-web-r: 6px; // THE WEB'S ARC: the one radius tangent to both neighbours' corners — sqrt((gap/2 + r)² + r²) − r = sqrt(12² + 9²) − 9 = 6 for gap 6, r 9. Change the gap or the radius and this must be re-derived
+  // ⭐ 09-29 EVE: `--mtab-rim` / `--mtab-rim-ink` (now `--grey-7`) /
+  // `--mtab-r` / `--mtab-web-r` moved UP to the row, which paints the
+  // membrane with them — inherited here unchanged.
   pointer-events: auto; // the one clickable thing on a click-through band
   position: relative; // the two flares are absolute to this box
   display: inline-flex;
@@ -1544,6 +1604,7 @@ export default defineComponent({
   min-width: 46px; // the shrink floor: glyph + a sliver of name
   max-width: 180px;
   padding: 0 8px 1px; // ⭐ 09-28: a step tighter (0 10px 2px until then)
+  padding-top: var(--mtab-lift); // ⭐ 09-29 EVE: the tab reaches up to the frieze's rule with the row (row note) — the writing stays where it was
   line-height: 1;
   border: var(--mtab-rim) solid var(--mtab-rim-ink); // ⭐ 09-28: ALL FOUR SIDES — the top edge lands on the rail's rim row in the rail's ink (`border-top: none`, "it flows out of the band", until then)
   border-radius: 0 0 var(--mtab-r) var(--mtab-r);
@@ -1645,7 +1706,7 @@ export default defineComponent({
     pointer-events: none;
     border-top: var(--mtab-rim) solid var(--mtab-rim-ink);
     background:
-      radial-gradient(circle at 50% 100%, var(--mtab-rim-ink) calc(var(--mtab-web-r) + var(--mtab-rim) - 0.4px), var(--mtab-face) calc(var(--mtab-web-r) + var(--mtab-rim) + 0.4px));
+      radial-gradient(circle at 50% 100%, var(--mtab-rim-ink) calc(var(--mtab-web-r) + var(--mtab-rim) - 0.4px), var(--mtab-membrane) calc(var(--mtab-web-r) + var(--mtab-rim) + 0.4px)); // ⭐ 09-29 EVE: the MEMBRANE's face, not the tab's — a hovered tab lights alone
     clip-path: polygon(
       calc(var(--mtab-r) - var(--mtab-rim)) 0,
       calc(100% - var(--mtab-r) + var(--mtab-rim)) 0,
@@ -1665,6 +1726,79 @@ export default defineComponent({
       radial-gradient(circle at 100% calc(100% - var(--mtab-r)), transparent calc(var(--mtab-r) - var(--mtab-rim) - 1.2px), #000 calc(var(--mtab-r) - var(--mtab-rim) - 0.4px)),
       radial-gradient(circle at 50% 100%, transparent calc(var(--mtab-web-r) - 0.4px), #000 calc(var(--mtab-web-r) + 0.4px));
     mask-composite: intersect;
+  }
+
+  // ── ⭐ THE FILLETS (2026-09-29 EVE) — where the outermost tabs leave the
+  // MEMBRANE's strip (the row's paint). The strip's foot is a horizontal
+  // line at S = --mtab-strip, exactly where a tab's straight side turns
+  // into its corner; unjoined, strip foot and tab side met at a square
+  // inner corner — the edge this whole pass exists to remove. A fillet is
+  // the web with one neighbour flattened: a circle of radius ρ (the web's,
+  // `--mtab-web-r`) under the strip's foot, tangent to that line from
+  // below and to the tab's corner circle from outside, which puts its
+  // centre `--mtab-fillet-x` = sqrt(r² + 2rρ) out from the corner's centre
+  // along the foot. Box coordinates (the box runs from the foot's tangent
+  // point T to the corner's centre C, the tab's full outer height): C =
+  // (100%, S), F = (0, S + ρ), T = (0, S). Painted: the triangle T-C-F
+  // (its slant side C-F passes through the tangent point) ∪ the column
+  // over the tab's outer side rim above S ∪ the band over the strip's
+  // bottom rule from T to the tab — in the membrane's face, the ring
+  // around F in rim ink carrying the strip's foot rule round into the
+  // tab's corner; cut: the disc around F (the air) and the corner's disc
+  // (the tab draws itself; `r − rim − 0.8`, as the web). LEFT on the first
+  // tab (`::before`), mirrored on the last (`::after` — the web's selector
+  // is `:not(:last-child)`, so the two never meet; one tab wears both).
+  &:first-child::before,
+  &:last-child::after {
+    content: '';
+    position: absolute;
+    z-index: 1;
+    top: calc(-1 * var(--mtab-rim));
+    bottom: calc(-1 * var(--mtab-rim));
+    width: var(--mtab-fillet-x);
+    box-sizing: border-box;
+    pointer-events: none;
+    border-top: var(--mtab-rim) solid var(--mtab-rim-ink);
+    -webkit-mask-composite: source-in;
+    mask-composite: intersect;
+  }
+  &:first-child::before {
+    left: calc(-1 * var(--mtab-rim) - (var(--mtab-fillet-x) - var(--mtab-r)));
+    background: radial-gradient(circle at 0 calc(100% - var(--mtab-r) + var(--mtab-web-r)), var(--mtab-rim-ink) calc(var(--mtab-web-r) + var(--mtab-rim) - 0.4px), var(--mtab-membrane) calc(var(--mtab-web-r) + var(--mtab-rim) + 0.4px));
+    clip-path: polygon(
+      calc(100% - var(--mtab-r)) 0,
+      calc(100% - var(--mtab-r) + var(--mtab-rim)) 0,
+      calc(100% - var(--mtab-r) + var(--mtab-rim)) calc(100% - var(--mtab-r)),
+      100% calc(100% - var(--mtab-r)),
+      0 calc(100% - var(--mtab-r) + var(--mtab-web-r)),
+      0 calc(100% - var(--mtab-r) - var(--mtab-rim)),
+      calc(100% - var(--mtab-r)) calc(100% - var(--mtab-r) - var(--mtab-rim))
+    );
+    -webkit-mask-image:
+      radial-gradient(circle at 0 calc(100% - var(--mtab-r) + var(--mtab-web-r)), transparent calc(var(--mtab-web-r) - 0.4px), #000 calc(var(--mtab-web-r) + 0.4px)),
+      radial-gradient(circle at 100% calc(100% - var(--mtab-r)), transparent calc(var(--mtab-r) - var(--mtab-rim) - 1.2px), #000 calc(var(--mtab-r) - var(--mtab-rim) - 0.4px));
+    mask-image:
+      radial-gradient(circle at 0 calc(100% - var(--mtab-r) + var(--mtab-web-r)), transparent calc(var(--mtab-web-r) - 0.4px), #000 calc(var(--mtab-web-r) + 0.4px)),
+      radial-gradient(circle at 100% calc(100% - var(--mtab-r)), transparent calc(var(--mtab-r) - var(--mtab-rim) - 1.2px), #000 calc(var(--mtab-r) - var(--mtab-rim) - 0.4px));
+  }
+  &:last-child::after {
+    right: calc(-1 * var(--mtab-rim) - (var(--mtab-fillet-x) - var(--mtab-r)));
+    background: radial-gradient(circle at 100% calc(100% - var(--mtab-r) + var(--mtab-web-r)), var(--mtab-rim-ink) calc(var(--mtab-web-r) + var(--mtab-rim) - 0.4px), var(--mtab-membrane) calc(var(--mtab-web-r) + var(--mtab-rim) + 0.4px));
+    clip-path: polygon(
+      var(--mtab-r) 0,
+      calc(var(--mtab-r) - var(--mtab-rim)) 0,
+      calc(var(--mtab-r) - var(--mtab-rim)) calc(100% - var(--mtab-r)),
+      0 calc(100% - var(--mtab-r)),
+      100% calc(100% - var(--mtab-r) + var(--mtab-web-r)),
+      100% calc(100% - var(--mtab-r) - var(--mtab-rim)),
+      var(--mtab-r) calc(100% - var(--mtab-r) - var(--mtab-rim))
+    );
+    -webkit-mask-image:
+      radial-gradient(circle at 100% calc(100% - var(--mtab-r) + var(--mtab-web-r)), transparent calc(var(--mtab-web-r) - 0.4px), #000 calc(var(--mtab-web-r) + 0.4px)),
+      radial-gradient(circle at 0 calc(100% - var(--mtab-r)), transparent calc(var(--mtab-r) - var(--mtab-rim) - 1.2px), #000 calc(var(--mtab-r) - var(--mtab-rim) - 0.4px));
+    mask-image:
+      radial-gradient(circle at 100% calc(100% - var(--mtab-r) + var(--mtab-web-r)), transparent calc(var(--mtab-web-r) - 0.4px), #000 calc(var(--mtab-web-r) + 0.4px)),
+      radial-gradient(circle at 0 calc(100% - var(--mtab-r)), transparent calc(var(--mtab-r) - var(--mtab-rim) - 1.2px), #000 calc(var(--mtab-r) - var(--mtab-rim) - 0.4px));
   }
 }
 
@@ -1724,8 +1858,7 @@ export default defineComponent({
   bottom: 0;
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 0 9px;
+  padding: 0 3px; // ⭐ 09-29 EVE: denser — `0 9px` + a 4px gap beside the word until then; the glyph alone, 19px, fills the 21px face
   border: none;
   background: var(--plaque-flat, #f8f2e4);
   color: var(--grey-8, #616161);
@@ -1755,6 +1888,9 @@ export default defineComponent({
   border-left: 1px solid var(--grey-6, #9e9e9e);
 }
 
+// ⚠ 2026-09-29 EVE: HISTORY — the words are gone at EVERY width now and the
+// glyph is one double chevron (the template note); what follows is the
+// phone-only pass it replaced.
 // ── ⭐ THE PAIR ON A PHONE (2026-09-26, user ask: no "back"/"forward" words
 // on mobile — "they take up a lot of space" — and bigger, different arrows).
 // The WORDS leave here; the GLYPH swap is the template's (`isPhone`, the same
@@ -1767,15 +1903,8 @@ export default defineComponent({
 .media-tabs__wall { display: none; } // phones only — the block below draws it; this rule must stay ABOVE it (equal specificity, source order decides)
 
 @media (max-width: 600px) {
-  .media-tabs__back,
-  .media-tabs__forward {
-    gap: 0;
-  }
-
-  .media-tabs__back .media-tabs__name,
-  .media-tabs__forward .media-tabs__name {
-    display: none;
-  }
+  // (the pair's phone rules — `gap: 0` and the words' `display: none` —
+  // retired 2026-09-29 EVE: no words and one glyph at every width now)
 
   // ── ⭐ THE TABS STAND ON THE RIGHT EDGE (2026-09-29, user ask: "rotate
   // them 90 degrees to the right and add a thin grey bar on the right of
@@ -1813,6 +1942,12 @@ export default defineComponent({
     max-width: calc(100vh - var(--media-tabs-h) - var(--nav-footer-h));
     transform-origin: 0 0;
     transform: rotate(90deg);
+    // ⭐ 09-29 EVE: the MEMBRANE is desktop-only (the ask's own words) — on a
+    // phone the WALL is the tabs' strip, so no row paint and no fillets
+    &.has-membrane { background: none; }
+    --mtab-lift: 0px; // no lift on the wall: the turned tabs keep their 15px
+    > .media-tabs__tab:first-child::before,
+    > .media-tabs__tab:last-child::after { content: none; }
   }
 }
 

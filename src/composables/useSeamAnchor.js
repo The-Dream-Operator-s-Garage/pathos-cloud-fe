@@ -28,20 +28,29 @@
 // from), and the arrow keys nudge the rail by px. The badge never moves
 // itself while anchored; the rail moves, publishes, and the badge follows —
 // one gesture, one source of truth, so the two cannot drift apart.
+//
+// ⭐ 2026-09-29 EVE — THE RAIL'S EDGE: the publisher also hands over the
+// rail's RIGHT edge (`seamEdge`, a viewport x or null), which is where the
+// parked tabs' MEMBRANE starts (MediaTabsBar: the strip runs from it to the
+// screen's right end). Released with the anchor.
 import { ref } from 'vue'
 
 export const seamAnchor = ref(null)
+export const seamEdge = ref(null)
 let grip = null
 
-export function anchorSeam (x, handle) {
+export function anchorSeam (x, handle, edge) {
   const v = Number.isFinite(x) ? Math.round(x * 10) / 10 : null
+  const e = Number.isFinite(edge) ? Math.round(edge * 10) / 10 : null
   if (handle) grip = handle
   if (seamAnchor.value !== v) seamAnchor.value = v
+  if (seamEdge.value !== e) seamEdge.value = e
 }
 
 export function releaseSeam () {
   grip = null
   if (seamAnchor.value !== null) seamAnchor.value = null
+  if (seamEdge.value !== null) seamEdge.value = null
 }
 
 // true when a publisher took the gesture — the caller must then leave it be.

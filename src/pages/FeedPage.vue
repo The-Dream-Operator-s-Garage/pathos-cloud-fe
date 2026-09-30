@@ -413,7 +413,7 @@ export default defineComponent({
       const el = railR.value
       if (!el) return
       const r = el.getBoundingClientRect()
-      anchorSeam(r.width ? r.left + r.width / 2 : null, seamGrip)
+      anchorSeam(r.width ? r.left + r.width / 2 : null, seamGrip, r.width ? r.right : null)
     }
     const settle = () => {
       const until = performance.now() + 320
