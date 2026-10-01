@@ -124,6 +124,12 @@
           <FriezeBarVerticalB lip="left" slim class="feed-container__edge" />
         </div>
       </div>
+      <!-- ── THE SIDE VIEWER (2026-10-01, user ask) — the persistent grey
+           window on the track's remaining width, right of the container:
+           a flex sibling, so it follows the rails' drag for free. See
+           `components/viewer/SideViewer.vue`; `pins-changed` rides the
+           same route up as the stream's. -->
+      <SideViewer @pins-changed="$emit('pins-changed')" />
     </div>
   </q-page>
 </template>
@@ -135,6 +141,7 @@ import { useFlyoutViewersStore } from 'src/stores/flyoutViewers'
 import FriezeBarVertical from 'src/components/layout/FriezeBarVertical.vue'
 import FriezeBarVerticalB from 'src/components/layout/FriezeBarVerticalB.vue'
 import FeedStream from 'src/components/posts/FeedStream.vue'
+import SideViewer from 'src/components/viewer/SideViewer.vue'
 import { anchorSeam, releaseSeam } from 'src/composables/useSeamAnchor'
 
 // ── THE CONTAINER'S GEOMETRY (2026-08-18, user ask) ──────────────────────
@@ -167,7 +174,7 @@ const STORE_KEY = 'pathos_feed_geometry'
 
 export default defineComponent({
   name: 'FeedPage',
-  components: { FriezeBarVertical, FriezeBarVerticalB, FeedStream },
+  components: { FriezeBarVertical, FriezeBarVerticalB, FeedStream, SideViewer },
   // Declared so it does NOT fall through to the root element as a DOM
   // listener — MainLayout binds it on the router-view.
   emits: ['pins-changed'],
