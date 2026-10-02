@@ -109,26 +109,23 @@ export default defineComponent({
 
 <style scoped lang="scss">
 .frieze-frame {
-  // The BAR's thickness — PIXEL-DRAWN since 2026-10-02 (user ask: "the
-  // frieze bar seems too thin now. just make sure the frieze pattern svg
-  // rendering is not losing quality. if it is … make the frieze bars a
-  // little thicker"). It WAS losing it: the feed's 13px bar (1 rule + 1 pad
-  // + 9 layer + 1 pad + 1 rule) under slim's `117% auto` fit draws the
-  // mask's 13 columns at ~0.81px each, every stroke anti-aliased. 15px is
-  // FeedPage's recorded crisp recipe (`.feed-container__edge`, "THE RULE IS
-  // THE LAYER'S WIDTH"): an ELEVEN-pixel layer under a fixed `13px auto`
-  // fit (stated on the bar below) — 1px a column, the file's two empty edge
-  // columns overhanging the layer by 1px a side. ⚠ The two numbers move
-  // together: any other bar width moves the layer off 11 and the fixed fit
-  // then clips inked columns (under) or floats (over).
-  --frame-bar-t: var(--frieze-frame-t, 15px);
+  // The BAR's thickness — THE FEED'S OWN since 2026-10-02 PM (user ask:
+  // "the frieze bars of the side viewer are huge. Make them the same width
+  // as the feed frieze bars"): FeedPage's `--feed-edge-w` 13px band (1 rule
+  // + 1 pad + 9 layer + 1 pad + 1 rule) under slim's own `117% auto` fit —
+  // squeezed, soft on purpose, exactly the feed rails' recipe. It held the
+  // PIXEL-DRAWN 15px for a few asks earlier the same day (an 11px layer under
+  // a fixed `13px auto`, 1px a mask column — crisp, but the meander drew ~24%
+  // bigger than the feed's, which is what read as "huge"). Restoring that is
+  // `15px` here + `--frieze-bar-v-fit: 13px auto` on the bar, one edit — the
+  // two numbers move together (FeedPage § THE RULE IS THE LAYER'S WIDTH).
+  --frame-bar-t: var(--frieze-frame-t, 13px);
   // The RAIL round it — the feed's `.feed-container__rail`, number for
   // number: 2px of coat a side, a 1px rim on the inner face.
   --frame-coat: 2px;
   --frame-rim: 1px;
   // The SIDE's thickness, which the four sides and the well read: coat +
-  // bar + coat + rim = 20px (the feed rail's 18 plus the 2px the crisp bar
-  // added).
+  // bar + coat + rim = 18px — the feed rail's own.
   --frame-t: calc(var(--frame-bar-t) + 2 * var(--frame-coat) + var(--frame-rim));
 
   position: relative;
@@ -154,8 +151,8 @@ export default defineComponent({
 // ── THE BAR: the feed container's left rail, dial for dial. These are
 // FeedPage's `.feed-container__edge` values verbatim (2026-09-26 state:
 // plate at the floor of the indigo scale, flat cream motif, grey-6 rules,
-// carve off, 1px pad) — except the WIDTH and the FIT, which since
-// 2026-10-02 are the pixel-drawn 15px / `13px auto` (see `--frame-bar-t`). Two classes so this host beats the component's own
+// carve off, 1px pad), the WIDTH and the FIT included since 2026-10-02 PM
+// (13px under slim's `117% auto`; see `--frame-bar-t`). Two classes so this host beats the component's own
 // `.frieze-bar-v--slim` rule (which zeroes the rules' width) regardless of
 // injection order — FeedPage rides source order for the same win.
 .frieze-frame .frieze-frame__bar {
@@ -169,8 +166,6 @@ export default defineComponent({
   --frieze-bar-v-lip: var(--grey-6, #9e9e9e);
   --frieze-bar-v-carve: none;
   --frieze-bar-v-pad: 1px;
-  // The fixed fit — 1px a mask column on the 11px layer (see `--frame-bar-t`).
-  --frieze-bar-v-fit: 13px auto;
 
   // The END RULES (template note) — the edge tone, closing each bar's
   // ends the way its long-edge rules close its sides.
