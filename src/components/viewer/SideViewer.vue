@@ -97,11 +97,24 @@ export default defineComponent({
 // ── THE WINDOW: the flyout family's coat (`.element-flyout`), standing in
 // the track instead of floating over it. `--side-viewer-gap` is the
 // daylight between the box and everything around it — the container's
-// rail, the track's top (under the header rail) and the footer bar —
+// rail, the header's tabs, the window's right edge and the footer bar —
 // and `--side-viewer-pad` the box's own grey between its rim and the
 // frieze frame.
+//
+// ONE GAP ON ALL FOUR SIDES, TAKEN FROM WHAT IS ACTUALLY DRAWN (2026-10-02,
+// user ask: "leave a little space between its top border and the tabs
+// hanging off the header nav bar … the same padding … to all the 4
+// borders"). The track starts at the RAIL's underside, but the rail's
+// parked tabs hang `--media-tabs-park-h` below it (`.media-tabs__row` is
+// absolute at `top: 100%`) — so a plain top margin was daylight measured
+// from the wrong line: at 10px the box's top sat at y=32 and a parked tab's
+// bottom at y=36, the tab lying 4px over the window. The top margin pays
+// the hang first, then the same gap as the other three sides — the docks'
+// rule (`_components.scss`, "DAYLIGHT OFF THE TOP CHROME"), and like theirs
+// ALWAYS reserved, whether or not a tab is parked. 14px = the docks'
+// `--dock-gap`, so every window on the page stands the same distance off.
 .side-viewer {
-  --side-viewer-gap: 10px;
+  --side-viewer-gap: 14px;
   --side-viewer-pad: 14px;
 
   // THE WIDTH IS WHATEVER THE CONTAINER LEAVES (user ask, same day: "occupy
@@ -116,6 +129,7 @@ export default defineComponent({
   min-width: 0;
   min-height: 0;
   margin: var(--side-viewer-gap);
+  margin-top: calc(var(--side-viewer-gap) + var(--media-tabs-park-h, 0px));
   padding: var(--side-viewer-pad);
   display: flex;
   position: relative;
