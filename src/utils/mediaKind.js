@@ -61,7 +61,8 @@ export function iconFor (node) {
     if (e?.mode === 'page') return 'public'
     // A card (2026-09-28, Spotify) is the rule's own promise — music_note
     // — not a screen you watch; the rule's ICON says what it is.
-    if (e?.mode === 'card') return e.icon || FACE_ICON.embed
+    // A fit (2026-10-01, X) likewise: a post you read, not watch.
+    if (e?.mode === 'card' || e?.mode === 'fit') return e.icon || FACE_ICON.embed
     return FACE_ICON.embed
   }
   if (face === 'card') return KIND_ICON[node?.file?.kind] || FACE_ICON.card

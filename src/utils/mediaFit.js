@@ -152,6 +152,9 @@ export async function probeNaturalSize (node) {
   const embed = node?.embed
   if (embed) {
     if (embed.mode === 'page') return { ...PORTRAIT }
+    // A fit (X's post) sizes itself once loaded; its first guess is a
+    // card about as tall as it is wide — portrait reads closest.
+    if (embed.mode === 'fit') return { ...PORTRAIT }
     return parseAspect(embed.aspect) || { ...LANDSCAPE }
   }
   const file = node?.file
