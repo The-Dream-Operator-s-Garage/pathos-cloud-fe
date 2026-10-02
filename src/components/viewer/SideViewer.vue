@@ -13,7 +13,8 @@
        not closable, not a member of the floating-viewer family
        (`stores/flyoutViewers.js`), whose windows are fixed-position and
        float ABOVE this one. It wears that family's coat so the two read
-       as one material: `--grey-4` box, `--grey-6` rim, 10px corners, the
+       as one material: `--grey-4` box, `--grey-6` rim, 10px corners (6px since
+       2026-10-02), the
        same drop shadow (`ElementFlyout.vue`, `.element-flyout`).
 
        INSIDE: `--side-viewer-pad` of the box's own grey, then the
@@ -137,7 +138,9 @@ export default defineComponent({
   position: relative;
   background: var(--grey-4, #e0e0e0);
   border: 1px solid var(--grey-6, #9e9e9e);
-  border-radius: 10px;
+  // 6px since 2026-10-02 (user ask: "make the side viewer's corners a
+  // little less rounded") — the one place it leaves the flyout coat's 10px.
+  border-radius: 6px;
   overflow: hidden;
   box-shadow: 0 12px 34px rgba(0, 0, 0, 0.45);
 }
