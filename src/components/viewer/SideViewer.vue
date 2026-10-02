@@ -17,9 +17,15 @@
        2026-10-02), the
        same drop shadow (`ElementFlyout.vue`, `.element-flyout`).
 
-       INSIDE: `--side-viewer-pad` of the box's own grey, then the
-       FriezeFrame — four of the feed's left rail laid as a pinwheel
-       (`components/layout/FriezeFrame.vue`) — and in the frame's well
+       INSIDE, A COLUMN (2026-10-02 eve, user ask: "remove all friezebars
+       from the side viewer and then leave the top one only, but remove its
+       side cream borders and adapt it so that it touches the grey plaque
+       sides and leaves some space to have a header above. the remaining
+       frieze bar separates the header from the content now"): the HEAD —
+       a band of the box's own grey reserved for a header, empty for now —
+       then the DIVIDER, the pinwheel's old top bar alone (the feed rail's
+       bar turned 90°, cream coat above and below, `--grey-6` rim toward
+       the content) running wall to wall with bare ends, then the WELL with
        the showcase: ONE random post, rendered as THE POSTCARD ITSELF
        through FeedStream's embed mode, exactly as the flyout's post face
        does (`:embed-item`). Random = two reads of `GET /feed`: one for
@@ -31,34 +37,38 @@
        flyout is where the post is worked on. `pins-changed` rides up to
        MainLayout through FeedPage, the same route the stream's takes. -->
   <section class="side-viewer" aria-label="Viewer">
-    <FriezeFrame class="side-viewer__frame">
-      <div class="side-viewer__well">
-        <div v-if="item" class="side-viewer__card">
-          <FeedStream
-            :key="'side:' + item.skeleton_id"
-            :embed-item="item"
-            @select="onSelect"
-            @pins-changed="$emit('pins-changed')"
-          />
-        </div>
-        <div v-else class="side-viewer__empty">
-          {{ error || 'Looking for a post…' }}
-        </div>
+    <header class="side-viewer__head" />
+    <div class="side-viewer__divider" aria-hidden="true">
+      <div class="side-viewer__rail">
+        <FriezeBarVertical lip="right" slim class="side-viewer__bar" />
       </div>
-    </FriezeFrame>
+    </div>
+    <div class="side-viewer__well">
+      <div v-if="item" class="side-viewer__card">
+        <FeedStream
+          :key="'side:' + item.skeleton_id"
+          :embed-item="item"
+          @select="onSelect"
+          @pins-changed="$emit('pins-changed')"
+        />
+      </div>
+      <div v-else class="side-viewer__empty">
+        {{ error || 'Looking for a post…' }}
+      </div>
+    </div>
   </section>
 </template>
 
 <script>
 import { defineComponent, ref, onMounted } from 'vue'
-import FriezeFrame from 'src/components/layout/FriezeFrame.vue'
+import FriezeBarVertical from 'src/components/layout/FriezeBarVertical.vue'
 import FeedStream from 'src/components/posts/FeedStream.vue'
 import { feedService } from 'src/services/feed.service'
 import { useFlyoutViewersStore } from 'src/stores/flyoutViewers'
 
 export default defineComponent({
   name: 'SideViewer',
-  components: { FriezeFrame, FeedStream },
+  components: { FriezeBarVertical, FeedStream },
   emits: ['pins-changed'],
   setup () {
     const item = ref(null)
@@ -99,8 +109,7 @@ export default defineComponent({
 // the track instead of floating over it. `--side-viewer-gap` is the
 // daylight between the box and everything around it — the container's
 // rail, the header's tabs, the window's right edge and the footer bar —
-// and `--side-viewer-pad` the box's own grey between its rim and the
-// frieze frame.
+// and `--side-viewer-head-h` the header band above the divider.
 //
 // ONE GAP ON ALL FOUR SIDES, TAKEN FROM WHAT IS ACTUALLY DRAWN (2026-10-02,
 // user ask: "leave a little space between its top border and the tabs
@@ -116,9 +125,18 @@ export default defineComponent({
 // `--dock-gap`, so every window on the page stands the same distance off.
 .side-viewer {
   --side-viewer-gap: 14px;
-  // The grey band round the frame, HALVED 14 → 7px on 2026-10-02 (user ask:
-  // "for the outer grey border around the frame, make it thinner").
-  --side-viewer-pad: 7px;
+  // THE HEAD's height — the band of the box's own grey above the divider,
+  // reserved for the viewer's header (2026-10-02 eve; empty until it has one).
+  --side-viewer-head-h: 30px;
+  // THE DIVIDER — the old frame's top RAIL, number for number: 2px of
+  // `--plaque-coat` each long face round the feed rail's 13px bar, a 1px
+  // `--grey-6` rim on the face toward the content = 18px. (Its 7px grey
+  // band round the old frame, `--side-viewer-pad`, left with the frame: the
+  // divider runs wall to wall.)
+  --side-viewer-bar-t: 13px;
+  --side-viewer-coat: 2px;
+  --side-viewer-rim: 1px;
+  --side-viewer-rail-t: calc(var(--side-viewer-bar-t) + 2 * var(--side-viewer-coat) + var(--side-viewer-rim));
 
   // THE WIDTH IS WHATEVER THE CONTAINER LEAVES (user ask, same day: "occupy
   // most of available remaining surface … adapt … depending on the feed
@@ -133,8 +151,10 @@ export default defineComponent({
   min-height: 0;
   margin: var(--side-viewer-gap);
   margin-top: calc(var(--side-viewer-gap) + var(--media-tabs-park-h, 0px));
-  padding: var(--side-viewer-pad);
+  // No padding: head, divider and well each pay their own, so the divider
+  // can touch the box's sides.
   display: flex;
+  flex-direction: column;
   position: relative;
   background: var(--grey-4, #e0e0e0);
   border: 1px solid var(--grey-6, #9e9e9e);
@@ -145,16 +165,77 @@ export default defineComponent({
   box-shadow: 0 12px 34px rgba(0, 0, 0, 0.45);
 }
 
-.side-viewer__frame {
-  flex: 1 1 auto;
+.side-viewer__head {
+  flex: 0 0 var(--side-viewer-head-h);
+  min-width: 0;
 }
 
-// The frame's interior: one scroller, the card centred in it. The embed
-// pane is the flyout's own arrangement (`.element-flyout__card`) — fill
-// the well, let the embed's well be the scroller — capped at a reading
-// width so a wide window does not stretch the card to the bars.
+// ── THE DIVIDER: the pinwheel's top side, kept alone (template note). The
+// bar is still the feed's VERTICAL rail bar TURNED 90° — the motif, its
+// mirroring and the rim all as the frame drew them — so the side is a size
+// container and the rail's HEIGHT is `100cqw` (the box's inner width)
+// before the turn (gotchas § The side viewer's divider). ⚠ The real
+// `rotate()` is legal only because the carve is `none`.
+.side-viewer__divider {
+  position: relative;
+  flex: 0 0 var(--side-viewer-rail-t);
+  overflow: hidden;
+  pointer-events: none;
+  container-type: size;
+}
+
+// The rail, upright: coat on its two LONG faces only — its ends are bare
+// (the ask's "remove its side cream borders"), so after the turn the plate
+// runs into the box's rim on both sides. `border-right` is the rim: `lip=
+// "right"` put the bar's inner face on local right, and a 90° clockwise turn
+// carries local right DOWN, onto the content.
+.side-viewer__rail {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: var(--side-viewer-rail-t);
+  height: 100cqw;
+  display: flex;
+  align-items: stretch;
+  padding: 0 var(--side-viewer-coat);
+  background: var(--plaque-coat);
+  border-right: var(--side-viewer-rim) solid var(--grey-6, #9e9e9e);
+  transform-origin: 0 0;
+  transform: rotate(90deg) translateY(-100%);
+}
+
+// The bar: FeedPage's `.feed-container__edge` dials verbatim (indigo-10
+// plate, flat cream motif, grey-6 rules, carve off, 1px pad, slim's own
+// `117% auto` fit). Two classes so this host beats the component's own
+// `.frieze-bar-v--slim` rule (which zeroes the rules' width). No END rules
+// any more: the frame needed them to close its corners; a wall-to-wall bar
+// meets the box's own rim instead.
+.side-viewer .side-viewer__bar {
+  --frieze-bar-v-w: var(--side-viewer-bar-t);
+  --frieze-bar-v-slim-w: var(--side-viewer-bar-t);
+  --frieze-bar-v-base: var(--indigo-10, #1a237e);
+  --frieze-bar-v-wave-one: var(--plaque-flat, #f8f2e4);
+  --frieze-bar-v-wave-two: var(--plaque-flat, #f8f2e4);
+  --frieze-bar-v-edge: var(--grey-6, #9e9e9e);
+  --frieze-bar-v-edge-w: 1px;
+  --frieze-bar-v-lip: var(--grey-6, #9e9e9e);
+  --frieze-bar-v-carve: none;
+  --frieze-bar-v-pad: 1px;
+}
+
+// The motif MIRRORED end-for-end (2026-10-02 ask, kept from the frame):
+// `scaleY(-1)` along the bar's length, which the turn lands on screen as a
+// horizontal mirror. Only the layer flips; the rules and the rim stay put.
+.side-viewer__bar :deep(.frieze-bar-v__layer) {
+  transform: scaleY(-1);
+}
+
+// The content under the divider: one scroller, the card centred in it. The
+// embed pane is the flyout's own arrangement (`.element-flyout__card`) —
+// fill the well, let the embed's well be the scroller — capped at a reading
+// width so a wide window does not stretch the card to the walls.
 .side-viewer__well {
-  height: 100%;
+  flex: 1 1 auto;
   padding: 14px;
   display: flex;
   justify-content: center;
