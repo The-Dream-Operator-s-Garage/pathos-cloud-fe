@@ -115,7 +115,9 @@ export default defineComponent({
 // `--dock-gap`, so every window on the page stands the same distance off.
 .side-viewer {
   --side-viewer-gap: 14px;
-  --side-viewer-pad: 14px;
+  // The grey band round the frame, HALVED 14 → 7px on 2026-10-02 (user ask:
+  // "for the outer grey border around the frame, make it thinner").
+  --side-viewer-pad: 7px;
 
   // THE WIDTH IS WHATEVER THE CONTAINER LEAVES (user ask, same day: "occupy
   // most of available remaining surface … adapt … depending on the feed
