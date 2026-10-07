@@ -28,5 +28,28 @@ export const refService = {
   async surround (ref, limit = 10) {
     const { data } = await api.get('/refs/surround', { params: { ref, limit } })
     return data
+  },
+
+  // THREADS (2026-10-07) — comments + forks of ANY element, read off the
+  // one chain path the server's holder rule picks (threadService). Paged:
+  // { total, offset, limit, order, supported, items }. Comment items are
+  // comment cards (PostCommentItem's `child` shape, `kind: 'skeletons'`);
+  // fork items are cards for skeleton forks, ref summaries for node and
+  // label forks.
+  async comments (ref, { limit = 20, offset = 0 } = {}) {
+    const { data } = await api.get('/refs/comments', { params: { ref, limit, offset } })
+    return data
+  },
+
+  async forks (ref, { limit = 20, offset = 0 } = {}) {
+    const { data } = await api.get('/refs/forks', { params: { ref, limit, offset } })
+    return data
+  },
+
+  // A comment on any element that takes them (posts, comments, nodes,
+  // skeletons, paths, labels, links) — 400 40007 for kinds that do not.
+  async commentOn (ref, payload) {
+    const { data } = await api.post('/refs/comment', { ref, ...payload })
+    return data
   }
 }

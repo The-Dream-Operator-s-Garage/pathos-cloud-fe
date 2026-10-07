@@ -1599,13 +1599,34 @@
               </div>
               <span class="post-square__foot-rule" aria-hidden="true" />
 
+              <!-- THE THREAD DOORS (2026-10-07, user ask: "I cannot comment
+                   through the post card button"): the two tallies are
+                   BUTTONS now. A click emits `thread` (item, 'comments' |
+                   'forks') — FeedPage shows the post in the side viewer
+                   with that section open, the side viewer's own card
+                   switches its section; a host with no listener (phone
+                   feed, flyout) falls back to the comment composer. The
+                   counts are the CHAIN's (feedService via threadService).
+                   `is-on` marks the section the side viewer is showing. -->
               <div class="post-square__foot-side">
-                <span class="post-square__stat" title="comments">
+                <button
+                  type="button"
+                  class="post-square__stat post-square__stat--door"
+                  :class="{ 'is-on': threadOn === 'comments' }"
+                  :title="(item.comment_count || 0) + ' comments — show / write'"
+                  @click.stop="onThread(item, 'comments')"
+                >
                   <q-icon name="chat_bubble_outline" size="11px" />{{ item.comment_count || 0 }}
-                </span>
-                <span class="post-square__stat" title="forks">
+                </button>
+                <button
+                  type="button"
+                  class="post-square__stat post-square__stat--door"
+                  :class="{ 'is-on': threadOn === 'forks' }"
+                  :title="(item.fork_count || 0) + ' forks — show'"
+                  @click.stop="onThread(item, 'forks')"
+                >
                   <q-icon name="alt_route" size="11px" />{{ item.fork_count || 0 }}
-                </span>
+                </button>
               </div>
               <span class="post-square__foot-rule" aria-hidden="true" />
 
@@ -1630,7 +1651,7 @@
 </template>
 
 <script>
-import { defineComponent, ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
+import { defineComponent, ref, computed, watch, onMounted, onBeforeUnmount, getCurrentInstance } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { feedService } from 'src/services/feed.service'
 import { labelService } from 'src/services/label.service'
@@ -1654,6 +1675,7 @@ import { orgService } from 'src/services/org.service'
 import { useFlyoutViewersStore } from 'src/stores/flyoutViewers'
 // The cap's EDIT door (2026-09-23) asks who is acting — the grid's own gate.
 import { useAuthStore } from 'src/stores/auth'
+import { useMakerStore } from 'src/stores/maker'
 import PostMicro from 'src/components/posts/PostMicro.vue'
 // The cap chips a post's PARENT, which may be a post, a node or some other
 // element — so it reaches for the generic chip rather than PostMicro.
@@ -1739,14 +1761,20 @@ export default defineComponent({
     // scoped styles, so embedding the stream in single-card dress is what
     // keeps the two faces one face. Emits still fire; the host decides what
     // they mean in a box that already shows the post.
-    embedItem: { type: Object, default: null }
+    embedItem: { type: Object, default: null },
+    // Which thread section a host is showing for the card ('comments' |
+    // 'forks' | null) — lights the matching foot door (SideElementView).
+    threadOn: { type: String, default: null }
   },
-  emits: ['select', 'pins-changed'],
+  emits: ['select', 'pins-changed', 'thread'],
   setup (props, { emit }) {
     // Embed mode is born holding its card — no fetch, and no one-frame
     // flash of the empty state while `onMounted` gets around to load().
     const items = ref(props.embedItem ? [props.embedItem] : [])
     const total = ref(props.embedItem ? 1 : 0)
+    // The host may hand a NEWER copy of the same row (SideElementView's
+    // card follows the chain's comment / fork totals) — the card follows.
+    watch(() => props.embedItem, (it) => { if (it) items.value = [it] })
     const loading = ref(false)
     const wellEl = ref(null)
     const streamEl = ref(null)
@@ -2770,6 +2798,28 @@ export default defineComponent({
       shareOpen.value = true
     }
 
+    // The foot's thread doors (template note). A listening host gets the
+    // event; without one, the comment door opens the post's comment draft
+    // in the maker dock — the post card's own way to comment — and the
+    // fork door opens the post's window.
+    const instance = getCurrentInstance()
+    const maker = useMakerStore()
+    const onThread = (item, slot) => {
+      if (instance?.vnode?.props?.onThread) { emit('thread', item, slot); return }
+      if (slot === 'comments') {
+        maker.openCommentDraft({
+          kind: 'post',
+          id: item.skeleton_id,
+          hash: String(item.skeleton_path || '').split('/').pop(),
+          route: '/posts/' + item.skeleton_id,
+          label: item.title || ('post #' + item.skeleton_id)
+        })
+        maker.open()
+      } else {
+        emit('select', item)
+      }
+    }
+
     const copyAddress = async (item) => {
       const addr = item.skeleton_path
       if (!addr) return
@@ -3099,6 +3149,7 @@ export default defineComponent({
       editPost,
       copiedId,
       copyAddress,
+      onThread,
       shareOpen,
       shareRef,
       openShare,
@@ -7471,6 +7522,20 @@ $prose: ':where(:not(.pathos-ref-slot *))';
   font-size: 0.66em;
   color: rgba(var(--ink-rgb), 0.55);
   flex-shrink: 0;
+}
+
+// The tallies as DOORS (2026-10-07): a bare button wearing the stat's type,
+// the hover ink + a 3px-cornered wash the foot's other acts use, and `is-on`
+// (the section a host is showing) in the label rail's red-10.
+.post-square__stat--door {
+  border: 0;
+  background: transparent;
+  padding: 0 3px;
+  margin: 0 -3px;
+  border-radius: 3px;
+  cursor: pointer;
+  &:hover { color: rgba(var(--ink-rgb), 0.9); background: rgba(var(--ink-rgb), 0.06); }
+  &.is-on { color: var(--red-10, #b71c1c); }
 }
 
 // ── THE MOBILE FILTER SECTION (2026-08-07, user ask) ────────────────

@@ -110,6 +110,7 @@
             :open-ids="flyouts.openPostIds"
             @select="onSelect"
             @pins-changed="$emit('pins-changed')"
+            @thread="onThread"
           />
         </div>
         <div
@@ -129,7 +130,7 @@
            a flex sibling, so it follows the rails' drag for free. See
            `components/viewer/SideViewer.vue`; `pins-changed` rides the
            same route up as the stream's. -->
-      <SideViewer @pins-changed="$emit('pins-changed')" />
+      <SideViewer ref="sideViewer" @pins-changed="$emit('pins-changed')" />
     </div>
   </q-page>
 </template>
@@ -138,6 +139,7 @@
 import { defineComponent, ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
 import { useRoute } from 'vue-router'
 import { useFlyoutViewersStore } from 'src/stores/flyoutViewers'
+import { useMakerStore } from 'src/stores/maker'
 import FriezeBarVertical from 'src/components/layout/FriezeBarVertical.vue'
 import FriezeBarVerticalB from 'src/components/layout/FriezeBarVerticalB.vue'
 import FeedStream from 'src/components/posts/FeedStream.vue'
@@ -192,6 +194,26 @@ export default defineComponent({
     const flyouts = useFlyoutViewersStore()
 
     const onSelect = (item) => { flyouts.spawnPost(item) }
+
+    // A card's foot THREAD DOORS (2026-10-07): the post goes to the side
+    // viewer with that section open. A phone hides the side viewer (≤600px,
+    // its own @media), so there the comment door opens the comment draft
+    // and the fork door the post's window — FeedStream's no-host fallback.
+    const sideViewer = ref(null)
+    const maker = useMakerStore()
+    const onThread = (item, slot) => {
+      const phone = window.matchMedia('(max-width: 600px)').matches
+      if (!phone && sideViewer.value) { sideViewer.value.show(item, slot); return }
+      if (slot === 'forks') { flyouts.spawnPost(item); return }
+      maker.openCommentDraft({
+        kind: 'post',
+        id: item.skeleton_id,
+        hash: String(item.skeleton_path || '').split('/').pop(),
+        route: '/posts/' + item.skeleton_id,
+        label: item.title || ('post #' + item.skeleton_id)
+      })
+      maker.open()
+    }
 
     // The REF DOOR (2026-07-31 as the deferred G8 item, skeletons only;
     // nodes/ refs since 2026-08-17): `/#/feed?flyout=skeletons/<hash>`,
@@ -474,6 +496,8 @@ export default defineComponent({
     })
 
     return {
+      sideViewer,
+      onThread,
       pageStyleFn,
       flyouts,
       onSelect,

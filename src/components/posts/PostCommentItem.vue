@@ -106,6 +106,13 @@
         :unravel-path="nestedUnravel"
         @reply-posted="onNestedReplyPosted"
       />
+      <button
+        v-if="moreReplies > 0 && !loadingReplies"
+        class="bare-btn text-dim q-mt-xs" style="font-size:0.74em;"
+        @click="loadReplies(true)"
+      >
+        <q-icon name="expand_more" size="11px" class="q-mr-xs" />{{ moreReplies }} more
+      </button>
     </div>
   </div>
 </template>
@@ -243,24 +250,42 @@ export default defineComponent({
       (parseInt(props.child.reply_count) || 0) + (parseInt(props.child.fork_count) || 0)
     )
 
-    const loadReplies = async () => {
-      if (repliesLoaded.value) return
+    // Both lists are PAGED (2026-10-07): each read takes the next page of
+    // comments and of forks; `moreReplies` says how many are still unread.
+    const PAGE = 20
+    const replyCursor = ref({ c: 0, f: 0, ct: 0, ft: 0 })
+    const moreReplies = computed(() => {
+      const k = replyCursor.value
+      return Math.max(k.ct - k.c, 0) + Math.max(k.ft - k.f, 0)
+    })
+    const loadReplies = async (more = false) => {
+      if (repliesLoaded.value && !more) return
       loadingReplies.value = true
       try {
+        // A fresh read starts both cursors over (reloads after a reply).
+        const k = more ? replyCursor.value : { c: 0, f: 0, ct: 0, ft: 0 }
+        const wantC = !more || k.c < k.ct
+        const wantF = !more || k.f < k.ft
         const [cr, fr] = await Promise.all([
-          skeletonService.listChildren(props.child.id).catch(() => ({ children: [] })),
-          skeletonService.listForks(props.child.id).catch(() => ({ forks: [] }))
+          wantC ? skeletonService.listChildren(props.child.id, { limit: PAGE, offset: k.c }).catch(() => ({ children: [] })) : { children: [] },
+          wantF ? skeletonService.listForks(props.child.id, { limit: PAGE, offset: k.f }).catch(() => ({ forks: [] })) : { forks: [] }
         ])
-        const seen = new Set()
-        const merged = []
+        const merged = more ? nestedReplies.value.slice() : []
+        const seen = new Set(merged.map(r => r.id))
         for (const row of [...(cr.children || []), ...(fr.forks || [])]) {
           if (seen.has(row.id)) continue
           seen.add(row.id)
           merged.push(row)
         }
         nestedReplies.value = merged
+        replyCursor.value = {
+          c: k.c + (cr.children || []).length,
+          f: k.f + (fr.forks || []).length,
+          ct: cr.total ?? k.ct,
+          ft: fr.total ?? k.ft
+        }
         repliesLoaded.value = true
-      } catch (_) { nestedReplies.value = [] }
+      } catch (_) { if (!more) nestedReplies.value = [] }
       loadingReplies.value = false
     }
 
@@ -357,6 +382,7 @@ export default defineComponent({
     }, { immediate: true })
 
     return {
+      moreReplies,
       rootEl,
       replyOpen,
       replyDraftId,

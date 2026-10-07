@@ -188,9 +188,10 @@ import { postService } from 'src/services/post.service'
 import { nodeService } from 'src/services/node.service'
 import { skeletonService } from 'src/services/skeleton.service'
 import { labelService } from 'src/services/label.service'
+import { refService } from 'src/services/ref.service'
 import { gotoCommentThread } from 'src/utils/threadNav'
 
-const PARENT_ICONS = { post: 'article', comment: 'chat_bubble_outline', node: 'adjust', skeleton: 'sym_o_mitre' }
+const PARENT_ICONS = { post: 'article', comment: 'chat_bubble_outline', node: 'adjust', skeleton: 'sym_o_mitre', path: 'route', label: 'label', link: 'link' }
 
 export default defineComponent({
   name: 'PostMakerSurface',
@@ -379,9 +380,16 @@ export default defineComponent({
       posting.value = true
       try {
         const payload = { content: buildBody(d), labelIds: d.labelIds, authorEntityId: d.authorEntityId }
-        const r = d.parent.kind === 'node'
+        // node → its route; the skeleton family → the skeleton route; any
+        // other element (path / label / link, 2026-10-07) → /refs/comment
+        // by address — every one lands on the chain through the server's
+        // holder rule.
+        const k = d.parent.kind
+        const r = k === 'node'
           ? await nodeService.commentOnNode(d.parent.id, payload)
-          : await skeletonService.commentOn(d.parent.id, payload)
+          : (k === 'post' || k === 'comment' || k === 'skeleton')
+              ? await skeletonService.commentOn(d.parent.id, payload)
+              : await refService.commentOn(d.parent.address || `${k}s/${d.parent.hash}`, payload)
         finish(r, d)
       } catch (e) {
         errorMsg.value = e?.response?.data?.error?.message || e?.message || 'Something went wrong'
@@ -429,6 +437,7 @@ export default defineComponent({
             targetPath: created?.path || null
           })
         } catch (_) { /* a post must never fail because its log did */ }
+        store.notePosted(parent, r.post || r.skeleton)
 
         setTimeout(() => {
           store.removeDraft(id)

@@ -53,10 +53,6 @@ export const postService = {
     const { data } = await api.post(`/posts/${id}/promote`)
     return data
   },
-  async getComments (id) {
-    const { data } = await api.get(`/posts/${id}/comments`)
-    return data
-  },
   async getForks (id) {
     const { data } = await api.get(`/posts/${id}/forks`)
     return data

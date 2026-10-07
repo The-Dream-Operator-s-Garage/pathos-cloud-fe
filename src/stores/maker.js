@@ -55,7 +55,11 @@ export const useMakerStore = defineStore('maker', {
     isMaximized: false,
     drafts: [],
     activeId: null,
-    _loaded: false
+    _loaded: false,
+    // The last comment posted from ANY composer (dock or embedded) —
+    // `{ parent: draft.parent, created, at }`. Not persisted: a signal
+    // thread views watch to re-read their page (SideElementView).
+    lastPosted: null
   }),
 
   getters: {
@@ -139,10 +143,18 @@ export const useMakerStore = defineStore('maker', {
     // comment instead of stacking duplicates. Does NOT open the dock: the
     // embedded composer edits the draft in place; the dock tab is only
     // surfaced when the embed closes with work left (see parkDraft).
+    notePosted (parent, created) {
+      this.lastPosted = { parent: parent ? { ...parent } : null, created: created || null, at: Date.now() }
+    },
+
     openCommentDraft (parent) {
       this.load()
+      // One draft per PARENT ELEMENT: post / comment / skeleton are three
+      // names for one skeleton row (the viewer page, a comment card and the
+      // flyout each said a different one), so they share a family key.
+      const fam = (k) => (k === 'post' || k === 'comment' || k === 'skeleton') ? 'skeleton' : k
       let d = this.drafts.find(x =>
-        x.parent && x.parent.kind === parent.kind && x.parent.id === parent.id
+        x.parent && fam(x.parent.kind) === fam(parent.kind) && x.parent.id === parent.id
       )
       if (!d) {
         d = blankDraft()

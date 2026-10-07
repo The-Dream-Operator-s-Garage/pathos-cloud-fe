@@ -238,8 +238,9 @@ export const skeletonService = {
     const { data } = await api.put(`/skeletons/${id}/content`, { content })
     return data
   },
-  async listChildren (id) {
-    const { data } = await api.get(`/skeletons/${id}/children`)
+  // Paged since 2026-10-07 — { children, total, offset, limit }.
+  async listChildren (id, { limit = 20, offset = 0 } = {}) {
+    const { data } = await api.get(`/skeletons/${id}/children`, { params: { limit, offset } })
     return data
   },
   // Thread ancestry of a comment: root-first chain of { kind, id, hash }
@@ -250,8 +251,9 @@ export const skeletonService = {
   },
   // Direct forks (top-level skeletons whose forked_from_id points at this one).
   // Forks are NOT INTERACTION_TREE children — they live as independent skeletons.
-  async listForks (id) {
-    const { data } = await api.get(`/skeletons/${id}/forks`)
+  // Paged since 2026-10-07 — { forks, total, offset, limit }, newest first.
+  async listForks (id, { limit = 20, offset = 0 } = {}) {
+    const { data } = await api.get(`/skeletons/${id}/forks`, { params: { limit, offset } })
     return data
   },
   async listVersions (id) {

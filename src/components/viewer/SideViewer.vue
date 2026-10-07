@@ -32,6 +32,11 @@
        the `total`, one for `page = 1 + ⌊random × total⌋` at `limit=1`,
        both `body=full` so the card carries its body (the excerpt trap).
 
+       ⭐ 2026-10-07: the well holds a SideElementView (any element's face
+       over its comments / forks band — see that file), and `show(item,
+       section)` lets FeedPage put a feed card's post here when its foot
+       comment / fork door is clicked.
+
        `select` from inside the card (the references button, the cap's
        open door) spawns the post's flyout — the viewer is a showcase, the
        flyout is where the post is worked on. `pins-changed` rides up to
@@ -44,14 +49,16 @@
       </div>
     </div>
     <div class="side-viewer__well">
-      <div v-if="item" class="side-viewer__card">
-        <FeedStream
-          :key="'side:' + item.skeleton_id"
-          :embed-item="item"
-          @select="onSelect"
-          @pins-changed="$emit('pins-changed')"
-        />
-      </div>
+      <!-- SideElementView since 2026-10-07: the element's face (a post =
+           its postcard, extended to the well) over its THREAD band —
+           comments by default, forks on the fork door. -->
+      <SideElementView
+        v-if="item"
+        :item="item"
+        :initial-section="section"
+        @select="onSelect"
+        @pins-changed="$emit('pins-changed')"
+      />
       <div v-else class="side-viewer__empty">
         {{ error || 'Looking for a post…' }}
       </div>
@@ -62,16 +69,17 @@
 <script>
 import { defineComponent, ref, onMounted } from 'vue'
 import FriezeBarVertical from 'src/components/layout/FriezeBarVertical.vue'
-import FeedStream from 'src/components/posts/FeedStream.vue'
+import SideElementView from 'src/components/viewer/SideElementView.vue'
 import { feedService } from 'src/services/feed.service'
 import { useFlyoutViewersStore } from 'src/stores/flyoutViewers'
 
 export default defineComponent({
   name: 'SideViewer',
-  components: { FriezeBarVertical, FeedStream },
+  components: { FriezeBarVertical, SideElementView },
   emits: ['pins-changed'],
   setup () {
     const item = ref(null)
+    const section = ref('comments')
     const error = ref('')
     const flyouts = useFlyoutViewersStore()
 
@@ -99,7 +107,15 @@ export default defineComponent({
 
     onMounted(pick)
 
-    return { item, error, onSelect }
+    // FeedPage's door: a feed card's comment / fork tally → that post, here,
+    // with that section open.
+    const show = (it, slot = 'comments') => {
+      if (!it) return
+      section.value = slot === 'forks' ? 'forks' : 'comments'
+      item.value = it
+    }
+
+    return { item, section, error, onSelect, show }
   }
 })
 </script>
@@ -230,10 +246,11 @@ export default defineComponent({
   transform: scaleY(-1);
 }
 
-// The content under the divider: one scroller, the card centred in it. The
-// embed pane is the flyout's own arrangement (`.element-flyout__card`) —
-// fill the well, let the embed's well be the scroller — capped at a reading
-// width so a wide window does not stretch the card to the walls.
+// The content under the divider. Since 2026-10-07 the well holds ONE
+// SideElementView filling it wall to wall (the ask: the card "extending
+// inside its container below the side viewer's friezebar") — the 640px
+// reading cap that centred the card is gone; the view lays out its face
+// and its thread band itself.
 .side-viewer__well {
   flex: 1 1 auto;
   padding: 14px;
@@ -241,17 +258,6 @@ export default defineComponent({
   justify-content: center;
   min-width: 0;
   min-height: 0;
-}
-
-.side-viewer__card {
-  flex: 1 1 auto;
-  width: 100%;
-  max-width: 640px;
-  min-width: 0;
-  min-height: 0;
-  display: flex;
-
-  :deep(.feed-stream-pane) { flex: 1 1 auto; min-width: 0; }
 }
 
 .side-viewer__empty {
