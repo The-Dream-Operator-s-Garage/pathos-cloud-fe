@@ -281,6 +281,18 @@
          nodeInteractionService, posts through postService, the same
          endpoints and toggle rule their pages use). A ref window that has
          not resolved yet offers the address copy alone. -->
+    <!-- The flyout's comment maker (2026-10-07 PM): the skeleton cluster's
+         comment button opens the CommentMaker family's `inline` member
+         HERE, the window's storey above its foot — it opened the maker
+         dock over the page. -->
+    <div v-if="commenting && commentParent" class="element-flyout__comment">
+      <CommentMaker
+        variant="inline"
+        :parent="commentParent"
+        @cancel="commenting = false"
+        @posted="commenting = false"
+      />
+    </div>
     <footer class="element-flyout__foot">
       <div class="element-flyout__actions">
         <button
@@ -444,7 +456,7 @@ import { useNavStore } from 'src/stores/navigation'
 import { pinService } from 'src/services/pin.service'
 import { nodeInteractionService } from 'src/services/nodeInteraction.service'
 import { skeletonService } from 'src/services/skeleton.service'
-import { useMakerStore } from 'src/stores/maker'
+import CommentMaker from 'src/components/comments/CommentMaker.vue'
 import { useAuthStore } from 'src/stores/auth'
 import ConversationPicker from 'src/components/chat/ConversationPicker.vue'
 import { postService } from 'src/services/post.service'
@@ -489,7 +501,7 @@ const ELEMENT_PREFIXES = new Set(['labels', 'moments', 'paths', 'links', 'secret
 
 export default defineComponent({
   name: 'ElementFlyout',
-  components: { ConversationPicker, FriezeBar, MediaViewerBody, FeedStream, SkeletonTable, InfoChip, EntityFace, ElementMini, MomentFace, LinkFace },
+  components: { CommentMaker, ConversationPicker, FriezeBar, MediaViewerBody, FeedStream, SkeletonTable, InfoChip, EntityFace, ElementMini, MomentFace, LinkFace },
   props: {
     viewerId: { type: String, required: true }
   },
@@ -1086,24 +1098,24 @@ export default defineComponent({
 
     // ── the skeleton cluster (skeletons plan phase 4) ─────────────────
     const auth = useAuthStore()
-    const maker = useMakerStore()
     const skelBusy = ref('')
     const isSkelOwner = computed(() => isSkeletonTarget.value && resolvedInfo.value?.owner_id === auth.entityId)
     const canSeal = computed(() => isSkelOwner.value && resolvedInfo.value?.lock_state !== 'sealed' && resolvedInfo.value?.lock_state !== 'unproven')
     const skelName = computed(() => resolvedInfo.value?.name || ('skeleton #' + resolvedInfo.value?.id))
 
-    const commentOnSkeleton = () => {
+    const commenting = ref(false)
+    const commentParent = computed(() => {
       const i = resolvedInfo.value
-      if (!i?.id) return
-      maker.openCommentDraft({
+      if (!i?.id) return null
+      return {
         kind: 'skeleton',
         id: i.id,
         hash: String(i.path || '').split('/').pop(),
-        route: '/skeletons/' + i.id,
+        address: i.path || '',
         label: skelName.value
-      })
-      maker.open()
-    }
+      }
+    })
+    const commentOnSkeleton = () => { commenting.value = !commenting.value }
     const forkSkeleton = async () => {
       const i = resolvedInfo.value
       if (!i?.id || skelBusy.value) return
@@ -1298,6 +1310,8 @@ export default defineComponent({
       canSeal,
       skelBusy,
       commentOnSkeleton,
+      commenting,
+      commentParent,
       forkSkeleton,
       sealSkeleton,
       shareSkeleton,
@@ -1559,6 +1573,13 @@ export default defineComponent({
 // The foot — the media window's ledge, whole: actions left, tally right,
 // chrome coat and display face, `FOOT_H` in utils/mediaFit is what keeps
 // the fit engine's arithmetic in step with this height.
+.element-flyout__comment {
+  flex: 0 0 auto;
+  max-height: 45%;
+  overflow: auto;
+  padding: 6px 8px 0;
+}
+
 .element-flyout__foot {
   flex: 0 0 auto;
   display: flex;

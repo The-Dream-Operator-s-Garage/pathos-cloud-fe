@@ -1639,6 +1639,22 @@
                 </span>
               </div>
             </div>
+
+            <!-- THE CARD'S OWN COMMENT MAKER (2026-10-07 PM, user ask: the
+                 comment maker "embeddable inside the place we're making the
+                 comment in … a third window being opened that covers the
+                 content is not practical"): with no thread host (a phone's
+                 feed, a flyout's post face) the foot's comment door opens
+                 the CommentMaker family's `inline` member HERE, as the
+                 card's last storey — it was the maker dock. -->
+            <div v-if="commentingId === item.skeleton_id" class="post-square__comment">
+              <CommentMaker
+                variant="inline"
+                :parent="commentParentOf(item)"
+                @cancel="commentingId = null"
+                @posted="onCardCommented(item)"
+              />
+            </div>
           </article>
         </template>
       </div>
@@ -1651,7 +1667,7 @@
 </template>
 
 <script>
-import { defineComponent, ref, computed, watch, onMounted, onBeforeUnmount, getCurrentInstance } from 'vue'
+import { defineComponent, ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { feedService } from 'src/services/feed.service'
 import { labelService } from 'src/services/label.service'
@@ -1675,7 +1691,7 @@ import { orgService } from 'src/services/org.service'
 import { useFlyoutViewersStore } from 'src/stores/flyoutViewers'
 // The cap's EDIT door (2026-09-23) asks who is acting — the grid's own gate.
 import { useAuthStore } from 'src/stores/auth'
-import { useMakerStore } from 'src/stores/maker'
+import CommentMaker from 'src/components/comments/CommentMaker.vue'
 import PostMicro from 'src/components/posts/PostMicro.vue'
 // The cap chips a post's PARENT, which may be a post, a node or some other
 // element — so it reaches for the generic chip rather than PostMicro.
@@ -1744,7 +1760,7 @@ const KIND_ICONS = {
 
 export default defineComponent({
   name: 'FeedStream',
-  components: { EntityAvatar, OrgLogoChip, PostMicro, MicroChip, MarkdownBody, FeedHeadBox, ConversationPicker },
+  components: { EntityAvatar, OrgLogoChip, PostMicro, MicroChip, MarkdownBody, FeedHeadBox, ConversationPicker, CommentMaker },
   props: {
     // The posts whose flyout VIEWERS are open right now (2026-08-17, the
     // fusion — it was a single `selectedId` while the feed owned one box).
@@ -1764,7 +1780,12 @@ export default defineComponent({
     embedItem: { type: Object, default: null },
     // Which thread section a host is showing for the card ('comments' |
     // 'forks' | null) — lights the matching foot door (SideElementView).
-    threadOn: { type: String, default: null }
+    threadOn: { type: String, default: null },
+    // A host that shows threads itself (FeedPage → the side viewer,
+    // SideElementView → its band): the foot doors EMIT `thread`. Without
+    // one, the comment door opens the card's own CommentMaker and the fork
+    // door the post's window.
+    threadHost: { type: Boolean, default: false }
   },
   emits: ['select', 'pins-changed', 'thread'],
   setup (props, { emit }) {
@@ -2802,22 +2823,26 @@ export default defineComponent({
     // event; without one, the comment door opens the post's comment draft
     // in the maker dock — the post card's own way to comment — and the
     // fork door opens the post's window.
-    const instance = getCurrentInstance()
-    const maker = useMakerStore()
+    const commentingId = ref(null)
+    const commentParentOf = (item) => ({
+      kind: 'post',
+      id: item.skeleton_id,
+      hash: String(item.skeleton_path || '').split('/').pop(),
+      address: item.skeleton_path,
+      label: item.title || ('post #' + item.skeleton_id)
+    })
     const onThread = (item, slot) => {
-      if (instance?.vnode?.props?.onThread) { emit('thread', item, slot); return }
+      if (props.threadHost) { emit('thread', item, slot); return }
       if (slot === 'comments') {
-        maker.openCommentDraft({
-          kind: 'post',
-          id: item.skeleton_id,
-          hash: String(item.skeleton_path || '').split('/').pop(),
-          route: '/posts/' + item.skeleton_id,
-          label: item.title || ('post #' + item.skeleton_id)
-        })
-        maker.open()
+        commentingId.value = commentingId.value === item.skeleton_id ? null : item.skeleton_id
       } else {
         emit('select', item)
       }
+    }
+    // Posted from the card's own maker: close it and let the tally follow.
+    const onCardCommented = (item) => {
+      commentingId.value = null
+      item.comment_count = (item.comment_count || 0) + 1
     }
 
     const copyAddress = async (item) => {
@@ -3150,6 +3175,9 @@ export default defineComponent({
       copiedId,
       copyAddress,
       onThread,
+      commentingId,
+      commentParentOf,
+      onCardCommented,
       shareOpen,
       shareRef,
       openShare,
@@ -7522,6 +7550,14 @@ $prose: ':where(:not(.pathos-ref-slot *))';
   font-size: 0.66em;
   color: rgba(var(--ink-rgb), 0.55);
   flex-shrink: 0;
+}
+
+// The card's own comment maker — its last storey, standing in the card's
+// gutter like the pit, above the veil's paint (z 1 like the other rows).
+.post-square__comment {
+  position: relative;
+  z-index: 1;
+  margin: 0 var(--card-gutter, 4px) var(--card-gutter, 4px);
 }
 
 // The tallies as DOORS (2026-10-07): a bare button wearing the stat's type,

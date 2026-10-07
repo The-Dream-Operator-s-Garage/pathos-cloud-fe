@@ -73,10 +73,13 @@
          closing here keeps the in-progress comment reachable from the
          footer post maker until it's posted. -->
     <div v-if="replyOpen" ref="replyFormEl" class="reply-form q-mt-sm">
-      <PostMakerSurface
-        embed
-        :draft-id="replyDraftId"
-        @close="cancelReply"
+      <!-- The CommentMaker family's `inline` member (2026-10-07 PM): the
+           reply is written right here under its comment, never in the
+           dock. -->
+      <CommentMaker
+        variant="inline"
+        :parent="replyParent"
+        @cancel="cancelReply"
         @posted="onReplyMade"
       />
     </div>
@@ -123,10 +126,9 @@ import { useRouter } from 'vue-router'
 import { skeletonService } from 'src/services/skeleton.service'
 import SkeletonRefLinks from 'src/components/shared/SkeletonRefLinks.vue'
 import LabelScroll from 'src/components/labels/LabelScroll.vue'
-import PostMakerSurface from 'src/components/maker/PostMakerSurface.vue'
+import CommentMaker from 'src/components/comments/CommentMaker.vue'
 import ForkConfirmPanel from 'src/components/nodes/ForkConfirmPanel.vue'
 import EntityName from 'src/components/entities/EntityName.vue'
-import { useMakerStore } from 'src/stores/maker'
 import { hashOf } from 'src/utils/kinds'
 
 const formatTime = (iso) => {
@@ -148,7 +150,7 @@ const formatTime = (iso) => {
 
 export default defineComponent({
   name: 'PostCommentItem',
-  components: { SkeletonRefLinks, LabelScroll, PostMakerSurface, ForkConfirmPanel, EntityName },
+  components: { SkeletonRefLinks, LabelScroll, CommentMaker, ForkConfirmPanel, EntityName },
   props: {
     child: { type: Object, required: true },
     depth: { type: Number, default: 0 },
@@ -160,10 +162,8 @@ export default defineComponent({
   emits: ['reply-posted'],
   setup (props, { emit }) {
     const router = useRouter()
-    const makerStore = useMakerStore()
     const rootEl = ref(null)
     const replyOpen = ref(false)
-    const replyDraftId = ref(null)
     const forkOpen = ref(false)
     const repliesOpen = ref(false)
     const repliesLoaded = ref(false)
@@ -294,18 +294,15 @@ export default defineComponent({
       if (repliesOpen.value) await loadReplies()
     }
 
+    // The reply's parent: THIS comment (a comment on a comment).
+    const replyParent = computed(() => ({
+      kind: 'comment',
+      id: props.child.id,
+      hash: hashOf(props.child.path || ''),
+      address: props.child.path || '',
+      label: (props.child.excerpt || '').trim().slice(0, 40) || `comment #${props.child.id}`
+    }))
     const openReply = () => {
-      // The reply is a maker-store draft parented to THIS comment — the
-      // footer post maker shows it as a tab until it's posted.
-      const excerpt = (props.child.excerpt || '').trim().slice(0, 40)
-      const d = makerStore.openCommentDraft({
-        kind: 'comment',
-        id: props.child.id,
-        hash: hashOf(props.child.path || ''),
-        route: `/posts/${props.child.id}`,
-        label: excerpt || `comment #${props.child.id}`
-      })
-      replyDraftId.value = d.id
       replyOpen.value = true
       forkOpen.value = false
       requestSplitterRoom(replyFormEl)
@@ -317,7 +314,6 @@ export default defineComponent({
     }
 
     const cancelReply = () => {
-      if (replyDraftId.value) makerStore.parkDraft(replyDraftId.value)
       replyOpen.value = false
       releaseBottomPane()
     }
@@ -325,7 +321,6 @@ export default defineComponent({
 
     // The embedded surface posted the comment — refresh this subtree.
     const onReplyMade = async () => {
-      replyDraftId.value = null
       replyOpen.value = false
       releaseBottomPane()
       repliesLoaded.value = false
@@ -385,7 +380,7 @@ export default defineComponent({
       moreReplies,
       rootEl,
       replyOpen,
-      replyDraftId,
+      replyParent,
       forkOpen,
       repliesOpen,
       repliesLoaded,

@@ -210,10 +210,12 @@
                     <q-icon name="adjust" size="11px" class="q-mr-xs" />
                     Comment will reference <strong>this specific version</strong> of the node. If the node is later updated, your comment still points here.
                   </div>
-                  <PostMakerSurface
-                    embed
-                    :draft-id="commentDraftId"
-                    @close="closeComposer"
+                  <!-- The CommentMaker family's `inline` member (2026-10-07 PM) —
+                         written in this pane, never in the dock. -->
+                  <CommentMaker
+                    variant="inline"
+                    :parent="commentParent"
+                    @cancel="closeComposer"
                     @posted="onCommentPosted"
                   />
                 </div>
@@ -364,9 +366,8 @@ import AccessContractPanel from 'src/components/shared/AccessContractPanel.vue'
 import { bodyOf } from 'src/utils/nodeContent'
 import { hashOf } from 'src/utils/kinds'
 import { useStateHolder } from 'src/composables/useStateHolder'
-import { useMakerStore } from 'src/stores/maker'
 import { parseUnravel } from 'src/utils/threadNav'
-import PostMakerSurface from 'src/components/maker/PostMakerSurface.vue'
+import CommentMaker from 'src/components/comments/CommentMaker.vue'
 import NodeForkItem from 'src/components/nodes/NodeForkItem.vue'
 import ForkConfirmPanel from 'src/components/nodes/ForkConfirmPanel.vue'
 import BottomSplitter from 'src/components/shared/BottomSplitter.vue'
@@ -381,12 +382,11 @@ const TYPE_COLORS = { NOTE: 'primary', FILE: 'teal', URL: 'secondary', REFERENCE
 
 export default defineComponent({
   name: 'NodeDetailPage',
-  components: { LabelSlider, MomentInfo, CommentItem, PostCommentItem, ElementActions, NodeContentViewer, PostMakerSurface, NodeForkItem, ForkConfirmPanel, BottomSplitter, FileContractBadge, ProvenanceBadge, AccessDeniedBanner, IntegrityBanner, AccessContractPanel },
+  components: { LabelSlider, MomentInfo, CommentItem, PostCommentItem, ElementActions, NodeContentViewer, CommentMaker, NodeForkItem, ForkConfirmPanel, BottomSplitter, FileContractBadge, ProvenanceBadge, AccessDeniedBanner, IntegrityBanner, AccessContractPanel },
   setup () {
     const route = useRoute()
     const router = useRouter()
     const navStore = useNavStore()
-    const makerStore = useMakerStore()
 
     const node = ref(null)
     const labels = ref([])
@@ -436,16 +436,14 @@ export default defineComponent({
     // The embedded composer edits a real maker-store draft (parent =
     // this node) so the in-progress comment survives as a footer maker
     // tab if the embed is closed before posting.
-    const commentDraftId = ref(null)
+    const commentParent = ref(null)
 
     const closeComposer = () => {
-      if (commentDraftId.value) makerStore.parkDraft(commentDraftId.value)
       composerOpen.value = false
       releaseBottomPane()
     }
 
     const onCommentPosted = async () => {
-      commentDraftId.value = null
       composerOpen.value = false
       releaseBottomPane()
       await reload()
@@ -457,14 +455,13 @@ export default defineComponent({
         return
       }
       const excerpt = (bodyOf(node.value) || '').replace(/[#*`>\n]/g, ' ').trim().slice(0, 40)
-      const d = makerStore.openCommentDraft({
+      commentParent.value = ({
         kind: 'node',
         id: node.value.id,
         hash: hashOf(node.value.path || ''),
         route: `/nodes/${node.value.id}`,
         label: excerpt || `node #${node.value.id}`
       })
-      commentDraftId.value = d.id
       composerOpen.value = true
       await nextTick()
       const h = composerEl.value?.offsetHeight || 280
@@ -841,7 +838,7 @@ export default defineComponent({
       submittingFork,
       submitFork,
       // Embedded comment maker + thread unravel
-      commentDraftId,
+      commentParent,
       closeComposer,
       onCommentPosted,
       unravelPath,

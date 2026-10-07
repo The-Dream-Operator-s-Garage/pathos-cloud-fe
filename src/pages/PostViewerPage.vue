@@ -202,10 +202,12 @@
                 </button>
 
                 <div v-if="composerOpen" ref="composerEl" class="pane-composer">
-                  <PostMakerSurface
-                    embed
-                    :draft-id="commentDraftId"
-                    @close="closeComposer"
+                  <!-- The CommentMaker family's `inline` member (2026-10-07 PM) —
+                         written in this pane, never in the dock. -->
+                  <CommentMaker
+                    variant="inline"
+                    :parent="commentParent"
+                    @cancel="closeComposer"
                     @posted="onCommentPosted"
                   />
                 </div>
@@ -312,7 +314,7 @@ import { nodeInteractionService } from 'src/services/nodeInteraction.service'
 import PostCommentItem from 'src/components/posts/PostCommentItem.vue'
 import LabelSlider from 'src/components/labels/LabelSlider.vue'
 import MomentInfo from 'src/components/moments/MomentInfo.vue'
-import PostMakerSurface from 'src/components/maker/PostMakerSurface.vue'
+import CommentMaker from 'src/components/comments/CommentMaker.vue'
 import ForkConfirmPanel from 'src/components/nodes/ForkConfirmPanel.vue'
 import BottomSplitter from 'src/components/shared/BottomSplitter.vue'
 import AddressChain from 'src/components/shared/AddressChain.vue'
@@ -320,7 +322,6 @@ import MarkdownBody from 'src/components/shared/MarkdownBody.vue'
 import { postService } from 'src/services/post.service'
 import { bodyOf } from 'src/utils/nodeContent'
 import { useAuthStore } from 'src/stores/auth'
-import { useMakerStore } from 'src/stores/maker'
 import { useStateHolder } from 'src/composables/useStateHolder'
 import { hashOf } from 'src/utils/kinds'
 import { parseUnravel } from 'src/utils/threadNav'
@@ -348,12 +349,11 @@ const NODE_TYPES_BY_ID = { 1: 'NOTE', 2: 'FILE', 3: 'URL', 4: 'REFERENCE' }
 
 export default defineComponent({
   name: 'PostViewerPage',
-  components: { PostCommentItem, LabelSlider, MomentInfo, PostMakerSurface, ForkConfirmPanel, BottomSplitter, AddressChain, MarkdownBody, AccessDeniedBanner },
+  components: { PostCommentItem, LabelSlider, MomentInfo, CommentMaker, ForkConfirmPanel, BottomSplitter, AddressChain, MarkdownBody, AccessDeniedBanner },
   setup () {
     const route = useRoute()
     const router = useRouter()
     const auth = useAuthStore()
-    const makerStore = useMakerStore()
 
     const id = computed(() => parseInt(route.params.id))
 
@@ -404,7 +404,7 @@ export default defineComponent({
 
     // Template refs used by the auto-expand wiring: bottomSplitterRef
     // is the BottomSplitter component, composerEl is the wrapper around
-    // the embedded PostMakerSurface (so we can measure its rendered height
+    // the embedded CommentMaker (so we can measure its rendered height
     // and grow the splitter to fit the whole composer).
     const bottomSplitterRef = ref(null)
     const composerEl = ref(null)
@@ -425,16 +425,14 @@ export default defineComponent({
     // The embedded composer edits a real maker-store draft, so the same
     // in-progress comment is reachable as a tab in the footer post maker.
     // Closing the embed PARKS the draft (tab stays until posted/discarded).
-    const commentDraftId = ref(null)
+    const commentParent = ref(null)
 
     const closeComposer = () => {
-      if (commentDraftId.value) makerStore.parkDraft(commentDraftId.value)
       composerOpen.value = false
       releaseBottomPane()
     }
 
     const onCommentPosted = async () => {
-      commentDraftId.value = null
       composerOpen.value = false
       releaseBottomPane()
       await reload()
@@ -450,14 +448,13 @@ export default defineComponent({
       // that is itself a comment threads the ref as 'comment' so clicking
       // it later unravels from the thread root.
       const parentKind = origin.value?.kind === 'COMMENT' ? 'comment' : 'post'
-      const d = makerStore.openCommentDraft({
+      commentParent.value = ({
         kind: parentKind,
         id: id.value,
         hash: hashOf(skeleton.value?.path || ''),
         route: `/posts/${id.value}`,
         label: titleContent.value ? titleContent.value.slice(0, 40) : `post #${id.value}`
       })
-      commentDraftId.value = d.id
       composerOpen.value = true
       // Wait for the composer to render so we can measure its actual
       // height. Falls back to a sensible default if the measurement
@@ -965,7 +962,7 @@ export default defineComponent({
       submittingFork,
       submitFork,
       // Embedded comment maker + thread unravel
-      commentDraftId,
+      commentParent,
       closeComposer,
       onCommentPosted,
       unravelPath,

@@ -29,7 +29,13 @@
        schemas give it no COMMENTS / FORKS holder (moments, secrets,
        entities; forks of paths and links) shows its section `supported:
        false` — the act is not offered rather than offered and refused. -->
-  <div class="side-element" :style="{ '--sev-thread-h': threadPct + '%' }">
+  <div class="side-element" :style="{ '--sev-thread-h': threadPct }">
+    <!-- THE ITEM CONTAINER (2026-10-07 PM, user ask: "make sure the comment
+         box is attached to the item container, not on an abandoned box
+         below"): the face and the thread are ONE box — the card at its own
+         height, the band hanging off its foot with a shared rim; the rest of
+         the well stays empty BELOW the item, never between its parts. -->
+    <div class="side-element__item" :class="{ 'is-card': !!card }">
     <div class="side-element__face">
       <FeedStream
         v-if="card"
@@ -37,6 +43,7 @@
         class="side-element__card"
         :embed-item="card"
         :thread-on="section"
+        thread-host
         @select="$emit('select', $event)"
         @pins-changed="$emit('pins-changed')"
         @thread="(_, slot) => show(slot)"
@@ -78,10 +85,14 @@
         </button>
       </header>
 
-      <div ref="listEl" class="side-element__list">
-        <div v-if="composing && draftId" class="side-element__composer">
-          <PostMakerSurface embed :draft-id="draftId" @close="closeComposer" @posted="onPosted" />
-        </div>
+      <!-- Writing takes the WHOLE band (the ask: "use the available space of
+           the comment section … the comment maker embedded on the comment
+           section"): the CommentMaker family's `fill` member, in place of the
+           list until it posts or cancels. -->
+      <div v-if="composing && parent" class="side-element__compose">
+        <CommentMaker variant="fill" :parent="parent" @posted="onPosted" @cancel="closeComposer" />
+      </div>
+      <div v-show="!composing" ref="listEl" class="side-element__list">
         <div v-if="forkConfirm" class="side-element__composer">
           <ForkConfirmPanel :kind="kindWord" :loading="forking" @cancel="forkConfirm = false" @confirm="doFork" />
           <div v-if="forkError" class="side-element__note is-error">{{ forkError }}</div>
@@ -105,7 +116,7 @@
             </div>
           </template>
           <div v-if="loading" class="side-element__note"><q-spinner size="14px" /> loading…</div>
-          <div v-else-if="!rows.length && !composing && !forkConfirm" class="side-element__note">
+          <div v-else-if="!rows.length && !forkConfirm" class="side-element__note">
             {{ section === 'comments' ? 'No comments yet.' : 'No forks yet.' }}
           </div>
           <button
@@ -117,6 +128,7 @@
         </template>
       </div>
     </section>
+    </div>
   </div>
 </template>
 
@@ -126,7 +138,7 @@ import FeedStream from 'src/components/posts/FeedStream.vue'
 import ElementMini from 'src/components/shared/ElementMini.vue'
 import MicroChip from 'src/components/shared/MicroChip.vue'
 import PostCommentItem from 'src/components/posts/PostCommentItem.vue'
-import PostMakerSurface from 'src/components/maker/PostMakerSurface.vue'
+import CommentMaker from 'src/components/comments/CommentMaker.vue'
 import ForkConfirmPanel from 'src/components/nodes/ForkConfirmPanel.vue'
 import { refService } from 'src/services/ref.service'
 import { skeletonService } from 'src/services/skeleton.service'
@@ -148,7 +160,7 @@ const WORD = { skeletons: 'skeleton', nodes: 'node', labels: 'label', paths: 'pa
 
 export default defineComponent({
   name: 'SideElementView',
-  components: { FeedStream, ElementMini, MicroChip, PostCommentItem, PostMakerSurface, ForkConfirmPanel },
+  components: { FeedStream, ElementMini, MicroChip, PostCommentItem, CommentMaker, ForkConfirmPanel },
   props: {
     // A feed item (`GET /feed` row) — the element is that POST, drawn as
     // its postcard. Either this or `address`.
@@ -241,32 +253,25 @@ export default defineComponent({
       if (listEl.value) listEl.value.scrollTop = 0
     }
 
-    // ── the comment composer: the maker's own embedded surface, editing a
-    // real draft whose parent is this element (PostCommentItem's pattern).
+    // ── the comment composer: the CommentMaker family's `fill` member,
+    // in the band itself — no dock draft, no window.
     const composing = ref(false)
-    const draftId = ref(null)
+    const parent = computed(() => el.value && {
+      kind: props.item ? 'post' : (PARENT_KIND[el.value.kind] || el.value.kind.replace(/s$/, '')),
+      id: el.value.id,
+      hash: el.value.hash,
+      address: el.value.address,
+      label: el.value.primary || (kindWord.value + ' #' + el.value.id)
+    })
     const openComposer = () => {
       if (!el.value) return
-      const d = maker.openCommentDraft({
-        kind: PARENT_KIND[el.value.kind] || el.value.kind.replace(/s$/, ''),
-        id: el.value.id,
-        hash: el.value.hash,
-        address: el.value.address,
-        route: props.item ? '/posts/' + el.value.id : null,
-        label: el.value.primary || kindWord.value
-      })
-      draftId.value = d.id
+      if (section.value !== 'comments') show('comments')
+      forkConfirm.value = false
       composing.value = true
-      if (listEl.value) listEl.value.scrollTop = 0
     }
-    const closeComposer = () => {
-      if (draftId.value) maker.parkDraft(draftId.value)
-      composing.value = false
-      draftId.value = null
-    }
+    const closeComposer = () => { composing.value = false }
     const onPosted = () => {
       composing.value = false
-      draftId.value = null
       reload()
     }
     // A comment on THIS element posted from anywhere else (the dock, a
@@ -332,7 +337,7 @@ export default defineComponent({
       reload,
       show,
       composing,
-      draftId,
+      parent,
       openComposer,
       closeComposer,
       onPosted,
@@ -347,31 +352,56 @@ export default defineComponent({
 </script>
 
 <style scoped lang="scss">
-// ── THE COLUMN: face over thread, filling the side viewer's well. The
-// thread band is a FIXED share of the height (`--sev-thread-h`, 1/3 by
-// default); the face takes the rest and scrolls inside itself.
+// ── THE WELL, THEN THE ITEM (2026-10-07 PM). `.side-element` fills the side
+// viewer's well and is a SIZE container, so the band can be a share of the
+// viewer's height (`--sev-thread-h` × 1cqh, 1/3 by default) while the ITEM —
+// face + band in one box — sits at the top at its own height. A short card
+// leaves the well's grey BELOW the whole item, never a gap between the card
+// and its comments (the stranded band of the first pass); a tall card is
+// capped so the item never outgrows the well, and scrolls inside its face.
 .side-element {
   flex: 1 1 auto;
   min-width: 0;
   min-height: 0;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  container-type: size;
+}
+
+.side-element__item {
+  flex: 0 1 auto;
+  max-height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .side-element__face {
-  flex: 1 1 auto;
+  flex: 0 1 auto;
   min-height: 0;
   min-width: 0;
   display: flex;
+  overflow: hidden;
 }
 
-// The card EXTENDED (the ask): the embed pane fills the face — no reading-
-// width cap — and its own well is the scroller (the flyout's arrangement).
+// The card EXTENDED (the ask): the embed pane fills the face's width — no
+// reading-width cap — at its content height; its own well scrolls when the
+// face is capped.
 .side-element__card {
   flex: 1 1 auto;
   min-width: 0;
   min-height: 0;
+}
+
+// ATTACHED: the card's foot loses its bottom corners and the band continues
+// its rim — one object, the comments the card's lowest storey.
+.side-element__item.is-card .side-element__card :deep(.post-square) {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+.side-element__item.is-card .side-element__card :deep(.post-square::before) {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
 }
 
 // ONE STEP BIGGER on the cap and the label rail (the ask: "adjust the
@@ -394,17 +424,32 @@ export default defineComponent({
   overflow: auto;
 }
 
-// ── THE THREAD BAND: the flyout family's sunk floor (`--grey-3` on the
-// box's `--grey-4`), the side viewer's 6px corner, a grey-6 rim.
+// ── THE THREAD BAND: the card's lowest storey — the card's own line ink
+// (`--grey-5`) for its rim, NO top rim (the card's foot rule is the seam),
+// the card's 8px corners at the bottom only.
 .side-element__thread {
-  flex: 0 0 var(--sev-thread-h, 33.333%);
+  flex: 0 0 calc(var(--sev-thread-h, 33.333) * 1cqh);
   min-height: 0;
   display: flex;
   flex-direction: column;
   background: var(--grey-2, #eeeeee);
-  border: 1px solid var(--grey-6, #9e9e9e);
-  border-radius: 6px;
+  border: 1px solid var(--grey-5, #bdbdbd);
+  border-top: 0;
+  border-radius: 0 0 8px 8px;
   overflow: hidden;
+}
+.side-element__item:not(.is-card) .side-element__thread {
+  border-top: 1px solid var(--grey-5, #bdbdbd);
+  border-radius: 8px;
+  margin-top: 8px;
+}
+
+// Writing: the CommentMaker (`fill`) takes the band below the bar.
+.side-element__compose {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  padding: 6px;
 }
 
 .side-element__bar {
