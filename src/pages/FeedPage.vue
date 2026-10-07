@@ -542,8 +542,20 @@ export default defineComponent({
 // months — the flyout slot's containing block — left with the flyout: the
 // page positions nothing over itself now. The container's own 3001 is
 // against the fixed chrome and needs no positioned ancestor.)
+//
+// ── `100dvh`, NOT `100vh` (2026-10-07, user ask: "on the mobile version, the
+// feed container goes behind the footer nav bar … match the landscape mode") ──
+// On a real phone in PORTRAIT the browser's address/tool bar is showing, and
+// `100vh` is the LARGE viewport (as if that bar were hidden) — so the column
+// ran a toolbar's height past the visible floor and slid under the fixed
+// footer, which IS pinned to the visible floor. Landscape collapses the
+// toolbar, the two heights agree, and the column stood on the bar there.
+// `dvh` tracks the viewport actually shown. The `vh` line stays as the
+// fallback for engines without `dvh`; desktop and the Playwright emulator
+// have no toolbar, so they measure the same either way (why no witness saw it).
 .feed-page {
   height: calc(100vh - var(--nav-footer-h) - var(--media-tabs-h, 0px));
+  height: calc(100dvh - var(--nav-footer-h) - var(--media-tabs-h, 0px));
   padding: 0;
   overflow: hidden;
 }
