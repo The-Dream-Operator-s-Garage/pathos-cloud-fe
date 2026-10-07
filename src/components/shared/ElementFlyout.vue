@@ -234,7 +234,7 @@
         <LinkFace :key="'link:' + targetElement.address" :id="linkFaceId" @loaded="onLinkLoaded" />
       </div>
       <div v-else-if="showing === 'element'" class="element-flyout__element">
-        <ElementMini :key="'element:' + targetElement.address" :address="targetElement.address" />
+        <ElementMini :key="'element:' + targetElement.address" :address="targetElement.address" fill />
       </div>
 
       <!-- SKELETON FACE: the dense Field | Type | Data table — pre-walked
@@ -1538,6 +1538,14 @@ export default defineComponent({
   // a PATH's viewer (2026-09-27): this wrapper is the scroller, so the
   // lane's own 360px cap comes off — one scrollbar, not one inside another
   :deep(.path-mini) { --path-mini-max-h: none; }
+}
+// a LABEL's unravel viewer (2026-10-07) fills the window: the well becomes
+// a column so the filling Mini can take its height (the squares scroll
+// inside the viewer, not the well).
+.element-flyout__element:has(> .element-mini--fill) {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 // The moment face's well (2026-09-21) — the entity face's box, verbatim:

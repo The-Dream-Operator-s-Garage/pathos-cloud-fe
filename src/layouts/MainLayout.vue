@@ -105,7 +105,7 @@
           </q-item>
 
           <q-item clickable v-ripple :to="'/labels'" active-class="my-menu-link">
-            <q-item-section avatar><q-icon name="label_important" /></q-item-section>
+            <q-item-section avatar><q-icon name="label" /></q-item-section>
             <q-item-section>Labels</q-item-section>
           </q-item>
 

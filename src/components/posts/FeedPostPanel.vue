@@ -129,7 +129,7 @@
       <!-- Labels — everything not already surfaced by a dedicated chip -->
       <section v-if="chipLabels.length" class="feed-post-panel__group">
         <div class="feed-post-panel__group-head">
-          <q-icon name="label_important" size="12px" style="color:#00829c;" />
+          <q-icon name="label" size="12px" style="color:#00829c;" />
           labels <span class="feed-post-panel__total">{{ chipLabels.length }}</span>
         </div>
         <div class="panel-label-row">

@@ -10,7 +10,7 @@
        needs to be shown, every square on the chain digs itself open. -->
   <div
     class="label-square"
-    :class="{ 'is-expanded': expanded, 'is-selected': isSelected, 'is-system': !!label.system_label }"
+    :class="{ 'is-expanded': expanded, 'is-selected': isSelected, 'is-system': !!label.system_label, 'is-glass': glass }"
     :style="`--depth: ${depth};`"
   >
     <div class="label-square__head" @click.stop="onHeadClick">
@@ -36,6 +36,7 @@
           :depth="depth + 1"
           :selected-id="selectedId"
           :expand-ids="expandIds"
+          :glass="glass"
           @select="$emit('select', $event)"
         />
       </template>
@@ -57,7 +58,12 @@ export default defineComponent({
     depth: { type: Number, default: 0 },
     selectedId: { type: [Number, String], default: null },
     // Chain of label ids (root → target) that must be dug open.
-    expandIds: { type: Array, default: () => [] }
+    expandIds: { type: Array, default: () => [] },
+    // THE GLASS FORM (2026-10-07, LabelUnravel — the label Mini's unravel
+    // viewer): square + pit are translucent coats instead of white paper,
+    // so every level dug inward stacks one more coat and the background
+    // darkens with depth; the label pill's red replaces the page's teal.
+    glass: { type: Boolean, default: false }
   },
   emits: ['select'],
   setup (props, { emit }) {
@@ -128,6 +134,7 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
+// (the glass form's rules close the file — they override the paper ones)
 .label-square {
   --depth: 0;
   border: 1px solid rgba(var(--ink-rgb), 0.16);
@@ -216,5 +223,38 @@ export default defineComponent({
   font-style: italic;
   color: rgba(var(--ink-rgb), 0.5);
   padding: 2px 4px;
+}
+
+// ── THE GLASS FORM ─────────────────────────────────────────────────────────
+// No paper: the square is a thin coat of the Mini's glass tone and its pit
+// another, both translucent, so they COMPOUND — a square at depth n sits on
+// 2n coats (≈ 9% darker per level dug), which is the "deeper = darker" read
+// with no per-depth arithmetic. The rule follows the coat at a fixed share,
+// so a square's rim stays one step darker than whatever it sits on.
+.label-square.is-glass {
+  background: rgba(33, 33, 33, 0.045);
+  border-color: rgba(33, 33, 33, 0.2);
+  box-shadow: none;
+
+  &.is-selected {
+    border-color: color-mix(in srgb, var(--mini-accent, #e53935) 65%, transparent);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--mini-accent, #e53935) 18%, transparent);
+  }
+
+  > .label-square__head:hover {
+    background: color-mix(in srgb, var(--mini-accent, #e53935) 8%, transparent);
+  }
+
+  > .label-square__head .label-square__toggle:hover,
+  > .label-square__head .label-square__sys { color: var(--mini-accent, #e53935); }
+
+  > .label-square__pit {
+    background: rgba(33, 33, 33, 0.05);
+    box-shadow: inset 0 2px 4px rgba(33, 33, 33, 0.12);
+  }
+}
+
+.label-square.is-glass.is-selected > .label-square__head .label-square__name {
+  color: var(--mini-ink, #b71c1c);
 }
 </style>

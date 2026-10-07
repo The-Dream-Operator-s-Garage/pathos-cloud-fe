@@ -102,8 +102,10 @@ export const KINDS = {
   // red-7 = `--labels-contrast`, the LABELS button's rim (the label maker
   // went red on 09-07; the chips stayed violet-in-this-file / teal-on-the-
   // chip for two weeks — this closes that gap).
-  // ink red-10.
-  labels: { kind: 'label', icon: 'label_important', color: '#e53935', ink: '#b71c1c', route: (id) => `/labels/${id}` },
+  // ink red-10. ⭐ 2026-10-07 the glyph is `label` — the post cards' label
+  // plate's (was `label_important`): ONE label logo everywhere, the footer's
+  // LABELS button and the header stack included.
+  labels: { kind: 'label', icon: 'label', color: '#e53935', ink: '#b71c1c', route: (id) => `/labels/${id}` },
   // ⭐ 2026-09-21 PM6 — BROWN-7 / BROWN-10 / `sym_o_mitre` (user ask: the
   // footer's yellow SKELETONS section "corresponds to SCHEMA creation …
   // rename the section … keep its yellow coloring and icon", and "for all

@@ -17,7 +17,7 @@
        Used by post content-element rails, by MarkdownBody's inline
        reference rendering on post surfaces, and by the skeleton
        instance viewers' populated field rows. -->
-  <div class="element-mini" :class="{ 'element-mini--media': isMedia }">
+  <div class="element-mini" :class="{ 'element-mini--media': isMedia, 'element-mini--fill': isFill }">
     <div v-if="loading" class="element-mini__loading">
       <q-spinner size="14px" color="primary" />
     </div>
@@ -27,7 +27,7 @@
          ride so a nested lane cannot re-enter an ancestor. -->
     <PathMini v-else-if="shape.kind === 'path' && shape.path" :path="shape.path" :steps="shape.steps" :depth="depth" :visited="visited" />
     <PostMini v-else-if="shape.kind === 'post' && shape.post" :post="shape.post" />
-    <LabelMini v-else-if="shape.kind === 'label' && shape.label" :label="shape.label" />
+    <LabelMini v-else-if="shape.kind === 'label' && shape.label" :label="shape.label" :unravel="fill" />
     <EntityMini v-else-if="shape.kind === 'entity' && shape.entity" :entity="shape.entity" />
     <MomentMini v-else-if="shape.kind === 'moment' && shape.moment" :moment="shape.moment" :human="shape.human" />
     <LinkMini v-else-if="shape.kind === 'link' && shape.link" :link="shape.link" :target="shape.target" :parent-path="shape.parentPath" />
@@ -91,7 +91,12 @@ export default defineComponent({
     // skeleton table nested in a skeleton table re-enters this dispatcher
     // conceptually — the guards ride the props either way).
     depth: { type: Number, default: 0 },
-    visited: { type: Array, default: () => [] }
+    visited: { type: Array, default: () => [] },
+    // A WINDOW FACE (2026-10-07: ElementFlyout's element face + the side
+    // viewer's SideElementView): a kind with a full-height viewer takes the
+    // host's whole height — today the LABEL, whose Mini becomes the unravel
+    // viewer. Every other kind ignores it and keeps its own height.
+    fill: { type: Boolean, default: false }
   },
   setup (props) {
     const loading = ref(false)
@@ -267,7 +272,9 @@ export default defineComponent({
       return !!n && (!!n.embed || ['image', 'video'].includes(n.file?.kind))
     })
 
-    return { loading, shape, chipAddress, isMedia }
+    const isFill = computed(() => props.fill && shape.value.kind === 'label')
+
+    return { loading, shape, chipAddress, isMedia, isFill }
   }
 })
 </script>
@@ -276,6 +283,35 @@ export default defineComponent({
 // A comfortable prose MEASURE for the panels that are read as text.
 .element-mini {
   max-width: 480px;
+}
+
+// A filling face (`fill` + a kind that has one — the label's unravel
+// viewer): the whole host, width and height, and the panel's body becomes
+// the column's stretch instead of a 110px excerpt. Child chains only, so a
+// Mini nested deeper inside keeps the family's excerpt rule.
+.element-mini--fill {
+  max-width: none;
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+.element-mini--fill > :deep(.mini-panel-link) {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+.element-mini--fill > :deep(.mini-panel-link > .mini-panel) {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+.element-mini--fill > :deep(.mini-panel-link > .mini-panel > .mini-panel__body) {
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: none;
+  overflow: hidden;
+  padding: 0;
 }
 
 // …but a media Mini is a FIGURE: it takes the surface's whole width and

@@ -1,7 +1,7 @@
 <template>
   <div class="label-box" :class="{ 'is-compact': compact }">
     <div v-if="!compact" class="box-header">
-      <q-icon name="local_offer" size="12px" class="q-mr-xs" />
+      <q-icon name="label" size="12px" class="q-mr-xs" />
       <span>Labels on this {{ targetKind }}</span>
       <q-space />
       <span class="text-dim mono" style="font-size:0.7em;">

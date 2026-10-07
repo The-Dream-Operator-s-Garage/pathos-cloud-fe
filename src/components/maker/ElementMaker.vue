@@ -212,7 +212,7 @@ export default defineComponent({
     const headerIcon = computed(() => {
       if (props.mode === 'fork') return 'call_split'
       if (props.mode === 'edit') return 'edit'
-      return { label: 'label_important', node: 'article', post: 'article', skeleton: 'view_module' }[props.targetType]
+      return { label: 'label', node: 'article', post: 'article', skeleton: 'view_module' }[props.targetType]
     })
 
     const headerTitle = computed(() => {

@@ -16,7 +16,7 @@
         />
         <span v-else class="ltmn__leaf-dot" />
       </span>
-      <q-icon name="label_important" size="13px" class="ltm-row__icon"
+      <q-icon name="label" size="13px" class="ltm-row__icon"
         :class="{ 'is-system': label.system_label, 'is-mine': isMine }" />
       <span class="ltm-row__name">{{ label.name }}</span>
       <span v-if="label.system_label" class="ltm-badge ltm-badge--sys">sys</span>

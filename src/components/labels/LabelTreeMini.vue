@@ -23,7 +23,7 @@
           :class="{ 'is-selected': l.id === selectedId }"
           @click="$emit('select', l)"
         >
-          <q-icon name="label_important" size="13px" class="ltm-row__icon"
+          <q-icon name="label" size="13px" class="ltm-row__icon"
             :class="{ 'is-system': l.system_label, 'is-mine': isMine(l) }" />
           <span class="ltm-row__name">{{ l.name }}</span>
           <span v-if="l.system_label" class="ltm-badge ltm-badge--sys">sys</span>

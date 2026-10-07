@@ -35,7 +35,7 @@
          below"): the face and the thread are ONE box — the card at its own
          height, the band hanging off its foot with a shared rim; the rest of
          the well stays empty BELOW the item, never between its parts. -->
-    <div class="side-element__item" :class="{ 'is-card': !!card }">
+    <div class="side-element__item" :class="{ 'is-card': !!card, 'is-fill': fills }">
     <div class="side-element__face">
       <FeedStream
         v-if="card"
@@ -49,7 +49,7 @@
         @thread="(_, slot) => show(slot)"
       />
       <div v-else-if="el" class="side-element__mini">
-        <ElementMini :key="'sev:' + el.address" :address="el.address" />
+        <ElementMini :key="'sev:' + el.address" :address="el.address" fill />
       </div>
     </div>
 
@@ -287,6 +287,10 @@ export default defineComponent({
     const forkConfirm = ref(false)
     const forking = ref(false)
     const forkError = ref('')
+    // A label's face is the unravel viewer, which fills the item (ElementMini
+    // `fill`); every other Mini keeps its own height.
+    const fills = computed(() => !card.value && el.value?.kind === 'labels')
+
     const canFork = computed(() => supported.value.forks &&
       ['skeletons', 'nodes', 'labels'].includes(el.value?.kind))
     const doFork = async () => {
@@ -324,6 +328,7 @@ export default defineComponent({
 
     return {
       SECTIONS,
+      fills,
       card,
       el,
       kindWord,
@@ -422,6 +427,19 @@ export default defineComponent({
   flex: 1 1 auto;
   min-width: 0;
   overflow: auto;
+}
+
+// A FILLING face (2026-10-07 — a label's unravel viewer): the item takes
+// the well's whole height, the face everything above the thread band, so
+// the viewer runs the page's length; the squares scroll inside it.
+.side-element__item.is-fill {
+  flex: 1 1 auto;
+  > .side-element__face { flex: 1 1 auto; }
+  .side-element__mini {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
 }
 
 // ── THE THREAD BAND: the card's lowest storey — the card's own line ink

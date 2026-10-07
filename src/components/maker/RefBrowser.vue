@@ -186,7 +186,7 @@ const REF_KINDS = new Set(['nodes', 'paths', 'skeletons', 'labels'])
 const KIND_TABS = [
   { key: 'posts', label: 'Posts', icon: 'article' },
   { key: 'nodes', label: 'Nodes', icon: 'adjust' },
-  { key: 'labels', label: 'Labels', icon: 'label_important' },
+  { key: 'labels', label: 'Labels', icon: 'label' },
   { key: 'paths', label: 'Paths', icon: 'route' },
   { key: 'skeletons', label: 'Skels', icon: 'sym_o_mitre' }
 ]

@@ -28,7 +28,7 @@
       <template #option="{ opt, itemProps }">
         <q-item v-bind="itemProps" dense class="leaf-option">
           <q-item-section avatar>
-            <q-icon name="label_important" size="13px" />
+            <q-icon name="label" size="13px" />
           </q-item-section>
           <q-item-section>
             <q-item-label style="font-size:0.85em;">

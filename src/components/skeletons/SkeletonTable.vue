@@ -109,9 +109,9 @@
                    box, smaller type, 5px light — and its glyph is `label`,
                    the glyph the post cards' label plates wear ("use the
                    same icon … as in the other nano chips … on the post
-                   cards label section"), by the host `icon` override:
-                   kinds.js keeps `label_important`, mirroring the footer's
-                   LABELS button as the one-source rule asks. The per-key
+                   cards label section"), by the host `icon` override —
+                   since 2026-10-07 kinds.js itself wears `label` (the ONE
+                   label glyph everywhere), so the override is redundant. The per-key
                    HISTORY tool (`.skel-table__hist` + its popover) is GONE
                    from beside the key ("remove the version icon"); the
                    endpoint stays, probe-skeleton-keys reads it. -->

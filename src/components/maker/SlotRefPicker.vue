@@ -74,7 +74,7 @@ const KIND_TABS = [
   { key: 'entities', label: 'People', icon: 'person', color: '#546e7a' }, // = kinds.js entities.color (2026-09-22 PM; the purple was a shadow palette)
   { key: 'posts', label: 'Posts', icon: 'article', color: '#6c4d72' },
   { key: 'nodes', label: 'Nodes', icon: 'adjust', color: '#2C3D4E' },
-  { key: 'labels', label: 'Labels', icon: 'label_important', color: '#00829c' },
+  { key: 'labels', label: 'Labels', icon: 'label', color: '#00829c' },
   { key: 'paths', label: 'Paths', icon: 'route', color: '#4d8a83' },
   { key: 'skeletons', label: 'Skels', icon: 'sym_o_mitre', color: '#6d4c41' }, // brown-7 + the mitre since 2026-09-21 PM6 (slate + `schema` before)
   { key: 'moments', label: 'Moments', icon: 'schedule', color: '#c79a00' },

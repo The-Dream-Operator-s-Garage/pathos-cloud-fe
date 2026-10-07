@@ -131,7 +131,7 @@ export const ACTIONS = {
   // ── curate
   PIN: { label: 'Pinned', icon: 'push_pin', group: 'curate' },
   UNPIN: { label: 'Unpinned', icon: 'remove', group: 'curate' },
-  LABEL_ATTACH: { label: 'Labelled', icon: 'label_important', group: 'curate' },
+  LABEL_ATTACH: { label: 'Labelled', icon: 'label', group: 'curate' },
   LABEL_CREATE: { label: 'Created label', icon: 'new_label', group: 'curate' },
   LABEL_FORK: { label: 'Forked label', icon: 'fork_right', group: 'curate' },
   LABEL_SUGGEST: { label: 'Suggested label', icon: 'lightbulb', group: 'curate' },

@@ -68,7 +68,7 @@ const ICON_BY_SLOT = {
   TRANSFORMATIONS: 'change_history',
   CREATED_AT: 'schedule',
   FORKED_FROM: 'fork_right',
-  LABELS_PATH: 'label_important',
+  LABELS_PATH: 'label',
   USERNAME: 'alternate_email',
   DISPLAY_NAME: 'badge',
   INVITED_BY: 'person_add',

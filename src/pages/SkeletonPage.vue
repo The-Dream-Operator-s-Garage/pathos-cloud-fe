@@ -545,7 +545,7 @@ const SKELETON_ICONS = {
   ELEMENT: 'crop_free',
   // Per-kind element schemas (forks of ELEMENT) — icons match kinds.js.
   NODE: 'adjust',
-  LABEL: 'label_important',
+  LABEL: 'label',
   MOMENT: 'schedule',
   SECRET: 'key',
   LINK: 'link',

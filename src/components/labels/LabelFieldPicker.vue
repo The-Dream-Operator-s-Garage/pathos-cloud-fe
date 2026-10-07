@@ -1,7 +1,7 @@
 <template>
   <div class="lfp">
     <button type="button" class="lfp__btn" :class="{ 'is-empty': !modelValue }">
-      <q-icon name="label_important" size="13px" class="lfp__btn-icon" />
+      <q-icon name="label" size="13px" class="lfp__btn-icon" />
       <span class="lfp__btn-text">{{ modelValue?.name || placeholder }}</span>
       <q-icon name="arrow_drop_down" size="16px" class="lfp__btn-caret" />
 

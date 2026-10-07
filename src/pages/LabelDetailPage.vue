@@ -22,7 +22,7 @@
 
         <header class="subject-panel__ident">
           <div class="subject-panel__titlebar">
-            <q-icon name="label_important" size="22px" class="subject-panel__title-icon" />
+            <q-icon name="label" size="22px" class="subject-panel__title-icon" />
             <span class="vsep" aria-hidden="true" />
             <div class="subject-panel__title nasalization">
               {{ label.name }} · label #{{ label.id }}

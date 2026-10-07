@@ -14,8 +14,12 @@
        red:
          HEAD  chip+copy │ label name │ open        (MiniHead)
          BODY  the ancestry slider, lit in red-7 / lettered in red-10
-         FOOT  🏷 by allegue · system · depth 3      (MiniFoot) -->
-  <MiniPanel kind="labels" :to="targetRoute">
+         FOOT  🏷 by allegue · system · depth 3      (MiniFoot)
+       ⭐ 2026-10-07 — `unravel` (the flyout + side viewer faces, via
+       ElementMini `fill`): the body is the UNRAVEL VIEWER (LabelUnravel —
+       the /labels/:id page's squares, in glass) at the host's full height,
+       and the panel is no link: a click inside digs, it does not leave. -->
+  <MiniPanel kind="labels" :to="unravel ? null : targetRoute">
     <template #head>
       <MiniHead
         kind="labels"
@@ -27,7 +31,9 @@
     </template>
 
     <template #body>
-      <div v-if="loadingChain" class="label-mini__loading">
+      <LabelUnravel v-if="unravel" :label="label" />
+
+      <div v-else-if="loadingChain" class="label-mini__loading">
         <q-spinner-dots size="14px" /> recovering ancestry…
       </div>
 
@@ -63,16 +69,19 @@ import { useRouter } from 'vue-router'
 import MiniPanel from 'src/components/shared/MiniPanel.vue'
 import MiniHead from 'src/components/shared/MiniHead.vue'
 import MiniFoot from 'src/components/shared/MiniFoot.vue'
+import LabelUnravel from 'src/components/labels/LabelUnravel.vue'
 import { recoverAncestry } from 'src/utils/labelChain'
 import { entitySummary } from 'src/utils/entityDisplay'
 
 export default defineComponent({
   name: 'LabelMini',
-  components: { MiniPanel, MiniHead, MiniFoot },
+  components: { MiniPanel, MiniHead, MiniFoot, LabelUnravel },
   props: {
     // Label shape: { id, path, name|text, ancestor_id, author_id, system_label }
     label: { type: Object, required: true },
-    to: { type: String, default: null }
+    to: { type: String, default: null },
+    // The unravel viewer as the body, filling the host (see the note above).
+    unravel: { type: Boolean, default: false }
   },
   setup (props) {
     const router = useRouter()

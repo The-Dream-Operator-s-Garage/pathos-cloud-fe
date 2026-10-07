@@ -182,7 +182,7 @@
             <q-icon name="drag_indicator" size="11px" />
           </span>
           <span class="nav-btn__grip-rule" />
-          <q-icon name="label_important" size="15px" />
+          <q-icon name="label" size="15px" />
           <span class="nav-btn__label">LABELS</span>
           <q-tooltip>Label maker — grow, fork and reorganize label trees</q-tooltip>
         </q-btn>
@@ -781,7 +781,7 @@ export default defineComponent({
       if (labelMakerStore.isOpen && labelMakerStore.isMinimized) {
         tabs.push({
           key: 'labelMaker',
-          icon: 'label_important',
+          icon: 'label',
           label: labelMakerStore.selected?.name || 'labels',
           meta: '',
           busy: false,

@@ -74,7 +74,7 @@
         >
           <div class="att-card pathos-card q-pa-sm">
             <div class="row items-center no-wrap">
-              <q-icon name="label_important" size="14px" class="text-teal q-mr-sm" />
+              <q-icon name="label" size="14px" class="text-teal q-mr-sm" />
               <span class="att-label">{{ att.label || att.target?.name || 'Label' }}</span>
               <span v-if="att.inherited" class="inherited-badge" title="Attached before the current version">inherited</span>
               <q-space />

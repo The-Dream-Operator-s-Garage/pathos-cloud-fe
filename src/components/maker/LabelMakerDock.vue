@@ -14,7 +14,7 @@
              device: glyph + name in one hairline box, so the window states
              itself the way the feed's post cards do. -->
         <span class="dock-bar__plate">
-          <q-icon name="label_important" size="13px" class="dock-bar__icon" />
+          <q-icon name="label" size="13px" class="dock-bar__icon" />
           <span class="dock-bar__title nasalization">Label maker</span>
         </span>
         <span class="dock-bar__meta mono">

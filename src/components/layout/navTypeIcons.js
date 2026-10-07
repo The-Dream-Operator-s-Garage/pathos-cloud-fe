@@ -5,7 +5,7 @@ export const TYPE_ICONS = {
   feed: 'dynamic_feed',
   node: 'adjust',
   node_edit: 'edit',
-  label: 'label_important',
+  label: 'label',
   post: 'edit_note',
   skeleton: 'sym_o_mitre', // the populated skeleton's mark (kinds.js) — `schema` is the SCHEMA's, 2026-09-21 PM6
   explorer: 'explore',

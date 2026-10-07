@@ -79,7 +79,7 @@
       <!-- Labels -->
       <section v-if="labels.length" class="skeleton-usages__group">
         <div class="skeleton-usages__group-head">
-          <q-icon name="label_important" size="12px" style="color:#00829c;" />
+          <q-icon name="label" size="12px" style="color:#00829c;" />
           labels <span class="skeleton-usages__total">{{ labels.length }}</span>
         </div>
         <div class="slot-line" style="flex-wrap:wrap; gap:4px;">

@@ -221,7 +221,7 @@ const MICRO_BY_KIND = {
 
 const ICON_BY_KIND = {
   node: 'adjust',
-  label: 'label_important',
+  label: 'label',
   entity: 'person',
   path: 'route',
   skeleton: 'sym_o_mitre',
