@@ -21,6 +21,14 @@ export const refService = {
     return data
   },
 
+  // FULLTEXT over node bodies (GET /search — the node_text shadow, every
+  // hit access-filtered) — the side viewer's search board rides it for
+  // nodes whose NAME does not match but whose words do.
+  async fulltext (q, limit = 6) {
+    const { data } = await api.get('/search', { params: { q, limit } })
+    return data
+  },
+
   // The ONE surround read every element viewer uses: the element's
   // skeleton walk + render-ready sections (author, createdAt, labels,
   // versions/forks/comments as {total, items, pathRef}, scores as

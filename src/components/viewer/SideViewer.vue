@@ -22,7 +22,7 @@
        side cream borders and adapt it so that it touches the grey plaque
        sides and leaves some space to have a header above. the remaining
        frieze bar separates the header from the content now"): the HEAD —
-       a band of the box's own grey reserved for a header, empty for now —
+       Talavero's search board since 2026-10-07 eve (SideSearchBoard) —
        then the DIVIDER, the pinwheel's old top bar alone (the feed rail's
        bar turned 90°, cream coat above and below, `--grey-6` rim toward
        the content) running wall to wall with bare ends, then the WELL with
@@ -37,25 +37,68 @@
        section)` lets FeedPage put a feed card's post here when its foot
        comment / fork door is clicked.
 
+       ⭐ 2026-10-07 eve — IT NAVIGATES: a reference clicked inside opens
+       HERE as a new stop of the viewer's own history (back / forward studs
+       on the bar), the bar wears the shown element's kind (script notes).
+
        `select` from inside the card (the references button, the cap's
        open door) spawns the post's flyout — the viewer is a showcase, the
        flyout is where the post is worked on. `pins-changed` rides up to
        MainLayout through FeedPage, the same route the stream's takes. -->
-  <section class="side-viewer" aria-label="Viewer">
-    <header class="side-viewer__head" />
-    <div class="side-viewer__divider" aria-hidden="true">
-      <div class="side-viewer__rail">
+  <section
+    ref="rootEl"
+    class="side-viewer"
+    aria-label="Viewer"
+    :style="toneStyle"
+  >
+    <!-- THE HEAD = TALAVERO'S SEARCH BOARD (2026-10-07 eve) — see
+         SideSearchBoard.vue. A hit opens HERE (a new stop on the viewer's
+         history) or, by its WHERE pill, as a floating window. -->
+    <header class="side-viewer__head">
+      <SideSearchBoard :recent="recent" @open="onSearchOpen" @open-window="onSearchWindow" />
+    </header>
+    <div class="side-viewer__divider">
+      <div class="side-viewer__rail" aria-hidden="true">
         <FriezeBarVertical lip="right" slim class="side-viewer__bar" />
       </div>
+      <!-- BACK / FORWARD RIDE THE BAR (2026-10-07 eve, user ask: "back and
+           forward buttons inside the friezebar, using the lip color of the
+           frieze bar") — two lip-tone studs at the bar's left end, walking
+           the viewer's OWN history (never the router's). -->
+      <nav class="side-viewer__nav" aria-label="Viewer history">
+        <button
+          type="button"
+          class="side-viewer__step"
+          :disabled="cursor <= 0"
+          :title="cursor > 0 ? 'Back to ' + (stops[cursor - 1].label || 'the previous item') : 'Nothing behind'"
+          aria-label="Back"
+          @click="go(-1)"
+        >
+          <q-icon name="arrow_back_ios_new" size="9px" />
+        </button>
+        <button
+          type="button"
+          class="side-viewer__step"
+          :disabled="cursor >= stops.length - 1"
+          :title="cursor < stops.length - 1 ? 'Forward to ' + (stops[cursor + 1].label || 'the next item') : 'Nothing ahead'"
+          aria-label="Forward"
+          @click="go(1)"
+        >
+          <q-icon name="arrow_forward_ios" size="9px" />
+        </button>
+      </nav>
     </div>
     <div class="side-viewer__well">
       <!-- SideElementView since 2026-10-07: the element's face (a post =
-           its postcard, extended to the well) over its THREAD band —
-           comments by default, forks on the fork door. -->
+           its postcard, extended to the well; anything else its kind's Mini)
+           over its THREAD band — comments by default, forks on the fork door.
+           Keyed per stop so back/forward lands on a fresh face. -->
       <SideElementView
-        v-if="item"
-        :item="item"
-        :initial-section="section"
+        v-if="current"
+        :key="current.key"
+        :item="current.item"
+        :address="current.item ? '' : current.address"
+        :initial-section="current.section"
         @select="onSelect"
         @pins-changed="$emit('pins-changed')"
       />
@@ -67,26 +110,159 @@
 </template>
 
 <script>
-import { defineComponent, ref, onMounted } from 'vue'
+import { defineComponent, ref, computed, onMounted, onBeforeUnmount } from 'vue'
+import { useRouter } from 'vue-router'
 import FriezeBarVertical from 'src/components/layout/FriezeBarVertical.vue'
 import SideElementView from 'src/components/viewer/SideElementView.vue'
+import SideSearchBoard from 'src/components/viewer/SideSearchBoard.vue'
 import { feedService } from 'src/services/feed.service'
-import { useFlyoutViewersStore } from 'src/stores/flyoutViewers'
+import { refService } from 'src/services/ref.service'
+import { useFlyoutViewersStore, installSideViewerSink, consumeSideArm } from 'src/stores/flyoutViewers'
+import { kindFor, isHash } from 'src/utils/kinds'
+
+const MAX_STOPS = 60
+// Element pages a plain link inside the viewer may name — the router guard
+// turns them into stops instead of leaving the feed.
+const ROUTE_RE = /^\/(posts|skeletons|nodes|labels|paths|links|secrets|moments|entities)\/([0-9a-zA-Z]+)\/?$/
+let stopSeq = 0
 
 export default defineComponent({
   name: 'SideViewer',
-  components: { FriezeBarVertical, SideElementView },
+  components: { FriezeBarVertical, SideElementView, SideSearchBoard },
   emits: ['pins-changed'],
   setup () {
-    const item = ref(null)
-    const section = ref('comments')
+    const rootEl = ref(null)
     const error = ref('')
     const flyouts = useFlyoutViewersStore()
+    const router = useRouter()
 
-    const onSelect = (it) => { flyouts.spawnPost(it) }
+    // ── THE VIEWER'S HISTORY (2026-10-07 eve): every element it showed, a
+    // stop `{ key, item | address, kind, label, section }`, and a cursor.
+    // A new stop drops whatever stood ahead of the cursor — a browser's
+    // back stack, kept to this window.
+    const stops = ref([])
+    const cursor = ref(-1)
+    const current = computed(() => stops.value[cursor.value] || null)
 
-    // A random post off the public feed — the viewer's own GET /feed,
-    // seat-strict like every read on this surface.
+    const push = (stop) => {
+      const here = current.value
+      if (here && here.address && here.address === stop.address) {
+        // Same element: only the section moves (a second tally press).
+        if (stop.section && stop.section !== here.section) {
+          stops.value.splice(cursor.value, 1, { ...here, section: stop.section, key: 's' + (++stopSeq) })
+        }
+        return
+      }
+      const kept = stops.value.slice(0, cursor.value + 1)
+      kept.push({ section: 'comments', ...stop, key: 's' + (++stopSeq) })
+      while (kept.length > MAX_STOPS) kept.shift()
+      stops.value = kept
+      cursor.value = kept.length - 1
+      error.value = ''
+    }
+    const go = (d) => {
+      const n = cursor.value + d
+      if (n >= 0 && n < stops.value.length) cursor.value = n
+    }
+
+    const stopOfItem = (it, section = 'comments') => ({
+      item: it,
+      address: it.skeleton_path || ('skeletons/' + it.skeleton_id),
+      kind: 'posts',
+      label: it.title || ('Post #' + it.skeleton_id),
+      section
+    })
+
+    // An ADDRESS → its stop. A skeleton that is a POST instance steps
+    // forward to its postcard (the flyout's rule — the feed's hash lens);
+    // anything else is its kind's Mini.
+    const stopOfAddress = async (address, label = '') => {
+      const addr = String(address || '').replace(/^pathos:/, '').replace(/^posts\//, 'skeletons/')
+      const parts = addr.split('/').filter(Boolean)
+      const prefix = parts[parts.length - 2]
+      const hash = parts[parts.length - 1]
+      if (!prefix || !hash) return null
+      if (prefix === 'skeletons') {
+        try {
+          const r = await feedService.getPublic({ hash, body: 'full', limit: 1 })
+          const it = r?.items?.[0]
+          if (it && String(it.skeleton_path || '').endsWith(hash)) return stopOfItem(it)
+        } catch (_) { /* a skeleton face is never wrong */ }
+      }
+      return { item: null, address: `${prefix}/${hash}`, kind: prefix, label }
+    }
+
+    // A KIND + an id (or a hash) → its stop: one summary read for an id.
+    const stopOfKey = async (kind, key, label = '') => {
+      const prefix = kind === 'posts' ? 'skeletons' : kind
+      if (isHash(String(key))) return stopOfAddress(`${prefix}/${key}`, label)
+      try {
+        const r = await refService.summaryById(kind, parseInt(key, 10))
+        const sum = r?.summary
+        if (!sum?.hash || sum.locked) return null
+        return stopOfAddress(`${prefix}/${sum.hash}`, label || sum.primary || '')
+      } catch (_) { return null }
+    }
+
+    // THE NAVIGATOR: any flyout target the store's sink diverts here.
+    const openTarget = async (t) => {
+      if (!t) return
+      let stop = null
+      if (t.kind === 'post' && t.item) stop = stopOfItem(t.item)
+      else if (t.kind === 'node' && t.node) stop = t.node.path ? await stopOfAddress(t.node.path, t.node.title || '') : await stopOfKey('nodes', t.node.id)
+      else if (t.kind === 'entity' && t.entity) {
+        stop = t.entity.path
+          ? await stopOfAddress(t.entity.path, t.entity.display_name || '')
+          : await stopOfKey('entities', t.entity.id, t.entity.display_name || '')
+      } else if (t.kind === 'element') stop = await stopOfAddress(t.address, t.summary?.primary || '')
+      else if (t.kind === 'ref') {
+        const ref0 = String(t.ref).replace(/^pathos:/, '')
+        stop = ref0.includes('/') ? await stopOfAddress(ref0) : await stopOfKey('skeletons', ref0)
+      }
+      if (stop) push(stop)
+      // A target the viewer cannot hold still opens — as a window.
+      else if (t.kind === 'ref') flyouts.spawn(t, { flyout: true })
+    }
+
+    // The card's own "open" doors (the cap's flyout button, the references
+    // button) keep their meaning: the post as a WINDOW.
+    const onSelect = (it) => { flyouts.spawnPost(it, { flyout: true }) }
+
+    const onSearchOpen = async ({ address, label }) => {
+      const stop = await stopOfAddress(address, label)
+      if (stop) push(stop)
+    }
+    const onSearchWindow = ({ address }) => {
+      flyouts.spawn({ kind: 'ref', ref: address }, { flyout: true })
+    }
+
+    // Recently viewed, newest first, one row per element — the board's
+    // empty-field list.
+    const recent = computed(() => {
+      const seen = new Set()
+      const out = []
+      for (let i = stops.value.length - 1; i >= 0; i--) {
+        const s = stops.value[i]
+        if (!s.address || seen.has(s.address)) continue
+        seen.add(s.address)
+        out.push({ address: s.address, kind: s.kind, label: s.label })
+        if (out.length >= 8) break
+      }
+      return out
+    })
+
+    // ── THE BAR WEARS THE ELEMENT'S KIND (2026-10-07 eve, user ask: "make
+    // the friezebar match the color of the represented item"): the plate in
+    // the kind's deep INK, the lip — and the two studs riding it — in the
+    // kind's own colour (kinds.js, the one table every chip draws from). A
+    // post keeps the bar it always had: posts' ink IS `--indigo-10`.
+    const toneStyle = computed(() => {
+      const k = kindFor(current.value?.kind || 'posts')
+      return { '--side-viewer-plate': k.ink, '--side-viewer-lip': k.color }
+    })
+
+    // A random post off the public feed — the viewer's first stop, its own
+    // GET /feed, seat-strict like every read on this surface.
     const pick = async () => {
       try {
         const first = await feedService.getPublic({ limit: 1, body: 'full' })
@@ -99,23 +275,57 @@ export default defineComponent({
         const r = page === 1
           ? first
           : await feedService.getPublic({ limit: 1, page, body: 'full' })
-        item.value = (r?.success && r.items?.[0]) || first.items[0]
+        const it = (r?.success && r.items?.[0]) || first.items[0]
+        if (!stops.value.length) push(stopOfItem(it))
       } catch (_) {
-        error.value = 'The feed is not answering.'
+        if (!stops.value.length) error.value = 'The feed is not answering.'
       }
     }
 
-    onMounted(pick)
+    // ── NAVIGATING INSIDE (2026-10-07 eve, user ask): a reference clicked
+    // inside the viewer opens HERE. Two seams catch every door:
+    //   · the window store's SINK — chips, minis, the entity / moment link
+    //     doors all end in `flyouts.spawn`, which hands the target over;
+    //   · a ROUTER GUARD — plain links to element pages (`/labels/12`,
+    //     `/posts/7` …) that would have left the feed become stops.
+    let removeSink = null
+    let removeGuard = null
+    onMounted(() => {
+      pick()
+      removeSink = installSideViewerSink(rootEl.value, openTarget)
+      removeGuard = router.beforeEach((to) => {
+        const m = ROUTE_RE.exec(to.path || '')
+        if (!m || !consumeSideArm()) return true
+        stopOfKey(m[1], m[2]).then((stop) => { if (stop) push(stop) })
+        return false
+      })
+    })
+    onBeforeUnmount(() => {
+      if (removeSink) removeSink()
+      if (removeGuard) removeGuard()
+    })
 
     // FeedPage's door: a feed card's comment / fork tally → that post, here,
     // with that section open.
     const show = (it, slot = 'comments') => {
       if (!it) return
-      section.value = slot === 'forks' ? 'forks' : 'comments'
-      item.value = it
+      push(stopOfItem(it, slot === 'forks' ? 'forks' : 'comments'))
     }
 
-    return { item, section, error, onSelect, show }
+    return {
+      rootEl,
+      error,
+      stops,
+      cursor,
+      current,
+      go,
+      recent,
+      toneStyle,
+      onSelect,
+      onSearchOpen,
+      onSearchWindow,
+      show
+    }
   }
 })
 </script>
@@ -142,8 +352,10 @@ export default defineComponent({
 .side-viewer {
   --side-viewer-gap: 14px;
   // THE HEAD's height — the band of the box's own grey above the divider,
-  // reserved for the viewer's header (2026-10-02 eve; empty until it has one).
-  --side-viewer-head-h: 30px;
+  // reserved for the viewer's header (2026-10-02 eve) — Talavero's search
+  // board since 2026-10-07 eve.
+  // 40px since 2026-10-07 eve: it holds Talavero's search board now.
+  --side-viewer-head-h: 40px;
   // THE DIVIDER — the old frame's top RAIL, number for number: 2px of
   // `--plaque-coat` each long face round the feed rail's 13px bar, a 1px
   // `--grey-6` rim on the face toward the content = 18px. (Its 7px grey
@@ -181,9 +393,13 @@ export default defineComponent({
   box-shadow: 0 12px 34px rgba(0, 0, 0, 0.45);
 }
 
+// The head carries the search board, whose drop hangs OVER the divider and
+// the well — so it stands above them in the stack.
 .side-viewer__head {
   flex: 0 0 var(--side-viewer-head-h);
   min-width: 0;
+  position: relative;
+  z-index: 3;
 }
 
 // ── THE DIVIDER: the pinwheel's top side, kept alone (template note). The
@@ -229,12 +445,13 @@ export default defineComponent({
 .side-viewer .side-viewer__bar {
   --frieze-bar-v-w: var(--side-viewer-bar-t);
   --frieze-bar-v-slim-w: var(--side-viewer-bar-t);
-  --frieze-bar-v-base: var(--indigo-10, #1a237e);
+  // The plate + lip follow the shown element's kind (`toneStyle`).
+  --frieze-bar-v-base: var(--side-viewer-plate, var(--indigo-10, #1a237e));
   --frieze-bar-v-wave-one: var(--plaque-flat, #f8f2e4);
   --frieze-bar-v-wave-two: var(--plaque-flat, #f8f2e4);
   --frieze-bar-v-edge: var(--grey-6, #9e9e9e);
   --frieze-bar-v-edge-w: 1px;
-  --frieze-bar-v-lip: var(--grey-6, #9e9e9e);
+  --frieze-bar-v-lip: var(--side-viewer-lip, var(--grey-6, #9e9e9e));
   --frieze-bar-v-carve: none;
   --frieze-bar-v-pad: 1px;
 }
@@ -244,6 +461,38 @@ export default defineComponent({
 // horizontal mirror. Only the layer flips; the rules and the rim stay put.
 .side-viewer__bar :deep(.frieze-bar-v__layer) {
   transform: scaleY(-1);
+}
+
+// ── THE STUDS: back / forward riding the bar's left end, filled in the
+// LIP's tone (the kind's colour), cream glyphs, a `--plaque-coat` ring so
+// they read as set INTO the bar. The divider takes no presses; only these do.
+.side-viewer__nav {
+  position: absolute;
+  top: 0;
+  left: 8px;
+  height: calc(100% - var(--side-viewer-rim));
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  pointer-events: auto;
+  z-index: 1;
+}
+.side-viewer__step {
+  width: 22px;
+  height: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 1px solid var(--plaque-coat, #f8f2e4);
+  border-radius: 999px;
+  background: var(--side-viewer-lip, var(--indigo-6));
+  color: var(--plaque-flat, #f8f2e4);
+  box-shadow: 0 0 0 1px var(--side-viewer-plate, var(--indigo-10));
+  cursor: pointer;
+  transition: filter 0.15s, transform 0.15s, background 0.25s;
+  &:hover:not(:disabled) { filter: brightness(1.15); transform: scale(1.08); }
+  &:disabled { cursor: default; opacity: 0.45; }
 }
 
 // The content under the divider. Since 2026-10-07 the well holds ONE

@@ -10,7 +10,18 @@
       <div class="comment-main">
         <!-- Header: author + provenance + time -->
         <div class="row items-center no-wrap" style="gap:8px; font-size:0.78em;">
-          <EntityName class="text-ink" :entity="child.author" :id="child.owner_id" />
+          <!-- The author is a DOOR (2026-10-07 eve): an entity link, so the
+               platform's entity door opens their window — or, inside the
+               side viewer, shows them there. -->
+          <router-link
+            v-if="authorId"
+            :to="'/entities/' + authorId"
+            class="comment-author"
+            :title="'Open the author'"
+          >
+            <EntityName class="text-ink" :entity="child.author" :id="child.owner_id" />
+          </router-link>
+          <EntityName v-else class="text-ink" :entity="child.author" :id="child.owner_id" />
           <span v-if="child.provenance === 'FORK'" class="text-coral mono" style="font-size:0.9em;">(fork)</span>
           <q-space />
           <SkeletonRefLinks :id="child.id" />
@@ -163,6 +174,7 @@ export default defineComponent({
   setup (props, { emit }) {
     const router = useRouter()
     const rootEl = ref(null)
+    const authorId = computed(() => props.child?.author?.id ?? props.child?.owner_id ?? null)
     const replyOpen = ref(false)
     const forkOpen = ref(false)
     const repliesOpen = ref(false)
@@ -377,6 +389,7 @@ export default defineComponent({
     }, { immediate: true })
 
     return {
+      authorId,
       moreReplies,
       rootEl,
       replyOpen,
@@ -446,6 +459,8 @@ export default defineComponent({
 
 .comment :deep(strong) { color: #1F2A38; }
 .comment :deep(.text-ink) { color: #1F2A38 !important; }
+.comment-author { text-decoration: none; border-radius: 3px; }
+.comment-author:hover { background: rgba(31, 42, 56, 0.07); }
 .comment :deep(.text-dim) { color: #6b7993 !important; opacity: 1; }
 .comment :deep(.text-coral) { color: #d35f5f !important; }
 .comment :deep(.mono) { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, "Courier New", monospace; }

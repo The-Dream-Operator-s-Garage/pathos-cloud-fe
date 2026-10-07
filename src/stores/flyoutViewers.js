@@ -141,6 +141,51 @@ const placeOf = (target, label = '') => {
 // The tray is written on every open / park / close. Debounced because a
 // drag-resize ends in a burst and a window's geometry is never worth
 // blocking on.
+// ── THE SIDE VIEWER'S SINK (2026-10-07 eve, user ask: "if i click on a
+// referenced item inside the item im viewing from the side viewer, I should
+// be redirected inside it to the referenced item … make sure this works for
+// all components"). Every door on the platform — chips, minis, the entity
+// and moment link doors — ends in `spawn` below, so the rule is stated HERE
+// once rather than in forty components: a press that STARTED inside the
+// side viewer arms the sink, and the next spawn inside the window
+// (`SIDE_ARM_MS`, long enough for a door that reads first, like the moment
+// door) is handed to the viewer instead of opening a floating window. One
+// press, one diversion — the arm is consumed. `opts.flyout` is the escape
+// hatch for the viewer's own "open it as a window" doors.
+const SIDE_ARM_MS = 2500
+let _sideSink = null
+let _sideArmedAt = 0
+
+// Installed by SideViewer on mount; returns the remover. `root` is the
+// viewer's box, `open(target)` its navigator. The listener sits on WINDOW in
+// the capture phase so it runs before the entity door (a document capture
+// listener that spawns synchronously).
+export function installSideViewerSink (root, open) {
+  const arm = (e) => {
+    _sideArmedAt = root && e.target && root.contains(e.target) ? performance.now() : 0
+  }
+  const armKey = (e) => {
+    if (e.key === 'Enter' || e.key === ' ') arm(e)
+  }
+  window.addEventListener('click', arm, true)
+  window.addEventListener('keydown', armKey, true)
+  _sideSink = { root, open }
+  return () => {
+    window.removeEventListener('click', arm, true)
+    window.removeEventListener('keydown', armKey, true)
+    if (_sideSink && _sideSink.root === root) _sideSink = null
+    _sideArmedAt = 0
+  }
+}
+
+// True (and spent) when the current press began inside the side viewer —
+// the router guard's question for plain links to element pages.
+export function consumeSideArm () {
+  if (!_sideSink || !_sideArmedAt || performance.now() - _sideArmedAt > SIDE_ARM_MS) return false
+  _sideArmedAt = 0
+  return true
+}
+
 let _saveTimer = null
 const SAVE_DEBOUNCE_MS = 600
 
@@ -204,6 +249,11 @@ export const useFlyoutViewersStore = defineStore('flyoutViewers', {
     spawn (target, opts = {}) {
       const identity = identityOf(target)
       if (!identity) return null
+      // A press inside the side viewer navigates the VIEWER (see the sink).
+      if (!opts.rehydrating && !opts.flyout && consumeSideArm()) {
+        _sideSink.open(target)
+        return null
+      }
       // ONE WINDOW PER ELEMENT, WHATEVER THE DOOR (2026-09-21 PM): a chip
       // opens by ADDRESS (`spawnRef`) while a card or a mini opens by the
       // enriched row (`spawnPost` / `spawnNode`), and those are different
@@ -344,7 +394,7 @@ export const useFlyoutViewersStore = defineStore('flyoutViewers', {
     // button asks for nothing, the kind's default, the postcard.
     spawnPost (item, opts = {}) {
       if (!item || item.skeleton_id == null) return null
-      return this.spawn({ kind: 'post', item }, { view: opts.view || null })
+      return this.spawn({ kind: 'post', item }, { view: opts.view || null, flyout: !!opts.flyout })
     },
     spawnRef (ref) {
       if (ref == null || ref === '') return null
