@@ -523,7 +523,38 @@ export default defineComponent({
 
 // A phone gives the whole track to the container (FeedPage's 95% rule);
 // there is no "remaining space" to stand in.
+// ── ⭐ ON A PHONE THE VIEWER STANDS ABOVE THE RAIL (2026-10-08, user ask:
+// "for the mobile version, we want to take advantage of this new behavior
+// so that the header bar starts like 1/3 slid down vertically so that in the
+// remaining space we can fit the side viewer there. Figure out the right
+// proportion so both the feed container and the side viewer are usable on a
+// portrait mobile version") ──────────────────────────────────────────────
+// It was `display: none` under 600px from its birth (2026-10-01): the track
+// has no second column on a phone. Now the top rail SLIDES (`--header-y`,
+// composables/useHeaderSlide — a phone starts it 34% of the way down) and
+// the strip that frees at the top of the screen is this viewer's phone
+// home: FIXED from the screen's top to the rail's top, full width,
+// square-cornered and unmargined — the rail's own cast is its bottom edge,
+// and the rail's shadow falls on the feed below it, not on this. It is
+// still FeedPage's child and still the thread host there (`sideHome`), so a
+// card's comment door opens here on a phone exactly as it does beside the
+// feed on a desktop; the page sends the threads to the flyouts only while
+// the rail stands too high for the strip to hold a card. The height is
+// the slide itself, so dragging the rail resizes the viewer live; at 0 it
+// is a closed strip (`overflow: hidden` above). z: under the rail (3125)
+// and the floating windows, over the page.
 @media (max-width: 600px) {
-  .side-viewer { display: none; }
+  .side-viewer {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: var(--header-y, 0px);
+    margin: 0;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    z-index: 3000;
+  }
 }
 </style>

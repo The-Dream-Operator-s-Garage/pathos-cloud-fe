@@ -2521,6 +2521,24 @@ $warning:   #F2C037;
   --media-tabs-rim: 1px;
   --media-tabs-h: calc(var(--media-tabs-band) + var(--media-tabs-rim));
 
+  // ── ⭐ THE RAIL SLIDES (2026-10-08, user ask: "for the planet icon
+  // container-button, if I grab it, I should be able to move the header nav
+  // bar up and down the screen, vertically (making the feed container shorter
+  // and freeing up space at the top of the screen)"). `--header-y` is how far
+  // down the screen the top rail stands — 0 at the very top, the desktop's
+  // start; a phone starts it about a third of the way down so the side viewer
+  // can live in the strip above it. Written INLINE on `<html>` by
+  // `composables/useHeaderSlide.js` (the one writer; MediaTabsBar engages it),
+  // this declaration is the resting value every page reads before it mounts.
+  // `--top-chrome-h` is the line the rail's bottom rim draws at — what every
+  // top-anchored surface steps down by now (the page container's padding, the
+  // feed's height, the docks' tops, the stack panel's seat, the phone's wall):
+  // `--media-tabs-h` alone was that line while the rail could only stand at 0.
+  // A custom property substitutes its `var()`s where it is DECLARED, and both
+  // stand on `:root`, so the inline `--header-y` is the one this calc reads.
+  --header-y: 0px;
+  --top-chrome-h: calc(var(--header-y) + var(--media-tabs-h));
+
   // ── WHAT A PARKED TAB REACHES BELOW THE RAIL (2026-08-24, user ask: the
   // four creation docks must "leave a little space between their top border
   // and the header nav bar tabs") ──
@@ -2571,6 +2589,29 @@ $warning:   #F2C037;
   // now": the wide tile measured 305px at 380 and ~153 now (the pieces
   // ellipsize — time first, then the act, then the hash, the title last).
   --stack-head-w: 228px;
+  // ── ⭐ THE RAIL'S INNER SECTION SITS ON THE FEED'S RAILS (2026-10-08, user
+  // ask: "attach [the << and >> buttons] at the very same width of the left and
+  // right frieze bars of the feed container … extend the nav stack glass section
+  // end-to-end so it covers the inner space of the feed width … on its sides,
+  // add a couple of oval holes that let me see the header frieze bar from
+  // behind … Put a separation between them, the >>, << buttons and also the
+  // stack container"). While the feed page publishes its rails
+  // (`useSeamAnchor` → `--feed-rail-ll/lr/rl/rr` on `<html>` + `is-feed-railed`),
+  // the rail's row is laid out from them: Back ON the left rail, Forward ON the
+  // right one, and between them `sep · grip · sep · STACK GLASS · sep · grip ·
+  // sep` — `--media-tabs-sep` is the bare band showing between every two
+  // pieces, `--media-tabs-grip-w` the width of each perforated glass plate (an
+  // oval hole in its middle; the glass around it is the handle that drags the
+  // feed sideways). The planet badge stands `sep` right of Forward; the feed
+  // keeps that much room (badge + sep) free past its right rail.
+  // The planet badge's box width rides here too (its height is the rail's
+  // face, stated on the rail): the feed's reserve and the rail's row both
+  // read it, and ON A PHONE all three — sep's partners — are restated on
+  // `:root` in `_components.scss`'s phone block (36 / 30), where the stack
+  // strip, a sibling of the rail, can read them as readily as the rail can.
+  --media-tabs-hex-w: 48px;
+  --media-tabs-sep: 4px;
+  --media-tabs-grip-w: 40px;
 
   // The two edge widgets' expanded-height caps, both presentations. They were
   // minted as a 70/30 split of one 90vh right-edge BAND (2026-07-24 — an even

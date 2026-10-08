@@ -179,7 +179,7 @@
     <!-- Page content gives up the width of the parked stack/pins column on the
          right so they never cover it; EXPANDED windows overlap the page as
          they always did. -->
-    <q-page-container :style="{ paddingRight: windows.railWidth ? windows.railWidth + 'px' : null, paddingTop: 'var(--media-tabs-h, 0px)' }">
+    <q-page-container :style="{ paddingRight: windows.railWidth ? windows.railWidth + 'px' : null, paddingTop: 'var(--top-chrome-h, var(--media-tabs-h, 0px))' }">
       <!-- `pins-changed` is bound on the ROUTER-VIEW because a page can pin
            too (the feed card's cap, 2026-08-07) and the pins widget it has to
            reload is a sibling of this container, not of the page. Vue Router

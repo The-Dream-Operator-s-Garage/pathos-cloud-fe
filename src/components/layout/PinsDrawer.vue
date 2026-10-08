@@ -604,7 +604,7 @@ export default defineComponent({
 
   // THE GREEN LIGHT (2026-09-06 PM) — the stack's rule, mirrored.
   &:not(.is-parked).is-max {
-    max-height: calc(100vh - var(--media-tabs-h, 0px));
+    max-height: calc(100vh - var(--top-chrome-h, var(--media-tabs-h, 0px)));
   }
 
     // THE COAT'S NEGATIVE (2026-09-03, user ask: "invert the color palette

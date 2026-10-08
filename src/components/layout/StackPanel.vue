@@ -603,7 +603,10 @@ export default defineComponent({
   // ⭐ THE HEADER SEAT SINCE 2026-09-30 (the component note): the rail's
   // face, from its top edge, beside the Back plate. (The footer seat —
   // `bottom: 0; left: var(--nav-id-w)` — until then.)
-  top: 0;
+  // ⭐ 2026-10-08: the rail SLIDES (`--header-y`, composables/useHeaderSlide),
+  // and the strip and the panel that hangs from it stand on its face wherever
+  // it is — `top` is the slide, not 0.
+  top: var(--header-y, 0px);
   bottom: auto;
   left: var(--media-tabs-back-w, 26px);
   right: auto;
@@ -638,7 +641,10 @@ export default defineComponent({
     // HANGS from the rail since 2026-09-30: the cap grows by the rail's own
     // height, the last-bar-over law the footer seat stated with
     // `--nav-footer-h` — the top `--media-tabs-h` is rail the panel lies over.
-    max-height: calc(var(--dock-stack-h) + var(--media-tabs-h));
+    max-height: min(
+      calc(var(--dock-stack-h) + var(--media-tabs-h)),
+      calc(100vh - var(--header-y, 0px) - var(--nav-footer-h, 0px))
+    ); // ⭐ 2026-10-08: and never past the footer — a rail slid a third of the way down a phone would otherwise hang the panel under it
     background: var(--plaque-coat);
     // Rims on the three exposed edges (the floor stays bare); BOTH top
     // corners rounded since 2026-09-02 (user ask: "make sure the top edges
@@ -666,7 +672,7 @@ export default defineComponent({
   // the top tabs band — the room a ledger of hundreds of stops wants. The
   // panel still shrink-fits below it; only the ceiling moves.
   &:not(.is-parked).is-max {
-    max-height: calc(100vh - var(--nav-footer-h, 0px));
+    max-height: calc(100vh - var(--header-y, 0px) - var(--nav-footer-h, 0px)); // ⭐ 2026-10-08: from the slid rail to the footer
   }
 
     // THE COAT'S NEGATIVE (2026-09-03, user ask: "invert the color palette
@@ -791,6 +797,28 @@ export default defineComponent({
 // uniform plaque — it followed the panel out of brown-1 on 2026-08-17, and
 // has to: a header row is the one place a coat mismatch would draw a line
 // where the whole point is that there is none).
+// ── ⭐ THE STRIP ON THE FEED'S INNER WIDTH (2026-10-08, user ask: "extend the
+// nav stack glass section end-to-end so it covers the inner space of the feed
+// width but inside the header bar … Put a separation between them, the >>,
+// << buttons and also the stack container") ──────────────────────────────
+// While `<html>` wears `is-feed-railed` — the feed page is publishing its two
+// rails' viewport edges, painted as `--feed-rail-ll/lr/rl/rr` by
+// composables/useSeamAnchor — the glass is laid out FROM THEM: it starts
+// `sep + grip + sep` in from the left rail's right edge and ends the same
+// distance before the right rail's left edge. MediaTabsBar's two perforated
+// grips stand in those margins, Back and Forward ON the rails themselves,
+// `--media-tabs-sep` of bare band between every two pieces (_tokens.scss has
+// the row's law). The free seat above — Back's width in, `--stack-head-w`
+// wide, capped at half the screen — is what a page with no feed falls back
+// to, unchanged. The panel that HANGS from the strip takes the strip's left
+// and width too (a list hanging from a wide pane, not a narrow panel under a
+// wide one). `:root.is-feed-railed` outranks every free-seat rule, the phone
+// block's 45px included — by specificity, so source order cannot undo it.
+:root.is-feed-railed .stack-window {
+  left: calc(var(--feed-rail-lr) + 2 * var(--media-tabs-sep) + var(--media-tabs-grip-w));
+  width: calc(var(--feed-rail-rl) - var(--feed-rail-lr) - 2 * (2 * var(--media-tabs-sep) + var(--media-tabs-grip-w)));
+  max-width: none;
+}
 .stack-window .dock-bar {
   background: var(--plaque-coat);
   border-top: none;

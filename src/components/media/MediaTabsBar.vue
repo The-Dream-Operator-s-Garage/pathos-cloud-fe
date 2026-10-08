@@ -206,28 +206,11 @@
          band and the badge reads as set INTO the band. -->
     <div ref="band" class="media-tabs__band" :style="{ '--logo-frac': logoFrac }">
       <FriezeBar slim class="media-tabs__frieze media-tabs__frieze--left" />
-      <div
-        ref="logo"
-        class="media-tabs__logo"
-        :class="{ 'is-anchored': anchored }"
-        role="slider"
-        aria-label="pathos.cloud — slide the logo along the bar"
-        aria-orientation="horizontal"
-        :aria-valuemin="0"
-        :aria-valuemax="100"
-        :aria-valuenow="logoPct"
-        tabindex="0"
-        :title="anchored ? 'pathos.cloud — drag to resize the feed with its rail' : 'pathos.cloud — drag along the bar'"
-        @pointerdown="logoDown"
-        @pointermove="logoMove"
-        @pointerup="logoUp"
-        @pointercancel="logoUp"
-        @keydown="logoKey"
-      >
-        <div class="media-tabs__badge">
-          <div class="media-tabs__hex"><div class="media-tabs__hex-face" /></div>
-        </div>
-      </div>
+      <!-- ⭐ 2026-10-08: THE SEAM IS EMPTY — the badge left the band for the
+           rail's face, right of Forward (the planet note below). The two
+           friezes still converge here, and the seam FOLLOWS the planet
+           (`logoFrac` is its measured centre; the script note). -->
+      <div class="media-tabs__logo" aria-hidden="true" />
       <FriezeBar slim flip class="media-tabs__frieze media-tabs__frieze--right" />
     </div>
     <!-- ── THE BACK BUTTON (2026-08-31, user ask: "relocate the back button
@@ -270,7 +253,6 @@
          differs needs no query). The button's accessible name is its
          `title` + `aria-label`. -->
     <button
-      ref="backEl"
       type="button"
       class="media-tabs__back nasalization"
       :class="{ 'is-disabled': !canGoBack }"
@@ -290,7 +272,6 @@
          the pair's OWN traversal ledger (`forwardDepth`; the script's note
          walks the three ready-made truths that each failed first). -->
     <button
-      ref="forwardEl"
       type="button"
       class="media-tabs__forward nasalization"
       :class="{ 'is-disabled': !canGoForward }"
@@ -301,6 +282,83 @@
     >
       <q-icon name="sym_o_keyboard_double_arrow_right" size="19px" class="media-tabs__glyph" />
     </button>
+    <!-- ── ⭐ THE PLANET, RIGHT OF FORWARD — THE RAIL'S HANDLE (2026-10-08, user
+         ask: "detach the icon container with the planet from the frieze bar
+         and let it be on the right of the >> button … for the planet icon
+         container-button, if I grab it, I should be able to move the header
+         nav bar up and down the screen, vertically (making the feed
+         container shorter and freeing up space at the top of the screen)").
+         The badge itself is unchanged — the same hexagon, the same lips'
+         layers inward, the same planet (36 wide on a phone: the style block's
+         second set of paths) — but it is OUT of the band: an absolute block
+         on the rail's face, `--media-tabs-sep` right of Forward, which stands
+         on the feed's right rail (the free seat, no feed page, is right of
+         Forward's free seat). The seam it rode for ten days is empty and
+         follows it (the band note). Its drag is VERTICAL now and moves the
+         WHOLE RAIL — `--header-y`, composables/useHeaderSlide, the script
+         note — so `role=slider` turned vertical, its max the feed's floor.
+         ⭐ ON THE RAIL'S SEAT: Back and Forward are not at the screen's
+         ends any more while a feed is up — Back stands ON the feed's LEFT
+         rail and Forward ON its RIGHT one, each the rail's own x and width
+         (user ask: "attach them at the very same width of the left and right
+         frieze bars of the feed container"); the row between them is the
+         stack's glass with a perforated grip each side (the next note). All
+         of it is CSS off `--feed-rail-*` (useSeamAnchor paints the feed's
+         rails on `<html>`); the free seat is the rules that stood before. -->
+    <div
+      ref="planetEl"
+      class="media-tabs__planet"
+      role="slider"
+      aria-label="pathos.cloud — slide the bar up or down the screen"
+      aria-orientation="vertical"
+      :aria-valuemin="0"
+      :aria-valuemax="slideMax"
+      :aria-valuenow="headerY"
+      tabindex="0"
+      :title="slide ? 'pathos.cloud — drag up or down to slide the bar' : 'pathos.cloud'"
+      @pointerdown="planetDown"
+      @pointermove="planetMove"
+      @pointerup="planetUp"
+      @pointercancel="planetUp"
+      @keydown="planetKey"
+    >
+      <div class="media-tabs__badge">
+        <div class="media-tabs__hex"><div class="media-tabs__hex-face" /></div>
+      </div>
+    </div>
+    <!-- ── ⭐ THE GRIPS — TWO PERFORATED GLASS PLATES (2026-10-08, user ask:
+         "extend the nav stack glass section end-to-end so it covers the inner
+         space of the feed width but inside the header bar, buuut on its sides,
+         add a couple of oval holes that let me see the header frieze bar from
+         behind. Make sure the holes look like we've perforated the glass. Put
+         a separation between them, the >>, << buttons and also the stack
+         container. Now, if I grab those new sections with holes around the
+         holes (not the holes), I should be able to drag the feed container so
+         I can move it horizontally across the screen"). One plate each side
+         of the stack's glass (StackPanel — a sibling that seats itself
+         between them off the same four numbers), `sep` of bare band between
+         every two pieces. Each plate is the stack strip's own glass recipe
+         with an oval CUT OUT of it (a mask, so the pane, its blur and its rim
+         all stop at the hole's edge and the band reads through crisp) and a
+         punched lip drawn in the hole — `-hole`, the ONE child that is not a
+         handle: a press that lands on it is refused (`gripDown`), a press on
+         the glass around it is handed to the feed's move (useSeamAnchor
+         `shiftSeam` → FeedPage's gesture, captured on this very plate).
+         Drawn only while the feed publishes its rails: with no feed there is
+         nothing to move. -->
+    <template v-if="onRails">
+      <div
+        v-for="side in ['l', 'r']"
+        :key="side"
+        class="media-tabs__grip"
+        :class="'media-tabs__grip--' + side"
+        title="Drag to move the feed sideways"
+        @pointerdown="gripDown"
+      >
+        <div class="media-tabs__grip-glass" />
+        <span class="media-tabs__grip-hole" />
+      </div>
+    </template>
     <!-- ── ⭐ THE WALL (2026-09-29, user ask, phones only: "rearrange the
          tabs by rotating them 90 degrees to the right and adding a thin grey
          bar on the right of the screen where they're gonna be sticking") ──
@@ -335,12 +393,13 @@
 </template>
 
 <script>
-import { defineComponent, computed, ref, watch, onMounted } from 'vue'
+import { defineComponent, computed, ref, watch, nextTick, onMounted, onBeforeUnmount } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useFlyoutViewersStore } from 'src/stores/flyoutViewers'
 import FriezeBar from 'src/components/layout/FriezeBar.vue'
 import { useAurora } from 'src/composables/useAurora'
-import { seamAnchor, seamEdge, gripSeam, nudgeSeam } from 'src/composables/useSeamAnchor'
+import { seamEdge, seamRails, shiftSeam } from 'src/composables/useSeamAnchor'
+import { headerY, slideTo, rememberSlide, maxSlide, engageHeaderSlide, releaseHeaderSlide } from 'src/composables/useHeaderSlide'
 import { iconForTarget, titleOfTarget } from 'src/utils/mediaKind'
 
 // (THE PHONE QUERY `MOBILE_Q` stood here 2026-09-26 → 09-29 EVE, feeding the
@@ -349,7 +408,13 @@ import { iconForTarget, titleOfTarget } from 'src/utils/mediaKind'
 export default defineComponent({
   name: 'MediaTabsBar',
   components: { FriezeBar },
-  setup () {
+  props: {
+    // ⭐ 2026-10-08: whether this rail SLIDES (the planet's drag, useHeaderSlide).
+    // MainLayout's rail does; AuthLayout's — the landing page, nothing to
+    // stand in the strip a slide would free — passes false and stays at 0.
+    slide: { type: Boolean, default: true }
+  },
+  setup (props) {
     const store = useFlyoutViewersStore()
     const route = useRoute()
     const router = useRouter()
@@ -377,106 +442,93 @@ export default defineComponent({
     // desktop, 33 each on a phone). `travel()` reads all four boxes at the
     // start of a drag (and once at mount, to clamp a remembered fraction
     // to this viewport's plates).
-    const logo = ref(null)
-    const backEl = ref(null)
-    const forwardEl = ref(null)
-    const LOGO_KEY = 'pathos_header_logo_x'
+    // ── ⭐ THE PLANET LEFT THE BAND AND BECAME THE RAIL'S HANDLE (2026-10-08,
+    // user ask: "detach the icon container with the planet from the frieze
+    // bar and let it be on the right of the >> button … if I grab it, I
+    // should be able to move the header nav bar up and down the screen") ──
+    // The badge is `.media-tabs__planet` now — an absolute block on the
+    // rail's face, `sep` right of Forward (CSS lays it off the feed's
+    // published right rail; the free seat, no feed page, is right of
+    // Forward's free seat) — no longer the seam's rider. Its drag is
+    // VERTICAL: pointer capture, `dy` from the grab, `slideTo` per move
+    // (composables/useHeaderSlide — the one writer of `--header-y`), the
+    // proportion remembered on release. Arrow keys walk it 8px (40 with
+    // Shift), Home = the top, End = as low as the feed's floor allows. The
+    // ceiling is measured at the grab (`maxSlide` reads the rail's and the
+    // footer's boxes) and stated to the slider role.
+    //
+    // THE SEAM FOLLOWS THE PLANET. The band is still two friezes converging
+    // — on an EMPTY 0px seam now — and the seam stands under the badge
+    // wherever the badge is: `logoFrac` is the badge's measured centre as a
+    // fraction of the band's width, re-read whenever the rails publish or
+    // the window resizes (the badge is laid out by CSS off the rails'
+    // edges, so a measure is the only truth). RETIRED with this: the
+    // remembered `pathos_header_logo_x`, the seam's free drag and arrow keys,
+    // the clamp against the plates (`travel`, which read the stack strip's
+    // box as the seam's left wall) and THE GRIP's handoff of the badge's
+    // press to the right rail's resize (09-29 PM) — a badge that is not in
+    // the band has no travel along it, and the rail's resize is the rail's
+    // own gesture again. The anchor's centre (`seamAnchor`) is still
+    // published by the feed; nothing here reads it any more.
+    const planetEl = ref(null)
     const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v))
-    const recall = () => {
-      try {
-        const v = parseFloat(localStorage.getItem(LOGO_KEY))
-        return Number.isFinite(v) ? clamp(v, 0, 1) : 0.5
-      } catch { return 0.5 }
+    const logoFrac = ref(0.5)
+    const followPlanet = () => {
+      const row = band.value ? band.value.getBoundingClientRect() : null
+      const p = planetEl.value ? planetEl.value.getBoundingClientRect() : null
+      if (!row || !row.width || !p || !p.width) return
+      logoFrac.value = clamp((p.left + p.width / 2 - row.left) / row.width, 0, 1)
     }
-    const logoFrac = ref(recall())
-    const logoPct = computed(() => Math.round(logoFrac.value * 100))
-    const remember = () => {
-      try { localStorage.setItem(LOGO_KEY, String(logoFrac.value)) } catch { /* private mode: the seam still slides */ }
-    }
-    const travel = () => {
-      const row = band.value ? band.value.getBoundingClientRect() : { left: 0, width: 0 }
-      const seam = logo.value ? logo.value.getBoundingClientRect() : { width: 0 }
-      const hex = logo.value && logo.value.querySelector('.media-tabs__hex')
-      const over = hex ? Math.max(0, (hex.getBoundingClientRect().width - seam.width) / 2) : 0
-      const span = Math.max(1, row.width - seam.width)
-      // ⭐ THE STACK STRIP stands beside Back since 2026-09-30 (StackPanel's
-      // parked face, on the rail's face) — the seam's left wall is ITS right
-      // edge when it is there, so the hexagon never rides under the glass.
-      const stackEl = document.querySelector('.stack-window.is-parked')
-      const stackR = stackEl ? stackEl.getBoundingClientRect() : null
-      const backW = stackR && stackR.width > 0
-        ? stackR.right - row.left
-        : (backEl.value ? backEl.value.getBoundingClientRect().width : 0)
-      // ⭐ 2026-09-30: Forward rides the stack's right side, so it is the LEFT
-      // wall's last plate — and the right end is open to the screen edge.
-      const fwdR = forwardEl.value ? forwardEl.value.getBoundingClientRect().right - row.left : 0
-      const leftWall = Math.max(backW, fwdR)
-      const fwdW = 0
-      return {
-        left: row.left,
-        span,
-        min: clamp((leftWall + over) / span, 0, 1),
-        max: clamp((row.width - fwdW - over - seam.width) / span, 0, 1)
-      }
-    }
-    // Pointer capture: the seam keeps receiving moves once grabbed, wherever
-    // the pointer wanders (off the 13px row is where it wanders first).
-    // `dx` is the grab's offset from the seam's left edge, so the badge does
-    // not jump to the pointer on the first move.
-    let drag = null
-    const logoDown = (e) => {
+    const onRails = computed(() => seamRails.value != null)
+    watch([seamRails, seamEdge], async () => { await nextTick(); followPlanet() })
+
+    const slideMax = ref(0)
+    let slide = null
+    const planetDown = (e) => {
+      if (!props.slide) return
       if (e.pointerType === 'mouse' && e.button !== 0) return
-      // Anchored: the press belongs to the feed's right rail (THE GRIP) —
-      // the rail resizes, publishes, and `follow` carries the badge along.
-      if (anchored.value) { gripSeam(e); return }
-      const t = travel()
-      drag = { id: e.pointerId, t, dx: e.clientX - (t.left + logoFrac.value * t.span) }
+      slideMax.value = maxSlide()
+      slide = { id: e.pointerId, y0: e.clientY, start: headerY.value }
       e.currentTarget.setPointerCapture(e.pointerId)
       e.preventDefault()
     }
-    const logoMove = (e) => {
-      if (!drag || e.pointerId !== drag.id) return
-      logoFrac.value = clamp((e.clientX - drag.dx - drag.t.left) / drag.t.span, drag.t.min, drag.t.max)
+    const planetMove = (e) => {
+      if (!slide || e.pointerId !== slide.id) return
+      slideTo(slide.start + (e.clientY - slide.y0))
     }
-    const logoUp = (e) => {
-      if (!drag || e.pointerId !== drag.id) return
-      drag = null
-      remember()
+    const planetUp = (e) => {
+      if (!slide || e.pointerId !== slide.id) return
+      slide = null
+      rememberSlide()
     }
-    const logoKey = (e) => {
-      if (anchored.value) {
-        const px = e.shiftKey ? 40 : 8
-        const dx = e.key === 'ArrowLeft' ? -px : e.key === 'ArrowRight' ? px : 0
-        if (dx && nudgeSeam(dx)) e.preventDefault()
-        return
-      }
-      const step = e.shiftKey ? 0.1 : 0.02
-      const t = travel()
+    const planetKey = (e) => {
+      if (!props.slide) return
+      const px = e.shiftKey ? 40 : 8
       let next = null
-      if (e.key === 'ArrowLeft') next = logoFrac.value - step
-      else if (e.key === 'ArrowRight') next = logoFrac.value + step
-      else if (e.key === 'Home') next = t.min
-      else if (e.key === 'End') next = t.max
+      if (e.key === 'ArrowDown') next = headerY.value + px
+      else if (e.key === 'ArrowUp') next = headerY.value - px
+      else if (e.key === 'Home') next = 0
+      else if (e.key === 'End') next = maxSlide()
       if (next === null) return
       e.preventDefault()
-      logoFrac.value = clamp(next, t.min, t.max)
-      remember()
+      slideMax.value = maxSlide()
+      slideTo(next)
+      rememberSlide()
     }
-    // ── ⭐ THE SEAM IS ANCHORED WHILE THE FEED STANDS (2026-09-29, user ask:
-    // the hexagon "sticking to the frieze bar below, both aligned and
-    // centered horizontally") ──────────────────────────────────────────────
-    // `seamAnchor` (composables/useSeamAnchor) is the viewport x where the
-    // feed page's RIGHT rail is centred, or null when no page claims the
-    // seam. While a value stands the seam FOLLOWS it — the fraction that
-    // puts the hexagon's centre on that x, clamped to the plates exactly as
-    // a drag is. ⭐ PM: its drag and arrow keys are no longer refused —
-    // they are HANDED to the rail (`gripSeam` / `nudgeSeam`, THE GRIP), so
-    // badge and rail move as one piece. The remembered fraction is
-    // untouched by the follow: released, the seam goes back to it. On a
-    // phone the rail's centre sits under the Forward plate (the container
-    // is 95% wide there), so the clamp holds the badge at the plate's edge
-    // — as close as it can get without covering the arrow.
-    const anchored = computed(() => seamAnchor.value != null)
+
+    // ── THE GRIPS (2026-10-08, user ask: "if I grab those new sections with
+    // holes around the holes (not the holes), I should be able to drag the
+    // feed container so I can move it horizontally across the screen") ──
+    // A press on a plate's glass is HANDED to the feed (`shiftSeam` →
+    // FeedPage's move gesture, captured on the plate itself — the handoff
+    // THE GRIP made for the badge, lent to a new hand); a press in the hole
+    // is refused — the hole is a window, not a handle.
+    const gripDown = (e) => {
+      if (e.pointerType === 'mouse' && e.button !== 0) return
+      if (e.target && e.target.closest && e.target.closest('.media-tabs__grip-hole')) return
+      shiftSeam(e)
+    }
+
     // ⭐ THE MEMBRANE'S LEFT END (2026-09-29 EVE, user ask: "stick the
     // membrane to the feed right frieze bar … and also … to the very right
     // end of the screen, past and below the -> button") — while the feed
@@ -485,30 +537,18 @@ export default defineComponent({
     // its tabs from the right end as before.
     const railed = computed(() => seamEdge.value != null)
     const membraneStyle = computed(() => railed.value ? { '--mtab-row-l': `${seamEdge.value}px` } : null)
-    const follow = () => {
-      const x = seamAnchor.value
-      if (x == null) return
-      const t = travel()
-      const seamW = logo.value ? logo.value.getBoundingClientRect().width : 24
-      logoFrac.value = clamp((x - seamW / 2 - t.left) / t.span, t.min, t.max)
-    }
-    watch(seamAnchor, (x) => {
-      if (x == null) {
-        const t = travel()
-        logoFrac.value = clamp(recall(), t.min, t.max)
-      } else follow()
-    })
+
     onMounted(() => {
-      const t = travel()
-      logoFrac.value = clamp(logoFrac.value, t.min, t.max)
-      follow()
-      // Once more after the stack strip (a sibling overlay, 2026-09-30) has
-      // painted — it is the seam's left wall now and may mount after us.
-      setTimeout(() => {
-        if (seamAnchor.value != null) return
-        const t2 = travel()
-        logoFrac.value = clamp(logoFrac.value, t2.min, t2.max)
-      }, 400)
+      if (props.slide) engageHeaderSlide()
+      followPlanet()
+      // Once more after the feed has published and the row has settled —
+      // the planet's seat is CSS off numbers that may land after us.
+      setTimeout(followPlanet, 400)
+      window.addEventListener('resize', followPlanet)
+    })
+    onBeforeUnmount(() => {
+      window.removeEventListener('resize', followPlanet)
+      if (props.slide) releaseHeaderSlide()
     })
 
     // ── THE PAIR ON A PHONE — the `isPhone` glyph swap (2026-09-26, the long
@@ -618,18 +658,18 @@ export default defineComponent({
       canGoForward,
       goForward,
       band,
-      logo,
-      backEl,
-      forwardEl,
+      planetEl,
       logoFrac,
-      logoPct,
-      anchored,
+      onRails,
       railed,
       membraneStyle,
-      logoDown,
-      logoMove,
-      logoUp,
-      logoKey
+      headerY,
+      slideMax,
+      planetDown,
+      planetMove,
+      planetUp,
+      planetKey,
+      gripDown
     }
   }
 })
@@ -715,7 +755,14 @@ export default defineComponent({
 // stop.
 .media-tabs {
   position: fixed;
-  top: 0;
+  // ⭐ 2026-10-08: THE RAIL SLIDES — `top` is `--header-y` (inline on `<html>`,
+  // composables/useHeaderSlide; the planet's drag writes it), 0 at the very
+  // top. Every top-anchored surface reads `--top-chrome-h` = this + the rail's
+  // height (_tokens.scss). No transition: the drag is live.
+  top: var(--header-y, 0px);
+  // The badge's box HEIGHT — the rail's face; its width is a root token
+  // (`--media-tabs-hex-w`, 48 / 36 on a phone) the feed's reserve reads too.
+  --media-tabs-hex-h: var(--media-tabs-band);
   left: 0;
   right: 0;
   box-sizing: border-box;
@@ -1189,8 +1236,7 @@ export default defineComponent({
   // the 26px rail for an hour; 46 × 21 before; 44 × 18 before the rail
   // grew; 40 with a 1px rim before that; 6 × 38 × 32 for the hour the
   // hexagon hung to the tabs' floor.)
-  --media-tabs-seam-w: 24px;
-  --media-tabs-hex-w: 48px;
+  --media-tabs-seam-w: 0px; // ⭐ 2026-10-08: EMPTY — the badge left the band (24px while it rode here, 09-28 → 10-08)
   // THE RAIL'S FACE — `--media-tabs-band` (21: lead + band + pad), NOT
   // `--media-tabs-h` (22, which counts the rim): the badge stands on the
   // bar's edge line and never over or past it (user ask, the sitting's
@@ -1199,7 +1245,6 @@ export default defineComponent({
   // not like overlapped and slipped to the bottom"). Top at the bar's top
   // edge, bottom on the rim, the rim running UNBROKEN beneath it — unlike
   // a parked tab, which hangs through the line.
-  --media-tabs-hex-h: var(--media-tabs-band);
 }
 
 // THE LEFT FRIEZE — the band as it was (mask b-mirror, the sky at 90deg)
@@ -1282,22 +1327,13 @@ export default defineComponent({
 // the DOM and would otherwise paint across the hexagon's right shoulder.
 // `touch-action: none` so a finger drags the seam instead of the page.
 .media-tabs__logo {
+  // ⭐ 2026-10-08: THE EMPTY SEAM. The badge stands on the rail right of
+  // Forward now (`.media-tabs__planet` below); this is the 0px item the two
+  // friezes still meet at, standing under the badge (the script's
+  // `followPlanet`). It takes no pointer and draws nothing — the grab cursor,
+  // the focus ring on the hex and `is-anchored` went with the badge.
   flex: 0 0 var(--media-tabs-seam-w);
-  position: relative;
-  z-index: 1;
-  pointer-events: auto;
-  cursor: grab;
-  touch-action: none;
-  user-select: none;
-  outline: none;
-
-  &:active { cursor: grabbing; }
-  &:focus-visible .media-tabs__hex { --hex-rule: var(--indigo-6, #3f51b5); }
-  // ⭐ 2026-09-29: ANCHORED — the feed page's right rail holds the seam
-  // (composables/useSeamAnchor; the script's `follow`). PM: grabbing the
-  // badge grabs the RAIL (THE GRIP), so it wears the rail's cursor.
-  &.is-anchored,
-  &.is-anchored:active { cursor: col-resize; }
+  pointer-events: none;
 }
 
 // The badge — centred on the seam, its top on the rail's top edge (`-lead`
@@ -1314,10 +1350,12 @@ export default defineComponent({
 // so the cast lands on the band, not under it). It wore no cast from the
 // plate's hour to this ask — the parked tabs wear none.
 .media-tabs__badge {
+  // ⭐ 2026-10-08: the badge fills its planet block — top 0 of the rail, ON the
+  // rim, exactly where it stood; it was centred on the seam with a
+  // `translateX(-50%)` and lifted by the lead while it rode the band.
   position: absolute;
-  top: calc(-1 * var(--media-tabs-lead));
-  left: 50%;
-  transform: translateX(-50%);
+  top: 0;
+  left: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1936,10 +1974,156 @@ export default defineComponent({
 // static `right: 90px` (its note: "if the Forward block ever grows … this
 // moves with it") — it shrinks with it too: 40px = the 33px block + the
 // same daylight-over-the-tab-gap reading the desktop number has.
+// ── ⭐ THE ROW ON THE FEED'S RAILS (2026-10-08, user ask: "attach [<< and >>]
+// at the very same width of the left and right frieze bars of the feed
+// container") ─────────────────────────────────────────────────────────────
+// While `<html>` wears `is-feed-railed` (useSeamAnchor: the feed page is
+// publishing `--feed-rail-ll/lr/rl/rr`, its two rails' viewport edges), the
+// rail's row is laid out FROM THOSE EDGES: Back stands on the left rail — the
+// rail's x and the rail's width, 18px, rimmed on both sides in the rail's own
+// grey-6, the glyph alone filling it — Forward on the right one, the planet
+// `sep` past it, and between the two buttons `sep · grip · sep · [the stack's
+// glass] · sep · grip · sep` (_tokens.scss has the row's law). The free seat
+// (the rules above: Back at 0, the strip, Forward beside it, the planet beside
+// that) is what the row falls back to on a page with no feed. These selectors
+// outrank every free-seat rule, the phone block's included — by specificity,
+// so source order cannot undo them.
+:root.is-feed-railed .media-tabs__back {
+  left: var(--feed-rail-ll);
+  width: calc(var(--feed-rail-lr) - var(--feed-rail-ll));
+  padding: 0;
+  border-left: 1px solid var(--grey-6, #9e9e9e);
+}
+:root.is-feed-railed .media-tabs__forward {
+  left: var(--feed-rail-rl);
+  width: calc(var(--feed-rail-rr) - var(--feed-rail-rl));
+  padding: 0;
+  border-left: 1px solid var(--grey-6, #9e9e9e);
+}
+// THE PLANET — the badge's block (the `.media-tabs__badge` / `__hex` rules
+// above draw it, unchanged): on the rail's face at `top: 0`, the hexagon's own
+// box, `sep` right of Forward. Its grab cursor is the rail's: it moves the bar.
+.media-tabs__planet {
+  pointer-events: auto;
+  position: absolute;
+  top: 0;
+  left: calc(2 * var(--media-tabs-back-w, 26px) + min(var(--stack-head-w, 228px), 50vw - var(--media-tabs-back-w, 26px)) + var(--media-tabs-sep)); // the free seat: `sep` right of Forward's free seat
+  width: var(--media-tabs-hex-w);
+  height: var(--media-tabs-hex-h);
+  z-index: 2;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  outline: none;
+  &:active { cursor: grabbing; }
+  &:focus-visible .media-tabs__hex { --hex-rule: var(--indigo-6, #3f51b5); }
+}
+:root.is-feed-railed .media-tabs__planet {
+  left: calc(var(--feed-rail-rr) + var(--media-tabs-sep));
+}
+// THE GRIPS — PERFORATED GLASS. The plate is the stack strip's glass recipe
+// (StackPanel `.stack-window.is-parked`: the cream-tinted wash, the 1.6px
+// backdrop blur, the bright rim, the rounded foot), CUT: a `mask` of one
+// radial ellipse, transparent inside — the pane, its blur and its rim all end
+// at the hole's edge, which is what lets the band show through CRISP where
+// everywhere else under glass it is softened. The hole's LIP is a child, not
+// a pseudo (a mask cuts an element's pseudos with it): an ellipse the hole's
+// exact size wearing the punch — the glass's thickness shading the top of the
+// cut, the sky lighting its bottom, a hair of highlight round the edge. The
+// lip takes the pointer so the script can tell a press IN the hole (refused)
+// from one on the glass around it (the move); the glass is click-through
+// paint under the plate, which is the handle. The outer cast the stack's
+// glass wears is left off — a cast under a hole would draw the hole's
+// shadow on the band and give the cut away as paint.
+.media-tabs__grip {
+  --grip-hole-w: 22px;
+  --grip-hole-h: 9px;
+  pointer-events: auto;
+  position: absolute;
+  top: 0;
+  width: var(--media-tabs-grip-w);
+  height: var(--media-tabs-band);
+  z-index: 1;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  &:active { cursor: grabbing; }
+}
+.media-tabs__grip--l { left: calc(var(--feed-rail-lr) + var(--media-tabs-sep)); }
+.media-tabs__grip--r { left: calc(var(--feed-rail-rl) - var(--media-tabs-sep) - var(--media-tabs-grip-w)); }
+.media-tabs__grip-glass {
+  position: absolute;
+  inset: 0;
+  box-sizing: border-box;
+  pointer-events: none;
+  background: linear-gradient(180deg,
+    rgba(255, 255, 255, 0.30) 0%,
+    rgba(252, 243, 224, 0.16) 55%,
+    rgba(252, 243, 224, 0.22) 100%);
+  backdrop-filter: blur(1.6px) saturate(1.35);
+  -webkit-backdrop-filter: blur(1.6px) saturate(1.35);
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  border-bottom-color: rgba(var(--ink-rgb-deep), 0.25);
+  border-radius: 0 0 5px 5px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  -webkit-mask-image: radial-gradient(ellipse calc(var(--grip-hole-w) / 2) calc(var(--grip-hole-h) / 2) at 50% 50%, transparent calc(100% - 0.6px), #000 100%);
+  mask-image: radial-gradient(ellipse calc(var(--grip-hole-w) / 2) calc(var(--grip-hole-h) / 2) at 50% 50%, transparent calc(100% - 0.6px), #000 100%);
+}
+.media-tabs__grip-hole {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: var(--grip-hole-w);
+  height: var(--grip-hole-h);
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  pointer-events: auto;
+  cursor: default;
+  box-shadow:
+    inset 0 1.5px 2px rgba(var(--ink-rgb-deep), 0.55),
+    inset 0 -1px 1px rgba(255, 255, 255, 0.55),
+    0 0 0 0.5px rgba(255, 255, 255, 0.35);
+}
 .media-tabs__wall { display: none; } // phones only — the block below draws it; this rule must stay ABOVE it (equal specificity, source order decides)
 
 @media (max-width: 600px) {
   .media-tabs__forward { left: calc(var(--media-tabs-back-w, 26px) + var(--strip-phone-w, 45px)); }
+  // ⭐ 2026-10-08: the phone's row — a 36px planet (the same hexagon, the
+  // generator's W=36 paths: vertex inset W/4, corner radius 3.5·((W/48 +
+  // H/21)/2), four layers at the desktop's insets), 30px grips with a 16×8
+  // hole, the planet's free seat past Forward's. The railed seats are the
+  // desktop's rules — they read the rails, not the width.
+  // (the 36px planet and the 30px grips are `:root` tokens in _components.scss's phone block — the stack strip reads them too)
+  .media-tabs__grip { --grip-hole-w: 16px; --grip-hole-h: 8px; }
+  // ⭐ 2026-10-08 (the same sitting, user ask: "On mobile only, take the planet
+  // icon container and rotate it 90° to the right. Stick it to the very right
+  // edge of the header's nav bar, touching the screen"): on a phone the planet
+  // is NOT right of Forward — it stands at the screen's right edge, turned a
+  // quarter-turn clockwise like the parked tabs on the wall below it, a knob on
+  // the bar's end. The box is still 36 × 21 and turns about its centre, so
+  // what shows is 21 wide and 36 tall: `right` is pulled in by half the
+  // difference so the TURNED box's right edge is the screen's, and `top` is the
+  // face's centre so it overhangs the rail's face equally above and below
+  // (7.5px each way — the tip of a wedge, not a slab). The rails have no say
+  // here: both the railed and the free seat read this, railed outranking
+  // railed by source order. The feed keeps the turned box's WIDTH + sep free
+  // at the track's right end (FeedPage's `reserve()` measures the turned box).
+  .media-tabs__planet,
+  :root.is-feed-railed .media-tabs__planet {
+    left: auto;
+    right: calc((var(--media-tabs-hex-h) - var(--media-tabs-hex-w)) / 2);
+    top: calc((var(--media-tabs-band) - var(--media-tabs-hex-h)) / 2);
+    transform: rotate(90deg);
+    transform-origin: 50% 50%;
+  }
+  .media-tabs__hex {
+    clip-path: path('M 7.007 2.325 Q 9 0 12.063 0 L 23.938 0 Q 27 0 28.993 2.325 L 34.007 8.175 Q 36 10.5 34.007 12.825 L 28.993 18.675 Q 27 21 23.938 21 L 12.063 21 Q 9 21 7.007 18.675 L 1.993 12.825 Q 0 10.5 1.993 8.175 Z');
+    &::before { clip-path: path('M 5.995 1.882 Q 7.7 0 10.24 0 L 20.56 0 Q 23.1 0 24.805 1.882 L 29.095 6.618 Q 30.8 8.5 29.095 10.382 L 24.805 15.118 Q 23.1 17 20.56 17 L 10.24 17 Q 7.7 17 5.995 15.118 L 1.705 10.382 Q 0 8.5 1.705 6.618 Z'); }
+  }
+  .media-tabs__hex-face {
+    clip-path: path('M 5.49 1.66 Q 7.05 0 9.328 0 L 18.872 0 Q 21.15 0 22.71 1.66 L 26.64 5.84 Q 28.2 7.5 26.64 9.16 L 22.71 13.34 Q 21.15 15 18.872 15 L 9.328 15 Q 7.05 15 5.49 13.34 L 1.56 9.16 Q 0 7.5 1.56 5.84 Z');
+    &::before { clip-path: path('M 4.985 1.437 Q 6.4 0 8.417 0 L 17.183 0 Q 19.2 0 20.615 1.437 L 24.185 5.063 Q 25.6 6.5 24.185 7.937 L 20.615 11.563 Q 19.2 13 17.183 13 L 8.417 13 Q 6.4 13 4.985 11.563 L 1.415 7.937 Q 0 6.5 1.415 5.063 Z'); }
+  }
   // (the pair's phone rules — `gap: 0` and the words' `display: none` —
   // retired 2026-09-29 EVE: no words and one glyph at every width now)
 
@@ -1962,7 +2146,7 @@ export default defineComponent({
   .media-tabs__wall {
     display: block;
     position: fixed;
-    top: var(--media-tabs-h);
+    top: var(--top-chrome-h, var(--media-tabs-h)); // ⭐ 2026-10-08: under the slid rail
     right: 0;
     bottom: var(--nav-footer-h);
     width: var(--media-tabs-wall-w);
@@ -1973,10 +2157,10 @@ export default defineComponent({
   }
   .media-tabs__row {
     position: fixed;
-    top: var(--media-tabs-h);
+    top: calc(var(--top-chrome-h, var(--media-tabs-h)) + 8px); // ⭐ 2026-10-08: under the slid rail — and 8px further, past the turned planet's lower tip at the row's end
     right: auto;
     left: calc(100vw - var(--media-tabs-wall-w) + var(--media-tabs-rim));
-    max-width: calc(100vh - var(--media-tabs-h) - var(--nav-footer-h));
+    max-width: calc(100vh - var(--top-chrome-h, var(--media-tabs-h)) - 8px - var(--nav-footer-h));
     transform-origin: 0 0;
     transform: rotate(90deg);
     // ⭐ 09-29 EVE: the MEMBRANE is desktop-only (the ask's own words) — on a

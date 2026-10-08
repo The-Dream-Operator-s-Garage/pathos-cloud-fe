@@ -339,7 +339,7 @@ export default defineComponent({
   bottom: var(--nav-footer-h);
   width: min(420px, 100vw);
   height: auto;
-  max-height: calc(100vh - var(--media-tabs-h, 0px) - var(--nav-footer-h) - 14px);
+  max-height: calc(100vh - var(--top-chrome-h, var(--media-tabs-h, 0px)) - var(--nav-footer-h) - 14px);
   // ⭐ THE VEIL (2026-09-22 PM4, user ask: the labels window's "red veil over
   // the cream color" applied here) — `--identity-coat`: the same light-cream
   // sheet the bar and the docks wear, under the ENTITY family's pale

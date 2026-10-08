@@ -820,7 +820,14 @@
   // deliberately WELD to `--media-tabs-h` instead; those two are the board
   // becoming the page, not a window on it, so the tabs lie over them the way
   // they lie over the feed.)
-  top: calc(var(--dock-gap) + var(--media-tabs-h, 0px) + var(--media-tabs-park-h, 0px));
+  // ⭐ 2026-10-08: `--top-chrome-h`, not `--media-tabs-h` — the top rail SLIDES
+  // now (`--header-y`, composables/useHeaderSlide; _tokens.scss has the law),
+  // and this is the line its bottom rim draws at wherever it stands. The
+  // six top-anchored rules in this file read it (the creation docks' top and
+  // chat's height here, the dashboard's edit face, chat's max, the desktop
+  // dashboard max, the phone edit face); the inner fallback is the rail's
+  // own height, for a page that never set the slide.
+  top: calc(var(--dock-gap) + var(--top-chrome-h, var(--media-tabs-h, 0px)) + var(--media-tabs-park-h, 0px));
   // Straight off the NAV BAR's top edge (2026-07-27, second pass — it stood
   // one --frieze-h higher first, via the now-retired --dock-bottom, to clear
   // FriezeFooter, the pale band that used to occupy this edge before
@@ -1118,7 +1125,7 @@
   top: auto;
   height: min(
     60vh,
-    calc(100vh - var(--dock-gap) - var(--media-tabs-h, 0px) - var(--media-tabs-park-h, 0px) - var(--nav-footer-h))
+    calc(100vh - var(--dock-gap) - var(--top-chrome-h, var(--media-tabs-h, 0px)) - var(--media-tabs-park-h, 0px) - var(--nav-footer-h))
   );
 }
 
@@ -1225,7 +1232,7 @@
 .dock-window--dashboard.is-edit {
   left: 0;
   right: 0;
-  top: var(--media-tabs-h, 0px);
+  top: var(--top-chrome-h, var(--media-tabs-h, 0px));
   bottom: var(--nav-footer-h);
   border-left: none;
   border-right: none;
@@ -1251,7 +1258,7 @@
 // is untouched either way — `bottom: var(--nav-footer-h)` never moves, so
 // maximizing the chat window never covers it.
 .dock-window--chat.is-max {
-  top: calc(var(--dock-gap) + var(--media-tabs-h, 0px) + var(--media-tabs-park-h, 0px));
+  top: calc(var(--dock-gap) + var(--top-chrome-h, var(--media-tabs-h, 0px)) + var(--media-tabs-park-h, 0px));
   height: auto;
   border-top-right-radius: 0;
 }
@@ -1291,7 +1298,7 @@
 // would leave a notch of daylight in the drawer/header junction.
 @media (min-width: 601px) {
   .dock-window--dashboard.is-max:not(.is-edit) {
-    top: var(--media-tabs-h, 0px);
+    top: var(--top-chrome-h, var(--media-tabs-h, 0px));
     right: var(--dock-right, 0px);
     border-top-left-radius: 0;
     border-top-right-radius: 0;
@@ -1876,6 +1883,11 @@ $prose: ':where(:not(.pathos-ref-slot *))';
 //     the left edge, dots grown 13px → 17px.
 // ═══════════════════════════════════════════════════════════════════
 @media (max-width: 600px) {
+  // ⭐ 2026-10-08: the top rail's row on a phone — a 36px planet (turned, at
+  // the screen's right edge) and 30px perforated grips. On `:root`, not on the
+  // rail, because the stack strip that seats itself between the grips is the
+  // rail's SIBLING (StackPanel) and lays itself out off the same numbers.
+  :root { --media-tabs-hex-w: 36px; --media-tabs-grip-w: 30px; }
   // ⭐ THE TWO FOOTER STRIPS ARE BACK ON A PHONE (2026-09-23, user ask). They
   // hid here from 2026-07-31 to 09-22 ("hover-driven permanent fixtures —
   // both presentations meaningless on a 375px touch screen") and the bar
@@ -1924,7 +1936,7 @@ $prose: ':where(:not(.pathos-ref-slot *))';
   .dock-window--dashboard.is-edit {
     left: var(--dock-gap);
     right: calc(var(--dock-right, 0px) + var(--dock-gap));
-    top: calc(var(--dock-gap) + var(--media-tabs-h, 0px) + var(--media-tabs-park-h, 0px));
+    top: calc(var(--dock-gap) + var(--top-chrome-h, var(--media-tabs-h, 0px)) + var(--media-tabs-park-h, 0px));
     border-left: var(--dock-edge-w) solid var(--dock-edge);
     border-right: var(--dock-edge-w) solid var(--dock-edge);
     border-top-left-radius: var(--dock-radius);

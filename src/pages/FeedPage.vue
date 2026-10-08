@@ -81,6 +81,7 @@
              costs the motif nothing: a cursor, a title, and a silhouette
              glow that never covers a single wave. -->
         <div
+          ref="railL"
           class="feed-container__rail feed-container__rail--l"
           :title="railTitle"
           @pointerdown="onRailDown($event, 'l')"
@@ -110,7 +111,7 @@
             :open-ids="flyouts.openPostIds"
             @select="onSelect"
             @pins-changed="$emit('pins-changed')"
-            :thread-host="!phone"
+            :thread-host="sideHome"
             @thread="onThread"
           />
         </div>
@@ -145,6 +146,7 @@ import FriezeBarVerticalB from 'src/components/layout/FriezeBarVerticalB.vue'
 import FeedStream from 'src/components/posts/FeedStream.vue'
 import SideViewer from 'src/components/viewer/SideViewer.vue'
 import { anchorSeam, releaseSeam } from 'src/composables/useSeamAnchor'
+import { headerY } from 'src/composables/useHeaderSlide'
 
 // ── THE CONTAINER'S GEOMETRY (2026-08-18, user ask) ──────────────────────
 // Three numbers and one flag are all this surface's new sizing needs, and
@@ -171,6 +173,10 @@ import { anchorSeam, releaseSeam } from 'src/composables/useSeamAnchor'
 // collapsing to its two bars behind a pair of keys that stood ON them. It
 // went with the keys: see the rails' template note.)
 const GAP = 8
+// ⭐ 2026-10-08: on a phone the side viewer lives in the strip ABOVE the top
+// rail (`--header-y`); this is the least slide at which that strip can hold a
+// card — below it the threads go to the flyouts (see `sideHome`).
+const SIDE_MIN = 120
 const MIN_VW = 0.25
 const STORE_KEY = 'pathos_feed_geometry'
 
@@ -206,6 +212,12 @@ export default defineComponent({
     const onPhone = (e) => { phone.value = e.matches }
     phoneMq.addEventListener('change', onPhone)
     onBeforeUnmount(() => phoneMq.removeEventListener('change', onPhone))
+    // ⭐ 2026-10-08: THE VIEWER HAS A PHONE HOME — the strip above the slid
+    // rail (SideViewer's phone block) — so the stream is the thread host on a
+    // phone too, as long as the rail stands low enough for that strip to
+    // hold a card. Slid to the top, the threads go to the flyouts as they
+    // did while the viewer was hidden under 600px.
+    const sideHome = computed(() => !phone.value || headerY.value >= SIDE_MIN)
     const onThread = (item, slot) => {
       if (sideViewer.value) sideViewer.value.show(item, slot)
     }
@@ -320,7 +332,20 @@ export default defineComponent({
     // touched it), and re-pinning the right edge after a shared clamp let a
     // left-rail drag past its floor escape the track entirely (measured: x
     // = −1070, a box 1112px left of the drawer). Anchor first, clamp second.
-    const limits = () => ({ minW: minWidth(), room: Math.max(minWidth(), trackW - 2 * GAP) })
+    // ⭐ THE BADGE'S SEAT (2026-10-08): the planet badge stands `sep` right of
+    // Forward, and Forward stands ON this box's right rail — so the box keeps
+    // badge + sep of track free past its right edge, at every clamp (resize,
+    // move, nudge, reclamp). Measured off the badge itself (48 on a desktop,
+    // 36 on a phone) and the rail's sep token; 52 when the rail is not up.
+    const reserve = () => {
+      const b = document.querySelector('.media-tabs__planet')
+      // (a phone's planet is turned a quarter-turn — the bounding box is the
+      // TURNED box, 21 wide, which is exactly the column it takes)
+      const w = b ? b.getBoundingClientRect().width : 48
+      const sep = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--media-tabs-sep')) || 4
+      return w + sep
+    }
+    const limits = () => ({ minW: minWidth(), room: Math.max(minWidth(), trackW - 2 * GAP - reserve()) })
 
     const onMove = (e) => {
       if (e.pointerId !== pid) return
@@ -333,9 +358,16 @@ export default defineComponent({
         l = Math.max(baseLeft + dx, GAP, right - room)
         l = Math.min(l, right - minW)
         w = right - l
+      } else if (sizing.value === 'm') {
+        // ⭐ THE MOVE (2026-10-08, user ask: "drag the feed container so I can
+        // move it horizontally across the screen"): the whole box slides along
+        // the track at its width — GAP at the left end, the badge's reserve at
+        // the right. Lent to the top rail's grips through useSeamAnchor.
+        w = baseW
+        l = Math.min(Math.max(baseLeft + dx, GAP), Math.max(GAP, trackW - GAP - reserve() - w))
       } else {
         w = Math.max(baseW + dx, minW)
-        w = Math.min(w, Math.max(minW, trackW - GAP - baseLeft))
+        w = Math.min(w, Math.max(minW, trackW - GAP - reserve() - baseLeft))
       }
       leftPct.value = l / trackW
       widthPct.value = w / trackW
@@ -386,7 +418,7 @@ export default defineComponent({
       capEl.addEventListener('pointerup', end)
       capEl.addEventListener('pointercancel', end)
       document.body.style.userSelect = 'none'
-      document.body.style.cursor = 'col-resize'
+      document.body.style.cursor = side === 'm' ? 'grabbing' : 'col-resize'
     }
 
     // ── RE-CLAMP WHEN THE SLOT CHANGES. Percentages follow the track on
@@ -415,29 +447,25 @@ export default defineComponent({
     // event's own currentTarget, so the badge keeps the pointer and the
     // rail lights as it does for its own drag. `nudge` is the keyboard's
     // twin: the same right-anchored width clamp, by px.
+    // ⭐ 2026-10-08: what the rail's row borrows from this page is THE MOVE —
+    // a press on either perforated grip up there is this very `onRailDown`
+    // with side 'm', captured on the grip. (From 09-29 PM to this it lent the
+    // right rail's resize and a px nudge to the badge, which rode that rail;
+    // the badge is the rail's vertical handle now and resizes nothing.)
     const seamGrip = {
-      down: (e) => onRailDown(e, 'r'),
-      nudge: (dx) => {
-        const track = trackEl.value
-        const box = boxEl.value
-        if (!track || !box) return
-        const tr = track.getBoundingClientRect()
-        const br = box.getBoundingClientRect()
-        trackW = track.clientWidth
-        if (!trackW) return
-        const l = br.left - tr.left + track.scrollLeft
-        const { minW } = limits()
-        const w = Math.min(Math.max(br.width + dx, minW), Math.max(minW, trackW - GAP - l))
-        leftPct.value = l / trackW
-        widthPct.value = w / trackW
-        persist()
-      }
+      shift: (e) => onRailDown(e, 'm')
     }
+    const railL = ref(null)
     const publish = () => {
       const el = railR.value
       if (!el) return
       const r = el.getBoundingClientRect()
-      anchorSeam(r.width ? r.left + r.width / 2 : null, seamGrip, r.width ? r.right : null)
+      const l = railL.value ? railL.value.getBoundingClientRect() : null
+      // ⭐ 2026-10-08: BOTH rails' edges ride along — the top rail seats Back
+      // and Forward on them and lays its glass between (useSeamAnchor paints
+      // them on `<html>`).
+      const rails = r.width && l && l.width ? { ll: l.left, lr: l.right, rl: r.left, rr: r.right } : null
+      anchorSeam(r.width ? r.left + r.width / 2 : null, seamGrip, r.width ? r.right : null, rails)
     }
     const settle = () => {
       const until = performance.now() + 320
@@ -460,8 +488,8 @@ export default defineComponent({
       // LEFT-ANCHORED, like the right rail: a slot that narrowed takes it out
       // of the box's WIDTH and leaves its left edge where the user put it.
       const { minW } = limits()
-      const l0 = Math.min(Math.max((leftPct.value ?? 0.025) * trackW, GAP), Math.max(GAP, trackW - GAP - minW))
-      const w0 = Math.min(Math.max((widthPct.value ?? 0.45) * trackW, minW), Math.max(minW, trackW - GAP - l0))
+      const l0 = Math.min(Math.max((leftPct.value ?? 0.025) * trackW, GAP), Math.max(GAP, trackW - GAP - reserve() - minW))
+      const w0 = Math.min(Math.max((widthPct.value ?? 0.45) * trackW, minW), Math.max(minW, trackW - GAP - reserve() - l0))
       const l = l0 / trackW
       const w = w0 / trackW
       if (Math.abs(l - (leftPct.value ?? 0)) > 0.0005 || Math.abs(w - (widthPct.value ?? 0)) > 0.0005) {
@@ -493,6 +521,7 @@ export default defineComponent({
     return {
       sideViewer,
       phone,
+      sideHome,
       onThread,
       pageStyleFn,
       flyouts,
@@ -500,6 +529,7 @@ export default defineComponent({
       trackEl,
       boxEl,
       railR,
+      railL,
       boxStyle,
       sizing,
       railTitle,
@@ -574,8 +604,8 @@ export default defineComponent({
 // fallback for engines without `dvh`; desktop and the Playwright emulator
 // have no toolbar, so they measure the same either way (why no witness saw it).
 .feed-page {
-  height: calc(100vh - var(--nav-footer-h) - var(--media-tabs-h, 0px));
-  height: calc(100dvh - var(--nav-footer-h) - var(--media-tabs-h, 0px));
+  height: calc(100vh - var(--nav-footer-h) - var(--top-chrome-h, var(--media-tabs-h, 0px))); // ⭐ 2026-10-08: the rail slides — its bottom line, not its height
+  height: calc(100dvh - var(--nav-footer-h) - var(--top-chrome-h, var(--media-tabs-h, 0px)));
   padding: 0;
   overflow: hidden;
 }
@@ -1287,7 +1317,13 @@ export default defineComponent({
 // through the fit engine's arena, which has its own mobile answer.)
 @media (max-width: 600px) {
   .feed-container {
-    flex: 0 0 95%;
+    // ⭐ 2026-10-08: 88%, not 95% — the planet badge stands TURNED at the
+    // screen's right edge on a phone (MediaTabsBar's phone block: 21 wide
+    // once turned), and the track keeps that column + sep free past the
+    // box's right rail: 375 − 9.4 (margin) − 8 (GAP) − 25 (reserve) = 332.
+    // The move and the resize clamp against the same reserve (`reserve()`,
+    // which measures the turned box, so the number is never restated here).
+    flex: 0 0 88%;
   }
 }
 
