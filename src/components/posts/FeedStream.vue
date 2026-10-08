@@ -1894,7 +1894,22 @@ export default defineComponent({
         const g = parseFloat(getComputedStyle(el).rowGap)
         return Number.isFinite(g) ? g : 0
       },
-      keyOf: (it) => it.skeleton_id
+      keyOf: (it) => it.skeleton_id,
+      // The feed as the reader sees it — every lens — names the heights'
+      // memory, so coming back from a post finds the track as it was
+      // measured and the holder's proportional restore lands on the pixel.
+      // (Built from the lens refs, never from blockParams(): that consumes
+      // the pending receipt.)
+      memoryKey: () => JSON.stringify({
+        hops: maxHops.value,
+        lens: lensSpec.value || null,
+        label: labelFilter.value?.id ?? null,
+        hash: hashFilter.value?.hash ?? null,
+        when: dateWin.value || null,
+        tod: todWin.value || null,
+        who: pickedEntities.value.map((e) => e.id),
+        order: sortOrder.value || null
+      })
     })
     // The host may hand a NEWER copy of the same row (SideElementView's
     // card follows the chain's comment / fork totals) — the card follows,

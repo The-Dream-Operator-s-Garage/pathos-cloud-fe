@@ -73,6 +73,15 @@ import { ref, shallowRef, computed, watch, onBeforeUnmount } from 'vue'
 export const FEED_BLOCK_SIZE = 10
 export const FEED_LIVE_BLOCKS = 4
 
+// THE HEIGHTS' MEMORY — measured block heights outlive the component, keyed
+// by the feed's lens (`memoryKey`), for the session. A StateHolder restores
+// a reading spot PROPORTIONALLY (`y × h_now / h_saved`); a fresh mount that
+// estimated its whole track from one block would land that proportion on
+// the wrong blocks (measured 2026-10-07: left at blocks 7–10, came back to
+// 3–6). With the same heights in hand the track measures what it measured
+// when the spot was saved, and the proportion is the pixel.
+const HEIGHT_MEMORY = new Map()
+
 export function useWindowedFeed ({
   fetchBlock,
   blockSize = FEED_BLOCK_SIZE,
@@ -82,7 +91,11 @@ export function useWindowedFeed ({
   estimateItemH = 320,
   scrollEl,
   gap = () => 0,
-  keyOf = (it) => it?.skeleton_id ?? it?.id
+  keyOf = (it) => it?.skeleton_id ?? it?.id,
+  // A string (or a function returning one) naming the feed as the reader
+  // sees it — every lens included — under which measured heights are kept
+  // across remounts. Omit for no memory.
+  memoryKey = null
 } = {}) {
   const blocks = shallowRef([])
   const total = ref(0)
@@ -94,13 +107,24 @@ export function useWindowedFeed ({
   const topSpacer = ref(0)
   const bottomSpacer = ref(0)
 
-  const heights = new Map() // index → measured px (the block element alone)
+  let heights = new Map() // index → measured px (the block element alone)
+  let memory = null // the HEIGHT_MEMORY entry `heights` is shared with
   const cache = new Map() // index → items, insertion order = LRU order
   const observers = new Map() // index → ResizeObserver
   const wanted = new Set() // indices the window should hold right now
   let generation = 0 // bumps on reset — a stale fetch is dropped
   let avgH = estimateItemH * blockSize
   let scrollFrame = 0
+
+  const adoptMemory = () => {
+    const key = typeof memoryKey === 'function' ? memoryKey() : memoryKey
+    if (!key) { heights = new Map(); memory = null; avgH = estimateItemH * blockSize; return }
+    let mem = HEIGHT_MEMORY.get(key)
+    if (!mem) { mem = { heights: new Map(), avgH: null }; HEIGHT_MEMORY.set(key, mem) }
+    memory = mem
+    heights = mem.heights
+    avgH = mem.avgH ?? estimateItemH * blockSize
+  }
 
   const totalBlocks = computed(() => {
     if (knownEnd.value != null) return knownEnd.value + 1
@@ -182,6 +206,7 @@ export function useWindowedFeed ({
       if (b.items.length === blockSize && heights.has(b.index)) { sum += heights.get(b.index); k++ }
     }
     if (k) avgH = sum / k
+    if (memory) memory.avgH = avgH
   }
 
   // LRU: re-insert to mark fresh; evict the oldest blocks NOT in the window.
@@ -334,13 +359,14 @@ export function useWindowedFeed ({
     wanted.clear()
     blocks.value = []
     cache.clear()
-    heights.clear()
+    // The heights are the lens's memory, not this mount's: adopted, not
+    // cleared (a different lens = a different key = a fresh map).
+    adoptMemory()
     inFlight.value = new Set()
     knownEnd.value = null
     maxLoaded.value = -1
     total.value = 0
     filtered.value = false
-    avgH = estimateItemH * blockSize
     topSpacer.value = 0
     bottomSpacer.value = 0
     const el = scrollEl?.value
