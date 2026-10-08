@@ -17,11 +17,11 @@
              LEFT — the entity card. Same .subject-panel chrome as the
              node/path/moment/secret/link viewers so an entity reads as
              a member of the same family of primal types. The card is a
-             component since 2026-09-11 (EntityCard) — the entity WINDOW
+             component since 2026-09-11 (EntityProfileCard) — the entity WINDOW
              mounts the same one; this page pins it to the viewport.
         ══════════════════════════════════════════════════════════ -->
         <div class="entity-main">
-          <EntityCard
+          <EntityProfileCard
             :entity="entity"
             :moment="moment"
             :labels="labels"
@@ -100,7 +100,7 @@ import { useAuthStore } from 'src/stores/auth'
 import { entityService } from 'src/services/entity.service'
 import { seatEntityId } from 'src/utils/entityDisplay'
 
-import EntityCard from 'src/components/entities/EntityCard.vue'
+import EntityProfileCard from 'src/components/entities/EntityProfileCard.vue'
 import EntityAnchors from 'src/components/entities/EntityAnchors.vue'
 import EntityOrgPanel from 'src/components/entities/EntityOrgPanel.vue'
 import AlterEgoPanel from 'src/components/entities/AlterEgoPanel.vue'
@@ -119,7 +119,7 @@ import EntityPolls from 'src/components/entities/EntityPolls.vue'
 export default defineComponent({
   name: 'EntityProfilePage',
   components: {
-    EntityCard,
+    EntityProfileCard,
     EntityAnchors,
     EntityOrgPanel,
     AlterEgoPanel,
@@ -200,7 +200,7 @@ export default defineComponent({
 <style lang="scss" scoped>
 // Same layout skeleton as the sibling primal viewers — 75/25 grid +
 // subject-panel chrome. The card's height is the page's call: pinned to
-// the viewport through the dial EntityCard reads.
+// the viewport through the dial EntityProfileCard reads.
 .entity-page {
   padding: 16px 10px 0;
 }

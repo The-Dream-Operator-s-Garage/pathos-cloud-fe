@@ -226,7 +226,13 @@ export default defineComponent({
 
     // The card's own "open" doors (the cap's flyout button, the references
     // button) keep their meaning: the post as a WINDOW.
-    const onSelect = (it) => { flyouts.spawnPost(it, { flyout: true }) }
+    // ⭐ 2026-10-08: the family's cards say the STORE's target (`{ kind:
+    // 'ref' | 'node' | 'entity' | 'post', … }`); the feed card says its item.
+    const onSelect = (sel) => {
+      if (!sel) return
+      if (sel.skeleton_id != null) { flyouts.spawnPost(sel, { flyout: true }); return }
+      if (sel.kind) flyouts.spawn(sel, { flyout: true })
+    }
 
     const onSearchOpen = async ({ address, label }) => {
       const stop = await stopOfAddress(address, label)

@@ -1,128 +1,138 @@
 <template>
-  <router-link :to="'/posts/' + post.id" class="post-card-link">
-    <div class="pathos-card q-pa-md post-card">
+  <!-- THE POST CARD (2026-10-08, the card family) — THE postcard itself.
+       The feed card (`posts/FeedStream.vue` `.post-square`) is the family's
+       reference and stays its one source: given a feed row (`item`) this
+       mounts the stream in EMBED MODE, the very card the feed draws, its
+       thread doors and open door re-emitted in the family's dialect
+       (`thread(slot)`, `select(target)`).
+       Without a feed row — a post the public feed does not list for this
+       viewer, or a read that arrived as GET /posts/:id — the FALLBACK is the
+       family's own grammar around the post's words: the post marks in the
+       cap, the owner and the minting in the byline, the whole body in the
+       pit (MarkdownBody, the one pipeline, `auto` refs), the thread doors
+       in the foot. ⚠ Until 2026-10-08 this file was the pre-feed list card
+       (`.pathos-card`), unused since the 2026-07-25 feed refit. -->
+  <FeedStream
+    v-if="item"
+    :key="'post-card:' + item.skeleton_id"
+    class="post-card post-card--feed"
+    :embed-item="item"
+    :thread-on="threadOn"
+    :thread-host="threadHost"
+    @select="onSelectItem"
+    @thread="(_, slot) => $emit('thread', slot)"
+    @pins-changed="$emit('pins-changed')"
+  />
+  <CardPanel v-else-if="post" kind="posts" :address="post.path" :open="isOpen" :fill="fill" class="post-card post-card--read">
+    <template #cap>
+      <CardCap
+        kind="posts"
+        :icons="icons"
+        :icons-title="post.forked_from_id != null ? 'A fork of another post' : 'A post'"
+        :origins="origins"
+        :title="title"
+        :title-tip="post.path || title"
+        :acts="[shareAct, pinAct, openAct]"
+      />
+    </template>
 
-      <div class="row items-center no-wrap q-mb-sm">
-        <div class="col" style="min-width:0;">
-          <div v-if="post.title" class="post-title q-mb-xs">{{ post.title }}</div>
-          <HashLink :path="post.path" :id="post.id" :show-icon="false" :truncate="22" />
-        </div>
-        <q-chip dense size="xs" outline :color="typeColor" class="q-ma-none q-ml-sm" style="flex-shrink:0;">
-          <q-icon :name="typeIcon" size="11px" class="q-mr-xs" />{{ typeName }}
-        </q-chip>
-      </div>
+    <template #byline>
+      <CardByline :author="author" :when="when" :labels="post.labels || []" />
+    </template>
 
-      <!-- Content preview (rendered from the wrapped node) -->
-      <div v-if="post.node?.content || post.target_content" class="post-preview">
-        <span v-if="isUrl" class="text-secondary" style="word-break:break-all;">{{ contentSource }}</span>
-        <span v-else>{{ textPreview }}</span>
-      </div>
+    <template #pit>
+      <MarkdownBody
+        v-if="body"
+        class="post-card__md"
+        :text="body"
+        :breaks="false"
+        ref-display="auto"
+      />
+      <div v-else class="post-card__empty">(no words — open the post)</div>
+    </template>
 
-      <div class="row items-center q-mt-sm">
-        <div class="text-dim" style="font-size:0.7em;" :title="absoluteHover">
-          <q-icon name="schedule" size="11px" class="q-mr-xs" />{{ timeAgo }}
-        </div>
-        <q-space />
-        <span v-if="post.counts" class="text-dim" style="font-size:0.7em;">
-          <q-icon name="thumb_up_alt" size="11px" class="q-mr-xs" />{{ post.counts.votes_up }}
-          <q-icon name="comment"      size="11px" class="q-mx-xs" />{{ post.counts.comments }}
-          <q-icon name="call_split"   size="11px" class="q-ml-xs q-mr-xs" />{{ post.counts.forks }}
-        </span>
-        <q-icon name="open_in_new" size="11px" class="text-dim q-ml-xs" />
-      </div>
+    <template #foot>
+      <CardFoot kind="posts" :id="post.id" :path="post.path" :stats="threadStats" @stat="onStat" />
+    </template>
 
-    </div>
-  </router-link>
+    <template v-if="composing && commentParent" #storey>
+      <CommentMaker variant="inline" :parent="commentParent" @cancel="closeComposer" @posted="onCommented" />
+    </template>
+  </CardPanel>
 </template>
 
 <script>
-import { defineComponent, computed } from 'vue'
-import HashLink from 'src/components/shared/HashLink.vue'
-import { timeAgo as fmtTimeAgo, absoluteTime } from 'src/utils/time'
-import { bodyOf } from 'src/utils/nodeContent'
-
-const POST_TYPES = { 1: 'Post', 2: 'Event', 3: 'Node post', 4: 'Path post', 5: 'Comment', 6: 'Fork' }
-const POST_ICONS = { 1: 'edit_note', 2: 'event', 3: 'adjust', 4: 'route', 5: 'comment', 6: 'call_split' }
-const POST_COLORS = { 1: 'primary', 2: 'orange', 3: 'indigo', 4: 'teal', 5: 'secondary', 6: 'amber' }
-
-const NODE_TYPE_NAMES = { 1: 'NOTE', 2: 'FILE', 3: 'URL', 4: 'REFERENCE' }
+import { defineComponent, ref, computed, watch } from 'vue'
+import FeedStream from './FeedStream.vue'
+import CardPanel from 'src/components/shared/CardPanel.vue'
+import CardCap from 'src/components/shared/CardCap.vue'
+import CardByline from 'src/components/shared/CardByline.vue'
+import CardFoot from 'src/components/shared/CardFoot.vue'
+import MarkdownBody from 'src/components/shared/MarkdownBody.vue'
+import CommentMaker from 'src/components/comments/CommentMaker.vue'
+import { hashOf } from 'src/utils/kinds'
+import { entitySummary } from 'src/utils/entityDisplay'
+import { absoluteTime } from 'src/utils/time'
+import { useElementCard, CARD_PROPS, CARD_EMITS } from 'src/composables/useElementCard'
 
 export default defineComponent({
   name: 'PostCard',
-  components: { HashLink },
+  components: { FeedStream, CardPanel, CardCap, CardByline, CardFoot, MarkdownBody, CommentMaker },
   props: {
-    post: { type: Object, required: true }
+    // A feed row (`GET /feed` item) — the postcard itself.
+    item: { type: Object, default: null },
+    // Else the read: { id, path, title, body|excerpt, owner_id, created_at,
+    // forked_from_id, labels } (utils/elementShape's post shape).
+    post: { type: Object, default: null },
+    ...CARD_PROPS
   },
-  setup (props) {
-    const typeName = computed(() => POST_TYPES[props.post.type_id] || 'Post')
-    const typeIcon = computed(() => POST_ICONS[props.post.type_id] || 'edit_note')
-    const typeColor = computed(() => POST_COLORS[props.post.type_id] || 'primary')
+  emits: CARD_EMITS,
+  setup (props, { emit }) {
+    // The feed card's open doors say `select(item)`; the family says
+    // `select(target)` — a host spawning windows gets the store's target.
+    const onSelectItem = (it) => { emit('select', { kind: 'post', item: it }) }
 
-    // Two shapes are supported: the rich getPostFull shape (post.node, now
-    // possibly file-backed → bodyOf resolves the .md text) and the
-    // lightweight feed/list shape (post.target_content / post.node_content).
-    const contentSource = computed(() =>
-      (props.post.node ? bodyOf(props.post.node) : '') ||
-        props.post.target_content ||
-        props.post.node_content ||
-        ''
-    )
+    const title = computed(() => (props.post?.title || `post #${props.post?.id}`))
+    const icons = computed(() => (props.post?.forked_from_id != null ? ['sym_o_post', 'sym_o_alt_route'] : ['sym_o_post']))
+    const origins = computed(() => (props.post?.forked_from_id != null
+      ? [{ word: 'Fork of', kind: 'posts', id: props.post.forked_from_id, path: '', display: `post #${props.post.forked_from_id}` }]
+      : []))
+    const body = computed(() => String(props.post?.body || props.post?.excerpt || ''))
 
-    const nodeTypeName = computed(() =>
-      NODE_TYPE_NAMES[props.post.node?.type_id ?? props.post.node_type_id] || 'NOTE'
-    )
+    const author = ref(null)
+    watch(() => props.post?.owner_id, async (id) => {
+      author.value = null
+      if (id == null) return
+      const s = await entitySummary({ id })
+      author.value = s ? { id, display_name: s.primary || '', pioneer: s.pioneer === true } : { id }
+    }, { immediate: true })
+    const when = computed(() => (props.post?.created_at ? { datetime: absoluteTime(props.post.created_at) } : null))
 
-    const isUrl = computed(() => nodeTypeName.value === 'URL')
+    // A post's address is its SKELETON's (`skeletons/<hash>`); the ref door
+    // steps a POST instance forward to its card.
+    const card = useElementCard(props, emit, () => ({
+      kind: 'posts',
+      address: props.post?.path ? `skeletons/${hashOf(props.post.path)}` : '',
+      id: props.post?.id,
+      label: title.value,
+      ownerId: props.post?.owner_id ?? null
+    }))
 
-    const textPreview = computed(() => {
-      const raw = contentSource.value || ''
-      return raw.replace(/[#*`_~[\]]/g, '').slice(0, 140) + (raw.length > 140 ? '…' : '')
-    })
-
-    const timeAgo = computed(() =>
-      fmtTimeAgo(props.post.createdAt || props.post.created_at, props.post.moment)
-    )
-    const absoluteHover = computed(() =>
-      absoluteTime(props.post.createdAt || props.post.created_at, props.post.moment)
-    )
-
-    return { typeName, typeIcon, typeColor, contentSource, isUrl, textPreview, timeAgo, absoluteHover }
+    return { onSelectItem, title, icons, origins, body, author, when, ...card }
   }
 })
 </script>
 
 <style lang="scss" scoped>
-.post-card-link {
-  text-decoration: none;
-  display: block;
+.post-card--feed {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
 }
-
-.post-card {
-  cursor: pointer;
-  transition: border-color 0.15s, transform 0.1s, box-shadow 0.15s;
-
-  &:hover {
-    border-color: rgba(var(--ink-rgb), 0.55);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 16px rgba(var(--ink-rgb), 0.1);
-  }
-}
-
-.post-title {
-  font-weight: 600;
-  font-size: 0.95em;
-  color: var(--ink-1);
-  line-height: 1.3;
-}
-
-.post-preview {
-  font-size: 0.85em;
-  line-height: 1.5;
-  overflow: hidden;
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  color: rgba(var(--ink-rgb), 0.75);
-  word-break: break-word;
+.post-card__md :deep(.markdown-body) { color: inherit; }
+.post-card__empty {
+  font-size: 0.82em;
+  font-style: italic;
+  color: rgba(var(--ink-rgb), 0.5);
 }
 </style>

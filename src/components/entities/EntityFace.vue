@@ -3,7 +3,7 @@
        designed to hold all the information available when visiting the
        /entities/:id page"). ElementFlyout's element face for an ENTITY
        target: everything the profile page shows, in the window's box —
-       the entity card (EntityCard), the origin constellation INLINE
+       the entity card (EntityProfileCard), the origin constellation INLINE
        (OriginSky), the organization panel for an org / the alter-ego
        panel for a person (both self-gating), the anchors column
        (EntityAnchors: minting moment, profile skeleton, and for your own
@@ -36,7 +36,7 @@
     <template v-else>
       <div class="entity-face__grid">
         <div class="entity-face__main">
-          <EntityCard
+          <EntityProfileCard
             :entity="entity"
             :moment="moment"
             :labels="labels"
@@ -84,7 +84,7 @@ import { useAuthStore } from 'src/stores/auth'
 import { entityService } from 'src/services/entity.service'
 import { seatEntityId } from 'src/utils/entityDisplay'
 
-import EntityCard from 'src/components/entities/EntityCard.vue'
+import EntityProfileCard from 'src/components/entities/EntityProfileCard.vue'
 import EntityAnchors from 'src/components/entities/EntityAnchors.vue'
 import EntityOrgPanel from 'src/components/entities/EntityOrgPanel.vue'
 import OriginSky from 'src/components/entities/OriginSky.vue'
@@ -96,7 +96,7 @@ import EntityPolls from 'src/components/entities/EntityPolls.vue'
 export default defineComponent({
   name: 'EntityFace',
   components: {
-    EntityCard,
+    EntityProfileCard,
     EntityAnchors,
     EntityOrgPanel,
     OriginSky,

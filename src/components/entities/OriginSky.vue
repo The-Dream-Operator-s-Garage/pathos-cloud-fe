@@ -251,14 +251,14 @@ export default defineComponent({
 // ⭐ RE-FAMILIED 2026-09-13 (user ask: "adjust its aesthetic to fit the general
 // color palette"). It was a NIGHT SKY — deep ink (#0d131b), white stars, a
 // mint thread, amber toggles — the one dark object in a window whose every
-// other panel is `EntityCard`'s idiom: a white body, a `#f4f7fb` chrome
+// other panel is `EntityProfileCard`'s idiom: a white body, a `#f4f7fb` chrome
 // band, `#e2e6ed` rules, the `--radius-md` corner, inks off `--ink`. The sky
 // is that panel now. What SURVIVES of the night is the drawing — the three
 // drifting star layers (ink specks on paper instead of light on dark), the
 // bottom-up vine, the unravelling thread — and one warm accent: the pioneer
-// gold `#c79a00`, which is the window's own pioneer tint (`EntityCard`'s
+// gold `#c79a00`, which is the window's own pioneer tint (`EntityProfileCard`'s
 // `.pioneer-tint`), on the invite thread, the pioneer's star and the self
-// ring. The tokens are `EntityCard`'s, restated here because a scoped panel
+// ring. The tokens are `EntityProfileCard`'s, restated here because a scoped panel
 // cannot read a sibling's; keep the seven in step with `.subject-panel`.
 .origin-sky {
   --panel-chrome: #f4f7fb;
@@ -331,7 +331,7 @@ export default defineComponent({
   to   { transform: translate(120px, 80px); }
 }
 
-// The head is the panel's CHROME band — EntityCard's own header recipe
+// The head is the panel's CHROME band — EntityProfileCard's own header recipe
 // (chrome coat, rule under it, ink-1), the title in small caps as before.
 .origin-sky__head {
   position: relative;

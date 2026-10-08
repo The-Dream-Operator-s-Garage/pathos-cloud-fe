@@ -17,7 +17,11 @@
 
         <div v-else class="row q-gutter-md">
           <div v-for="node in nodes" :key="node.id" class="col-12 col-md-6 col-lg-4">
-            <NodeCard :node="node" />
+            <!-- The card family's NodeCard (2026-10-08): a list shows no
+                 thread doors (`thread: false` — fifty cards must not pay
+                 a hundred count reads) and caps each card at the feed's
+                 60vh. -->
+            <NodeCard :node="node" :thread="false" style="--element-card-max: 60vh" />
           </div>
         </div>
       </div>

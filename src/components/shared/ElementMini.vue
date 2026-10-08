@@ -65,17 +65,7 @@ import SecretMini from 'src/components/secrets/SecretMini.vue'
 import SkeletonMini from 'src/components/skeletons/SkeletonMini.vue'
 import InfoChip from './InfoChip.vue'
 import LockedChip from './LockedChip.vue'
-import { nodeService } from 'src/services/node.service'
-import { pathService } from 'src/services/path.service'
-import { postService } from 'src/services/post.service'
-import { labelService } from 'src/services/label.service'
-import { entityService } from 'src/services/entity.service'
-import { momentService } from 'src/services/moment.service'
-import { linkService } from 'src/services/link.service'
-import { secretService } from 'src/services/secret.service'
-import { refService } from 'src/services/ref.service'
-import { bodyOf } from 'src/utils/nodeContent'
-import { safeCut } from 'src/utils/pathosRefs'
+import { resolveElementShape } from 'src/utils/elementShape'
 import { consumeRenderLayer } from 'src/composables/useRenderDepth'
 
 export default defineComponent({
@@ -119,153 +109,13 @@ export default defineComponent({
       return row?.path || ''
     })
 
-    const norm = (addr) => {
-      const parts = (addr || '').trim().split('/')
-      return parts.length >= 2
-        ? { prefix: parts[parts.length - 2], hash: parts[parts.length - 1] }
-        : null
-    }
-
-    const fromElement = async (el) => {
-      if (el.kind === 'node' && el.node) return { kind: 'node', node: el.node }
-      if (el.kind === 'label' && el.label) return { kind: 'label', label: el.label }
-      if (el.kind === 'entity' && el.entity) return { kind: 'entity', entity: el.entity }
-      // (2026-09-30 — the family map's dispatch gaps) a walk's MOMENT, LINK
-      // and SECRET targets carry their rows since pathService's resolver
-      // learnt them; before, a path member of those kinds fell through to
-      // the InfoChip even in the lane's enriched mode.
-      if (el.kind === 'moment' && el.moment) return { kind: 'moment', moment: el.moment, human: el.human || null }
-      if (el.kind === 'link' && el.link) return { kind: 'link', link: el.link, target: el.target || null, parentPath: el.parentPath || null }
-      if (el.kind === 'secret' && el.secret) return { kind: 'secret', secret: el.secret, owner: el.owner || null, receiver: el.receiver || null }
-      if (el.kind === 'path' && el.path) {
-        // Fetch the walked steps so the Mini can render its element strip.
-        try {
-          const r = await pathService.byId(el.path.id, 'forward')
-          if (r.success) return { kind: 'path', path: { ...r.path, author: r.owner }, steps: r.steps }
-        } catch (_) { /* fall through */ }
-        return { kind: 'path', path: el.path, steps: null }
-      }
-      if (el.kind === 'skeleton' && el.skeleton) {
-        // POST instances read as posts; every other skeleton (schema or
-        // populated instance) gets the embeddable mini table.
-        if (el.skeleton.name === 'POST') return fetchPost(el.skeleton.id)
-        return { kind: 'skeleton', skeletonId: el.skeleton.id, skeletonName: el.skeleton.name || '' }
-      }
-      return { kind: null }
-    }
-
-    const fetchPost = async (id) => {
-      try {
-        const r = await postService.get(id)
-        if (r.success && r.post) {
-          const p = r.post
-          // The read carries no author object and no votes (it never did —
-          // the old PostMini printed ↑0 ↓0 on every quoted post); the new
-          // foot states the OWNER (resolved by id through the entity cache)
-          // and the content node's birth, which the read does carry.
-          return {
-            kind: 'post',
-            post: {
-              id: p.id,
-              path: p.path,
-              title: p.title,
-              // RAW markdown, cut without splitting a [[pathos:…]] token
-              // (2026-10-07): PostMini renders its refs as live slots now.
-              excerpt: safeCut(bodyOf(p.node) || '', 1200),
-              owner_id: p.owner_id ?? null,
-              created_at: p.created_at || p.node?.createdAt || null,
-              forked_from_id: p.forked_from_id ?? null
-            }
-          }
-        }
-      } catch (_) { /* chip fallback */ }
-      return { kind: null }
-    }
-
-    const fromAddress = async (addr) => {
-      const ref_ = norm(addr)
-      if (!ref_) return { kind: null }
-      try {
-        switch (ref_.prefix) {
-          case 'nodes': {
-            const r = await nodeService.getByPath(ref_.hash)
-            return r.success ? { kind: 'node', node: r.node } : { kind: null }
-          }
-          case 'paths': {
-            const r = await pathService.byHash(ref_.hash, 'forward')
-            return r.success ? { kind: 'path', path: { ...r.path, author: r.owner }, steps: r.steps } : { kind: null }
-          }
-          // A POST is a skeleton by address; a `posts/<hash>` ref (the pill's
-          // own spelling, and what an author copies off a post chip) resolves
-          // exactly as its `skeletons/<hash>` twin — /refs/summary maps the
-          // prefix itself (2026-09-30; it fell through to the InfoChip).
-          case 'posts':
-          case 'skeletons': {
-            const s = await refService.summary(addr)
-            // The locked stub CARRIES an id (the hash stays visible by
-            // doctrine) — check locked FIRST or a private skeleton mounts
-            // a mini table that 403s on every field.
-            if (s.success && s.summary?.locked) return { kind: 'locked' }
-            if (!s.success || s.summary?.id == null) return { kind: null }
-            // POST instances get the post Mini; every other skeleton gets
-            // the embeddable mini table.
-            if ((s.summary.route || '').startsWith('/posts/')) return fetchPost(s.summary.id)
-            return { kind: 'skeleton', skeletonId: s.summary.id, skeletonName: s.summary.primary || '' }
-          }
-          case 'labels': {
-            const s = await refService.summary(addr)
-            if (!s.success || s.summary?.id == null) return { kind: null }
-            const r = await labelService.get(s.summary.id)
-            return r.success ? { kind: 'label', label: r.label } : { kind: null }
-          }
-          // `files/<hash>` is the entity REGISTRY's alias (kinds.js) — the
-          // same entity, the same Mini.
-          case 'files':
-          case 'entities': {
-            const s = await refService.summary(`entities/${ref_.hash}`)
-            if (!s.success || s.summary?.id == null) return { kind: null }
-            const r = await entityService.get(s.summary.id)
-            return r.success ? { kind: 'entity', entity: r.entity } : { kind: null }
-          }
-          case 'moments': {
-            const r = await momentService.getByHash(ref_.hash)
-            return r.success ? { kind: 'moment', moment: r.moment, human: r.human } : { kind: null }
-          }
-          case 'links': {
-            const r = await linkService.getByHash(ref_.hash)
-            return r.success ? { kind: 'link', link: r.link, target: r.target, parentPath: r.parentPath } : { kind: null }
-          }
-          case 'secrets': {
-            // (2026-09-21) A secret has a Mini of its own — the sealed card
-            // with its parties — and the element window needs it; the
-            // InfoChip fallback below stays for anything the read refuses.
-            const r = await secretService.getByHash(ref_.hash)
-            return r?.success && r.secret
-              ? { kind: 'secret', secret: r.secret, owner: r.owner || null, receiver: r.receiver || null }
-              : { kind: null }
-          }
-          default:
-            return { kind: null }
-        }
-      } catch (_) {
-        return { kind: null }
-      }
-    }
-
+    // THE READ TABLE lives in `utils/elementShape.js` since 2026-10-08 (the
+    // card family): `fromElement` / `fromAddress` / `fetchPost` and the
+    // locked fallback moved there whole, so `ElementCard` dispatches on the
+    // very same shapes — a kind learnt by one family is learnt by both.
     const load = async () => {
       loading.value = true
-      shape.value = props.element
-        ? await fromElement(props.element)
-        : await fromAddress(props.address)
-      // Access doctrine: an unresolvable ref may be LOCKED (403 direct
-      // reads) — the summary endpoint says so with its locked stub, and
-      // the block embed renders the lock-bubbled hash chip instead.
-      if (shape.value.kind === null && props.address) {
-        try {
-          const s = await refService.summary(props.address)
-          if (s.success && s.summary?.locked) shape.value = { kind: 'locked' }
-        } catch (_) { /* stay on the InfoChip fallback */ }
-      }
+      shape.value = await resolveElementShape({ address: props.address, element: props.element })
       loading.value = false
     }
 

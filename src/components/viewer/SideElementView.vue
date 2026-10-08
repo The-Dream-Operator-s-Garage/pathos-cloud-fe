@@ -13,8 +13,9 @@
          · THE FACE (the remaining ~2/3): a POST is the postcard itself
            (`<FeedStream :embed-item>`, the flyout's post face) stretched to
            the well's width, its cap and label rail one step bigger; any
-           other element is its kind's Mini (`ElementMini :address`, the
-           flyout's element face).
+           other element is its kind's CARD (`ElementCard :address` — the
+           card family, 2026-10-08; it was the kind's Mini, the flyout's
+           element face, until then).
          · THE THREAD (1/3 of the height, `--sev-thread-h`): a bar with the
            two sections — COMMENTS (the default) and FORKS — each with its
            chain total, then the section's acts (comment / fork), then ONE
@@ -35,7 +36,7 @@
          below"): the face and the thread are ONE box — the card at its own
          height, the band hanging off its foot with a shared rim; the rest of
          the well stays empty BELOW the item, never between its parts. -->
-    <div class="side-element__item" :class="{ 'is-card': !!card, 'is-fill': fills }">
+    <div class="side-element__item" :class="{ 'is-card': true, 'is-fill': fills }">
     <div class="side-element__face">
       <FeedStream
         v-if="card"
@@ -48,8 +49,29 @@
         @pins-changed="$emit('pins-changed')"
         @thread="(_, slot) => show(slot)"
       />
-      <div v-else-if="el" class="side-element__mini">
-        <ElementMini :key="'sev:' + el.address" :address="el.address" fill />
+      <!-- ⭐ 2026-10-08 — THE CARD FAMILY (user ask: "use this card on the
+           side viewer instead of the mini components. The Cards should be
+           more enriched and full, while mini components are meant for
+           quick visualization"): any other element is its kind's CARD
+           (`shared/ElementCard` — the post card's grammar around the
+           element's full reading), the band's totals handed to its foot
+           doors, its open doors spawning WINDOWS through the viewer
+           (`window-host` → `select`), a filling kind (the label's unravel)
+           asking for the well's length through `resolved`. -->
+      <div v-else-if="el" class="side-element__card-host">
+        <ElementCard
+          :key="'sev:' + el.address"
+          :address="el.address"
+          :thread="threadTotals"
+          :thread-on="section"
+          thread-host
+          window-host
+          :fill="fills"
+          @select="$emit('select', $event)"
+          @thread="show"
+          @pins-changed="$emit('pins-changed')"
+          @resolved="onResolved"
+        />
       </div>
     </div>
 
@@ -135,7 +157,7 @@
 <script>
 import { defineComponent, ref, computed, watch } from 'vue'
 import FeedStream from 'src/components/posts/FeedStream.vue'
-import ElementMini from 'src/components/shared/ElementMini.vue'
+import ElementCard from 'src/components/shared/ElementCard.vue'
 import MicroChip from 'src/components/shared/MicroChip.vue'
 import PostCommentItem from 'src/components/posts/PostCommentItem.vue'
 import CommentMaker from 'src/components/comments/CommentMaker.vue'
@@ -160,7 +182,7 @@ const WORD = { skeletons: 'skeleton', nodes: 'node', labels: 'label', paths: 'pa
 
 export default defineComponent({
   name: 'SideElementView',
-  components: { FeedStream, ElementMini, MicroChip, PostCommentItem, CommentMaker, ForkConfirmPanel },
+  components: { FeedStream, ElementCard, MicroChip, PostCommentItem, CommentMaker, ForkConfirmPanel },
   props: {
     // A feed item (`GET /feed` row) — the element is that POST, drawn as
     // its postcard. Either this or `address`.
@@ -287,9 +309,20 @@ export default defineComponent({
     const forkConfirm = ref(false)
     const forking = ref(false)
     const forkError = ref('')
-    // A label's face is the unravel viewer, which fills the item (ElementMini
-    // `fill`); every other Mini keeps its own height.
-    const fills = computed(() => !card.value && el.value?.kind === 'labels')
+    // A FILLING face (2026-10-07: the label's unravel viewer) runs the
+    // well's length; every other card keeps its own height. The card says
+    // which it is once its kind resolves (`ElementCard` → `resolved`).
+    const fills = ref(false)
+    const onResolved = ({ fills: f } = {}) => { fills.value = !card.value && !!f }
+
+    // The band's totals, handed to the card's foot doors so the card and
+    // the band state one count (the feed card gets them patched into its
+    // row; the family's cards read them as `thread`).
+    const threadTotals = computed(() => ({
+      comments: totals.value.comments,
+      forks: totals.value.forks,
+      supported: supported.value
+    }))
 
     const canFork = computed(() => supported.value.forks &&
       ['skeletons', 'nodes', 'labels'].includes(el.value?.kind))
@@ -320,6 +353,7 @@ export default defineComponent({
       rows.value = []
       composing.value = false
       forkConfirm.value = false
+      fills.value = false
       await resolve()
       await reload()
     }, { immediate: true })
@@ -329,6 +363,8 @@ export default defineComponent({
     return {
       SECTIONS,
       fills,
+      onResolved,
+      threadTotals,
       card,
       el,
       kindWord,
@@ -399,12 +435,18 @@ export default defineComponent({
 }
 
 // ATTACHED: the card's foot loses its bottom corners and the band continues
-// its rim — one object, the comments the card's lowest storey.
-.side-element__item.is-card .side-element__card :deep(.post-square) {
+// its rim — one object, the comments the card's lowest storey. Every face
+// is a card since 2026-10-08 (the post's `.post-square`, every other kind's
+// `.element-card`), so the item is always `is-card`.
+.side-element__item.is-card .side-element__card :deep(.post-square),
+.side-element__item.is-card .side-element__card-host :deep(.post-square),
+.side-element__item.is-card .side-element__card-host :deep(.element-card) {
   border-bottom-left-radius: 0;
   border-bottom-right-radius: 0;
 }
-.side-element__item.is-card .side-element__card :deep(.post-square::before) {
+.side-element__item.is-card .side-element__card :deep(.post-square::before),
+.side-element__item.is-card .side-element__card-host :deep(.post-square::before),
+.side-element__item.is-card .side-element__card-host :deep(.element-card::before) {
   border-bottom-left-radius: 0;
   border-bottom-right-radius: 0;
 }
@@ -414,19 +456,30 @@ export default defineComponent({
 // The card's own dials, set on its root from outside: `--cap-scale` 0.62 →
 // 0.7 (the strip: kind marks, origin words, acts) and `--cap-title-scale`
 // 0.8 → 0.9 (the name's pill, which divides the cap's scale back out), the
-// label members' 0.62em → 0.7em. The pit (the body) keeps its 0.88.
-.side-element__card :deep(.post-square) {
+// label members' 0.62em → 0.7em. The pit (the body) keeps its 0.88. The
+// family's cards read the SAME dials (CardPanel / CardCap / CardByline), so
+// one rule steps every kind up.
+.side-element__card :deep(.post-square),
+.side-element__card-host :deep(.post-square),
+.side-element__card-host :deep(.element-card) {
   --cap-scale: 0.7;
   --cap-title-scale: 0.9;
 }
-.side-element__card :deep(.post-square__label) {
+.side-element__card :deep(.post-square__label),
+.side-element__card-host :deep(.post-square__label),
+.side-element__card-host :deep(.element-card__label) {
   font-size: 0.7em;
 }
 
-.side-element__mini {
+// The card host: a column the card shrinks inside (its pit scrolls), never
+// a scroller of its own — a card scrolling inside a scroller is two bars.
+.side-element__card-host {
   flex: 1 1 auto;
   min-width: 0;
-  overflow: auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 // A FILLING face (2026-10-07 — a label's unravel viewer): the item takes
@@ -435,16 +488,13 @@ export default defineComponent({
 .side-element__item.is-fill {
   flex: 1 1 auto;
   > .side-element__face { flex: 1 1 auto; }
-  .side-element__mini {
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-  }
 }
 
 // ── THE THREAD BAND: the card's lowest storey — the card's own line ink
 // (`--grey-5`) for its rim, NO top rim (the card's foot rule is the seam),
-// the card's 8px corners at the bottom only.
+// the card's 8px corners at the bottom only. (Its detached form for a Mini
+// face — top rim, four corners, 8px of air — left with the Minis on
+// 2026-10-08: every face is a card now.)
 .side-element__thread {
   flex: 0 0 calc(var(--sev-thread-h, 33.333) * 1cqh);
   min-height: 0;
@@ -455,11 +505,6 @@ export default defineComponent({
   border-top: 0;
   border-radius: 0 0 8px 8px;
   overflow: hidden;
-}
-.side-element__item:not(.is-card) .side-element__thread {
-  border-top: 1px solid var(--grey-5, #bdbdbd);
-  border-radius: 8px;
-  margin-top: 8px;
 }
 
 // Writing: the CommentMaker (`fill`) takes the band below the bar.
