@@ -493,6 +493,44 @@
         </button>
       </template>
 
+      <!-- THE DEPTH DIAL, IN THE BOARD'S HEADER (2026-10-07, user ask: "the
+           depth of the loaded items … configure from Talavero's board
+           inside the feed container. By default … 2 layers"). The sort's
+           twin in look and place — a VIEW control, not a lens: it changes
+           how deep every card draws its references (minis down to this
+           many layers, nano pills past them; composables/useRenderDepth.js),
+           never which posts the board shows. The glyph is `layers` and the
+           number IS the setting, read without opening the menu.
+           ⚠ `@pointerdown.stop` for the same reason the sort states it:
+           this button sits on the box's drag bar. -->
+      <template #depth>
+        <button
+          type="button"
+          class="feed-stream__sort feed-stream__depth"
+          :class="{ 'is-on': depth !== DEPTH_DEFAULT }"
+          :title="'Depth — ' + depth + ' layer' + (depth === 1 ? '' : 's') + ' of minis below each card (default ' + DEPTH_DEFAULT + ')'"
+          aria-label="How many layers of minis the cards draw"
+          :data-depth="depth"
+          @pointerdown.stop
+        >
+          <q-icon name="layers" size="13px" />
+          <span class="feed-stream__depth-n nasalization">{{ depth }}</span>
+          <q-menu auto-close anchor="bottom right" self="top right">
+            <q-list dense class="feed-stream__sort-menu feed-stream__depth-menu">
+              <q-item
+                v-for="opt in DEPTH_OPTS" :key="'depth:' + opt.v"
+                clickable
+                :class="{ 'is-current': depth === opt.v }"
+                :data-depth-opt="opt.v"
+                @click="setDepth(opt.v)"
+              >
+                <q-item-section>{{ opt.label }}</q-item-section>
+              </q-item>
+            </q-list>
+          </q-menu>
+        </button>
+      </template>
+
       <!-- THE COUNT, IN THE BOARD'S HEADER (2026-08-07, user ask: "move the
            number of filtered posts to the board header, on the right"). It
            spent a day at the end of the lens row, which is where it was born
@@ -587,8 +625,29 @@
         <div class="q-mt-sm">Nothing posted yet.</div>
       </div>
 
-      <div ref="streamEl" class="feed-stream">
-        <template v-for="item in items" :key="item.skeleton_id">
+      <!-- THE RING OF BLOCKS (2026-10-07): the cards stand in BLOCKS of ten
+           (one `GET /feed` page each), at most four blocks mounted, and two
+           spacers hold the height of every block above and below the window
+           so the well's track is the whole feed's. In embed mode there is
+           one block — the card handed in — and no spacer. See the script's
+           note and docs/concepts/feed-windowing.md. -->
+      <div ref="streamEl" class="feed-stream" :class="{ 'is-windowed': !embedItem }">
+        <div
+          v-if="win.topSpacer.value > 0"
+          class="feed-stream__spacer feed-stream__spacer--top"
+          :style="{ height: win.topSpacer.value + 'px' }"
+          aria-hidden="true"
+        >
+          <q-spinner v-if="win.fetchingAbove.value" color="primary" size="18px" class="feed-stream__spacer-spin feed-stream__spacer-spin--top" />
+        </div>
+        <div
+          v-for="block in (embedItem ? [{ index: 0, items }] : win.blocks.value)"
+          :key="block.index"
+          :ref="embedItem ? undefined : win.bindBlock(block.index)"
+          class="feed-stream__block"
+          :data-block="block.index"
+        >
+        <template v-for="item in block.items" :key="item.skeleton_id">
           <!-- One square per post — bordered indigo-1 card, mono head strip,
                carved body pit holding the whole post. The card is NOT a
                select-toggle any more (2026-07-25): it used to unfold a
@@ -598,7 +657,7 @@
                square rule forbids. Everything the panel showed now lives on
                the card itself (whole body, author, label paths, tallies); the
                rest is one click away in the post viewer, via the title. -->
-          <article class="post-square" :class="{ 'is-open': isOpen(item), 'is-expanded': isExpanded(item) }">
+          <article class="post-square" :class="{ 'is-open': isOpen(item), 'is-expanded': isExpanded(item) }" :data-post="item.skeleton_id">
             <!-- THE CAP (2026-08-07, user ask) — a thin header ABOVE the
                  byline band, and now the card's first strip. It answers the
                  one question the card could not: WHAT IS THIS POST, and
@@ -1657,6 +1716,15 @@
             </div>
           </article>
         </template>
+        </div>
+        <div
+          v-if="win.bottomSpacer.value > 0"
+          class="feed-stream__spacer feed-stream__spacer--bottom"
+          :style="{ height: win.bottomSpacer.value + 'px' }"
+          aria-hidden="true"
+        >
+          <q-spinner v-if="win.fetchingBelow.value" color="primary" size="18px" class="feed-stream__spacer-spin" />
+        </div>
       </div>
     </div>
 
@@ -1679,6 +1747,11 @@ import { pinService } from 'src/services/pin.service'
 import { refService } from 'src/services/ref.service'
 import FeedHeadBox from 'src/components/posts/FeedHeadBox.vue'
 import { useStateHolder } from 'src/composables/useStateHolder'
+// THE RING OF BLOCKS (2026-10-07) — the feed loads in ordered blocks as the
+// reader scrolls, a sliding window of them mounted; and THE DEPTH DIAL — how
+// many layers of minis the cards draw. docs/concepts/feed-windowing.md.
+import { useWindowedFeed, FEED_BLOCK_SIZE } from 'src/composables/useWindowedFeed'
+import { provideRenderDepth, readStoredDepth, storeDepth, DEPTH_MIN, DEPTH_MAX, DEPTH_DEFAULT } from 'src/composables/useRenderDepth'
 import { absoluteTime } from 'src/utils/time'
 import EntityAvatar from 'src/components/entities/EntityAvatar.vue'
 import { kindFor } from 'src/utils/kinds'
@@ -1789,25 +1862,85 @@ export default defineComponent({
   },
   emits: ['select', 'pins-changed', 'thread'],
   setup (props, { emit }) {
-    // Embed mode is born holding its card — no fetch, and no one-frame
-    // flash of the empty state while `onMounted` gets around to load().
-    const items = ref(props.embedItem ? [props.embedItem] : [])
-    const total = ref(props.embedItem ? 1 : 0)
-    // The host may hand a NEWER copy of the same row (SideElementView's
-    // card follows the chain's comment / fork totals) — the card follows.
-    watch(() => props.embedItem, (it) => { if (it) items.value = [it] })
-    const loading = ref(false)
     const wellEl = ref(null)
     const streamEl = ref(null)
+
+    // ── THE RING OF BLOCKS (2026-10-07, user ask: "I cannot scroll more
+    // than 20 items … load the content as the user scrolls down, in ordered
+    // tiny blocks … delete some of the latest blocks and use the new
+    // available space … like a circular linked list made out of loaded
+    // content blocks") ─────────────────────────────────────────────────
+    // The stream used to read ONE page of 30 and stop — the wall at the
+    // 30th card. Now `GET /feed` is read in blocks of FEED_BLOCK_SIZE
+    // (`page=i+1&limit=10`), the well's scroll position decides which
+    // blocks are wanted, at most four stand in the DOM at once, and two
+    // spacers (measured above, estimated below) keep the scrollbar honest
+    // for the WHOLE feed — the thumb can be dragged to the oldest post and
+    // that block is one request away. The composable owns the window; this
+    // stream owns the request (every lens below rides `fetchFeedBlock`) and
+    // the markup. `items`/`total` keep their old names as computeds over the
+    // live window, so every reader of them (lens chips, the head's count,
+    // the cards' loop) is untouched. Embed mode is born holding its card and
+    // never windows: the one item was handed in, there is no feed behind it.
+    const win = useWindowedFeed({
+      fetchBlock: (index) => fetchFeedBlock(index),
+      scrollEl: wellEl,
+      // The blocks stand in `.feed-stream`'s flex column; the gap between
+      // them is the gap between cards, read from the stylesheet — a spacer
+      // standing for n blocks owes n−1 of it (see the composable).
+      gap: () => {
+        const el = streamEl.value
+        if (!el) return 0
+        const g = parseFloat(getComputedStyle(el).rowGap)
+        return Number.isFinite(g) ? g : 0
+      },
+      keyOf: (it) => it.skeleton_id
+    })
+    // The host may hand a NEWER copy of the same row (SideElementView's
+    // card follows the chain's comment / fork totals) — the card follows,
+    // since the computed reads the prop.
+    const items = computed(() => (props.embedItem ? [props.embedItem] : win.items.value))
+    const total = computed(() => (props.embedItem ? 1 : win.total.value))
+    const loading = win.loading
+
+    // ── THE DEPTH DIAL (2026-10-07, user ask: "the depth of the loaded
+    // items … configure from Talavero's board inside the feed container.
+    // By default … just 2 layers") ─────────────────────────────────────
+    // Provided at the stream's root, consumed one layer per Mini below
+    // (composables/useRenderDepth.js tells the whole law). A reader's view
+    // preference, kept per browser; the control stands in the head box's
+    // header cluster beside the sort (the `depth` slot).
+    const depth = ref(readStoredDepth())
+    provideRenderDepth(depth)
+    const setDepth = (n) => {
+      const v = Math.min(DEPTH_MAX, Math.max(DEPTH_MIN, parseInt(n, 10) || 0))
+      depth.value = v
+      storeDepth(v)
+    }
+    const DEPTH_OPTS = [
+      { v: 0, label: '0 — every reference a nano pill' },
+      { v: 1, label: '1 — embedded elements as minis' },
+      { v: 2, label: '2 — minis inside minis (default)' },
+      { v: 3, label: '3 — three layers of minis' },
+      { v: 4, label: '4 — four layers of minis' }
+    ]
 
     // StateHolder — remember where the well was scrolled, so hopping into a
     // post and coming back lands on the same reading spot. The page itself
     // never scrolls, so window tracking is off and the well is tracked
     // instead.
-    const holder = useStateHolder({}, { trackScroll: false })
-    // NEVER in embed mode: the flyout's copy of this stream scrolling its own
-    // little well must not write over the FEED's saved reading spot — two
-    // holders both keyed 'feed' would be two hands on one dial.
+    // NEVER in embed mode: the flyout's / side viewer's copy of this stream
+    // must not write over the FEED's saved reading spot — two holders both
+    // keyed '/feed' would be two hands on one dial. ⚠ 2026-10-07: gating the
+    // TRACKING was not enough — a holder exists to flush, and the embedded
+    // copy's holder flushed the STALE snapshot it loaded at mount (`{y: 0}`
+    // from the fresh feed) over the real spot every time the page was left,
+    // so coming back from a post always landed at the top while the side
+    // viewer held a postcard. In embed mode there is no holder at all: an
+    // inert stand-in with the same face (state / restore / trackContainer).
+    const holder = props.embedItem
+      ? { state: {}, restore: async () => {}, trackContainer: () => {}, describe: () => {}, recordInteraction: () => {}, flush: () => {} }
+      : useStateHolder({}, { trackScroll: false })
     if (!props.embedItem) holder.trackContainer(wellEl, 'feed')
 
     // The cap's pin tack records its press like every other pin on the
@@ -2627,62 +2760,76 @@ export default defineComponent({
       return p
     }
 
+    // The feed's query under every lens the board states, for ONE block.
+    // Every clause below used to be assembled once per load; it is assembled
+    // once per block now, so a block fetched three screens down runs under
+    // exactly the lenses the first one did (the ring resets on any change).
+    const blockParams = (index) => {
+      // `body: 'full'` — the cards ARE the posts here, so each item carries
+      // its whole markdown body instead of the 280-char preview slice.
+      const params = { limit: FEED_BLOCK_SIZE, page: index + 1, body: 'full' }
+      if (maxHops.value != null) params.maxHops = maxHops.value
+      if (lensSpec.value) {
+        Object.assign(params, lensParams(lensSpec.value))
+        // First execution binds the receipt's RESULT snapshot — once, on
+        // the FIRST block of the lens (the later blocks are the same read
+        // continued, not a new execution).
+        if (pendingReceipt.value && index === 0) {
+          params.receipt = pendingReceipt.value
+          pendingReceipt.value = null
+        }
+      } else if (labelFilter.value) {
+        params.label = labelFilter.value.id
+      }
+      // The LOCAL hash lens (the card's expand lead) — written after the
+      // spoken params on the same last-write-wins belt as the hand-picked
+      // lenses below: pressing expand on a card composes with whatever
+      // else is running (every filter that admitted the card still admits
+      // it; the address then narrows to exactly it).
+      if (hashFilter.value) params.hash = hashFilter.value.hash
+      // THE HAND-PICKED LENSES, written AFTER the spoken one's params —
+      // the two never hold the same clause at once (each control drops
+      // the spoken twin when it is used), and last-write-wins is the
+      // belt that keeps that promise true even if one ever slipped
+      // through: what the box SAYS it is filtering by is what runs.
+      const when = resolveWhenLocal(dateWin.value)
+      if (when?.from) params.from = when.from.toISOString()
+      if (when?.to) params.to = when.to.toISOString()
+      // The clock hands ride beside the window, never instead of it. The
+      // OFFSET goes with them or the server compares against UTC hours and
+      // "morning" stops meaning the reader's morning.
+      if (todWin.value?.from) params.timeFrom = todWin.value.from
+      if (todWin.value?.to) params.timeTo = todWin.value.to
+      if (todWin.value) params.tzOffset = new Date().getTimezoneOffset()
+      if (pickedEntities.value.length) {
+        params.authors = pickedEntities.value.map((e) => e.id).join(',')
+      }
+      if (sortOrder.value) params.order = sortOrder.value
+      // A lens's own `limit` clause ("first 12") caps the page size, and
+      // with it how far the ring reads: past that many posts the end is
+      // seen, as the clause intends.
+      if (params.limit !== FEED_BLOCK_SIZE) params.limit = Math.min(params.limit, FEED_BLOCK_SIZE)
+      return params
+    }
+
+    // One block = one `GET /feed` page. Thrown errors reach the composable,
+    // which leaves the block absent (the next scroll asks again); a refused
+    // read answers as an empty feed, the way the old single load did.
+    const fetchFeedBlock = async (index) => {
+      const r = await feedService.getPublic(blockParams(index))
+      if (!r?.success) return { items: [], total: 0 }
+      return { items: r.items || [], total: r.total, filtered: !!r.filtered }
+    }
+
     const load = async () => {
       // EMBED MODE: the one item was handed in — there is no feed behind
       // this stream, so every path that would reload one (lens changes, the
       // expand lead, verdict applies) lands here and finds the card pinned.
-      if (props.embedItem) {
-        items.value = [props.embedItem]
-        total.value = 1
-        return
-      }
-      loading.value = true
-      try {
-        // `body: 'full'` — the cards ARE the posts here, so each item carries
-        // its whole markdown body instead of the 280-char preview slice.
-        const params = { limit: 30, body: 'full' }
-        if (maxHops.value != null) params.maxHops = maxHops.value
-        if (lensSpec.value) {
-          Object.assign(params, lensParams(lensSpec.value))
-          // First execution binds the receipt's RESULT snapshot — once.
-          if (pendingReceipt.value) {
-            params.receipt = pendingReceipt.value
-            pendingReceipt.value = null
-          }
-        } else if (labelFilter.value) {
-          params.label = labelFilter.value.id
-        }
-        // The LOCAL hash lens (the card's expand lead) — written after the
-        // spoken params on the same last-write-wins belt as the hand-picked
-        // lenses below: pressing expand on a card composes with whatever
-        // else is running (every filter that admitted the card still admits
-        // it; the address then narrows to exactly it).
-        if (hashFilter.value) params.hash = hashFilter.value.hash
-        // THE HAND-PICKED LENSES, written AFTER the spoken one's params —
-        // the two never hold the same clause at once (each control drops
-        // the spoken twin when it is used), and last-write-wins is the
-        // belt that keeps that promise true even if one ever slipped
-        // through: what the box SAYS it is filtering by is what runs.
-        const win = resolveWhenLocal(dateWin.value)
-        if (win?.from) params.from = win.from.toISOString()
-        if (win?.to) params.to = win.to.toISOString()
-        // The clock hands ride beside the window, never instead of it. The
-        // OFFSET goes with them or the server compares against UTC hours and
-        // "morning" stops meaning the reader's morning.
-        if (todWin.value?.from) params.timeFrom = todWin.value.from
-        if (todWin.value?.to) params.timeTo = todWin.value.to
-        if (todWin.value) params.tzOffset = new Date().getTimezoneOffset()
-        if (pickedEntities.value.length) {
-          params.authors = pickedEntities.value.map((e) => e.id).join(',')
-        }
-        if (sortOrder.value) params.order = sortOrder.value
-        const r = await feedService.getPublic(params)
-        if (r.success) {
-          items.value = r.items
-          total.value = r.total
-        }
-      } catch (_) { items.value = [] }
-      loading.value = false
+      if (props.embedItem) return
+      // The ring forgets everything and reads block 0 under the lenses as
+      // they stand now; the saved reading spot is restored over the whole
+      // (estimated) track, and the scroll it causes wants the right blocks.
+      await win.reset()
       await holder.restore()
     }
 
@@ -3153,6 +3300,12 @@ export default defineComponent({
       loading,
       wellEl,
       streamEl,
+      // the ring of blocks + the depth dial (2026-10-07)
+      win,
+      depth,
+      setDepth,
+      DEPTH_OPTS,
+      DEPTH_DEFAULT,
       headY,
       setHeadY,
       headH,
@@ -4127,6 +4280,11 @@ export default defineComponent({
   min-width: 0;
   overflow-y: auto;
   overflow-x: hidden;
+  // THE RING OF BLOCKS (2026-10-07): the composable holds the view still
+  // itself when a block above the reading line changes height (it adds the
+  // delta to scrollTop in the same measurement). Chrome's own scroll
+  // anchoring would correct the same shift a second time — off.
+  overflow-anchor: none;
   // The SCROLL BED (2026-07-25) — `--indigo-2`, one step down from the
   // `--indigo-1` the container and the cards wear. It walked in from the
   // deep end the same day (-4, then -3, then here), and this is the setting
@@ -4412,6 +4570,47 @@ export default defineComponent({
 // to exactly that. It has to be stated on a real ancestor: an element cannot
 // read its own width in its own `max-height` (that is circular), and the well
 // above is off by its scrollbar/padding.
+// THE RING OF BLOCKS (2026-10-07) — a block is a run of cards in the
+// stream's own rhythm (the same column, the same gap), so the seam between
+// two blocks is a card gap like any other and a reader cannot tell where one
+// `GET /feed` page ended. A spacer is an empty plate of the height the blocks
+// it stands for measured (above) or are estimated at (below); its one mark is
+// the spinner while the block on that side is in flight. `contain` keeps a
+// block's layout from being a page-wide concern — forty cards re-measure
+// often while the window slides.
+.feed-stream__block {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  contain: layout;
+}
+.feed-stream__spacer {
+  flex: 0 0 auto;
+  position: relative;
+  min-width: 0;
+}
+.feed-stream__spacer-spin {
+  position: absolute;
+  left: 50%;
+  top: 14px;
+  transform: translateX(-50%);
+  &--top { top: auto; bottom: 14px; }
+}
+
+// THE DEPTH DIAL (2026-10-07) — the sort button's twin with a digit beside
+// the glyph: the number is the setting, so the control is read, not opened.
+.feed-stream__depth {
+  width: auto;
+  gap: 2px;
+  padding: 0 4px 0 3px;
+}
+.feed-stream__depth-n {
+  font-size: 9px;
+  line-height: 1;
+  letter-spacing: 0.02em;
+}
+
 .feed-stream {
   display: flex;
   flex-direction: column;

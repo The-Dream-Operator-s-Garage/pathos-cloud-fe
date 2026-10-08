@@ -17,9 +17,19 @@
        full Mini and -[[…]] is the micro chip, on every surface.
        `plain-refs` turns the whole chip stage OFF — refs stay literal
        text (the media viewer's document mode).
+       ⭐ THE DEPTH DIAL (2026-10-07, composables/useRenderDepth.js): the
+       budget a surface provides caps every tier here — exhausted (≤ 0)
+       means EVERY ref is the micro chip, the author's ![[…]] included, and
+       the AUTO node arm never probes for a bloom. No dial above = the rules
+       as written.
+       ⭐ `plain` (2026-10-07) — THE EXCERPT TIER: the body as one plain run
+       (plainExcerpt's stripping, `max-chars` cut) in which every reference
+       keeps its slot, so a Mini's excerpt seats chips and nested Minis by
+       the same tier rules as a rendered body. PostMini and NodeMini read
+       their quoted bodies through it.
        See src/utils/pathosRefs.js for the reference format. -->
   <div>
-    <div ref="root" class="markdown-body" :class="{ 'has-mini-refs': refDisplay === 'mini' }" v-html="html" />
+    <div ref="root" class="markdown-body" :class="{ 'has-mini-refs': refDisplay === 'mini', 'markdown-body--plain': plain }" v-html="html" />
     <teleport
       v-for="slot in chipSlots"
       :key="slot.key"
@@ -58,7 +68,8 @@ import { marked } from 'marked'
 import DOMPurify from 'dompurify'
 import InfoChip from './InfoChip.vue'
 import RefMicro from './RefMicro.vue'
-import { extractPathosRefs } from 'src/utils/pathosRefs'
+import { extractPathosRefs, plainExcerptWithRefs } from 'src/utils/pathosRefs'
+import { useRenderBudget, budgetExhausted } from 'src/composables/useRenderDepth'
 
 // Platform default: `breaks: true` — a single newline is a hard line break, the
 // chat/comment convention the app was written around. Surfaces that render
@@ -102,7 +113,15 @@ export default defineComponent({
     // content, not this surface's links, and live chips would both
     // mislead and fire a probe request per ref on every open. Marked,
     // DOMPurify and the breaks handling stay exactly as they are.
-    plainRefs: { type: Boolean, default: false }
+    plainRefs: { type: Boolean, default: false },
+    // THE EXCERPT TIER (2026-10-07): render the body as a PLAIN RUN — no
+    // marked, plainExcerpt's stripping instead — with every reference kept
+    // as a live slot. For the Minis' quoted bodies (PostMini, NodeMini),
+    // whose face is "a few lines, open it for the rest" and whose refs are
+    // elements all the same. `maxChars` cuts the run (0 = whole), never
+    // inside a reference.
+    plain: { type: Boolean, default: false },
+    maxChars: { type: Number, default: 0 }
   },
   setup (props) {
     const root = ref(null)
@@ -110,16 +129,29 @@ export default defineComponent({
     // Bumped per render so teleport keys never collide across re-renders.
     let renderTick = 0
 
+    // The depth dial's budget (null = no dial on this surface).
+    const budget = useRenderBudget()
+    const exhausted = computed(() => budgetExhausted(budget))
+
     // plainRefs skips the extraction stage entirely: no placeholders land
     // in the HTML and the refs list is empty, so mountChips (below) finds
-    // nothing to seat — the rest of the pipeline never knows.
-    const parsed = computed(() => props.plainRefs
-      ? { text: props.text || '', refs: [] }
-      : extractPathosRefs(props.text || ''))
+    // nothing to seat — the rest of the pipeline never knows. `plain`
+    // builds its HTML in the extraction step itself (escaped text + slots).
+    const parsed = computed(() => {
+      if (props.plainRefs) return { text: props.text || '', refs: [], ready: false }
+      if (props.plain) {
+        const r = plainExcerptWithRefs(props.text || '', props.maxChars)
+        return { text: r.html, refs: r.refs, ready: true }
+      }
+      return { ...extractPathosRefs(props.text || ''), ready: false }
+    })
 
     const html = computed(() => {
       if (!parsed.value.text) return ''
-      const clean = DOMPurify.sanitize(marked.parse(parsed.value.text, { breaks: props.breaks }))
+      const raw = parsed.value.ready
+        ? parsed.value.text
+        : marked.parse(parsed.value.text, { breaks: props.breaks })
+      const clean = DOMPurify.sanitize(raw)
       return props.transformHtml ? props.transformHtml(clean) : clean
     })
 
@@ -143,9 +175,16 @@ export default defineComponent({
     onMounted(mountChips)
     watch(html, mountChips)
 
-    // The slot's effective tier: the author's sigil wins ('embed' → mini,
-    // 'micro' → micro), a bare ref takes the surface's refDisplay.
+    // The slot's effective tier: the depth dial's exhausted budget caps
+    // everything at micro; otherwise the author's sigil wins ('embed' →
+    // mini, 'micro' → micro) and a bare ref takes the surface's refDisplay.
     const tierOf = (refInfo) => {
+      if (exhausted.value) return 'micro'
+      // A QUOTED body (the plain tier) blooms nothing unless a surface dial
+      // above grants it layers: with no dial, every reference it carries is
+      // the abstract one — the nano pill — which is also what bounds the
+      // recursion (a post quoting a post quoting itself ends in pills).
+      if (props.plain && budget == null) return 'micro'
       if (refInfo.display === 'embed') return 'mini'
       if (refInfo.display === 'micro') return 'micro'
       return props.refDisplay
@@ -172,6 +211,14 @@ export default defineComponent({
     display: inline-flex;
     vertical-align: middle;
     max-width: 100%;
+  }
+
+  // THE EXCERPT TIER (2026-10-07): a plain run keeps the author's line
+  // structure the way the Minis' excerpts always did (`pre-wrap`), and a
+  // chip in a sentence sizes with the sentence. The host sets the type.
+  &.markdown-body--plain {
+    white-space: pre-wrap;
+    word-break: break-word;
   }
 
   // Mini refs are panels, not inline chips — give each its own line and

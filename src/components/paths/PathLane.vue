@@ -138,6 +138,7 @@ import MicroChip from 'src/components/shared/MicroChip.vue'
 import InfoChip from 'src/components/shared/InfoChip.vue'
 import LockedChip from 'src/components/shared/LockedChip.vue'
 import LinkMicro from 'src/components/links/LinkMicro.vue'
+import { useRenderBudget, budgetExhausted } from 'src/composables/useRenderDepth'
 
 // Enriched minis for the newest ENRICH_MAX members; chips past that. The
 // grid's LIST_UNFOLD_MAX (2026-09-06 PM), moved here with the lane.
@@ -221,9 +222,14 @@ export default defineComponent({
       const a = addressOf(st)
       return !!a && visitedNext.value.includes(a)
     }
+    // THE DEPTH DIAL (2026-10-07): a lane whose surface budget is spent
+    // draws every member as its nano chip, whatever mode it was given.
+    const budget = useRenderBudget()
+
     // Which members unfold into minis: enriched mode, a row to draw, and the
     // newest ENRICH_MAX (forward order — the newest are the last).
     const isMini = (idx, st) => {
+      if (budgetExhausted(budget)) return false
       if (props.mode !== 'enriched' || !hasRow(st) || st.target?.locked || isCycle(st)) return false
       const n = shown.value.length
       return idx >= n - ENRICH_MAX

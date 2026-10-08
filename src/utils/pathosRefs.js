@@ -87,3 +87,97 @@ export function stripPathosRefs (markdown) {
   return markdown.replace(PATHOS_REF_RE, (m, sigil, prefix, hash, label) =>
     label ? label.trim() : `${prefix}/${hash.slice(0, 8)}…`)
 }
+
+/**
+ * Cut a markdown string at about `max` chars WITHOUT splitting a
+ * `[[pathos:…]]` token: a cut that lands inside one extends to its `]]`;
+ * a token left open (no `]]` at all) is dropped with its sigil. A half
+ * reference is literal text to every renderer — `[[pathos:nodes/ab12` on a
+ * card — so the quoting seams (ElementMini's post excerpt, NodeMini's text
+ * body) cut here, never with `slice`.
+ */
+export function safeCut (markdown, max) {
+  const s = String(markdown || '')
+  if (!(max > 0) || s.length <= max) return s
+  let cut = max
+  const open = s.lastIndexOf('[[', cut - 1)
+  if (open !== -1) {
+    const close = s.indexOf(']]', open)
+    if (close === -1) cut = open > 0 && /[!-]/.test(s[open - 1]) ? open - 1 : open
+    else if (close + 2 > cut) cut = close + 2
+  }
+  return s.slice(0, cut)
+}
+
+// The ref token a plain excerpt carries while its markdown is stripped —
+// two private-use code points no author types, so the stripping regexes
+// pass over them and the cut can tell a token from text.
+const TOK = ''
+const MASK = ''
+const TOKEN_RE = /(\d+)/g
+const MASK_RE = /(\d+)/g
+const CODE_INLINE_RE = /`[^`\n]*`/g
+
+const escapeHtml = (s) => s.replace(/[&<>"']/g, (c) => (
+  { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
+))
+
+/**
+ * THE EXCERPT TIER (2026-10-07) — a markdown body as one plain run (the
+ * family's `plainExcerpt` rules: fences out, links to their text, block
+ * markers and emphasis gone, line structure kept for `pre-wrap`) in which
+ * every reference STAYS A LIVE PLACEHOLDER instead of being flattened to
+ * its label. Returns `{ html, refs }` in `extractPathosRefs`'s shape, so
+ * MarkdownBody's `plain` mode seats a chip or a Mini in each slot exactly
+ * as the rendered tier does — a quoted post's references are elements
+ * (nano pills, or minis while the depth dial allows), never text that
+ * happens to spell an address. The cut never lands inside a token; a
+ * ref cut off with the tail simply has no slot and mounts nothing.
+ */
+export function plainExcerptWithRefs (markdown, max = 400) {
+  const refs = []
+  let s = String(markdown || '')
+  if (!s) return { html: '', refs }
+  s = s.replace(/(```|~~~)[\s\S]*?\1/g, ' ')
+  // Inline code stays literal through the ref pass (a doc showing the
+  // syntax), then reads as its own text, as plainExcerpt leaves it.
+  const codes = []
+  s = s.replace(CODE_INLINE_RE, (m) => { codes.push(m); return `${MASK}${codes.length - 1}${MASK}` })
+  s = s.replace(PATHOS_REF_RE, (m, sigil, prefix, hash, label) => {
+    if (!KINDS[prefix]) return m
+    const i = refs.length
+    const embed = sigil === '!'
+    refs.push({
+      prefix,
+      hash,
+      label: label ? label.trim() : '',
+      address: `${prefix}/${hash}`,
+      embed,
+      display: embed ? 'embed' : sigil === '-' ? 'micro' : 'auto'
+    })
+    return `${TOK}${i}${TOK}`
+  })
+  s = s.replace(MASK_RE, (_, i) => codes[+i].slice(1, -1))
+  s = s
+    .replace(/!?\[([^\]]*)\]\([^)]*\)/g, '$1')
+    .replace(/^[ \t]{0,3}(?:#{1,6}|>|[-*+]|\d+[.)])[ \t]+/gm, '')
+    .replace(/[*_~`]+/g, '')
+    .replace(/[ \t]+/g, ' ')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim()
+  if (max > 0 && s.length > max) {
+    let cut = max
+    // An odd count of token marks before the cut = inside one: step past it.
+    let marks = 0
+    for (let i = 0; i < cut; i++) if (s[i] === TOK) marks++
+    if (marks % 2 === 1) cut = s.indexOf(TOK, cut) + 1
+    s = s.slice(0, cut).trimEnd() + '…'
+  }
+  const html = escapeHtml(s).replace(TOKEN_RE, (_, i) => {
+    const r = refs[+i]
+    return r
+      ? `<span class="pathos-ref-slot${r.embed ? ' pathos-ref-embed' : ''}" data-pathos-ref="${i}"></span>`
+      : ''
+  })
+  return { html, refs }
+}

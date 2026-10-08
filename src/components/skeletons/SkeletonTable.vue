@@ -221,7 +221,7 @@
                   dense kind="skeletons" :address="c.row.ref"
                   title="already open above — a cycle"
                 />
-                <div v-else-if="depth < 2 || expanded.includes(c.row.ref)" class="skel-table__nest">
+                <div v-else-if="depth < nestMax || expanded.includes(c.row.ref)" class="skel-table__nest">
                   <!-- `enriched` (2026-09-06 PM): the SKELETON MINI — chrome,
                        name, provenance foot — instead of the bare grid. -->
                   <SkeletonMini
@@ -387,6 +387,7 @@ import { refService } from 'src/services/ref.service'
 import { pathService } from 'src/services/path.service'
 import { useAuthStore } from 'src/stores/auth'
 import { kindFor } from 'src/utils/kinds'
+import { useRenderBudget } from 'src/composables/useRenderDepth'
 
 // Schemas whose instances are platform plumbing: their cells are written
 // by their own seams (posting, chatting, pinning, navigating), never by
@@ -648,8 +649,19 @@ export default defineComponent({
     const chipCarriesLight = (row) => {
       if (!row.ref || isListRow(row)) return false
       if (row.refKind !== 'skeletons') return true
-      return !(props.depth < 2 || expanded.value.includes(row.ref))
+      return !(props.depth < nestMax.value || expanded.value.includes(row.ref))
     }
+
+    // THE DEPTH DIAL (2026-10-07): how many levels of skeleton nest inline
+    // under this grid. The grid's own law is two; a surface dial caps it at
+    // the budget left below the Mini this grid stands in (the dial at 2
+    // nests one level inside a card's embedded skeleton, at 1 none — the
+    // cells wear their chips). A click on a chip still expands it by hand.
+    const renderBudget = useRenderBudget()
+    const nestMax = computed(() => {
+      const v = renderBudget?.value
+      return v == null ? 2 : Math.min(2, Math.max(0, v))
+    })
     const lockMark = (row) => {
       const lock = lockOf(row)
       if (lock === 'locked') return { icon: 'lock', cls: 'is-locked', title: keyLockTitle(row) }
@@ -916,6 +928,7 @@ export default defineComponent({
       expanded,
       expand,
       visitedNext,
+      nestMax,
       listOf,
       isListRow,
       rowColWidths,

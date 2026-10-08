@@ -138,6 +138,14 @@
         <span class="feed-head__bar-end">
           <span class="feed-head__count"><slot name="count" /></span>
           <slot name="sort" />
+          <!-- THE DEPTH DIAL (2026-10-07, user ask: "the depth of the
+               loaded items … something we can configure from Talavero's
+               board inside the feed container"). A VIEW setting like the
+               sort — it changes how deep the cards draw, not which posts
+               load — so it stands in the header cluster beside the sort,
+               not in the lens row. The stream owns the control (and its
+               `.stop` on the press, since this bar drags). -->
+          <slot name="depth" />
         </span>
       </header>
 

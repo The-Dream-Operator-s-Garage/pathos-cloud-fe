@@ -14,7 +14,11 @@
        foot. The row's history (the round pill, the dot's zone, the swaps)
        is in specs/codemap.md and in `git log -p` of this file.
        See dashboard/doc/ui-reference.md. -->
-  <MiniPanel kind="nodes" :to="targetRoute" :body-fit="isMedia || showsSource">
+  <!-- ⭐ 2026-10-07 (the depth dial): a text node's excerpt keeps its
+       references as live slots (MarkdownBody `plain`); while it hosts a
+       nested Mini the panel is no router-link (no anchor in an anchor — the
+       head's corner stays the door) and the 110px cap comes off. -->
+  <MiniPanel kind="nodes" :to="hostsMinis ? null : targetRoute" :body-fit="isMedia || showsSource || hostsMinis">
     <template #head>
       <!-- WHAT IT IS │ WHAT IT IS CALLED │ the door. The pill is the node's
            collapsed nano chip with its verdict light (MicroChip draws it);
@@ -77,7 +81,14 @@
            — every marker intact, hard wraps and blank lines preserved by
            `pre-wrap` — and the panel is the one that scrolls. -->
       <div v-else-if="showsSource" class="node-mini__source mono">{{ sourceText }}</div>
-      <div v-else-if="excerpt" class="node-mini__excerpt">{{ excerpt }}</div>
+      <MarkdownBody
+        v-else-if="excerptRaw"
+        class="node-mini__excerpt"
+        :text="excerptRaw"
+        plain
+        :max-chars="400"
+        ref-display="auto"
+      />
       <!-- Integrity withholding (integrity-debt plan): a violated node's
            body never renders — the API already withheld it; this face says
            so instead of pretending emptiness, and routes to the report. -->
@@ -124,12 +135,15 @@ import { useRouter } from 'vue-router'
 import MiniPanel from 'src/components/shared/MiniPanel.vue'
 import MiniHead from 'src/components/shared/MiniHead.vue'
 import EmbedFrame from 'src/components/shared/EmbedFrame.vue'
-import { bodyOf, excerptOf, plainExcerpt } from 'src/utils/nodeContent'
+import MarkdownBody from 'src/components/shared/MarkdownBody.vue'
+import { bodyOf, excerptOf } from 'src/utils/nodeContent'
+import { safeCut } from 'src/utils/pathosRefs'
+import { useRenderBudget, budgetExhausted } from 'src/composables/useRenderDepth'
 import { useFlyoutViewersStore } from 'src/stores/flyoutViewers'
 
 export default defineComponent({
   name: 'NodeMini',
-  components: { MiniPanel, MiniHead, EmbedFrame },
+  components: { MiniPanel, MiniHead, EmbedFrame, MarkdownBody },
   props: {
     // Enriched node: { id, path, content, file, embed, votes,
     //                  comment_count, fork_count }
@@ -181,18 +195,26 @@ export default defineComponent({
       return `node #${props.node.id}${type ? ` · ${type}` : ''}`
     })
 
-    const excerpt = computed(() => {
-      // File-backed nodes: excerptOf reads the resolved body for text kinds
-      // and a "kind · .ext" line for media — never the uploads/ address.
-      // (Since 2026-09-30 the family's `plainExcerpt` cleans it — refs read
-      // as their labels, links as their text; the old one-regex strip left
-      // `pathos:nodes/…|label` behind.) The 400 cut is excerptOf's for file
-      // bodies and plainExcerpt's own for the rest.
-      const raw = props.node.file
-        ? excerptOf(props.node, 400)
-        : (props.node.content || props.node.excerpt || '')
-      return plainExcerpt(raw, 400)
+    // The RAW body the plain tier reads (2026-10-07; the stripping moved
+    // into MarkdownBody's `plain` mode, which keeps every reference as a
+    // live slot where `plainExcerpt` flattened it to its label). File-backed
+    // text nodes hand their resolved body, cut without splitting a ref; a
+    // media file's "kind · .ext" line is excerptOf's as before (the media
+    // branches above render first, so this is the binary/unknown fallback).
+    const excerptRaw = computed(() => {
+      if (props.node.file) {
+        return props.node.file.kind === 'text'
+          ? safeCut(bodyOf(props.node), 1200)
+          : excerptOf(props.node, 400)
+      }
+      return props.node.content || props.node.excerpt || ''
     })
+
+    // Does the excerpt bloom a nested Mini (an author's `![[…]]` with depth
+    // budget left below this panel)? Governs the link and the body cap.
+    const budget = useRenderBudget()
+    const hostsMinis = computed(() =>
+      budget != null && !budgetExhausted(budget) && /!\[\[pathos:/.test(excerptRaw.value))
 
     // The embed descriptor an EMBED_RULE produced for this node's URL
     // (API-side; null for links no rule matches and for every other kind).
@@ -294,7 +316,8 @@ export default defineComponent({
       isWithheld,
       openIntegrityReport,
       effectiveTitle,
-      excerpt,
+      excerptRaw,
+      hostsMinis,
       sourceText,
       showsSource,
       embed,
@@ -385,6 +408,10 @@ export default defineComponent({
 }
 
 .node-mini__excerpt {
+  // The plain tier (2026-10-07) inherits the excerpt's ink; a nested Mini
+  // stands on its own line at the body's size (the embed slot's boundary).
+  :deep(.markdown-body) { color: inherit; }
+  :deep(.pathos-ref-embed) { margin: 6px 0; text-align: start; }
   font-size: 0.84em;
   line-height: 1.4;
   color: #2C3D4E;

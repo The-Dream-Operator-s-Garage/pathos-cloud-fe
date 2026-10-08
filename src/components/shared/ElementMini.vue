@@ -75,6 +75,8 @@ import { linkService } from 'src/services/link.service'
 import { secretService } from 'src/services/secret.service'
 import { refService } from 'src/services/ref.service'
 import { bodyOf } from 'src/utils/nodeContent'
+import { safeCut } from 'src/utils/pathosRefs'
+import { consumeRenderLayer } from 'src/composables/useRenderDepth'
 
 export default defineComponent({
   name: 'ElementMini',
@@ -101,6 +103,12 @@ export default defineComponent({
   setup (props) {
     const loading = ref(false)
     const shape = ref({ kind: null })
+
+    // THE DEPTH DIAL (2026-10-07): a Mini is one layer of enrichment —
+    // everything quoted inside it stands one layer deeper, so the budget
+    // the surface provided goes down by one for this subtree (no dial
+    // above = nothing provided, the family's own guards rule).
+    consumeRenderLayer()
 
     const chipAddress = computed(() => {
       if (props.address) return props.address
@@ -161,7 +169,9 @@ export default defineComponent({
               id: p.id,
               path: p.path,
               title: p.title,
-              excerpt: (bodyOf(p.node) || '').slice(0, 800),
+              // RAW markdown, cut without splitting a [[pathos:…]] token
+              // (2026-10-07): PostMini renders its refs as live slots now.
+              excerpt: safeCut(bodyOf(p.node) || '', 1200),
               owner_id: p.owner_id ?? null,
               created_at: p.created_at || p.node?.createdAt || null,
               forked_from_id: p.forked_from_id ?? null
