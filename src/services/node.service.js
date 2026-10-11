@@ -81,8 +81,10 @@ export const nodeService = {
     const { data } = await api.delete(`/nodes/${id}/draft`)
     return data
   },
-  async promote (id) {
-    const { data } = await api.post(`/nodes/${id}/promote`)
+  // `payload.filename` renames the fresh FILE version (the notepad's
+  // retitled note); omitted, the version keeps the prior name.
+  async promote (id, payload = {}) {
+    const { data } = await api.post(`/nodes/${id}/promote`, payload)
     return data
   }
 }

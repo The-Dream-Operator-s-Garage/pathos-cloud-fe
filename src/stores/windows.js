@@ -75,7 +75,12 @@ const TRAIL_KEY = 'pathos_nav_trail'
 // reconciling) lives in `utils/trailSlider.js`, which every one of the
 // three components that carries a grip calls; only the OFFSETS live here.
 // Exported so that module and NavigationBar read ONE list.
-export const TRAIL_CHIPS = ['maker', 'schemaBuilder', 'labelMaker', 'uploader', 'chat']
+// ⭐ 2026-10-11 — `uploader` LEFT the slider: the UPLOADS chip is gone from
+// the bar (the nav hub's fourth petal opens that window now, see
+// NavHub.vue), so its dock rides no offset (`trailShiftOf('uploader')` is
+// 0) and stands at the footprint's default seat. A saved offset under the
+// old key is simply never read.
+export const TRAIL_CHIPS = ['maker', 'schemaBuilder', 'labelMaker', 'chat']
 // ⭐ PINS ALONE SINCE 2026-09-30 — the stack strip moved up into the header
 // rail beside Back (StackPanel) and left the slider with the footer.
 export const TRAIL_STRIPS = ['pins']

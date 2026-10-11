@@ -79,6 +79,27 @@
            to its edge. ── -->
       <div class="nav-center" />
 
+      <!-- ── ⭐ THE HUB (2026-10-11, user ask: "a big round button sticking
+           to the center of the bottom nav bar … bigger than the nav bar so
+           it claims attention. Use the node icon on it") — NavHub.vue, a
+           52px disc on this 32px bar, ABSOLUTE at the bar's horizontal
+           centre with its foot on the bar's floor, so it rises 20px over
+           the chrome and over the parked tabs' strip (this bar is 3110,
+           the strip 3045). Hover (desktop) / tap (phone) unravels four
+           petals on an arc above it: camera · record · note open the
+           CAPTURE window (components/capture/), upload opens the uploader
+           whose chip it replaced. Not a slider chip: it has no grip and
+           rides no offset — the centre is the point. On a PHONE this seat
+           is empty and the hub stands in the chip row instead (see the
+           `.create-row` note). ── -->
+      <NavHub
+        v-if="!windows.isMobile"
+        class="nav-hub--bar"
+        :lit="creationExpanded.capture"
+        @open-capture="$emit('open-capture', $event)"
+        @open-uploader="$emit('open-uploader')"
+      />
+
       <!-- ── RIGHT: the five trail chips (four makers · chat) — and, on
            MOBILE only, the fallback pin tack. ⭐ SINCE 2026-09-02 (user ask)
            THIS CLUSTER ENDS `--pins-strip-w` (90px since 2026-09-03 — three
@@ -177,6 +198,14 @@
           <span class="nav-btn__label">SCHEMAS</span>
           <q-tooltip>Build schemas — define and fork templates; instances are populated on their own viewer</q-tooltip>
         </q-btn>
+        <NavHub
+          v-if="windows.isMobile"
+          class="nav-hub--row"
+          seat="row"
+          :lit="creationExpanded.capture"
+          @open-capture="$emit('open-capture', $event)"
+          @open-uploader="$emit('open-uploader')"
+        />
         <q-btn unelevated class="nav-btn create-btn create-btn--labelMaker" :class="{ 'is-active': creationExpanded.labelMaker }" :ref="setChip('labelMaker')" :style="chipStyle('labelMaker')" @click="$emit('open-label-maker')">
           <span class="nav-btn__grip" @pointerdown="startChipDrag('labelMaker', $event)" @click.stop>
             <q-icon name="drag_indicator" size="11px" />
@@ -186,15 +215,19 @@
           <span class="nav-btn__label">LABELS</span>
           <q-tooltip>Label maker — grow, fork and reorganize label trees</q-tooltip>
         </q-btn>
-        <q-btn unelevated class="nav-btn create-btn create-btn--uploader" :class="{ 'is-active': creationExpanded.uploader }" :ref="setChip('uploader')" :style="chipStyle('uploader')" @click="$emit('open-uploader')">
-          <span class="nav-btn__grip" @pointerdown="startChipDrag('uploader', $event)" @click.stop>
-            <q-icon name="drag_indicator" size="11px" />
-          </span>
-          <span class="nav-btn__grip-rule" />
-          <q-icon name="upload" size="15px" />
-          <span class="nav-btn__label">UPLOADS</span>
-          <q-tooltip>Upload files, links or notes</q-tooltip>
-        </q-btn>
+        <!-- ⭐ THE UPLOADS CHIP IS GONE (2026-10-11, user ask: "for the
+             classic upload, we just want to embed it into this new control
+             and take the other button out of the footer nav bar"). The
+             fourth creation chip since 2026-08-23 — `create-btn--uploader`,
+             teal word + rim, a slider chip with a grip — stood here; the
+             NAV HUB's fourth petal opens the same window now, and the
+             window itself is unchanged (it still parks as `minitab--uploader`
+             below). Its chip rules are deleted from the style block; the
+             slider's key list lost `uploader` (stores/windows.js). -->
+        <!-- On a PHONE the hub stands IN this row (see `.nav-hub--row`
+             below): the bar's centre is not the row's centre there, so the
+             hub takes its seat among the chips — POST · SCHEMAS · ◉ · LABELS
+             — and the arc opens over the row. -->
         </div>
 
         <!-- ── ORDER: THE FOUR CREATION CHIPS FIRST, THEN THE TWO
@@ -429,13 +462,15 @@ import { useLabelMakerStore } from 'src/stores/labelMaker'
 import { useChatStore } from 'src/stores/chat'
 import { useDashboardStore } from 'src/stores/dashboard'
 import { useEventsStore } from 'src/stores/events'
+import { useCaptureStore, captureLabel, MODE_META } from 'src/stores/capture'
 import { pinService } from 'src/services/pin.service'
 import IdentityChip from 'src/components/identity/IdentityChip.vue'
+import NavHub from './NavHub.vue'
 
 export default defineComponent({
   name: 'NavigationBar',
-  components: { IdentityChip },
-  emits: ['toggle-drawer', 'open-maker', 'open-uploader', 'open-schema-builder', 'open-label-maker', 'pins-changed'],
+  components: { IdentityChip, NavHub },
+  emits: ['toggle-drawer', 'open-maker', 'open-uploader', 'open-capture', 'open-schema-builder', 'open-label-maker', 'pins-changed'],
   props: {
     // Increment to force a pin-state refresh from the parent (e.g. after the
     // PinsDrawer unpins something so the tack indicator updates).
@@ -451,6 +486,7 @@ export default defineComponent({
     const windows = useWindowsStore()
     const makerStore = useMakerStore()
     const uploaderStore = useUploaderStore()
+    const captureStore = useCaptureStore()
     const schemaBuilderStore = useSchemaBuilderStore()
     const labelMakerStore = useLabelMakerStore()
     const chatStore = useChatStore()
@@ -510,7 +546,9 @@ export default defineComponent({
       maker: makerStore.isOpen && !makerStore.isMinimized,
       schemaBuilder: schemaBuilderStore.isOpen && !schemaBuilderStore.isMinimized,
       labelMaker: labelMakerStore.isOpen && !labelMakerStore.isMinimized,
-      uploader: uploaderStore.isOpen && !uploaderStore.isMinimized
+      uploader: uploaderStore.isOpen && !uploaderStore.isMinimized,
+      // the hub's glyph lights while the capture window stands (its chip)
+      capture: captureStore.isOpen && !captureStore.isMinimized
     }))
     const toggleDashboard = () => {
       if (!dashboardStore.isOpen) dashboardStore.open()
@@ -613,6 +651,23 @@ export default defineComponent({
       if (dash) {
         const r = dash.getBoundingClientRect()
         if (r.width > 0) next.dashboard = { left: r.left, width: r.width }
+      }
+      // ⭐ THE HUB'S FLANKS (2026-10-11): two windows park with NO chip of
+      // their own now — the capture window never had one, the uploader's
+      // left the bar — so their tabs seat on the hub's two sides, the way a
+      // chip's tab seats on its chip: CAPTURE on the left flank, UPLOADER on
+      // the right (the petals' own order, camera-side and upload-side). The
+      // seats are virtual boxes derived from the hub's measured rect, so
+      // they follow it between its desktop and phone seats.
+      const hub = document.querySelector('.nav-bar .nav-hub')
+      if (hub) {
+        const r = hub.getBoundingClientRect()
+        if (r.width > 0) {
+          const w = windows.isMobile ? 30 : 72
+          const gap = windows.isMobile ? 3 : 8
+          next.capture = { left: r.left - gap - w, width: w }
+          next.uploader = { left: r.right + gap, width: w }
+        }
       }
       chipBoxes.value = next
     }
@@ -800,6 +855,17 @@ export default defineComponent({
           restore: () => uploaderStore.restore()
         })
       }
+      if (captureStore.isOpen && captureStore.isMinimized) {
+        tabs.push({
+          key: 'capture',
+          icon: MODE_META[captureStore.mode]?.icon || 'adjust',
+          label: captureLabel(captureStore),
+          meta: '',
+          busy: false,
+          title: 'Restore the capture window',
+          restore: () => captureStore.restore()
+        })
+      }
       if (chatStore.isOpen && chatStore.isMinimized) {
         tabs.push({
           key: 'chat',
@@ -861,7 +927,9 @@ export default defineComponent({
       parkedTabs,
       setChip,
       chipStyle,
-      startChipDrag
+      startChipDrag,
+      // the hub's two seats pick by the store's 600px gate (NavHub.vue)
+      windows
     }
   }
 })
@@ -1170,6 +1238,9 @@ export default defineComponent({
   --mtab-rim-ink: var(--labels-contrast);
   --mtab-ink: var(--red-10);
 }
+// The capture window parks in the uploader's family (2026-10-11): same
+// face, same rim ink — one teal colorway, two windows.
+.minitab--capture,
 .minitab--uploader {
   --mtab-face: var(--uploader-flat);
   --mtab-rim-ink: var(--uploader-contrast);
@@ -1311,7 +1382,6 @@ export default defineComponent({
 .nav-bar .create-btn--maker           { --chip-word: var(--indigo-10); }
 .nav-bar .create-btn--schemaBuilder { --chip-word: var(--yellow-10); }
 .nav-bar .create-btn--labelMaker      { --chip-word: var(--red-10); }
-.nav-bar .create-btn--uploader        { --chip-word: var(--teal-10); }
 .nav-bar .create-btn .nav-btn__label { color: var(--chip-word); }
 .nav-bar .create-btn :deep(.q-btn__content) > .q-icon { color: var(--chip-word); }
 
@@ -1344,7 +1414,8 @@ export default defineComponent({
 .nav-bar .create-btn--maker           { --chip-rim: var(--maker-contrast);     --chip-grip: var(--maker-contrast);     --chip-glow: var(--indigo-3); }
 .nav-bar .create-btn--schemaBuilder { --chip-rim: var(--schemas-contrast); --chip-grip: var(--schemas-contrast); --chip-glow: var(--yellow-3); }
 .nav-bar .create-btn--labelMaker      { --chip-rim: var(--labels-contrast);    --chip-grip: var(--labels-contrast);    --chip-glow: var(--red-3); }
-.nav-bar .create-btn--uploader        { --chip-rim: var(--uploader-contrast);  --chip-grip: var(--uploader-contrast);  --chip-glow: var(--teal-3); }
+// (the uploader's chip line stood here until 2026-10-11 — the chip is gone,
+// the NAV HUB wears its teal; see the hub's own dials in NavHub.vue)
 
 // ── THE CHIP WEARS ITS WINDOW'S GLASS EDGE (2026-09-07 PM, user ask, after
 // the windows' borders became "thin glass sheets": "transfer this effect
@@ -1812,6 +1883,28 @@ export default defineComponent({
 // (unpositioned and transparent, so it simply shows through) and the frieze is
 // the only thing drawn in the middle of the bar.
 .nav-center { min-width: 0; }
+
+// ── THE HUB'S TWO SEATS (2026-10-11) ──────────────────────────────────
+// Desktop: absolute at the bar's horizontal centre, foot 1px over the
+// floor, so the 52px disc rises ~20px above the 32px bar — over the
+// chrome AND over the parked tabs' strip (this bar is 3110, the strip
+// 3045). `z-index: 5` lifts it over the chips and the lane paint
+// (`.nav-bar::before` is -1 inside the bar's own isolated context).
+.nav-hub--bar {
+  position: absolute;
+  left: 50%;
+  bottom: 1px;
+  translate: -50% 0;
+  z-index: 5;
+}
+// Phone: in the chip row (see the template) as a CHIP-TALL flow box the
+// disc hangs off (`seat="row"`, NavHub.vue) — a 46px item in a 25px row
+// would stretch the row and push every chip 7px through the bar's floor.
+.nav-hub--row {
+  --hub-d: 46px;
+  z-index: 5;
+  margin: 0 2px;
+}
 
 // ⚠ ONE WEARER LEFT (2026-08-24): the hairline before the TACK SLOT, and it is
 // there for ARITHMETIC rather than for grouping — that line plus the 41px slot

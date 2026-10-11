@@ -85,6 +85,10 @@ export const ACTIONS = {
   CLOSE_BUILDER: { label: 'Closed schema builder', icon: 'schema', group: 'window' },
   OPEN_LABELS: { label: 'Opened label maker', icon: 'label', group: 'window' },
   CLOSE_LABELS: { label: 'Closed label maker', icon: 'label', group: 'window' },
+  // The capture window (2026-10-11) — the nav hub's camera / record / note
+  // petals open ONE dock with three faces; its NAV_WINDOW leaf is CAPTURE.
+  OPEN_CAPTURE: { label: 'Opened capture', icon: 'adjust', group: 'window' },
+  CLOSE_CAPTURE: { label: 'Closed capture', icon: 'adjust', group: 'window' },
 
   // ── author
   CREATE_POST: { label: 'Posted', icon: 'edit_note', group: 'author' },
@@ -107,6 +111,14 @@ export const ACTIONS = {
   UPLOAD_DOC: { label: 'Uploaded document', icon: 'description', group: 'author' },
   CREATE_NOTE: { label: 'Wrote a note', icon: 'sticky_note_2', group: 'author' },
   CREATE_LINK: { label: 'Saved a link', icon: 'link', group: 'author' },
+  // THE CAPTURE WINDOW'S ACTS (2026-10-11): what was taken on the spot —
+  // a photo or a clip off the camera face, a voice note off the recorder;
+  // CREATE_NOTE is reused for the notepad's origin and VERSION_NOTE names
+  // each version the notepad mints when a note is left or saved.
+  CAPTURE_PHOTO: { label: 'Took a photo', icon: 'photo_camera', group: 'author' },
+  CAPTURE_VIDEO: { label: 'Recorded a video', icon: 'videocam', group: 'author' },
+  CAPTURE_AUDIO: { label: 'Recorded a voice note', icon: 'mic', group: 'author' },
+  VERSION_NOTE: { label: 'Saved a note version', icon: 'history', group: 'author' },
   NOTE_TO_POST: { label: 'Turned note into post', icon: 'move_up', group: 'author' },
   // The link section's Post plate (2026-09-28): the link is minted AND
   // handed to the maker as a draft that shows it as its player.
@@ -201,7 +213,11 @@ export const DOCK_WINDOWS = {
   maker: { open: 'OPEN_MAKER', close: 'CLOSE_MAKER', label: 'Post maker', leaf: 'MAKER' },
   uploader: { open: 'OPEN_UPLOADER', close: 'CLOSE_UPLOADER', label: 'Uploader', leaf: 'UPLOADER' },
   schemaBuilder: { open: 'OPEN_BUILDER', close: 'CLOSE_BUILDER', label: 'Schema builder', leaf: 'SKELETON_BUILDER' },
-  labelMaker: { open: 'OPEN_LABELS', close: 'CLOSE_LABELS', label: 'Label maker', leaf: 'LABEL_MAKER' }
+  labelMaker: { open: 'OPEN_LABELS', close: 'CLOSE_LABELS', label: 'Label maker', leaf: 'LABEL_MAKER' },
+  // 2026-10-11 — the fifth: NAV_WINDOW > CAPTURE is minted lazily by the
+  // API like every NAV_* leaf (navSkeletonService._ensureSystemLeaf), so
+  // no seed change was needed for the stop story to name it.
+  capture: { open: 'OPEN_CAPTURE', close: 'CLOSE_CAPTURE', label: 'Capture', leaf: 'CAPTURE' }
 }
 
 // The uploader's verb for a batch of files (File objects or { type } /

@@ -196,6 +196,7 @@
       @toggle-drawer="drawer = !drawer"
       @open-maker="makerStore.open()"
       @open-uploader="uploaderStore.open()"
+      @open-capture="captureStore.open($event)"
       @open-schema-builder="schemaBuilderStore.open()"
       @open-label-maker="labelMakerStore.open()"
       @pins-changed="pinsRefreshKey++"
@@ -216,6 +217,11 @@
     <StackPanel />
     <MakerDock @created="onPostCreated" />
     <UploaderDock @created="onUploaded" />
+    <!-- The capture window (2026-10-11) — camera · record · note, opened by
+         the nav hub's petals; the same teal family as the uploader. A
+         capture never navigates away (quick entry stays in the window);
+         during a skeleton populate session its fresh nodes join the tray. -->
+    <CaptureDock @created="onCaptured" />
     <SchemaBuilderDock />
     <LabelMakerDock />
     <ChatDock />
@@ -239,6 +245,7 @@ import { useNavStore } from 'src/stores/navigation'
 import { useWindowsStore } from 'src/stores/windows'
 import MakerDock from 'src/components/maker/MakerDock.vue'
 import UploaderDock from 'src/components/maker/UploaderDock.vue'
+import CaptureDock from 'src/components/capture/CaptureDock.vue'
 import SchemaBuilderDock from 'src/components/maker/SchemaBuilderDock.vue'
 import LabelMakerDock from 'src/components/maker/LabelMakerDock.vue'
 import ChatDock from 'src/components/chat/ChatDock.vue'
@@ -252,6 +259,7 @@ import PinsDrawer from 'src/components/layout/PinsDrawer.vue'
 import StackPanel from 'src/components/layout/StackPanel.vue'
 import { useMakerStore } from 'src/stores/maker'
 import { useUploaderStore } from 'src/stores/uploader'
+import { useCaptureStore } from 'src/stores/capture'
 import { useSchemaBuilderStore } from 'src/stores/schemaBuilder'
 import { useLabelMakerStore } from 'src/stores/labelMaker'
 import { useGeoStore } from 'src/stores/geo'
@@ -259,12 +267,13 @@ import { useEventsStore } from 'src/stores/events'
 
 export default defineComponent({
   name: 'MainLayout',
-  components: { MakerDock, UploaderDock, SchemaBuilderDock, LabelMakerDock, ChatDock, DashboardDock, IdentityDock, ElementFlyoutHost, FriezeBar, NavigationBar, PinsDrawer, StackPanel },
+  components: { MakerDock, UploaderDock, CaptureDock, SchemaBuilderDock, LabelMakerDock, ChatDock, DashboardDock, IdentityDock, ElementFlyoutHost, FriezeBar, NavigationBar, PinsDrawer, StackPanel },
   setup () {
     const router = useRouter()
     const navStore = useNavStore()
     const makerStore = useMakerStore()
     const uploaderStore = useUploaderStore()
+    const captureStore = useCaptureStore()
     const schemaBuilderStore = useSchemaBuilderStore()
     const labelMakerStore = useLabelMakerStore()
     const windows = useWindowsStore()
@@ -315,6 +324,17 @@ export default defineComponent({
     // the node (the dock minimizes itself); batches stay put — the dock's
     // file explorer already shows them at the top. During an instance
     // populate session every fresh node joins the page's tray instead.
+    // The capture window's mints stay put — quick entry keeps the window
+    // and shows the node as a receipt chip; only a populate session claims
+    // them, exactly as it claims uploads.
+    const onCaptured = (nodes) => {
+      if (schemaBuilderStore.populate && nodes?.length) {
+        for (const n of nodes) {
+          if (n?.path) schemaBuilderStore.deliverFresh('nodes', n.path, n.name || n.file?.name)
+        }
+      }
+    }
+
     const onUploaded = (nodes) => {
       if (schemaBuilderStore.populate && nodes?.length) {
         let consumed = false
@@ -360,7 +380,7 @@ export default defineComponent({
       useEventsStore().connect()
     })
 
-    return { drawerEnabled, drawer, mini, drawerRailW, hideDrawer, showBurger, makerStore, uploaderStore, schemaBuilderStore, labelMakerStore, windows, pinsRefreshKey, onPostCreated, onUploaded }
+    return { drawerEnabled, drawer, mini, drawerRailW, hideDrawer, showBurger, makerStore, uploaderStore, captureStore, schemaBuilderStore, labelMakerStore, windows, pinsRefreshKey, onPostCreated, onUploaded, onCaptured }
   }
 })
 </script>
