@@ -4,8 +4,9 @@
 // embed/track/…" width="100%" height="352" …></iframe>` — and almost none
 // of it is information: the platform stores the ADDRESS and derives the
 // frame from an EMBED_RULE (docs/concepts/embeds.md). So when the
-// uploader's link field receives markup instead of a URL, it unwraps it
-// here (2026-09-28, the Spotify ask) and the field shows the src.
+// uploader receives markup instead of a URL, it unwraps it here
+// (2026-09-28, the Spotify ask) — the link field did until 2026-10-12;
+// since then the note's paste lands the src and catches it.
 //
 // Deliberately narrow: an `<iframe>` or `<embed>` tag's `src`, https only,
 // the FIRST such tag, nothing else parsed — the markup is never rendered
@@ -53,10 +54,4 @@ export function srcFromEmbedMarkup (text) {
   // Attribute values arrive HTML-escaped (`&amp;` between query params).
   if (m) return _https(m[1] || m[2] || m[3])
   return addressFromQuote(raw)
-}
-
-// The field's value after a paste or a keystroke: the unwrapped address
-// when the text is embed markup, the text itself otherwise.
-export function unwrapLinkInput (text) {
-  return srcFromEmbedMarkup(text) || text
 }

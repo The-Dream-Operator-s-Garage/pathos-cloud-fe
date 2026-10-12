@@ -3,8 +3,8 @@ import { useWindowsStore } from './windows'
 import { useNavStore } from './navigation'
 
 // The uploader's in-progress state — sibling of stores/maker.js. Every
-// unsubmitted upload is a tab in the UploaderDock; link URLs and note text
-// survive reloads via localStorage. Staged File objects can't be
+// unsubmitted upload is a tab in the UploaderDock; note text (links ride
+// in it since 2026-10-12) survives reloads via localStorage. Staged File objects can't be
 // serialized, so the files themselves are session-only: a reload keeps the
 // tab but empties its staging list. z-order against the other docked
 // windows lives in stores/windows.js.
@@ -15,16 +15,15 @@ const LS_KEY = 'pathos_uploader_drafts'
 // keyed off the tab's MODE until 2026-08-26, when the dock's three methods
 // (files / link / note) became simultaneous sections and the mode field
 // died with the pills — so the label reads the tab's CONTENT in the
-// sections' own order: staged files first, then the link's host, then the
-// note's first line.
+// sections' own order: staged files first, then the note's first line.
+// (The link section — and the host it labelled a tab by — folded into the
+// note's link catch on 2026-10-12.)
 export const uploadLabel = (u) => {
   if (!u) return 'empty'
   let t = ''
   if (u.staged.length) {
     t = u.staged[0]?.name || ''
     if (u.staged.length > 1) t += ` +${u.staged.length - 1}`
-  } else if ((u.linkUrl || '').trim()) {
-    try { t = new URL(u.linkUrl).hostname } catch (_) { t = (u.linkUrl || '').trim() }
   } else {
     t = (u.noteText || '').split('\n').map(s => s.replace(/^#+\s*/, '').trim()).find(Boolean) || ''
   }
@@ -40,7 +39,6 @@ const blankUpload = () => ({
   labelIds: [],
   // Full leaf-label objects so the LabelBox can re-render them on restore
   labels: [],
-  linkUrl: '',
   noteText: '',
   // File objects staged for upload — in-memory only (see header comment)
   staged: [],
@@ -79,9 +77,13 @@ export const useUploaderStore = defineStore('uploader', {
       try {
         const raw = JSON.parse(localStorage.getItem(LS_KEY) || 'null')
         if (raw?.uploads?.length) {
-          this.uploads = raw.uploads.map(u => ({
+          this.uploads = raw.uploads.map(({ linkUrl, ...u }) => ({
             ...blankUpload(),
             ...u,
+            // A tab saved before 2026-10-12 may hold a typed link in the
+            // retired link field — it moves into the note, where a paste
+            // would have put it now.
+            noteText: [u.noteText, (linkUrl || '').trim()].filter(Boolean).join('\n'),
             staged: [],
             status: 'idle',
             busyKind: null,

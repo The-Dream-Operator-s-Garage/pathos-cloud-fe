@@ -133,28 +133,23 @@
                 <span v-if="noteUploading" class="method__hint">
                   uploading {{ noteUploading }} file{{ noteUploading > 1 ? 's' : '' }}…
                 </span>
-                <q-space />
-                <q-btn
-                  unelevated dense no-caps size="sm" icon="post_add"
-                  class="method__submit" label="Post"
-                  title="Turn this note into a post draft and open it in the post window"
-                  :disable="!canSubmit('note') || noteUploading > 0"
-                  @click="toPost"
-                />
-                <q-btn
-                  unelevated dense no-caps size="sm" icon="note_add"
-                  class="method__submit" label="Save note"
-                  :loading="isBusy('note')" :disable="!canSubmit('note') || noteUploading > 0"
-                  @click="submit('note')"
-                />
               </div>
+              <!-- THE WELL (2026-10-12, user ask: "the post/save buttons of
+                   the notepad … inside the containers, at the bottom right
+                   corner … with inverted coloring so they look different")
+                   — the box and its preview share one positioned frame, and
+                   the two plates stand in its bottom-right corner, FILLED
+                   in the window's contrast (the files plate stays the
+                   outlined one). The box pads its foot so the last line is
+                   never under them. -->
+              <div class="note-well">
               <textarea
                 v-show="!notePreview"
                 ref="noteBox"
                 class="note-box"
                 :class="{ 'is-over': noteDragOver }"
                 :value="upload.noteText"
-                placeholder="Write a note — it uploads as a markdown file. Paste or drag images/files to reference them."
+                placeholder="Write a note — it uploads as a markdown file. Paste a link or an image/file and it lands here as a pill."
                 @input="patch({ noteText: $event.target.value })"
                 @paste="onNotePaste"
               ></textarea>
@@ -166,53 +161,57 @@
                 />
                 <div v-else class="note-preview__empty">Nothing to preview yet…</div>
               </div>
-            </section>
-
-            <!-- LINK — 15%: one input, its buttons in the head row. The URL
-                 is still resolved against the EMBED_RULE skeletons as it is
-                 typed (POST /embeds/resolve); at this height the player
-                 preview has no room, so recognition shows as the head's
-                 hint line instead of as the frame itself. Two plates since
-                 2026-09-28 (user ask: "if I upload a youtube one, make sure
-                 the enriched previewer showcases it on a post"): Save link
-                 mints the LINK node; Post mints it AND opens a maker draft
-                 whose body is the node's block embed, so the post opens on
-                 the player. A pasted <iframe> snippet is unwrapped to its
-                 src on the way in (utils/embedMarkup.js) — the platform
-                 keeps the address and derives the frame. -->
-            <section class="method method--link">
-              <div class="method__head">
-                <span class="method__label">Link</span>
-                <span v-if="linkEmbed" class="method__hint">
-                  recognized as {{ linkEmbed.provider }} — renders as its player wherever the node is shown
-                </span>
-                <q-space />
+              <div class="method__plates">
                 <q-btn
                   unelevated dense no-caps size="sm" icon="post_add"
-                  class="method__submit" label="Post"
-                  title="Save this link and open a post draft that shows it as its player"
-                  :loading="isBusy('link') && linkPosting" :disable="!canSubmit('link')"
-                  @click="linkToPost"
+                  class="method__submit method__submit--inverted" label="Post"
+                  title="Turn this note into a post draft and open it in the post window"
+                  :disable="!canSubmit('note') || noteUploading > 0"
+                  @click="toPost"
                 />
                 <q-btn
-                  unelevated dense no-caps size="sm" icon="add_link"
-                  class="method__submit" label="Save link"
-                  :loading="isBusy('link') && !linkPosting" :disable="!canSubmit('link')"
-                  @click="submit('link')"
+                  unelevated dense no-caps size="sm" icon="note_add"
+                  class="method__submit method__submit--inverted" label="Save note"
+                  title="Save this note as a markdown file"
+                  :loading="isBusy('note')" :disable="!canSubmit('note') || noteUploading > 0"
+                  @click="submit('note')"
                 />
               </div>
-              <q-input
-                :model-value="upload.linkUrl" :dark="false" outlined dense hide-bottom-space
-                placeholder="https://example.com/page — or paste an embed <iframe>"
-                :error="!!linkHint"
-                @update:model-value="linkHint = ''; patch({ linkUrl: unwrapLinkInput($event) })"
-                @keyup.enter="submit('link')"
-              >
-                <template #prepend><q-icon name="link" /></template>
-              </q-input>
+              </div>
+              <!-- THE LINK CATCH (2026-10-12, user ask: "if I paste a link,
+                   identify it, put it in a neon teal frame and make me
+                   confirm adding the link") — the link section folded into
+                   the note. A pasted URL (or a provider's embed snippet,
+                   unwrapped to its src) lands in the text as typed AND is
+                   caught here; Add link mints the LINK node and rewrites
+                   that text, in place, into the node's NANO PILL
+                   `-[[pathos:nodes/<hash>|provider]]`. Dismissing keeps the
+                   URL as plain text; deleting it from the note drops the
+                   catch. -->
+              <div v-if="linkCatches.length" class="link-catches">
+                <div
+                  v-for="c in linkCatches" :key="c.key"
+                  class="link-catch" :class="{ 'is-busy': c.busy, 'is-error': !!c.error }"
+                >
+                  <q-icon :name="c.embed?.icon || 'link'" size="15px" class="link-catch__icon" />
+                  <span class="link-catch__text">
+                    <span class="link-catch__url" :title="c.url">{{ c.url }}</span>
+                    <span class="link-catch__meta">{{ c.error || (c.embed ? `${c.embed.provider} — add it as a link pill?` : 'add it as a link pill?') }}</span>
+                  </span>
+                  <q-btn
+                    unelevated dense no-caps size="sm" icon="add_link"
+                    class="link-catch__add" label="Add link"
+                    :loading="c.busy" @click="confirmCatch(c)"
+                  />
+                  <button type="button" class="link-catch__x" title="Keep it as plain text"
+                    :disabled="c.busy" @click="dismissCatch(c)">
+                    <q-icon name="close" size="12px" />
+                  </button>
+                </div>
+              </div>
             </section>
 
-            <!-- FILES — 40%: drag-drop + browse, staged as PREVIEW TILES
+            <!-- FILES — 45% (55% since the link section folded into the note, 2026-10-12): drag-drop + browse, staged as PREVIEW TILES
                  (user ask: "a preview for our supported media formats …
                  images and videos so we can pre-view them right there
                  before uploading") — images render themselves, videos their
@@ -222,13 +221,6 @@
             <section class="method method--files">
               <div class="method__head">
                 <span class="method__label">Files</span>
-                <q-space />
-                <q-btn
-                  unelevated dense no-caps size="sm" icon="upload"
-                  class="method__submit" :label="filesLabel"
-                  :loading="isBusy('files')" :disable="!canSubmit('files')"
-                  @click="submit('files')"
-                />
               </div>
               <div
                 class="drop-zone"
@@ -241,6 +233,17 @@
                 <q-icon name="cloud_upload" size="22px" class="drop-zone__icon" />
                 <div class="drop-zone__hint">Drag files here, or click to browse</div>
                 <input ref="fileInput" type="file" multiple style="display:none" @change="onBrowse" />
+                <!-- The plate stands in the drop frame's bottom-right corner
+                     (2026-10-12, same ask as the note's well); `.stop` so
+                     a click on it never opens the file browser too. -->
+                <div class="method__plates" @click.stop>
+                  <q-btn
+                    unelevated dense no-caps size="sm" icon="upload"
+                    class="method__submit" :label="filesLabel" :title="filesLabel"
+                    :loading="isBusy('files')" :disable="!canSubmit('files')"
+                    @click="submit('files')"
+                  />
+                </div>
               </div>
 
               <div v-if="upload.staged.length" class="staged-grid">
@@ -275,11 +278,10 @@
           </div>
 
           <footer
-            v-if="linkHint || upload.errors.length || upload.status === 'done'"
+            v-if="upload.errors.length || upload.status === 'done'"
             class="dock-editor__foot"
           >
             <q-space />
-            <span v-if="linkHint" class="dock-editor__msg text-negative">{{ linkHint }}</span>
             <span v-for="(e, i) in upload.errors" :key="i" class="dock-editor__msg text-negative">
               {{ e.filename ? `${e.filename}: ` : '' }}{{ e.message }}
             </span>
@@ -316,7 +318,8 @@ import { labelService } from 'src/services/label.service'
 import { embedService } from 'src/services/embed.service'
 import { formatBytes } from 'src/utils/nodeContent'
 import { extractPathosRefs } from 'src/utils/pathosRefs'
-import { unwrapLinkInput } from 'src/utils/embedMarkup'
+import { srcFromEmbedMarkup } from 'src/utils/embedMarkup'
+import { findLinks, indexOfLink } from 'src/utils/linkCatch'
 
 const KIND_BY_EXT = {
   md: 'text',
@@ -349,7 +352,6 @@ export default defineComponent({
     store.load()
 
     const dragOver = ref(false)
-    const linkHint = ref('')
     const refreshKey = ref(0)
 
     const upload = computed(() => store.activeUpload)
@@ -361,45 +363,107 @@ export default defineComponent({
     // Tab glyph, content-first — the sections' own order.
     const tabIcon = (u) =>
       u.staged.length ? 'folder_open'
-        : (u.linkUrl || '').trim() ? 'link'
-            : (u.noteText || '').trim() ? 'edit_note' : 'upload'
+        : (u.noteText || '').trim() ? 'edit_note' : 'upload'
 
-    // ── embed recognition ────────────────────────────────────
-    // The typed URL, resolved against the platform's EMBED_RULE skeletons
-    // (POST /embeds/resolve). Debounced because it follows keystrokes, and
-    // sequence-guarded because a slow answer for an older URL must not
-    // land on a newer one. Failures are silent: no recognition is the same
-    // outcome as "no rule matched".
-    const linkEmbed = ref(null)
-    let embedSeq = 0
-    let embedTimer = null
+    // ── THE LINK CATCH (2026-10-12) ──────────────────────────
+    // A link reaches the uploader only through the note now: a paste that
+    // carries URLs leaves them in the text as typed and raises one catch
+    // per new URL (one per URL per tab — pasting the same link twice asks
+    // once). Each catch is resolved against the EMBED_RULE skeletons
+    // (POST /embeds/resolve) for its provider word and glyph; a failure
+    // just means "no rule matched". Catches are transient, like a tab's
+    // busy state: a reload keeps the URL as text and drops the question.
+    const catches = ref([])
+    let catchSeq = 0
+    const linkCatches = computed(() =>
+      catches.value.filter(c => c.uploadId === upload.value?.id))
 
-    const resolveEmbed = (raw) => {
-      const url = (raw || '').trim()
-      const seq = ++embedSeq
-      if (embedTimer) clearTimeout(embedTimer)
-      if (!/^https?:\/\/\S+\.\S+/.test(url)) { linkEmbed.value = null; return }
-      embedTimer = setTimeout(async () => {
-        try {
-          const r = await embedService.resolve(url)
-          if (seq === embedSeq) linkEmbed.value = r.success ? (r.embed || null) : null
-        } catch (_) {
-          if (seq === embedSeq) linkEmbed.value = null
-        }
-      }, 350)
+    const catchLinks = (urls) => {
+      const u = upload.value
+      if (!u) return
+      for (const url of urls) {
+        if (catches.value.some(c => c.uploadId === u.id && c.url === url)) continue
+        catches.value.push({ key: ++catchSeq, uploadId: u.id, url, embed: null, busy: false, error: '' })
+        const c = catches.value[catches.value.length - 1]
+        embedService.resolve(url)
+          .then(r => { if (r.success && r.embed) c.embed = r.embed })
+          .catch(() => { /* unrecognized = a plain link pill */ })
+      }
     }
 
+    const dismissCatch = (c) => {
+      catches.value = catches.value.filter(x => x.key !== c.key)
+    }
+
+    // A caught URL the author deleted from the note is no longer a
+    // question — and a closed tab's catches go with it.
     watch(
-      () => upload.value?.linkUrl,
-      (url) => resolveEmbed(url),
-      { immediate: true }
+      () => store.uploads.map(u => [u.id, u.noteText]),
+      () => {
+        catches.value = catches.value.filter(c => {
+          if (c.busy) return true
+          const t = store.uploads.find(x => x.id === c.uploadId)
+          return !!t && indexOfLink(t.noteText || '', c.url) >= 0
+        })
+      }
     )
 
-    // Tab label: first staged file, the link's host, or the note's first line.
+    // Add link: mint the LINK node, then swap the URL's text for the
+    // node's nano pill where it stands (the first bare occurrence — never
+    // a longer URL it prefixes). If the text moved under the request the
+    // pill is appended rather than lost.
+    const confirmCatch = async (c) => {
+      const t0 = store.uploads.find(x => x.id === c.uploadId)
+      if (!t0 || c.busy) return
+      c.busy = true
+      c.error = ''
+      try {
+        const r = await nodeService.create({
+          content: c.url,
+          typeId: 3,
+          labelIds: t0.labelIds,
+          authorEntityId: t0.authorEntityId
+        })
+        if (!r.success || !r.node?.path) {
+          c.error = r.error?.message || 'Invalid link'
+          return
+        }
+        const node = r.node
+        // THE SUB-STACK (2026-09-06 PM): "Saved a link".
+        try {
+          useNavStore().recordAction('CREATE_LINK', {
+            targetType: 'node',
+            targetId: node.id ?? null,
+            targetLabel: hostOf(c.url),
+            targetPath: node.path
+          })
+        } catch (_) { /* a link must never fail because its log did */ }
+        const label = refLabelOf(c.embed?.provider || node.embed?.provider || hostOf(c.url))
+        const pill = `-[[pathos:${node.path}|${label}]]`
+        const t = store.uploads.find(x => x.id === c.uploadId)
+        if (t) {
+          const text = t.noteText || ''
+          const at = indexOfLink(text, c.url)
+          const next = at >= 0
+            ? text.slice(0, at) + pill + text.slice(at + c.url.length)
+            : text + (!text || /\s$/.test(text) ? '' : ' ') + pill
+          store.patchUpload(c.uploadId, { noteText: next })
+        }
+        refreshKey.value++
+        c.busy = false
+        dismissCatch(c)
+      } catch (e) {
+        c.error = e?.response?.data?.error?.message || e?.message || 'Could not save the link'
+      } finally {
+        c.busy = false
+      }
+    }
+
+    // Tab label: first staged file, or the note's first line.
     const tabLabel = uploadLabel
 
     const hasWork = (u) =>
-      u.staged.length || (u.linkUrl || '').trim() || (u.noteText || '').trim()
+      u.staged.length || (u.noteText || '').trim()
 
     const askDiscard = (u) => {
       if (u.status === 'busy') return
@@ -490,8 +554,11 @@ export default defineComponent({
     // formatting inside the note") — a paste/drop lands the files through
     // the SAME /nodes/upload seam as the files section, but instead of
     // staging it drops a placeholder token at the caret and swaps it for
-    // the minted node's ![[pathos:nodes/…]] mini ref when the answer
-    // comes back. The swap is a string replace against a UNIQUE token, so
+    // the minted node's NANO PILL `-[[pathos:nodes/…|name]]` when the
+    // answer comes back (a `![[…]]` mini on its own line until 2026-10-12,
+    // user ask: "add the pasted item as a pill embedded in the text" — the
+    // pill sits in the sentence; turning pills into minis is a later
+    // ask). The swap is a string replace against a UNIQUE token, so
     // the author can keep typing while the bytes travel. ──
     const notePreview = ref(false)
     const noteDragOver = ref(false)
@@ -560,9 +627,9 @@ export default defineComponent({
         const file = dePasteName(f)
         return { file, mark: `⟪uploading ${file.name} #${++noteSeq}⟫` }
       })
-      // Own line each — a mini ref reads as a block, and the token should
-      // sit where the ref will.
-      insertAtNoteCaret(jobs.map(j => j.mark).join('\n'))
+      // Inline, space-separated — a nano pill is a word in the sentence,
+      // and the token sits where the pill will.
+      insertAtNoteCaret(jobs.map(j => j.mark).join(' '))
 
       const fd = new FormData()
       for (const j of jobs) fd.append('files', j.file, j.file.name)
@@ -597,7 +664,7 @@ export default defineComponent({
           const t = tabNow()
           if (!t) continue
           const ref = node
-            ? `![[pathos:${node.path}|${refLabelOf(node.file?.name || j.file.name)}]]`
+            ? `-[[pathos:${node.path}|${refLabelOf(node.file?.name || j.file.name)}]]`
             : ''
           store.patchUpload(id, { noteText: (t.noteText || '').replace(j.mark, ref) })
         }
@@ -621,11 +688,27 @@ export default defineComponent({
       }
     }
 
+    // Files upload as pills; text is the browser's own paste, except that
+    // a provider's embed snippet (<iframe>/<blockquote>) lands as the ONE
+    // address it carries (utils/embedMarkup.js) — and either way every
+    // URL in it is caught for the teal frame.
     const onNotePaste = (e) => {
       const files = Array.from(e.clipboardData?.files || [])
-      if (!files.length) return
-      e.preventDefault()
-      uploadIntoNote(files)
+      if (files.length) {
+        e.preventDefault()
+        uploadIntoNote(files)
+        return
+      }
+      const raw = e.clipboardData?.getData('text/plain') || ''
+      const src = srcFromEmbedMarkup(raw)
+      if (src) {
+        e.preventDefault()
+        insertAtNoteCaret(src)
+        catchLinks([src])
+        return
+      }
+      const urls = findLinks(raw)
+      if (urls.length) catchLinks(urls)
     }
 
     // Drops carrying no files (dragged text) are simply ignored — the
@@ -690,7 +773,8 @@ export default defineComponent({
       maker.open()
     }
 
-    // ── submit — per-SECTION now ('files' | 'link' | 'note'), still
+    // ── submit — per-SECTION now ('files' | 'note'; the link section folded
+    // into the note's LINK CATCH 2026-10-12), still
     // per-tab in flight state, so other tabs stay editable while one is
     // busy; state lands in the store keyed by the upload's id. ──
     const isBusy = (kind) =>
@@ -699,7 +783,6 @@ export default defineComponent({
     const canSubmit = (kind) => {
       const u = upload.value
       if (!u || u.status === 'busy') return false
-      if (kind === 'link') return !!(u.linkUrl || '').trim()
       if (kind === 'note') return !!(u.noteText || '').trim()
       return u.staged.length > 0
     }
@@ -738,113 +821,16 @@ export default defineComponent({
       }, 700)
     }
 
-    // The host a link names, for the sub-stack's label and a draft's chip
+    // The host a link names, for the sub-stack's label and the nano pill's
     // label when no EMBED_RULE has a better word.
     const hostOf = (url) => { try { return new URL(url).hostname.replace(/^www\./, '') } catch (_) { return 'link' } }
-
-    // ── THE LINK MINT, shared by the section's two plates (2026-09-28) ──
-    // Creates the LINK node and logs the act; answers the enriched node
-    // (already carrying `embed` when a rule recognizes it) or null, with
-    // the section's hint set and the tab back to idle on failure. The
-    // caller decides what the fresh node is for.
-    const mintLink = async (u) => {
-      const url = u.linkUrl.trim()
-      const r = await nodeService.create({
-        content: url,
-        typeId: 3,
-        labelIds: u.labelIds,
-        authorEntityId: u.authorEntityId
-      })
-      if (!r.success) {
-        linkHint.value = r.error?.message || 'Invalid link'
-        store.patchUpload(u.id, { status: 'idle', busyKind: null })
-        return null
-      }
-      // THE SUB-STACK (2026-09-06 PM): "Saved a link".
-      try {
-        useNavStore().recordAction('CREATE_LINK', {
-          targetType: 'node',
-          targetId: r.node?.id ?? null,
-          targetLabel: hostOf(url),
-          targetPath: r.node?.path || null
-        })
-      } catch (_) { /* a link must never fail because its log did */ }
-      store.patchUpload(u.id, { linkUrl: '' })
-      return r.node
-    }
-
-    // ── THE LINK'S POST PLATE (2026-09-28, user ask: "if I upload a
-    // youtube one, make sure the enriched previewer is used to showcase
-    // the element on a post") — the note section's toPost, for a link:
-    // mint the LINK node, then hand it to the maker as a draft whose body
-    // IS the node's block embed, `![[pathos:nodes/<hash>|<provider>]]`.
-    // The `!` is the point: a bare ref would bloom only on AUTO surfaces
-    // (the feed, the post viewer); the block form shows the player
-    // wherever the post is read. The chip's label is the rule's provider
-    // when one recognized the URL, the host otherwise. Nothing but the
-    // node is minted here — the post waits for the maker. ──
-    const linkPosting = ref(false)
-    const linkToPost = async () => {
-      const u = upload.value
-      if (!u || !canSubmit('link') || isBusy('link')) return
-      const id = u.id
-      linkHint.value = ''
-      linkPosting.value = true
-      store.patchUpload(id, { status: 'busy', busyKind: 'link', errors: [] })
-      try {
-        const provider = linkEmbed.value?.provider || ''
-        const node = await mintLink(u)
-        if (!node?.path) return
-        const label = (provider || node.embed?.provider || hostOf(node.content || '')).replace(/[[\]|]/g, '').trim()
-        const maker = useMakerStore()
-        maker.load()
-        const d = maker.addDraft()
-        maker.patchDraft(d.id, {
-          content: `![[pathos:${node.path}|${label}]]\n`,
-          authorEntityId: u.authorEntityId,
-          labelIds: [...u.labelIds],
-          labels: u.labels.map(l => ({ ...l })),
-          references: [{ address: node.path, primary: label, display: 'mini' }]
-        })
-        store.patchUpload(id, { status: 'idle', busyKind: null })
-        refreshKey.value++
-        const t = store.uploads.find(x => x.id === id)
-        if (t && !hasWork(t)) store.removeUpload(id)
-        if (store.isOpen) store.minimize()
-        // THE SUB-STACK: the hand-off is its own act — the link left this
-        // window for the maker's draft. Deliberately no `created` emit:
-        // MainLayout answers a lone node by navigating to its viewer,
-        // and the post window is where this one is going.
-        try {
-          useNavStore().recordAction('LINK_TO_POST', {
-            targetType: 'node',
-            targetId: node.id ?? null,
-            targetLabel: label,
-            targetPath: node.path
-          })
-        } catch (_) { /* cosmetic */ }
-        maker.open()
-      } catch (e) {
-        linkHint.value = e?.response?.data?.error?.message || e?.message || 'Could not save the link'
-        store.patchUpload(id, { status: 'idle', busyKind: null })
-      } finally {
-        linkPosting.value = false
-      }
-    }
 
     const submit = async (kind) => {
       const u = upload.value
       if (!u || !canSubmit(kind)) return
       const id = u.id
-      linkHint.value = ''
       store.patchUpload(id, { status: 'busy', busyKind: kind, errors: [] })
       try {
-        if (kind === 'link') {
-          const node = await mintLink(u)
-          if (node) finish(id, [node])
-          return
-        }
-
         const files = kind === 'note'
           ? [new File([new Blob([u.noteText], { type: 'text/markdown' })], noteFilename(u.noteText), { type: 'text/markdown' })]
           : u.staged
@@ -897,11 +883,10 @@ export default defineComponent({
         }
       } catch (e) {
         const msg = e?.response?.data?.error?.message || e?.message || 'Something went wrong'
-        if (kind === 'link') linkHint.value = msg
         store.patchUpload(id, {
           status: 'idle',
           busyKind: null,
-          errors: kind === 'link' ? [] : [{ message: msg }]
+          errors: [{ message: msg }]
         })
       }
     }
@@ -931,11 +916,9 @@ export default defineComponent({
       prettySize,
       previewFor,
       previewKindOf,
-      linkHint,
-      linkEmbed,
-      linkPosting,
-      linkToPost,
-      unwrapLinkInput,
+      linkCatches,
+      confirmCatch,
+      dismissCatch,
       isBusy,
       canSubmit,
       filesLabel,
@@ -1086,7 +1069,7 @@ export default defineComponent({
 // card). ──
 .method-stack {
   display: grid;
-  grid-template-rows: 45fr 15fr 40fr;
+  grid-template-rows: 55fr 45fr; // 45/15/40 until the link row folded into the note (2026-10-12)
   gap: 10px;
   flex: 1;
   min-height: 0;
@@ -1173,6 +1156,41 @@ export default defineComponent({
   &.disabled { border-color: rgba(var(--ink-rgb), 0.18); }
 
   :deep(.q-icon) { font-size: 13px; }
+
+  // INVERTED (2026-10-12) — the note's two plates: filled in the contrast
+  // at rest, the outlined plate's face on hover. The disabled wash keeps
+  // the fill, so a dead plate reads as a paler one, not as a vanished one.
+  &--inverted {
+    background: var(--uploader-contrast);
+    color: #fff;
+
+    &:hover {
+      background: #fff;
+      color: var(--uploader-contrast);
+    }
+  }
+}
+
+// ── THE PLATES IN THE CORNER (2026-10-12) — every section's submit
+// plates stand inside its container, bottom-right, over the content: the
+// note's in the well, the files' in the drop frame. ──
+.method__plates {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  z-index: 1;
+  display: flex;
+  gap: 6px;
+}
+
+// ── NOTE — the writing well: the box (or its preview) fills it, the
+// plates float in its corner. ──
+.note-well {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 // ── NOTE — the writing box. ──
@@ -1193,6 +1211,9 @@ export default defineComponent({
   font-family: var(--input-font, inherit);
   font-size: 0.85em;
   line-height: 1.45;
+  // The corner plates' row (22px + the 8px inset) plus a breath — the
+  // last line scrolls clear of them.
+  padding-bottom: 38px;
 
   &::placeholder { color: var(--ink-mute); }
   &:focus { outline: none; border-color: var(--teal-9); }
@@ -1242,7 +1263,7 @@ export default defineComponent({
   flex: 1;
   min-height: 0;
   overflow-y: auto;
-  padding: 8px 10px;
+  padding: 8px 10px 38px;
   border: 1px solid var(--uploader-contrast);
   border-radius: var(--radius-sm);
   background: #fff;
@@ -1270,6 +1291,90 @@ export default defineComponent({
   color: var(--ink-mute);
 }
 
+// ── THE LINK CATCH (2026-10-12) — the NEON teal frame: `--teal-13`
+// (A400, the node family's loud accent) as a 1.5px rim with a `--teal-12`
+// glow, on the field's pale. One row per caught URL under the note box:
+// glyph │ url + provider line │ Add link │ ×. The rows never grow the
+// section past its share — the list scrolls after three. ──
+.link-catches {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex-shrink: 0;
+  max-height: 120px;
+  overflow-y: auto;
+  // Room for the glow — an overflow box clips its children's shadows.
+  padding: 4px;
+  margin: -4px;
+}
+
+.link-catch {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 6px 4px 8px;
+  border: 1.5px solid var(--teal-13);
+  border-radius: var(--radius-md);
+  background: var(--teal-1);
+  box-shadow: 0 0 0 2px rgba(29, 233, 182, 0.18), 0 0 10px rgba(100, 255, 218, 0.45);
+  min-width: 0;
+
+  &.is-error { border-color: var(--q-negative, #c10015); box-shadow: none; }
+}
+
+.link-catch__icon { color: var(--teal-10); flex-shrink: 0; }
+
+.link-catch__text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+  line-height: 1.25;
+}
+
+.link-catch__url {
+  font-family: var(--font-mono);
+  font-size: 0.72em;
+  color: var(--teal-10);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.link-catch__meta {
+  font-size: 0.68em;
+  color: var(--ink-mute);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  .is-error & { color: var(--q-negative, #c10015); }
+}
+
+.link-catch__add {
+  flex-shrink: 0;
+  background: var(--teal-13);
+  color: var(--teal-10);
+  font-weight: 600;
+}
+
+.link-catch__x {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--teal-10);
+  cursor: pointer;
+
+  &:hover:not(:disabled) { background: rgba(0, 77, 64, 0.08); }
+  &:disabled { opacity: 0.35; cursor: default; }
+}
+
 // ── FILES ──
 .method--files { overflow: hidden; }
 
@@ -1282,16 +1387,21 @@ export default defineComponent({
 // caption floating at the top of one.
 .drop-zone {
   flex: 1 1 0;
-  min-height: 56px;
+  // 56px until the Upload plate moved into its corner (2026-10-12): the
+  // hint and the plate's row both have to fit a squeezed zone.
+  min-height: 84px;
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   border: 1px dashed rgba(var(--ink-rgb), 0.3);
   border-radius: var(--radius-md);
-  padding: 10px 12px;
+  padding: 10px 12px 38px;
   text-align: center;
   cursor: pointer;
+
+  .method__plates { cursor: default; }
   background: rgba(255, 255, 255, 0.4);
   transition: border-color 0.15s, background 0.15s;
 
@@ -1478,7 +1588,7 @@ export default defineComponent({
     // its rows overflowed it. Natural height + the scrolling body instead.
     flex: none;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    grid-template-rows: auto auto;
+    grid-template-rows: auto;
     gap: 6px;
     padding: 6px;
   }
@@ -1505,7 +1615,6 @@ export default defineComponent({
   }
   .method--note  { grid-column: 1; grid-row: 1; }
   .method--files { grid-column: 2; grid-row: 1; }
-  .method--link  { grid-column: 1 / -1; grid-row: 2; }
 
   // Half-width cells: quieter type, slimmer drop zone. The note head now
   // carries the mode pills and TWO plates (Post + Save note) — more than a
@@ -1513,7 +1622,16 @@ export default defineComponent({
   .note-box,
   .note-preview { font-size: 0.8em; }
   .method--note .method__head { flex-wrap: wrap; }
-  .drop-zone { padding: 8px; }
+  .drop-zone { padding: 8px 8px 34px; }
   .drop-zone__hint { font-size: 0.68em; }
+
+  // The corner plates TIGHTEN in a half-width cell (2026-10-12): at the
+  // desktop padding the two worded plates were wider than the note's cell
+  // at 375px. (Glyph-only was tried and lost to Quasar's `.block` utility
+  // — `display: block !important` on the label span; tight words fit.)
+  .method__plates { right: 5px; bottom: 5px; gap: 4px; }
+  .method__submit { padding: 3px 5px; }
+  .note-box,
+  .note-preview { padding-bottom: 32px; }
 }
 </style>
