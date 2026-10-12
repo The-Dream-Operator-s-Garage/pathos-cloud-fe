@@ -6,7 +6,8 @@
       v-if="store.isOpen && !store.isMinimized"
       class="uploader-dock dock-window dock-window--creation dock-window--hub"
       :class="{ 'is-max': store.isMaximized, 'is-split-right': windows.splitSideOf('uploader') === 'right' }"
-      :style="{ zIndex: windows.zOf('uploader'), '--dock-right': windows.dockRight + 'px', '--trail-shift': windows.trailShiftOf('uploader') + 'px' }"
+      :data-dock-key="'uploader'"
+      :style="{ zIndex: windows.zOf('uploader'), '--dock-right': windows.dockRight + 'px', '--trail-shift': windows.trailShiftOf('hub') + 'px', '--dock-seat': 'var(--seat-hub)', ...windows.winDragStyle('uploader') }"
     >
       <!-- ── Thin header: title left, Mac-style traffic lights right ──
            THE NAME IS A PLATE (2026-08-26, user ask: the uploader repaints

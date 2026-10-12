@@ -6,7 +6,8 @@
       v-if="store.isOpen && !store.isMinimized"
       class="schema-dock dock-window dock-window--creation"
       :class="{ 'is-max': store.isMaximized }"
-      :style="{ zIndex: windows.zOf('schemaBuilder'), '--dock-right': windows.dockRight + 'px', '--trail-shift': windows.trailShiftOf('schemaBuilder') + 'px' }"
+      :data-dock-key="'schemaBuilder'"
+      :style="{ zIndex: windows.zOf('schemaBuilder'), '--dock-right': windows.dockRight + 'px', '--trail-shift': windows.trailShiftOf('schemaBuilder') + 'px', '--dock-seat': 'var(--seat-schemaBuilder)', ...windows.winDragStyle('schemaBuilder') }"
     >
       <!-- ── Thin header: title left, Mac-style traffic lights right ── -->
       <header class="dock-bar">

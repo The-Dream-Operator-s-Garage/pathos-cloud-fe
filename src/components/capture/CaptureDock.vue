@@ -13,7 +13,8 @@
       v-if="store.isOpen && !store.isMinimized"
       class="capture-dock dock-window dock-window--creation dock-window--hub"
       :class="{ 'is-max': store.isMaximized, 'is-split-right': windows.splitSideOf('capture') === 'right' }"
-      :style="{ zIndex: windows.zOf('capture'), '--dock-right': windows.dockRight + 'px', '--trail-shift': '0px' }"
+      :data-dock-key="'capture'"
+      :style="{ zIndex: windows.zOf('capture'), '--dock-right': windows.dockRight + 'px', '--trail-shift': windows.trailShiftOf('hub') + 'px', '--dock-seat': 'var(--seat-hub)', ...windows.winDragStyle('capture') }"
     >
       <header class="dock-bar">
         <span class="dock-bar__plate">

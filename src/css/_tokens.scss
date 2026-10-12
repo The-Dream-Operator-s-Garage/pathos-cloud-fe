@@ -1121,11 +1121,15 @@ $warning:   #F2C037;
   // ramp the chat window and its bubbles read where they read `--lime-N`
   // (ChatDock.vue, MessageBubble.vue, `.dock-window--chat`, `.minitab--chat`)
   // — the entity family's blue-greys, -10 being `--entity-ink`.
-  --chat-tone-1: #{$blue-grey-1};
-  --chat-tone-2: #cfd8dc; // blue-grey-2 (the SCSS ramp here stops at -1 and -10)
-  --chat-tone-3: #b0bec5; // blue-grey-3
-  --chat-tone-4: #90a4ae; // blue-grey-4
-  --chat-tone-10: #{$blue-grey-10};
+  // ⭐ 2026-10-12 (user ask: "recolor the author and chat windows under the
+  // same color pallette as the general dashboard window") — the ramp now
+  // names the DASHBOARD's levels (`.dock-window--dashboard`): its greys for
+  // fills and lines, its brown inks. The blue-grey readings are in git.
+  --chat-tone-1: var(--grey-3);   // the lit / active fill
+  --chat-tone-2: var(--grey-4);   // the well (= --dock-well)
+  --chat-tone-3: var(--grey-4);   // the hairline (= --dock-rule)
+  --chat-tone-4: var(--brown-4);  // the heavy line + the muted ink (= --dock-ink-mute)
+  --chat-tone-10: var(--brown-8); // the ink (= --dock-ink)
   --identity-head-ink: var(--entity-ink);
   --identity-head-mute: var(--entity-accent);
   --identity-frieze: #{$blue-grey-10};

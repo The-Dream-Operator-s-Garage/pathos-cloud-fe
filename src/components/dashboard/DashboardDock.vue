@@ -64,7 +64,8 @@
       v-if="store.isOpen && !store.isMinimized"
       class="dashboard-dock dock-window dock-window--creation dock-window--dashboard"
       :class="{ 'is-max': store.isMaximized, 'is-edit': store.isEditing }"
-      :style="{ zIndex: windows.zOf('dashboard'), '--dock-right': windows.dockRight + 'px' }"
+      :data-dock-key="'dashboard'"
+      :style="{ zIndex: windows.zOf('dashboard'), '--dock-right': windows.dockRight + 'px', ...windows.winDragStyle('dashboard') }"
     >
       <header class="dock-bar">
         <div class="traffic">

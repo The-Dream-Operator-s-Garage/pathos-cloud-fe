@@ -80,9 +80,14 @@ const TRAIL_KEY = 'pathos_nav_trail'
 // NavHub.vue), so its dock rides no offset (`trailShiftOf('uploader')` is
 // 0) and stands at the footprint's default seat. A saved offset under the
 // old key is simply never read.
-// ⭐ 2026-10-11 eve: `chat` LEFT the slider — its chip stands in the
-// identity section now (NavigationBar `.nav-left`), fixed beside the face.
-export const TRAIL_CHIPS = ['maker', 'schemaBuilder', 'labelMaker']
+// ⭐ 2026-10-11 eve: `chat` LEFT the slider — its chip stood in the
+// identity section (NavigationBar `.nav-left`), fused beside the face.
+// ⭐ 2026-10-12 (user ask: "decouple the chat window and add to it a drag
+// button on the left so i can drag it around the footer nav bar") — chat is
+// a slider chip again, and the NAV HUB joins it (`hub`, user ask: "make the
+// node button draggable by its base"): the hub rides an offset off its
+// centre seat on desktop, the capture + uploader windows riding with it.
+export const TRAIL_CHIPS = ['maker', 'schemaBuilder', 'labelMaker', 'chat', 'hub']
 // ⭐ PINS ALONE SINCE 2026-09-30 — the stack strip moved up into the header
 // rail beside Back (StackPanel) and left the slider with the footer.
 export const TRAIL_STRIPS = ['pins']
@@ -161,6 +166,13 @@ export const useWindowsStore = defineStore('windows', {
     // Per-chip horizontal offsets along the footer trail (px off each chip's
     // flow seat; persisted). See the TRAIL_KEY note above.
     trailOffsets: loadTrailOffsets(),
+    // ⭐ WINDOWS DRAG BY THEIR HEAD BAR (2026-10-12, user ask: "let me drag
+    // any of the button's windows through the header bar"). Per dock key,
+    // `{ x, y }` px off the window's own seat, composed into its CSS
+    // `translate` (`--win-dx` / `--win-dy`, _components.scss). Session-only:
+    // a reload puts every window back on its seat; a double-click on the head
+    // bar does it at once. `utils/dockDrag.js` writes it.
+    winDrag: {},
     // True under MOBILE_MQ — flips the rail reserves off. Kept live by
     // initViewportWatch() (called once from MainLayout).
     isMobile: typeof window !== 'undefined' && window.matchMedia
@@ -193,9 +205,19 @@ export const useWindowsStore = defineStore('windows', {
     // with it. 0 on mobile: the chips and strips lose their grips there and
     // the docks go edge to edge.
     trailShiftOf () {
-      // Only slider bodies ride an offset: a chip that LEFT the slider (chat,
-      // the uploader) may still have one persisted, and must ignore it.
+      // Only slider bodies ride an offset: a chip that LEFT the slider (the
+      // uploader) may still have one persisted, and must ignore it.
       return (key) => (this.isMobile || !TRAIL_KEYS.includes(key) ? 0 : this.trailOffsets[key] || 0)
+    },
+
+    // The two custom properties a dock binds into its inline style — how far
+    // its head bar has dragged it off its seat (`winDrag`). Empty on mobile,
+    // where every dock runs edge to edge.
+    winDragStyle () {
+      return (key) => {
+        const d = this.winDrag[key]
+        return d && !this.isMobile ? { '--win-dx': d.x + 'px', '--win-dy': d.y + 'px' } : {}
+      }
     },
 
     // Which side of the split a window sits on: 'left' | 'right' | null.
@@ -220,6 +242,13 @@ export const useWindowsStore = defineStore('windows', {
     setTrailOffset (key, px) {
       if (!(key in this.trailOffsets)) return
       this.trailOffsets[key] = Math.round(px)
+    },
+
+    setWinDrag (key, x, y) {
+      this.winDrag[key] = { x: Math.round(x), y: Math.round(y) }
+    },
+    clearWinDrag (key) {
+      delete this.winDrag[key]
     },
 
     persistTrail () {

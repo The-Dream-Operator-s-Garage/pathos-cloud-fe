@@ -36,10 +36,26 @@
     ref="rootEl"
     class="nav-hub"
     :class="{ 'is-open': open, 'is-lit': lit, 'is-row': seat === 'row' }"
-    @pointerenter="onEnter"
+    @pointerover="onOver"
     @pointerleave="onLeave"
   >
     <span class="nav-hub__mount" aria-hidden="true" />
+    <!-- ⭐ THE BASE GRIP (2026-10-12, user ask: "make the node button
+         draggable by its base. add to its container base a tiny horizontal
+         drag button and let me drag it"). A `drag_handle` bar in the
+         mount's rectangular base, under the disc: pressing it hands the
+         gesture to the footer slider (`grip-down` → NavigationBar →
+         utils/trailSlider.js, key `hub`) and closes the petals; hovering
+         it never unravels them. Desktop bar seat only (`draggableBase`). -->
+    <span
+      v-if="draggableBase"
+      class="nav-hub__grip"
+      title="Drag along the bar"
+      @pointerdown="onGripDown"
+      @click.stop
+    >
+      <q-icon name="drag_handle" size="12px" />
+    </span>
     <div class="nav-hub__petals" aria-hidden="false">
       <button
         v-for="(p, i) in petals"
@@ -91,9 +107,10 @@ export default defineComponent({
     // chip row — its flow box is then one CHIP tall and the disc hangs off
     // it, so a 46px disc never stretches a 25px row (which would push every
     // chip in the row 7px down through the bar's floor — measured 2026-10-11).
-    seat: { type: String, default: 'bar' }
+    seat: { type: String, default: 'bar' },
+    draggableBase: { type: Boolean, default: false }
   },
-  emits: ['open-capture', 'open-uploader'],
+  emits: ['open-capture', 'open-uploader', 'grip-down'],
   setup (props, { emit }) {
     const rootEl = ref(null)
     const open = ref(false)
@@ -138,7 +155,19 @@ export default defineComponent({
     // the hub stands between two chips, where a pointer crossing the row
     // must not pop the menu on its way to LABELS.
     const hoverable = (e) => e.pointerType === 'mouse' && !windows.isMobile
-    const onEnter = (e) => { if (hoverable(e)) setOpen(true) }
+    // `pointerover` rather than `pointerenter` (2026-10-12): it fires again
+    // when the pointer crosses from the base grip onto the disc, so the
+    // grip can be a dead zone for the hover without stranding the menu.
+    const onGrip = (e) => !!(e.target && e.target.closest && e.target.closest('.nav-hub__grip'))
+    const onOver = (e) => {
+      if (!hoverable(e) || onGrip(e)) return
+      clearLeave()
+      setOpen(true)
+    }
+    const onGripDown = (e) => {
+      setOpen(false)
+      emit('grip-down', e)
+    }
     const onLeave = (e) => {
       if (!hoverable(e)) return
       clearLeave()
@@ -153,7 +182,7 @@ export default defineComponent({
 
     onBeforeUnmount(() => { setOpen(false); clearLeave() })
 
-    return { rootEl, open, petals, petalStyle, toggle, onEnter, onLeave, pick }
+    return { rootEl, open, petals, petalStyle, toggle, onOver, onGripDown, onLeave, pick }
   }
 })
 </script>
@@ -207,6 +236,27 @@ export default defineComponent({
   border-radius: var(--mount-r) var(--mount-r) 0 0;
   background: var(--plaque-flat, #f8f2e4);
   pointer-events: none;
+}
+
+// The base grip: centred in the mount's rectangular base, under the disc
+// (the base's bottom edge is the bar's floor — the mount's own `bottom`).
+.nav-hub__grip {
+  position: absolute;
+  z-index: 3;
+  left: 50%;
+  translate: -50% 0;
+  bottom: calc(var(--hub-foot) + var(--hub-d) / 2 - var(--hub-mount-base) + 1px);
+  width: 22px;
+  height: 9px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--grey-6, #9e9e9e);
+  cursor: grab;
+  touch-action: none;
+  border-radius: 3px;
+  &:hover { color: var(--hub-ink); background: color-mix(in srgb, var(--grey-9) 8%, transparent); }
+  &:active { cursor: grabbing; }
 }
 
 .nav-hub__core {

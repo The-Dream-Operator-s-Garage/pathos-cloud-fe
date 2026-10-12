@@ -26,7 +26,8 @@
       v-if="store.isOpen && !store.isMinimized"
       class="chat-dock dock-window dock-window--creation dock-window--chat"
       :class="{ 'is-max': store.isMaximized, 'is-faces': facesOnly, 'is-list-open': listOverlay }"
-      :style="{ zIndex: windows.zOf('chat'), '--dock-right': windows.dockRight + 'px', '--trail-shift': windows.trailShiftOf('chat') + 'px' }"
+      :data-dock-key="'chat'"
+      :style="{ zIndex: windows.zOf('chat'), '--dock-right': windows.dockRight + 'px', '--trail-shift': windows.trailShiftOf('chat') + 'px', '--dock-seat': 'var(--seat-chat)', ...windows.winDragStyle('chat') }"
     >
       <header class="dock-bar">
         <div class="dock-bar__left">
@@ -713,28 +714,19 @@ export default defineComponent({
 // lightest wave is drawn in, rather than a second lime tone. `flex: 0 0 auto`
 // because the shell is a flex column and a decorative band is the first
 // thing it would squash.
-// The head and the frieze in the IDENTITY window's recipe (2026-10-11 eve —
-// IdentityDock.vue `.identity-dock .dock-bar` / `.flyout-window__frieze`):
-// the head on the window's own coat with the entity ink, the slim frieze on
-// the family's floor (-10) with its wave carved in -8. The sheet is the
-// identity coat too (a `background`, never `--dock-coat` — fsck's witness).
-.chat-dock {
-  background: var(--identity-coat, var(--plaque-coat));
-  border-bottom-left-radius: 0;
-}
-.chat-dock .dock-bar {
-  background: var(--identity-head, var(--identity-coat));
-  border-bottom: 1px solid var(--identity-frieze, #263238);
-}
-.chat-dock .dock-bar__icon,
-.chat-dock .dock-bar__title { color: var(--identity-head-ink, #263238); }
-.chat-dock .dock-bar__meta { color: var(--identity-head-mute, #546e7a); }
-
+// ⭐ THE DASHBOARD'S RECIPE (2026-10-12, user ask: "recolor the author and
+// chat windows under the same color pallette as the general dashboard
+// window"). The identity coat, head and slate frieze of 2026-10-11 eve are
+// gone: the sheet is the creation footprint's `--dock-coat` (the bar's
+// plaque, inherited — not restated), the head is `.dock-window--creation`'s
+// own (coat + `--dock-rule` underline, `--dock-ink` title, `--dock-ink-mute`
+// meta) and the slim frieze is the flyout family's `--grey-9` plate with
+// FriezeBar's default waves — exactly what DashboardDock wears. The dials
+// themselves are `.dock-window--chat`'s (_components.scss), the dashboard's
+// greys + browns via `--chat-tone-*`.
 .chat-dock__frieze {
   flex: 0 0 auto;
-  --frieze-bar-base: var(--identity-frieze, #263238);
-  --frieze-bar-wave-one: var(--identity-frieze-wave, #455a64);
-  --frieze-bar-wave-two: var(--identity-frieze-wave, #455a64);
+  --frieze-bar-base: var(--grey-9);
 }
 
 .dock-bar__left { display: flex; align-items: center; gap: 7px; min-width: 0; }

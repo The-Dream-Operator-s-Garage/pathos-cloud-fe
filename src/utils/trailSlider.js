@@ -21,10 +21,9 @@
 // THE MODEL, unchanged from the slider pass:
 //   · a movable is `translate`d off its FLOW SEAT — the grid never reflows,
 //     the neighbours never move;
-//   · a gesture is clamped ONCE at pointer-down against every other movable
-//     and the two walls, so it blocks at contact and a fast pointer cannot
-//     tunnel through a body between two move events; nothing pushes, nothing
-//     reorders;
+//   · a gesture is clamped against the two walls only; ⭐ since 2026-10-12
+//     bodies PASS THROUGH each other — the others re-seat around the dragged
+//     one (see `startTrailDrag`), so the order is the user's to change;
 //   · the WALLS are the bar's two end cells — the identity section's closing
 //     hairline and the dashboard block's opening one — the only things on
 //     the bar that never move (the strips were walls too until this day);
@@ -34,7 +33,7 @@
 //     changing size.
 import { useWindowsStore, TRAIL_CHIPS } from 'src/stores/windows'
 
-// The five chips register their elements (NavigationBar's `:ref`); the two
+// The chips (and, since 2026-10-12, the nav hub — key `hub`) register their elements (NavigationBar's `:ref`); the two
 // strips are found by selector — each is ONE element with two faces, and
 // only the PARKED face is a body on the bar (the hover-expanded panel is a
 // transient overlay that is neither dragged nor allowed to shove anything).
@@ -45,6 +44,10 @@ const chipEls = {}
 
 // Every body the slider knows, in the bar's own left-to-right order.
 export const TRAIL_MOVABLES = [...TRAIL_CHIPS, 'pins']
+
+// The daylight a body keeps from its neighbour when the drag re-seats it —
+// `.nav-right`'s own flex gap, so a re-seated row reads like the flow one.
+const TRAIL_GAP = 6
 
 export function setTrailChip (key, el) { chipEls[key] = el || null }
 
@@ -90,14 +93,84 @@ export function trailBounds () {
   return { left, right }
 }
 
+// ⭐ A DRAG SESSION (2026-10-12) — the slider's move, separated from the
+// pointer that drives it, so a chip's grip AND its window's head bar can walk
+// the same body (user ask: "if i drag a window across the footer nav bar,
+// its button should be moving along with it"). `beginTrailMove(key)`
+// snapshots the bar; `moveBy(dx)` lays the row out for the dragged body `dx`
+// px off its pointer-down seat and returns the dx it could actually take
+// (the walls hold it); `end()` persists. Null on a phone / unmounted body.
+export function beginTrailMove (key) {
+  const windows = useWindowsStore()
+  if (windows.isMobile) return null
+  const el = trailEl(key)
+  if (!el) return null
+  const startOffset = windows.trailShiftOf(key)
+  const rect = el.getBoundingClientRect()
+  if (!rect.width) return null
+  const bounds = trailBounds()
+  // ⭐ BODIES PASS THROUGH EACH OTHER (2026-10-12, user ask: "make sure i can
+  // drag the draggable items behind each other so they should not stop when
+  // i drag one across another. they just re-accommodate on the other
+  // side"). Only the dragged body is held by the walls; on every move the
+  // OTHERS are laid out around it from their pointer-down seats: a body
+  // whose centre the dragged one's centre has crossed re-seats on the far
+  // side, one touched without being crossed is nudged aside — or, on a row
+  // packed wall to wall, slides BEHIND the dragged one until it is crossed —
+  // and every body returns to its own seat when the drag moves away again.
+  // Each layout is computed from the snapshot, never from the last frame, so
+  // a fast pointer cannot tunnel or strand a body mid-shove.
+  const others = TRAIL_MOVABLES
+    .filter((k) => k !== key)
+    .map((k) => {
+      const r = rectOf(k)
+      return r ? { k, left: r.left, width: r.width, off: windows.trailShiftOf(k) } : null
+    })
+    .filter(Boolean)
+  const w = rect.width
+  const layout = (x) => {
+    const mid = x + w / 2
+    const lefts = others.filter((o) => o.left + o.width / 2 < mid).sort((a, b) => b.left - a.left)
+    const rights = others.filter((o) => o.left + o.width / 2 >= mid).sort((a, b) => a.left - b.left)
+    return { lefts, rights }
+  }
+  const moveBy = (dx) => {
+    const x = Math.min(Math.max(rect.left + dx, bounds.left), bounds.right - w)
+    const { lefts, rights } = layout(x)
+    const seat = {}
+    let edge = x - TRAIL_GAP
+    for (const o of lefts) {
+      seat[o.k] = Math.min(o.left + o.width, edge) - o.width
+      edge = seat[o.k] - TRAIL_GAP
+    }
+    edge = bounds.left
+    for (const o of [...lefts].reverse()) {
+      seat[o.k] = Math.max(seat[o.k], edge)
+      edge = seat[o.k] + o.width + TRAIL_GAP
+    }
+    edge = x + w + TRAIL_GAP
+    for (const o of rights) {
+      seat[o.k] = Math.max(o.left, edge)
+      edge = seat[o.k] + o.width + TRAIL_GAP
+    }
+    edge = bounds.right
+    for (const o of [...rights].reverse()) {
+      seat[o.k] = Math.min(seat[o.k], edge - o.width)
+      edge = seat[o.k] - TRAIL_GAP
+    }
+    for (const o of others) windows.setTrailOffset(o.k, o.off + (seat[o.k] - o.left))
+    windows.setTrailOffset(key, startOffset + (x - rect.left))
+    return x - rect.left
+  }
+  return { moveBy, end: () => windows.persistTrail() }
+}
+
 // Start dragging one body by its grip. `e` is the grip's pointerdown; the
 // grip is `e.currentTarget`. Returns false when there is nothing to drag (a
 // phone, an unmounted body).
 export function startTrailDrag (key, e) {
-  const windows = useWindowsStore()
-  if (windows.isMobile) return false
-  const el = trailEl(key)
-  if (!el) return false
+  const session = beginTrailMove(key)
+  if (!session) return false
   e.preventDefault()
   e.stopPropagation()
   const grip = e.currentTarget
@@ -107,32 +180,12 @@ export function startTrailDrag (key, e) {
   // pointer is the grip, so a strip's hover-expand never fires mid-drag.
   try { grip.setPointerCapture(e.pointerId) } catch (_) { /* older engines — the listeners below still work */ }
   const startX = e.clientX
-  const startOffset = windows.trailShiftOf(key)
-  const rect = el.getBoundingClientRect()
-  const bounds = trailBounds()
-  // Clamp the WHOLE GESTURE once, at pointer-down: the other bodies and the
-  // two walls do not move during this drag, so a min/max pair per direction
-  // blocks at contact and a fast pointer cannot tunnel.
-  let minD = bounds.left - rect.left
-  let maxD = bounds.right - rect.right
-  for (const k of TRAIL_MOVABLES) {
-    if (k === key) continue
-    const o = rectOf(k)
-    if (!o) continue
-    if (o.left >= rect.right) maxD = Math.min(maxD, o.left - rect.right)
-    else if (o.right <= rect.left) minD = Math.max(minD, o.right - rect.left)
-    // A body already overlapping (a stale persisted state) is no wall — the
-    // drag is exactly how the user frees it.
-  }
-  const move = (ev) => {
-    const d = Math.min(Math.max(ev.clientX - startX, minD), maxD)
-    windows.setTrailOffset(key, startOffset + d)
-  }
+  const move = (ev) => { session.moveBy(ev.clientX - startX) }
   const up = () => {
     grip.removeEventListener('pointermove', move)
     grip.removeEventListener('pointerup', up)
     grip.removeEventListener('pointercancel', up)
-    windows.persistTrail()
+    session.end()
   }
   grip.addEventListener('pointermove', move)
   grip.addEventListener('pointerup', up)
@@ -140,14 +193,6 @@ export function startTrailDrag (key, e) {
   return true
 }
 
-// Persisted offsets were measured against SOME OTHER layout — another
-// viewport width, another word gate, another strip width. Reconcile walks
-// the bodies in visual order and shoves any that landed out of bounds or
-// into each other back to legality: one left-to-right pass off the left
-// wall, one right-to-left pass off the right. Returns whether anything
-// moved (it persists when so). NavigationBar calls it after mount, on
-// resize and whenever a parked strip changes size; on a phone there is no
-// slider and nothing to reconcile.
 export function reconcileTrail () {
   const windows = useWindowsStore()
   if (windows.isMobile) return false

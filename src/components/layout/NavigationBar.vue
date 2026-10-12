@@ -66,38 +66,10 @@
         <div class="identity-slot">
           <IdentityChip />
         </div>
-        <!-- ── ⭐ THE CHAT CHIP STICKS TO THE IDENTITY (2026-10-11 eve, user
-             ask: "stick the chat button from the footer nav bar to the
-             entity section on the left end of the footer nav bar"). The
-             MESSAGES chip left the right cluster and the slider: it stands
-             right of the face, inside `.nav-left`, so who you are and who
-             is talking to you read as one section. No grip — it is not a
-             trail chip any more (`TRAIL_CHIPS` lost `chat`); its parked tab
-             still seats over it (`measureChips` measures it apart). ── -->
-        <!-- ⭐ FUSED (2026-10-11 eve, second pass — user ask: "fuse it with
-             the entity section, with the same background color and
-             extending its height to the same whole bar height as the
-             entity section"). Not a chip on the plate any more: a plain
-             full-height CELL of the identity plate itself — the same
-             `--identity-coat`, no rims, no radius, the identity chip's
-             hover (`--grey-3`) and standing-window (`--grey-4`) states.
-             Its window rises above it, in the identity window's colorway
-             (ChatDock.vue). The older chip notes (the word, the glyph) are
-             in git. -->
-        <button
-          type="button"
-          class="chat-btn chat-btn--fused"
-          :class="{ 'is-active': chatExpanded }"
-          title="Chats — private conversations"
-          @click="toggleChat"
-        >
-          <q-icon name="forum" size="19px" />
-          <q-badge
-            v-if="events.unreadCount > 0"
-            floating color="amber-9" text-color="black"
-            class="chat-unread-badge"
-          >{{ events.unreadCount }}</q-badge>
-        </button>
+        <!-- ⭐ THE CHAT CELL FUSED HERE 2026-10-11 eve → 2026-10-12 (user
+             ask: "decouple the chat window and add to it a drag button on
+             the left so i can drag it around the footer nav bar"). It is a
+             slider chip again — `.nav-looks` below. -->
       </div>
 
       <!-- ── CENTER: deliberately EMPTY (2026-08-02). The back/forward pair,
@@ -126,8 +98,12 @@
            `.create-row` note). ── -->
       <NavHub
         v-if="!windows.isMobile"
+        :ref="setChip('hub')"
         class="nav-hub--bar"
+        :style="hubStyle"
+        draggable-base
         :lit="creationExpanded.capture"
+        @grip-down="startChipDrag('hub', $event)"
         @open-capture="$emit('open-capture', $event)"
         @open-uploader="$emit('open-uploader')"
       />
@@ -202,10 +178,13 @@
         <div class="create-row">
         <q-btn unelevated class="nav-btn create-btn create-btn--maker" :class="{ 'is-active': creationExpanded.maker }" :ref="setChip('maker')" :style="chipStyle('maker')" @click="$emit('open-maker')">
           <span class="nav-btn__grip" @pointerdown="startChipDrag('maker', $event)" @click.stop>
-            <q-icon name="drag_indicator" size="11px" />
+            <q-icon name="drag_indicator" size="15px" />
           </span>
           <span class="nav-btn__grip-rule" />
-          <q-icon name="add_circle_outline" size="15px" />
+          <!-- ⭐ 2026-10-12 (user ask: "for the post one use the post icon
+               we use on the post cards") — `sym_o_post`, kinds.js's posts
+               mark, where `add_circle_outline` stood. -->
+          <q-icon name="sym_o_post" size="15px" />
           <span class="nav-btn__label">POST</span>
           <q-tooltip>Make post</q-tooltip>
         </q-btn>
@@ -223,7 +202,7 @@
              SKELETON_BUILDER leaf name stops already written on every trail. -->
         <q-btn unelevated class="nav-btn create-btn create-btn--schemaBuilder" :class="{ 'is-active': creationExpanded.schemaBuilder }" :ref="setChip('schemaBuilder')" :style="chipStyle('schemaBuilder')" @click="$emit('open-schema-builder')">
           <span class="nav-btn__grip" @pointerdown="startChipDrag('schemaBuilder', $event)" @click.stop>
-            <q-icon name="drag_indicator" size="11px" />
+            <q-icon name="drag_indicator" size="15px" />
           </span>
           <span class="nav-btn__grip-rule" />
           <q-icon name="schema" size="15px" />
@@ -240,7 +219,7 @@
         />
         <q-btn unelevated class="nav-btn create-btn create-btn--labelMaker" :class="{ 'is-active': creationExpanded.labelMaker }" :ref="setChip('labelMaker')" :style="chipStyle('labelMaker')" @click="$emit('open-label-maker')">
           <span class="nav-btn__grip" @pointerdown="startChipDrag('labelMaker', $event)" @click.stop>
-            <q-icon name="drag_indicator" size="11px" />
+            <q-icon name="drag_indicator" size="15px" />
           </span>
           <span class="nav-btn__grip-rule" />
           <q-icon name="label" size="15px" />
@@ -295,8 +274,33 @@
              ENDPOINT lives on: `NodeSearchInput.vue` (the dashboard's node
              picker) rides the same FULLTEXT shadow, so the ask took the face
              and left the spine. ── -->
-        <!-- ⭐ THE CHAT CHIP MOVED LEFT (2026-10-11 eve) — it stands in the
-             identity section now (`.nav-left`, above). -->
+        <!-- ⭐ THE CHAT CHIP IS A SLIDER CHIP AGAIN (2026-10-12, user ask:
+             "decouple the chat window and add to it a drag button on the
+             left so i can drag it around the footer nav bar"). The night
+             before it was a cell FUSED into the identity section; it is
+             back on the trail with the makers' grip, its window riding its
+             offset (`--trail-shift`) like theirs. Glyph-only, cream at rest
+             like every chip on the bar. -->
+        <q-btn
+          unelevated no-caps
+          class="nav-btn chat-btn"
+          :class="{ 'is-active': chatExpanded }"
+          :ref="setChip('chat')"
+          :style="chipStyle('chat')"
+          title="Chats — private conversations"
+          @click="toggleChat"
+        >
+          <span class="nav-btn__grip" @pointerdown="startChipDrag('chat', $event)" @click.stop>
+            <q-icon name="drag_indicator" size="15px" />
+          </span>
+          <span class="nav-btn__grip-rule" />
+          <q-icon name="forum" size="17px" />
+          <q-badge
+            v-if="events.unreadCount > 0"
+            floating color="amber-9" text-color="black"
+            class="chat-unread-badge"
+          >{{ events.unreadCount }}</q-badge>
+        </q-btn>
 
         <!-- ── NO DIVIDER HERE ANYMORE (2026-08-24, user ask: "there are
              weird hairlines in between the buttons … make sure each button is
@@ -458,6 +462,7 @@ import { useCaptureStore, captureLabel, MODE_META } from 'src/stores/capture'
 import { pinService } from 'src/services/pin.service'
 import IdentityChip from 'src/components/identity/IdentityChip.vue'
 import NavHub from './NavHub.vue'
+import { installDockDrag } from 'src/utils/dockDrag'
 
 export default defineComponent({
   name: 'NavigationBar',
@@ -566,13 +571,21 @@ export default defineComponent({
     // template note.
     const chipEls = {}
     const setChip = (key) => (inst) => {
-      const el = inst ? (inst.$el || inst) : null
+      let el = inst ? (inst.$el || inst) : null
+      // The hub's BODY on the slider is its mount (the arch + base, 3px wider
+      // than the disc each side) — what a neighbour must not overlap.
+      // (NavHub's template opens with a comment, so its `$el` is a fragment
+      // anchor, not the div — read the component's own `rootEl`.)
+      if (key === 'hub') el = inst && inst.rootEl ? inst.rootEl.querySelector('.nav-hub__mount') : null
       chipEls[key] = el
       setTrailChip(key, el)
     }
     // `translate`, not `transform`: it never collides with a transition class,
     // and it does not disturb the flex/grid layout the chips are seated in.
     const chipStyle = (key) => ({ translate: windows.trailShiftOf(key) + 'px 0' })
+    // The hub's bar seat centres itself with `translate: -50% 0`, so its
+    // slider offset composes onto that instead of replacing it.
+    const hubStyle = computed(() => ({ translate: `calc(-50% + ${windows.trailShiftOf('hub')}px) 0` }))
 
     // The grip's pointerdown → the shared slider (`utils/trailSlider.js`):
     // it captures the pointer on the grip, clamps the whole gesture once
@@ -628,7 +641,27 @@ export default defineComponent({
     // it sits in the grid), and the shift is a live dial on top of it, so a
     // drag needs no re-measurement at all.
     const chipBoxes = ref({})
+    // ⭐ ONE CHIP WIDTH (2026-10-12, user ask: "make all buttons have the
+    // same width as the current widest one and add to them a little padding
+    // on the sides"). The four slider chips (POST · SCHEMAS · LABELS · chat)
+    // drop the shared measure, report their natural widths, and all take the
+    // widest as `--nav-chip-w` on the bar. Only where the words show (≥1024px
+    // — the CSS reads the dial there alone); runs ahead of every measure, so
+    // the tabs and the slider see the equalised boxes.
+    const EQUAL_CHIPS = ['maker', 'schemaBuilder', 'labelMaker', 'chat']
+    const equaliseChips = () => {
+      const bar = document.querySelector('.nav-bar')
+      if (!bar) return
+      bar.style.removeProperty('--nav-chip-w')
+      let widest = 0
+      for (const k of EQUAL_CHIPS) {
+        const el = chipEls[k]
+        if (el && el.offsetWidth) widest = Math.max(widest, el.offsetWidth)
+      }
+      if (widest) bar.style.setProperty('--nav-chip-w', `${Math.ceil(widest)}px`)
+    }
     const measureChips = () => {
+      equaliseChips()
       const next = {}
       for (const k of TRAIL_CHIPS) {
         const el = chipEls[k]
@@ -636,19 +669,19 @@ export default defineComponent({
         const r = el.getBoundingClientRect()
         if (r.width > 0) next[k] = { left: r.left - windows.trailShiftOf(k), width: r.width }
       }
+      // ⭐ EACH WINDOW CENTRES ON ITS BUTTON (2026-10-12, user ask: "make
+      // sure windows all align centered to their button's center"). Every
+      // chip publishes its SEAT's centre (`--seat-<key>`, offset excluded —
+      // the dock adds its own `--trail-shift`); `.dock-window--creation`
+      // reads it through `--dock-seat` (_components.scss).
+      const root = document.documentElement.style
+      for (const k of TRAIL_CHIPS) {
+        const b = next[k]
+        if (b && k !== 'hub') root.setProperty(`--seat-${k}`, `${b.left + b.width / 2}px`)
+      }
       // The dashboard is NOT a trail chip — it became the bar's full-height
       // end block on 2026-09-02 — so it has no ref and no shift. Its tab
       // stands on it all the same: same law, one query.
-      const chat = document.querySelector('.nav-bar .nav-left .chat-btn')
-      if (chat) {
-        const r = chat.getBoundingClientRect()
-        if (r.width > 0) {
-          next.chat = { left: r.left, width: r.width }
-          // The chat window rises from this cell (ChatDock `.dock-window--chat`
-          // desktop seat reads `--chat-cell-left`).
-          document.documentElement.style.setProperty('--chat-cell-left', `${r.left}px`)
-        }
-      }
       const dash = document.querySelector('.nav-bar .dashboard-btn')
       if (dash) {
         const r = dash.getBoundingClientRect()
@@ -675,9 +708,12 @@ export default defineComponent({
         const r = mount.getBoundingClientRect()
         if (r.width > 0) {
           const w = windows.isMobile ? 30 : 72
-          const box = { hub: true, centre: r.left + r.width / 2, rise: bar.getBoundingClientRect().top - r.top, width: w }
+          // The seat, not the painted box: the hub's slider offset is
+          // subtracted here and re-applied by `minitabStyle` (the chips' law).
+          const box = { hub: true, centre: r.left + r.width / 2 - windows.trailShiftOf('hub'), rise: bar.getBoundingClientRect().top - r.top, width: w }
           next.capture = box
           next.uploader = box
+          root.setProperty('--seat-hub', `${box.centre}px`)
         }
       }
       chipBoxes.value = next
@@ -716,7 +752,8 @@ export default defineComponent({
         return {
           left: `${b.centre - span / 2 + Math.max(i, 0) * (b.width + gap)}px`,
           width: `${b.width}px`,
-          bottom: `${Math.round(b.rise) + 2}px`
+          bottom: `${Math.round(b.rise) + 2}px`,
+          translate: `${windows.trailShiftOf('hub')}px 0`
         }
       }
       const width = Math.max(b.width - MINITAB_FLARE * 2, MINITAB_MIN_BODY)
@@ -773,6 +810,11 @@ export default defineComponent({
     }
 
     onMounted(() => {
+      // Every footer button's window drags by its head bar (2026-10-12).
+      installDockDrag()
+      // The words set in a web font: equalise again once it has landed, or
+      // the shared width is the fallback face's (2026-10-12).
+      if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => measureChips())
       refreshPinState()
       // The slider's housekeeping: re-clamp restored offsets once the bar
       // (and the two strips flanking the trail) have painted, again on
@@ -952,6 +994,7 @@ export default defineComponent({
       parkedTabs,
       setChip,
       chipStyle,
+      hubStyle,
       startChipDrag,
       // the hub's two seats pick by the store's 600px gate (NavHub.vue)
       windows
@@ -1859,35 +1902,15 @@ export default defineComponent({
 // content + 1px border = the dial, so the stack strip's
 // `left: var(--nav-id-w)` lands exactly on this line. The `border-right` is that arithmetic, not a
 // section marker — it is one of the two flanks the chip drag clamps against.
-// ⭐ 2026-10-11 eve: the cell holds the identity chip AND the chat chip
-// (user ask), so it sizes to its content: the identity slot keeps
+// ⭐ 2026-10-11 eve: the cell held the identity chip AND the chat chip
+// (user ask; chat left again 2026-10-12), so it sizes to its content: the identity slot keeps
 // `--nav-id-w` on a phone and fits its own content on desktop (≥1024px,
 // beside `.nav-bar .chat-btn` — "reduce the padding of the entity section
 // on its right because there is too much space": the name column no longer
 // fills a fixed 140px), and the chat cell follows, fused (no gap, same coat).
 .nav-left  { gap: 0; padding: 0; border-right: 1px solid var(--brown-3); }
-// THE FUSED CELL: the identity plate continued — full bar height, the
-// identity coat, the identity chip's two states, the entity ink.
-.nav-bar .nav-left .chat-btn--fused {
-  position: relative;
-  flex: 0 0 auto;
-  align-self: stretch;
-  width: 34px;
-  margin: 0;
-  padding: 0;
-  border: 0;
-  border-radius: 0;
-  background: var(--identity-coat, var(--plaque-coat));
-  color: var(--entity-ink, #263238);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  &:hover { background: var(--grey-3); }
-  &.is-active { background: var(--grey-4); }
-  &:focus-visible { outline: 2px solid var(--entity-accent, #546e7a); outline-offset: -2px; }
-  .chat-unread-badge { top: 1px; right: 1px; }
-}
+// (THE FUSED CHAT CELL — `.chat-btn--fused`, the identity plate continued —
+// stood here 2026-10-11 eve → 10-12; chat is a slider chip again.)
 
 // The chip's seat: whatever the (dormant) burger leaves, the whole cell today.
 .identity-slot {
@@ -2082,10 +2105,27 @@ export default defineComponent({
 
 .nav-btn__label { display: none; }
 
+// ⭐ ONE WIDTH, SIDE PADDING, CENTRED FACE (2026-10-12, user ask) — the
+// width is `equaliseChips`' measure; the face (glyph + word) centres in the
+// spare width while the grip keeps the chip's left end.
+@media (min-width: 1024px) {
+  .nav-bar .nav-btn.create-btn,
+  .nav-bar .nav-btn.chat-btn {
+    width: var(--nav-chip-w, auto);
+    padding: 0 9px 0 5px; // the left 5px is the grip's own zone (see `.nav-btn__grip`)
+    // Quasar's content row WRAPS by default — a word measured a hair wider
+    // than its box would drop under the glyph.
+    :deep(.q-btn__content) { flex-wrap: nowrap; }
+    :deep(.q-btn__content) > .q-icon { margin-left: auto; }
+  }
+  .nav-bar .nav-btn.create-btn .nav-btn__label { margin-right: auto; }
+  .nav-bar .nav-btn.chat-btn :deep(.q-btn__content) > .q-icon { margin-right: auto; }
+}
+
 @media (min-width: 1024px) {
   .nav-btn__label {
     display: inline;
-    font-size: 9px;
+    font-size: 10.5px; // 9px until 2026-10-12 ("make their inner font a little bigger")
     line-height: 1;
     letter-spacing: 0.05em;   // the `.nasalization` utility's own tracking
     // The words are the chip's ink, not a second colour on the bar: they take
@@ -2230,10 +2270,14 @@ export default defineComponent({
   // What aqua still says is the one thing it alone can say — THE CHAT DOCK IS
   // STANDING — and a single accent on an otherwise cream bar states that
   // louder than it ever did while the button was coloured at rest.
+  // ⭐ 2026-10-12 (user ask: the chat window "under the same color palette
+  // as the general dashboard window" + the buttons "match the creamy color
+  // of the footer nav bar") — the aqua standing state is gone too: the chip
+  // answers its standing window the way the dashboard button does, the
+  // `--grey-4` face and `--grey-10` ink, on the bar's cream at rest.
   &.is-active {
-    background: var(--aqua-3);
-    color: var(--ink-1);
-    border-color: rgba(var(--ink-rgb-deep), 0.50);
+    background: var(--grey-4);
+    color: var(--grey-10);
   }
 }
 
@@ -2484,12 +2528,20 @@ export default defineComponent({
 // chrome shared with chat and dashboard, and carving it on four chips only
 // would break the one-part-repeated row the previous ask just bought. (The
 // witness reads its glyphs the same structural way, for the same reason.)
-.nav-bar .create-btn {
+// ⭐ THE HANDLE IS CARVED TOO (2026-10-12, user ask: "add to this icon the
+// same 'carved' effect with the subtle shadow as the button's text"). The
+// argument above held while the handle was chrome shared with uncarved
+// chips; every chip that carries a handle (the three makers + chat, a
+// slider chip again the same day) now carves it, so the row still reads as
+// one part repeated — and chat's glyph takes the carve with it.
+.nav-bar .create-btn,
+.nav-bar .chat-btn {
   --chip-carve:
     0 1px 0 rgba(255, 255, 255, 1),
     0 -1px 0 rgba(var(--ink-rgb-deep), 0.25);
 
-  :deep(.q-btn__content) > .q-icon { text-shadow: var(--chip-carve); }
+  :deep(.q-btn__content) > .q-icon,
+  .nav-btn__grip .q-icon { text-shadow: var(--chip-carve); }
 }
 
 .pins-count-badge {

@@ -145,7 +145,11 @@ export default defineComponent({
   // entity family's pale at 40% over the bar's light-cream sheet — so the
   // chip and the window it opens are one material; hover/active keep the
   // dashboard button's two greys (the button-wears-its-window's-tone tie).
-  background: var(--identity-coat, var(--plaque-coat));
+  // ⭐ CREAM SINCE 2026-10-12 (user ask: "recolor the buttons too so they
+  // all match the creamy color of the footer nav bar") — the bar's own
+  // `--plaque-coat`, like the dashboard end cell; the window it opens left
+  // the identity veil the same day.
+  background: var(--plaque-coat);
   cursor: pointer;
   text-align: left;
   min-width: 0;

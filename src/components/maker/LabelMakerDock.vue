@@ -6,7 +6,8 @@
       v-if="store.isOpen && !store.isMinimized"
       class="label-dock dock-window dock-window--creation"
       :class="{ 'is-max': store.isMaximized }"
-      :style="{ zIndex: windows.zOf('labelMaker'), '--dock-right': windows.dockRight + 'px', '--trail-shift': windows.trailShiftOf('labelMaker') + 'px' }"
+      :data-dock-key="'labelMaker'"
+      :style="{ zIndex: windows.zOf('labelMaker'), '--dock-right': windows.dockRight + 'px', '--trail-shift': windows.trailShiftOf('labelMaker') + 'px', '--dock-seat': 'var(--seat-labelMaker)', ...windows.winDragStyle('labelMaker') }"
     >
       <!-- ── Thin header: title left, Mac-style traffic lights right ── -->
       <header class="dock-bar">

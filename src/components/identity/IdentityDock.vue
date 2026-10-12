@@ -51,7 +51,8 @@
     <section
       v-if="identity.isOpen"
       class="identity-dock dock-window"
-      :style="{ zIndex: windows.zOf('identity') }"
+      :data-dock-key="'identity'"
+      :style="{ zIndex: windows.zOf('identity'), ...windows.winDragStyle('identity') }"
     >
       <header class="dock-bar">
         <div class="traffic">
@@ -349,7 +350,7 @@ export default defineComponent({
   // `--light-cream`, so "colorway is lines/wells/ink, never the sheet"
   // holds — the veil is a wash on the sheet, not another sheet. (Was
   // `--plaque-coat`, the bar's own list, 2026-09-11 → this pass.)
-  background: var(--identity-coat, var(--plaque-coat));
+  background: var(--plaque-coat); // ⭐ 2026-10-12: the dashboard's sheet (was `--identity-coat`)
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
   border: 1px solid var(--dock-rule-strong);
@@ -357,6 +358,8 @@ export default defineComponent({
   border-bottom: none;
   border-top-left-radius: 0;
   border-top-right-radius: var(--radius-md);
+  // ⭐ the head-bar drag (2026-10-12, utils/dockDrag.js)
+  translate: var(--win-dx, 0px) var(--win-dy, 0px);
   box-shadow:
     0 -10px 40px rgba(var(--ink-rgb-deep), 0.18),
     5px 0 12px rgba(var(--ink-rgb-deep), 0.16);
@@ -375,24 +378,21 @@ export default defineComponent({
 // reads as a light band then a dark one cut into it. The board's three head
 // dials (`--dock-rule` / `--dock-ink` / `--dock-ink-mute`) still dress the
 // BODY — the wells' rules and the section titles.
+// ⭐ THE DASHBOARD'S HEAD AND FRIEZE (2026-10-12, user ask: "recolor the
+// author and chat windows under the same color pallette as the general
+// dashboard window"): the head on the window's own plaque with the
+// `--grey-4` underline, the brown dial inks; the slim frieze back on
+// `.flyout-window__frieze`'s `--grey-9` plate with FriezeBar's default
+// waves. The blue-grey `--identity-head*` / `--identity-frieze*` recipe of
+// 2026-09-22 PM4c/d is in git (the tokens stay minted, unworn here).
 .identity-dock .dock-bar {
-  background: var(--identity-head, var(--identity-coat));
-  border-bottom: 1px solid var(--identity-frieze, #263238);
+  background: var(--plaque-coat);
+  border-bottom: 1px solid var(--dock-rule);
 }
 
 .identity-dock .dock-bar__icon,
-.identity-dock .dock-bar__title { color: var(--identity-head-ink, #263238); }
-.identity-dock .dock-bar__meta { color: var(--identity-head-mute, #546e7a); text-transform: none; }
-
-// The slim frieze under the head, on the family's FLOOR (-10) with its wave
-// carved in -8 — the "darkest tones" of the ask. `.flyout-window__frieze`
-// gives it the flyout family's grey-9 base; these two dials override it
-// here only (the slim variant draws wave TWO alone; one is set for parity).
-.identity-dock .flyout-window__frieze {
-  --frieze-bar-base: var(--identity-frieze, #263238);
-  --frieze-bar-wave-one: var(--identity-frieze-wave, #455a64);
-  --frieze-bar-wave-two: var(--identity-frieze-wave, #455a64);
-}
+.identity-dock .dock-bar__title { color: var(--dock-ink); }
+.identity-dock .dock-bar__meta { color: var(--dock-ink-mute); text-transform: none; }
 
 .identity-dock__body {
   flex: 1 1 auto;

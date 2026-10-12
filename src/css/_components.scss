@@ -399,6 +399,19 @@
     // they are drawn in — which is the same thing their rim, their word and
     // their parked tab now say.
     color: var(--chip-grip);
+    // ⭐ BIGGER, BOLDER, CENTRED (2026-10-12, user ask: "make the drag icon
+    // bigger and bolder and also center it inside its container between the
+    // hairline and the button edge"). The glyph is 15px (11 before, set in
+    // the templates) with a hairline stroke for weight — Material Icons has
+    // no bold cut — and the grip OWNS the zone from the chip's left rim to
+    // the hairline: it reaches back over the chip's 5px left padding and
+    // pads 4px on the rim side and 2px on the hairline side (the content
+    // row's own 2px gap makes the other 2), so the glyph centres between
+    // the two lines.
+    justify-content: center;
+    margin-left: -5px;
+    padding: 0 2px 0 4px;
+    .q-icon { -webkit-text-stroke: 0.6px currentColor; }
     cursor: grab;
     // Pointer-events drive the drag on touch screens too — without this the
     // browser claims a horizontal swipe for scrolling before the chip moves.
@@ -532,6 +545,15 @@
 }
 
 .dock-bar__icon { color: #00829c; }
+
+// ⭐ THE HEAD BAR IS THE WINDOW'S HANDLE (2026-10-12, utils/dockDrag.js) —
+// a dock that opted in (`data-dock-key`) says so with the cursor, except
+// where it does not move (maximized, split) and on a phone.
+@media (min-width: 601px) {
+  .dock-window[data-dock-key]:not(.is-max):not(.is-split-left):not(.is-split-right) > .dock-bar { cursor: grab; }
+  .dock-window[data-dock-key].is-dragging > .dock-bar { cursor: grabbing; }
+  .dock-window.is-dragging { user-select: none; }
+}
 
 .dock-bar__title {
   font-size: 0.72em;
@@ -796,7 +818,9 @@
   // `left: 50vw`, so the floor is -50vw) and the right edge may not pass the
   // daylight it normally keeps off the pins column (`--dock-right` +
   // `--dock-gap` is exactly that reserve).
-  translate: clamp(-50vw, var(--trail-shift, 0px), calc(var(--dock-right, 0px) + var(--dock-gap))) 0;
+  // ⭐ 2026-10-12: + the head-bar drag (`--win-dx` / `--win-dy`,
+  // utils/dockDrag.js) composed into the same property.
+  translate: calc(clamp(-50vw, var(--trail-shift, 0px), calc(var(--dock-right, 0px) + var(--dock-gap))) + var(--win-dx, 0px)) var(--win-dy, 0px);
   // ── DAYLIGHT OFF THE TOP CHROME, INCLUDING WHAT HANGS OFF IT (2026-08-24,
   // user ask: "make sure they leave a little space between their top border
   // and the header nav bar tabs") ──
@@ -1110,11 +1134,14 @@
   // never painted — it lies on the shell's coat — so the thread now reads on
   // cream while the column beside it stays a green well, which is the same
   // figure/ground step the brown docks have had since the plaque pass.
-  --dock-well: var(--chat-tone-2);
-  --dock-rule: var(--chat-tone-3);
-  --dock-rule-strong: var(--chat-tone-4);
-  --dock-ink: var(--chat-tone-10);
-  --dock-ink-mute: var(--chat-tone-4);
+  // ⭐ 2026-10-12: the DASHBOARD's five dials, to the declaration (user ask:
+  // the chat window "under the same color pallette as the general dashboard
+  // window"); the `--chat-tone-*` ramp the SFCs read names the same levels.
+  --dock-well: var(--grey-4);
+  --dock-rule: var(--grey-4);
+  --dock-rule-strong: var(--grey-5);
+  --dock-ink: var(--brown-8);
+  --dock-ink-mute: var(--brown-4);
 }
 
 // ── CHAT VERTICAL CAP (2026-08-05, user ask: "make it extend only up to 60%
@@ -1261,21 +1288,33 @@
 // its own cap left rounded, `border-top-right-radius`. The nav bar's footer
 // is untouched either way — `bottom: var(--nav-footer-h)` never moves, so
 // maximizing the chat window never covers it.
-// ⭐ THE CHAT WINDOW RISES FROM ITS CELL (2026-10-11 eve, user ask: "when
-// opening the window, we want to make sure the window is displayed on the
-// right side, matching the position of the button"). The button is a cell
-// of the identity plate at the bar's LEFT end now (NavigationBar
-// `.chat-btn--fused`), so on a desk the window stands on it: its left edge
-// on the cell's left edge (`--chat-cell-left`, published by `measureChips`),
-// opening rightward, the creation box's width; bottom-left corner square
-// where it welds to the cell. Max/split keep their own geometry; ≤900px
-// the creation rule runs it edge to edge.
+// (THE CHAT WINDOW ROSE FROM ITS CELL 2026-10-11 eve → 10-12, left edge on
+// the fused identity cell via `--chat-cell-left`. The cell is gone — chat is a
+// slider chip again — and the window centres on it like every other one:
+// see THE WINDOW CENTRES ON ITS BUTTON below.)
+//
+// ⭐ THE WINDOW CENTRES ON ITS BUTTON (2026-10-12, user ask: "make sure
+// windows all align centered to their button's center"). Every chip
+// publishes its seat's centre (`--seat-<key>`, NavigationBar `measureChips`)
+// and its dock binds that as `--dock-seat`; the box keeps the creation
+// width (50vw less the right reserve) and centres on seat + `--trail-shift`,
+// clamped so it never leaves the screen. The hub's two windows read
+// `--seat-hub`. `translate` carries only the head-bar drag now (`--win-dx` /
+// `--win-dy`, utils/dockDrag.js). Not the DASHBOARD: it is anchored to the
+// screen's right edge by its own ask (below), which is where its end-cell
+// button stands anyway. Max/split keep their own geometry; ≤900px the
+// creation rule runs every window edge to edge.
 @media (min-width: 901px) {
-  .dock-window--chat:not(.is-max):not(.is-split-left):not(.is-split-right) {
-    left: var(--chat-cell-left, 0px);
+  .dock-window--creation:not(.dock-window--dashboard):not(.is-max):not(.is-split-left):not(.is-split-right) {
+    --dock-w: calc(50vw - var(--dock-right, 0px) - var(--dock-gap));
+    width: var(--dock-w);
     right: auto;
-    width: calc(50vw - var(--dock-right, 0px) - var(--dock-gap));
-    translate: none;
+    left: clamp(
+      var(--dock-gap),
+      calc(var(--dock-seat, 75vw) + var(--trail-shift, 0px) - var(--dock-w) / 2),
+      calc(100vw - var(--dock-right, 0px) - var(--dock-gap) - var(--dock-w))
+    );
+    translate: var(--win-dx, 0px) var(--win-dy, 0px);
   }
 }
 
@@ -1365,13 +1404,8 @@
 // centre it on the hub: equal left and right insets. `.dock-window--hub`
 // is bound by those two docks only; maximized and split tiling keep
 // their own geometry, and ≤900px the rule below runs them edge to edge.
-@media (min-width: 901px) {
-  .dock-window--creation.dock-window--hub:not(.is-max):not(.is-split-left):not(.is-split-right) {
-    left: calc(25vw + (var(--dock-right, 0px) + var(--dock-gap)) / 2);
-    right: calc(25vw + (var(--dock-right, 0px) + var(--dock-gap)) / 2);
-    translate: none;
-  }
-}
+// (⭐ 2026-10-12: the hub's insets rule that stood here folded into THE
+// WINDOW CENTRES ON ITS BUTTON above — the hub's docks read `--seat-hub`.)
 
 // Narrow screens: the right half is too little window — take the full width
 // and give up the left daylight, exactly as the old per-dock media rules did.
@@ -1380,7 +1414,7 @@
     left: 0;
     border-left: none;
     border-top-left-radius: 0;
-    translate: none;
+    translate: var(--win-dx, 0px) var(--win-dy, 0px); // the head-bar drag (2026-10-12)
   }
 }
 
