@@ -1957,10 +1957,11 @@ $prose: ':where(:not(.pathos-ref-slot *))';
 // ═══════════════════════════════════════════════════════════════════
 @media (max-width: 600px) {
   // ⭐ 2026-10-08: the top rail's row on a phone — a 36px planet (turned, at
-  // the screen's right edge) and 30px perforated grips. On `:root`, not on the
-  // rail, because the stack strip that seats itself between the grips is the
+  // the screen's right edge) and 30px perforated grips. (⭐ 10-12: the 30px
+  // slot is the Back/Forward pair's since the trade — `--media-tabs-pair-w`.) On `:root`, not on the
+  // rail, because the stack strip that seats itself between the pair is the
   // rail's SIBLING (StackPanel) and lays itself out off the same numbers.
-  :root { --media-tabs-hex-w: 36px; --media-tabs-grip-w: 30px; }
+  :root { --media-tabs-hex-w: 36px; --media-tabs-pair-w: 30px; }
   // ⭐ THE TWO FOOTER STRIPS ARE BACK ON A PHONE (2026-09-23, user ask). They
   // hid here from 2026-07-31 to 09-22 ("hover-driven permanent fixtures —
   // both presentations meaningless on a 375px touch screen") and the bar

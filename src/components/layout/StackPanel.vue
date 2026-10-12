@@ -804,9 +804,10 @@ export default defineComponent({
 // While `<html>` wears `is-feed-railed` — the feed page is publishing its two
 // rails' viewport edges, painted as `--feed-rail-ll/lr/rl/rr` by
 // composables/useSeamAnchor — the glass is laid out FROM THEM: it starts
-// `sep + grip + sep` in from the left rail's right edge and ends the same
-// distance before the right rail's left edge. MediaTabsBar's two perforated
-// grips stand in those margins, Back and Forward ON the rails themselves,
+// `sep + pair + sep` in from the left rail's right edge and ends the same
+// distance before the right rail's left edge. (⭐ 2026-10-12: Back and
+// Forward stand in those margins now, the two perforated grips ON the rails
+// — the pieces traded seats, the numbers did not; `grip-w` → `pair-w`.)
 // `--media-tabs-sep` of bare band between every two pieces (_tokens.scss has
 // the row's law). The free seat above — Back's width in, `--stack-head-w`
 // wide, capped at half the screen — is what a page with no feed falls back
@@ -815,8 +816,8 @@ export default defineComponent({
 // wide one). `:root.is-feed-railed` outranks every free-seat rule, the phone
 // block's 45px included — by specificity, so source order cannot undo it.
 :root.is-feed-railed .stack-window {
-  left: calc(var(--feed-rail-lr) + 2 * var(--media-tabs-sep) + var(--media-tabs-grip-w));
-  width: calc(var(--feed-rail-rl) - var(--feed-rail-lr) - 2 * (2 * var(--media-tabs-sep) + var(--media-tabs-grip-w)));
+  left: calc(var(--feed-rail-lr) + 2 * var(--media-tabs-sep) + var(--media-tabs-pair-w));
+  width: calc(var(--feed-rail-rl) - var(--feed-rail-lr) - 2 * (2 * var(--media-tabs-sep) + var(--media-tabs-pair-w)));
   max-width: none;
 }
 .stack-window .dock-bar {

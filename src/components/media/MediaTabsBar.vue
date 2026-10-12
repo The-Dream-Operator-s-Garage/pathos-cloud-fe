@@ -261,7 +261,7 @@
       aria-label="Back"
       @click="goBack"
     >
-      <q-icon name="sym_o_keyboard_double_arrow_left" size="19px" class="media-tabs__glyph" />
+      <q-icon name="sym_o_keyboard_double_arrow_left" size="22px" class="media-tabs__glyph" />
     </button>
     <!-- FORWARD — the pair's other half at the rail's RIGHT end (the ask
          that followed the in-bar move: "add a forward one at the right end
@@ -280,7 +280,7 @@
       aria-label="Forward"
       @click="goForward"
     >
-      <q-icon name="sym_o_keyboard_double_arrow_right" size="19px" class="media-tabs__glyph" />
+      <q-icon name="sym_o_keyboard_double_arrow_right" size="22px" class="media-tabs__glyph" />
     </button>
     <!-- ── ⭐ THE PLANET, RIGHT OF FORWARD — THE RAIL'S HANDLE (2026-10-08, user
          ask: "detach the icon container with the planet from the frieze bar
@@ -345,7 +345,22 @@
          the glass around it is handed to the feed's move (useSeamAnchor
          `shiftSeam` → FeedPage's gesture, captured on this very plate).
          Drawn only while the feed publishes its rails: with no feed there is
-         nothing to move. -->
+         nothing to move.
+         ⭐ 2026-10-12 — THE GRIPS AND THE PAIR TRADE SEATS (user ask: "make
+         the ovals vertical instead of horizontal and exchange them with the
+         << and >> buttons so those buttons are now inside … fit [the oval
+         handles] inside the feed friezebar lips, that … should be extended
+         upwards, from the feed container to the top nav header bar (only
+         extend the lips, not the frieze bar). Also make the lips cast a little
+         subtle shadow over the friezebar. Extend the shadow to the header bar
+         too"). Each plate now stands ON its rail, the rail's own width: the
+         rail's two 2px coat LIPS and its inner rim run on up through the
+         header to y=0, and the glass fills the 13px channel between them
+         (over the header's own band — the vertical frieze does not climb),
+         cut by an UPRIGHT oval. The lips' cast (`--rail-lip-cast`) shades
+         the channel's two edges in both places, the feed rail's band and
+         this plate's glass. Back and Forward took the plates' old slots,
+         `sep` inside the rails, `--media-tabs-pair-w` wide. -->
     <template v-if="onRails">
       <div
         v-for="side in ['l', 'r']"
@@ -1916,7 +1931,7 @@ export default defineComponent({
   bottom: 0;
   display: inline-flex;
   align-items: center;
-  padding: 0 3px; // ⭐ 09-29 EVE: denser — `0 9px` + a 4px gap beside the word until then; the glyph alone, 19px, fills the 21px face
+  padding: 0 2px; // ⭐ 10-12: 22px glyph, 2px a side in the 26px free seat (`0 3px` round the 19px one 09-29 EVE → 10-12; `0 9px` + a 4px gap beside the word before that)
   border: none;
   background: var(--plaque-flat, #f8f2e4);
   color: var(--grey-8, #616161);
@@ -1927,6 +1942,11 @@ export default defineComponent({
 
   &:hover { background: var(--light-cream, #fcf3e0); }
   &:active { background: var(--grey-3, #eeeeee); }
+
+  // ⭐ BOLDER (2026-10-12, user ask: "make their inner icon look bolder and
+  // bigger"): Material Symbols is a variable font (the loaded face spans
+  // wght 100–700), so the weight is the axis, not a different glyph.
+  .media-tabs__glyph { font-variation-settings: 'wght' 700; }
 
   &.is-disabled {
     cursor: default;
@@ -1988,16 +2008,23 @@ export default defineComponent({
 // that) is what the row falls back to on a page with no feed. These selectors
 // outrank every free-seat rule, the phone block's included — by specificity,
 // so source order cannot undo them.
+// ⭐ 2026-10-12 — THE PAIR STEPPED INSIDE (user ask: "exchange [the oval
+// handles] with the << and >> buttons so those buttons are now inside … add to
+// them a little padding on the sides"): Back and Forward stand in the slots the
+// grips held, `sep` in from each rail, `--media-tabs-pair-w` wide (the token the
+// stack strip seats itself off, renamed from `-grip-w` with the trade), rimmed
+// both sides — a plate between two runs of bare band now, not a rail's cap.
+// The grips took the rails (their note below).
 :root.is-feed-railed .media-tabs__back {
-  left: var(--feed-rail-ll);
-  width: calc(var(--feed-rail-lr) - var(--feed-rail-ll));
-  padding: 0;
+  left: calc(var(--feed-rail-lr) + var(--media-tabs-sep));
+  width: var(--media-tabs-pair-w);
+  padding: 0 6px;
   border-left: 1px solid var(--grey-6, #9e9e9e);
 }
 :root.is-feed-railed .media-tabs__forward {
-  left: var(--feed-rail-rl);
-  width: calc(var(--feed-rail-rr) - var(--feed-rail-rl));
-  padding: 0;
+  left: calc(var(--feed-rail-rl) - var(--media-tabs-sep) - var(--media-tabs-pair-w));
+  width: var(--media-tabs-pair-w);
+  padding: 0 6px;
   border-left: 1px solid var(--grey-6, #9e9e9e);
 }
 // THE PLANET — the badge's block (the `.media-tabs__badge` / `__hex` rules
@@ -2035,25 +2062,58 @@ export default defineComponent({
 // paint under the plate, which is the handle. The outer cast the stack's
 // glass wears is left off — a cast under a hole would draw the hole's
 // shadow on the band and give the cut away as paint.
+//
+// ── ⭐ ON THE RAILS, BETWEEN THE LIPS (2026-10-12, user ask — the template's
+// note): each plate is its rail's own box carried up through the header —
+// `left`/`width` off `--feed-rail-*`, the rail's 2px coat a side (`padding` on
+// the coat background: the LIPS) and its 1px `--grey-6` rim on the inner face,
+// the full header height INCLUDING the rim row, so lips and rim meet the feed
+// rail's at y = `--media-tabs-h` without a seam. Only the lips climb: between
+// them the glass lies over the header's own horizontal band, and the oval in
+// it stands UPRIGHT (7×15, was 22×9 lying down). `::after` is the lips' cast —
+// `--rail-lip-cast`, the very shadow `.feed-container__rail::after` lays on the
+// vertical frieze below, so the channel reads shaded the whole way up.
 .media-tabs__grip {
-  --grip-hole-w: 22px;
-  --grip-hole-h: 9px;
+  --grip-hole-w: 7px;
+  --grip-hole-h: 15px;
   pointer-events: auto;
   position: absolute;
   top: 0;
-  width: var(--media-tabs-grip-w);
-  height: var(--media-tabs-band);
+  box-sizing: border-box;
+  height: calc(var(--media-tabs-band) + var(--media-tabs-rim));
+  padding: 0 2px;
+  // The coat on the LIPS only — two 2px stops, the channel left clear so the
+  // header's band reads through the glass (the vertical frieze stays below).
+  // `--plaque-flat`, not `-coat`: a layer list cannot be a gradient stop.
+  background: linear-gradient(90deg,
+    var(--plaque-flat, #f8f2e4) 2px, transparent 2px,
+    transparent calc(100% - 2px), var(--plaque-flat, #f8f2e4) calc(100% - 2px));
   z-index: 1;
   cursor: grab;
   touch-action: none;
   user-select: none;
   &:active { cursor: grabbing; }
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0 2px;
+    pointer-events: none;
+    box-shadow: var(--rail-lip-cast);
+  }
 }
-.media-tabs__grip--l { left: calc(var(--feed-rail-lr) + var(--media-tabs-sep)); }
-.media-tabs__grip--r { left: calc(var(--feed-rail-rl) - var(--media-tabs-sep) - var(--media-tabs-grip-w)); }
+.media-tabs__grip--l {
+  left: var(--feed-rail-ll);
+  width: calc(var(--feed-rail-lr) - var(--feed-rail-ll));
+  border-right: 1px solid var(--grey-6, #9e9e9e);
+}
+.media-tabs__grip--r {
+  left: var(--feed-rail-rl);
+  width: calc(var(--feed-rail-rr) - var(--feed-rail-rl));
+  border-left: 1px solid var(--grey-6, #9e9e9e);
+}
 .media-tabs__grip-glass {
   position: absolute;
-  inset: 0;
+  inset: 0 2px;
   box-sizing: border-box;
   pointer-events: none;
   background: linear-gradient(180deg,
@@ -2062,9 +2122,6 @@ export default defineComponent({
     rgba(252, 243, 224, 0.22) 100%);
   backdrop-filter: blur(1.6px) saturate(1.35);
   -webkit-backdrop-filter: blur(1.6px) saturate(1.35);
-  border: 1px solid rgba(255, 255, 255, 0.45);
-  border-bottom-color: rgba(var(--ink-rgb-deep), 0.25);
-  border-radius: 0 0 5px 5px;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35);
   -webkit-mask-image: radial-gradient(ellipse calc(var(--grip-hole-w) / 2) calc(var(--grip-hole-h) / 2) at 50% 50%, transparent calc(100% - 0.6px), #000 100%);
   mask-image: radial-gradient(ellipse calc(var(--grip-hole-w) / 2) calc(var(--grip-hole-h) / 2) at 50% 50%, transparent calc(100% - 0.6px), #000 100%);
@@ -2093,8 +2150,12 @@ export default defineComponent({
   // H/21)/2), four layers at the desktop's insets), 30px grips with a 16×8
   // hole, the planet's free seat past Forward's. The railed seats are the
   // desktop's rules — they read the rails, not the width.
-  // (the 36px planet and the 30px grips are `:root` tokens in _components.scss's phone block — the stack strip reads them too)
-  .media-tabs__grip { --grip-hole-w: 16px; --grip-hole-h: 8px; }
+  // (the 36px planet and the 30px pair slot are `:root` tokens in _components.scss's phone block — the stack strip reads them too)
+  // ⭐ 2026-10-12: the grips are their rails' width at every size now (the
+  // 16×8 phone hole retired with the trade); the pair's 30px slot keeps 3px
+  // a side round the 22px glyph.
+  :root.is-feed-railed .media-tabs__back,
+  :root.is-feed-railed .media-tabs__forward { padding: 0 3px; }
   // ⭐ 2026-10-08 (the same sitting, user ask: "On mobile only, take the planet
   // icon container and rotate it 90° to the right. Stick it to the very right
   // edge of the header's nav bar, touching the screen"): on a phone the planet

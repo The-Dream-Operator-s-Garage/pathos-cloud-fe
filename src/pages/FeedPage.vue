@@ -1032,6 +1032,25 @@ export default defineComponent({
 .feed-container__rail--l { border-right: 1px solid var(--grey-6, #9e9e9e); }
 .feed-container__rail--r { border-left: 1px solid var(--grey-6, #9e9e9e); }
 
+// ── ⭐ THE LIPS CAST (2026-10-12, user ask: "make the lips cast a little
+// subtle shadow over the friezebar. Extend the shadow to the header bar too")
+// The rail's two 2px coat strips either side of the band are its LIPS; this
+// layer lies over the band alone (`inset: 0 2px` = the padding box less the
+// coat, the rim already outside it) and shades its two edges with
+// `--rail-lip-cast` — the same value MediaTabsBar's grips lay over their
+// glass, where the lips now climb on through the header to y=0 (the band
+// itself does not). An overlay, not the bar's own box-shadow: FriezeBar-
+// Vertical's mask would cut a shadow drawn on it into the motif's shape.
+// `z-index: 1` keeps it over the bar's own `position: relative` paint.
+.feed-container__rail::after {
+  content: '';
+  position: absolute;
+  inset: 0 2px;
+  z-index: 1;
+  pointer-events: none;
+  box-shadow: var(--rail-lip-cast);
+}
+
 // LIT — hovered, or held while the pointer has run off it (which it will for
 // most of any real drag). `rgba(140, 158, 255, …)` is `--indigo-11`, and it is
 // not a new mark: it is the exact ink the post cards' hover and open glows

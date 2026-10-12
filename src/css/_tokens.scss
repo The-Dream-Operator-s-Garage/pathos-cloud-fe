@@ -2614,10 +2614,19 @@ $warning:   #F2C037;
   // the rail's row is laid out from them: Back ON the left rail, Forward ON the
   // right one, and between them `sep · grip · sep · STACK GLASS · sep · grip ·
   // sep` — `--media-tabs-sep` is the bare band showing between every two
-  // pieces, `--media-tabs-grip-w` the width of each perforated glass plate (an
+  // pieces, `--media-tabs-grip-w` (`-pair-w` since 10-12, below) the width of each perforated glass plate (an
   // oval hole in its middle; the glass around it is the handle that drags the
   // feed sideways). The planet badge stands `sep` right of Forward; the feed
   // keeps that much room (badge + sep) free past its right rail.
+  // ⭐ 2026-10-12 THE TRADE (user ask: the oval handles "exchange[d] with the
+  // << and >> buttons so those buttons are now inside", the handles fitted
+  // between the feed rail's LIPS, extended up through the header): the row is
+  // `grip ON the left rail · sep · BACK · sep · STACK GLASS · sep · FORWARD ·
+  // sep · grip ON the right rail`. `--media-tabs-pair-w` (was `-grip-w`) is
+  // the slot each button now fills; the grips take their rail's width.
+  // `--rail-lip-cast` is the shadow the rail's two coat lips throw over the
+  // channel between them — ONE value read by the feed rail (over its frieze)
+  // and the header grip (over its glass), so the channel shades as one.
   // The planet badge's box width rides here too (its height is the rail's
   // face, stated on the rail): the feed's reserve and the rail's row both
   // read it, and ON A PHONE all three — sep's partners — are restated on
@@ -2625,7 +2634,10 @@ $warning:   #F2C037;
   // strip, a sibling of the rail, can read them as readily as the rail can.
   --media-tabs-hex-w: 48px;
   --media-tabs-sep: 4px;
-  --media-tabs-grip-w: 40px;
+  --media-tabs-pair-w: 40px;
+  --rail-lip-cast:
+    inset 2px 0 2px -1px rgba(var(--ink-rgb-deep), 0.30),
+    inset -2px 0 2px -1px rgba(var(--ink-rgb-deep), 0.30);
 
   // The two edge widgets' expanded-height caps, both presentations. They were
   // minted as a 70/30 split of one 90vh right-edge BAND (2026-07-24 — an even
