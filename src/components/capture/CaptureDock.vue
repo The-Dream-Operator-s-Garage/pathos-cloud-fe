@@ -11,7 +11,7 @@
   <transition name="dock-slide">
     <section
       v-if="store.isOpen && !store.isMinimized"
-      class="capture-dock dock-window dock-window--creation"
+      class="capture-dock dock-window dock-window--creation dock-window--hub"
       :class="{ 'is-max': store.isMaximized, 'is-split-right': windows.splitSideOf('capture') === 'right' }"
       :style="{ zIndex: windows.zOf('capture'), '--dock-right': windows.dockRight + 'px', '--trail-shift': '0px' }"
     >

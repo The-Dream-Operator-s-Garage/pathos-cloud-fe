@@ -713,10 +713,28 @@ export default defineComponent({
 // lightest wave is drawn in, rather than a second lime tone. `flex: 0 0 auto`
 // because the shell is a flex column and a decorative band is the first
 // thing it would squash.
+// The head and the frieze in the IDENTITY window's recipe (2026-10-11 eve —
+// IdentityDock.vue `.identity-dock .dock-bar` / `.flyout-window__frieze`):
+// the head on the window's own coat with the entity ink, the slim frieze on
+// the family's floor (-10) with its wave carved in -8. The sheet is the
+// identity coat too (a `background`, never `--dock-coat` — fsck's witness).
+.chat-dock {
+  background: var(--identity-coat, var(--plaque-coat));
+  border-bottom-left-radius: 0;
+}
+.chat-dock .dock-bar {
+  background: var(--identity-head, var(--identity-coat));
+  border-bottom: 1px solid var(--identity-frieze, #263238);
+}
+.chat-dock .dock-bar__icon,
+.chat-dock .dock-bar__title { color: var(--identity-head-ink, #263238); }
+.chat-dock .dock-bar__meta { color: var(--identity-head-mute, #546e7a); }
+
 .chat-dock__frieze {
   flex: 0 0 auto;
-  --frieze-bar-base: var(--lime-10);
-  --frieze-bar-wave-two: var(--brown-1);
+  --frieze-bar-base: var(--identity-frieze, #263238);
+  --frieze-bar-wave-one: var(--identity-frieze-wave, #455a64);
+  --frieze-bar-wave-two: var(--identity-frieze-wave, #455a64);
 }
 
 .dock-bar__left { display: flex; align-items: center; gap: 7px; min-width: 0; }
@@ -741,8 +759,8 @@ export default defineComponent({
   display: flex;
   flex-direction: column;
   min-height: 0;
-  border-right: 1px solid var(--lime-3);
-  background: var(--lime-2);
+  border-right: 1px solid var(--chat-tone-3);
+  background: var(--chat-tone-2);
 }
 
 .chat-dock__list-head {
@@ -754,9 +772,9 @@ export default defineComponent({
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: var(--lime-10);
-  .q-btn { color: var(--lime-10); }
-  .q-btn.is-active { color: var(--lime-10); background: var(--lime-1); }
+  color: var(--chat-tone-10);
+  .q-btn { color: var(--chat-tone-10); }
+  .q-btn.is-active { color: var(--chat-tone-10); background: var(--chat-tone-1); }
 }
 
 .chat-dock__new {
@@ -764,7 +782,7 @@ export default defineComponent({
   flex-direction: column;
   gap: 4px;
   padding: 4px 10px 8px;
-  border-bottom: 1px dashed var(--lime-4);
+  border-bottom: 1px dashed var(--chat-tone-4);
 }
 
 .chat-dock__entity {
@@ -772,15 +790,15 @@ export default defineComponent({
   align-items: center;
   gap: 6px;
   padding: 4px 8px;
-  border: 1px solid var(--lime-3);
+  border: 1px solid var(--chat-tone-3);
   border-radius: 6px;
   background: var(--paper-card, #ffffff);
   font-family: inherit;
   font-size: 0.78em;
   cursor: pointer;
   text-align: left;
-  &:hover { border-color: var(--lime-10); color: var(--lime-10); }
-  .q-icon { color: var(--lime-4); }
+  &:hover { border-color: var(--chat-tone-10); color: var(--chat-tone-10); }
+  .q-icon { color: var(--chat-tone-4); }
 }
 .chat-dock__entity-hash { margin-left: auto; opacity: 0.45; font-size: 0.85em; }
 
@@ -794,9 +812,9 @@ export default defineComponent({
   gap: 4px;
 
   scrollbar-width: thin;
-  scrollbar-color: var(--lime-4) transparent;
+  scrollbar-color: var(--chat-tone-4) transparent;
   &::-webkit-scrollbar       { width: 4px; }
-  &::-webkit-scrollbar-thumb { background: var(--lime-4); border-radius: 2px; }
+  &::-webkit-scrollbar-thumb { background: var(--chat-tone-4); border-radius: 2px; }
 }
 
 // A row is a --lime-1 card on the column's --lime-2 floor (both still lime —
@@ -809,17 +827,17 @@ export default defineComponent({
   flex-direction: column;
   gap: 3px;
   padding: 6px 8px;
-  border: 1px solid var(--lime-3);
+  border: 1px solid var(--chat-tone-3);
   border-radius: 8px;
-  background: var(--lime-1);
+  background: var(--chat-tone-1);
   font-family: inherit;
   cursor: pointer;
   text-align: left;
   transition: border-color 0.12s, background 0.12s;
 
-  &:hover { border-color: var(--lime-4); }
+  &:hover { border-color: var(--chat-tone-4); }
   &.is-active {
-    border-color: var(--lime-4);
+    border-color: var(--chat-tone-4);
     background: var(--paper-card, #ffffff);
   }
 }
@@ -844,7 +862,7 @@ export default defineComponent({
 .chat-row__name {
   font-size: 0.74em;
   font-weight: 700;
-  color: var(--lime-10);
+  color: var(--chat-tone-10);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -869,9 +887,9 @@ export default defineComponent({
   flex: 0 0 auto;
   font-size: 0.6em;
   font-weight: 700;
-  color: var(--lime-10);
-  background: var(--lime-2);
-  border: 1px solid var(--lime-3);
+  color: var(--chat-tone-10);
+  background: var(--chat-tone-2);
+  border: 1px solid var(--chat-tone-3);
   border-radius: 7px;
   padding: 0 4px;
 }
@@ -884,8 +902,8 @@ export default defineComponent({
   letter-spacing: 0.05em;
   padding: 0 5px;
   border-radius: 7px;
-  border: 1px solid var(--lime-4);
-  color: var(--lime-10);
+  border: 1px solid var(--chat-tone-4);
+  color: var(--chat-tone-10);
   flex: 0 0 auto;
   &.is-declined { border-color: rgba(#c10015, 0.45); color: #a5121f; }
 }
@@ -918,15 +936,15 @@ export default defineComponent({
   gap: 8px;
   padding: 8px 14px;
   font-size: 0.82em;
-  border-bottom: 1px solid var(--lime-3);
-  color: var(--lime-10);
-  .q-icon { color: var(--lime-10); }
+  border-bottom: 1px solid var(--chat-tone-3);
+  color: var(--chat-tone-10);
+  .q-icon { color: var(--chat-tone-10); }
 }
 
 .chat-dock__contract-btn {
   margin-left: auto;
-  color: var(--lime-4);
-  &.is-active { color: var(--lime-10); }
+  color: var(--chat-tone-4);
+  &.is-active { color: var(--chat-tone-10); }
 }
 
 .chat-dock__presence {
@@ -962,9 +980,9 @@ export default defineComponent({
   gap: 4px;
 
   scrollbar-width: thin;
-  scrollbar-color: var(--lime-4) transparent;
+  scrollbar-color: var(--chat-tone-4) transparent;
   &::-webkit-scrollbar       { width: 4px; }
-  &::-webkit-scrollbar-thumb { background: var(--lime-4); border-radius: 2px; }
+  &::-webkit-scrollbar-thumb { background: var(--chat-tone-4); border-radius: 2px; }
 }
 
 .chat-dock__composer {
@@ -972,7 +990,7 @@ export default defineComponent({
   align-items: flex-end;
   gap: 8px;
   padding: 10px 14px;
-  border-top: 1px solid var(--lime-3);
+  border-top: 1px solid var(--chat-tone-3);
 
   .q-input { flex: 1; }
   .q-btn { flex-shrink: 0; margin-bottom: 2px; }
@@ -984,10 +1002,10 @@ export default defineComponent({
   gap: 8px;
   padding: 8px 14px;
   font-size: 0.78em;
-  border-bottom: 1px dashed var(--lime-4);
-  background: var(--lime-2);
-  color: var(--lime-10);
-  .q-icon { color: var(--lime-10); }
+  border-bottom: 1px dashed var(--chat-tone-4);
+  background: var(--chat-tone-2);
+  color: var(--chat-tone-10);
+  .q-icon { color: var(--chat-tone-10); }
   span { flex: 1; }
 }
 .chat-dock__gate {

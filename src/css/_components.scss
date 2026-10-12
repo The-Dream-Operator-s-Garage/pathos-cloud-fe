@@ -1094,6 +1094,10 @@
 // worth seeing through the window, and a chat that now covers half the screen
 // (all of it on a phone) is not that.
 .dock-window--chat {
+  // ⭐ 2026-10-11 eve (user ask: "adapt the aesthetic to the entity window,
+  // instead of the greenish tone it currently has"): the dials below read
+  // the `--chat-tone-*` ramp (_tokens.scss) — the entity family's
+  // blue-greys — where they read lime; "green" in the notes below is history.
   // ⚠ THE COAT LEFT THIS COLORWAY (2026-08-26, user ask: all six docks wear
   // the nav bar's cream-under-veil plaque). `--lime-1` was the sheet from the
   // day the window went green; it is now `--plaque-coat`, inherited from
@@ -1106,11 +1110,11 @@
   // never painted — it lies on the shell's coat — so the thread now reads on
   // cream while the column beside it stays a green well, which is the same
   // figure/ground step the brown docks have had since the plaque pass.
-  --dock-well: var(--lime-2);
-  --dock-rule: var(--lime-3);
-  --dock-rule-strong: var(--lime-4);
-  --dock-ink: var(--lime-10);
-  --dock-ink-mute: var(--lime-4);
+  --dock-well: var(--chat-tone-2);
+  --dock-rule: var(--chat-tone-3);
+  --dock-rule-strong: var(--chat-tone-4);
+  --dock-ink: var(--chat-tone-10);
+  --dock-ink-mute: var(--chat-tone-4);
 }
 
 // ── CHAT VERTICAL CAP (2026-08-05, user ask: "make it extend only up to 60%
@@ -1257,6 +1261,24 @@
 // its own cap left rounded, `border-top-right-radius`. The nav bar's footer
 // is untouched either way — `bottom: var(--nav-footer-h)` never moves, so
 // maximizing the chat window never covers it.
+// ⭐ THE CHAT WINDOW RISES FROM ITS CELL (2026-10-11 eve, user ask: "when
+// opening the window, we want to make sure the window is displayed on the
+// right side, matching the position of the button"). The button is a cell
+// of the identity plate at the bar's LEFT end now (NavigationBar
+// `.chat-btn--fused`), so on a desk the window stands on it: its left edge
+// on the cell's left edge (`--chat-cell-left`, published by `measureChips`),
+// opening rightward, the creation box's width; bottom-left corner square
+// where it welds to the cell. Max/split keep their own geometry; ≤900px
+// the creation rule runs it edge to edge.
+@media (min-width: 901px) {
+  .dock-window--chat:not(.is-max):not(.is-split-left):not(.is-split-right) {
+    left: var(--chat-cell-left, 0px);
+    right: auto;
+    width: calc(50vw - var(--dock-right, 0px) - var(--dock-gap));
+    translate: none;
+  }
+}
+
 .dock-window--chat.is-max {
   top: calc(var(--dock-gap) + var(--top-chrome-h, var(--media-tabs-h, 0px)) + var(--media-tabs-park-h, 0px));
   height: auto;
@@ -1332,6 +1354,23 @@
 .dock-window--creation.is-split-left,
 .dock-window--creation.is-split-right {
   translate: none;
+}
+
+// ── THE HUB'S WINDOWS STAND ON THE HUB (2026-10-11 eve, user ask: "for
+// desktop mode specially, when the given window for the upload type is
+// expanded, make sure it appears aligned to the center of the node
+// button"). The capture window and the uploader open from the NAV HUB at
+// the bar's centre (NavHub.vue), not from a chip in the right cluster, so
+// they keep the creation box's WIDTH (50vw less the right reserve) but
+// centre it on the hub: equal left and right insets. `.dock-window--hub`
+// is bound by those two docks only; maximized and split tiling keep
+// their own geometry, and ≤900px the rule below runs them edge to edge.
+@media (min-width: 901px) {
+  .dock-window--creation.dock-window--hub:not(.is-max):not(.is-split-left):not(.is-split-right) {
+    left: calc(25vw + (var(--dock-right, 0px) + var(--dock-gap)) / 2);
+    right: calc(25vw + (var(--dock-right, 0px) + var(--dock-gap)) / 2);
+    translate: none;
+  }
 }
 
 // Narrow screens: the right half is too little window — take the full width

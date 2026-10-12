@@ -1116,6 +1116,16 @@ $warning:   #F2C037;
   // one commit — "nooo".) Before this the head was the shared plaque coat
   // under grey rules and brown ink, the frieze the flyout family's grey-9.
   --identity-head: var(--identity-coat);
+  // ⭐ THE CHAT TONES (2026-10-11 eve, user ask: the chat window "adapt the
+  // aesthetic to the entity window, instead of the greenish tone"): one
+  // ramp the chat window and its bubbles read where they read `--lime-N`
+  // (ChatDock.vue, MessageBubble.vue, `.dock-window--chat`, `.minitab--chat`)
+  // — the entity family's blue-greys, -10 being `--entity-ink`.
+  --chat-tone-1: #{$blue-grey-1};
+  --chat-tone-2: #cfd8dc; // blue-grey-2 (the SCSS ramp here stops at -1 and -10)
+  --chat-tone-3: #b0bec5; // blue-grey-3
+  --chat-tone-4: #90a4ae; // blue-grey-4
+  --chat-tone-10: #{$blue-grey-10};
   --identity-head-ink: var(--entity-ink);
   --identity-head-mute: var(--entity-accent);
   --identity-frieze: #{$blue-grey-10};

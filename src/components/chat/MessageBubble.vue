@@ -56,14 +56,14 @@ export default defineComponent({
   padding: 7px 12px 5px;
   border-radius: 12px 12px 12px 4px;
   background: var(--paper-card, #ffffff);
-  border: 1px solid var(--lime-3);
+  border: 1px solid var(--chat-tone-3);
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
   overflow-wrap: anywhere;
 
   .is-mine & {
     border-radius: 12px 12px 4px 12px;
-    background: var(--lime-2);
-    border-color: var(--lime-4);
+    background: var(--chat-tone-2);
+    border-color: var(--chat-tone-4);
   }
 }
 
@@ -72,7 +72,7 @@ export default defineComponent({
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: var(--lime-10);
+  color: var(--chat-tone-10);
   margin-bottom: 2px;
 }
 

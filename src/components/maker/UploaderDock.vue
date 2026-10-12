@@ -4,7 +4,7 @@
   <transition name="dock-slide">
     <section
       v-if="store.isOpen && !store.isMinimized"
-      class="uploader-dock dock-window dock-window--creation"
+      class="uploader-dock dock-window dock-window--creation dock-window--hub"
       :class="{ 'is-max': store.isMaximized, 'is-split-right': windows.splitSideOf('uploader') === 'right' }"
       :style="{ zIndex: windows.zOf('uploader'), '--dock-right': windows.dockRight + 'px', '--trail-shift': windows.trailShiftOf('uploader') + 'px' }"
     >

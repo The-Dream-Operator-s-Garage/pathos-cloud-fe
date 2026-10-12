@@ -80,7 +80,9 @@ const TRAIL_KEY = 'pathos_nav_trail'
 // NavHub.vue), so its dock rides no offset (`trailShiftOf('uploader')` is
 // 0) and stands at the footprint's default seat. A saved offset under the
 // old key is simply never read.
-export const TRAIL_CHIPS = ['maker', 'schemaBuilder', 'labelMaker', 'chat']
+// ⭐ 2026-10-11 eve: `chat` LEFT the slider — its chip stands in the
+// identity section now (NavigationBar `.nav-left`), fixed beside the face.
+export const TRAIL_CHIPS = ['maker', 'schemaBuilder', 'labelMaker']
 // ⭐ PINS ALONE SINCE 2026-09-30 — the stack strip moved up into the header
 // rail beside Back (StackPanel) and left the slider with the footer.
 export const TRAIL_STRIPS = ['pins']
@@ -191,7 +193,9 @@ export const useWindowsStore = defineStore('windows', {
     // with it. 0 on mobile: the chips and strips lose their grips there and
     // the docks go edge to edge.
     trailShiftOf () {
-      return (key) => (this.isMobile ? 0 : this.trailOffsets[key] || 0)
+      // Only slider bodies ride an offset: a chip that LEFT the slider (chat,
+      // the uploader) may still have one persisted, and must ignore it.
+      return (key) => (this.isMobile || !TRAIL_KEYS.includes(key) ? 0 : this.trailOffsets[key] || 0)
     },
 
     // Which side of the split a window sits on: 'left' | 'right' | null.

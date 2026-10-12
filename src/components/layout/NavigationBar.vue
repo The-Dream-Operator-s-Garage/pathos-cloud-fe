@@ -66,6 +66,38 @@
         <div class="identity-slot">
           <IdentityChip />
         </div>
+        <!-- ── ⭐ THE CHAT CHIP STICKS TO THE IDENTITY (2026-10-11 eve, user
+             ask: "stick the chat button from the footer nav bar to the
+             entity section on the left end of the footer nav bar"). The
+             MESSAGES chip left the right cluster and the slider: it stands
+             right of the face, inside `.nav-left`, so who you are and who
+             is talking to you read as one section. No grip — it is not a
+             trail chip any more (`TRAIL_CHIPS` lost `chat`); its parked tab
+             still seats over it (`measureChips` measures it apart). ── -->
+        <!-- ⭐ FUSED (2026-10-11 eve, second pass — user ask: "fuse it with
+             the entity section, with the same background color and
+             extending its height to the same whole bar height as the
+             entity section"). Not a chip on the plate any more: a plain
+             full-height CELL of the identity plate itself — the same
+             `--identity-coat`, no rims, no radius, the identity chip's
+             hover (`--grey-3`) and standing-window (`--grey-4`) states.
+             Its window rises above it, in the identity window's colorway
+             (ChatDock.vue). The older chip notes (the word, the glyph) are
+             in git. -->
+        <button
+          type="button"
+          class="chat-btn chat-btn--fused"
+          :class="{ 'is-active': chatExpanded }"
+          title="Chats — private conversations"
+          @click="toggleChat"
+        >
+          <q-icon name="forum" size="19px" />
+          <q-badge
+            v-if="events.unreadCount > 0"
+            floating color="amber-9" text-color="black"
+            class="chat-unread-badge"
+          >{{ events.unreadCount }}</q-badge>
+        </button>
       </div>
 
       <!-- ── CENTER: deliberately EMPTY (2026-08-02). The back/forward pair,
@@ -263,48 +295,8 @@
              ENDPOINT lives on: `NodeSearchInput.vue` (the dashboard's node
              picker) rides the same FULLTEXT shadow, so the ask took the face
              and left the spine. ── -->
-        <q-btn
-          unelevated no-caps
-          class="nav-btn chat-btn"
-          :class="{ 'is-active': chatExpanded }"
-          :ref="setChip('chat')"
-          :style="chipStyle('chat')"
-          title="Chats — private conversations"
-          @click="toggleChat"
-        >
-          <!-- ⭐ THE WORD IS BACK — AND ON DESKTOP ONLY (2026-08-23, user ask
-               naming all six: chat → "MESSAGES"). It went icon-only on
-               2026-08-02 for a reason that still holds and is exactly why the
-               media query is here: the word "chat" said nothing the forum
-               glyph does not, and the bar has to hold this cluster inside a
-               375px screen. What changed is that the ask names a DIFFERENT
-               word — MESSAGES, the thing the unread badge counts, not the
-               window's name — and gates it to the width that can spend the
-               pixels. Below the gate the title/tooltip still carries it. -->
-          <!-- ⚠ GLYPH ONLY AGAIN, AND AS BIG AS THE CHIP ALLOWS (2026-08-24,
-               user ask: "only from messages and dashboard ones, remove their
-               inner text and leave the big icons only. make the icons as big
-               as possible inside their containeres, removing inner padding on
-               top and bottom"). MESSAGES lasted a day. The size is not a
-               taste pick — it is the chip's whole CONTENT height: 21px while
-               the top and bottom rims were gone, 19px again since 2026-08-30
-               put the full frame back (`.nav-btn` in _components.scss;
-               border-box pays the two rims out of the 21px box), so the glyph
-               still fills the chip corner to corner with nothing left to
-               remove. The four MAKERS keep their words; these two are the
-               LOOKERS, and the row now says four labelled makers, two bare
-               windows. -->
-          <span class="nav-btn__grip" @pointerdown="startChipDrag('chat', $event)" @click.stop>
-            <q-icon name="drag_indicator" size="11px" />
-          </span>
-          <span class="nav-btn__grip-rule" />
-          <q-icon name="forum" size="17px" />
-          <q-badge
-            v-if="events.unreadCount > 0"
-            floating color="amber-9" text-color="black"
-            class="chat-unread-badge"
-          >{{ events.unreadCount }}</q-badge>
-        </q-btn>
+        <!-- ⭐ THE CHAT CHIP MOVED LEFT (2026-10-11 eve) — it stands in the
+             identity section now (`.nav-left`, above). -->
 
         <!-- ── NO DIVIDER HERE ANYMORE (2026-08-24, user ask: "there are
              weird hairlines in between the buttons … make sure each button is
@@ -436,7 +428,7 @@
         :key="t.key"
         type="button"
         class="minitab"
-        :class="'minitab--' + t.key"
+        :class="['minitab--' + t.key, { 'minitab--hub': t.key === 'capture' || t.key === 'uploader' }]"
         :style="minitabStyle(t.key)"
         :title="t.title"
         @click="t.restore"
@@ -647,6 +639,16 @@ export default defineComponent({
       // The dashboard is NOT a trail chip — it became the bar's full-height
       // end block on 2026-09-02 — so it has no ref and no shift. Its tab
       // stands on it all the same: same law, one query.
+      const chat = document.querySelector('.nav-bar .nav-left .chat-btn')
+      if (chat) {
+        const r = chat.getBoundingClientRect()
+        if (r.width > 0) {
+          next.chat = { left: r.left, width: r.width }
+          // The chat window rises from this cell (ChatDock `.dock-window--chat`
+          // desktop seat reads `--chat-cell-left`).
+          document.documentElement.style.setProperty('--chat-cell-left', `${r.left}px`)
+        }
+      }
       const dash = document.querySelector('.nav-bar .dashboard-btn')
       if (dash) {
         const r = dash.getBoundingClientRect()
@@ -659,14 +661,23 @@ export default defineComponent({
       // the right (the petals' own order, camera-side and upload-side). The
       // seats are virtual boxes derived from the hub's measured rect, so
       // they follow it between its desktop and phone seats.
-      const hub = document.querySelector('.nav-bar .nav-hub')
-      if (hub) {
-        const r = hub.getBoundingClientRect()
+      //
+      // ⭐ ON TOP OF THE MOUNT (2026-10-11 eve, user ask: "for the tab when
+      // minimized, make the tab be on top of the button container, with a
+      // rounded appearance too"). The flanks are gone: the two tabs stand on
+      // the hub's cream arch (NavHub.vue `.nav-hub__mount`) as PILLS, the
+      // box carrying `hub` + `rise` (how far the arch's top stands over the
+      // bar's top edge, where the strip's floor is). `minitabStyle` centres
+      // whichever of the two are parked on the arch's axis.
+      const mount = document.querySelector('.nav-bar .nav-hub__mount')
+      const bar = document.querySelector('.nav-bar')
+      if (mount && bar) {
+        const r = mount.getBoundingClientRect()
         if (r.width > 0) {
           const w = windows.isMobile ? 30 : 72
-          const gap = windows.isMobile ? 3 : 8
-          next.capture = { left: r.left - gap - w, width: w }
-          next.uploader = { left: r.right + gap, width: w }
+          const box = { hub: true, centre: r.left + r.width / 2, rise: bar.getBoundingClientRect().top - r.top, width: w }
+          next.capture = box
+          next.uploader = box
         }
       }
       chipBoxes.value = next
@@ -694,6 +705,20 @@ export default defineComponent({
       // the tab keeps its place in the strip's flow fallback instead of
       // jumping to x=0. `visibility`, not `display`, so it still measures.
       if (!b) return { position: 'relative', visibility: 'hidden' }
+      if (b.hub) {
+        // The pills sit side by side on the arch's axis, capture left and
+        // uploader right (the petals' order), 3px apart and 2px over the
+        // arch's crown; one alone stands centred on it.
+        const seated = parkedTabs.value.filter((t) => t.key === 'capture' || t.key === 'uploader')
+        const i = seated.findIndex((t) => t.key === key)
+        const gap = 3
+        const span = seated.length * b.width + (seated.length - 1) * gap
+        return {
+          left: `${b.centre - span / 2 + Math.max(i, 0) * (b.width + gap)}px`,
+          width: `${b.width}px`,
+          bottom: `${Math.round(b.rise) + 2}px`
+        }
+      }
       const width = Math.max(b.width - MINITAB_FLARE * 2, MINITAB_MIN_BODY)
       return {
         // `(chip − body) / 2` IS the flare whenever the floor doesn't bite.
@@ -1246,6 +1271,27 @@ export default defineComponent({
   --mtab-rim-ink: var(--uploader-contrast);
   --mtab-ink: var(--teal-10);
 }
+// ⭐ THE HUB'S TABS ARE PILLS ON THE MOUNT (2026-10-11 eve): the two
+// windows the hub opens park ON TOP of its cream arch (`minitabStyle`
+// seats them), not on the bar's edge — so they do not flow into anything
+// and wear no flares: a full rim, all four corners round, the lip all the
+// way round. Hover lifts a pixel instead of growing the top padding (a
+// pill that grows from its floor would sink into the arch).
+.minitab.minitab--hub {
+  border-bottom: var(--minitab-rim) solid var(--mtab-edge);
+  border-radius: 999px;
+  padding: 2px 8px;
+  height: 20px;
+  box-shadow:
+    inset 0 0 0 1px var(--mtab-edge-lip),
+    0 0 0 1px var(--mtab-edge-rim),
+    0 2px 6px -3px color-mix(in srgb, var(--grey-9) 55%, transparent);
+  &::before,
+  &::after { display: none; }
+  &:hover { padding-top: 2px; transform: translateY(-1px); }
+  &:active { transform: translateY(0); }
+}
+
 // ⚠ CHAT AND THE DASHBOARD ARE THE TWO WINDOWS WITH NO SHEET OF THEIR OWN —
 // the one-plaque law's remaining two — so their tabs keep the bar's
 // `--plaque-flat` face and state their colorway in the rim and ink alone.
@@ -1253,8 +1299,10 @@ export default defineComponent({
 // the bar's material, and a tab that invented a sheet for them would say
 // something about the window that is not true.
 .minitab--chat {
-  --mtab-rim-ink: var(--lime-4);
-  --mtab-ink: var(--lime-10);
+  // 2026-10-11 eve: the chat window wears the IDENTITY colorway now.
+  --mtab-face: var(--chat-tone-1);
+  --mtab-rim-ink: var(--chat-tone-4);
+  --mtab-ink: var(--chat-tone-10);
 }
 .minitab--dashboard {
   --mtab-rim-ink: var(--grey-6);
@@ -1811,11 +1859,40 @@ export default defineComponent({
 // content + 1px border = the dial, so the stack strip's
 // `left: var(--nav-id-w)` lands exactly on this line. The `border-right` is that arithmetic, not a
 // section marker — it is one of the two flanks the chip drag clamps against.
-.nav-left  { gap: 0; padding: 0; width: var(--nav-id-w); border-right: 1px solid var(--brown-3); }
+// ⭐ 2026-10-11 eve: the cell holds the identity chip AND the chat chip
+// (user ask), so it sizes to its content: the identity slot keeps
+// `--nav-id-w` on a phone and fits its own content on desktop (≥1024px,
+// beside `.nav-bar .chat-btn` — "reduce the padding of the entity section
+// on its right because there is too much space": the name column no longer
+// fills a fixed 140px), and the chat cell follows, fused (no gap, same coat).
+.nav-left  { gap: 0; padding: 0; border-right: 1px solid var(--brown-3); }
+// THE FUSED CELL: the identity plate continued — full bar height, the
+// identity coat, the identity chip's two states, the entity ink.
+.nav-bar .nav-left .chat-btn--fused {
+  position: relative;
+  flex: 0 0 auto;
+  align-self: stretch;
+  width: 34px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: var(--identity-coat, var(--plaque-coat));
+  color: var(--entity-ink, #263238);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  &:hover { background: var(--grey-3); }
+  &.is-active { background: var(--grey-4); }
+  &:focus-visible { outline: 2px solid var(--entity-accent, #546e7a); outline-offset: -2px; }
+  .chat-unread-badge { top: 1px; right: 1px; }
+}
 
 // The chip's seat: whatever the (dormant) burger leaves, the whole cell today.
 .identity-slot {
-  flex: 1 1 auto;
+  flex: 0 0 var(--nav-id-w);
+  width: var(--nav-id-w);
   min-width: 0;
   align-self: stretch;
   display: flex;
@@ -1885,25 +1962,28 @@ export default defineComponent({
 .nav-center { min-width: 0; }
 
 // ── THE HUB'S TWO SEATS (2026-10-11) ──────────────────────────────────
-// Desktop: absolute at the bar's horizontal centre, foot 1px over the
-// floor, so the 52px disc rises ~20px above the 32px bar — over the
-// chrome AND over the parked tabs' strip (this bar is 3110, the strip
-// 3045). `z-index: 5` lifts it over the chips and the lane paint
-// (`.nav-bar::before` is -1 inside the bar's own isolated context).
+// Desktop: absolute at the bar's horizontal centre with the disc's CENTRE
+// on the bar's top edge (⭐ eve: THE MOUNT — the 40px disc's cream arch,
+// NavHub.vue, drops its rectangular base from there to this bar's floor),
+// so the mount rises 23px above the 32px bar — over the chrome AND over
+// the parked tabs' strip (this bar is 3110, the strip 3045). `z-index: 5`
+// lifts it over the chips and the lane paint (`.nav-bar::before` is -1
+// inside the bar's own isolated context).
 .nav-hub--bar {
   position: absolute;
   left: 50%;
-  bottom: 1px;
+  bottom: calc(var(--nav-bar-h) - var(--hub-d) / 2);
   translate: -50% 0;
   z-index: 5;
 }
 // Phone: in the chip row (see the template) as a CHIP-TALL flow box the
 // disc hangs off (`seat="row"`, NavHub.vue) — a 46px item in a 25px row
 // would stretch the row and push every chip 7px through the bar's floor.
+// ⭐ eve: 46 → 36px, the mount's arch around it (NavHub.vue).
 .nav-hub--row {
-  --hub-d: 46px;
+  --hub-d: 36px;
   z-index: 5;
-  margin: 0 2px;
+  margin: 0 5px; // the mount reaches 3px past the disc each side
 }
 
 // ⚠ ONE WEARER LEFT (2026-08-24): the hairline before the TACK SLOT, and it is
@@ -2107,6 +2187,10 @@ export default defineComponent({
 
 // Chat — the conversation window's button. Aqua treatment on purpose:
 // this is where entities talk, not another maker pebble.
+@media (min-width: 1024px) {
+  .identity-slot { flex: 0 0 auto; width: auto; max-width: var(--nav-id-w); }
+}
+
 .nav-bar .chat-btn {
   flex-shrink: 0;
 

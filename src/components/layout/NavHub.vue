@@ -19,7 +19,19 @@
        A click on the core toggles on every pointer kind — the phone's
        "press", and a touch laptop's. Outside taps and Escape close it. The
        glyph is `adjust` — kinds.js's node mark — because every petal mints a
-       NODE. ── -->
+       NODE.
+
+       ⭐ THE MOUNT (2026-10-11 eve, user ask: "put it inside a container
+       that is the same color as the footer nav bar, but that surrounds the
+       circular node button and also ends up in a rectangular basis that
+       fits inside the footer nav bar … make the node button tinier by
+       making it a little denser and the icon a little bigger"). The disc
+       went 52 → 40px with the glyph 28 → 32px, and it sits in a cream
+       ARCH — the bar's own `--plaque-flat` and `--grey-6` lip — concentric
+       with the disc above the bar's top edge, its straight sides dropping
+       into a rectangle exactly the bar's height. The bar's lip breaks
+       around the mount and the mount's outline carries it up and over,
+       so the hub reads as the bar rising to hold the button. ── -->
   <div
     ref="rootEl"
     class="nav-hub"
@@ -27,6 +39,7 @@
     @pointerenter="onEnter"
     @pointerleave="onLeave"
   >
+    <span class="nav-hub__mount" aria-hidden="true" />
     <div class="nav-hub__petals" aria-hidden="false">
       <button
         v-for="(p, i) in petals"
@@ -49,7 +62,7 @@
       :aria-expanded="open ? 'true' : 'false'"
       @click.stop="toggle"
     >
-      <q-icon name="adjust" size="28px" class="nav-hub__glyph" />
+      <q-icon name="adjust" class="nav-hub__glyph" />
     </button>
   </div>
 </template>
@@ -150,9 +163,18 @@ export default defineComponent({
 // = teal-7 rim, teal-10 word/glyph, teal-3 glow, teal-1 pale), the chips'
 // cream face (`--plaque-flat`), the chips' carve. A host seats the hub
 // (NavigationBar: absolute at the bar's centre on desktop, in the chip row
-// on a phone) and may redial `--hub-d` (the core's diameter).
+// on a phone) and may redial `--hub-d` (the core's diameter) and
+// `--hub-foot` (the core's bottom inside the hub's box — 0 at the bar seat,
+// where the box IS the disc).
 .nav-hub {
-  --hub-d: 52px;
+  --hub-d: 40px;
+  --hub-foot: 0px;
+  // THE MOUNT's dials: the ring of cream around the disc, and the depth of
+  // its rectangular base below the disc's centre — one bar, so the base's
+  // floor is the bar's floor whenever the host puts the disc's centre on
+  // the bar's top edge (both seats do).
+  --hub-mount-pad: 3px;
+  --hub-mount-base: var(--nav-bar-h, 32px);
   --hub-petal-d: 34px;
   --hub-rim: var(--uploader-contrast, #00897b);
   --hub-ink: var(--teal-10, #004d40);
@@ -163,6 +185,28 @@ export default defineComponent({
   width: var(--hub-d);
   height: var(--hub-d);
   flex: 0 0 auto;
+}
+
+// THE MOUNT — the bar's own coat and lip, shaped as an arch over a box:
+// a half-round top concentric with the disc (radius = disc + pad), straight
+// sides from the disc's centre down, no floor rule (it stands ON the bar's
+// floor). It is opaque, so it also covers the bar's lip and the lane's
+// open rows under it — a cell wearing its own coat, like every chip.
+.nav-hub__mount {
+  --mount-r: calc(var(--hub-d) / 2 + var(--hub-mount-pad));
+  position: absolute;
+  z-index: 0;
+  left: 50%;
+  translate: -50% 0;
+  bottom: calc(var(--hub-foot) + var(--hub-d) / 2 - var(--hub-mount-base));
+  width: calc(var(--mount-r) * 2);
+  height: calc(var(--mount-r) + var(--hub-mount-base));
+  box-sizing: border-box;
+  border: 1px solid var(--grey-6, #9e9e9e);
+  border-bottom: 0;
+  border-radius: var(--mount-r) var(--mount-r) 0 0;
+  background: var(--plaque-flat, #f8f2e4);
+  pointer-events: none;
 }
 
 .nav-hub__core {
@@ -186,7 +230,14 @@ export default defineComponent({
     0 0 0 1px color-mix(in srgb, var(--grey-9) 30%, transparent),
     0 2px 8px -2px color-mix(in srgb, var(--grey-9) 55%, transparent);
   transition: background 0.16s, color 0.16s, border-color 0.16s, box-shadow 0.16s, transform 0.16s;
-  .nav-hub__glyph { text-shadow: var(--chip-carve, none); transition: text-shadow 0.16s; }
+  // The glyph is 80% of the disc (32px on the 40px bar disc, ~29 on the
+  // phone's 36) — the denser disc carries a BIGGER mark than the 52px
+  // one did (28px, 54%): the disc is mostly node now, little cream ring.
+  .nav-hub__glyph {
+    font-size: calc(var(--hub-d) * 0.8);
+    text-shadow: var(--chip-carve, none);
+    transition: text-shadow 0.16s;
+  }
   &:hover { border-color: var(--hub-ink); }
   &:active { transform: scale(0.96); }
   &:focus-visible { outline: 2px solid var(--hub-glow); outline-offset: 2px; }
@@ -267,24 +318,26 @@ export default defineComponent({
 }
 
 // THE ROW SEAT: the flow box is chip-height and `--hub-d` wide; the disc
-// is absolute inside it with its foot 3px under the row's floor — the row
-// is centred in the 32px bar with 3.5px to spare, so the foot meets the
-// bar's floor and nothing hangs below the screen. The petals' origin
-// follows the disc's centre.
+// is absolute inside it, raised by `--hub-foot` so its CENTRE lands on the
+// bar's top edge as at the desktop seat (the row is centred in the 32px
+// bar with ~3px to spare below it: centre = bar − 3px above the row's
+// floor). The mount then reaches the bar's floor and nothing hangs below
+// the screen. The petals' origin follows the disc's centre.
 .nav-hub.is-row {
+  --hub-foot: calc(var(--nav-bar-h, 32px) - 3px - var(--hub-d) / 2);
   height: var(--nav-chip-h, 25px);
   .nav-hub__core {
     position: absolute;
     left: 0;
-    bottom: -3px;
+    bottom: var(--hub-foot);
   }
   .nav-hub__petals {
     top: auto;
-    bottom: calc(var(--hub-d) / 2 - 3px);
+    bottom: calc(var(--hub-foot) + var(--hub-d) / 2);
   }
   &.is-open::before {
     top: auto;
-    bottom: -3px;
+    bottom: var(--hub-foot);
     height: calc(78px + var(--hub-d));
   }
 }
