@@ -469,9 +469,12 @@ export default defineComponent({
   transform: scaleY(-1);
 }
 
-// ── THE STUDS: back / forward riding the bar's left end, filled in the
-// LIP's tone (the kind's colour), cream glyphs, a `--plaque-coat` ring so
-// they read as set INTO the bar. The divider takes no presses; only these do.
+// ── THE STUDS: back / forward riding the bar's left end — WHITE since
+// 2026-10-13 (user ask: "make the back and forward buttons on the friezebar
+// white and have their corners be a little less round (but not square)"):
+// white fill, glyphs in the LIP's tone (the kind's colour), soft 4px corners
+// instead of the 999px pill, a `--plaque-coat` ring so they read as set INTO
+// the bar. The divider takes no presses; only these do.
 .side-viewer__nav {
   position: absolute;
   top: 0;
@@ -491,9 +494,9 @@ export default defineComponent({
   justify-content: center;
   padding: 0;
   border: 1px solid var(--plaque-coat, #f8f2e4);
-  border-radius: 999px;
-  background: var(--side-viewer-lip, var(--indigo-6));
-  color: var(--plaque-flat, #f8f2e4);
+  border-radius: 4px;
+  background: #ffffff;
+  color: var(--side-viewer-lip, var(--indigo-6));
   box-shadow: 0 0 0 1px var(--side-viewer-plate, var(--indigo-10));
   cursor: pointer;
   transition: filter 0.15s, transform 0.15s, background 0.25s;
