@@ -147,6 +147,7 @@ import FeedStream from 'src/components/posts/FeedStream.vue'
 import SideViewer from 'src/components/viewer/SideViewer.vue'
 import { anchorSeam, releaseSeam } from 'src/composables/useSeamAnchor'
 import { headerY } from 'src/composables/useHeaderSlide'
+import { phonePortrait } from 'src/composables/usePhonePortrait'
 
 // ── THE CONTAINER'S GEOMETRY (2026-08-18, user ask) ──────────────────────
 // Three numbers and one flag are all this surface's new sizing needs, and
@@ -288,9 +289,16 @@ export default defineComponent({
 
     // The box's inline arrangement — a margin and a flex-basis, both
     // fractions of the track, both absent until the first drag.
+    // ⭐ 2026-10-13 (user ask, phone portrait only: "hiding the left frieze
+    // bar and showing only its inner lip sticking to the left end of the
+    // screen. Fix that part … so it cannot be moved away from there"): the
+    // box's left edge IS the screen's — the stored left offset is not drawn
+    // (the stylesheet's portrait block zeroes the margin), and the left
+    // rail's resize + THE MOVE are refused in `onRailDown`. The right rail
+    // still sizes the box from that pinned edge.
     const boxStyle = computed(() => {
       const st = {}
-      if (leftPct.value != null) st.marginLeft = (leftPct.value * 100).toFixed(3) + '%'
+      if (leftPct.value != null && !phonePortrait.value) st.marginLeft = (leftPct.value * 100).toFixed(3) + '%'
       if (widthPct.value != null) {
         st.flex = '0 0 ' + (widthPct.value * 100).toFixed(3) + '%'
       }
@@ -395,6 +403,7 @@ export default defineComponent({
 
     const onRailDown = (e, side) => {
       if (pid != null || e.button !== 0) return
+      if (phonePortrait.value && side !== 'r') return // pinned to the screen's left edge (boxStyle note)
       const track = trackEl.value
       const box = boxEl.value
       if (!track || !box) return
@@ -476,7 +485,7 @@ export default defineComponent({
       cancelAnimationFrame(settleRaf)
       settleRaf = requestAnimationFrame(tick)
     }
-    watch([widthPct, leftPct], settle)
+    watch([widthPct, leftPct, phonePortrait], settle)
 
     let ro = null
     const reclamp = () => {
@@ -488,6 +497,13 @@ export default defineComponent({
       // LEFT-ANCHORED, like the right rail: a slot that narrowed takes it out
       // of the box's WIDTH and leaves its left edge where the user put it.
       const { minW } = limits()
+      if (phonePortrait.value) {
+        // the left edge is pinned at 0 — only the width answers to the track
+        // (and the stored left offset is kept for the other postures)
+        const w = Math.min(Math.max((widthPct.value ?? 0.45) * trackW, minW), Math.max(minW, trackW - GAP - reserve())) / trackW
+        if (widthPct.value != null && Math.abs(w - widthPct.value) > 0.0005) { widthPct.value = w; persist() }
+        return
+      }
       const l0 = Math.min(Math.max((leftPct.value ?? 0.025) * trackW, GAP), Math.max(GAP, trackW - GAP - reserve() - minW))
       const w0 = Math.min(Math.max((widthPct.value ?? 0.45) * trackW, minW), Math.max(minW, trackW - GAP - reserve() - l0))
       const l = l0 / trackW
@@ -1343,6 +1359,36 @@ export default defineComponent({
     // The move and the resize clamp against the same reserve (`reserve()`,
     // which measures the turned box, so the number is never restated here).
     flex: 0 0 88%;
+  }
+}
+
+// ── ⭐ PHONE PORTRAIT: THE LEFT EDGE IS THE SCREEN'S (2026-10-13, user ask:
+// "hiding the left frieze bar and showing only its inner lip sticking to the
+// left end of the screen. Fix that part for the mobile layout so it cannot be
+// moved away from there; this way we can take advantage of that space that is
+// lost with the frieze bar decoration") ─────────────────────────────────────
+// The box stands at x 0 (no margin — `boxStyle` drops the stored offset —
+// no 1px indigo side border, no left shadow), and its left rail is only the
+// band's INNER lip: the 2px coat strip + the 1px `--grey-6` rim that faced
+// the content. The bar inside, the outer coat and the lips' cast are gone;
+// the rail takes no press (the script refuses its resize and the move).
+// The default width spends what that frees: the whole track less the right
+// reserve (planet 21 + sep 4) and GAP 8 — a stored width still wins inline.
+// Back on MediaTabsBar's row seats itself off the lip (`--feed-rail-lr`); its
+// left grip is hidden there (a 3px rail holds no oval).
+@media (max-width: 600px) and (orientation: portrait) {
+  .feed-container {
+    margin-left: 0;
+    border-left: 0;
+    flex: 0 0 calc(100% - 33px);
+    box-shadow: 8px 0 18px -9px rgba(0, 0, 0, 0.55);
+  }
+  .feed-container__rail--l {
+    padding: 0 2px 0 0;
+    cursor: default;
+    pointer-events: none;
+    > .feed-container__edge { display: none; }
+    &::after { content: none; }
   }
 }
 

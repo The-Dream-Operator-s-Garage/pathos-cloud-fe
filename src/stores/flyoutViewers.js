@@ -231,6 +231,11 @@ export const useFlyoutViewersStore = defineStore('flyoutViewers', {
 
   getters: {
     parked: (s) => s.viewers.filter(v => v.minimized),
+    // The parked windows NEWEST-PARKED FIRST (2026-10-13, user ask, the
+    // phone's tab wall: "order them by most recently minimized so I first see
+    // what I've just minimized"). `parked` keeps the spawn order for the
+    // desktop row.
+    parkedByRecency: (s) => s.viewers.filter(v => v.minimized).sort((a, b) => (b.parkedAt || 0) - (a.parkedAt || 0)),
     byId: (s) => (id) => s.viewers.find(v => v.id === id) || null,
     // The feed cards light their triggers off this: which POST elements
     // hold an OPEN (not parked) window right now.
@@ -297,7 +302,13 @@ export const useFlyoutViewersStore = defineStore('flyoutViewers', {
         maximized: !!opts.maximized,
         label: opts.label || '',
         icon: opts.icon || '',
-        view: opts.view || null
+        view: opts.view || null,
+        // WHEN it parked (2026-10-13) — the phone's tab wall reads the
+        // newest-parked first (`parkedByRecency`). A boot row carries the
+        // stamp it was saved with; an old row without one gets its tray
+        // index, which keeps the old relative order and loses to any real
+        // minimize from here on.
+        parkedAt: opts.minimized ? (opts.parkedAt || Date.now()) : 0
       }
       this.viewers.push(viewer)
       if (!viewer.minimized) this.focus(id)
@@ -348,6 +359,7 @@ export const useFlyoutViewersStore = defineStore('flyoutViewers', {
               maximized: !!v.maximized,
               label: v.label || '',
               icon: v.icon || '',
+              parkedAt: v.parkedAt || 0,
               // The face it was left on (2026-09-23) — a window parked
               // mid-edit comes back on the grid, not on the postcard.
               view: v.view || null
@@ -369,7 +381,7 @@ export const useFlyoutViewersStore = defineStore('flyoutViewers', {
       try {
         const r = await navService.getWindows()
         if (!r?.success || !Array.isArray(r.windows)) return
-        for (const w of r.windows) {
+        for (const [i, w] of r.windows.entries()) {
           if (!w?.ref) continue
           this.spawn({ kind: 'ref', ref: String(w.ref) }, {
             rect: w.rect || null,
@@ -378,6 +390,7 @@ export const useFlyoutViewersStore = defineStore('flyoutViewers', {
             label: w.label || '',
             icon: w.icon || '',
             view: w.view || null,
+            parkedAt: w.parkedAt || i + 1,
             rehydrating: true
           })
         }
@@ -496,6 +509,7 @@ export const useFlyoutViewersStore = defineStore('flyoutViewers', {
       const v = this.byId(id)
       if (!v) return
       v.minimized = true
+      v.parkedAt = Date.now()
       useWindowsStore().release('flyout:' + id)
       this._record('MINIMIZE_WINDOW', v)
       this._persist()

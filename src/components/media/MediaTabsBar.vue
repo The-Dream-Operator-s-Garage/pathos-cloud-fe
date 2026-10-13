@@ -391,7 +391,7 @@
          the feed's right rail (`seamEdge`) to the screen's right end, past
          and under Forward, the tabs hanging out of it (style block). Only
          while something is parked. -->
-    <TransitionGroup ref="rowEl" tag="div" name="mtab" class="media-tabs__row nasalization" :class="{ 'has-membrane': tabs.length > 0, 'is-railed': railed }" :style="membraneStyle" appear>
+    <TransitionGroup ref="rowEl" tag="div" name="mtab" class="media-tabs__row nasalization" :class="{ 'has-membrane': tabs.length > 0, 'is-railed': railed }" :style="membraneStyle" appear @scroll.passive="measurePages">
       <button
         v-for="t in tabs"
         :key="t.key"
@@ -404,6 +404,25 @@
         <span class="media-tabs__name">{{ t.name }}</span>
       </button>
     </TransitionGroup>
+    <!-- ── ⭐ THE PAGER (2026-10-13, user ask, phone portrait only: "turns
+         into a scroll that allows the tabs to be of a readable size. Then,
+         put a button that lets me navigate through the paginated elements;
+         order them by most recently minimized") — the wall's tabs are a
+         scroll of full-size spines, newest parked at the top, and this key
+         at the wall's foot (on the footer's top edge, never over it) turns
+         one wall-height page down, wrapping to the first. Drawn only while
+         there is more than one page. -->
+    <button
+      v-if="portrait && pages > 1"
+      type="button"
+      class="media-tabs__pager"
+      :title="'Minimized windows — page ' + page + ' of ' + pages + (page < pages ? ' (next)' : ' (back to the newest)')"
+      :aria-label="'Next page of minimized windows, ' + page + ' of ' + pages"
+      @click="nextPage"
+    >
+      <q-icon :name="page < pages ? 'keyboard_arrow_down' : 'keyboard_double_arrow_up'" size="16px" />
+      <span class="media-tabs__pager-count">{{ page }}/{{ pages }}</span>
+    </button>
   </div>
 </template>
 
@@ -416,6 +435,7 @@ import { useAurora } from 'src/composables/useAurora'
 import { seamEdge, seamRails, shiftSeam } from 'src/composables/useSeamAnchor'
 import { headerY, slideTo, rememberSlide, maxSlide, engageHeaderSlide, releaseHeaderSlide } from 'src/composables/useHeaderSlide'
 import { iconForTarget, titleOfTarget } from 'src/utils/mediaKind'
+import { phonePortrait } from 'src/composables/usePhonePortrait'
 
 // (THE PHONE QUERY `MOBILE_Q` stood here 2026-09-26 → 09-29 EVE, feeding the
 // retired `isPhone` glyph swap — see the pair's template note.)
@@ -652,8 +672,12 @@ export default defineComponent({
     // mediaKind fallbacks catch a window parked before its first
     // describe landed — kind-aware since 2026-09-01 (a ref window used to
     // park as a blank paperclip).
+    // ⭐ 2026-10-13: on a phone in PORTRAIT the wall reads NEWEST-PARKED
+    // first (`parkedByRecency` — the ask: "so I first see what I've just
+    // minimized"); everywhere else the spawn order above holds.
     const tabs = computed(() => {
-      return [...store.parked].reverse().map((v) => ({
+      const list = phonePortrait.value ? store.parkedByRecency : [...store.parked].reverse()
+      return list.map((v) => ({
         key: v.id,
         icon: v.icon || iconForTarget(v.target),
         name: v.label || titleOfTarget(v.target),
@@ -666,8 +690,49 @@ export default defineComponent({
     // The first pass had this component claim and release the space as it
     // mounted, which worked and made the whole page hop 4px whenever a
     // viewer parked — a band that is permanent has no such moment.
+    // ── THE WALL'S PAGES (2026-10-13, phone portrait) — the row is turned a
+    // quarter-turn, so its own x IS the wall's height: a page = the row's
+    // clientWidth, the page in view = scrollLeft over it. Measured on the
+    // row's scroll, whenever the tabs change, and on resize.
+    const rowEl = ref(null)
+    const rowNode = () => rowEl.value?.$el || null
+    const page = ref(1)
+    const pages = ref(1)
+    const measurePages = () => {
+      const el = rowNode()
+      if (!el || !el.clientWidth) { pages.value = 1; page.value = 1; return }
+      pages.value = Math.max(1, Math.ceil((el.scrollWidth - 1) / el.clientWidth))
+      const atEnd = el.scrollLeft + el.clientWidth >= el.scrollWidth - 2
+      page.value = atEnd ? pages.value : Math.min(pages.value, Math.floor((el.scrollLeft + 2) / el.clientWidth) + 1)
+    }
+    const nextPage = () => {
+      const el = rowNode()
+      if (!el) return
+      const atEnd = el.scrollLeft + el.clientWidth >= el.scrollWidth - 2
+      el.scrollTo({ left: atEnd ? 0 : el.scrollLeft + el.clientWidth, behavior: 'smooth' })
+    }
+    // the tabs' enter slide (0.16s) settles before the row's width is final.
+    // A NEW tab on top (something just parked) scrolls the wall back to its
+    // first page — "so I first see what I've just minimized".
+    watch([tabs, phonePortrait], ([now], [before]) => {
+      nextTick(() => {
+        const el = rowNode()
+        if (phonePortrait.value && el && now[0] && now[0].key !== before?.[0]?.key) el.scrollTo({ left: 0 })
+        measurePages()
+        setTimeout(measurePages, 220)
+      })
+    })
+    onMounted(() => { window.addEventListener('resize', measurePages); nextTick(() => measurePages()) })
+    onBeforeUnmount(() => window.removeEventListener('resize', measurePages))
+
     return {
       tabs,
+      rowEl,
+      portrait: phonePortrait,
+      page,
+      pages,
+      measurePages,
+      nextPage,
       canGoBack,
       goBack,
       canGoForward,
@@ -2230,6 +2295,79 @@ export default defineComponent({
     --mtab-lift: 0px; // no lift on the wall: the turned tabs keep their 15px
     > .media-tabs__tab:first-child::before,
     > .media-tabs__tab:last-child::after { content: none; }
+  }
+}
+
+// ── ⭐ PHONE PORTRAIT: THE WALL IS A READABLE SCROLL WITH A PAGER (2026-10-13,
+// user ask: "modify the section on the right side of the screen containing the
+// minimized tabs so that it turns into a scroll that allows the tabs to be of a
+// readable size. Then, put a button that lets me navigate through the paginated
+// elements; Order them by most recently minimized … make sure it does not
+// overlap on top of the dashboard button on the bottom footer nav bar") ──────
+// Until today the turned row SHRANK its tabs to fit the wall (`flex: 0 1`,
+// the 46px floor: a column of "S…" spines). Here every tab keeps a readable
+// size — 11px names, a 14px glyph, a fixed 92–150px spine — and the row
+// SCROLLS (on its own x, which the turn lays down the wall); newest parked
+// sits at the TOP (no `margin-left: auto` pushing a short list to the foot;
+// the order is the script's `parkedByRecency`). The row's length is the wall
+// less the PAGER's seat, in `dvh`: the old `100vh` cap is the LARGE viewport
+// on a phone browser (address bar hidden), so it ran the row past the
+// footer's top edge and its tabs (z 3125) landed over the dashboard button
+// (the bar is 3110). Now it ends on the pager, the pager ends on the footer's
+// top edge, and nothing of the wall ever reaches the bar.
+// The planet's free seat is unchanged; the feed's LEFT grip is hidden (the
+// left rail is a 3px lip in portrait — FeedPage), the right one takes no move.
+@media (max-width: 600px) and (orientation: portrait) {
+  .media-tabs {
+    --mtab-pager-h: 30px;
+  }
+  :root.is-feed-railed .media-tabs__grip--l { display: none; }
+  :root.is-feed-railed .media-tabs__grip--r { cursor: default; }
+  .media-tabs__row {
+    max-width: calc(100vh - var(--top-chrome-h, var(--media-tabs-h)) - 8px - var(--nav-footer-h) - var(--mtab-pager-h) - 4px);
+    max-width: calc(100dvh - var(--top-chrome-h, var(--media-tabs-h)) - 8px - var(--nav-footer-h) - var(--mtab-pager-h) - 4px);
+    padding-bottom: 0;
+    > .media-tabs__tab:first-child { margin-left: 0; }
+  }
+  .media-tabs__tab {
+    flex: 0 0 auto;
+    min-width: 92px;
+    max-width: 150px;
+    padding: 2px 9px 3px;
+    gap: 5px;
+    font-size: 11px;
+  }
+  .media-tabs__tab .media-tabs__glyph { font-size: 14px !important; }
+  .media-tabs__pager {
+    pointer-events: auto;
+    position: fixed;
+    right: 0;
+    bottom: var(--nav-footer-h);
+    width: 30px;
+    height: var(--mtab-pager-h);
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    padding: 0;
+    border: var(--media-tabs-rim, 1px) solid var(--grey-6, #9e9e9e);
+    border-right: 0;
+    border-bottom: 0;
+    border-radius: 6px 0 0 0;
+    background: var(--grey-4, #e0e0e0);
+    color: var(--grey-9, #424242);
+    line-height: 1;
+    cursor: pointer;
+    &:hover { background: var(--grey-3, #eeeeee); }
+    &:active { background: var(--grey-5, #bdbdbd); }
+  }
+  .media-tabs__pager-count {
+    font-size: 8px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    margin-top: -2px;
   }
 }
 
