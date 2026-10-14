@@ -16,6 +16,12 @@
       <span v-if="e.waiting && !e.items.length" class="lsug__wait">
         <q-spinner-dots size="12px" /> looking…
       </span>
+      <span v-else-if="e.failed && !e.items.length" class="lsug__wait lsug__wait--failed">
+        <q-icon name="error_outline" size="12px" />
+        {{ e.failed === 'timeout' ? 'no answer yet' : 'couldn\'t look' }}
+        <button type="button" class="lsug__retry" title="Ask Talavero again" @click.stop="store.retry(e.id)">retry</button>
+      </span>
+      <span v-else-if="!e.items.length" class="lsug__wait">nothing to suggest</span>
       <span
         v-for="s in e.items"
         :key="s.id"
@@ -148,6 +154,17 @@ export default defineComponent({
   gap: 4px;
   font-size: 0.68em;
   color: var(--dock-ink-mute, rgba(var(--ink-rgb), 0.55));
+}
+.lsug__wait--failed { color: var(--red-9); }
+.lsug__retry {
+  border: 1px solid var(--red-3);
+  border-radius: 3px;
+  background: #fff;
+  padding: 0 5px;
+  font: inherit;
+  color: var(--red-9);
+  cursor: pointer;
+  &:hover { background: var(--red-1); }
 }
 .lsug__item {
   display: inline-flex;

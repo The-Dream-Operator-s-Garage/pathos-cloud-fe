@@ -469,8 +469,16 @@ strip.
 - **✓ accept** attaches the label to the node (`POST …/accept`), and **× discard**
   drops it. A decided pill leaves; a row with nothing left leaves the tray.
 - **State** lives in `stores/labelSuggestions.js` (session memory). Upload sites
-  `track()` their nodes, `labels.suggested` on the push spine refreshes a row,
-  a 10s poll net covers a missed push, and a row stops waiting after 3 min.
+  `track()` their nodes. `labels.suggested` on the push spine refreshes a row,
+  through a watcher in a DETACHED `effectScope` so it outlives any dock. A 10s
+  poll net reads the server's `answer` and settles a row whose push was missed.
+- **Row states:**
+  - `looking…` while waiting.
+  - The suggestions, once they arrive.
+  - `nothing to suggest` for 8s after an empty answer, then the row leaves.
+  - `couldn't look · retry` when the seat gave up, or `no answer yet · retry`
+    after 3 min. Retry asks again via `POST …/request`, and only an answer
+    newer than that request counts.
 - **The uploader stays up while labels are coming:** a finished tab is kept
   (emptied) instead of removed, because removing the last tab closes the dock.
 - **Links:** caught links ask explicitly (`requestLabelSuggestions`). A note's
