@@ -57,6 +57,18 @@ const routes = [
       { path: 'organizations/:id', component: () => import('src/pages/OrgDetailPage.vue') }
     ]
   },
+  // Squish the tomato — a standalone static toy at public/tomato/ (served as
+  // https://pathos.cloud/tomato/ so X's crawler can read its player-card
+  // meta; a #fragment never reaches a crawler). This hash door just
+  // forwards there, no auth needed.
+  {
+    path: '/tomato',
+    beforeEnter () {
+      window.location.replace('/tomato/')
+      return false
+    },
+    component: () => import('src/pages/ErrorNotFound.vue')
+  },
   { path: '/:catchAll(.*)*', component: () => import('src/pages/ErrorNotFound.vue') }
 ]
 
