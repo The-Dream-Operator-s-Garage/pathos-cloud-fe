@@ -451,3 +451,27 @@ verdict — because that is what carries the weight either way. The
 recomputation and signature verdicts each have **three** states (holds /
 contradicted / not available): a missing verdict is never rendered as a
 passing one.
+
+## Talavero's label suggestions (2026-10-14)
+
+`components/labels/LabelSuggestionTray.vue` sits under the tabs of
+`UploaderDock.vue` and `CaptureDock.vue`. It goes there, not at the floor,
+because the footer's hub disc rises about 20px into every dock's bottom-centre
+strip.
+
+- **A row per fresh upload of the sitting:** the node's collapsed nano chip,
+  the red `TALAVERO` word, then either `looking…` (waiting on the seat) or the
+  suggestions.
+- **Each suggestion is a tiny unraveler** (`TinySquares`): the leaf rests alone
+  as a red glass square. Each click wraps it inside one more parent (deeper =
+  darker coat, the LabelUnravel grammar at pill size), and a click at the root
+  folds it back to the leaf. The hover title is Talavero's reason.
+- **✓ accept** attaches the label to the node (`POST …/accept`), and **× discard**
+  drops it. A decided pill leaves; a row with nothing left leaves the tray.
+- **State** lives in `stores/labelSuggestions.js` (session memory). Upload sites
+  `track()` their nodes, `labels.suggested` on the push spine refreshes a row,
+  a 10s poll net covers a missed push, and a row stops waiting after 3 min.
+- **The uploader stays up while labels are coming:** a finished tab is kept
+  (emptied) instead of removed, because removing the last tab closes the dock.
+- **Links:** caught links ask explicitly (`requestLabelSuggestions`). A note's
+  later VERSIONS (PUT, `history` icon) don't ask; only its first save does.

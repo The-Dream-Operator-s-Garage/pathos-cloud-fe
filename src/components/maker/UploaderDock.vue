@@ -73,6 +73,11 @@
       </div>
 
       <!-- ── Body: upload editor left, file explorer right ── -->
+      <!-- Talavero's label suggestions on this dock's uploads (2026-10-14) —
+           under the tabs, not at the floor: the footer's hub disc rises
+           ~20px into every dock's bottom-centre strip. -->
+      <LabelSuggestionTray :node-ids="suggestIds" />
+
       <div v-if="upload" class="dock-body">
         <section :key="upload.id" class="dock-editor">
           <!-- `dense`, like PostMakerSurface passes in the dock (2026-08-26,
@@ -320,6 +325,8 @@ import { formatBytes } from 'src/utils/nodeContent'
 import { extractPathosRefs } from 'src/utils/pathosRefs'
 import { srcFromEmbedMarkup } from 'src/utils/embedMarkup'
 import { findLinks, indexOfLink } from 'src/utils/linkCatch'
+import LabelSuggestionTray from 'src/components/labels/LabelSuggestionTray.vue'
+import { useLabelSuggestionsStore } from 'src/stores/labelSuggestions'
 
 const KIND_BY_EXT = {
   md: 'text',
@@ -342,7 +349,7 @@ const KIND_ICON = { text: 'notes', image: 'image', video: 'movie', audio: 'music
 
 export default defineComponent({
   name: 'UploaderDock',
-  components: { MakerHeader, FileExplorer, MarkdownBody, FriezeBar },
+  components: { MakerHeader, FileExplorer, MarkdownBody, FriezeBar, LabelSuggestionTray },
   emits: ['created'],
 
   setup (props, { emit }) {
@@ -353,6 +360,14 @@ export default defineComponent({
 
     const dragOver = ref(false)
     const refreshKey = ref(0)
+    // Talavero's suggestions (2026-10-14): every node this dock minted in
+    // the sitting — the server already asked the seat on upload.
+    const suggestions = useLabelSuggestionsStore()
+    const suggestIds = ref([])
+    const trackSuggest = (nodes, icon) => {
+      suggestions.track(nodes, icon)
+      suggestIds.value = [...new Set([...(nodes || []).map(n => n.id), ...suggestIds.value])].slice(0, 24)
+    }
 
     const upload = computed(() => store.activeUpload)
 
@@ -429,6 +444,10 @@ export default defineComponent({
           return
         }
         const node = r.node
+        // Links don't pass the upload door — ask Talavero explicitly.
+        nodeService.requestLabelSuggestions(node.id)
+          .then((q) => { if (q?.success) trackSuggest([node], 'link') })
+          .catch(() => { /* a link never fails because its labels did */ })
         // THE SUB-STACK (2026-09-06 PM): "Saved a link".
         try {
           useNavStore().recordAction('CREATE_LINK', {
@@ -675,6 +694,7 @@ export default defineComponent({
         // capture by consuming it) — both wrong for a paste whose node
         // exists to be referenced HERE. The explorer still learns of it.
         if (r.nodes?.length) refreshKey.value++
+        if (r.labeling && r.nodes?.length) trackSuggest(r.nodes, 'attach_file')
       } catch (e) {
         const msg = e?.response?.data?.error?.message || e?.message || 'Upload failed'
         const t = tabNow()
@@ -810,7 +830,11 @@ export default defineComponent({
       setTimeout(() => {
         const u = store.uploads.find(x => x.id === id)
         if (u) {
-          if (hasWork(u)) {
+          // Talavero's tray lives in this dock — while suggestions for
+          // these nodes are on their way the emptied tab stays (removing
+          // the last tab closes the dock) and the dock stays up.
+          const labeling = (nodes || []).some(n => suggestIds.value.includes(n.id))
+          if (hasWork(u) || labeling) {
             store.patchUpload(id, { status: 'idle' })
           } else {
             store.removeUpload(id)
@@ -840,6 +864,7 @@ export default defineComponent({
         fd.append('labelIds', JSON.stringify(u.labelIds))
         const r = await nodeService.upload(fd)
         const errors = r.errors || []
+        if (r.success && r.nodes?.length && r.labeling) trackSuggest(r.nodes, kind === 'note' ? 'notes' : 'upload_file')
         if (r.success && r.nodes?.length) {
           // ── THE SUB-STACK (2026-09-06) — one act per submit, not per
           // file: an upload of nine images is one thing the user did, and
@@ -892,6 +917,7 @@ export default defineComponent({
     }
 
     return {
+      suggestIds,
       store,
       windows,
       upload,

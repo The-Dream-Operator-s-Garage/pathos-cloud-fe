@@ -57,6 +57,10 @@
         </button>
       </div>
 
+      <!-- Talavero's label suggestions on this sitting's captures (2026-10-14) —
+           under the tabs: the footer's hub disc covers the floor's centre. -->
+      <LabelSuggestionTray :node-ids="receiptIds" />
+
       <div class="dock-body capture-body">
         <CameraFace v-if="store.mode === 'camera'" key="camera" @created="onCreated" />
         <RecorderFace v-else-if="store.mode === 'recorder'" key="recorder" @created="onCreated" />
@@ -82,6 +86,8 @@
 import { defineComponent, computed } from 'vue'
 import FriezeBar from 'src/components/layout/FriezeBar.vue'
 import MicroChip from 'src/components/shared/MicroChip.vue'
+import LabelSuggestionTray from 'src/components/labels/LabelSuggestionTray.vue'
+import { useLabelSuggestionsStore } from 'src/stores/labelSuggestions'
 import CameraFace from './CameraFace.vue'
 import RecorderFace from './RecorderFace.vue'
 import NotepadFace from './NotepadFace.vue'
@@ -90,7 +96,7 @@ import { useWindowsStore } from 'src/stores/windows'
 
 export default defineComponent({
   name: 'CaptureDock',
-  components: { FriezeBar, MicroChip, CameraFace, RecorderFace, NotepadFace },
+  components: { FriezeBar, MicroChip, LabelSuggestionTray, CameraFace, RecorderFace, NotepadFace },
   emits: ['created'],
   setup (props, { emit }) {
     const store = useCaptureStore()
@@ -105,12 +111,17 @@ export default defineComponent({
     // A face minted nodes: remember them as receipts (chips under the
     // face) and let the layout decide whether anything else cares (a
     // skeleton populate session takes fresh nodes into its tray).
+    // Every capture went through the upload door, which asked Talavero for
+    // labels — except a note's later VERSIONS (`history`), minted by PUT.
+    const suggestions = useLabelSuggestionsStore()
+    const receiptIds = computed(() => store.receipts.map(r => r.id))
     const onCreated = (nodes, icon) => {
       for (const n of nodes || []) store.pushReceipt({ id: n.id, path: n.path, icon: icon || 'adjust' })
+      if (icon !== 'history') suggestions.track(nodes, icon || 'adjust')
       emit('created', nodes)
     }
 
-    return { store, windows, modes: CAPTURE_MODES, META: MODE_META, meta, onCreated }
+    return { store, windows, modes: CAPTURE_MODES, META: MODE_META, meta, onCreated, receiptIds }
   }
 })
 </script>

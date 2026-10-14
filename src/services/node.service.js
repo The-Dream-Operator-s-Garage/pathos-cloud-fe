@@ -41,6 +41,26 @@ export const nodeService = {
     return data
   },
 
+  // ── Talavero's label suggestions (2026-10-14) ──────────────
+  // { success, seat, suggestions: [{ id, status, reason, label, chain }] }
+  async labelSuggestions (nodeId) {
+    const { data } = await api.get(`/nodes/${nodeId}/label-suggestions`)
+    return data
+  },
+  async acceptLabelSuggestion (nodeId, sid) {
+    const { data } = await api.post(`/nodes/${nodeId}/label-suggestions/${sid}/accept`)
+    return data
+  },
+  async discardLabelSuggestion (nodeId, sid) {
+    const { data } = await api.post(`/nodes/${nodeId}/label-suggestions/${sid}/discard`)
+    return data
+  },
+  // Ask Talavero (again) — uploads ask by themselves; links + retries use this.
+  async requestLabelSuggestions (nodeId) {
+    const { data } = await api.post(`/nodes/${nodeId}/label-suggestions/request`)
+    return data
+  },
+
   // ── Node-side comment / fork / children / versions ─────────
   // A comment or fork on a node creates a POST instance whose PARENT slot
   // points at this specific node version. Listing children walks the
