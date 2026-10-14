@@ -483,3 +483,23 @@ strip.
   (emptied) instead of removed, because removing the last tab closes the dock.
 - **Links:** caught links ask explicitly (`requestLabelSuggestions`). A note's
   later VERSIONS (PUT, `history` icon) don't ask; only its first save does.
+
+## The label section — plates per origin (2026-10-14)
+
+Every element label section is ONE component, `components/labels/LabelBundleRail.vue`,
+grouping by `utils/labelBundles.js`: one plate per origin.
+
+- **The platform's vocabulary:** one plate per root, headed by `verified`, with
+  the chain tails inside.
+- **Everything else:** one plate per **attacher** (`added_by`), headed by their
+  12px face (a door to their entity), with **full** chains inside. Talavero's
+  accepted suggestions sit under his face, your own labels under yours. Rows
+  without `added_by` (older payloads) fall back to per-tree plates under the
+  tree owner's face.
+- **Props:** `wrap` (plates flow onto more lines) and `inert` (no links, for
+  rails inside a clickable row: FileExplorer).
+
+Mounted by CardByline (every card's rail), LabelSlider (the detail pages'
+label bar), LabelScroll (comment items), ElementSurround, SkeletonUsages, and
+FileExplorer list rows. FeedStream's post-square rail draws its own markup
+off the same util.

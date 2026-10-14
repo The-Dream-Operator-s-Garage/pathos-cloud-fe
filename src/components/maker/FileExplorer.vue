@@ -64,7 +64,7 @@
             <span class="file-row__meta">
               <span class="mono file-row__ext">.{{ f.file ? f.file.ext : '?' }}</span>
               <span class="file-row__when">{{ whenOf(f) }}</span>
-              <span v-for="l in f.labels || []" :key="l.id" class="file-row__label">{{ l.name }}</span>
+              <LabelBundleRail v-if="(f.labels || []).length" :labels="f.labels" inert />
             </span>
           </span>
         </button>
@@ -106,6 +106,7 @@
 
 <script>
 import { defineComponent, ref, watch, onMounted } from 'vue'
+import LabelBundleRail from 'src/components/labels/LabelBundleRail.vue'
 import { useRouter } from 'vue-router'
 import { nodeService } from 'src/services/node.service'
 
@@ -128,6 +129,7 @@ const KIND_COLOR = {
 
 export default defineComponent({
   name: 'FileExplorer',
+  components: { LabelBundleRail },
   props: {
     // Bump to reload page 1 (e.g. after the dock finishes an upload).
     refreshKey: { type: Number, default: 0 }

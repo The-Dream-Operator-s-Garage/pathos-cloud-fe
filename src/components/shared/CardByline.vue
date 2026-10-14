@@ -109,49 +109,7 @@
       <div class="element-card__byline-row element-card__rail-row">
         <div class="element-card__rail" :class="{ 'is-empty': !bundles.length && !$slots.rail }">
           <slot name="rail">
-            <div
-              v-for="b in bundles"
-              :key="b.key"
-              class="element-card__bundle"
-              :class="b.platform ? 'is-platform' : 'is-entity'"
-            >
-              <span
-                class="element-card__bundle-root"
-                :title="originOf(b)"
-                :role="b.platform ? 'img' : undefined"
-                :aria-label="b.platform ? originOf(b) : undefined"
-              >
-                <q-icon v-if="b.platform" name="verified" size="12px" class="element-card__bundle-verified" />
-                <a
-                  v-else-if="b.owner"
-                  :href="'#/entities/' + b.owner.id"
-                  class="element-card__bundle-face"
-                  :aria-label="originOf(b) + ' — open profile'"
-                  @click.stop
-                >
-                  <EntityAvatar :entity="b.owner" :size="12" />
-                </a>
-                <span v-else class="mono">{{ b.root }}</span>
-              </span>
-              <template v-for="lp in b.items" :key="lp.id">
-                <span class="element-card__bundle-item">
-                  <router-link
-                    :to="'/labels/' + lp.id"
-                    class="element-card__label mono"
-                    :title="lp.path"
-                    @click.stop
-                  >
-                    <q-icon name="label" size="10px" class="element-card__label-glyph" />
-                    <span
-                      v-for="(name, i) in lp.names"
-                      :key="i"
-                      class="element-card__label-step"
-                      :class="{ 'is-leaf': i === lp.names.length - 1 }"
-                    >{{ name }}</span>
-                  </router-link>
-                </span>
-              </template>
-            </div>
+            <LabelBundleRail :labels="labels" />
           </slot>
         </div>
         <slot name="rail-end" />
@@ -163,10 +121,11 @@
 <script>
 import { defineComponent, computed } from 'vue'
 import EntityAvatar from 'src/components/entities/EntityAvatar.vue'
+import LabelBundleRail from 'src/components/labels/LabelBundleRail.vue'
 import OrgLogoChip from 'src/components/organizations/OrgLogoChip.vue'
 import { GLOBE_CLOCK } from 'src/utils/glyphs'
 import { kindFor } from 'src/utils/kinds'
-import { labelBundles, bundleOrigin } from 'src/utils/labelBundles'
+import { labelBundles } from 'src/utils/labelBundles'
 import { roleBadgeGlyph, roleBadgeTitle } from 'src/utils/roleBadges'
 import { orgService } from 'src/services/org.service'
 import { useFlyoutViewersStore } from 'src/stores/flyoutViewers'
@@ -175,7 +134,7 @@ const momentKind = kindFor('moments')
 
 export default defineComponent({
   name: 'CardByline',
-  components: { EntityAvatar, OrgLogoChip },
+  components: { EntityAvatar, OrgLogoChip, LabelBundleRail },
   props: {
     // The WHO: an identity card ({ id, display_name, username, photo?,
     // affiliations?, pioneer? }) or null.
@@ -202,7 +161,6 @@ export default defineComponent({
     })
 
     const bundles = computed(() => labelBundles(props.labels))
-    const originOf = (b) => bundleOrigin(b)
 
     // A seat badge → its ORG_MEMBER instance's window (an outsider sees the
     // locked face — doctrine); the org's window when the row can't be read.
@@ -214,7 +172,7 @@ export default defineComponent({
       if (org?.entity_id) flyouts.spawnEntity({ id: org.entity_id, display_name: org.name })
     }
 
-    return { GLOBE_CLOCK, authorName, hasWho, momentStyle, whenLine, bundles, originOf, roleBadgeGlyph, roleBadgeTitle, openRoleBadge }
+    return { GLOBE_CLOCK, authorName, hasWho, momentStyle, whenLine, bundles, roleBadgeGlyph, roleBadgeTitle, openRoleBadge }
   }
 })
 </script>

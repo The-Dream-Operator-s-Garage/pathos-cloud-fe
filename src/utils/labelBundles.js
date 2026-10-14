@@ -11,9 +11,16 @@
 // `labelPaths(labels)` → one entry per LEAF path (a path that is a prefix of
 // another on the same element is folded into the longer one), each
 // `{ id, names, path, rootId, system, owner }`, plumbing (PATHCHAIN) last.
-// `labelBundles(labels)` → one plate per ROOT + ORIGIN (`rootId:platform |
-// rootId:ownerId`): `{ key, root, platform, owner, items: [{ id, path,
-// names (the TAIL — the root is the plate's head) }] }`.
+// `labelBundles(labels)` → one plate per ORIGIN: the platform's own
+// vocabulary per ROOT (`rootId:platform`, head = verified, items = the
+// TAIL), and — ⭐ 2026-10-14 — everything else per WHO ATTACHED IT
+// (`by:<entityId>` off the row's `added_by` card, head = their FACE, items =
+// FULL chains, since one attacher's plate spans several trees). The owner
+// attaches their own labels; a delegate (Talavero's accepted suggestions, a
+// label owner stamping their vocabulary, an org with a labeling grant)
+// gets a plate of their own. Rows with no `added_by` keep the older
+// per-tree grouping (`rootId:ownerId`, the tree owner's face).
+// `{ key, root, platform, by, owner (the face), items: [{ id, path, names }] }`.
 // `bundleOrigin(b, nameOf)` → the plate head's words (tooltip / aria).
 
 export function labelPaths (labels) {
@@ -30,7 +37,8 @@ export function labelPaths (labels) {
       path: l.chain.map((c) => c.name).join(' > '),
       rootId: l.chain[0].id,
       system: !!l.system_label,
-      owner: l.owner || null
+      owner: l.owner || null,
+      addedBy: l.system_label ? null : (l.added_by || null)
     }))
     .sort((a, b) => {
       const plumbing = (p) => (p.names[0] === 'PATHCHAIN' ? 1 : 0)
@@ -41,20 +49,24 @@ export function labelPaths (labels) {
 export function labelBundles (labels) {
   const groups = new Map()
   for (const lp of labelPaths(labels)) {
-    const key = `${lp.rootId}:${lp.system ? 'platform' : (lp.owner?.id ?? '?')}`
+    const by = !lp.system && lp.addedBy?.id ? lp.addedBy : null
+    const key = by
+      ? `by:${by.id}`
+      : `${lp.rootId}:${lp.system ? 'platform' : (lp.owner?.id ?? '?')}`
     if (!groups.has(key)) {
       groups.set(key, {
         key,
-        root: lp.names[0],
+        root: by ? null : lp.names[0],
         platform: lp.system,
-        owner: lp.system ? null : lp.owner,
+        by: !!by,
+        owner: lp.system ? null : (by || lp.owner),
         items: []
       })
     }
     groups.get(key).items.push({
       id: lp.id,
       path: lp.path,
-      names: lp.names.length > 1 ? lp.names.slice(1) : lp.names
+      names: by || lp.names.length === 1 ? lp.names : lp.names.slice(1)
     })
   }
   return [...groups.values()]
@@ -62,5 +74,6 @@ export function labelBundles (labels) {
 
 export function bundleOrigin (b, nameOf = (o) => o?.display_name || o?.username || `entity #${o?.id}`) {
   if (b.platform) return `${b.root} — the platform's own labels (verified)`
+  if (b.by) return `labels added by ${nameOf(b.owner)}`
   return b.owner ? `${b.root} — labels by ${nameOf(b.owner)}` : b.root
 }

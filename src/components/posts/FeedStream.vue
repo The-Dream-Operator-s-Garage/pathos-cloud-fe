@@ -1736,6 +1736,7 @@
 
 <script>
 import { defineComponent, ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
+import { labelPaths as utilLabelPaths, labelBundles as utilLabelBundles, bundleOrigin as utilBundleOrigin } from 'src/utils/labelBundles'
 import { useRoute, useRouter } from 'vue-router'
 import { feedService } from 'src/services/feed.service'
 import { labelService } from 'src/services/label.service'
@@ -3215,86 +3216,19 @@ export default defineComponent({
     // ORIGINAL`) — the longer path already shows every step of it, so the
     // shorter is a duplicate rail entry, not a second fact. User
     // classification sorts ahead of the PATHCHAIN plumbing families.
-    const labelPaths = (item) => {
-      const labels = (item.labels || []).filter(l => l.chain?.length)
-      const keyOfChain = (l) => l.chain.map(c => c.id).join('>')
-      const keys = labels.map(keyOfChain)
-      return labels
-        .filter((l, i) => !keys.some((k, j) => j !== i && k.startsWith(`${keys[i]}>`)))
-        .map(l => ({
-          id: l.id,
-          names: l.chain.map(c => c.name),
-          path: l.chain.map(c => c.name).join(' > '),
-          // The tree and its ORIGIN (2026-09-22 PM7) — see `labelBundles`.
-          rootId: l.chain[0].id,
-          system: !!l.system_label,
-          owner: l.owner || null
-        }))
-        .sort((a, b) => {
-          const plumbing = (p) => (p.names[0] === 'PATHCHAIN' ? 1 : 0)
-          return plumbing(a) - plumbing(b) || a.path.localeCompare(b.path)
-        })
-    }
-
-    // ── BUNDLED BY ROOT (2026-08-10, user ask) ──────────────────────────
-    // The rail draws one plate per label TREE, not per label path. A post
-    // classified twice under the same root printed that root twice — on a
-    // plumbing post the rail read `PATHCHAIN › … PATHCHAIN › …`, the same
-    // word standing at the head of every plate — and the root is the least
-    // informative step in a path besides.
-    //
-    // Grouping only, never filtering: every label that reached `labelPaths`
-    // reaches a bundle, keeps its own id, its own link and its own funnel.
-    // What changes is that each member spells the TAIL of its chain, because
-    // the bundle has already said the head. `path` rides along unsliced, so
-    // the tooltip is still the whole classification.
-    //
-    // Order is `labelPaths`' order, held by the Map's insertion order — user
-    // classification ahead of the PATHCHAIN plumbing families, alphabetical
-    // within that. Grouping cannot reorder what it groups.
-    //
-    // A bare-ROOT label (a chain of one) has no tail to spell, so it states
-    // its own name in the member cell rather than rendering an empty one.
-    //
-    // ⭐ KEYED BY ROOT ID AND ORIGIN SINCE 2026-09-22 PM7, not the root's
-    // NAME — the plate's head states WHO the tree belongs to now (the
-    // `verified` badge for the platform's `system_label` vocabulary, the
-    // owner's face for anyone else's), and a name cannot say that: a FORK of
-    // PATHCHAIN is a root named PATHCHAIN owned by its forker (forks are
-    // never `system_label`), and keyed by name its labels would have lain on
-    // the platform's plate under the verified badge. Every label's owner is
-    // its root's today (only a tree's owner appends to it; a suggestion is
-    // minted by the decider), so the origin half of the key splits nothing
-    // yet — it is the honest key if that ever changes.
-    const labelBundles = (item) => {
-      const groups = new Map()
-      for (const lp of labelPaths(item)) {
-        const key = `${lp.rootId}:${lp.system ? 'platform' : (lp.owner?.id ?? '?')}`
-        if (!groups.has(key)) {
-          groups.set(key, {
-            key,
-            root: lp.names[0],
-            platform: lp.system,
-            owner: lp.system ? null : lp.owner,
-            items: []
-          })
-        }
-        groups.get(key).items.push({
-          id: lp.id,
-          path: lp.path,
-          names: lp.names.length > 1 ? lp.names.slice(1) : lp.names
-        })
-      }
-      return [...groups.values()]
-    }
-
-    // The plate head's words (2026-09-22 PM7) — its tooltip, the verified
-    // badge's name for assistive tech, the face door's label. The root's
-    // NAME lives here now that the head draws the origin instead of it.
-    const bundleOrigin = (b) => {
-      if (b.platform) return `${b.root} — the platform's own labels (verified)`
-      return b.owner ? `${b.root} — labels by ${authorName(b.owner)}` : b.root
-    }
+    // ⭐ 2026-10-14 — the rail's grouping lives in ONE place now,
+    // `utils/labelBundles.js` (it was lifted from here on 2026-10-08 and the
+    // copies drifted): plates per ORIGIN — the platform's vocabulary per
+    // root under `verified`, every other label under the FACE of WHOEVER
+    // ATTACHED IT (`added_by` on the feed's label rows — the post's author,
+    // or a delegate: a label owner stamping their vocabulary, Talavero, an
+    // org). The history of the grammar (2026-08-10 bundled by root, 09-22 PM7
+    // keyed by origin) is in that util's header. The feed keeps its own
+    // rule of drawing only rows that carry a chain.
+    const chained = (item) => (item.labels || []).filter(l => l.chain?.length)
+    const labelPaths = (item) => utilLabelPaths(chained(item))
+    const labelBundles = (item) => utilLabelBundles(chained(item))
+    const bundleOrigin = (b) => utilBundleOrigin(b, authorName)
 
     // What the card renders. `body` is the WHOLE markdown body, present
     // because the load below asks for `body=full` — a feed card is an actual

@@ -43,21 +43,9 @@
     </div>
 
     <!-- label rail -->
-    <div v-if="showLabels && sections.labels?.length" class="row q-gutter-xs q-mt-xs wrap">
-      <q-chip
-        v-for="l in sections.labels"
-        :key="l.id"
-        dense
-        clickable
-        size="sm"
-        class="surround-label"
-        @click="$router.push(`/labels/${l.id}`)"
-      >
-        {{ l.name }}
-        <q-tooltip v-if="l.chain?.length > 1">
-          {{ l.chain.map(c => c.name).join(' › ') }}
-        </q-tooltip>
-      </q-chip>
+    <!-- ⭐ 2026-10-14 — plates per origin (verified / whoever attached) -->
+    <div v-if="showLabels && sections.labels?.length" class="q-mt-xs">
+      <LabelBundleRail :labels="sections.labels" wrap />
     </div>
 
     <!-- path sections -->
@@ -98,6 +86,7 @@
 
 <script>
 import { defineComponent, computed } from 'vue'
+import LabelBundleRail from 'src/components/labels/LabelBundleRail.vue'
 import InfoChip from './InfoChip.vue'
 import HashLink from './HashLink.vue'
 import MomentInfo from 'src/components/moments/MomentInfo.vue'
@@ -115,7 +104,7 @@ const BAND_DEFS = [
 
 export default defineComponent({
   name: 'ElementSurround',
-  components: { InfoChip, HashLink, MomentInfo, ProvenanceBadge, AccessContractPanel },
+  components: { InfoChip, HashLink, MomentInfo, ProvenanceBadge, AccessContractPanel, LabelBundleRail },
   props: {
     // The response of useElementSurround / refService.surround.
     sections: { type: Object, default: null },

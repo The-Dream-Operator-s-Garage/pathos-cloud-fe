@@ -83,12 +83,7 @@
           labels <span class="skeleton-usages__total">{{ labels.length }}</span>
         </div>
         <div class="slot-line" style="flex-wrap:wrap; gap:4px;">
-          <span
-            v-for="l in labels"
-            :key="l.id"
-            class="usage-chip"
-            :title="(l.chain || []).map(c => c.name).join(' > ')"
-          >{{ l.name }}</span>
+          <LabelBundleRail :labels="labels" wrap />
         </div>
       </section>
 
@@ -98,6 +93,7 @@
 
 <script>
 import { defineComponent, ref, computed, watch, onMounted } from 'vue'
+import LabelBundleRail from 'src/components/labels/LabelBundleRail.vue'
 import { skeletonService } from 'src/services/skeleton.service'
 import { parseRef } from 'src/utils/kinds'
 
@@ -108,7 +104,7 @@ import EntityInfo from 'src/components/entities/EntityInfo.vue'
 
 export default defineComponent({
   name: 'SkeletonUsages',
-  components: { MicroChip, InfoChip, MomentInfo, EntityInfo },
+  components: { MicroChip, InfoChip, MomentInfo, EntityInfo, LabelBundleRail },
   props: {
     // The selected skeleton row from the explorer squares (may be a raw
     // list row: { id, path, name, ancestor_id, owner_id, moment_id }).

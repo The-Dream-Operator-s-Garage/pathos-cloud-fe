@@ -1,11 +1,9 @@
 <template>
   <div class="label-slider" v-if="labels && labels.length">
+    <!-- ⭐ 2026-10-14 — the platform's label section: plates per origin
+         (verified / the face of whoever attached it), LabelBundleRail. -->
     <div class="label-slider-track">
-      <LabelViewer
-        v-for="lbl in labels"
-        :key="lbl.id"
-        :label="lbl"
-      />
+      <LabelBundleRail :labels="labels" />
     </div>
   </div>
 
@@ -17,11 +15,11 @@
 
 <script>
 import { defineComponent } from 'vue'
-import LabelViewer from './LabelViewer.vue'
+import LabelBundleRail from './LabelBundleRail.vue'
 
 export default defineComponent({
   name: 'LabelSlider',
-  components: { LabelViewer },
+  components: { LabelBundleRail },
   props: {
     labels: { type: Array, default: () => [] },
     loading: { type: Boolean, default: false }
