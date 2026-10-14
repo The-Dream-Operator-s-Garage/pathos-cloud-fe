@@ -1,0 +1,1333 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Squish the tomato</title>
+
+<!--
+  ===== X PLAYER CARD =====
+  Served as a static file from the dashboard's public/ folder, so it lands at
+  https://pathos.cloud/tomato/ OUTSIDE the hash-routed SPA (X's crawler never
+  sees a #fragment and runs no JS — these tags must be literal and absolute).
+  /#/tomato inside the SPA just forwards here.
+
+  twitter:player  -> the page X loads inside an <iframe> when someone taps the card
+  twitter:image   -> the poster shown before the tap (and where iframes aren't supported)
+  width/height    -> the iframe's aspect ratio; card.png is the same 4:3 ratio
+  card.png        -> regenerate from ?poster=1 at 1200x900 (see specs/running.md)
+-->
+<meta name="twitter:card" content="player">
+<meta name="twitter:title" content="Squish the tomato">
+<meta name="twitter:description" content="Tomatoes on a checkered floor floating in space. Squish them, or roll them into the holes.">
+<meta name="twitter:player" content="https://pathos.cloud/tomato/">
+<meta name="twitter:player:width" content="640">
+<meta name="twitter:player:height" content="480">
+<meta name="twitter:image" content="https://pathos.cloud/tomato/card.png">
+<meta name="twitter:image:alt" content="Shiny tomatoes standing on a cream floor full of slanted holes, floating in dark space, beside a stack of speaker cabinets.">
+
+<!-- Open Graph, for every other app that unfurls links -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="pathos.cloud">
+<meta property="og:title" content="Squish the tomato">
+<meta property="og:description" content="Tomatoes on a checkered floor floating in space. Squish them, or roll them into the holes.">
+<meta property="og:url" content="https://pathos.cloud/tomato/">
+<meta property="og:image" content="https://pathos.cloud/tomato/card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="900">
+<link rel="canonical" href="https://pathos.cloud/tomato/">
+<link rel="icon" href="/favicon.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bagel+Fat+One&display=swap" rel="stylesheet">
+
+<style>
+  /* Palette sampled from the reference: space, grainy cream floor, tomato red.
+     The scene is its own world, so it looks the same in light and dark mode. */
+  :root {
+    --space: #201f1e;
+    --cream: #e8dfd0;
+    --cream-ink: #ece4d4;
+    --tomato: #cc3824;
+    color-scheme: dark;
+  }
+  html, body { margin: 0; height: 100%; overflow: hidden; background: var(--space); }
+  body {
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    color: var(--cream-ink);
+    -webkit-user-select: none; user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  canvas {
+    position: fixed; inset: 0; width: 100%; height: 100%;
+    display: block; touch-action: none;
+  }
+  canvas:focus-visible { outline: 2px solid var(--cream); outline-offset: -4px; }
+
+  .hud { position: fixed; top: 52px; right: 14px; display: grid; gap: 3px; justify-items: end; pointer-events: none; }
+  .hud div { display: flex; align-items: baseline; gap: 7px; }
+  .hud b {
+    font-family: "Bagel Fat One", "Arial Rounded MT Bold", system-ui, sans-serif;
+    font-weight: 400; font-size: clamp(22px, 5.6vmin, 40px); line-height: 1;
+  }
+  .hud .lost b { font-size: clamp(15px, 3.6vmin, 24px); }
+  .hud span { font-size: 13px; font-weight: 600; opacity: .7; }
+
+  .controls { position: fixed; top: 10px; right: 10px; display: flex; gap: 8px; }
+  button {
+    font: 600 13px/1 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    color: var(--cream-ink); background: rgba(32, 31, 30, .6);
+    border: 1.5px solid var(--cream-ink); border-radius: 999px;
+    padding: 8px 12px; cursor: pointer;
+  }
+  button:hover { background: rgba(236, 228, 212, .12); }
+  button:active { transform: translateY(1px); }
+  button:focus-visible { outline: 2px solid var(--tomato); outline-offset: 2px; }
+
+  .hint {
+    position: fixed; left: 50%; bottom: calc(14px + 2vmin);
+    transform: translateX(-50%);
+    background: var(--space); color: var(--cream-ink);
+    font-size: 14px; font-weight: 600; white-space: nowrap;
+    padding: 8px 14px; border-radius: 999px;
+    pointer-events: none; transition: opacity .35s;
+  }
+  .hint.gone { opacity: 0; }
+
+  /* ?poster=1 renders the still used for card.png */
+  body.poster .controls, body.poster .hud { display: none; }
+  body.poster .hint { font-size: 21px; padding: 11px 22px; top: 15%; bottom: auto; background: var(--cream); color: var(--space); }
+</style>
+</head>
+<body>
+<canvas id="c" tabindex="0" role="button"
+  aria-label="Tomatoes on a checkered floor in space. Press down on one to squish it, or push it sideways into a hole. Tap the speakers to make them hop. Keyboard: hold Space to squish, arrow keys to roll."></canvas>
+<div class="hud" aria-live="polite">
+  <div><b id="n">0</b><span>squished</span></div>
+  <div class="lost"><b id="v">0</b><span>lost in space</span></div>
+</div>
+<div class="controls">
+  <button id="mute" type="button" aria-pressed="false">Mute</button>
+  <button id="clean" type="button">Clean up</button>
+</div>
+<div class="hint" id="hint">Press down on a tomato</div>
+
+<script>
+(() => {
+  // ---------- setup ----------
+  const cvs = document.getElementById('c');
+  const ctx = cvs.getContext('2d');
+  const spaceC = document.createElement('canvas'), spc = spaceC.getContext('2d');
+  const floorC = document.createElement('canvas'), flc = floorC.getContext('2d');
+  const stain = document.createElement('canvas'), sctx = stain.getContext('2d');
+  const cstain = document.createElement('canvas'), cctx = cstain.getContext('2d'); // juice on the cabinet
+  const nEl = document.getElementById('n'), vEl = document.getElementById('v');
+  const hintEl = document.getElementById('hint');
+  const muteBtn = document.getElementById('mute'), cleanBtn = document.getElementById('clean');
+  const params = new URLSearchParams(location.search);
+  const POSTER = params.has('poster');
+  if (POSTER) { document.body.classList.add('poster'); hintEl.textContent = 'Tap to squish'; }
+  const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  const rand = (a, b) => a + Math.random() * (b - a);
+  const randn = () => (Math.random() + Math.random() + Math.random() - 1.5) * 1.15;
+  const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
+  const pick = (arr) => arr[(Math.random() * arr.length) | 0];
+
+  const SPACE = [32, 31, 30], CREAM = [232, 223, 208];
+  const JUICE = ['#ab1c1d', '#981617', '#b42222', '#8a1213'];
+  const SPLAT = '#8f1515', SPLAT_IN = 'rgba(176,32,34,.85)', CLOTH = 'rgba(92,14,14,.85)';
+
+  // ---------- layout + the holey floor ----------
+  // Measured from the reference: rows of 45° parallelogram holes, separated by thin
+  // cream lines; each row shifts right by about one row height.
+  let W = 0, H = 0, DPR = 1, S = 1, R = 30;
+  let hr, floorTop, px0, px1, pBottom, holeW, holeH, gapTop, period, rowShift, x0;
+  const lean = 0.95;
+  let holes, panelPath, invHoles, deep = [], cab = null;
+
+  function rrPath(x, y, w, h, rb) {
+    const p = new Path2D();
+    p.moveTo(x, y); p.lineTo(x + w, y); p.lineTo(x + w, y + h - rb);
+    p.arcTo(x + w, y + h, x + w - rb, y + h, rb); p.lineTo(x + rb, y + h);
+    p.arcTo(x, y + h, x, y + h - rb, rb); p.closePath();
+    return p;
+  }
+
+  function layout() {
+    S = Math.min(W / 420, H / 480);
+    R = 25 * S;
+    hr = 52 * S;                   // row height: a denser floor than the reference
+    holeH = 0.85 * hr; gapTop = 0.15 * hr;
+    holeW = 1.6 * hr; period = 3.7 * hr; rowShift = 0.95 * hr;
+    floorTop = Math.round(H * 0.38);
+    const inset = Math.max(4, 6 * S);
+    px0 = inset; px1 = W - inset; pBottom = H - inset;
+    x0 = W / 2 - holeW * 0.2;
+
+    holes = new Path2D();
+    for (let k = 0; ; k++) {
+      const top = floorTop + gapTop + k * hr;
+      if (top > pBottom) break;
+      const bot = top + holeH, a = x0 + k * rowShift, sh = holeH * lean;
+      for (let ax = a + Math.floor((px0 - holeW - a) / period) * period; ax - sh < px1 + 1; ax += period) {
+        holes.moveTo(ax, top); holes.lineTo(ax + holeW, top);
+        holes.lineTo(ax + holeW - sh, bot); holes.lineTo(ax - sh, bot); holes.closePath();
+      }
+    }
+    panelPath = rrPath(px0, floorTop, px1 - px0, pBottom - floorTop, 14 * S);
+    invHoles = new Path2D();
+    invHoles.rect(-20, -20, W + 40, H + 40);
+    invHoles.addPath(holes);
+
+    placeCab();
+    cabPats = null;
+
+    deep = [];
+    for (let i = 0; i < (W * H) / 4200; i++) {
+      deep.push({ x: rand(0, W), y: rand(0, H), r: rand(0.5, 1.15), a: rand(0.2, 0.65), v: rand(0.4, 1) });
+    }
+  }
+
+  // ---------- the speaker stack (after your reference: tall two-tone cabinets) ----------
+  // Three columns, two high, standing on the cream strip along the back edge of the floor.
+  // They're drawn as oblique boxes like everything else, but shallow, so they read almost
+  // straight-on like the photo and their footprint fits on that strip.
+  const STRIPE = [0.295, 0.705];   // the grille stripe, as a fraction of one cabinet's width
+  function placeCab() {
+    const dzy = Math.max(2, Math.min(6.5 * S, gapTop - 1.2)), dzx = dzy * lean;
+    const topMargin = Math.max(6, 8 * S), maxW = (W * 0.46) / 3;
+    // stand on the back strip, or on the first cream line between rows if that's
+    // what it takes for each cabinet to be about as wide as a tomato
+    let gy, ch, cw;
+    for (const line of [floorTop, floorTop + gapTop + holeH]) {
+      gy = line + dzy + 0.6;
+      ch = (gy - topMargin - dzy) / 2; cw = ch / 2.26;     // reference proportions
+      if (cw >= Math.min(R * 2, maxW)) break;
+    }
+    if (cw > maxW) { cw = maxW; ch = cw * 2.26; }
+    const X = px0 + 4 * S, w = 3 * cw, h = 2 * ch, bot = gy, top = gy - h, pt = (x, y) => ({ x, y });
+    cab = { x: X, gy, w, h, cw, ch, cols: 3, rows: 2, dzx, dzy, foot: 0, bot, top, pulse: 0, jx: 0, jy: 0 };
+    cab.hull = [pt(X, bot), pt(X, top), pt(X + dzx, top - dzy), pt(X + w + dzx, top - dzy), pt(X + w + dzx, bot - dzy), pt(X + w, bot)];
+    cab.faces = {
+      front: [pt(X, top), pt(X + w, top), pt(X + w, bot), pt(X, bot)],
+      side: [pt(X + w, bot), pt(X + w, top), pt(X + w + dzx, top - dzy), pt(X + w + dzx, bot - dzy)],
+      top: [pt(X, top), pt(X + w, top), pt(X + w + dzx, top - dzy), pt(X + dzx, top - dzy)],
+    };
+  }
+
+  function rowOf(y) {
+    const t = y - floorTop - gapTop;
+    if (t < 0) return null;
+    const k = Math.floor(t / hr), dy = t - k * hr;
+    return dy < holeH ? { k, dy, top: floorTop + gapTop + k * hr } : null;
+  }
+  function inHole(x, y) {
+    if (x < px0 || x > px1 || y < floorTop || y > pBottom) return false;
+    const r = rowOf(y);
+    if (!r) return false;
+    const left = x0 + r.k * rowShift - r.dy * lean;
+    return (((x - left) % period) + period) % period < holeW;
+  }
+  const onCream = (x, y) => x >= px0 && x <= px1 && y >= floorTop && y <= pBottom && !inHole(x, y);
+
+  // a point inside the hole under (x, y), a little in front of it: where things fall toward
+  function holeAnchor(x, y) {
+    const r = rowOf(y);
+    if (!r) return { x, y };
+    const ay = y + (r.top + holeH - y) * 0.45;
+    const m = Math.floor((x - (x0 + r.k * rowShift - r.dy * lean)) / period);
+    const lx = x0 + r.k * rowShift - (ay - r.top) * lean + m * period;
+    return { x: clamp(x, lx + holeW * 0.28, lx + holeW * 0.72), y: ay };
+  }
+
+  // film-grain fill, one grain per CSS pixel (chromatic, like the reference)
+  function grain(w, h, base, sdC, sdL) {
+    const c = document.createElement('canvas');
+    c.width = w; c.height = h;
+    const g = c.getContext('2d'), img = g.createImageData(w, h), d = img.data;
+    for (let i = 0; i < d.length; i += 4) {
+      const l = (Math.random() + Math.random() - 1) * sdL * 2.4;
+      d[i] = base[0] + l + (Math.random() - 0.5) * sdC * 3.4;
+      d[i + 1] = base[1] + l + (Math.random() - 0.5) * sdC * 3.4;
+      d[i + 2] = base[2] + l + (Math.random() - 0.5) * sdC * 3.4;
+      d[i + 3] = 255;
+    }
+    g.putImageData(img, 0, 0);
+    return c;
+  }
+
+  function drawSpace() {
+    spc.setTransform(DPR, 0, 0, DPR, 0, 0);
+    spc.imageSmoothingEnabled = false;
+    spc.drawImage(grain(Math.ceil(W), Math.ceil(H), SPACE, 1.6, 1.3), 0, 0);
+    for (let i = 0; i < (W * H) / 650; i++) {
+      const l = 52 + Math.pow(Math.random(), 3) * 70;
+      spc.fillStyle = `rgb(${l | 0},${(l * 0.97) | 0},${(l * 0.92) | 0})`;
+      spc.fillRect(rand(0, W), rand(0, H), rand(0.6, 1.2), rand(0.6, 1.2));
+    }
+    for (let i = 0; i < 9; i++) {
+      const x = rand(0, W), y = rand(0, H), r = rand(0.8, 1.4);
+      const g = spc.createRadialGradient(x, y, 0, x, y, r * 4);
+      g.addColorStop(0, 'rgba(230,222,204,.9)'); g.addColorStop(0.25, 'rgba(230,222,204,.35)'); g.addColorStop(1, 'rgba(230,222,204,0)');
+      spc.fillStyle = g; spc.beginPath(); spc.arc(x, y, r * 4, 0, Math.PI * 2); spc.fill();
+    }
+  }
+
+  function drawFloor() {
+    flc.setTransform(DPR, 0, 0, DPR, 0, 0);
+    flc.save();
+    flc.clip(panelPath);
+    flc.imageSmoothingEnabled = false;
+    flc.drawImage(grain(Math.ceil(W), Math.ceil(pBottom - floorTop) + 2, CREAM, 9, 7), 0, floorTop);
+    flc.restore();
+    flc.globalCompositeOperation = 'destination-out';
+    flc.fill(holes);
+    flc.globalCompositeOperation = 'source-over';
+  }
+
+  function resize(force) {
+    const w = innerWidth, h = innerHeight;
+    if (!w || !h) return;
+    // ignore mobile URL-bar wiggles; anything bigger rebuilds the scene
+    if (!force && Math.abs(w - W) < 1 && Math.abs(h - H) / H < 0.15) return;
+    DPR = Math.min(window.devicePixelRatio || 1, 2);
+    W = w; H = h;
+    for (const c of [cvs, spaceC, floorC, stain, cstain]) { c.width = Math.round(W * DPR); c.height = Math.round(H * DPR); }
+    layout();
+    drawSpace();
+    drawFloor();
+    // stains only ever land on cream
+    sctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    sctx.save(); sctx.clip(panelPath); sctx.clip(invHoles, 'evenodd');
+    reset();
+  }
+
+  // ---------- tomatoes: pressure soft bodies standing on the floor ----------
+  // Each tomato is a ring of points (Verlet) held by skin springs, an area constraint
+  // (juice doesn't compress) and shape matching (wants to be round, can roll).
+  // gy is where it stands on the floor; the scene is drawn back-to-front by gy.
+  const N = 26;
+  let toms = [], spawnQ = [];
+  let squished = 0, lost = 0, demoDone = false, hintStage = 0;
+
+  function polyArea(P) {
+    let a = 0;
+    for (let i = 0; i < P.length; i++) { const p = P[i], q = P[(i + 1) % P.length]; a += p.x * q.y - q.x * p.y; }
+    return a / 2;
+  }
+  function metrics(P) {
+    let cx = 0, cy = 0, minX = 1e9, maxX = -1e9, minY = 1e9, maxY = -1e9;
+    for (const p of P) {
+      cx += p.x; cy += p.y;
+      if (p.x < minX) minX = p.x; if (p.x > maxX) maxX = p.x;
+      if (p.y < minY) minY = p.y; if (p.y > maxY) maxY = p.y;
+    }
+    return { cx: cx / P.length, cy: cy / P.length, minX, maxX, minY, maxY };
+  }
+  function measure(b) { Object.assign(b, metrics(b.pts)); }
+
+  function makeTomato(cx, bottomY, gy) {
+    const rest = [];
+    const rx = R * 1.1, ry = R * 0.92;
+    for (let i = 0; i < N; i++) {
+      const a = -Math.PI / 2 + (i / N) * Math.PI * 2;
+      const lobe = 1 + 0.02 * Math.cos(6 * (a + Math.PI / 2));
+      rest.push({ x: Math.cos(a) * rx * lobe, y: Math.sin(a) * ry * lobe });
+    }
+    rest[0].y += ry * 0.08; rest[1].y += ry * 0.035; rest[N - 1].y += ry * 0.035; // stem dimple
+    let mx = 0, my = 0;
+    for (const q of rest) { mx += q.x; my += q.y; }
+    mx /= N; my /= N;
+    let maxQ = -1e9, minQ = 1e9;
+    for (const q of rest) { q.x -= mx; q.y -= my; maxQ = Math.max(maxQ, q.y); minQ = Math.min(minQ, q.y); }
+    const cy = bottomY - maxQ;
+    const pts = rest.map((q) => ({ x: cx + q.x, y: cy + q.y, px: cx + q.x, py: cy + q.y }));
+    const L0 = rest.map((q, i) => Math.hypot(rest[(i + 1) % N].x - q.x, rest[(i + 1) % N].y - q.y));
+    const cracks = [0.28, 0.48, 0.68].map((th) => {
+      const c = [[rand(-0.12, 0.12), -0.8]];
+      let a = Math.PI / 2 + rand(-1, 1);
+      for (let k = 0; k < 5; k++) {
+        a += rand(-0.6, 0.6);
+        const p = c[c.length - 1];
+        c.push([p[0] + Math.cos(a) * 0.13, p[1] + Math.sin(a) * 0.13]);
+      }
+      return { th, c };
+    });
+    const b = {
+      pts, rest, L0, A0: polyArea(rest), restH: maxQ - minQ, restW: rx * 2, gy,
+      state: 'air', hop: 0, t: 0, angle: 0, damage: 0, strain: 0, contact: false, squelchAt: 0,
+      touched: false, cracks, spin: rand(-5, 5),
+    };
+    measure(b);
+    return b;
+  }
+
+  function spawn(opts = {}) {
+    for (let tries = 0; tries < 60; tries++) {
+      const x = rand(px0 + R * 1.4, px1 - R * 1.4);
+      const gy = rand(floorTop + hr * 0.35, pBottom - R * 0.3);
+      const hole = inHole(x, gy);
+      if (opts.hole !== undefined ? hole !== opts.hole : hole && Math.random() < 0.9) continue;
+      if (toms.some((t) => t.state !== 'recede' && Math.abs(t.gy - gy) < R * 1.3 && Math.abs(t.cx - x) < R * 2.7)) continue;
+      if (cab && x < cab.x + cab.w + cab.dzx + R * 1.6 && gy < cab.gy + R * 0.8) continue;
+      const b = opts.rest ? makeTomato(x, gy, gy) : makeTomato(x, -R * 0.6 - rand(0, R), gy);
+      if (opts.rest) b.state = 'ground';
+      toms.push(b);
+      return b;
+    }
+    return null;
+  }
+
+  function population() { return clamp(Math.round((W * H) / 55000), 3, 9); }
+
+  function reset() {
+    toms = []; parts = []; pops = []; spawnQ = []; drips = [];
+    cctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    press.active = false; press.target = null;
+    acc = 0;
+    if (POSTER) { for (let i = 0; i < population(); i++) spawn({ rest: true, hole: false }); return; }
+    const n = population();
+    for (let i = 0; i < n; i++) {
+      // the third tomato drops straight through a hole, so the holes explain themselves
+      spawnQ.push({ t: 0.15 + i * 0.32, hole: !demoDone && i === 2 ? true : undefined });
+    }
+    demoDone = true;
+  }
+
+  const press = { active: false, key: false, target: null, x: 0, y: 0, tx: 0, ty: 0, held: 0, maxDepth: 0 };
+
+  function stepTomato(b, h) {
+    const P = b.pts, g = 1150 * S, damp = 0.996;
+    for (const p of P) {
+      const vx = (p.x - p.px) * damp, vy = (p.y - p.py) * damp;
+      p.px = p.x; p.py = p.y;
+      p.x += vx; p.y += vy + g * h * h;
+    }
+    const nx = new Float32Array(N), ny = new Float32Array(N);
+    const pressing = press.active && press.target === b;
+    for (let it = 0; it < 4; it++) {
+      for (let i = 0; i < N; i++) {               // skin
+        const a = P[i], c = P[(i + 1) % N];
+        let dx = c.x - a.x, dy = c.y - a.y;
+        const d = Math.hypot(dx, dy) || 1e-6;
+        const k = 0.3 * (d - b.L0[i]) / d;
+        dx *= k; dy *= k;
+        a.x += dx; a.y += dy; c.x -= dx; c.y -= dy;
+      }
+      let per = 0;                                 // juice pressure
+      for (let i = 0; i < N; i++) {
+        const prev = P[(i + N - 1) % N], next = P[(i + 1) % N];
+        const tx = next.x - prev.x, ty = next.y - prev.y, l = Math.hypot(tx, ty) || 1e-6;
+        nx[i] = ty / l; ny[i] = -tx / l;
+        per += Math.hypot(next.x - P[i].x, next.y - P[i].y);
+      }
+      const push = ((b.A0 - polyArea(P)) / per) * 0.6;
+      for (let i = 0; i < N; i++) { P[i].x += nx[i] * push; P[i].y += ny[i] * push; }
+      let cx = 0, cy = 0;                          // shape matching, with rotation
+      for (const p of P) { cx += p.x; cy += p.y; }
+      cx /= N; cy /= N;
+      let sn = 0, cs = 0;
+      for (let i = 0; i < N; i++) {
+        const q = b.rest[i], dx = P[i].x - cx, dy = P[i].y - cy;
+        cs += q.x * dx + q.y * dy; sn += q.x * dy - q.y * dx;
+      }
+      let ang = Math.atan2(sn, cs);
+      // pressed from straight above, a tomato squashes instead of spinning out from under the finger
+      if (pressing && Math.abs(press.x - cx) < R * 0.45) ang = b.angle + clamp(ang - b.angle, -0.003, 0.003);
+      const co = Math.cos(ang), si = Math.sin(ang);
+      b.angle = ang;
+      for (let i = 0; i < N; i++) {
+        const q = b.rest[i];
+        P[i].x += (cx + co * q.x - si * q.y - P[i].x) * 0.045;
+        P[i].y += (cy + si * q.x + co * q.y - P[i].y) * 0.045;
+      }
+      if (pressing) {                              // the finger: a circle whose bottom edge is the pointer
+        const pr = R * 0.5, pcx = press.x, pcy = press.y - pr;
+        for (const p of P) {
+          const dx = p.x - pcx, dy = p.y - pcy, d2 = dx * dx + dy * dy;
+          if (d2 < pr * pr) {
+            const d = Math.sqrt(d2) || 1e-6;
+            p.x = pcx + (dx / d) * pr; p.y = pcy + (dy / d) * pr;
+            b.contact = true;
+          }
+        }
+      }
+      // the cabinet is a wall for tomatoes standing beside it
+      const cabWall = cab && b.gy > cab.gy - cab.dzy - 1 && b.gy < cab.gy + 2 ? cab.x + cab.w + (cab.gy - b.gy) * lean + 1 : -1e9;
+      for (const p of P) {
+        if (b.state !== "sink" && p.y > b.gy) { p.y = b.gy; p.px = p.x - (p.x - p.px) * 0.06; } // grippy floor: it rolls rather than slides
+        if (p.x < cabWall) p.x = cabWall;
+        if (p.x < 3) p.x = 3;
+        if (p.x > W - 3) p.x = W - 3;
+      }
+    }
+  }
+
+  // tomatoes standing at about the same depth bump into each other
+  function collide() {
+    const live = toms.filter((t) => t.state === 'ground' || t.state === 'air');
+    for (let i = 0; i < live.length; i++) {
+      for (let j = i + 1; j < live.length; j++) {
+        const a = live[i], b = live[j];
+        if (Math.abs(a.gy - b.gy) > R * 0.6) continue;
+        if (a.maxY < b.minY || b.maxY < a.minY) continue;
+        const dx = b.cx - a.cx, minD = ((a.maxX - a.minX) + (b.maxX - b.minX)) * 0.45;
+        if (Math.abs(dx) >= minD) continue;
+        const o = (minD - Math.abs(dx)) * 0.25 * (dx >= 0 ? 1 : -1);
+        for (const p of a.pts) { p.x -= o; p.px -= o * 0.7; }
+        for (const p of b.pts) { p.x += o; p.px += o * 0.7; }
+      }
+    }
+  }
+
+  function inside(P, x, y) {
+    let c = false;
+    for (let i = 0, j = P.length - 1; i < P.length; j = i++) {
+      const a = P[i], b = P[j];
+      if ((a.y > y) !== (b.y > y) && x < ((b.x - a.x) * (y - a.y)) / (b.y - a.y) + a.x) c = !c;
+    }
+    return c;
+  }
+  function pickTomato(x, y) {
+    let best = null;
+    for (const t of toms) {
+      if (t.state !== 'ground' && t.state !== 'air') continue;
+      if (!inside(t.pts, x, y) && Math.hypot(x - t.cx, y - t.cy) > R * 1.15) continue;
+      if (!best || t.gy > best.gy) best = t;
+    }
+    return best;
+  }
+
+  // it drops once most of its contact patch is over a hole (a finger pressing down holds it up a bit longer)
+  function overHole(b) {
+    let n = 0, nh = 0;
+    for (const p of b.pts) if (p.y >= b.gy - 1) { n++; if (inHole(p.x, b.gy)) nh++; }
+    if (!n) return inHole(b.cx, b.gy);
+    return nh / n > (press.target === b && b.contact ? 0.8 : 0.6);
+  }
+
+  function startSink(b) {
+    if (press.target === b) { press.active = false; press.key = false; press.target = null; }
+    b.state = 'sink'; b.t = 0; b.sinkX = b.cx;
+    sfxFall();
+    if (b.touched && hintStage === 2) {
+      hintStage = 4; hintEl.textContent = 'Tap the speakers'; hintEl.classList.remove('gone');
+      setTimeout(() => { if (hintStage === 4) hintEl.classList.add('gone'); }, 4500);
+    }
+  }
+  function startRecede(b) {
+    measure(b);
+    b.state = 'recede'; b.t = 0;
+    b.c0 = { x: b.cx, y: b.cy };
+    let vx = 0, vy = 0;
+    for (const p of b.pts) { vx += p.x - p.px; vy += p.y - p.py; }
+    b.v0 = { x: (vx / N) * 120, y: (vy / N) * 120 };
+    b.rel = b.pts.map((p) => ({ x: p.x - b.cx, y: p.y - b.cy }));
+    b.A = holeAnchor(b.sinkX, b.gy);
+  }
+  // falling away into space: shrink and spin toward a point inside the hole
+  function recedePose(b) {
+    const t = b.t, s = Math.exp(-2.0 * t), k = Math.exp(-2.8 * t), tau = (1 - Math.exp(-5 * t)) / 5;
+    const cx = b.A.x + (b.c0.x + b.v0.x * tau - b.A.x) * k;
+    const cy = b.A.y + (b.c0.y + b.v0.y * tau - b.A.y) * k;
+    const r = b.spin * t, co = Math.cos(r), si = Math.sin(r);
+    return {
+      P: b.rel.map((q) => ({ x: cx + (co * q.x - si * q.y) * s, y: cy + (si * q.x + co * q.y) * s })),
+      ang: b.angle + r, s,
+    };
+  }
+
+  // ---------- particles + stains ----------
+  let parts = [], pops = [], drips = [];
+  let shake = 0, stainAlpha = 1, cleaning = false;
+
+  function blobPath(c, r, k, jag) {
+    const p = [];
+    for (let i = 0; i < k; i++) {
+      const a = (i / k) * Math.PI * 2, rr = r * (1 + rand(-jag, jag));
+      p.push([Math.cos(a) * rr, Math.sin(a) * rr]);
+    }
+    c.beginPath();
+    c.moveTo((p[k - 1][0] + p[0][0]) / 2, (p[k - 1][1] + p[0][1]) / 2);
+    for (let i = 0; i < k; i++) {
+      const a = p[i], n = p[(i + 1) % k];
+      c.quadraticCurveTo(a[0], a[1], (a[0] + n[0]) / 2, (a[1] + n[1]) / 2);
+    }
+    c.closePath();
+  }
+  function seedShape(c, x, y, r, rot) {
+    c.save(); c.translate(x, y); c.rotate(rot);
+    c.fillStyle = 'rgba(214,112,112,.42)';
+    c.beginPath(); c.ellipse(0, 0, r * 1.7, r * 1.2, 0, 0, Math.PI * 2); c.fill();
+    c.fillStyle = '#eadf9e';
+    c.beginPath(); c.ellipse(0, 0, r, r * 0.62, 0, 0, Math.PI * 2); c.fill();
+    c.restore();
+  }
+  function floorSplat(x, y, r, big) {
+    const c = sctx;
+    c.save(); c.translate(x, y); c.scale(1, 0.4);
+    c.fillStyle = SPLAT; blobPath(c, r, big ? 18 : 12, big ? 0.34 : 0.18); c.fill();
+    c.fillStyle = SPLAT_IN; blobPath(c, r * 0.62, 10, 0.2); c.fill();
+    c.fillStyle = SPLAT;
+    for (let i = 0; i < (big ? 16 : 2); i++) {
+      const a = rand(0, Math.PI * 2), d = r * rand(1.05, big ? 2.2 : 1.6), rr = r * rand(0.04, big ? 0.13 : 0.18);
+      c.beginPath(); c.arc(Math.cos(a) * d, Math.sin(a) * d, rr, 0, Math.PI * 2); c.fill();
+    }
+    if (big) for (let i = 0; i < 12; i++) {
+      const a = rand(0, Math.PI * 2), d = r * Math.sqrt(Math.random()) * 0.75;
+      seedShape(c, Math.cos(a) * d, Math.sin(a) * d, 2.2 * S, rand(0, 3));
+    }
+    c.fillStyle = 'rgba(255,240,220,.25)';
+    c.beginPath(); c.ellipse(-r * 0.25, -r * 0.3, r * 0.28, r * 0.14, 0, 0, Math.PI * 2); c.fill();
+    c.restore();
+  }
+  // a falling drop: round head leading, tapered tail trailing, stretched by speed
+  function drawDrop(c, x, y, r, vx, vy, col) {
+    const sp = Math.hypot(vx, vy), L = r * (0.4 + Math.min(1.8, sp / (280 * S)));
+    c.save(); c.translate(x, y); c.rotate(Math.atan2(vy, vx));
+    c.fillStyle = col;
+    c.beginPath(); c.moveTo(-r - L, 0);
+    c.quadraticCurveTo(-r * 0.7, -r, 0, -r);
+    c.arc(0, 0, r, -Math.PI / 2, Math.PI / 2);
+    c.quadraticCurveTo(-r * 0.7, r, -r - L, 0);
+    c.fill();
+    c.restore();
+    c.fillStyle = 'rgba(255,226,222,.5)';   // wet glint, lit from the upper left
+    c.beginPath(); c.ellipse(x - r * 0.3, y - r * 0.38, r * 0.34, r * 0.2, -0.5, 0, Math.PI * 2); c.fill();
+  }
+
+  // chunks are soft blobs that wobble and stretch along their flight
+  function chunkPath(c, p, k, ox, oy) {
+    const n = p.v.length, a = p.age || 0;
+    const q = p.v.map(([x, y], j) => { const w = 1 + 0.1 * Math.sin(a * 14 + j * 1.7); return [x * k * w + ox, y * k * w + oy]; });
+    c.beginPath();
+    c.moveTo((q[n - 1][0] + q[0][0]) / 2, (q[n - 1][1] + q[0][1]) / 2);
+    for (let j = 0; j < n; j++) { const m = q[(j + 1) % n]; c.quadraticCurveTo(q[j][0], q[j][1], (q[j][0] + m[0]) / 2, (q[j][1] + m[1]) / 2); }
+    c.closePath();
+  }
+  function drawChunk(c, p, s = 1) {
+    const vx = p.vx || 0, vy = p.vy || 0, sp = Math.hypot(vx, vy), st = Math.min(0.35, sp / (2400 * S)), va = Math.atan2(vy, vx);
+    c.save(); c.translate(p.x, p.y);
+    c.rotate(va); c.scale((1 + st) * s, s / (1 + st)); c.rotate(p.rot - va);
+    c.fillStyle = '#9c1a1b'; chunkPath(c, p, 1, 0, 0); c.fill();                                  // skin
+    c.fillStyle = 'rgba(196,52,58,.92)'; chunkPath(c, p, 0.72, p.r * 0.1, p.r * 0.08); c.fill();   // flesh
+    c.fillStyle = 'rgba(222,96,104,.45)'; chunkPath(c, p, 0.42, p.r * 0.14, p.r * 0.1); c.fill();  // jelly
+    seedShape(c, p.r * 0.05, p.r * 0.02, 1.9 * S, 0.4);
+    seedShape(c, p.r * 0.3, p.r * 0.22, 1.7 * S, 1.6);
+    c.restore();
+    c.fillStyle = 'rgba(255,228,224,.45)';
+    c.beginPath(); c.ellipse(p.x - p.r * 0.3 * s, p.y - p.r * 0.35 * s, p.r * 0.28 * s, p.r * 0.14 * s, -0.5, 0, Math.PI * 2); c.fill();
+  }
+
+  // ---------- splashes on the cabinet ----------
+  // A particle hits the cabinet when it passes over the cabinet on screen and its depth
+  // is at or behind the cabinet's front (a bit of slack so close-range squishes splash it).
+  function cabFace(x, y) {
+    if (!cab || !inside(cab.hull, x, y)) return null;
+    return inside(cab.faces.front, x, y) ? 'front' : inside(cab.faces.side, x, y) ? 'side' : 'top';
+  }
+  function facePath(c, face) {
+    const P = cab.faces[face];
+    c.beginPath(); c.moveTo(P[0].x, P[0].y);
+    for (let i = 1; i < P.length; i++) c.lineTo(P[i].x, P[i].y);
+    c.closePath();
+  }
+  // lay the splat flat onto the face it hit
+  function faceTransform(c, face) {
+    const L = Math.hypot(cab.dzx, cab.dzy), ux = cab.dzx / L, uy = -cab.dzy / L;
+    if (face === 'side') c.transform(0.6 * ux, 0.6 * uy, 0, 1, 0, 0);
+    else if (face === 'top') c.transform(1, 0, 0.45 * ux, 0.45 * uy, 0, 0);
+  }
+  function onGrille(x, y) {
+    const col = Math.floor((x - cab.x) / cab.cw);
+    if (col < 0 || col >= cab.cols || y < cab.top || y > cab.bot) return false;
+    const u = (x - cab.x) / cab.cw - col;
+    return u > STRIPE[0] && u < STRIPE[1];
+  }
+  function cabSplat(face, x, y, r) {
+    const c = cctx, cloth = face === 'front' && onGrille(x, y);
+    c.save();
+    facePath(c, face); c.clip();
+    c.translate(x, y); faceTransform(c, face);
+    c.fillStyle = cloth ? CLOTH : SPLAT; // juice soaks into the cloth, beads on the tolex
+    blobPath(c, r, 9, 0.35); c.fill();
+    if (!cloth) { c.fillStyle = SPLAT_IN; blobPath(c, r * 0.6, 8, 0.3); c.fill(); }
+    c.fillStyle = cloth ? CLOTH : SPLAT;
+    for (let i = 0; i < 3; i++) {
+      const a = rand(0, Math.PI * 2), d = r * rand(1.2, 2);
+      c.beginPath(); c.arc(Math.cos(a) * d, Math.sin(a) * d, r * rand(0.1, 0.22), 0, Math.PI * 2); c.fill();
+    }
+    if (!cloth) {
+      c.fillStyle = 'rgba(255,240,220,.3)';
+      c.beginPath(); c.ellipse(-r * 0.3, -r * 0.3, r * 0.3, r * 0.16, -0.5, 0, Math.PI * 2); c.fill();
+    }
+    c.restore();
+    // juice runs down the front and the side (straight down on screen in this projection)
+    if (face !== 'top' && r > 2.5 * S && Math.random() < (cloth ? 0.35 : 0.65)) {
+      const r = Math.max(0, Math.floor((cab.bot - y) / cab.ch)), rowBot = cab.bot - r * cab.ch - 1.5;
+      const bottom = face === 'front' ? rowBot : rowBot - (x - (cab.x + cab.w)) * (cab.dzy / cab.dzx);
+      const max = Math.min(rand(12, 50) * S * (cloth ? 0.5 : 1), bottom - y - 2);
+      if (max > 3) drips.push({ x, y: y + r * 0.3, len: 0, max, w: r * (cloth ? 0.4 : 0.55), v: rand(8, 22) * S, face, cloth });
+    }
+  }
+  function cabSeed(face, x, y, r, rot) {
+    cctx.save(); facePath(cctx, face); cctx.clip();
+    cctx.translate(x, y); faceTransform(cctx, face);
+    seedShape(cctx, 0, 0, r, rot);
+    cctx.restore();
+  }
+
+  function burst(b) {
+    measure(b);
+    const { cx, cy } = b, w = b.maxX - b.minX, h = b.maxY - b.minY;
+    sfxSplat();
+    shake = reduceMotion ? 0 : 9 * S;
+    squished++; nEl.textContent = squished;
+    if (hintStage < 2) { hintStage = 2; hintEl.textContent = 'Push one sideways into a hole'; hintEl.classList.remove('gone'); setTimeout(() => { if (hintStage === 2) hintEl.classList.add('gone'); }, 5000); }
+    pops.push({ x: cx, y: b.minY - 26 * S, t: 0, word: pick(['Splat!', 'Splort!', 'Squelch!', 'Blorp!']), rot: rand(-0.14, 0.08) });
+    floorSplat(cx, b.gy + 2 * S, b.restW * 0.6, true);
+
+    const ld = () => b.gy + rand(-1.1, 1.2) * R;
+    const first = parts.length;
+    for (let i = 0; i < 55; i++) {
+      const a = -Math.PI / 2 + randn() * 0.95, v = rand(160, 620) * S;
+      parts.push({ k: 'juice', x: cx + rand(-0.25, 0.25) * w, y: cy + rand(-0.2, 0.2) * h, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 60 * S,
+        r: rand(2.2, 6) * S, landY: b.gy + rand(-1.8, 1.8) * R, c: pick(JUICE) });
+    }
+    for (let i = 0; i < 22; i++) {
+      const a = -Math.PI / 2 + randn() * 1.2, v = rand(110, 460) * S;
+      parts.push({ k: 'seed', x: cx + rand(-0.2, 0.2) * w, y: cy, vx: Math.cos(a) * v, vy: Math.sin(a) * v,
+        r: rand(2, 2.9) * S, rot: rand(0, 3), spin: rand(-10, 10), landY: ld() });
+    }
+    for (let i = 0; i < 6; i++) {
+      const a = -Math.PI / 2 + rand(-1.5, 1.5), v = rand(150, 420) * S, r = rand(0.22, 0.38) * R, verts = [];
+      for (let j = 0; j < 8; j++) { const t = (j / 8) * Math.PI * 2, rr = r * rand(0.75, 1.1); verts.push([Math.cos(t) * rr, Math.sin(t) * rr]); }
+      parts.push({ k: 'chunk', x: cx + rand(-0.2, 0.2) * w, y: cy, vx: Math.cos(a) * v, vy: Math.sin(a) * v,
+        r, v: verts, rot: rand(0, 6), spin: rand(-8, 8), landY: ld() });
+    }
+    const top = b.pts[0];
+    parts.push({ k: 'stem', x: top.x, y: top.y, vx: rand(-110, 110) * S, vy: -rand(480, 680) * S,
+      rot: b.angle, spin: rand(-14, 14), landY: b.gy + rand(-0.5, 0.6) * R });
+
+    for (let i = first; i < parts.length; i++) {
+      const q = parts[i];
+      q.z = b.gy; q.vz = (q.landY - b.gy) / rand(0.25, 0.55);
+    }
+
+    toms.splice(toms.indexOf(b), 1);
+    spawnQ.push({ t: rand(1.0, 1.7) });
+    if (press.target === b) { press.active = false; press.target = null; }
+  }
+
+  // ---------- sound (synthesized, no files) ----------
+  let actx = null, noiseBuf = null, muted = false;
+  function ensureAudio() {
+    if (muted) return;
+    try {
+      if (!actx) {
+        const AC = window.AudioContext || window.webkitAudioContext;
+        if (!AC) return;
+        actx = new AC();
+        const len = (actx.sampleRate * 1.2) | 0;
+        noiseBuf = actx.createBuffer(1, len, actx.sampleRate);
+        const d = noiseBuf.getChannelData(0);
+        for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+      }
+      if (actx.state === 'suspended') actx.resume();
+    } catch (e) { actx = null; }
+  }
+  function env(g, t, peak, dur) {
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(peak, t + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  }
+  function noise(dur, type, f0, f1, q, gain, delay = 0) {
+    const t = actx.currentTime + delay;
+    const src = actx.createBufferSource(); src.buffer = noiseBuf;
+    const f = actx.createBiquadFilter(); f.type = type; f.Q.value = q;
+    f.frequency.setValueAtTime(f0, t); f.frequency.exponentialRampToValueAtTime(f1, t + dur);
+    const g = actx.createGain(); env(g, t, gain, dur);
+    src.connect(f).connect(g).connect(actx.destination);
+    src.start(t); src.stop(t + dur + 0.02);
+  }
+  function tone(dur, f0, f1, gain) {
+    const t = actx.currentTime;
+    const o = actx.createOscillator(); o.type = 'sine';
+    o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f1, t + dur);
+    const g = actx.createGain(); env(g, t, gain, dur);
+    o.connect(g).connect(actx.destination); o.start(t); o.stop(t + dur + 0.02);
+  }
+  const live = () => !muted && actx && actx.state === 'running';
+  function sfxSquelch(s) { pulse(0.25 * s); if (!live()) return; noise(0.12, 'bandpass', 1100 + 1400 * s, 350, 5, 0.12 + 0.18 * s); tone(0.09, 300 - 90 * s, 140, 0.04); }
+  function sfxSplat() { pulse(0.8); if (!live()) return; noise(0.4, 'lowpass', 2400, 180, 0.8, 0.45); noise(0.22, 'bandpass', 1300, 420, 3, 0.2, 0.03); tone(0.25, 160, 50, 0.38); }
+  function sfxLand() { pulse(0.12); if (!live()) return; tone(0.1, 150, 70, 0.07); }
+  function sfxFall() { pulse(0.3); if (!live()) return; tone(1.0, 720, 85, 0.07); noise(0.8, 'lowpass', 700, 120, 0.7, 0.05); }
+  function sfxThump() { pulse(1); if (!live()) return; tone(0.5, 92, 38, 0.6); noise(0.3, 'lowpass', 420, 80, 0.8, 0.28); tone(0.18, 184, 120, 0.08); }
+  function pulse(a) { if (cab) cab.pulse = Math.max(cab.pulse, a); }
+
+  // tap the speakers: a bass thump that makes every standing tomato hop
+  function thump() {
+    sfxThump();
+    if (hintStage === 4) { hintStage = 5; hintEl.classList.add('gone'); }
+    const ox = cab.x + cab.w / 2;
+    for (const b of toms) {
+      if (b.state !== 'ground') continue;
+      const k = clamp(1 - Math.hypot(b.cx - ox, b.gy - cab.gy) / (W * 1.6), 0.55, 1);
+      const vy = rand(3.1, 3.8) * S * k, vx = rand(-0.7, 0.7) * S * k;
+      for (const p of b.pts) { p.py += vy; p.px -= vx; }
+      b.state = 'air'; b.hop = 0.08;
+    }
+  }
+
+  // ---------- input ----------
+  function release() {
+    if (!press.active) return;
+    const t = press.target;
+    if (t && toms.includes(t) && press.maxDepth > 0) t.damage += 0.05 + 0.18 * press.maxDepth;
+    press.active = false; press.key = false; press.target = null;
+  }
+
+  cvs.addEventListener('pointerdown', (e) => {
+    if (e.button > 0) return;
+    ensureAudio();
+    const x = e.clientX, y = e.clientY, t = pickTomato(x, y);
+    if (!t) { if (cab && inside(cab.hull, x, y)) thump(); return; }
+    try { cvs.setPointerCapture(e.pointerId); } catch (_) {}
+    Object.assign(press, { active: true, key: false, target: t, held: 0, maxDepth: 0, tx: x, ty: y, x, y: Math.min(y, t.minY - 2) });
+    t.touched = true;
+    sfxSquelch(0.35);
+    cvs.style.cursor = 'grabbing';
+  });
+  cvs.addEventListener('pointermove', (e) => {
+    if (press.active && !press.key) { press.tx = e.clientX; press.ty = e.clientY; return; }
+    cvs.style.cursor = pickTomato(e.clientX, e.clientY) ? 'grab' : cab && inside(cab.hull, e.clientX, e.clientY) ? 'pointer' : 'default';
+  });
+  for (const ev of ['pointerup', 'pointercancel', 'lostpointercapture']) {
+    cvs.addEventListener(ev, () => { if (!press.key) release(); cvs.style.cursor = 'default'; });
+  }
+
+  function keyTarget() {
+    let best = null, bd = 1e9;
+    for (const t of toms) {
+      if (t.state !== 'ground') continue;
+      const d = Math.abs(t.cx - W / 2) - t.gy * 0.5;
+      if (d < bd) { bd = d; best = t; }
+    }
+    return best;
+  }
+  cvs.addEventListener('keydown', (e) => {
+    if (e.code === 'ArrowLeft' || e.code === 'ArrowRight') {
+      e.preventDefault(); ensureAudio();
+      const t = press.target || keyTarget();
+      if (!t) return;
+      t.touched = true;
+      const v = (e.code === 'ArrowLeft' ? -1 : 1) * 2.2 * S;
+      for (const p of t.pts) p.px -= v * (p.y < t.cy ? 1.6 : 0.4); // push the top harder: it rolls
+      return;
+    }
+    if (e.code !== 'Space' && e.code !== 'Enter') return;
+    e.preventDefault();
+    if (press.key) return;
+    const t = keyTarget();
+    if (!t) return;
+    ensureAudio();
+    t.touched = true;
+    Object.assign(press, { active: true, key: true, target: t, held: 0, maxDepth: 0, x: t.cx, tx: t.cx, y: t.minY - 2 });
+  });
+  cvs.addEventListener('keyup', (e) => { if (press.key && (e.code === 'Space' || e.code === 'Enter')) release(); });
+
+  muteBtn.addEventListener('click', () => {
+    muted = !muted;
+    muteBtn.textContent = muted ? 'Unmute' : 'Mute';
+    muteBtn.setAttribute('aria-pressed', String(muted));
+    if (!muted) ensureAudio();
+  });
+  cleanBtn.addEventListener('click', () => { if (stainAlpha === 1) cleaning = true; });
+
+  // ---------- update ----------
+  const H_STEP = 1 / 120;
+  let acc = 0;
+
+  function update(dt) {
+    for (let i = spawnQ.length - 1; i >= 0; i--) {
+      spawnQ[i].t -= dt;
+      if (spawnQ[i].t <= 0) {
+        const job = spawnQ.splice(i, 1)[0];
+        if (toms.filter((t) => t.state === 'ground' || t.state === 'air').length < population()) spawn({ hole: job.hole });
+      }
+    }
+
+    const tg = press.target;
+    if (press.active && tg) {
+      press.held += dt;
+      const maxStep = 1200 * S * dt;
+      if (press.key) {
+        press.y = Math.min(tg.gy - 4, press.y + 70 * S * dt);
+        press.x += (tg.cx - press.x) * 0.2;
+      } else {
+        press.x += clamp((press.tx - press.x) * Math.min(1, dt * 25), -maxStep, maxStep);
+        press.y += clamp((Math.min(press.ty, tg.gy - 4) - press.y) * Math.min(1, dt * 25), -maxStep, maxStep);
+      }
+    }
+
+    for (const b of toms) b.contact = false;
+    acc += dt;
+    let steps = 0;
+    while (acc >= H_STEP && steps < 5) {
+      for (const b of toms) if (b.state !== 'recede') stepTomato(b, H_STEP);
+      acc -= H_STEP; steps++;
+    }
+    if (steps === 5) acc = 0;
+    for (const b of toms) if (b.state !== 'recede') measure(b);
+    collide();
+
+    for (let i = toms.length - 1; i >= 0; i--) {
+      const b = toms[i];
+      if (b.state === 'air') b.hop -= dt;
+      if (b.state === 'air' && b.hop <= 0 && b.maxY >= b.gy - 0.5) {
+        if (inHole(b.cx, b.gy)) startSink(b);
+        else { b.state = 'ground'; sfxLand(); }
+      } else if (b.state === 'ground' && overHole(b)) {
+        startSink(b);
+      } else if (b.state === 'sink') {
+        b.t += dt;
+        if (b.cy > b.gy - b.restH * 0.1 || b.t > 0.35) startRecede(b);
+      } else if (b.state === 'recede') {
+        b.t += dt;
+        if (b.t > 1.7) {
+          toms.splice(i, 1);
+          lost++; vEl.textContent = lost;
+          spawnQ.push({ t: rand(0.6, 1.3) });
+        }
+        continue;
+      }
+      if (b.state !== 'ground' && b.state !== 'air') continue;
+
+      const heightStrain = clamp(1 - (b.maxY - b.minY) / b.restH, 0, 1);
+      let depth = 0;
+      if (press.active && press.target === b && b.contact) {
+        if (hintStage === 0) { hintStage = 1; hintEl.classList.add('gone'); }
+        depth = clamp((press.y - (b.gy - b.restH)) / b.restH, 0, 1);
+        press.maxDepth = Math.max(press.maxDepth, depth);
+      }
+      const s = Math.max(heightStrain, depth);
+      b.strain = s;
+      if (s > 0.22) b.damage += (s - 0.22) * dt * 2.0;
+      if (s - b.squelchAt > 0.1) { if (press.target === b) sfxSquelch(s); b.squelchAt = s; }
+      else if (s < b.squelchAt - 0.12) b.squelchAt = s;
+      if ((depth > 0.62 && press.held > 0.18) || b.damage >= 1) burst(b);
+    }
+
+    // debris: lands on cream and stains it, or drops through a hole into space
+    const g = 1500 * S;
+    for (let i = parts.length - 1; i >= 0; i--) {
+      const p = parts[i];
+      if (p.void) {
+        p.t += dt; p.x += p.vx * 0.25 * dt; p.y += 26 * S * dt;
+        if (p.spin) p.rot += p.spin * dt;
+        if (p.t > 0.8) parts.splice(i, 1);
+        continue;
+      }
+      p.vy += g * dt; p.x += p.vx * dt; p.y += p.vy * dt;
+      p.age = (p.age || 0) + dt;
+      if (p.spin) p.rot += p.spin * dt;
+      if (p.x < -30 || p.x > W + 30) { parts.splice(i, 1); continue; }
+      if (p.vz) {
+        p.z += p.vz * dt;
+        if ((p.vz < 0 && p.z <= p.landY) || (p.vz > 0 && p.z >= p.landY)) { p.z = p.landY; p.vz = 0; }
+      }
+      if (!p.cabDone && cab && p.z < cab.gy + R * 0.3) {
+        const face = cabFace(p.x, p.y);
+        // the front gets hit as the drop reaches the cabinet's front plane; side and top need it to be level with them
+        if (face && (face === 'front' || p.z <= cab.gy)) {
+          if (p.k === 'juice') { cabSplat(face, p.x, p.y, p.r * 2.2); parts.splice(i, 1); continue; }
+          if (p.k === 'seed') { cabSeed(face, p.x, p.y, p.r, p.rot); parts.splice(i, 1); continue; }
+          // chunks and the stem smear and bounce off
+          cabSplat(face, p.x, p.y, (p.r || R * 0.2) * 0.8);
+          p.vx = Math.abs(p.vx) * 0.35 * (face === 'front' ? Math.sign(p.vx || 1) : 1);
+          p.vy = Math.max(p.vy * 0.3, 0);
+          p.cabDone = true;
+        }
+      }
+      const fy = p.z ?? p.landY; // the floor line at the particle's current depth
+      if (p.y < fy) continue;
+      if (!onCream(p.x, fy)) { p.void = true; p.t = 0; p.y = fy; continue; }
+      let dead = true;
+      if (p.k === 'juice') floorSplat(p.x, fy, p.r * 2.4, false);
+      else if (p.k === 'seed') seedShape(sctx, p.x, fy, p.r, p.rot);
+      else if (Math.abs(p.vy) > 140 * S) {
+        p.y = fy; p.vy *= -0.32; p.vx *= 0.55; p.spin *= 0.5; dead = false;
+        if (p.k === 'chunk') floorSplat(p.x, fy, p.r * 0.7, false);
+      } else if (p.k === 'chunk') drawChunk(sctx, { ...p, y: fy - p.r * 0.3 });
+      else drawCalyx(sctx, p.x, fy - R * 0.05, p.rot, 0.9);
+      if (dead) parts.splice(i, 1);
+    }
+
+    for (let i = drips.length - 1; i >= 0; i--) {
+      const d = drips[i], nl = Math.min(d.max, d.len + d.v * dt), col = d.cloth ? CLOTH : SPLAT;
+      cctx.save(); facePath(cctx, d.face); cctx.clip();
+      cctx.strokeStyle = col; cctx.lineWidth = d.w; cctx.lineCap = 'round';
+      cctx.beginPath(); cctx.moveTo(d.x, d.y + d.len); cctx.lineTo(d.x, d.y + nl); cctx.stroke();
+      d.len = nl; d.v *= 0.996;
+      if (d.len >= d.max) {
+        cctx.fillStyle = col; cctx.beginPath(); cctx.arc(d.x, d.y + d.len, d.w * 0.75, 0, Math.PI * 2); cctx.fill();
+        drips.splice(i, 1);
+      }
+      cctx.restore();
+    }
+
+    for (let i = pops.length - 1; i >= 0; i--) { pops[i].t += dt; if (pops[i].t > 1.2) pops.splice(i, 1); }
+    if (cab) {
+      cab.pulse *= Math.exp(-5 * dt);
+      const a = cab.pulse > 0.06 && !reduceMotion ? cab.pulse : 0;
+      cab.jx = (Math.random() - 0.5) * a * 1.4 * S; cab.jy = (Math.random() - 0.5) * a * 0.8 * S;
+    }
+    shake = shake > 0.3 ? shake * 0.86 : 0;
+
+    if (!reduceMotion) for (const s of deep) {
+      s.x += 3.2 * S * s.v * dt; s.y -= 1.2 * S * s.v * dt;
+      if (s.x > W + 2) s.x = -2;
+      if (s.y < -2) s.y = H + 2;
+    }
+
+    if (cleaning) {
+      stainAlpha -= dt * 2.8;
+      if (stainAlpha <= 0) {
+        sctx.save(); sctx.setTransform(1, 0, 0, 1, 0, 0); sctx.clearRect(0, 0, stain.width, stain.height); sctx.restore();
+        cctx.save(); cctx.setTransform(1, 0, 0, 1, 0, 0); cctx.clearRect(0, 0, cstain.width, cstain.height); cctx.restore();
+        drips = [];
+        stainAlpha = 1; cleaning = false;
+      }
+    }
+  }
+
+  // ---------- render ----------
+  // a wiry calyx: thin tapered sepals that hug the shoulders and curl up into a crown
+  function taper(c, p0, p1, p2, p3, w0) {
+    const A = [], B = [];
+    for (let i = 0; i <= 10; i++) {
+      const t = i / 10, m = 1 - t;
+      const x = m * m * m * p0[0] + 3 * m * m * t * p1[0] + 3 * m * t * t * p2[0] + t * t * t * p3[0];
+      const y = m * m * m * p0[1] + 3 * m * m * t * p1[1] + 3 * m * t * t * p2[1] + t * t * t * p3[1];
+      const dx = 3 * m * m * (p1[0] - p0[0]) + 6 * m * t * (p2[0] - p1[0]) + 3 * t * t * (p3[0] - p2[0]);
+      const dy = 3 * m * m * (p1[1] - p0[1]) + 6 * m * t * (p2[1] - p1[1]) + 3 * t * t * (p3[1] - p2[1]);
+      const dl = Math.hypot(dx, dy) || 1, w = w0 * Math.pow(m, 0.8) + 0.25;
+      A.push([x - (dy / dl) * w, y + (dx / dl) * w]);
+      B.push([x + (dy / dl) * w, y - (dx / dl) * w]);
+    }
+    c.beginPath(); c.moveTo(A[0][0], A[0][1]);
+    for (const q of A) c.lineTo(q[0], q[1]);
+    for (let i = B.length - 1; i >= 0; i--) c.lineTo(B[i][0], B[i][1]);
+    c.closePath();
+    const g = c.createLinearGradient(p0[0], p0[1], p3[0], p3[1]);
+    g.addColorStop(0, '#554e24'); g.addColorStop(0.6, '#7a6c33'); g.addColorStop(1, '#bca867');
+    c.fillStyle = g; c.fill();
+  }
+  const SEPALS = [[-1, 0.18, 0.9], [-1, -0.22, 1], [-0.5, -0.8, 0.8], [0.45, -0.85, 0.78], [1, -0.28, 1], [1, 0.14, 0.92]];
+  function drawCalyx(c, x, y, ang, s) {
+    c.save(); c.translate(x, y); c.rotate(ang); c.scale(s, s);
+    const L = R * 0.62;
+    for (const [dx, dy, lf] of SEPALS) {
+      const l = Math.hypot(dx, dy), ux = dx / l, uy = dy / l, Ls = L * lf;
+      taper(c, [0, 0], [ux * Ls * 0.4, uy * Ls * 0.4 + R * 0.05], [ux * Ls * 0.8, uy * Ls * 0.8 - Ls * 0.1], [ux * Ls * 0.86, uy * Ls * 0.86 - Ls * 0.46], R * 0.08);
+    }
+    c.lineCap = 'round';
+    c.strokeStyle = '#4c471c'; c.lineWidth = R * 0.12;
+    c.beginPath(); c.moveTo(0, R * 0.02); c.quadraticCurveTo(-R * 0.02, -R * 0.14, R * 0.06, -R * 0.26); c.stroke();
+    c.strokeStyle = 'rgba(194,175,129,.55)'; c.lineWidth = R * 0.035;
+    c.beginPath(); c.moveTo(-R * 0.025, -R * 0.02); c.quadraticCurveTo(-R * 0.04, -R * 0.13, R * 0.03, -R * 0.22); c.stroke();
+    c.restore();
+  }
+
+  function drawTomato(c, P, ang, b, dim = 0, calyxScale = 1) {
+    const { cx, cy, minX, maxX, minY, maxY } = metrics(P);
+    const w = maxX - minX, h = maxY - minY, M = Math.max(w, h);
+    if (w < 0.5) return;
+    c.beginPath();
+    c.moveTo((P[N - 1].x + P[0].x) / 2, (P[N - 1].y + P[0].y) / 2);
+    for (let i = 0; i < N; i++) {
+      const a = P[i], n = P[(i + 1) % N];
+      c.quadraticCurveTo(a.x, a.y, (a.x + n.x) / 2, (a.y + n.y) / 2);
+    }
+    c.closePath();
+    const g1 = c.createRadialGradient(cx - w * 0.18, minY + h * 0.3, M * 0.04, cx, cy, M * 0.62);
+    g1.addColorStop(0, '#e9583a'); g1.addColorStop(0.42, '#d63a24'); g1.addColorStop(0.78, '#c42d1b'); g1.addColorStop(1, '#a3200f');
+    c.fillStyle = g1; c.fill();
+
+    c.save(); c.clip();
+    const box = [minX - 2, minY - 2, w + 4, h + 4];
+    const g2 = c.createRadialGradient(cx - w * 0.1, cy - h * 0.14, M * 0.28, cx - w * 0.06, cy - h * 0.1, M * 0.64);
+    g2.addColorStop(0, 'rgba(80,12,5,0)'); g2.addColorStop(1, 'rgba(80,12,5,.5)');
+    c.fillStyle = g2; c.fillRect(...box);
+    const top = P[0];
+    const g3 = c.createRadialGradient(top.x, top.y + h * 0.08, 0, top.x, top.y + h * 0.08, h * 0.5);
+    g3.addColorStop(0, 'rgba(236,140,62,.5)'); g3.addColorStop(1, 'rgba(236,140,62,0)');
+    c.fillStyle = g3; c.fillRect(...box);
+
+    if (b && b.damage > 0.28) {
+      c.save(); c.translate(cx, cy); c.rotate(ang);
+      const sx = w / 2, sy = h / 2;
+      for (const cr of b.cracks) {
+        const f = clamp((b.damage - cr.th) / 0.22, 0, 1);
+        if (!f) continue;
+        const segs = f * (cr.c.length - 1);
+        c.strokeStyle = '#6e120a'; c.lineWidth = 1.4 * S; c.lineJoin = 'round'; c.lineCap = 'round';
+        c.beginPath(); c.moveTo(cr.c[0][0] * sx, cr.c[0][1] * sy);
+        let ex = 0, ey = 0;
+        for (let k = 1; k <= Math.ceil(segs); k++) {
+          const t = Math.min(1, segs - (k - 1)), a = cr.c[k - 1], c2 = cr.c[k];
+          ex = (a[0] + (c2[0] - a[0]) * t) * sx; ey = (a[1] + (c2[1] - a[1]) * t) * sy;
+          c.lineTo(ex, ey);
+        }
+        c.stroke();
+        if (f === 1 && b.damage > cr.th + 0.3) {
+          c.fillStyle = '#c42f1e'; c.beginPath(); c.arc(ex, ey + 1.5 * S, 2 * S, 0, Math.PI * 2); c.fill();
+        }
+      }
+      c.restore();
+    }
+
+    // the photo look: a big soft warm highlight plus a small one on the far side
+    c.save();
+    c.translate(cx - w * 0.24, minY + h * 0.32); c.rotate(-0.4); c.scale(1, 0.7);
+    const hr0 = w * 0.18, g4 = c.createRadialGradient(0, 0, 0, 0, 0, hr0);
+    g4.addColorStop(0, 'rgba(255,238,205,.95)'); g4.addColorStop(0.45, 'rgba(246,214,170,.6)'); g4.addColorStop(1, 'rgba(240,190,140,0)');
+    c.fillStyle = g4; c.beginPath(); c.arc(0, 0, hr0, 0, Math.PI * 2); c.fill();
+    c.restore();
+    const hx = cx + w * 0.25, hy = minY + h * 0.46, g5 = c.createRadialGradient(hx, hy, 0, hx, hy, w * 0.07);
+    g5.addColorStop(0, 'rgba(255,215,180,.55)'); g5.addColorStop(1, 'rgba(255,215,180,0)');
+    c.fillStyle = g5; c.fillRect(...box);
+    if (dim) { c.fillStyle = `rgba(32,31,30,${dim})`; c.fillRect(...box); }
+    c.restore();
+
+    c.save();
+    if (dim) c.globalAlpha = 1 - dim;
+    drawCalyx(c, top.x - Math.sin(ang) * R * 0.05 * calyxScale, top.y + Math.cos(ang) * R * 0.05 * calyxScale, ang, calyxScale);
+    c.restore();
+  }
+
+  let cabPats = null;
+  function makeCabPats() {
+    const rib = document.createElement('canvas'); rib.width = 3; rib.height = 3;
+    const g = rib.getContext('2d');
+    g.fillStyle = '#151514'; g.fillRect(0, 0, 3, 3);
+    g.fillStyle = '#262523'; g.fillRect(0, 0, 1, 3);
+    cabPats = {
+      black: ctx.createPattern(grain(40, 40, [30, 29, 28], 3, 4), 'repeat'),
+      cream: ctx.createPattern(grain(40, 40, [234, 228, 213], 5, 5), 'repeat'),
+      rib: ctx.createPattern(rib, 'repeat'),
+    };
+  }
+
+  function poly(c, pts) { c.beginPath(); c.moveTo(pts[0][0], pts[0][1]); for (const p of pts.slice(1)) c.lineTo(p[0], p[1]); c.closePath(); }
+
+  // an L-shaped chrome cap; (sx, sy) point into the cabinet
+  function chromeCorner(c, x, y, sx, sy, k) {
+    const g = c.createLinearGradient(x, y, x + sx * k, y + sy * k);
+    g.addColorStop(0, '#ffffff'); g.addColorStop(0.45, '#d4d1ca'); g.addColorStop(1, '#f2f0eb');
+    c.fillStyle = g;
+    c.beginPath();
+    c.moveTo(x, y); c.lineTo(x + sx * k, y); c.lineTo(x + sx * k, y + sy * k * 0.38);
+    c.lineTo(x + sx * k * 0.38, y + sy * k * 0.38); c.lineTo(x + sx * k * 0.38, y + sy * k); c.lineTo(x, y + sy * k);
+    c.closePath(); c.fill();
+    c.strokeStyle = 'rgba(0,0,0,.45)'; c.lineWidth = 0.6; c.stroke();
+  }
+
+  // a plain chromed rectangular plate where a maker's badge would go
+  function drawPlate(c, cx, cy, w) {
+    const pw = w * 0.34, ph = Math.max(3, w * 0.085), x = cx - pw / 2, y = cy - ph / 2, r = Math.min(1.2, ph * 0.2);
+    const rr = (dx, dy) => { c.beginPath(); c.roundRect ? c.roundRect(x + dx, y + dy, pw, ph, r) : c.rect(x + dx, y + dy, pw, ph); };
+    rr(0.6, 0.9); c.fillStyle = 'rgba(0,0,0,.6)'; c.fill();
+    rr(0, 0);
+    const g = c.createLinearGradient(0, y, 0, y + ph);
+    g.addColorStop(0, '#fdfdfb'); g.addColorStop(0.4, '#d3d0c9'); g.addColorStop(0.52, '#8b8882'); g.addColorStop(0.64, '#c2bfb8'); g.addColorStop(1, '#efede8');
+    c.fillStyle = g; c.fill();
+    const sh = c.createLinearGradient(x, y, x + pw * 0.6, y + ph * 2);  // a soft diagonal glint
+    sh.addColorStop(0, 'rgba(255,255,255,0)'); sh.addColorStop(0.3, 'rgba(255,255,255,0)');
+    sh.addColorStop(0.42, 'rgba(255,255,255,.55)'); sh.addColorStop(0.56, 'rgba(255,255,255,0)'); sh.addColorStop(1, 'rgba(255,255,255,0)');
+    c.fillStyle = sh; c.fill();
+    c.strokeStyle = 'rgba(50,48,44,.85)'; c.lineWidth = 0.6; c.stroke();
+    if (ph >= 4) {
+      c.fillStyle = '#6f6c66';
+      for (const sx of [x + ph * 0.55, x + pw - ph * 0.55]) { c.beginPath(); c.arc(sx, cy, ph * 0.16, 0, Math.PI * 2); c.fill(); }
+    }
+  }
+
+  function drawCabinetFront(c, x, y, w, h, pu) {
+    c.fillStyle = cabPats.black; c.fillRect(x, y, w, h);
+    const fr = w * 0.045, t = h * 0.032, b = h * 0.036, iy = y + t, ih = h - t - b;
+    const cwid = w * (STRIPE[0] - 0.045), sx = x + w * STRIPE[0], sw = w * (STRIPE[1] - STRIPE[0]);
+    // grille stripe: fine vertical ribs
+    c.fillStyle = cabPats.rib; c.fillRect(sx, iy, sw, ih);
+    if (pu > 0.02) { c.fillStyle = `rgba(255,240,220,${0.08 * pu})`; c.fillRect(sx, iy, sw, ih); }
+    const gs = c.createLinearGradient(sx, 0, sx + sw, 0);
+    gs.addColorStop(0, 'rgba(0,0,0,.35)'); gs.addColorStop(0.15, 'rgba(0,0,0,0)'); gs.addColorStop(0.85, 'rgba(0,0,0,0)'); gs.addColorStop(1, 'rgba(0,0,0,.35)');
+    c.fillStyle = gs; c.fillRect(sx, iy, sw, ih);
+    // cream panels, slightly recessed: shaded at the ends and toward the edges
+    for (const px of [x + fr, sx + sw]) {
+      c.fillStyle = cabPats.cream; c.fillRect(px, iy, cwid, ih);
+      const e = Math.min(ih * 0.05, cwid * 0.7);
+      let g = c.createLinearGradient(0, iy, 0, iy + e);
+      g.addColorStop(0, 'rgba(40,36,30,.38)'); g.addColorStop(1, 'rgba(40,36,30,0)');
+      c.fillStyle = g; c.fillRect(px, iy, cwid, e);
+      g = c.createLinearGradient(0, iy + ih - e, 0, iy + ih);
+      g.addColorStop(0, 'rgba(40,36,30,0)'); g.addColorStop(1, 'rgba(40,36,30,.32)');
+      c.fillStyle = g; c.fillRect(px, iy + ih - e, cwid, e);
+      g = c.createLinearGradient(px, 0, px + cwid, 0);
+      g.addColorStop(0, 'rgba(40,36,30,.14)'); g.addColorStop(0.35, 'rgba(40,36,30,0)'); g.addColorStop(0.75, 'rgba(255,255,255,.05)'); g.addColorStop(1, 'rgba(40,36,30,.12)');
+      c.fillStyle = g; c.fillRect(px, iy, cwid, ih);
+    }
+    const k = Math.max(3.5, w * 0.1);
+    chromeCorner(c, x, y, 1, 1, k); chromeCorner(c, x + w, y, -1, 1, k);
+    chromeCorner(c, x, y + h, 1, -1, k); chromeCorner(c, x + w, y + h, -1, -1, k);
+    drawPlate(c, x + w * 0.5, y + h * 0.23, w);
+    c.strokeStyle = 'rgba(0,0,0,.65)'; c.lineWidth = 1; c.strokeRect(x + 0.5, y + 0.5, w - 1, h - 1);
+  }
+
+  function drawCab(c) {
+    if (!cabPats) makeCabPats();
+    const { x, w, cw, ch, dzx, dzy, cols, rows, bot, top } = cab, pu = cab.pulse;
+    c.lineWidth = 1;
+    // top faces of the top row
+    for (let i = 0; i < cols; i++) {
+      const xc = x + i * cw;
+      poly(c, [[xc, top], [xc + cw, top], [xc + cw + dzx, top - dzy], [xc + dzx, top - dzy]]);
+      c.fillStyle = cabPats.black; c.fill(); c.fillStyle = 'rgba(255,250,235,.14)'; c.fill();
+      c.strokeStyle = 'rgba(0,0,0,.65)'; c.stroke();
+    }
+    // the right side of the right-hand column, with the seam between the two rows
+    poly(c, [[x + w, bot], [x + w, top], [x + w + dzx, top - dzy], [x + w + dzx, bot - dzy]]);
+    c.fillStyle = cabPats.black; c.fill(); c.fillStyle = 'rgba(0,0,0,.35)'; c.fill(); c.stroke();
+    c.beginPath(); c.moveTo(x + w, bot - ch); c.lineTo(x + w + dzx, bot - ch - dzy); c.stroke();
+    for (let r = 0; r < rows; r++) for (let i = 0; i < cols; i++) drawCabinetFront(c, x + i * cw, bot - (r + 1) * ch, cw, ch, pu);
+  }
+
+  function drawRecede(b) {
+    const { P, ang, s } = recedePose(b);
+    const fade = clamp((0.12 - s) / 0.12, 0, 1);
+    ctx.save();
+    ctx.globalAlpha = 1 - fade;
+    drawTomato(ctx, P, ang, b, Math.min(0.8, (1 - s) * 0.85), s);
+    ctx.restore();
+  }
+
+  function render() {
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    if (shake) ctx.translate(rand(-1, 1) * shake, rand(-1, 1) * shake);
+    ctx.drawImage(spaceC, 0, 0, W, H);
+
+    // deep space, slowly drifting: you see it through the holes
+    ctx.fillStyle = '#d8d0bf';
+    for (const s of deep) { ctx.globalAlpha = s.a; ctx.fillRect(s.x, s.y, s.r, s.r); }
+    ctx.globalAlpha = 1;
+
+    // below the floor: things that fell in (only visible through the holes)
+    for (const p of parts) {
+      if (!p.void) continue;
+      const s = Math.exp(-3.2 * p.t);
+      ctx.save(); ctx.globalAlpha = s;
+      if (p.k === 'juice') drawDrop(ctx, p.x, p.y, p.r * s, p.vx * 0.3, 60 * S, p.c);
+      else if (p.k === 'seed') seedShape(ctx, p.x, p.y, p.r * s, p.rot);
+      else if (p.k === 'chunk') drawChunk(ctx, p, s);
+      else drawCalyx(ctx, p.x, p.y, p.rot, 0.9 * s);
+      ctx.restore();
+    }
+    for (const b of toms) {
+      if (b.state === 'sink') drawTomato(ctx, b.pts, b.angle, b);
+      else if (b.state === 'recede') drawRecede(b);
+    }
+
+    ctx.drawImage(floorC, 0, 0, W, H);
+    ctx.globalAlpha = stainAlpha; ctx.drawImage(stain, 0, 0, W, H); ctx.globalAlpha = 1;
+
+    // contact shadows, on cream only
+    ctx.save(); ctx.clip(panelPath); ctx.clip(invHoles, 'evenodd');
+    if (cab) {
+      ctx.save();
+      ctx.translate(cab.x + cab.w * 0.5 + 4 * S, cab.gy + 2 * S);
+      ctx.scale(1, 0.16);
+      const rr = (cab.w + cab.dzx) * 0.62, g = ctx.createRadialGradient(0, 0, 0, 0, 0, rr);
+      g.addColorStop(0, 'rgba(32,31,30,.5)'); g.addColorStop(1, 'rgba(32,31,30,0)');
+      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(0, 0, rr, 0, Math.PI * 2); ctx.fill();
+      ctx.restore();
+    }
+    for (const b of toms) {
+      if (b.state !== 'ground' && b.state !== 'air') continue;
+      const w = b.maxX - b.minX, lift = clamp(1 - (b.gy - b.maxY) / (R * 5), 0, 1);
+      if (lift <= 0) continue;
+      ctx.save(); ctx.translate(b.cx, b.gy + 1.5 * S); ctx.scale(1, 0.22);
+      const g = ctx.createRadialGradient(0, 0, 0, 0, 0, w * 0.55);
+      g.addColorStop(0, `rgba(32,31,30,${0.5 * lift})`); g.addColorStop(1, 'rgba(32,31,30,0)');
+      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(0, 0, w * 0.55, 0, Math.PI * 2); ctx.fill();
+      ctx.restore();
+    }
+    ctx.restore();
+
+    // above the floor, back to front (the cabinet lives in the back corner, so it goes first)
+    if (cab) {
+      ctx.save(); ctx.translate(cab.jx, cab.jy); // the stack shivers on a thump
+      drawCab(ctx);
+      ctx.globalAlpha = stainAlpha; ctx.drawImage(cstain, 0, 0, W, H); ctx.globalAlpha = 1;
+      for (const d of drips) {
+        ctx.fillStyle = d.cloth ? CLOTH : SPLAT;
+        ctx.beginPath(); ctx.arc(d.x, d.y + d.len, d.w * 0.7, 0, Math.PI * 2); ctx.fill();
+      }
+      ctx.restore();
+    }
+    const order = toms.filter((b) => b.state !== 'recede').sort((a, b) => a.gy - b.gy);
+    for (const b of order) {
+      if (b.state === 'sink') {
+        ctx.save(); ctx.beginPath(); ctx.rect(-50, -50, W + 100, b.gy + 50); ctx.clip();
+        drawTomato(ctx, b.pts, b.angle, b);
+        ctx.restore();
+      } else drawTomato(ctx, b.pts, b.angle, b);
+    }
+    for (const b of toms) {
+      if (b.state !== 'recede') continue;
+      ctx.save(); ctx.beginPath(); ctx.rect(-50, -50, W + 100, b.gy + 50); ctx.clip();
+      drawRecede(b);
+      ctx.restore();
+    }
+
+    for (const p of parts) {
+      if (p.void) continue;
+      if (p.k === 'juice') drawDrop(ctx, p.x, p.y, p.r, p.vx, p.vy, p.c);
+      else if (p.k === 'seed') seedShape(ctx, p.x, p.y, p.r, p.rot);
+      else if (p.k === 'chunk') drawChunk(ctx, p);
+      else drawCalyx(ctx, p.x, p.y, p.rot, 0.9);
+    }
+
+    for (const p of pops) {
+      const k = Math.min(1, p.t / 0.22);
+      const pop = 1 - Math.pow(1 - k, 3) + Math.sin(k * Math.PI) * 0.25; // overshoot, then settle
+      ctx.save();
+      ctx.globalAlpha = p.t > 0.8 ? Math.max(0, 1 - (p.t - 0.8) / 0.4) : 1;
+      ctx.translate(p.x, p.y - p.t * 16 * S); ctx.rotate(p.rot); ctx.scale(pop, pop);
+      ctx.font = `${Math.round(30 * S + 8)}px "Bagel Fat One", "Arial Rounded MT Bold", system-ui, sans-serif`;
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.lineJoin = 'round'; ctx.lineWidth = 6 * S; ctx.strokeStyle = '#201f1e';
+      ctx.strokeText(p.word, 0, 0);
+      ctx.fillStyle = '#efe6d4'; ctx.fillText(p.word, 0, 0);
+      ctx.restore();
+    }
+  }
+
+  // ---------- loop ----------
+  let last = performance.now();
+  function frame(now) {
+    const dt = Math.min(0.033, (now - last) / 1000);
+    last = now;
+    if (W) { update(dt); render(); }
+    requestAnimationFrame(frame);
+  }
+
+  addEventListener('resize', () => resize(false));
+  resize(true);
+  if (document.fonts && document.fonts.load) {
+    document.fonts.load('30px "Bagel Fat One"').catch(() => {});
+  }
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
