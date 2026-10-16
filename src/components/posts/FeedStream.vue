@@ -24,9 +24,9 @@
   fills 100% of the column, inset from the frieze bars by the well's 10px side
   padding. (It was FULL-BLEED for most of that day — running lip to lip with its
   side borders and radius zeroed — until the well took that padding back.) Its
-  height is min(content, width, 60vh): short posts stay short bands; long ones
-  grow down until they are as tall as they are wide, or 60% of the window,
-  whichever comes first, the body giving way before the origin row. See
+  height is min(content, 1.5 × width, 90vh, well − a 64px glimpse of the next
+  card) since 2026-10-16 (min(content, width, 60vh) before): short posts stay
+  short bands; long ones grow down until one of those limits bites, the body giving way before the origin row. See
   `.post-square` for the ceiling's mechanics.
 
   CARD ORDER (2026-07-25). A card reads top to bottom as who → what → about →
@@ -784,7 +784,7 @@
                     v-for="ic in capIcons(item)"
                     :key="ic"
                     :name="ic"
-                    size="13px"
+                    size="18px"
                   />
                 </span>
 
@@ -967,6 +967,29 @@
                 </button>
               </div>
               <span class="post-square__cap-rule" aria-hidden="true" />
+              <!-- ⭐ THE SIDE DOOR (2026-10-16, user ask: "add a new button on
+                   the header, between the pin button and the flyout button
+                   … to open the item on the side viewer. Use the material
+                   left_panel_open icon … open the post as a post on the
+                   side viewer"). The foot's thread doors' road: `thread`
+                   → FeedPage → `SideViewer.show(item, 'comments')`, the
+                   postcard over its comments band. Drawn only where this
+                   stream IS a thread host (the feed, with the side viewer
+                   standing, not the side viewer's own embedded card) — in a window or a
+                   phone with the rail slid up there is no side to open to. -->
+              <template v-if="threadHost && !embedItem">
+                <div class="post-square__cap-cell">
+                  <button
+                    type="button"
+                    class="post-square__cap-act post-square__cap-side"
+                    title="Open this post in the side viewer"
+                    @click.stop="$emit('thread', item, 'comments')"
+                  >
+                    <q-icon name="sym_o_left_panel_open" size="13px" />
+                  </button>
+                </div>
+                <span class="post-square__cap-rule" aria-hidden="true" />
+              </template>
               <div class="post-square__cap-cell">
                 <button
                   type="button"
@@ -1069,12 +1092,12 @@
                   :title="authorName(item.author) + ' — open profile'"
                   @click.stop
                 >
-                  <!-- 30px since 2026-09-22 PM (user ask: "the author profile pic
+                  <!-- 38px since 2026-10-16 (--row-h 16 → 20); 30px since 2026-09-22 PM (user ask: "the author profile pic
                        occupy the whole chip height"): the pill's inner height less
                        the 1px inset a side — 2 × --row-h + --row-gap − 2 borders − 2
                        = 30 at 16/2. ⚠ A prop, not CSS (the avatar sizes itself
                        inline): move it with the two dials. -->
-                  <EntityAvatar :entity="item.author" :size="30" class="post-square__pill-face" />
+                  <EntityAvatar :entity="item.author" :size="38" class="post-square__pill-face" />
                   <span class="post-square__identity-name">{{ authorName(item.author) }}</span>
                 </router-link>
                 <span class="post-square__identity-seats">
@@ -1090,7 +1113,7 @@
                       :title="aff.org.name + (aff.active ? ' — published under this seat' : '') + ' — open organization'"
                       @click.stop
                     >
-                      <OrgLogoChip :org="aff.org" :size="12" :link="false" />
+                      <OrgLogoChip :org="aff.org" :size="14" :link="false" />
                     </a>
                     <button
                       v-for="b in aff.badges"
@@ -1101,7 +1124,7 @@
                       :aria-label="roleBadgeTitle(aff.org, b)"
                       @click.stop.prevent="openRoleBadge(aff.org, b)"
                     >
-                      <q-icon :name="roleBadgeGlyph(b)" size="10px" />
+                      <q-icon :name="roleBadgeGlyph(b)" size="12px" />
                     </button>
                   </span>
                 </span>
@@ -1152,20 +1175,8 @@
                        (`momentPillStyle`) so the head, both pills and their
                        hover wash all read them by inheritance. -->
                   <div class="post-square__moment" :style="momentPillStyle">
-                    <!-- THE HEAD — the label plate's origin cell, restated for
-                         the moment: `globe_clock` (utils/glyphs.js — the font
-                         lacks it) at the verified badge's 12px, in the kind's
-                         gold, the whole "when · where" line on its tooltip and
-                         for assistive tech, exactly as the label head carries
-                         its root's name. -->
-                    <span
-                      class="post-square__moment-head"
-                      role="img"
-                      :title="momentLine(item)"
-                      :aria-label="'When and where — ' + momentLine(item)"
-                    >
-                      <q-icon :name="GLOBE_CLOCK" size="12px" class="post-square__moment-glyph" />
-                    </span>
+                    <!-- The globe HEAD went 2026-10-16 (user ask: "get rid of the outer
+                         container with the globe icon") — the plate is a bare row now. -->
                     <!-- THE TIME PILL — the clock ligature (`schedule`, the
                          glyph the moment window's bar and the composer's when
                          chip already wear) then the when. It never yields
@@ -1174,11 +1185,11 @@
                     <component
                       :is="item.moment?.id ? 'router-link' : 'span'"
                       :to="item.moment?.id ? '/moments/' + item.moment.id : undefined"
-                      class="post-square__pill post-square__when is-time"
+                      class="post-square__when is-time"
                       :title="momentWhen(item) + (item.moment?.id ? ' — open moment' : '')"
                       @click.stop
                     >
-                      <q-icon name="schedule" size="10px" class="post-square__pill-icon" />
+                      <q-icon name="schedule" size="12px" class="post-square__pill-icon" />
                       <span class="post-square__when-text">{{ momentWhen(item) }}</span>
                     </component>
                     <!-- THE SPACE PILL, when there is a where (the 2026-09-21
@@ -1190,11 +1201,11 @@
                       v-if="item.moment?.place"
                       :is="item.moment?.id ? 'router-link' : 'span'"
                       :to="item.moment?.id ? '/moments/' + item.moment.id : undefined"
-                      class="post-square__pill post-square__when is-space"
+                      class="post-square__when is-space"
                       :title="item.moment.place + (item.moment?.id ? ' — open moment' : '')"
                       @click.stop
                     >
-                      <q-icon name="location_on" size="10px" class="post-square__pill-icon post-square__pill-pin" />
+                      <q-icon name="location_on" size="12px" class="post-square__pill-icon post-square__pill-pin" />
                       <span class="post-square__when-place">{{ item.moment.place }}</span>
                     </component>
                   </div>
@@ -4454,7 +4465,11 @@ export default defineComponent({
   // ⚠ THE WITNESS WAS RE-KEYED WITH THE 2026-09-05 SWAP: it reads THREE
   // numbers now (top, the slot's own constant, the frieze's), because the
   // bottom is a two-term calc since the slot moved into it.
-  padding: 6px 3px calc(var(--fhead-h, 120px) + 18px + var(--frieze-h) + 8px);
+  // ⭐ **`8px` SIDES SINCE 2026-10-16** (user ask, "add around the post cards a
+  // little more padding only on the sides") — 3 → 8, the 2026-08-07 value
+  // back; top and bottom untouched. `.feed-stream` narrows with it, so
+  // `--post-square-max` (and the 1.5× ceiling) follow on their own.
+  padding: 6px 8px calc(var(--fhead-h, 120px) + 18px + var(--frieze-h) + 8px);
 
   // ── THE BED'S SIDE BORDERS (2026-08-07, user ask) — 1px `--indigo-6` down
   // each side, nothing on the ends. This box IS what holds the post cards, and
@@ -4741,7 +4756,26 @@ export default defineComponent({
   //
   // Both limits land on the same flexible track (the pit), so a card that hits
   // either one trims its body and keeps its origin row.
-  max-height: min(var(--post-square-max, 100cqw), 60vh);
+  //
+  // ⭐ ONE AND A HALF SINCE 2026-10-16 (user ask: "increase the maximum height
+  // about 50% so that high content can be rendered while we still see a
+  // glimpse of the next post"). Both limits ×1.5 — the square became a 2:3
+  // portrait (`1.5 × width`), 60vh became 90vh — and a THIRD limit holds the
+  // glimpse the ask is really about: the EXPANDED card's height (the well's
+  // whole visible track, `.is-expanded` below — keep the two in step) minus
+  // `--post-glimpse`, the strip of the next card that always stays in view.
+  // 90vh alone would not promise it: the head box and frieze at the well's
+  // foot eat a viewport-relative share, so on short windows the third term
+  // is the one that bites. `--post-ceiling` is ONE dial because the pit's
+  // `--media-max-h` reads the same number — a medium sized for a shorter
+  // card than the card it stands in would leave the extra height empty.
+  --post-glimpse: 64px;
+  --post-ceiling: min(
+    calc(var(--post-square-max, 100cqw) * 1.5),
+    90vh,
+    calc(var(--feed-well-h, 100vh) - 6px - var(--fhead-h, 120px) - 18px - var(--frieze-h) - 8px - var(--post-glimpse))
+  );
+  max-height: var(--post-ceiling);
   // A FULLY DRAWN, ROUNDED box (end of 2026-07-25). The card spent most of that
   // day full-bleed — running frieze lip to frieze lip with its side borders and
   // radius zeroed, because a side border would have collided with the frieze
@@ -4925,7 +4959,12 @@ export default defineComponent({
   // (The square-field caveat is the user's to weigh; nothing at the card's
   // own corners clips — the marks sit 4px in, the end cells centre their
   // controls.)
-  border-radius: 8px;
+  //
+  // ── ⭐ **`var(--pit-r)` (6.34px) SINCE 2026-10-16** (user ask, "a little
+  // less round") — down from 8 to the one value below it the rule above
+  // allows: the pit's own corner EXACTLY, so the card turns with the boxes it
+  // holds instead of a near-miss. The veil follows: r − 1.
+  border-radius: var(--pit-r);
   // `--light-cream` (#FCF3E0) since 2026-08-07 — THE COAT ALONE LEAVES THE
   // NEUTRALS, hours after the card's lines went grey, and it took two asks to
   // land: `--brown-1` first ("just the background"), then a TOKEN MINTED FOR IT
@@ -5100,7 +5139,7 @@ export default defineComponent({
 // the resting one a third time.
 .post-square.is-expanded .post-square__pit {
   // ⭐ 252 since 2026-09-23 PM (253 that afternoon, 257 since 2026-09-22 PM, 265 that morning, 275 before): resting 220 + the well's 32 — see the resting note.
-  --media-max-h: max(120px, calc(var(--feed-well-h, 60vh) - var(--fhead-h, 120px) - 252px - var(--frieze-h)));
+  --media-max-h: max(120px, calc(var(--feed-well-h, 60vh) - var(--fhead-h, 120px) - 263px - var(--frieze-h)));
 }
 
 // ── THE VEIL (2026-08-07, user ask) — the card's MIDDLE LAYER ──
@@ -5406,7 +5445,8 @@ export default defineComponent({
   // **`3px` SINCE 2026-09-13** — derived again, nothing decided here: card
   // radius (4) − card border (1), in step with the card's 2 → 4 ("rounder").
   // **`7px` SINCE 2026-09-23** — derived: 8 − 1, with the card's 4 → 8.
-  border-radius: 7px;
+  // **`--pit-r − 1` SINCE 2026-10-16** — derived, with the card's 8 → --pit-r.
+  border-radius: calc(var(--pit-r) - 1px);
   backdrop-filter: blur(2px);
   -webkit-backdrop-filter: blur(2px);
   pointer-events: none;
@@ -5628,6 +5668,9 @@ export default defineComponent({
 // card is the expanded one (the rule under this one): the lit state the
 // pill's `is-on` gave them while they were inside it, now keyed off the
 // card's `.is-expanded` — the same `isExpanded(item)` predicate.
+// ⭐ 18px SINCE 2026-10-16 (user ask: "make the post icon on the left part of
+// the top header bigger") — 13 → 18, the most the 22px strip holds without
+// growing (the strip's height is in the media budget's 220).
 .post-square__cap-icons {
   flex: 0 0 auto;
   display: inline-flex;
@@ -5908,7 +5951,15 @@ export default defineComponent({
   // exactly, and 2px is the least a lane between two rimmed objects can be
   // and still read as a lane. The band is 2 × 16 + 2 = 34 inside, 37 with
   // its 1px pads and its rule (was 45). Tune the two numbers, nothing else.
-  --row-h: 16px;
+  // ⭐ **20px SINCE 2026-10-16** (user ask: "let the author section be
+  // slightly bigger … let the sub-label sections on the right side adapt to
+  // the author section size") — the author pill 34 → 42, and every box
+  // INSIDE the band now derives from this dial instead of a px literal: the
+  // face (38, a prop — 2 × row + gap − 4), the seat (row − 2) with its mark
+  // and badges (row − 6), the moment pills and label members (row − 4), the
+  // moment plate and label bundles (row). Before today only the outer boxes
+  // followed it and their contents sat at 16px sizes inside 20px rows.
+  --row-h: 20px;
   --row-gap: 2px;
   // ⭐ THE SECTION'S COAT (2026-09-22 PM6, user ask: "paint the background of
   // all three elements on the label section of the postcards light-cream"):
@@ -5934,7 +5985,13 @@ export default defineComponent({
   // own side margin, so the author pill's left rim and the rail's right end
   // stand on the pit's two edges (measured 3px inside them on both sides at
   // 7).
-  padding: 1px var(--card-gutter, 4px);
+  // ⭐ 4px ON TOP SINCE 2026-10-16 (user ask: "a little padding between the
+  // top header's thick hairline and the labels section") — 1 → 4, the cap's
+  // 2px `--grey-6` closing rule no longer sits on the pills. +3px of card
+  // chrome: the two `--media-max-h` constants moved with it (220 → 223
+  // resting, 252 → 255 expanded) — then +8 more the same day when `--row-h`
+  // went 16 → 20 (the band 2 × 4 taller): 231 / 263.
+  padding: 4px var(--card-gutter, 4px) 1px;
   flex: 0 0 auto;
   min-width: 0;
   // ⭐ NO RULE UNDER THE BAND since 2026-09-23 PM (user ask: "remove the
@@ -6164,18 +6221,41 @@ export default defineComponent({
 // it when the moment has no place. `min-width: 0` on the space pill lets its
 // place ellipsize; the time pill never shrinks (`1 0 auto`).
 .post-square__when {
-  --pill-h: 12px;
-  flex: 1 1 auto;
+  // ⭐ BARE TEXT LINKS SINCE 2026-10-16 (user ask: "get rid of the outer
+  // container with the globe icon and also the labels. Instead of labels,
+  // let's use just the text, but slightly bolder and with an underline to
+  // indicate they work as links … Align the time to the left and the
+  // location to the right … slightly bigger and of a slightly darker tone
+  // … Keep the clock and location pin icons"). No `.post-square__pill`
+  // chrome any more — no rim, no coat, no corner: the glyph and an
+  // underlined run. Still the moment's door (`#/moments/<id>`, the moment
+  // window by the router guard). 0.72em (10.08px, was 0.62 = 8.68) at 700,
+  // the moment ink taken a quarter toward black.
+  display: inline-flex;
+  align-items: center;
+  flex: 0 1 auto;
   min-width: 0;
-  padding: 0 3px;
+  max-width: 100%;
+  height: 100%;
   gap: 2px;
-  font-size: 0.62em;
+  padding: 0;
+  font-family: 'Space Mono', monospace;
+  font-size: 0.72em;
+  font-weight: 700;
   line-height: 1;
-  border-width: 0.5px;
-  border-radius: 3px;
-  &.is-time { flex: 1 0 auto; }
+  white-space: nowrap;
+  color: color-mix(in srgb, var(--kind-ink, #5f4700) 75%, #000);
+  text-decoration: none;
+  .post-square__when-text,
+  .post-square__when-place {
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 2px;
+    text-decoration-color: rgba(var(--ink-rgb), 0.35);
+  }
+  &.is-space { margin-left: auto; justify-content: flex-end; }
   &:hover .post-square__when-text,
-  &:hover .post-square__when-place { color: var(--kind-accent, currentColor); }
+  &:hover .post-square__when-place { color: var(--kind-accent, currentColor); text-decoration-color: currentColor; }
 }
 // The WHEN never yields; the WHERE does (the 2026-08-10 argument: a trimmed
 // place is better than a trimmed date, and the author beside them never
@@ -6241,7 +6321,7 @@ export default defineComponent({
   // converted into the width cap its aspect-ratio box needs.
   //
   // It is derived from the card's own CEILING rather than written as a flat
-  // `30vh`, because that ceiling is `min(width, 60vh)` — a narrow column
+  // `30vh`, because that ceiling is `--post-ceiling` (`min(1.5×width, 90vh, …)`) — a narrow column
   // makes a short card, and a fixed viewport fraction would overflow it. The
   // constant is everything in the card that is NOT the medium, measured at
   // 1440×900: 148px of card chrome (the CAP 26 — measured; a one-line strip
@@ -6307,7 +6387,7 @@ export default defineComponent({
   // closes the cap is the cap's own 2px `--grey-6` border — the only line on
   // this square at neither the card's weight nor its ink.
   //
-  // Keep it in step with the 60vh ceiling and with the Mini's chrome — grow
+  // Keep it in step with the card's `--post-ceiling` (60vh until 2026-10-16) and with the Mini's chrome — grow
   // one without the other and you get either a player that needs a scroll or
   // a small player in a half-empty card. The 120px floor is for the narrowest
   // columns, where the subtraction would otherwise go negative.
@@ -6342,7 +6422,7 @@ export default defineComponent({
   // ⭐ 220 LATER THE SAME DAY — the byline's rule went (the label section
   // meets the pit on air): chrome MEASURED 91.11 → 90.11, carried −1. The
   // cap's second pass (18px pill in 1px pads) held the strip at 22.
-  --media-max-h: max(120px, calc(min(var(--post-square-max, 100cqw), 60vh) - 220px));
+  --media-max-h: max(120px, calc(var(--post-ceiling) - 231px));
 
   flex: 1 1 auto;
   min-height: 0;
@@ -6822,7 +6902,8 @@ $prose: ':where(:not(.pathos-ref-slot *))';
   flex: 0 0 auto;
   // ⭐ 2026-09-22 — 16px TALL on the row's 18, `0 3px` (was `1.5px 4px`, and
   // ~24px measured): the ask's "reduce its padding so it remains readable".
-  height: 16px;
+  // `--row-h` since 2026-10-16 (16px before) — it fills the row it stands in.
+  height: var(--row-h);
   box-sizing: border-box;
   padding: 0 3px;
   // `1px` (2026-08-10, two "thicker" asks: 0.5 → 0.75 → here). The point of
@@ -7012,6 +7093,19 @@ $prose: ':where(:not(.pathos-ref-slot *))';
 }
 .post-square__moment:hover .post-square__moment-glyph { color: var(--kind-ink, #5f4700); }
 
+// ⭐ THE PLATE IS A BARE ROW SINCE 2026-10-16 (the same ask as
+// `.post-square__when`'s): no rim, no coat or veil, no pads — time at the
+// row's left end, place at its right (`margin-left: auto` on the place).
+// The shared `__bundle, __moment` plate rule still lays it out; this
+// strips its paint.
+.post-square__byline .post-square__moment {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  padding: 0;
+  gap: 8px;
+}
+
 // (THE SEAM — `::` between the tree and its labels, `.post-square__bundle-sep`,
 // the card's own "this term qualifies the next" separator, bold, pulled in
 // -2px a side, red-9 with the mark — stood here 2026-08-10 → 2026-09-22 PM7
@@ -7097,7 +7191,7 @@ $prose: ':where(:not(.pathos-ref-slot *))';
   padding: 0 3px;
   // ⭐ 2026-09-22 — 12px in the 16px plate (14 inside its borders, 1px of
   // clearance a side), unit line-height so the 8.7px type is the box.
-  height: 12px;
+  height: calc(var(--row-h) - 4px); // 12px until 2026-10-16
   box-sizing: border-box;
   line-height: 1;
   border: 0.5px solid var(--grey-5, #bdbdbd);
@@ -7455,6 +7549,16 @@ $prose: ':where(:not(.pathos-ref-slot *))';
 // the identity's cyan on the name.
 .post-square__identity {
   flex: 0 0 auto;
+  // ⭐ THE CARD'S OWN COAT SINCE 2026-10-16 (user ask: "the author subsection
+  // … the same background color as the post card instead of the cream one
+  // because it looks weird"). The flat light-cream below read as a lighter
+  // patch: the card's visible face is the cream UNDER its 75% grey veil, and
+  // the veil is the card's `::before`, beneath every child — so the pill goes
+  // TRANSPARENT and shows exactly that face. The rim stays (it is the pill's
+  // edge); the hover keeps the 12% accent wash, now over the card. The two
+  // moment pills keep `--byline-coat`.
+  background: transparent;
+  &:hover { background: color-mix(in srgb, var(--kind-accent, var(--ink)) 12%, transparent); }
   // ⭐ 2026-09-22 — TWO ROWS TALL (user ask: "twice as tall and keep the
   // layout and paddings very dense"), and ⭐ THE SAME EVENING A GRID (user
   // ask: "make the author profile pic occupy the whole chip height so we
@@ -7568,14 +7672,16 @@ $prose: ':where(:not(.pathos-ref-slot *))';
 // off the feed): the entities' cyan-9 on the rim, the one fact the
 // standalone OrgLogoChip beside the name used to carry.
 .post-square__seat {
-  --seat-h: 14px;
+  --seat-h: calc(var(--row-h) - 2px); // 18 (14 until 2026-10-16) — the seats row is row − 1
   display: inline-flex;
   align-items: center;
   gap: 1px;
   flex: 0 0 auto;
   height: var(--seat-h);
   box-sizing: border-box;
-  padding: 0 2px 0 0;
+  // 1px on the left since 2026-10-16: the mark stands INSIDE the rounded rim
+  // (it was flush, and the stale −3px pull below shaved its edge off).
+  padding: 0 2px 0 1px;
   border: 1px solid rgba(var(--ink-rgb), 0.18);
   border-radius: calc(var(--seat-h) / 2 * var(--round));
   background: var(--grey-2, #f5f5f5);
@@ -7606,8 +7712,8 @@ $prose: ':where(:not(.pathos-ref-slot *))';
   align-items: center;
   justify-content: center;
   flex: 0 0 auto;
-  width: 12px;
-  height: 12px;
+  width: calc(var(--row-h) - 6px); // 14 (12 until 2026-10-16) — the mark's size
+  height: calc(var(--row-h) - 6px);
   padding: 0;
   border: 0;
   border-radius: 3px;
@@ -7619,14 +7725,11 @@ $prose: ':where(:not(.pathos-ref-slot *))';
   &:hover { background: rgba(var(--ink-rgb), 0.08); color: var(--entity-ink, #263238); }
 }
 
-// The org badge belongs to the identity beside it, not to the band — pulled
-// in against the band's 8px rhythm so the pair reads as one unit ("this
-// person, publishing there") instead of as a second item in the strip. The
-// class sits on OrgLogoChip's ROOT element, which carries this component's
-// scope attribute, so no :deep() is needed.
-.post-square__byline .org-logo-chip {
-  margin-left: -3px;
-}
+// ⚠ The `.post-square__byline .org-logo-chip { margin-left: -3px }` pull
+// that stood here (from the days the org badge sat BESIDE the identity in the
+// strip) went on 2026-10-16: the seat is the chip's only home on the card,
+// and inside the seat's rounded `overflow: hidden` rim the pull hid the
+// mark's edge — the user's "partially swallowed by its container".
 
 // TRUST CHIP (Thread J) — invite-chain distance. Drawn as a tiny plate in
 // the card's own recipe: `--grey-1` floor, the line ink as its rim, the
@@ -7674,7 +7777,12 @@ $prose: ':where(:not(.pathos-ref-slot *))';
   // The grid's top-right cell since 2026-09-22 PM (`grid-area: name`); the
   // 14.1px line box centred in the 15px row.
   grid-area: name;
-  align-self: center;
+  // ⭐ 2026-10-16 (`--row-h` 16 → 20): the name grows with its row — 1.2em of
+  // the pill's 10.08 = 12.1px — and sits on the row's FLOOR, so the lane
+  // down to the seats stays the 2px row gap the dense pass asked for
+  // ("specially between name and badges") instead of opening to 4.5px.
+  font-size: 1.2em;
+  align-self: end;
   flex: 0 0 auto;
   min-width: 0;
   overflow: hidden;
