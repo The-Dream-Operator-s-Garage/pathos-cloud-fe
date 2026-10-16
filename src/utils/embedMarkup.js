@@ -20,6 +20,14 @@
 // platform never runs; the address is the LAST anchor (links inside the
 // quoted text come first), or a `cite=` when the quote carries one. The
 // `ref_src` tracking tail is dropped — it names X's referral, not the post.
+//
+// Reddit's "Embed" (2026-10-15) hands out the same shape the other way
+// round: `<blockquote class="reddit-embed-bq"><a href="…/r/<sub>/comments/
+// <id>/<slug>/">title</a><br> by <a href="…/user/<name>/">u/…</a> in <a
+// href="…/r/<sub>/">r/…</a></blockquote>` — the post is the FIRST anchor,
+// the byline's links follow it. So a quote whose class names Reddit takes
+// the first anchor; every other quote keeps X's last-anchor rule. Reddit's
+// `utm_*` tail is dropped like X's `ref_src`.
 const TAG_RE = /<(?:iframe|embed)\b[^>]*?\bsrc\s*=\s*(?:"([^"]+)"|'([^']+)'|([^\s>]+))/i
 const QUOTE_RE = /<blockquote\b([^>]*)>([\s\S]*?)<\/blockquote>/i
 const CITE_RE = /\bcite\s*=\s*(?:"([^"]+)"|'([^']+)')/i
@@ -37,12 +45,15 @@ function addressFromQuote (raw) {
   let url = cite ? _https(cite[1] || cite[2]) : null
   if (!url) {
     const hrefs = [...q[2].matchAll(HREF_RE)].map(m => _https(m[1] || m[2])).filter(Boolean)
-    url = hrefs[hrefs.length - 1] || null
+    const firstWins = /\bclass\s*=\s*["'][^"']*\breddit-embed/i.test(q[1])
+    url = (firstWins ? hrefs[0] : hrefs[hrefs.length - 1]) || null
   }
   if (!url) return null
   try {
     const u = new URL(url)
-    u.searchParams.delete('ref_src')
+    for (const k of [...u.searchParams.keys()]) {
+      if (k === 'ref_src' || k.startsWith('utm_')) u.searchParams.delete(k)
+    }
     return u.href
   } catch (_) { return null }
 }

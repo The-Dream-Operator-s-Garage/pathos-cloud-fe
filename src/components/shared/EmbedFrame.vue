@@ -77,6 +77,11 @@ const FIT_H_MIN = 80
 const FIT_H_MAX = 4000
 const FIT_W_MIN = 120
 const FIT_W_MAX = 2000
+// A fit provider that reports only a HEIGHT (Reddit, 2026-10-15) draws a
+// card as wide as its frame; left alone it would stretch across a 1000px
+// post page with a two-line title. Its own widget seats it in a 640px
+// column, so that is the box's width until a provider says otherwise.
+const FIT_W_DEFAULT = 640
 
 // The {width, height} a provider's size message carries, wherever it sits
 // in the payload. X speaks JSON-RPC as a STRING —
@@ -84,13 +89,20 @@ const FIT_W_MAX = 2000
 // "height":387,…}]}}` — so a string is parsed (capped) and the object
 // walked a few levels for the first numeric `height`. Not X-specific: any
 // provider that posts its own height in a plain object is read the same
-// way. Answers null for anything else.
+// way. Reddit (2026-10-15) speaks the other common dialect — a typed
+// event whose payload IS the height: `{"type":"resize.embed","data":316}`
+// (also a string) — so an object whose `type` names a resize and whose
+// `data` is a bare number reads as that height. Answers null for anything
+// else.
 function sizeIn (data, depth = 0) {
   if (depth === 0 && typeof data === 'string') {
     if (data.length > 20000) return null
     try { data = JSON.parse(data) } catch (_) { return null }
   }
   if (!data || typeof data !== 'object' || depth > 5) return null
+  if (typeof data.type === 'string' && /resize/i.test(data.type) && typeof data.data === 'number') {
+    return data.data > 0 ? { h: data.data, w: 0 } : null
+  }
   const h = Number(data.height)
   if (Number.isFinite(h) && h > 0 && !Array.isArray(data)) {
     const w = Number(data.width)
@@ -260,14 +272,14 @@ export default defineComponent({
       }
       if (isFit.value) {
         const g = fitGeom.value
-        const w = reported.value?.w
+        const w = reported.value?.w || FIT_W_DEFAULT
         return {
           '--embed-height': g.box ? `${g.box}px` : `min(${g.h}px, var(--media-max-h, ${g.h}px))`,
           '--embed-inner-h': `${g.h}px`,
           '--embed-zoom': String(g.z),
           // The provider's card width (zoomed), so the box ends where the
           // card does and the caption sits under it, not under air.
-          ...(w ? { maxWidth: `min(100%, ${Math.ceil(w * g.z)}px)` } : {})
+          maxWidth: `min(100%, ${Math.ceil(w * g.z)}px)`
         }
       }
       if (isPage.value) {
