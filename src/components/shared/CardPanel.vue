@@ -124,7 +124,7 @@ export default defineComponent({
   max-height: var(--element-card-max, none);
   border: 1px solid var(--grey-5, #bdbdbd);
   border-radius: 8px;
-  background: var(--light-cream, #FCF3E0);
+  background: var(--card-coat, var(--grey-4, #e0e0e0)); // the flyout window's coat since 2026-10-16 (was light-cream under the veil)
   box-shadow:
     0 1px 2px rgba(0, 0, 0, 0.045),
     0 2px 5px -2px rgba(0, 0, 0, 0.05);

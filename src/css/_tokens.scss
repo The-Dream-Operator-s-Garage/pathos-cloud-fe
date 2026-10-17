@@ -1589,10 +1589,16 @@ $warning:   #F2C037;
   // background color the same color as the card's background instead of
   // light-cream"): the byline's RAIL ROW (`.post-square__rail-row`) paints
   // `--card-coat`, so the pad composites to the card around it exactly.
-  --card-veil: rgba(238, 238, 238, 0.75);
-  --card-coat:
-    linear-gradient(var(--card-veil), var(--card-veil)),
-    var(--light-cream);
+  // ⭐ THE FLYOUT WINDOW'S COAT SINCE 2026-10-16 (user ask: "make the
+  // background color of the post cards the same as the flyout windows so we
+  // have consistent coloring for content containers"): `--card-coat` is a
+  // plain `--grey-4` now — `.element-flyout`'s own coat — and the veil is
+  // spent (transparent), so the post card, the card family (CardPanel), the
+  // byline's rail row and CardByline all composite to the window's tone. The
+  // cream-under-veil sandwich (≈ #f2efeb) above is the history. The card
+  // bases read `--card-coat` directly now, so this IS a `<color>` again.
+  --card-veil: transparent;
+  --card-coat: var(--grey-4);
 
   // (THE BLUE-GREY MAP stood here 2026-08-26 → 2026-09-05 — the post maker
   // window's four levels. The window is CYAN now; see `--cyan-*` above, which

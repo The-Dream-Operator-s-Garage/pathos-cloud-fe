@@ -5005,7 +5005,9 @@ export default defineComponent({
   // is a rule stated in one place and broken in another until someone decides.
   // THIS IS THE BOTTOM LAYER as of 2026-08-07's last ask — a `--grey-3` veil is
   // washed over it and the content sits above both. See the `::before` note.
-  background: var(--light-cream, #FCF3E0);
+  // ⭐ `--card-coat` (= the flyout window's `--grey-4`) since 2026-10-16 —
+  // see the token's note in `_tokens.scss`.
+  background: var(--card-coat, var(--grey-4, #e0e0e0));
   // ── A CONTACT SHADOW, VERY QUIET (2026-08-07, user ask) ──────────────────
   // The card cast NOTHING from 2026-07-25 until now, and the argument for that
   // is still on the record and still half true: it has nothing to lift off, the
