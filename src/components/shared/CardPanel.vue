@@ -112,6 +112,11 @@ export default defineComponent({
   // `.post-square` and on this root alike).
   --pit-coat: var(--grey-1, #fafafa);
   --pit-r: 6.34px;
+  // THE EMBRACE (2026-10-17) — the post card's two dials (its note on
+  // `.post-square` has the arithmetic): the air around an embraced mini,
+  // and the pit's top corner concentric with that mini's (16.9px).
+  --pit-embrace: 4px;
+  --pit-r-top: calc(0.85 * var(--font-size-body, 14px) + var(--pit-embrace) + 1px);
   --card-gutter: 4px;
   --pit-scale: 0.88;
   --cap-scale: 0.62;
@@ -188,8 +193,10 @@ export default defineComponent({
   line-height: 1.6;
   margin: 3px var(--card-gutter, 4px) 4px;
   --quoted-bleed-x: 10px;
-  padding: 8px var(--quoted-bleed-x);
-  border-radius: var(--pit-r, 6.34px);
+  --pit-pad-y: 8px;
+  padding: var(--pit-pad-y) var(--quoted-bleed-x);
+  // The top two embrace a mini (2026-10-17, the post card's rule).
+  border-radius: var(--pit-r-top) var(--pit-r-top) var(--pit-r, 6.34px) var(--pit-r, 6.34px);
   border: 1px solid var(--grey-5, #bdbdbd);
   background: var(--pit-coat, var(--grey-1, #fafafa));
   scrollbar-width: thin;
@@ -197,6 +204,20 @@ export default defineComponent({
   &::-webkit-scrollbar       { width: 5px; }
   &::-webkit-scrollbar-track { background: transparent; }
   &::-webkit-scrollbar-thumb { background: rgba(var(--ink-rgb), 0.28); border-radius: 3px; }
+}
+// THE EMBRACED MINI (2026-10-17) — the post card's rule for a pit whose
+// body is a MarkdownBody (PostCard's fallback, …): a top-level mini stands
+// `--pit-embrace` off the rim, pulled out of the published inset; the child
+// chain never reaches a mini nested in another.
+.element-card__pit > :deep(.markdown-body > p > .pathos-ref-embed) {
+  margin: var(--pit-embrace, 4px) calc(var(--pit-embrace, 4px) - var(--quoted-bleed-x, 10px));
+  max-width: calc(100% + 2 * (var(--quoted-bleed-x, 10px) - var(--pit-embrace, 4px)));
+}
+.element-card__pit > :deep(.markdown-body > p:first-child > .pathos-ref-embed:first-child) {
+  margin-top: calc(var(--pit-embrace, 4px) - var(--pit-pad-y, 8px));
+}
+.element-card__pit > :deep(.markdown-body > p:last-child > .pathos-ref-embed:last-child) {
+  margin-bottom: calc(var(--pit-embrace, 4px) - var(--pit-pad-y, 8px));
 }
 
 // A viewer-body (lane / grid / unravel / map) meets the pit's rim and

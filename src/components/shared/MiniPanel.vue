@@ -172,7 +172,16 @@ export default defineComponent({
   -webkit-backdrop-filter: blur(var(--mini-blur, 6px));
   backdrop-filter: blur(var(--mini-blur, 6px));
   border: 1px solid var(--panel-rule);
-  border-radius: var(--radius-md);
+  // ⭐ THE BOTTOM TWO NEARLY SQUARE since 2026-10-17 (user ask: "for all the
+  // mini family … making their bottom left and bottom right corners way less
+  // rounded … they should remain rounded, but just a little … their
+  // roundness should match the bottom corners of the content container"):
+  // the post card pit's `--pit-r` (6.34px — inherited inside a card, the
+  // fallback everywhere else); the top two keep `--radius-md` (0.85em), the
+  // corner the pit's rounder top arcs around (FeedStream `--pit-r-top`).
+  // Every Mini's frame is this one rule — the family's inner radii are
+  // their own parts' (source panes, pills, rows), not the frame's.
+  border-radius: var(--radius-md) var(--radius-md) var(--pit-r, 6.34px) var(--pit-r, 6.34px);
   box-shadow: var(--shadow-card);
   overflow: hidden;
   transition: border-color 0.12s, box-shadow 0.12s, transform 0.08s;

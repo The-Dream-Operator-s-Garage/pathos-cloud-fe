@@ -4725,6 +4725,21 @@ export default defineComponent({
   // note still says where 6.34 comes from and what it moves with).
   --pit-coat: var(--grey-1, #fafafa);
   --pit-r: 6.34px;
+  // ⭐ THE EMBRACE (2026-10-17, user ask: "Turn the top left and top right
+  // corners of the post cards content container rounder so they handle well
+  // embracing a mini container's corners … so they look matching … reducing
+  // the inner padding of the content container when embracing a mini
+  // viewer"). `--pit-embrace` is the air between the pit's inner edge and a
+  // mini it holds at its top level (the embraced-mini margins on
+  // `.post-square__md` below pull the mini out to it). `--pit-r-top` is the
+  // pit's TOP corner, CONCENTRIC with that mini's: a mini's top corner is
+  // `--radius-md` (0.85em) at the embed slot's `--font-size-body` (14px →
+  // 11.9px), and an arc around it at the embrace's distance, measured to the
+  // pit's OUTER edge through its 1px rim, is r + gap + 1 = 16.9px. The
+  // bottom corners keep `--pit-r` — the minis' bottoms took that number
+  // (MiniPanel), so a mini at the pit's foot matches it instead.
+  --pit-embrace: 4px;
+  --pit-r-top: calc(0.85 * var(--font-size-body, 14px) + var(--pit-embrace) + 1px);
   // ⭐ THE CARD'S SIDE GUTTER (2026-09-23 PM, user ask: "make the label chips
   // match the beginning and the end of the sides so they look aligned to the
   // content container. They currently have a little extra padding
@@ -6519,7 +6534,10 @@ export default defineComponent({
   // ⚠ `overflow-x: hidden` above is why the contract is the padding EXACTLY:
   // a panel pulled further than this would be clipped, not shown.
   --quoted-bleed-x: 10px;
-  padding: 8px var(--quoted-bleed-x);
+  // `--pit-pad-y` (2026-10-17): the top/bottom inset, published the same way
+  // so the embraced mini (`.post-square__md` below) can pull out of it.
+  --pit-pad-y: 8px;
+  padding: var(--pit-pad-y) var(--quoted-bleed-x);
   // LESS ROUNDED since 2026-08-10 (same ask): `7px` → `3px`. Seven was
   // `--radius-sm`, the platform's panel radius, which is right for a panel
   // FLOATING on a surface and wrong for a frame set INTO one — at the new
@@ -6552,7 +6570,10 @@ export default defineComponent({
   // `flow-feed-card-rows` measures both and holds them equal.
   // ⭐ The number lives on `.post-square` as `--pit-r` since 2026-09-23 — the
   // cap's name pill wears the same corner (user ask), so it is stated once.
-  border-radius: var(--pit-r, 6.34px);
+  // ⭐ THE TOP TWO ROUNDER since 2026-10-17 — `--pit-r-top` (16.9px), the arc
+  // that embraces a mini's corner concentrically (the dial's note on
+  // `.post-square`); the bottom two keep `--pit-r`.
+  border-radius: var(--pit-r-top) var(--pit-r-top) var(--pit-r, 6.34px) var(--pit-r, 6.34px);
   // The pit's own two tones (2026-07-25): a `--grey-1` floor with the frame's
   // INNER border drawn around it in the card's line ink. The floor was a 5% ink
   // tint of whatever the card was, which made the pit a slightly darker patch
@@ -6650,6 +6671,28 @@ $prose: ':where(:not(.pathos-ref-slot *))';
   // No leading/trailing gap — the pit's own padding is the frame.
   > :first-child { margin-top: 0; }
   > :last-child  { margin-bottom: 0; }
+
+  // ⭐ THE EMBRACED MINI (2026-10-17, user ask: "reducing the inner padding
+  // of the content container when embracing a mini viewer. There is too much
+  // padding around them right now"). A mini on its own line at the prose's
+  // TOP LEVEL (`p > .pathos-ref-embed` — never one inside a list, a table or
+  // another mini, whose own `.markdown-body` this child chain cannot reach)
+  // stood 19px under the pit's rim and 11px off its sides: the pit's 8 / 10px
+  // inset plus the slot's own 10px margin. It now stands `--pit-embrace`
+  // (4px) off the rim on its sides, and on its top / bottom when it opens /
+  // closes the prose, by NEGATIVE margins read off the pit's published inset
+  // (`--quoted-bleed-x` — the 2026-08-23 bleed contract's first consumer
+  // since its last one left — and `--pit-pad-y`), so text around it keeps
+  // the pit's padding. Between a mini and text the paragraph's 0.85em
+  // rhythm is what shows (the slot's 4px collapses into it).
+  // The slot's own `max-width: 100%` would cap it at the paragraph and turn
+  // the right pull into a shift left — it grows by exactly the two pulls.
+  > p > .pathos-ref-embed {
+    margin: var(--pit-embrace, 4px) calc(var(--pit-embrace, 4px) - var(--quoted-bleed-x, 10px));
+    max-width: calc(100% + 2 * (var(--quoted-bleed-x, 10px) - var(--pit-embrace, 4px)));
+  }
+  > p:first-child > .pathos-ref-embed:first-child { margin-top: calc(var(--pit-embrace, 4px) - var(--pit-pad-y, 8px)); }
+  > p:last-child > .pathos-ref-embed:last-child { margin-bottom: calc(var(--pit-embrace, 4px) - var(--pit-pad-y, 8px)); }
 
   p#{$prose}, ul#{$prose}, ol#{$prose}, pre#{$prose}, blockquote#{$prose}, table#{$prose}, dl#{$prose} { margin: 0 0 0.85em; }
 
