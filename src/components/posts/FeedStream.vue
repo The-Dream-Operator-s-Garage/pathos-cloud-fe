@@ -768,25 +768,10 @@
                    left edge, the HASH LENS's door. The lens is unchanged; its
                    door is the name's pill below. -->
               <div class="post-square__cap-main">
-                <!-- The KIND MARKS opened this cell from 2026-08-07 until
-                     2026-09-13, when they moved INTO the name's pill (user
-                     ask, "put the post icon from the header inside the chip
-                     too"). ⭐ BACK HERE since 2026-09-23 (user ask: "put the
-                     inner post icon outside on the left end") — the pill
-                     spans the cell now and centres the name, so the marks
-                     lead the strip at the card's left gutter, ahead of any
-                     origin clause: `post` for an original, `comment` for a
-                     comment, both for a fork — one family of Material
-                     Symbols, stating what the name names. They light in the
-                     accent while the card is the expanded one. -->
-                <span class="post-square__cap-icons" :title="capKindTitle(item)">
-                  <q-icon
-                    v-for="ic in capIcons(item)"
-                    :key="ic"
-                    :name="ic"
-                    size="18px"
-                  />
-                </span>
+                <!-- The KIND MARKS opened this cell 2026-08-07 → 09-13 and
+                     again 2026-09-23 → 10-17 (at the card's left gutter, 18px
+                     from 10-16). ⭐ FUSED WITH THE NAME since 2026-10-17 —
+                     they lead the name inside its door, below. -->
 
                 <!-- The origin clause(s): "Comment on <chip> ::"
 
@@ -865,8 +850,17 @@
                     :title="capTitleTip(item)"
                     @click.stop="toggleExpand(item)"
                   >
-                    <!-- The kind marks led the pill 2026-09-13 → 2026-09-23;
-                         they head the fact cell again (above). -->
+                    <!-- ⭐ THE KIND MARKS, FUSED (2026-10-17, user ask: "fuse
+                         the post icon properly and proportionally to the
+                         text"): `post` for an original, `comment` for a
+                         comment, both for a fork — leading the name as one
+                         centred run, sized off the name's own type (the
+                         stylesheet has the arithmetic) and in its ink. They
+                         led the pill once before (09-13 → 09-23); they light
+                         in the accent while the card is the expanded one. -->
+                    <span class="post-square__cap-icons" :title="capKindTitle(item)">
+                      <q-icon v-for="ic in capIcons(item)" :key="ic" :name="ic" />
+                    </span>
                     <span class="post-square__cap-title-text">{{ capTitle(item) }}</span>
                   </button>
                 </span>
@@ -5697,12 +5691,31 @@ export default defineComponent({
 // ⭐ 18px SINCE 2026-10-16 (user ask: "make the post icon on the left part of
 // the top header bigger") — 13 → 18, the most the 22px strip holds without
 // growing (the strip's height is in the media budget's 220).
+// ⭐ FUSED WITH THE NAME since 2026-10-17 (user ask: "fuse the post icon
+// properly and proportionally to the text") — inside the name's door, in
+// its ink (`currentColor`), sized OFF ITS TYPE rather than in px: 0.9em of
+// the name. Measured, not guessed: Material Symbols' `post` draws its ink
+// over 0.75 of its em, centred in the box, and Nasalization's capitals stand
+// 0.675em — so 0.9em makes the mark exactly cap height (0.75 × 0.9), and it
+// scales wherever the name does (the side viewer's 0.9 title steps both).
+// The glyph's ink is centred in its own box (the face's 1.10 / 0.10 metrics
+// put its baseline on the box's floor and the ink spans 0.125 → 0.875), so
+// flex centring nearly aligns it with the capitals — nearly: Chrome snaps
+// the name's baseline to the pixel, which left the mark 0.77px LOW of the
+// caps (ink 35.21 → 42.77 against 34.44 → 42.0, measured). `top: -0.075em`
+// (of the mark's own size, 0.76px at 10.08) lifts it onto them. The gap is
+// 0.25em OF THE MARK (2.52px) — plus the glyph's side bearing it reads as
+// one letter space at the face's tracking.
 .post-square__cap-icons {
   flex: 0 0 auto;
   display: inline-flex;
   align-items: center;
   gap: 1px;
-  color: var(--grey-8, #424242);
+  margin-right: 0.25em;
+  font-size: 0.9em;
+  position: relative;
+  top: -0.075em;
+  color: inherit;
 }
 .post-square.is-expanded .post-square__cap-icons { color: var(--accent, #c79a00); }
 
@@ -5857,6 +5870,18 @@ export default defineComponent({
 // make it bold"): the family is the pit's `--font-body` again, at 700 and the
 // pit's own tracking; the size stays the evening's 11.2px. The declaration
 // has the why.
+//
+// ⭐ 2026-10-17 — NO CONTAINER, NASALIZATION (user ask: "on the title section
+// of the post cards, please remove the title container. Just leave the text
+// there in nasalization font"): the pill's paint is gone — no rim, no pit
+// floor, no corner, no pads — so the name is bare text on the strip, still
+// filling the cell and centred (with the kind marks fused at its head, the
+// rule above). The face is the strip's `--font-display` at 400 (the face
+// ships one weight; 700 would be synthesized) and the strip's 0.02em
+// tracking, at the same 11.2px; still 18px on the 16px line, which clears
+// Nasalization's 0.26em descent. The door kept its press, so it needed a new
+// hover once the rim that deepened went: the name UNDERLINES (the moment
+// links underline always; this one only under the pointer).
 .post-square__cap-title-chip {
   flex: 1 1 auto;
   min-width: 0;
@@ -5881,21 +5906,23 @@ export default defineComponent({
   // and Nasalization), so the pit draws Inter where it is installed, else
   // Helvetica Neue / system-ui — and every member has a real bold cut, so
   // 700 is drawn, never synthesized. Still 18px on the 16px line.
-  font-family: var(--font-body, 'Inter', 'Helvetica Neue', system-ui, sans-serif);
+  // ⭐ NASALIZATION, BARE since 2026-10-17 (the note above the rule).
+  font-family: var(--font-display, 'Nasalization', sans-serif);
   font-size: calc(var(--cap-title-scale, 0.8) / var(--cap-scale, 0.62) * 1em);
-  font-weight: 700;
-  letter-spacing: normal;
+  font-weight: 400;
+  letter-spacing: 0.02em;
   line-height: 16px;
   color: var(--ink, #2C3D4E);
-  padding: 0 4px;
-  border: 1px solid var(--grey-5, #bdbdbd);
-  border-radius: var(--pit-r, 6.34px);
-  background: var(--pit-coat, var(--grey-1, #fafafa));
+  padding: 0;
+  border: 0;
+  background: none;
   overflow: hidden;
   cursor: pointer;
-  transition: border-color 0.12s;
 
-  &:hover:not([aria-disabled='true']) { border-color: var(--grey-7, #757575); }
+  &:hover:not([aria-disabled='true']) .post-square__cap-title-text {
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
   // Embed mode (the flyout's postcard): no door there, so no pointer and no
   // hover rim. `aria-disabled` rather than `disabled` — the template note has
   // why (Quasar's `[disabled]` fade).
@@ -5904,9 +5931,10 @@ export default defineComponent({
 
 // The name inside the pill — the one member that gives. `min-width: 0` so
 // the flex item may be squeezed below its text (the marks are `0 0 auto`),
-// and the ellipsis lands here, after the mark, never over it. (⭐ The pill's
-// ONLY member since 2026-09-23 PM — centred while it fits, squeezed and
-// ellipsized once it does not.)
+// and the ellipsis lands here, after the mark, never over it. (The pill's
+// only member 2026-09-23 PM → 10-17; the fused marks lead it again since —
+// the run centred while it fits, the name squeezed and ellipsized once it
+// does not, the marks never.)
 .post-square__cap-title-text {
   min-width: 0;
   overflow: hidden;

@@ -3,16 +3,19 @@
        (`.post-square__cap`, 2026-08-07 → 2026-09-23 EVE), the same device
        for every kind:
 
-         [kind marks] (origin clause…) [═══ name, centred ═══] │ act │ act │ act
+         (origin clause…) [═══ marks + name, centred ═══] │ act │ act │ act
 
        · the MARKS state what the element IS — the kind's glyph (kinds.js),
          plus whatever the kind adds (a node's type, a system label's
-         `verified`, a schema's `schema`);
+         `verified`, a schema's `schema`) — FUSED at the name's head since
+         2026-10-17 (the post card's rule: in its ink, 0.9em of its type =
+         cap height), no longer at the strip's left end;
        · an ORIGIN CLAUSE names what it came out of — a word and the parent
          as its stock nano pill (`Comment on <chip> ::`, `Child of <chip>
          ::`, `Instance of <chip> ::`);
-       · the NAME is the pit's own face in bold (the post's 2026-09-23 EVE2
-         rule), a pill painted and cornered like the pit; it is a DOOR only
+       · the NAME is BARE TEXT in Nasalization since 2026-10-17 (the post
+         card's rule — no pill, no rim, no floor; it was the pit's face in
+         bold in a pit-painted pill); it is a DOOR only
          when the host says so (`title-door`) — the feed's hash lens has no
          meaning off the feed, and an inert name must not look broken, so it
          is `aria-disabled`, never `disabled` (Quasar's global `[disabled]`
@@ -23,10 +26,6 @@
          OPEN door last at the card's right edge by the post card's law. -->
   <div class="element-card__cap" :class="{ 'is-on': titleOn }">
     <div class="element-card__cap-main">
-      <span class="element-card__cap-icons" :title="iconsTitle || null">
-        <q-icon v-for="(ic, i) in shownIcons" :key="ic + i" :name="ic" size="13px" />
-      </span>
-
       <span
         v-for="(o, i) in origins"
         :key="o.word + ':' + i"
@@ -53,6 +52,9 @@
           :title="titleTip || title"
           @click.stop="onTitle"
         >
+          <span class="element-card__cap-icons" :title="iconsTitle || null">
+            <q-icon v-for="(ic, i) in shownIcons" :key="ic + i" :name="ic" />
+          </span>
           <span class="element-card__cap-title-text" :class="titleClass">{{ title }}</span>
         </button>
       </span>
@@ -172,12 +174,19 @@ export default defineComponent({
   width: 1px;
   background: var(--grey-5, #bdbdbd);
 }
+// THE MARKS, FUSED with the name (2026-10-17) — the post card's arithmetic
+// (FeedStream `.post-square__cap-icons`): 0.9em of the name = cap height,
+// in its ink, centred with it and lifted −0.075em onto the pixel-snapped caps.
 .element-card__cap-icons {
   flex: 0 0 auto;
   display: inline-flex;
   align-items: center;
   gap: 1px;
-  color: var(--grey-8, #424242);
+  margin-right: 0.25em;
+  font-size: 0.9em;
+  position: relative;
+  top: -0.075em;
+  color: inherit;
 }
 .element-card__cap.is-on .element-card__cap-icons { color: var(--accent, #c79a00); }
 .element-card__cap-origin {
@@ -212,7 +221,10 @@ export default defineComponent({
   display: flex;
   align-items: center;
 }
-// THE NAME PILL — the pit's face, bold, in the pit's paint and corner.
+// THE NAME — bare Nasalization since 2026-10-17 (the post card's rule: no
+// pill; the strip's face at its one weight and 0.02em tracking; the door
+// underlines under the pointer). It was the pit's face, bold, in the pit's
+// paint and corner.
 .element-card__cap-title-chip {
   flex: 1 1 auto;
   min-width: 0;
@@ -223,20 +235,21 @@ export default defineComponent({
   height: 18px;
   margin: 0;
   font: inherit;
-  font-family: var(--font-body, 'Inter', 'Helvetica Neue', system-ui, sans-serif);
+  font-family: var(--font-display, 'Nasalization', sans-serif);
   font-size: calc(var(--cap-title-scale, 0.8) / var(--cap-scale, 0.62) * 1em);
-  font-weight: 700;
-  letter-spacing: normal;
+  font-weight: 400;
+  letter-spacing: 0.02em;
   line-height: 16px;
   color: var(--ink, #2C3D4E);
-  padding: 0 4px;
-  border: 1px solid var(--grey-5, #bdbdbd);
-  border-radius: var(--pit-r, 6.34px);
-  background: var(--pit-coat, var(--grey-1, #fafafa));
+  padding: 0;
+  border: 0;
+  background: none;
   overflow: hidden;
   cursor: pointer;
-  transition: border-color 0.12s;
-  &:hover:not([aria-disabled='true']) { border-color: var(--grey-7, #757575); }
+  &:hover:not([aria-disabled='true']) .element-card__cap-title-text {
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
   &[aria-disabled='true'] { cursor: default; }
 }
 .element-card__cap-title-text {
