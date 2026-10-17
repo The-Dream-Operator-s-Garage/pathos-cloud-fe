@@ -98,7 +98,9 @@ export default defineComponent({
   align-items: center;
   gap: 3px;
   flex: 0 0 auto;
-  height: 16px;
+  // The plate IS its host's row (2026-10-17): a card byline's `--row-h`
+  // (20, the post card's since 2026-10-16), 16 where no row is declared.
+  height: var(--row-h, 16px);
   box-sizing: border-box;
   padding: 0 3px;
   border: 1px solid var(--grey-5, #bdbdbd);
@@ -137,7 +139,7 @@ export default defineComponent({
   align-items: center;
   flex: 0 0 auto;
   padding: 0 3px;
-  height: 12px;
+  height: calc(var(--row-h, 16px) - 4px); // the member steps 2px in a side
   box-sizing: border-box;
   line-height: 1;
   border: 0.5px solid var(--grey-5, #bdbdbd);
