@@ -2038,8 +2038,15 @@ export default defineComponent({
     // is itself viewport-cropped). The card subtracts the well's own
     // paddings from it — see `.post-square.is-expanded`, and keep the two
     // in step. clientHeight, so the horizontal scrollbar (if any) is out.
+    // ⚠ NEVER IN EMBED MODE (2026-10-16, bug: "the post is not rendered at
+    // all on the side viewer"): an embed's well is as tall as its ONE card
+    // wherever the host sizes it by content (the side viewer's item), so the
+    // measurement is the card's own height, fed back into its ceiling minus
+    // the glimpse — the card shrank, the observer re-measured, and it fell
+    // to 0 within a few frames. Embeds read their host's box instead (the
+    // EMBED'S CEILING rule in the stylesheet).
     const publishWellH = (el) => {
-      if (el) el.style.setProperty('--feed-well-h', `${el.clientHeight}px`)
+      if (el && !props.embedItem) el.style.setProperty('--feed-well-h', `${el.clientHeight}px`)
     }
     onMounted(() => {
       if (!streamEl.value || typeof ResizeObserver === 'undefined') return
@@ -4519,6 +4526,23 @@ export default defineComponent({
   padding: 0;
   border-left: none;
   border-right: none;
+}
+
+// ── THE EMBED'S CEILING (2026-10-16, bug: the side viewer drew its post
+// 2px tall) — the feed's `--post-ceiling` minus its third term. That term is
+// the feed WELL's height less the head slot, the frieze and a 64px glimpse
+// of the NEXT card; an embed has one card and no next, and its well is the
+// card's own height wherever the host sizes by content, so the term fed the
+// card back into itself and collapsed it (see `publishWellH`). In its place
+// `100cqh`: the nearest SIZE container's height, i.e. the HOST's box — the
+// flyout's `.element-flyout__well` (the card fits the window, all of it) and
+// SideElementView's `.side-element` (the card fits the viewer; the item's
+// own cap clips the band's share and the embed's well scrolls, as it always
+// did). A host with no size container resolves `cqh` to the small viewport
+// height, which 90vh already undercuts. The pit's media budget follows,
+// since it reads the same dial.
+.feed-stream-pane.is-embed .post-square {
+  --post-ceiling: min(calc(var(--post-square-max, 100cqw) * 1.5), 90vh, 100cqh);
 }
 
 .feed-stream__empty {
