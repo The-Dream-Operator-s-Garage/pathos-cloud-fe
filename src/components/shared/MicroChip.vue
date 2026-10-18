@@ -14,10 +14,13 @@
                     gives, the ellipsis cuts it at the edge, and NO HOST CAPS
                     IT (the feed foot's `10ch` cap is gone). A host that must
                     hold a chip short bounds the chip's WRAPPER, not the hash.
-         collapsed  `icon / 993fa6… ●`
+         collapsed  `icon 993fa6… ●`
                     a panel's header pill (every Mini's `#hash` slot): no
                     type word, the hash CUT to six digits + a stated
                     ellipsis, no door — the panel's corner is the door there.
+                    ⭐ 2026-10-17 eve: no `/` either, a lighter, smaller hash
+                    beside a heavier glyph, a tighter box (the DENSER pill,
+                    below).
 
        The grammar is FIXED — ⭐ PM7 (user ask: "re-arranging their content
        … [icon + type_name + '/' + hash + green_dot + flyout_icon] … [icon +
@@ -74,8 +77,12 @@
          ⭐ 2026-09-27 PM — the DENSE form draws NO seam (user ask, the
          skeleton viewers' key chips: "remove the '/' from the nano chips
          used on the skeleton viewers"): a key's NAME stands in the hash
-         slot, a name is not an address, and the slash read as one. -->
-    <span v-if="!dense" class="micro-chip__sep">/</span>
+         slot, a name is not an address, and the slash read as one.
+         ⭐ 2026-10-17 eve — nor the COLLAPSED state (user ask: "for the nano
+         pill family on the collapsed version, we have a 'icon + / + hash'.
+         Please remove the '/'"): `icon 993fa6… ●`. The extended pill keeps
+         it — there it parts the type WORD from the hash. -->
+    <span v-if="!dense && !collapsed" class="micro-chip__sep">/</span>
     <span class="micro-chip__hash mono">{{ hashText }}</span>
     <!-- The integrity traffic light (integrity-debt plan, 2026-08-08): green
          = this element's chain proof verified on the last read; red = a
@@ -420,7 +427,11 @@ export default defineComponent({
   // anchor any more, so no surface can recolour it.)
   color: var(--kind-ink, rgba(var(--ink-rgb), 0.78));
   font-family: 'Space Mono', monospace;
-  font-size: 0.72em;
+  // The pill's size as a RATIO of its host's, named (2026-10-17 eve) because
+  // the collapsed pill's top-left corner restates the mini frame's corner in
+  // this em — `--radius-md / --chip-em` (below). The dense form sets 0.66.
+  --chip-em: 0.72;
+  font-size: calc(var(--chip-em) * 1em);
   line-height: 1.4;
   letter-spacing: 0.02em;
   text-decoration: none;
@@ -445,7 +456,7 @@ export default defineComponent({
 .micro-chip.is-dense {
   padding: 0 4px;
   gap: 2px;
-  font-size: 0.66em;
+  --chip-em: 0.66;
   min-width: 0;
   .micro-chip__integrity { width: 5px; height: 5px; }
 }
@@ -453,25 +464,80 @@ export default defineComponent({
 // THE COLLAPSED PILL (2026-09-21 PM3) prints its whole text — six digits and
 // the ellipsis it states itself — so it needs no room to adapt into and no
 // CSS ellipsis over the one it already wrote.
+//
+// ⭐ THE DENSER PILL (2026-10-17 eve, user ask: "remove the '/', make the hash
+// font slightly tinier and thiner (slightly), and make the icon bolder. The
+// idea is to make the collapsed pills slightly denser and thinner … reduce
+// the padding around the pill's text"). The seam left in the template; here:
+// · the BOX — `padding: 0 4px` (was the stock 1px 6px) and a 2px gap (3):
+//   the dense form's box. With the smaller hash's shorter line box, the pill
+//   goes 18.1 → 15.0px at a 14px host, and every Mini's head (2/2/2 around
+//   it) 22.1 → 19.0 with it;
+// · the HASH — 0.92 of the pill's size, and lighter: it drew at 600, which
+//   Space Mono (loaded 400 + 700 only, app.scss) RENDERS AS 700 — so "a
+//   little thinner" has no face to land on. It sits on the 400 face with a
+//   0.25px stroke of its own ink: a synthetic ~550, a step under the old
+//   bold, not the whole drop to regular;
+// · the GLYPH — full opacity (0.85) and a 0.5px stroke of its own colour:
+//   bolder by the same means on BOTH icon fonts the kinds use (classic
+//   Material Icons — adjust, label, route … — have no weight axis, so a
+//   `wght` setting would have thickened only the `sym_o_` ones).
 .micro-chip.is-collapsed {
   min-width: 0;
-  .micro-chip__hash { min-width: 0; overflow: visible; }
+  padding: 0 4px;
+  gap: 2px;
+  --hash-em: 0.92;
+  .micro-chip__hash {
+    min-width: 0;
+    overflow: visible;
+    font-size: calc(var(--hash-em) * 1em);
+    font-weight: 400;
+    -webkit-text-stroke: 0.25px currentColor;
+  }
+  .micro-chip__icon {
+    opacity: 1;
+    -webkit-text-stroke: 0.5px currentColor;
+  }
   // THE BOTTOM-LEFT CORNER IS 60% OF THE PILL'S (⭐ 2026-09-21 PM8, user ask:
   // "their bottom left corner is half as rounded as it is right now. maybe
   // a little more rounded… i just don't want that corner to look square").
-  // Stated as a RATIO of the pill radius, on purpose. PM7's four px notches
-  // (xs / sm / midpoint / 0.65em) all drew DEAD SQUARE — not because a
-  // smaller corner reads square, but because of CSS's overlapping-curves
-  // rule: when adjacent radii overflow a side, EVERY radius is scaled by
-  // the same factor (here h / 1998, the right side's two 999px corners), so
-  // a 4.4px corner beside 999px ones was drawn at ~0.04px while its computed
-  // style still said 4.4px. The same rule now does the work: three corners
-  // at `--radius-pill` scale to h/2 and 0.6 × `--radius-pill` scales to
-  // 0.6 × h/2 — a proportional notch on every host, whatever the pill's
-  // height. Tune `--notch` only; never restate it in px.
+  // Tune `--notch` only.
+  //
+  // ⭐ THE TOP-LEFT CORNER FOLLOWS THE FRAME'S (2026-10-17 eve, user ask:
+  // "make the top left corner of the pills rounder so they match the mini
+  // viewer family corners roundness"). The pill stands in a Mini's top-left
+  // corner, 2px in from the head on both sides (`--mini-chip-zone-pad`)
+  // inside the frame's 1px rim, under the frame's `--radius-md` (0.85em of
+  // the panel = 11.9px at 14px). Its own top-left was a semicircle's
+  // quarter, h/2 = 7.5px — a tighter curve than the one it sits under. Now
+  // it is CONCENTRIC with it: the frame's corner minus the rim and the
+  // inset, `--radius-md − 3px` = 8.9px, restated in the pill's em (the
+  // zone's font is the panel's, and the pill is `--chip-em` of it, so
+  // `--radius-md / --chip-em` resolved HERE is the frame's corner). Never
+  // less than h/2 — on a deep, small panel the concentric arc would come
+  // out TIGHTER than the other three. Every surface draws the same shape
+  // (one object — PM2's law), not only the pills in a Mini's head.
+  //
+  // ⚠ So the four corners are EXACT LENGTHS now, and that retires the
+  // PM8 device. Until today three corners were `--radius-pill` (999px) and
+  // the notch 0.6 of it, and CSS's overlapping-curves rule did the work —
+  // when adjacent radii overflow a side, EVERY radius is scaled by one
+  // factor (h / 1998 here), so all four landed at h/2 and 0.6 × h/2. That
+  // same rule would crush a px corner standing beside them to ~0 (PM7's px
+  // notches all drew dead square while their computed style said 4.4px). So
+  // the pill states its HEIGHT — the tallest item is the hash's line box
+  // (1.4 × `--hash-em`) or the 10px glyph (MicroChip's `iconSize` default,
+  // which MiniHead keeps), plus the 1px rim twice — and every corner reads
+  // it: h/2 on the right two, `--notch` × h/2 bottom-left, the concentric
+  // arc top-left. No side overflows (left: 8.9 + 4.5 < 15), so nothing is
+  // scaled and each corner draws the number it states.
   --notch: 0.6;
-  border-radius: var(--radius-pill, 999px) var(--radius-pill, 999px)
-    var(--radius-pill, 999px) calc(var(--radius-pill, 999px) * var(--notch));
+  --pill-h: calc(max(10px, 1.4 * var(--hash-em) * 1em) + 2px);
+  --pill-r: calc(var(--pill-h) / 2);
+  --pill-r-frame: calc(var(--radius-md, 0.85em) / var(--chip-em) - 3px);
+  height: var(--pill-h);
+  border-radius: max(var(--pill-r), var(--pill-r-frame)) var(--pill-r)
+    var(--pill-r) calc(var(--pill-r) * var(--notch));
 }
 
 // THE EXTENDED PILL'S FOUR CORNERS ARE 70% OF A PILL'S (⭐ 2026-09-21 PM8c,

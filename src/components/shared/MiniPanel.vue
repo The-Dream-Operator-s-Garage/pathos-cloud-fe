@@ -16,7 +16,7 @@
          — a zone that also painted the coat would lay the glass twice and
          read two levels deep — and the BODY is the content well (⭐
          2026-10-17): the post card pit's solid grey-1 floor, inset in the
-         frame under the head's hairline, square on top, `--pit-r` below, a
+         frame under the head's hairline, 2px on top, `--pit-r` below, a
          darker hairline of its own;
        · THE ROW — `#head` is a ROW of hairline-split zones (`MiniHead`), so
          the row reset every own-head Mini wrote is the default here;
@@ -315,7 +315,10 @@ export default defineComponent({
 //   off the frame's two sides and off its bottom — or off the foot, whose
 //   divider comes off below: the well's own line already parts them, and a
 //   hairline 4px under it would be a second line saying the same thing;
-// · the TOP — SQUARE corners, under the head's HAIRLINE (⭐ 2026-10-17 eve,
+// · the TOP — corners all but square (`--mini-well-r-top`, 2px — ⭐ 2026-10-17
+//   eve, user ask: "make them slightly round, but very subtle. The bottom
+//   corners must still look slightly rounder"; square in the first cut),
+//   under the head's HAIRLINE (⭐ 2026-10-17 eve,
 //   user ask: "keep the thin hairline between the header and the content
 //   container"): the full-width `--panel-rule` line the head always had,
 //   then the same `--mini-well-gap` of glass, then the well. The line is a
@@ -337,7 +340,8 @@ export default defineComponent({
 .mini-panel > .mini-panel__body {
   margin: var(--mini-well-gap, 4px);
   border: 1px solid var(--mini-well-rule, rgba(33, 33, 33, 0.40));
-  border-radius: 0 0 var(--pit-r, 6.34px) var(--pit-r, 6.34px);
+  border-radius: var(--mini-well-r-top, 2px) var(--mini-well-r-top, 2px)
+    var(--pit-r, 6.34px) var(--pit-r, 6.34px);
 }
 .mini-panel > .mini-panel__head:has(+ .mini-panel__body) {
   box-shadow: 0 1px 0 var(--panel-rule);

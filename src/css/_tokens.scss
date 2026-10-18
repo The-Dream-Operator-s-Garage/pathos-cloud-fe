@@ -1311,6 +1311,11 @@ $warning:   #F2C037;
   // under the frame's 22% (≈ #bdbdbd over a well, grey-5).
   --mini-well-gap:    4px;
   --mini-well-rule:   rgba(var(--mini-coat-rgb), 0.40);
+  // The well's TOP two corners (2026-10-17 eve, user ask: "make them slightly
+  // round, but very subtle. The bottom corners must still look slightly
+  // rounder"): 2px — under a third of the bottom's `--pit-r` (6.34), enough
+  // to take the point off a corner, not enough to read as a curve.
+  --mini-well-r-top:  2px;
 
   // Carved shadow stack — the signature "embossed" look:
   //   1) crisp inner top highlight (the "light catches the top edge")
