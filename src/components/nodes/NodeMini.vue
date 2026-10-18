@@ -55,7 +55,7 @@
            ("remove the voting section"): a preview reports what the node IS,
            and the place to read its activity is the node's own viewer. -->
       <div v-if="embed" class="node-mini__embed">
-        <EmbedFrame :embed="embed" :caption="false" />
+        <EmbedFrame :embed="embed" :caption="false" rimmed />
       </div>
 
       <div v-else-if="mediaKind === 'image'" class="node-mini__media">
@@ -527,8 +527,25 @@ export default defineComponent({
 // prose (`NodeContentViewer`'s full mode prints the address under it and the
 // two edges line up). Scoped to the Mini, the ask is answered without moving
 // a shared component under three other callers.
+// ⭐ THE RIMMED FRAME ON THE WELL'S FLOOR (2026-10-17 eve — EmbedFrame
+// `rimmed`: a thin dark ring + a thin shadow): `--embed-gap` of clear well
+// round the box on all four sides (the family body's own 2px top and bottom
+// counted in) — room for the shadow, which the well's `overflow: clip`
+// would otherwise cut at its edge. And, for a full-bleed frame, whose
+// corner is ours, the corner the box turns: CONCENTRIC with the well's
+// (`--mini-well-r-top` on top, `--pit-r` below) through the well's 1px rim,
+// the gap and the ring's `--embed-rule-w`, never under 0 — at today's
+// numbers 0 on top and 0.84 below: a ring set 5px inside a nearly square well can only be
+// squarer. A provider-cornered frame ignores it and wears its provider's
+// corner (EmbedFrame `--own`).
 .node-mini__embed {
-  margin-top: 0;
+  --embed-gap-here: var(--embed-gap, 4px);
+  margin: calc(var(--embed-gap-here) - 2px) var(--embed-gap-here);
+  --embed-r:
+    max(0px, calc(var(--mini-well-r-top, 2px) - 1px - var(--embed-gap-here) - var(--embed-rule-w, 0.5px)))
+    max(0px, calc(var(--mini-well-r-top, 2px) - 1px - var(--embed-gap-here) - var(--embed-rule-w, 0.5px)))
+    max(0px, calc(var(--pit-r, 6.34px) - 1px - var(--embed-gap-here) - var(--embed-rule-w, 0.5px)))
+    max(0px, calc(var(--pit-r, 6.34px) - 1px - var(--embed-gap-here) - var(--embed-rule-w, 0.5px)));
 
   :deep(.embed-frame__box) {
     margin-left: auto;

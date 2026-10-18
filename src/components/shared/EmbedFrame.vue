@@ -9,7 +9,16 @@
        `@click.stop.prevent` is load-bearing: Minis are router-links, and a
        click meant for the play button must not navigate the panel away
        (the same guard NodeMini's <video>/<audio> branches carry). -->
-  <figure class="embed-frame" @click.stop.prevent>
+  <!-- ⭐ `rimmed` (2026-10-17 eve) rings the box in a thin dark line and a
+       thin drop shadow (`.embed-frame--rimmed` below). `is-own` = the
+       provider draws its own card corner (`embed.radius`), published as
+       `--embed-own-r` already multiplied by the frame's zoom. -->
+  <figure
+    class="embed-frame"
+    :class="{ 'embed-frame--rimmed': rimmed, 'is-own': ownR != null }"
+    :style="ownStyle"
+    @click.stop.prevent
+  >
     <!-- THE BUDGET PROBE (card mode, 2026-09-28): a custom property keeps
          its expression (`max(120px, calc(…))`) until it lands on a
          property, so the surface's `--media-max-h` cannot be READ as a
@@ -24,6 +33,7 @@
         'embed-frame__box--page': isPage,
         'embed-frame__box--card': isCard,
         'embed-frame__box--fit': isFit,
+        'embed-frame__box--own': ownR != null,
         'embed-frame__box--scroll': fitGeom?.scroll
       }"
       :style="boxStyle"
@@ -129,7 +139,12 @@ export default defineComponent({
     embed: { type: Object, required: true },
     // The provider + source line under the frame. Off on surfaces that
     // already state the link (the node viewer prints its address above).
-    caption: { type: Boolean, default: true }
+    caption: { type: Boolean, default: true },
+    // ⭐ 2026-10-17 eve — ring the box in a thin dark rim and cast a thin
+    // shadow (`--embed-rule`, `--embed-shadow`). The host leaves the clear
+    // ground the shadow lands on and, for a full-bleed frame, hands down the
+    // corner to turn (`--embed-r`).
+    rimmed: { type: Boolean, default: false }
   },
   setup (props) {
     const provider = computed(() => props.embed?.provider || 'Embed')
@@ -293,6 +308,21 @@ export default defineComponent({
       return { aspectRatio: aspect.value, '--embed-ratio': String(ratio) }
     })
 
+    // THE PROVIDER'S OWN CORNER (2026-10-17 eve). A rule's `radius` says the
+    // provider draws its card inside the frame with that corner (Spotify, X
+    // 12; Reddit 8). The box clips at exactly that — a rounder clip shaves
+    // the card's rim, a squarer one changes nothing — and since a card / fit
+    // frame is transform-scaled by its zoom, the corner on screen is the
+    // provider's radius × that zoom. Null = the content is full-bleed and
+    // the corner is ours (`--embed-r`, which a host may hand down).
+    const ownR = computed(() => {
+      const r = Number(props.embed?.radius)
+      if (!(r > 0 && r <= 40)) return null
+      const z = isCard.value ? (cardFit.value?.z || 1) : isFit.value ? (fitGeom.value?.z || 1) : 1
+      return Math.round(r * z * 100) / 100
+    })
+    const ownStyle = computed(() => (ownR.value != null ? { '--embed-own-r': `${ownR.value}px` } : null))
+
     // The ORIGINAL url, trimmed to what identifies it — the scheme and a
     // `www.` say nothing at caption size.
     const prettyUrl = computed(() => {
@@ -300,7 +330,7 @@ export default defineComponent({
       return raw.replace(/^https?:\/\/(www\.)?/, '')
     })
 
-    return { provider, isPage, isCard, isFit, fitGeom, frameEl, boxStyle, budgetEl, budgetStyle, prettyUrl }
+    return { provider, isPage, isCard, isFit, fitGeom, frameEl, boxStyle, budgetEl, budgetStyle, prettyUrl, ownR, ownStyle }
   }
 })
 </script>
@@ -336,7 +366,9 @@ export default defineComponent({
   width: 100%;
   max-width: min(100%, calc(var(--media-max-h, 100vh) * var(--embed-ratio, 1.7778)));
   overflow: hidden;
-  border-radius: 6px;
+  // A dial since 2026-10-17 eve: a host hands its concentric corner down
+  // through `--embed-r` (a full `border-radius` value, four corners).
+  border-radius: var(--embed-r, 6px);
   border: 1px solid rgba(var(--ink-rgb), 0.14);
   background: #000;
 
@@ -396,7 +428,9 @@ export default defineComponent({
   height: var(--embed-height, 352px);
   background: transparent;
   border: 0;
-  border-radius: 12px;
+  // The provider's own corner comes as `embed.radius` since 2026-10-17
+  // (`--own` below); 12 stays the fallback for a card rule that states none.
+  border-radius: var(--embed-r, 12px);
 
   iframe {
     inset: auto;
@@ -425,7 +459,7 @@ export default defineComponent({
   height: var(--embed-height, 420px);
   background: transparent;
   border: 0;
-  border-radius: 12px;
+  border-radius: var(--embed-r, 12px);
 
   iframe {
     inset: auto;
@@ -436,6 +470,40 @@ export default defineComponent({
     transform: scale(var(--embed-zoom, 1));
     transform-origin: 0 0;
   }
+}
+
+// ⭐ THE PROVIDER'S CORNER (2026-10-17 eve): a rule that states `RADIUS`
+// clips its box at exactly the provider's card corner × the frame's zoom
+// (`--embed-own-r`, inline on the figure). Measured inside each frame:
+// Spotify's widget container and X's post card turn 12px, Reddit's card
+// `rounded-2` = 8px — the 12 every card / fit wore until today shaved
+// Reddit's 8px corners, rim and all. Stated AFTER the mode rules: equal
+// specificity, the later rule wins.
+.embed-frame__box--own {
+  border-radius: var(--embed-own-r, 12px);
+}
+
+// ── ⭐ THE RIM (2026-10-17 eve) ──────────────────────────────────────────
+// User ask: "make the embedded item have a thin dark grey border and make it
+// project a thin shadow on the clear background" (it replaced, the same
+// hour, a darker CONTAINER built round the frame on the ask before it).
+// A `--embed-rule-w` (0.5px — 1px grey-8 for its first pass, then "thinner
+// and of a lighter grey") `--embed-rule` (grey-6) ring and `--embed-shadow`
+// (0 1px 3px, 25% black), BOTH as box-shadows:
+// · a ring takes no layout. A real 1px border would narrow the content box
+//   by 2px, and a FIT provider (X, Reddit) lays its card out at the frame's
+//   width and REPORTS that width back — the box would follow it 2px
+//   narrower, and so on every round;
+// · a box-shadow follows `border-radius`, so the ring turns the box's own
+//   corner its own width out — concentric with it by construction. On a
+//   provider-cornered box (`--own`: exactly the card's corner) that puts
+//   the rim on the card's edge; on a full-bleed one the corner is what the
+//   host handed down (`--embed-r`);
+// · `overflow: hidden` on the box clips its CONTENT, never its own shadow.
+// The player's 14% hairline comes off under the ring (one rim, not two).
+.embed-frame--rimmed .embed-frame__box {
+  border: 0;
+  box-shadow: 0 0 0 var(--embed-rule-w, 0.5px) var(--embed-rule, #9e9e9e), var(--embed-shadow, 0 1px 3px rgba(0, 0, 0, 0.25));
 }
 
 .embed-frame__box--scroll {
