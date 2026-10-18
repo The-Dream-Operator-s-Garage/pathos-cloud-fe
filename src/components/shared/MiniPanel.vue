@@ -12,9 +12,11 @@
        restate now live here:
        · THE GLASS — one translucent `--mini-coat` on the article (+ a
          backdrop blur on the top-level panel), so a panel nested in a panel
-         composites one layer darker. The zones inside (head / body / foot)
-         paint NOTHING by default — a zone that also painted the coat would
-         lay the glass twice and read two levels deep;
+         composites one layer darker. The head and foot zones paint NOTHING
+         — a zone that also painted the coat would lay the glass twice and
+         read two levels deep — and the BODY is the content well (⭐
+         2026-10-17): the post card pit's solid grey-1 floor, inset in the
+         frame, square on top, `--pit-r` below, a darker hairline;
        · THE ROW — `#head` is a ROW of hairline-split zones (`MiniHead`), so
          the row reset every own-head Mini wrote is the default here;
        · THE KIND — `kind` hands the nano pill's two colours to the whole
@@ -136,16 +138,20 @@ export default defineComponent({
   // ── THE GLASS (2026-09-30) ──────────────────────────────────────────────
   // ONE coat, on the article, for every kind: `--mini-coat` (_tokens.scss —
   // grey-10 at 8%, the tone and the ratio are argued there). `--panel-coat`
-  // is the seam a Mini may re-point; `--panel-chrome` / `--panel-body` paint
-  // the ZONES and are transparent now, because a zone painting the same
-  // translucent coat over the article's would double it (head and body
-  // reading one nesting level deeper than the panel they belong to). Before
-  // this pass the chrome was `#f4f7fb` and the body white — the two-tone
-  // panel NodeMini, PathMini and SkeletonMini each flattened by writing both
-  // dials into their own colorway.
+  // is the seam a Mini may re-point; `--panel-chrome` paints the head and
+  // foot ZONES and is transparent, because a zone painting the same
+  // translucent coat over the article's would double it (reading one nesting
+  // level deeper than the panel it belongs to). Before this pass the chrome
+  // was `#f4f7fb` and the body white — the two-tone panel NodeMini, PathMini
+  // and SkeletonMini each flattened by writing both dials into their own
+  // colorway.
+  // ⭐ `--panel-body` is the CONTENT WELL's floor since 2026-10-17 — the post
+  // card pit's `--pit-coat` (grey-1; inherited inside a card, the fallback
+  // everywhere else), SOLID: the body is no longer glass but the reading
+  // area set into it (`.mini-panel > .mini-panel__body` below).
   --panel-coat:   var(--mini-coat, rgba(33, 33, 33, 0.08));
   --panel-chrome: transparent;
-  --panel-body:   transparent;
+  --panel-body:   var(--pit-coat, var(--grey-1, #fafafa));
   // THE LINES — the same tone at a fixed share, so a rule is always one step
   // darker than the glass it sits on, at any depth (22% ≈ grey-5 over one
   // layer: NodeMini's resting line; the hover's 58% ≈ grey-7, its hover). The
@@ -286,7 +292,49 @@ export default defineComponent({
 // takes exactly the height its content asked for.
 .mini-panel__body--fit {
   max-height: none;
-  overflow: visible;
+  // `clip`, not `visible`, since the well (2026-10-17): the body's bottom
+  // corners are round now, and a picture, a player or a grid running to its
+  // edge must be cut to them. `clip` and not `hidden`, because `hidden`
+  // makes a scroll container — a sticky column inside (SkeletonMini's keys)
+  // would stick to this box instead of the surface that really scrolls.
+  overflow: clip;
+}
+
+// ── ⭐ THE CONTENT WELL (2026-10-17) ─────────────────────────────────────
+// User ask: "for all the mini viewer family, help me making their content be
+// displayed inside a content container that is the same color as the post
+// cards content container. Make the content container have rounded bottom
+// left and bottom right corners and make it have square top left and top
+// right corners. add to it a darker thin border and put it a little padding
+// to separate it a little from the mini viewer outer frame".
+// The body IS that container, for every Mini (the nine kinds, SkeletonMini
+// included — it declares no `kind`, so this is not a `--family` rule):
+// · the FLOOR — `--panel-body`, the pit's `--pit-coat` (above);
+// · the AIR — `--mini-well-gap` (4px, the pit's own embrace around a mini)
+//   off the frame's two sides and off its bottom — or off the foot, whose
+//   divider comes off below: the well's own line already parts them, and a
+//   hairline 4px under it would be a second line saying the same thing;
+// · the TOP — no gap and SQUARE corners: the well hangs from the head, its
+//   top edge IS the head's divider (the `& > * + *` rule's line, re-inked
+//   and inset by the gap). A panel with no head gets the gap on top too;
+// · the BOTTOM — `--pit-r`, the pit's bottom corner (and the frame's own,
+//   so a foot-less Mini's well turns at the same number as the panel around
+//   it, 5px further in);
+// · the LINE — `--mini-well-rule` (_tokens.scss), a step darker than the
+//   frame's 22%. It does not repaint on hover: the pointer's line system is
+//   the frame's (`--panel-rule`), the well is the content inside it.
+// A CHILD chain, so the rule names this panel's own body only — a nested
+// Mini gets its own well from its own panel, never from a host's.
+.mini-panel > .mini-panel__body {
+  margin: 0 var(--mini-well-gap, 4px) var(--mini-well-gap, 4px);
+  border: 1px solid var(--mini-well-rule, rgba(33, 33, 33, 0.40));
+  border-radius: 0 0 var(--pit-r, 6.34px) var(--pit-r, 6.34px);
+}
+.mini-panel > .mini-panel__body:first-child {
+  margin-top: var(--mini-well-gap, 4px);
+}
+.mini-panel > .mini-panel__body + .mini-panel__foot {
+  border-top: 0;
 }
 
 // THE FAMILY BODY (2026-09-30) — a panel that states its `kind` is a member

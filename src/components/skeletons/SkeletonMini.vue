@@ -747,10 +747,10 @@ export default defineComponent({
 // the custom property inherits, and a cap inside a cap is a scrollbar
 // inside a scrollbar (2026-09-17).
 .skel-mini__scroll {
-  // The grid lies on the panel's glass (2026-09-30): its own coat dial goes
-  // transparent inside a mini, so the family coat shows through the cells
-  // and a skeleton nested in one composites a level darker. The keys'
-  // column keeps its brown-2; a bare grid outside a mini keeps brown-1.
+  // The grid lies on the panel's body (2026-09-30): its own coat dial goes
+  // transparent inside a mini, so the body shows through the cells — the
+  // glass until 2026-10-17, the CONTENT WELL's grey-1 since (MiniPanel). The
+  // keys' column keeps its brown-2; a bare grid outside a mini keeps brown-1.
   --skel-table-coat: transparent;
   max-height: var(--skel-mini-max-h, none);
   overflow: auto;

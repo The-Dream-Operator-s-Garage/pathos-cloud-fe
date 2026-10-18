@@ -1298,6 +1298,19 @@ $warning:   #F2C037;
   --mini-rule:        rgba(var(--mini-coat-rgb), 0.22);
   --mini-rule-hover:  rgba(var(--mini-coat-rgb), 0.58);
   --mini-blur:        6px;
+  // ⭐ 2026-10-17 — THE CONTENT WELL (user ask: "for all the mini viewer
+  // family … their content be displayed inside a content container that is
+  // the same color as the post cards content container … rounded bottom
+  // left and bottom right corners … square top left and top right corners
+  // … a darker thin border … a little padding to separate it a little from
+  // the mini viewer outer frame"). MiniPanel's body is that container: the
+  // pit's floor (`--pit-coat`, grey-1) and bottom corner (`--pit-r`), set
+  // `--mini-well-gap` inside the frame's sides and foot, its top edge the
+  // head's divider. Its line is the coat's tone at 40% — drawn over the
+  // well's OWN solid floor, so it lands #a3a3a3 at every depth, a step
+  // under the frame's 22% (≈ #bdbdbd over a well, grey-5).
+  --mini-well-gap:    4px;
+  --mini-well-rule:   rgba(var(--mini-coat-rgb), 0.40);
 
   // Carved shadow stack — the signature "embossed" look:
   //   1) crisp inner top highlight (the "light catches the top edge")
