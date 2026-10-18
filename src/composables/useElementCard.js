@@ -6,11 +6,10 @@
 //     sink would otherwise swallow the store call — `{ flyout: true }` is
 //     the host's to add), else the store's own door;
 //   · SHARE — the card panel's ConversationPicker, by injection;
-//   · PIN — the PINS skeleton the pins widget reads (`pinService`), for the
-//     kinds pins take (node | label | skeleton — posts ARE skeletons); the
-//     state is read ONCE per session off `GET /pins` (a list of cards must
-//     not pay a check each), optimistic on the press, authoritative on the
-//     server, the nav trail told, `pins-changed` bubbled up;
+//   · PIN — `composables/usePin` (since 2026-10-18, shared with the mini
+//     family's pin button): the kinds pins take (node | label | skeleton —
+//     posts ARE skeletons), one session-wide pinned set, optimistic on the
+//     press, the nav trail told, `pins-changed` bubbled up;
 //   · THE THREAD DOORS — the comment / fork tallies: a THREAD HOST (the
 //     side viewer's band) gets the `thread` emit; without one the comment
 //     door opens the card's own inline CommentMaker storey and the fork
@@ -23,9 +22,8 @@
 import { ref, computed, watch, inject, onMounted, unref } from 'vue'
 import { useAuthStore } from 'src/stores/auth'
 import { useFlyoutViewersStore } from 'src/stores/flyoutViewers'
-import { useNavStore } from 'src/stores/navigation'
 import { refService } from 'src/services/ref.service'
-import { pinService } from 'src/services/pin.service'
+import { usePin } from 'src/composables/usePin'
 import { hashOf, kindFor, prefixFor } from 'src/utils/kinds'
 
 // The props every XCard declares, by name (spread into the component).
@@ -48,25 +46,8 @@ export const CARD_EMITS = ['select', 'thread', 'pins-changed']
 // node → its route, the skeleton family → the skeleton route, any other
 // kind → POST /refs/comment by address).
 const PARENT_KIND = { skeletons: 'skeleton', posts: 'post', nodes: 'node', labels: 'label', paths: 'path', links: 'link', moments: 'moment', secrets: 'secret', entities: 'entity' }
-// The kinds pins take (api: targetType ∈ node | label | skeleton).
-const PIN_TYPE = { nodes: 'node', labels: 'label', skeletons: 'skeleton', posts: 'skeleton' }
-
-// ── the session's pins, read once ──────────────────────────────────────
-let pinsPromise = null
-const pinsSet = ref(null) // Set<'type:id'>
-const loadPins = () => {
-  if (!pinsPromise) {
-    pinsPromise = pinService.list()
-      .then((r) => {
-        const s = new Set()
-        for (const p of (r?.pins || [])) if (p.target_type && p.target_id) s.add(`${p.target_type}:${p.target_id}`)
-        pinsSet.value = s
-        return s
-      })
-      .catch(() => { pinsPromise = null; return pinsSet.value || new Set() })
-  }
-  return pinsPromise
-}
+// The PIN lives in `usePin` since 2026-10-18 (the mini family's pin
+// button): one session-wide pinned set for both families.
 
 // `spec` — a getter returning the card's facts as the row resolves:
 //   { kind, address, id, label, ownerId, target }
@@ -76,7 +57,6 @@ const loadPins = () => {
 export function useElementCard (props, emit, spec) {
   const auth = useAuthStore()
   const flyouts = useFlyoutViewersStore()
-  const navStore = useNavStore()
   const openShare = inject('cardShare', null)
 
   const facts = computed(() => (typeof spec === 'function' ? spec() : unref(spec)) || {})
@@ -117,47 +97,21 @@ export function useElementCard (props, emit, spec) {
   const share = () => { if (openShare && address.value) openShare(address.value) }
 
   // ── PIN ───────────────────────────────────────────────────────────────
-  const pinType = computed(() => PIN_TYPE[prefix.value] || null)
-  const pinKey = computed(() => (pinType.value && facts.value.id != null ? `${pinType.value}:${facts.value.id}` : null))
-  const pinned = computed(() => !!(pinKey.value && pinsSet.value?.has(pinKey.value)))
-  const pinBusy = ref(false)
-  onMounted(() => { if (pinType.value) loadPins() })
-  const togglePin = async () => {
-    if (!pinKey.value || pinBusy.value) return
-    const set = await loadPins()
-    const was = set.has(pinKey.value)
-    const next = new Set(set)
-    if (was) next.delete(pinKey.value); else next.add(pinKey.value)
-    pinsSet.value = next
-    pinBusy.value = true
-    try {
-      if (was) await pinService.unpin(pinType.value, facts.value.id)
-      else await pinService.pin(pinType.value, facts.value.id)
-      navStore.recordAction?.(was ? 'UNPIN' : 'PIN', {
-        targetType: pinType.value,
-        targetId: facts.value.id,
-        targetRoute: meta.value.route ? meta.value.route(facts.value.id) : null,
-        targetLabel: facts.value.label || `${meta.value.kind} #${facts.value.id}`,
-        targetPath: address.value || null
-      })
-      emit('pins-changed')
-    } catch (_) {
-      pinsPromise = null
-      await loadPins()
-    }
-    pinBusy.value = false
-  }
+  const { pinned, pinBusy, pinTitle, togglePin, pinType } = usePin(
+    () => ({ kind: prefix.value, id: facts.value.id, address: address.value, label: facts.value.label }),
+    { onChanged: () => emit('pins-changed') }
+  )
   const pinAct = computed(() => (pinType.value ? {
     key: 'pin',
     icon: 'push_pin',
-    title: pinned.value ? `Unpin this ${meta.value.kind}` : `Pin this ${meta.value.kind}`,
+    title: pinTitle.value,
     on: pinned.value,
     disabled: pinBusy.value,
     onClick: togglePin
   } : null))
   const shareAct = computed(() => ({
     key: 'share',
-    icon: 'ios_share',
+    icon: 'share',
     title: `Share this ${meta.value.kind} to a conversation`,
     hidden: !address.value,
     onClick: share

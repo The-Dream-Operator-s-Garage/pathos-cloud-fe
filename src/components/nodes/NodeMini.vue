@@ -22,6 +22,7 @@
        picture, a video, an audio track — the well is gone (`bare`, below). -->
   <MiniPanel
     kind="nodes"
+    :labels="node.labels || null"
     :to="hostsMinis ? null : targetRoute"
     :body-fit="isMedia || showsSource || hostsMinis"
     :bare="isBare"
@@ -172,7 +173,9 @@ export default defineComponent({
     // The header corner's job: hand THIS enriched node card to the
     // floating viewer family (one per node; re-triggering fronts it).
     const flyoutViewers = useFlyoutViewersStore()
-    const openViewer = () => { flyoutViewers.spawnNode(props.node) }
+    // The corner is the WINDOW door, always (2026-10-18 — the name and the
+    // panel are the side door): `flyout: true` even inside the side viewer.
+    const openViewer = () => { flyoutViewers.spawnNode(props.node, { flyout: true }) }
 
     // (THE HASH COPY — the full hash, the check glyph for 1600ms, the
     // swallowed denial — is MiniHead's since 2026-09-30, for every kind.)

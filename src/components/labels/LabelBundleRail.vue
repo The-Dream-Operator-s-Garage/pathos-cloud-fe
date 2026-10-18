@@ -9,7 +9,10 @@
        other label under the FACE of whoever attached it (the owner, or a
        delegate: Talavero, a label owner, an org) — grouping by
        utils/labelBundles.js. `wrap` lets the plates flow onto more lines
-       (pages, panels); the card's one-row rail scrolls instead. -->
+       (pages, panels); the card's one-row rail scrolls instead. `side`
+       (⭐ 2026-10-18, the mini family's label strip): a label or a face
+       opens in the SIDE viewer (a window where none is mounted) instead of
+       routing to its page; the hrefs stay, so a new tab still works. -->
   <div v-if="bundles.length" class="label-rail" :class="{ 'is-wrap': wrap }">
     <div
       v-for="b in bundles"
@@ -32,7 +35,7 @@
           :href="'#/entities/' + b.owner.id"
           class="element-card__bundle-face"
           :aria-label="bundleOrigin(b) + ' — open profile'"
-          @click.stop
+          @click.stop="(e) => side && openFace(e, b.owner)"
         >
           <EntityAvatar :entity="b.owner" :size="12" />
         </a>
@@ -40,11 +43,12 @@
       </span>
       <span v-for="lp in b.items" :key="lp.id" class="element-card__bundle-item">
         <component
-          :is="inert ? 'span' : 'router-link'"
-          :to="inert ? undefined : '/labels/' + lp.id"
+          :is="inert ? 'span' : (side ? 'a' : 'router-link')"
+          :to="inert || side ? undefined : '/labels/' + lp.id"
+          :href="side && !inert ? '#/labels/' + lp.id : undefined"
           class="element-card__label mono"
           :title="lp.path"
-          @click="(e) => { if (!inert) e.stopPropagation() }"
+          @click="(e) => { if (inert) return; e.stopPropagation(); if (side) openLabel(e, lp) }"
         >
           <q-icon name="label" size="10px" class="element-card__label-glyph" />
           <span
@@ -63,6 +67,8 @@
 import { defineComponent, computed } from 'vue'
 import EntityAvatar from 'src/components/entities/EntityAvatar.vue'
 import { labelBundles, bundleOrigin } from 'src/utils/labelBundles'
+import { elementTarget } from 'src/utils/elementTarget'
+import { openInSideViewer } from 'src/stores/flyoutViewers'
 
 export default defineComponent({
   name: 'LabelBundleRail',
@@ -73,11 +79,28 @@ export default defineComponent({
     wrap: { type: Boolean, default: false },
     // No links (the rail sits inside a clickable row — a <button> can't
     // hold anchors): faces and labels draw, the row keeps the click.
-    inert: { type: Boolean, default: false }
+    inert: { type: Boolean, default: false },
+    // Doors to the SIDE viewer instead of the pages (see the template note).
+    side: { type: Boolean, default: false }
   },
   setup (props) {
     const bundles = computed(() => labelBundles(props.labels))
-    return { bundles, bundleOrigin: (b) => bundleOrigin(b) }
+    // A plain left click only — a modified click keeps the href's new tab.
+    const plain = (e) => !(e.metaKey || e.ctrlKey || e.shiftKey || e.altKey)
+    const openLabel = async (e, lp) => {
+      if (!plain(e)) return
+      e.preventDefault()
+      const t = lp.address
+        ? { kind: 'ref', ref: lp.address }
+        : await elementTarget({ kind: 'labels', id: lp.id })
+      if (t) openInSideViewer(t)
+    }
+    const openFace = (e, owner) => {
+      if (!plain(e) || !owner?.id) return
+      e.preventDefault()
+      openInSideViewer({ kind: 'entity', entity: { ...owner } })
+    }
+    return { bundles, bundleOrigin: (b) => bundleOrigin(b), openLabel, openFace }
   }
 })
 </script>

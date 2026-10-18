@@ -87,8 +87,11 @@
     class="skel-mini"
     :class="{ 'is-locked': head.locked, 'is-sealed': sealed, 'is-schema': head.is_schema, 'is-nested': depth > 0, 'is-withheld': withheld }"
   >
-    <MiniPanel body-fit>
-      <template #head>
+    <!-- ⭐ 2026-10-18: `element` — this head is plain template, so the
+         panel learns the skeleton here (the label strip's address) and
+         hands the strip's state back as #head slot props. -->
+    <MiniPanel body-fit :element="panelElement">
+      <template #head="{ labelCount, labelsHidden, toggleLabels }">
         <!-- The address chip + its copy button: WHAT IT IS first. -->
         <span class="skel-mini__zone skel-mini__zone--chip">
           <!-- THE STOCK NANO PILL since 2026-09-21 PM (user ask: the very same
@@ -112,7 +115,18 @@
 
         <!-- The name — the one elastic zone. Double-click renames (owner,
              unlocked): the name is data, `PUT /skeletons/:id/name`. -->
-        <span class="skel-mini__zone skel-mini__zone--name" :title="renameHint">
+        <!-- ⭐ 2026-10-18 THE NAME IS THE SIDE DOOR (the family's rule): a
+             click opens this skeleton in the side viewer. An owner's click
+             waits a double-click's breath first — the double-click still
+             renames. -->
+        <span
+          class="skel-mini__zone skel-mini__zone--name"
+          :title="renameHint"
+          role="link"
+          tabindex="0"
+          @click="onNameClick"
+          @keydown.enter.self.prevent="openSide"
+        >
           <input
             v-if="renaming"
             ref="renameInput"
@@ -128,7 +142,7 @@
             v-else
             class="skel-mini__name-text"
             :class="{ 'is-editable': canRename }"
-            @dblclick.stop.prevent="canRename && beginRename()"
+            @dblclick.stop.prevent="onNameDbl"
           >{{ headline }}</span>
           <span v-if="head.is_schema" class="skel-mini__schema">SCHEMA</span>
         </span>
@@ -183,15 +197,43 @@
           <q-icon :name="shownLayout === 'horizontal' ? 'swap_vert' : 'swap_horiz'" size="10px" />
         </button>
 
-        <!-- THE CORNER: this skeleton in its own floating window (the
-             `?flyout=` door as a button — NodeMini's corner, verbatim). -->
+        <!-- ⭐ 2026-10-18 — THE LABELS SWITCH + THE PIN (MiniHead's pair,
+             restated for this own row): the strip's hide / show, drawn
+             only when there are labels; the skeleton on the viewer's pins. -->
+        <button
+          v-if="labelCount"
+          type="button"
+          class="skel-mini__zone skel-mini__zone--labels"
+          :class="{ 'is-on': !labelsHidden }"
+          :title="labelsHidden ? `show the labels (${labelCount})` : 'hide the labels'"
+          :aria-pressed="!labelsHidden"
+          @click.stop.prevent="toggleLabels()"
+        >
+          <q-icon :name="labelsHidden ? 'label_off' : 'label'" size="10px" />
+        </button>
+        <button
+          v-if="pinnable"
+          type="button"
+          class="skel-mini__zone skel-mini__zone--pin"
+          :class="{ 'is-on': pinned }"
+          :title="pinTitle"
+          :aria-pressed="pinned"
+          :disabled="pinBusy"
+          @click.stop.prevent="togglePin"
+        >
+          <q-icon name="push_pin" size="10px" />
+        </button>
+
+        <!-- THE CORNER: this skeleton in its own floating window — the card
+             family's `open_in_new` since 2026-10-18 (⤢ before), ALWAYS a
+             window (the name is the side door). -->
         <button
           type="button"
           class="skel-mini__zone skel-mini__zone--open"
-          title="open in the flyout viewer"
+          title="open in a flyout window"
           @click.stop.prevent="openViewer"
         >
-          <q-icon name="open_in_full" size="10px" />
+          <q-icon name="open_in_new" size="10px" />
         </button>
       </template>
 
@@ -259,7 +301,9 @@ import SkeletonTable from 'src/components/skeletons/SkeletonTable.vue'
 import { skeletonService } from 'src/services/skeleton.service'
 import { refService } from 'src/services/ref.service'
 import { useAuthStore } from 'src/stores/auth'
-import { useFlyoutViewersStore } from 'src/stores/flyoutViewers'
+import { useFlyoutViewersStore, openInSideViewer } from 'src/stores/flyoutViewers'
+import { usePin } from 'src/composables/usePin'
+import { elementTarget } from 'src/utils/elementTarget'
 import { kindFor } from 'src/utils/kinds'
 
 // One summary per address per session — the foot's author line must not
@@ -436,9 +480,34 @@ export default defineComponent({
       : 'Lay the skeleton out horizontally — keys across the top, lists flowing left to right'))
 
     // ── the doors ─────────────────────────────────────────────────────
+    // The corner: a WINDOW, always (`flyout: true`, 2026-10-18).
     const openViewer = () => {
-      if (head.value.path) flyouts.spawnRef(head.value.path)
+      if (head.value.path) flyouts.spawnRef(head.value.path, { flyout: true })
     }
+    // The name: the SIDE viewer (2026-10-18).
+    const panelElement = computed(() => (head.value?.path
+      ? { kind: 'skeletons', id: head.value.id ?? null, path: head.value.path }
+      : null))
+    const openSide = async () => {
+      const t = panelElement.value ? await elementTarget(panelElement.value) : null
+      if (t) openInSideViewer(t)
+    }
+    let nameTimer = null
+    const onNameClick = (e) => {
+      if (renaming.value || e.target?.closest?.('input, button, a[href]')) return
+      e.stopPropagation()
+      clearTimeout(nameTimer)
+      if (!canRename.value) { openSide(); return }
+      nameTimer = setTimeout(() => { nameTimer = null; openSide() }, 260)
+    }
+    const onNameDbl = () => {
+      clearTimeout(nameTimer)
+      nameTimer = null
+      if (canRename.value) beginRename()
+    }
+    const { pinnable, pinned, pinBusy, pinTitle, togglePin } = usePin(() => ({
+      kind: 'skeletons', id: head.value?.id ?? null, address: head.value?.path || '', label: headline.value
+    }))
     const copied = ref(false)
     const copyAddress = async () => {
       try {
@@ -535,6 +604,15 @@ export default defineComponent({
       toggleLayout,
       layoutTitle,
       openViewer,
+      panelElement,
+      openSide,
+      onNameClick,
+      onNameDbl,
+      pinnable,
+      pinned,
+      pinBusy,
+      pinTitle,
+      togglePin,
       copied,
       copyAddress,
       isOwner,
@@ -678,6 +756,8 @@ export default defineComponent({
 .skel-mini__copy,
 .skel-mini__lock,
 .skel-mini__zone--layout,
+.skel-mini__zone--labels,
+.skel-mini__zone--pin,
 .skel-mini__zone--open {
   appearance: none;
   background: none;
@@ -718,6 +798,24 @@ export default defineComponent({
   flex: 0 0 auto;
   &:hover { color: var(--coral-deep, #d35f5f); }
 }
+// The name is the side door (2026-10-18) — the pointer says so; an owner's
+// editable run keeps its text cursor for the double-click rename.
+.skel-mini__zone--name {
+  cursor: pointer;
+  &:focus-visible { outline: 1px solid var(--skeleton-hover, #795548); outline-offset: -2px; }
+}
+// THE LABELS SWITCH + THE PIN (2026-10-18) — MiniHead's pair in this row's
+// brown: quiet while the strip shows, dimmed while it is hidden; the pin
+// lit in the card family's "on" amber.
+.skel-mini__zone--labels,
+.skel-mini__zone--pin {
+  flex: 0 0 auto;
+  &:hover { color: var(--skeleton-hover, #795548); }
+  &:disabled { opacity: 0.5; cursor: default; }
+}
+.skel-mini__zone--labels:not(.is-on) { opacity: 0.55; }
+.skel-mini__zone--labels:not(.is-on):hover { opacity: 1; }
+.skel-mini__zone--pin.is-on { color: var(--accent, #c79a00); }
 
 // ── The withheld face (2026-09-17) ───────────────────────────────────
 // (`.skel-mini__integrity`, the panel's own 8px dot at NodeMini's scale,

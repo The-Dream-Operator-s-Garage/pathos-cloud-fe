@@ -38,6 +38,15 @@ export const refService = {
     return data
   },
 
+  // MANY elements' labels in one read (2026-10-18, the mini family's label
+  // strip) — `{ labels: { [address]: rows | null } }`, keyed by the
+  // addresses as sent; ≤60 per call. Callers go through
+  // `utils/elementLabels.js`, which batches and caches.
+  async labels (addresses) {
+    const { data } = await api.get('/refs/labels', { params: { addresses: addresses.join(',') } })
+    return data
+  },
+
   // THREADS (2026-10-07) — comments + forks of ANY element, read off the
   // one chain path the server's holder rule picks (threadService). Paged:
   // { total, offset, limit, order, supported, items }. Comment items are

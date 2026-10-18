@@ -36,7 +36,7 @@
        a panel must not nest anchors; the head's corner is still the door —
        and lifts MiniPanel's 110px excerpt cap, since a cropped mini is no
        preview of anything. -->
-  <MiniPanel kind="posts" :to="hostsMinis ? null : targetRoute" :body-fit="hostsMinis">
+  <MiniPanel kind="posts" :labels="post.labels || null" :to="hostsMinis ? null : targetRoute" :body-fit="hostsMinis">
     <template #head>
       <MiniHead
         kind="posts"

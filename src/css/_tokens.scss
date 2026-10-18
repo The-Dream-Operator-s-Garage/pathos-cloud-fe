@@ -1311,11 +1311,28 @@ $warning:   #F2C037;
   // under the frame's 22% (≈ #bdbdbd over a well, grey-5).
   --mini-well-gap:    4px;
   --mini-well-rule:   rgba(var(--mini-coat-rgb), 0.40);
-  // The well's TOP two corners (2026-10-17 eve, user ask: "make them slightly
-  // round, but very subtle. The bottom corners must still look slightly
-  // rounder"): 2px — under a third of the bottom's `--pit-r` (6.34), enough
-  // to take the point off a corner, not enough to read as a curve.
-  --mini-well-r-top:  2px;
+  // The well's TOP two corners. ⭐ 2026-10-18 — CONCENTRIC WITH THE FRAME
+  // (user ask: "the container right below the mini viewer label scroll
+  // section is the one that should get rounder corners … round enough to
+  // match the … outer frame roundness from inside"): the frame's
+  // `--radius-md` less what stands between the two edges — the frame's 1px
+  // line and the `--mini-well-gap` of glass — so the well turns the way the
+  // frame's own corner would, seen from inside: 6.9px at the 14px top level,
+  // 4.28 at 10.92, 2.24 at 8.52 (`em` resolves on the well itself, so a
+  // nested Mini's well follows its own smaller frame). 2px until then (the
+  // 2026-10-17 eve "very subtle" ask). ⭐ THE SAME HOUR — "make them even
+  // rounder": the frame's OWN corner, `--radius-md` itself (11.9px at the
+  // top level, 9.28 at 10.92, 7.24 at 8.52) — the well's top now turns as
+  // round as the panel around it, no longer inset from it.
+  --mini-well-r-top:  var(--radius-md);
+  // ⭐ 2026-10-18 — THE WELL'S BREATH (same ask: "add a little inner padding
+  // to the content containers on the top and bottom"): a family body's top
+  // and bottom padding, 2px until then — 6px for the hour after, then "now
+  // its too much. it must be the same as the current left and right inner
+  // padding": 4px, the inset the well's prose keeps off its sides (NodeMini
+  // / PostMini excerpts `0 4px`). A `bare` body (one object, no well) keeps
+  // none.
+  --mini-well-pad-y:  4px;
   // ⭐ 2026-10-17 eve — THE EMBED RIM (user ask: "make the embedded item
   // have a thin dark grey border and make it project a thin shadow on the
   // clear background"; a darker CONTAINER round the frame was built first

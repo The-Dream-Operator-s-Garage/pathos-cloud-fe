@@ -20,7 +20,7 @@
 // label owner stamping their vocabulary, an org with a labeling grant)
 // gets a plate of their own. Rows with no `added_by` keep the older
 // per-tree grouping (`rootId:ownerId`, the tree owner's face).
-// `{ key, root, platform, by, owner (the face), items: [{ id, path, names }] }`.
+// `{ key, root, platform, by, owner (the face), items: [{ id, address, path, names }] }`.
 // `bundleOrigin(b, nameOf)` → the plate head's words (tooltip / aria).
 
 export function labelPaths (labels) {
@@ -33,6 +33,9 @@ export function labelPaths (labels) {
     .filter((l, i) => !keys.some((k, j) => j !== i && k.startsWith(`${keys[i]}>`)))
     .map((l) => ({
       id: l.id,
+      // The label's own address (`labels/<hash>`) — the side viewer's door
+      // (2026-10-18); the leaf's chain step carries it when the row doesn't.
+      address: l.path || l.chain[l.chain.length - 1]?.path || null,
       names: l.chain.map((c) => c.name),
       path: l.chain.map((c) => c.name).join(' > '),
       rootId: l.chain[0].id,
@@ -65,6 +68,7 @@ export function labelBundles (labels) {
     }
     groups.get(key).items.push({
       id: lp.id,
+      address: lp.address,
       path: lp.path,
       names: by || lp.names.length === 1 ? lp.names : lp.names.slice(1)
     })

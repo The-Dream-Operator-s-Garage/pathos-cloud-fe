@@ -202,7 +202,8 @@ export default defineComponent({
 
     // (The copy glyph is MiniHead's since 2026-09-30.)
 
-    const openViewer = () => { if (row.value?.path) flyouts.spawnRef(row.value.path) }
+    // The corner is the WINDOW door, always (2026-10-18): `flyout: true`.
+    const openViewer = () => { if (row.value?.path) flyouts.spawnRef(row.value.path, { flyout: true }) }
 
     // ── the layout ─────────────────────────────────────────────────────
     const localLayout = ref(props.layout || (props.depth === 0 ? readPref(LAYOUT_KEY, ['vertical', 'horizontal'], 'vertical') : 'vertical'))

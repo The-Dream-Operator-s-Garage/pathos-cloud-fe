@@ -186,6 +186,25 @@ export function consumeSideArm () {
   return true
 }
 
+// ── THE SIDE DOOR (2026-10-18, user ask: "for the mini viewer family, if i
+// click on the item (its title), it currently takes me to its individual
+// page. Instead, make the item be opened on the side viewer. we don't want
+// to use the individual page by now"). The sink above diverts presses that
+// START inside the side viewer; this is the door that sends an element
+// there from ANYWHERE — a Mini on the feed, in a window, in a dashboard
+// cell. Where no side viewer is mounted (a phone's other pages, the
+// dashboard page) the element opens as a floating window: the individual
+// page is never the fallback. Called after `defineStore` below runs, so
+// the store is in scope by the time anyone presses.
+export function openInSideViewer (target) {
+  if (!target) return
+  // A press inside the viewer armed the sink; this door already went there,
+  // so spend the arm — a later, unrelated spawn must not be diverted.
+  _sideArmedAt = 0
+  if (_sideSink) { _sideSink.open(target); return }
+  useFlyoutViewersStore().spawn(target, { flyout: true })
+}
+
 let _saveTimer = null
 const SAVE_DEBOUNCE_MS = 600
 
@@ -398,9 +417,12 @@ export const useFlyoutViewersStore = defineStore('flyoutViewers', {
     },
 
     // The three doors, one per element shape the platform hands over.
-    spawnNode (node) {
+    // `opts` rides through to `spawn` (2026-10-18: a WINDOW door passes
+    // `{ flyout: true }` — the open_in_new glyphs always open a window,
+    // even when pressed inside the side viewer).
+    spawnNode (node, opts = {}) {
       if (!node || !node.id) return null
-      return this.spawn({ kind: 'node', node })
+      return this.spawn({ kind: 'node', node }, opts)
     },
     // `opts.view` (2026-09-23): the face to open on — the card cap's EDIT
     // button asks for 'skeleton' (the post read as its slots); the flyout
@@ -409,19 +431,19 @@ export const useFlyoutViewersStore = defineStore('flyoutViewers', {
       if (!item || item.skeleton_id == null) return null
       return this.spawn({ kind: 'post', item }, { view: opts.view || null, flyout: !!opts.flyout })
     },
-    spawnRef (ref) {
+    spawnRef (ref, opts = {}) {
       if (ref == null || ref === '') return null
-      return this.spawn({ kind: 'ref', ref: String(ref) })
+      return this.spawn({ kind: 'ref', ref: String(ref) }, opts)
     },
     // THE ENTITY DOOR (2026-09-11): `{ id }` is enough — the face reads the
     // entity itself and retargets the window with the full row (path,
     // handle, kind) as it lands. Whatever the trigger already knew
     // (a feed author's name + face, the identity chip's user) rides along
     // as the seed so the window opens lettered rather than as "entity #n".
-    spawnEntity (entity) {
+    spawnEntity (entity, opts = {}) {
       const id = parseInt(entity?.id, 10)
       if (!id) return null
-      return this.spawn({ kind: 'entity', entity: { ...entity, id } })
+      return this.spawn({ kind: 'entity', entity: { ...entity, id } }, opts)
     },
     // THE ELEMENT DOOR (2026-09-21): any address the ref door does not
     // already own a window shape for. `summary` is the seed the window

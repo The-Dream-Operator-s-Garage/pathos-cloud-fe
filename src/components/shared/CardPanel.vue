@@ -183,8 +183,9 @@ export default defineComponent({
   // The media budget a quoted picture / player reads (NodeMini, EmbedFrame):
   // the card's cap less the chrome around the pit — the feed card's resting
   // 231 (220 until 2026-10-17, when the byline took the post card's 20px rows
-  // and 4px top pad: +11).
-  --media-max-h: max(120px, calc(var(--element-card-media, 60vh) - 231px));
+  // and 4px top pad: +11) — 249 since 2026-10-18, the quoted Mini's label
+  // strip (+18 measured; FeedStream's resting note).
+  --media-max-h: max(120px, calc(var(--element-card-media, 60vh) - 249px));
   flex: 1 1 auto;
   min-height: 0;
   overflow-y: auto;

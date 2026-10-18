@@ -4,7 +4,7 @@
        so they all look consistent"). NodeMini's header ROW, lifted out of
        NodeMini so every Mini draws the SAME one:
 
-         chip+copy │ name │ [switches…] │ open
+         chip+copy │ name │ [switches…] │ [labels] │ [pin] │ open
 
        · the CHIP — the kind's nano pill in its COLLAPSED state (`icon /
          993fa6… ●`, the verdict light after the hash; no door — the corner
@@ -13,7 +13,13 @@
          cut by an ellipsis (the whole string on the tooltip);
        · SWITCHES — per-kind view toggles (the path's mode + layout), each
          a zone of its own wearing the glyph of what it OFFERS;
-       · the OPEN corner — this element in its own floating window.
+       · ⭐ 2026-10-18 the LABELS switch — shows / hides the panel's label
+         strip (MiniPanel's; drawn only when the element has labels) — and
+         the PIN — this element on the viewer's pins (the kinds pins take:
+         node · label · skeleton/post), lit while pinned;
+       · the OPEN corner — this element in its own floating window, the
+         card family's `open_in_new` glyph (⤢ `open_in_full` until
+         2026-10-18), ALWAYS a window — the NAME is the side door.
 
        Rendered as a FRAGMENT (no wrapper): the zones must be the panel
        head's direct flex children, which is what the full-height hairlines
@@ -39,7 +45,18 @@
     </button>
   </span>
 
-  <span :class="zone('name')" :title="nameTitle || name">
+  <!-- THE NAME IS THE SIDE DOOR (⭐ 2026-10-18, user ask: "if i click on
+       the item (its title) … make the item be opened on the side viewer"):
+       the element in the side viewer, a floating window where none is
+       mounted — never its page. -->
+  <span
+    :class="zone('name')"
+    :title="nameTitle || name"
+    role="link"
+    tabindex="0"
+    @click="onName"
+    @keydown.enter.prevent="openSide"
+  >
     <slot name="name">
       <span :class="[el('name-text'), nameClass]">{{ name }}</span>
     </slot>
@@ -57,6 +74,32 @@
     <q-icon :name="s.icon" :size="s.size || '10px'" />
   </button>
 
+  <!-- THE LABELS SWITCH — the strip's hide / show; wears what the strip
+       IS while shown, `label_off` while hidden. Only when there are labels. -->
+  <button
+    v-if="panel && panel.labelCount"
+    type="button"
+    :class="[zone('labels'), 'mini-head__zone--switch', { 'is-on': !panel.labelsHidden }]"
+    :title="panel.labelsHidden ? `show the labels (${panel.labelCount})` : 'hide the labels'"
+    :aria-pressed="!panel.labelsHidden"
+    @click.stop.prevent="panel.toggleLabels()"
+  >
+    <q-icon :name="panel.labelsHidden ? 'label_off' : 'label'" size="10px" />
+  </button>
+
+  <!-- THE PIN — `usePin`, the card family's pin, one pinned set for both. -->
+  <button
+    v-if="pinnable"
+    type="button"
+    :class="[zone('pin'), 'mini-head__zone--switch', { 'is-on': pinned }]"
+    :title="pinTitle"
+    :aria-pressed="pinned"
+    :disabled="pinBusy"
+    @click.stop.prevent="togglePin"
+  >
+    <q-icon name="push_pin" size="10px" />
+  </button>
+
   <button
     v-if="openable"
     type="button"
@@ -64,16 +107,17 @@
     :title="openTitle"
     @click.stop.prevent="open"
   >
-    <q-icon name="open_in_full" size="10px" />
+    <q-icon name="open_in_new" size="10px" />
   </button>
 </template>
 
 <script>
-import { defineComponent, computed, ref } from 'vue'
+import { defineComponent, computed, ref, inject, watchEffect } from 'vue'
 import MicroChip from './MicroChip.vue'
 import { kindFor, prefixFor, hashOf } from 'src/utils/kinds'
-import { elementSummary } from 'src/utils/elementSummary'
-import { useFlyoutViewersStore } from 'src/stores/flyoutViewers'
+import { elementTarget } from 'src/utils/elementTarget'
+import { useFlyoutViewersStore, openInSideViewer } from 'src/stores/flyoutViewers'
+import { usePin } from 'src/composables/usePin'
 
 export default defineComponent({
   name: 'MiniHead',
@@ -103,7 +147,7 @@ export default defineComponent({
     // the name and the corner, in order.
     switches: { type: Array, default: () => [] },
     openable: { type: Boolean, default: true },
-    openTitle: { type: String, default: 'open in the flyout viewer' },
+    openTitle: { type: String, default: 'open in a flyout window' },
     // A custom door (`@open`); absent = the nano pill's own door.
     onOpen: { type: Function, default: null }
   },
@@ -140,28 +184,44 @@ export default defineComponent({
       } catch (e) { /* clipboard denied — the glyph simply never flips */ }
     }
 
-    // THE DOOR — the nano pill's own (MicroChip.openFlyout): an entity by
-    // id through the entity door; a post on its SKELETON address (a post's
-    // path is `skeletons/<hash>`, and the ref door steps a POST instance
-    // forward to its card); everything else through the ref door, the
-    // hash learnt off the cached summary when only an id is known.
+    // THE PANEL this head belongs to (MiniPanel's `miniPanel`): it learns
+    // the element here — what its side door opens and whose labels its
+    // strip reads — and hands back the strip's state for the switch.
+    const panel = inject('miniPanel', null)
+    const facts = computed(() => ({ kind: prefix.value, id: props.id, path: props.path || '', label: props.name }))
+    if (panel) watchEffect(() => panel.register(facts.value))
+
+    // THE WINDOW DOOR — the corner (`open_in_new`): a custom `@open`, else
+    // the element's window by the ref / entity door (utils/elementTarget,
+    // the nano pill's own resolution). ALWAYS a window (`flyout: true`) —
+    // even pressed inside the side viewer, whose sink would take it.
     const open = async () => {
       if (props.onOpen) { props.onOpen(); return }
-      const flyouts = useFlyoutViewersStore()
-      const p = prefix.value
-      if (p === 'entities' && props.id != null) {
-        flyouts.spawnEntity({ id: props.id })
-        return
-      }
-      let h = hashOf(props.path || '')
-      if (!h && props.id != null) {
-        const s = await elementSummary({ prefix: p, id: props.id })
-        h = s?.hash || null
-      }
-      if (h) flyouts.spawnRef(`${p === 'posts' ? 'skeletons' : p}/${h}`)
+      const t = await elementTarget(facts.value)
+      if (t) useFlyoutViewersStore().spawn(t, { flyout: true })
     }
 
-    return { prefix, el, zone, copyValue, copyTitleShown, copied, copyHash, open }
+    // THE SIDE DOOR — the name. A press on something inside the name that
+    // is its own door (a chip handed in through #name) is left to it.
+    const openSide = async () => {
+      if (panel) { panel.openSide(); return }
+      const t = await elementTarget(facts.value)
+      if (t) openInSideViewer(t)
+    }
+    const onName = (e) => {
+      const inner = e.target?.closest?.('a[href], button, [role="button"], input')
+      if (inner && e.currentTarget.contains(inner)) return
+      e.stopPropagation()
+      e.preventDefault()
+      openSide()
+    }
+
+    // THE PIN.
+    const { pinnable, pinned, pinBusy, pinTitle, togglePin } = usePin(() => ({
+      kind: prefix.value, id: props.id, address: props.path || '', label: props.name
+    }))
+
+    return { prefix, el, zone, copyValue, copyTitleShown, copied, copyHash, open, panel, onName, openSide, pinnable, pinned, pinBusy, pinTitle, togglePin }
   }
 })
 </script>
@@ -253,6 +313,23 @@ export default defineComponent({
   &:hover { color: var(--mini-accent, var(--coral-deep, #d35f5f)); }
   &:disabled { opacity: 0.5; cursor: default; }
 }
+
+// THE NAME is a door (2026-10-18, the side viewer): the pointer says so,
+// and the run takes the kind's accent under it — the switches' answer.
+.mini-head__zone--name {
+  cursor: pointer;
+  &:hover { color: var(--mini-accent, var(--coral-deep, #d35f5f)); }
+  &:focus-visible { outline: 1px solid var(--mini-accent, var(--coral-deep, #d35f5f)); outline-offset: -2px; }
+}
+
+// THE LABELS SWITCH (2026-10-18) — quiet while the strip shows (the strip
+// itself is the state), dimmed while it is hidden, like a type word.
+.mini-head__zone--labels:not(.is-on) { opacity: 0.55; }
+.mini-head__zone--labels:not(.is-on):hover { opacity: 1; }
+
+// THE PIN (2026-10-18) — lit in the card family's "on" amber (CardCap's
+// `.is-on`), so a pinned element reads the same on a card and on a Mini.
+.mini-head__zone--pin.is-on { color: var(--accent, #c79a00); }
 
 // THE CORNER keeps NodeMini's coral — the door's one colour on every kind
 // (mint on the old teal coat was ~1.1:1). It lights when the corner itself is

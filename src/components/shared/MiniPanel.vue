@@ -23,21 +23,39 @@
        · THE KIND — `kind` hands the nano pill's two colours to the whole
          panel as `--mini-accent` (the pill's glyph) and `--mini-ink` (its
          text, Material 900), read by the head, the foot and the body. -->
-  <component
-    :is="rootTag"
-    :to="to"
+  <!-- ⭐ 2026-10-18 — THE SIDE DOOR (user ask: "if i click on the item (its
+       title), it currently takes me to its individual page. Instead, make
+       the item be opened on the side viewer. we don't want to use the
+       individual page by now"). The wrapper was a router-link to `to`; it
+       is a plain box now that, when `to` is set, opens the element in the
+       SIDE viewer (a floating window where none is mounted — never the
+       page). `to` still marks the panel a door (hover lift, the cursor, the
+       nav halo's key); the element is the one the head registered. A press
+       on something that is its own door — a chip, a button, a link, a
+       nested Mini — is left to it. Being no anchor, the panel may now hold
+       anchors (the label strip's). -->
+  <div
     class="mini-panel-link"
+    :class="{ 'is-door': !!to }"
+    :role="to ? 'link' : null"
+    :tabindex="to ? 0 : null"
     :data-nav-focus="typeof to === 'string' ? to : null"
+    @click="onPress"
+    @keydown.enter.self.prevent="openSide"
   >
-    <article class="mini-panel" :class="panelClass" :style="kindStyle">
+    <article ref="articleEl" class="mini-panel" :class="panelClass" :style="kindStyle">
       <!-- The default head is a STACK of zones (title / chips / labels /
            hash), one per line. A Mini that composes its own header ROW
            passes #head instead and takes the whole zone — the panel keeps
            only the head's tone and its divider. Every family Mini does, via
-           `MiniHead` (chip+copy │ name │ switches │ open); the stack is kept
-           for the plain list rows that still use it. -->
+           `MiniHead` (chip+copy │ name │ switches │ labels │ pin │ open);
+           the stack is kept for the plain list rows that still use it.
+           ⭐ 2026-10-18: #head gets the label strip's state as SLOT PROPS
+           (`labelCount`, `labelsHidden`, `toggleLabels`) for a head that is
+           plain template (SkeletonMini's); `MiniHead`, a component, injects
+           the same state (`miniPanel`). -->
       <header v-if="$slots.head" class="mini-panel__head mini-panel__head--own">
-        <slot name="head" />
+        <slot name="head" v-bind="headScope" />
       </header>
 
       <header v-else class="mini-panel__head">
@@ -58,6 +76,11 @@
         </div>
       </header>
 
+      <!-- ⭐ 2026-10-18 — THE LABEL STRIP: the element's labels, one dense
+           row under the head (MiniLabelStrip). Drawn when there are labels
+           and the viewer has not hidden them with the head's switch. -->
+      <MiniLabelStrip v-if="stripShown" class="mini-panel__strip" :labels="labelRows" />
+
       <div
         v-if="$slots.body"
         class="mini-panel__body"
@@ -70,17 +93,37 @@
         <slot name="foot" />
       </footer>
     </article>
-  </component>
+  </div>
 </template>
 
 <script>
-import { defineComponent, computed } from 'vue'
+import { defineComponent, computed, ref, shallowRef, reactive, provide, watch } from 'vue'
+import { useRouter } from 'vue-router'
+import MiniLabelStrip from './MiniLabelStrip.vue'
 import { kindFor } from 'src/utils/kinds'
+import { elementTarget } from 'src/utils/elementTarget'
+import { openInSideViewer } from 'src/stores/flyoutViewers'
+import {
+  labelAddress, requestLabels, labelsOf, seedLabels, labelsHidden, setLabelsHidden
+} from 'src/utils/elementLabels'
+
+// What answers a press itself — the panel's door stands aside for it.
+const OWN_DOORS = 'a[href], button, input, textarea, select, summary, label, video, audio, iframe, ' +
+  '[role="button"], [role="link"], [contenteditable=""], [contenteditable="true"], .mini-panel'
+
+// A seed is drawn only if it already says who attached each label (the
+// rail groups by it) — an unattributed row set would group one way now and
+// another once the read lands.
+const attributed = (rows) => rows.every((l) => l && (l.system_label || 'added_by' in l))
 
 export default defineComponent({
   name: 'MiniPanel',
+  components: { MiniLabelStrip },
   inheritAttrs: false,
   props: {
+    // A DOOR: a press on the panel opens its element in the side viewer
+    // (2026-10-18; a router-link to this route until then). The value
+    // still keys the nav halo (`data-nav-focus`).
     to: { type: [String, Object], default: null },
     // The body slot holds something whose SIZE IS ITS MEANING — a picture,
     // a player, an embedded frame — rather than a few lines of excerpt.
@@ -94,10 +137,18 @@ export default defineComponent({
     // The element kind this panel shows ('nodes', 'posts', … — a kinds.js
     // prefix or slug). Its two nano-pill colours ride the article as
     // `--mini-accent` / `--mini-ink`; empty = the panel's slate defaults.
-    kind: { type: String, default: '' }
+    kind: { type: String, default: '' },
+    // ⭐ 2026-10-18 — THE ELEMENT this panel shows, `{ kind, id, path }`:
+    // what the side door opens and whose labels the strip reads. A
+    // `MiniHead` registers it by itself; a Mini with its own head passes it.
+    element: { type: Object, default: null },
+    // Label rows the Mini's row already carries (a node read, a feed row)
+    // — drawn at once instead of after the batched read.
+    labels: { type: Array, default: null }
   },
   setup (props) {
-    const rootTag = computed(() => props.to ? 'router-link' : 'div')
+    const router = useRouter()
+    const articleEl = ref(null)
     const meta = computed(() => (props.kind ? kindFor(props.kind) : null))
     const kindStyle = computed(() => (meta.value
       ? { '--mini-accent': meta.value.color, '--mini-ink': meta.value.ink }
@@ -107,7 +158,64 @@ export default defineComponent({
       'mini-panel--family': !!meta.value,
       ['mini-panel--' + (meta.value?.kind || '')]: !!meta.value
     }))
-    return { rootTag, kindStyle, panelClass }
+
+    // ── THE ELEMENT — handed in, or registered by the head ──────────────
+    const registered = shallowRef(null)
+    const identity = computed(() => props.element || registered.value)
+
+    // ── THE LABEL STRIP ────────────────────────────────────────────────
+    // utils/elementLabels batches every panel mounting in a tick into one
+    // `GET /refs/labels` and caches per element for the session.
+    const address = computed(() => labelAddress(identity.value?.path || ''))
+    watch([address, () => props.labels], ([a, given]) => {
+      if (!a) return
+      if (Array.isArray(given) && attributed(given)) seedLabels(a, given)
+      requestLabels(a)
+    }, { immediate: true })
+    const labelRows = computed(() => {
+      const v = address.value ? labelsOf(address.value) : null
+      return Array.isArray(v) ? v : []
+    })
+    const labelCount = computed(() => labelRows.value.length)
+    const hidden = computed(() => labelsHidden(address.value))
+    const stripShown = computed(() => labelCount.value > 0 && !hidden.value)
+    const toggleLabels = () => setLabelsHidden(address.value, !hidden.value)
+
+    // ── THE SIDE DOOR ──────────────────────────────────────────────────
+    const openSide = async () => {
+      const el = identity.value
+      const t = el ? await elementTarget(el) : null
+      if (t) openInSideViewer(t)
+      else if (props.to) router.push(props.to)
+    }
+    const onPress = (e) => {
+      if (!props.to || e.defaultPrevented) return
+      const hit = e.target?.closest?.(OWN_DOORS)
+      if (hit && hit !== articleEl.value) return
+      // A drag that selected text is a reading, not a press.
+      const sel = window.getSelection?.()
+      if (sel && !sel.isCollapsed && articleEl.value?.contains(sel.anchorNode)) return
+      openSide()
+    }
+
+    // What the head reads: MiniHead injects it, a template head takes it as
+    // slot props. `register` is MiniHead's — the element it is the head of.
+    const state = reactive({
+      labelCount,
+      labelsHidden: hidden,
+      toggleLabels,
+      openSide,
+      register: (el) => { registered.value = el }
+    })
+    provide('miniPanel', state)
+    const headScope = computed(() => ({
+      labelCount: labelCount.value,
+      labelsHidden: hidden.value,
+      toggleLabels,
+      openSide
+    }))
+
+    return { articleEl, kindStyle, panelClass, stripShown, labelRows, headScope, onPress, openSide }
   }
 })
 </script>
@@ -117,6 +225,15 @@ export default defineComponent({
   display: block;
   text-decoration: none;
   color: inherit;
+
+  // A DOOR panel (`to`) answers the pointer as the router-link it used to be
+  // (2026-10-18: it opens the side viewer now), and shows the keyboard where
+  // it stands.
+  &.is-door { cursor: pointer; }
+  &.is-door:focus-visible { outline: none; }
+  &.is-door:focus-visible > .mini-panel {
+    box-shadow: 0 0 0 2px var(--mini-accent, var(--coral-deep, #d35f5f));
+  }
 
   // Restated on :hover to WIN, not to repeat itself. A Mini quoted into a post
   // body sits inside rendered prose, and every prose surface underlines its
@@ -320,10 +437,12 @@ export default defineComponent({
 //   off the frame's two sides and off its bottom — or off the foot, whose
 //   divider comes off below: the well's own line already parts them, and a
 //   hairline 4px under it would be a second line saying the same thing;
-// · the TOP — corners all but square (`--mini-well-r-top`, 2px — ⭐ 2026-10-17
-//   eve, user ask: "make them slightly round, but very subtle. The bottom
-//   corners must still look slightly rounder"; square in the first cut),
-//   under the head's HAIRLINE (⭐ 2026-10-17 eve,
+// · the TOP — corners as round as the FRAME's own since 2026-10-18
+//   (`--mini-well-r-top` = `--radius-md`, 11.9px at the top level: "round
+//   enough to match the … outer frame roundness from inside", then "make
+//   them even rounder" — concentric 6.9px stood for the hour between; 2px
+//   the evening before — "very subtle" — square in the first cut), under the head's HAIRLINE (or, since 2026-10-18, under the label
+//   strip, whose top border is that hairline) (⭐ 2026-10-17 eve,
 //   user ask: "keep the thin hairline between the header and the content
 //   container"): the full-width `--panel-rule` line the head always had,
 //   then the same `--mini-well-gap` of glass, then the well. The line is a
@@ -345,7 +464,9 @@ export default defineComponent({
 .mini-panel > .mini-panel__body {
   margin: var(--mini-well-gap, 4px);
   border: 1px solid var(--mini-well-rule, rgba(33, 33, 33, 0.40));
-  border-radius: var(--mini-well-r-top, 2px) var(--mini-well-r-top, 2px)
+  // Top: the frame's own corner since 2026-10-18 (_tokens.scss
+  // `--mini-well-r-top`); bottom: the pit's.
+  border-radius: var(--mini-well-r-top, 0.85em) var(--mini-well-r-top, 0.85em)
     var(--pit-r, 6.34px) var(--pit-r, 6.34px);
 }
 .mini-panel > .mini-panel__head:has(+ .mini-panel__body) {
@@ -356,6 +477,22 @@ export default defineComponent({
 }
 .mini-panel > .mini-panel__body + .mini-panel__foot {
   border-top: 0;
+}
+
+// ── ⭐ THE LABEL STRIP's PLACE (2026-10-18) ──────────────────────────────
+// Between the head and the well, on the GLASS (no floor of its own — the
+// well is the content; the strip is the element's classification, read in
+// passing). Its top edge is the head's hairline: the frame's `* + *` rule
+// draws it as a real 1px border, so the head's own 1px shadow line (`:has(+
+// body)` above) steps aside and the well's top margin falls back to the
+// plain `--mini-well-gap` — a line, the gap, the plates, the gap, the well.
+// The plates' row is MiniLabelStrip's (`--mini-strip-row-h`, 14px).
+.mini-panel > .mini-panel__strip {
+  padding: var(--mini-well-gap, 4px) var(--mini-well-gap, 4px) 0;
+}
+// No well under it (a body-less Mini): the gap closes the strip instead.
+.mini-panel > .mini-panel__strip:not(:has(+ .mini-panel__body)) {
+  padding-bottom: var(--mini-well-gap, 4px);
 }
 
 // ⭐ NO WELL (2026-10-18, user ask: "for the mini node viewers only, and only
@@ -388,7 +525,10 @@ export default defineComponent({
 // label-usage list rows). A CHILD chain, so a family panel never re-pads a
 // panel nested in its body.
 .mini-panel--family > .mini-panel__body {
-  padding: 2px 0;
+  // ⭐ 2026-10-18: `--mini-well-pad-y` (4px — "a little inner padding … on
+  // the top and bottom", then "the same as the current left and right":
+  // the prose's own 4px sides; 2px until then).
+  padding: var(--mini-well-pad-y, 4px) 0;
   min-height: 0;
   text-align: center;
 }

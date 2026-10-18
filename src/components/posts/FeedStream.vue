@@ -958,7 +958,7 @@
                   title="Share this post to a conversation"
                   @click.stop="openShare(item)"
                 >
-                  <q-icon name="ios_share" size="13px" />
+                  <q-icon name="share" size="13px" />
                 </button>
               </div>
               <span class="post-square__cap-rule" aria-hidden="true" />
@@ -5206,7 +5206,8 @@ export default defineComponent({
 // the resting one a third time.
 .post-square.is-expanded .post-square__pit {
   // ⭐ 252 since 2026-09-23 PM (253 that afternoon, 257 since 2026-09-22 PM, 265 that morning, 275 before): resting 220 + the well's 32 — see the resting note.
-  --media-max-h: max(120px, calc(var(--feed-well-h, 60vh) - var(--fhead-h, 120px) - 263px - var(--frieze-h)));
+  // ⭐ 281 since 2026-10-18 (263 before): resting 249 + the well's 32 — the minis' label strip, +18.
+  --media-max-h: max(120px, calc(var(--feed-well-h, 60vh) - var(--fhead-h, 120px) - 281px - var(--frieze-h)));
 }
 
 // ── THE VEIL (2026-08-07, user ask) — the card's MIDDLE LAYER ──
@@ -6542,7 +6543,14 @@ export default defineComponent({
   // ⭐ 220 LATER THE SAME DAY — the byline's rule went (the label section
   // meets the pit on air): chrome MEASURED 91.11 → 90.11, carried −1. The
   // cap's second pass (18px pill in 1px pads) held the strip at 22.
-  --media-max-h: max(120px, calc(var(--post-ceiling) - 231px));
+  // ⭐ 249 since 2026-10-18 — THE MINIS' LABEL STRIP: the quoted Mini's own
+  // chrome (part of this constant — "~70px of the Mini's own header and
+  // foot" above) grew by its label strip, MEASURED 18px exactly (the
+  // strip's 1px line + 4px of air + its 14px row, less the 1px the well's
+  // top margin no longer pays for the head's shadow line); carried +18. A
+  // Mini whose viewer hid its strip is that much to the good. The expanded
+  // twin moved with it (263 → 281), and CardPanel's copy (231 → 249).
+  --media-max-h: max(120px, calc(var(--post-ceiling) - 249px));
 
   flex: 1 1 auto;
   min-height: 0;

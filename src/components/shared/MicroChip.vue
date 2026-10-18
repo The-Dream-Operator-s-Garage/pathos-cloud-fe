@@ -36,9 +36,10 @@
        … put the expand icon on the right end of all nano chips … we're
        using the very same nano chips everywhere … the nano node pill on
        the mini node viewer's header is the reference"): the root is a SPAN
-       with a button role, never a router-link — a click opens the element's
-       flyout window (`openFlyout`), the page stays where it is; the door
-       glyph stands at the right end; corners are the pill's; the text is
+       with a button role, never a router-link — a click opens the element
+       in the SIDE viewer (⭐ 2026-10-18; its flyout window until then), the
+       page stays where it is; the door glyph (`open_in_new`, the window)
+       stands at the right end; corners are the pill's; the text is
        the kind's ink. No host restyles it — a chip in a post body, on a
        card's cap or foot, in a mini's header, on the stack strip or in the
        file tree is the same object. -->
@@ -125,13 +126,21 @@
          ROOT stays the door — `canOpen` is untouched, only the glyph goes.
          (`expand=false` would have taken the root click with it: it gates
          `canOpen`, not the mark.) -->
+    <!-- ⭐ 2026-10-18 (user ask: "for these nano extended pills, please use
+         the same open_in_new icon instead of the 'extend' one. Then, for
+         both collapsed and extended versions, make them open the item on
+         the side viewer instead so the open in new one is the one opening
+         the flyout viewer"): the glyph is the card family's `open_in_new`
+         and it ALWAYS opens a window (`flyout: true` — even pressed inside
+         the side viewer, whose sink would otherwise take it); the ROOT is
+         the SIDE door now (`onRootClick` → `openInSideViewer`). -->
     <span
       v-if="canOpen && !collapsed && !dense"
       class="micro-chip__open"
-      :title="'open this ' + meta.kind + ' in the flyout viewer'"
+      :title="'open this ' + meta.kind + ' in a flyout window'"
       @click.stop.prevent="openFlyout"
     >
-      <q-icon name="open_in_full" size="8px" />
+      <q-icon name="open_in_new" size="8px" />
     </span>
   </span>
 </template>
@@ -141,7 +150,7 @@ import { defineComponent, computed, ref, watchEffect } from 'vue'
 import { useRouter } from 'vue-router'
 import { kindFor, prefixFor, hashOf } from 'src/utils/kinds'
 import { elementSummary } from 'src/utils/elementSummary'
-import { useFlyoutViewersStore } from 'src/stores/flyoutViewers'
+import { useFlyoutViewersStore, openInSideViewer } from 'src/stores/flyoutViewers'
 
 // The collapsed state's hash cut: six digits, the house's "993fa6…" (2026-09-21
 // PM3, user ask: "make sure we're not displaying more than 6 hash digits").
@@ -232,9 +241,10 @@ export default defineComponent({
     // template). On everywhere since 2026-09-21 PM — the same chip on every
     // surface; the mark is part of what an EXTENDED nano pill is.
     expand: { type: Boolean, default: true },
-    // THE ROOT CLICK opens the flyout too (2026-09-21 PM). A host that needs
-    // the click for itself (the file tree's in-tree reveal) turns this off
-    // and listens on the chip; the door glyph still opens the window.
+    // THE ROOT CLICK opens the element too (2026-09-21 PM — in the SIDE
+    // viewer since 2026-10-18). A host that needs the click for itself (the
+    // file tree's in-tree reveal) turns this off and listens on the chip;
+    // the door glyph still opens the window.
     openOnClick: { type: Boolean, default: true }
   },
   setup (props) {
@@ -361,19 +371,21 @@ export default defineComponent({
     // `skeletons/<hash>` (the feed hands `item.skeleton_path`), and the ref
     // door steps a POST instance forward to its card by itself. An entity
     // with an id goes straight through the entity door. The collapsed pill
-    // draws no door glyph but its ROOT still opens the window (the same
-    // click law in both states).
+    // draws no door glyph; its ROOT is the side door, as the extended
+    // pill's is (the same click law in both states).
     const canOpen = computed(() =>
       props.expand && prefix.value && prefix.value !== 'unknown' && prefix.value !== 'actions' &&
       (!!hash.value || props.id != null))
     const opensOnClick = computed(() => canOpen.value && props.openOnClick)
-    const onRootClick = () => { if (opensOnClick.value) openFlyout() }
-    const openFlyout = async () => {
-      const flyouts = useFlyoutViewersStore()
+    // ⭐ 2026-10-18 — TWO DOORS: the ROOT opens the element in the SIDE
+    // viewer (a floating window where none is mounted — never the page);
+    // the `open_in_new` glyph opens its WINDOW, always (`flyout: true`).
+    // One target for both, built the way the ref door reads it.
+    const targetOf = async () => {
       const p = prefix.value
       if (p === 'entities' && props.id != null) {
-        flyouts.spawnEntity({ id: props.id, display_name: props.display || null, pioneer: !!props.pioneer })
-        return
+        const id = parseInt(props.id, 10)
+        return id ? { kind: 'entity', entity: { id, display_name: props.display || null, pioneer: !!props.pioneer } } : null
       }
       const addrPrefix = p === 'posts' ? 'skeletons' : p
       let h = hash.value
@@ -381,7 +393,16 @@ export default defineComponent({
         const s = await elementSummary({ prefix: p, id: props.id })
         h = s?.hash || null
       }
-      if (h) flyouts.spawnRef(`${addrPrefix}/${h}`)
+      return h ? { kind: 'ref', ref: `${addrPrefix}/${h}` } : null
+    }
+    const onRootClick = async () => {
+      if (!opensOnClick.value) return
+      const t = await targetOf()
+      if (t) openInSideViewer(t)
+    }
+    const openFlyout = async () => {
+      const t = await targetOf()
+      if (t) useFlyoutViewersStore().spawn(t, { flyout: true })
     }
 
     return { meta, hash, hashText, typeShown, route, tooltip, accentStyle, integrityState, integrityTitle, onIntegrityClick, canOpen, opensOnClick, onRootClick, openFlyout }

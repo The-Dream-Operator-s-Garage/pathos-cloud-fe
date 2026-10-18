@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { watch, effectScope } from 'vue'
 import { nodeService } from 'src/services/node.service'
+import { refreshLabels } from 'src/utils/elementLabels'
 import { useEventsStore } from 'src/stores/events'
 
 // TALAVERO'S LABEL SUGGESTIONS (2026-10-14) — the client end of the
@@ -130,6 +131,9 @@ export const useLabelSuggestionsStore = defineStore('labelSuggestions', {
         if (r?.success !== false) {
           e.items = e.items.filter((s) => s.id !== sid)
           item.busy = false
+          // An accepted label lands on a node that may already be on screen
+          // as a Mini — its label strip re-reads (2026-10-18).
+          if (accept && e.path) refreshLabels(e.path)
         }
       } catch (_) {
         item.busy = false

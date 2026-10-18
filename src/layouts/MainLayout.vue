@@ -239,7 +239,7 @@
 </template>
 
 <script>
-import { defineComponent, ref, computed, onMounted } from 'vue'
+import { defineComponent, ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useNavStore } from 'src/stores/navigation'
 import { useWindowsStore } from 'src/stores/windows'
@@ -253,6 +253,7 @@ import DashboardDock from 'src/components/dashboard/DashboardDock.vue'
 import IdentityDock from 'src/components/identity/IdentityDock.vue'
 import ElementFlyoutHost from 'src/components/shared/ElementFlyoutHost.vue'
 import { useFlyoutViewersStore } from 'src/stores/flyoutViewers'
+import { pinsEpoch, reloadPins } from 'src/composables/usePin'
 import FriezeBar from 'src/components/layout/FriezeBar.vue'
 import NavigationBar from 'src/components/layout/NavigationBar.vue'
 import PinsDrawer from 'src/components/layout/PinsDrawer.vue'
@@ -308,6 +309,13 @@ export default defineComponent({
     // Bumped by the drawer when it unpins something — NavigationBar watches
     // this to refresh the tack indicator state.
     const pinsRefreshKey = ref(0)
+    // ⭐ 2026-10-18 — a pin flipped from a MINI (or any `usePin` holder)
+    // has no `pins-changed` emit chain up to here: the composable's epoch
+    // ticks instead, and the widgets re-read. The other way round, any
+    // refresh drops the session's pinned set, so a card or a Mini lights
+    // what the widget just changed.
+    watch(pinsEpoch, () => { pinsRefreshKey.value++ })
+    watch(pinsRefreshKey, () => reloadPins())
 
     // When the user finishes "+ Make post", drop them straight into the
     // post they just made — the dock minimizes itself (or closes when no
