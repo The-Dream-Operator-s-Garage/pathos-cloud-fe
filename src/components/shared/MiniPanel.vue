@@ -61,7 +61,7 @@
       <div
         v-if="$slots.body"
         class="mini-panel__body"
-        :class="{ 'mini-panel__body--fit': bodyFit }"
+        :class="{ 'mini-panel__body--fit': bodyFit, 'mini-panel__body--bare': bare }"
       >
         <slot name="body" />
       </div>
@@ -86,6 +86,11 @@ export default defineComponent({
     // a player, an embedded frame — rather than a few lines of excerpt.
     // Drops the 110px cap and the scroller; see the note on the style.
     bodyFit: { type: Boolean, default: false },
+    // ⭐ 2026-10-18 — NO WELL: the body holds ONE thing that is its own
+    // object (NodeMini's embedded link, picture, video, audio), so the
+    // container vanishes and the item stands alone on the glass, the well's
+    // `--mini-well-gap` off the frame. See `.mini-panel__body--bare`.
+    bare: { type: Boolean, default: false },
     // The element kind this panel shows ('nodes', 'posts', … — a kinds.js
     // prefix or slug). Its two nano-pill colours ride the article as
     // `--mini-accent` / `--mini-ink`; empty = the panel's slate defaults.
@@ -351,6 +356,27 @@ export default defineComponent({
 }
 .mini-panel > .mini-panel__body + .mini-panel__foot {
   border-top: 0;
+}
+
+// ⭐ NO WELL (2026-10-18, user ask: "for the mini node viewers only, and only
+// if they contain a single link, let's just make the container disappear …
+// leave the element with a little padding outside, between the node viewer
+// edge and itself. Also … for single media files … leave the image only …
+// with slightly rounded corners"). The `bare` body keeps the well's PLACE —
+// its margins, so the item stands `--mini-well-gap` inside the frame's
+// sides and foot and that gap under the head's hairline — and drops
+// everything that drew it: floor, line, corners, padding. `overflow`
+// comes back to visible: there is no corner left to cut to, and a clip at
+// the body's edge would shave the shadow an embed's rim casts into the gap.
+// (A well-corner dial that turned the well concentric with its one item
+// stood here for an hour the same day; this ask replaced it.)
+.mini-panel > .mini-panel__body.mini-panel__body--bare {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+  max-height: none;
+  overflow: visible;
 }
 
 // THE FAMILY BODY (2026-09-30) — a panel that states its `kind` is a member

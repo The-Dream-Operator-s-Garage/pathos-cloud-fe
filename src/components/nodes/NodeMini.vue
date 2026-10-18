@@ -18,7 +18,14 @@
        references as live slots (MarkdownBody `plain`); while it hosts a
        nested Mini the panel is no router-link (no anchor in an anchor — the
        head's corner stays the door) and the 110px cap comes off. -->
-  <MiniPanel kind="nodes" :to="hostsMinis ? null : targetRoute" :body-fit="isMedia || showsSource || hostsMinis">
+  <!-- ⭐ 2026-10-18: while the body is ONE object — an embedded link, a
+       picture, a video, an audio track — the well is gone (`bare`, below). -->
+  <MiniPanel
+    kind="nodes"
+    :to="hostsMinis ? null : targetRoute"
+    :body-fit="isMedia || showsSource || hostsMinis"
+    :bare="isBare"
+  >
     <template #head>
       <!-- WHAT IT IS │ WHAT IT IS CALLED │ the door. The pill is the node's
            collapsed nano chip with its verdict light (MicroChip draws it);
@@ -291,6 +298,21 @@ export default defineComponent({
       !!embed.value || mediaKind.value === 'image' || mediaKind.value === 'video'
     )
 
+    // ⭐ NO CONTAINER ROUND A SINGLE OBJECT (2026-10-18, user ask: "for the
+    // mini node viewers only, and only if they contain a single link, let's
+    // just make the container disappear … leave the element with a little
+    // padding outside, between the node viewer edge and itself. Also …
+    // single media files. Make the container disappear and leave the image
+    // only, for example, with slightly rounded corners"). The bodies that
+    // ARE one object — an embedded link, a picture, a video, an audio track
+    // — go bare (MiniPanel `bare`: the well's place, none of its paint).
+    // Text, source, a binary's download line, the withheld face and a
+    // plain link no rule embeds (which reads as its address, i.e. text)
+    // keep the family well.
+    const isBare = computed(() =>
+      !!embed.value || ['image', 'video', 'audio'].includes(mediaKind.value)
+    )
+
     // (`votes` / `viewerVote` came out 2026-08-23 with the flat thumbs that
     // were their only reader — the ask removed the voting section outright.
     // `node.votes` still arrives on the enriched node for whoever wants it.)
@@ -323,6 +345,7 @@ export default defineComponent({
       embed,
       mediaKind,
       isMedia,
+      isBare,
       linkLine,
       linkTitle,
       nodeLabel
@@ -352,6 +375,10 @@ export default defineComponent({
 //     hooks). The long history of each rule is in `git log -p` of this file
 //     and in specs/codemap.md.
 // What stays below is NodeMini's own: the LINK FOOT band and the bodies.
+
+// The slight corner a lone OBJECT turns once the well round it is gone
+// (2026-10-18, `isBare`): a picture, a video, a full-bleed embed's frame.
+$item-r: 5px;
 
 // ── THE FOOT IS THE LINK LINE'S BAND (2026-08-23) ───────────────────────
 // "center the micro chip while extending it all the container's width." The
@@ -492,6 +519,11 @@ export default defineComponent({
 //
 // The 180px fallback is for surfaces that publish nothing (chat bubbles,
 // skeleton cells) — a thumbnail, deliberately.
+//
+// ⭐ 2026-10-18: no well round it (`isBare`) — the picture stands alone on
+// the panel's glass, the body's margins between it and the frame, with its
+// own slight corner (`$item-r`, the one a full-bleed embed turns too) and
+// the faint line that keeps a white picture's edge from dissolving.
 .node-mini__media {
   img, video {
     display: block;
@@ -500,7 +532,7 @@ export default defineComponent({
     max-height: var(--media-max-h, 180px);
     width: auto;
     height: auto;
-    border-radius: 5px;
+    border-radius: $item-r;
     border: 1px solid rgba(var(--ink-rgb), 0.12);
   }
 }
@@ -508,7 +540,7 @@ export default defineComponent({
 // The frame bounds ITSELF from the same budget (EmbedFrame turns the height
 // limit into the width cap its aspect-ratio box actually needs) — nothing to
 // cap here. The 2px gap to the header came off with the 2026-08-23 density
-// ask; the body's own 2px is the whole separation now.
+// ask; since 2026-10-18 the bare body's margins are the whole separation.
 //
 // ── AND IT IS CENTRED (2026-08-23 user ask: "center the video/item
 // horizontally — the videos are leaning on the left") ────────────────────
@@ -527,25 +559,17 @@ export default defineComponent({
 // prose (`NodeContentViewer`'s full mode prints the address under it and the
 // two edges line up). Scoped to the Mini, the ask is answered without moving
 // a shared component under three other callers.
-// ⭐ THE RIMMED FRAME ON THE WELL'S FLOOR (2026-10-17 eve — EmbedFrame
-// `rimmed`: a thin dark ring + a thin shadow): `--embed-gap` of clear well
-// round the box on all four sides (the family body's own 2px top and bottom
-// counted in) — room for the shadow, which the well's `overflow: clip`
-// would otherwise cut at its edge. And, for a full-bleed frame, whose
-// corner is ours, the corner the box turns: CONCENTRIC with the well's
-// (`--mini-well-r-top` on top, `--pit-r` below) through the well's 1px rim,
-// the gap and the ring's `--embed-rule-w`, never under 0 — at today's
-// numbers 0 on top and 0.84 below: a ring set 5px inside a nearly square well can only be
-// squarer. A provider-cornered frame ignores it and wears its provider's
-// corner (EmbedFrame `--own`).
+// ⭐ THE RIMMED FRAME, ALONE ON THE GLASS (2026-10-18 — EmbedFrame `rimmed`:
+// a thin dark ring + a thin shadow). From 2026-10-17 eve it stood on the
+// content well's clear floor, `--embed-gap` inside the well's line, its
+// corner concentric with the well's; the well is gone round a single object
+// now (`isBare`), so the frame takes the well's own place — the body's
+// margins are the "little padding" between the panel's edge and it, and it
+// needs none of its own. A full-bleed frame's corner is ours: the same
+// slight `$item-r` a picture wears (below). A provider-cornered frame
+// ignores it and wears its provider's corner (EmbedFrame `--own`).
 .node-mini__embed {
-  --embed-gap-here: var(--embed-gap, 4px);
-  margin: calc(var(--embed-gap-here) - 2px) var(--embed-gap-here);
-  --embed-r:
-    max(0px, calc(var(--mini-well-r-top, 2px) - 1px - var(--embed-gap-here) - var(--embed-rule-w, 0.5px)))
-    max(0px, calc(var(--mini-well-r-top, 2px) - 1px - var(--embed-gap-here) - var(--embed-rule-w, 0.5px)))
-    max(0px, calc(var(--pit-r, 6.34px) - 1px - var(--embed-gap-here) - var(--embed-rule-w, 0.5px)))
-    max(0px, calc(var(--pit-r, 6.34px) - 1px - var(--embed-gap-here) - var(--embed-rule-w, 0.5px)));
+  --embed-r: #{$item-r};
 
   :deep(.embed-frame__box) {
     margin-left: auto;
