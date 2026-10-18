@@ -1305,8 +1305,8 @@ $warning:   #F2C037;
   // … a darker thin border … a little padding to separate it a little from
   // the mini viewer outer frame"). MiniPanel's body is that container: the
   // pit's floor (`--pit-coat`, grey-1) and bottom corner (`--pit-r`), set
-  // `--mini-well-gap` inside the frame's sides and foot, its top edge the
-  // head's divider. Its line is the coat's tone at 40% — drawn over the
+  // `--mini-well-gap` inside the frame's sides and foot and under the
+  // head's full-width hairline (kept, 2026-10-17 eve ask). Its line is the coat's tone at 40% — drawn over the
   // well's OWN solid floor, so it lands #a3a3a3 at every depth, a step
   // under the frame's 22% (≈ #bdbdbd over a well, grey-5).
   --mini-well-gap:    4px;

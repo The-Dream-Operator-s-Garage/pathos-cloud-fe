@@ -16,7 +16,8 @@
          — a zone that also painted the coat would lay the glass twice and
          read two levels deep — and the BODY is the content well (⭐
          2026-10-17): the post card pit's solid grey-1 floor, inset in the
-         frame, square on top, `--pit-r` below, a darker hairline;
+         frame under the head's hairline, square on top, `--pit-r` below, a
+         darker hairline of its own;
        · THE ROW — `#head` is a ROW of hairline-split zones (`MiniHead`), so
          the row reset every own-head Mini wrote is the default here;
        · THE KIND — `kind` hands the nano pill's two colours to the whole
@@ -314,9 +315,17 @@ export default defineComponent({
 //   off the frame's two sides and off its bottom — or off the foot, whose
 //   divider comes off below: the well's own line already parts them, and a
 //   hairline 4px under it would be a second line saying the same thing;
-// · the TOP — no gap and SQUARE corners: the well hangs from the head, its
-//   top edge IS the head's divider (the `& > * + *` rule's line, re-inked
-//   and inset by the gap). A panel with no head gets the gap on top too;
+// · the TOP — SQUARE corners, under the head's HAIRLINE (⭐ 2026-10-17 eve,
+//   user ask: "keep the thin hairline between the header and the content
+//   container"): the full-width `--panel-rule` line the head always had,
+//   then the same `--mini-well-gap` of glass, then the well. The line is a
+//   1px `box-shadow` under the head rather than a border — a shadow takes
+//   no layout, so the head keeps its exact height (the family's 2/2/2 pill
+//   inset, the witnesses' head heights) and the well's top margin pays the
+//   line's pixel instead (`gap + 1px`). Drawn only when a body follows
+//   (`:has(+ …)`): a head over a foot already gets the foot's own divider,
+//   and two translucent lines on one pixel would read darker. It repaints
+//   with the frame on hover — it IS the frame's line system;
 // · the BOTTOM — `--pit-r`, the pit's bottom corner (and the frame's own,
 //   so a foot-less Mini's well turns at the same number as the panel around
 //   it, 5px further in);
@@ -326,12 +335,15 @@ export default defineComponent({
 // A CHILD chain, so the rule names this panel's own body only — a nested
 // Mini gets its own well from its own panel, never from a host's.
 .mini-panel > .mini-panel__body {
-  margin: 0 var(--mini-well-gap, 4px) var(--mini-well-gap, 4px);
+  margin: var(--mini-well-gap, 4px);
   border: 1px solid var(--mini-well-rule, rgba(33, 33, 33, 0.40));
   border-radius: 0 0 var(--pit-r, 6.34px) var(--pit-r, 6.34px);
 }
-.mini-panel > .mini-panel__body:first-child {
-  margin-top: var(--mini-well-gap, 4px);
+.mini-panel > .mini-panel__head:has(+ .mini-panel__body) {
+  box-shadow: 0 1px 0 var(--panel-rule);
+}
+.mini-panel > .mini-panel__head + .mini-panel__body {
+  margin-top: calc(var(--mini-well-gap, 4px) + 1px);
 }
 .mini-panel > .mini-panel__body + .mini-panel__foot {
   border-top: 0;
