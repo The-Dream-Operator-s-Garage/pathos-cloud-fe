@@ -71,6 +71,7 @@
         :key="cell.key"
         class="dash-cell"
         :class="{ 'dash-cell--wide': cells.length === 1 }"
+        data-media-budget
       >
         <button
           v-if="editing && cell.linkId"
@@ -386,7 +387,9 @@ export default defineComponent({
   min-width: 0;
   // The HOUSE CONTRACTS a cell publishes to what it mounts:
   // - media NodeMinis size against --media-max-h (silence = 180px
-  //   thumbnails; a dashboard cell is a tile, so state a tile's worth);
+  //   thumbnails; a dashboard cell is a tile, so state a tile's worth) —
+  //   `data-media-budget` on the cell stops a nested medium's share walk
+  //   here (useNestedMediaBudget, 2026-10-18): this number is the cell's;
   // - SkeletonMini's body scrolls at --skel-mini-max-h (its bodyFit
   //   trade — see the component; was --resource-mini-max-h until the
   //   2026-09-01 rename).

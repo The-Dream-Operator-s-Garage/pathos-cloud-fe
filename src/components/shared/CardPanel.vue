@@ -195,7 +195,13 @@ export default defineComponent({
   line-height: 1.6;
   margin: 3px var(--card-gutter, 4px) 4px;
   --quoted-bleed-x: 10px;
-  --pit-pad-y: 8px;
+  // ⭐ 12px since 2026-10-18 (user ask: "add a little more padding on the
+  // top and bottom inner sides of the content containers of the cards
+  // family"; 8 before). A mini embraced at the top or bottom pulls back out
+  // to `--pit-embrace` through `calc(embrace − pad-y)`, so only prose
+  // gains the air — and a card holding one quoted medium keeps its chrome,
+  // which is why the media budget's constant did not move.
+  --pit-pad-y: 12px;
   padding: var(--pit-pad-y) var(--quoted-bleed-x);
   // The top two embrace a mini (2026-10-17, the post card's rule).
   border-radius: var(--pit-r-top) var(--pit-r-top) var(--pit-r, 6.34px) var(--pit-r, 6.34px);

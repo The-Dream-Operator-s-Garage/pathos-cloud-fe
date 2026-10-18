@@ -762,7 +762,13 @@
                  the post card's title as in the post cards content
                  container, but make it bold"): the name left Nasalization
                  again for the PIT's face, BOLD, keeping that smaller size. -->
-            <div class="post-square__cap">
+            <!-- ⭐ THE KIND'S PALETTE (2026-10-18, user ask: "for all text on
+                 the header bar of the cards family … use the corresponding
+                 color palette … use the nano pills as color reference … in
+                 the post cards, the text should be dark indigos"): the
+                 strip publishes the pill's own pair from kinds.js —
+                 `--kind-ink` for its words, `--kind-accent` for its mark. -->
+            <div class="post-square__cap" :style="capPalette">
               <!-- THE EXPAND LEAD stood here from 2026-08-09 until 2026-09-23
                    (user ask) — an `expand` glyph in its own cell at the card's
                    left edge, the HASH LENS's door. The lens is unchanged; its
@@ -848,7 +854,7 @@
                     :class="{ 'is-on': isExpanded(item) }"
                     :aria-disabled="embedItem ? 'true' : null"
                     :title="capTitleTip(item)"
-                    @click.stop="toggleExpand(item)"
+                    @click.stop="onCapTitle(item)"
                   >
                     <!-- ⭐ THE KIND MARKS, FUSED (2026-10-17, user ask: "fuse
                          the post icon properly and proportionally to the
@@ -858,7 +864,14 @@
                          stylesheet has the arithmetic) and in its ink. They
                          led the pill once before (09-13 → 09-23); they light
                          in the accent while the card is the expanded one. -->
-                    <span class="post-square__cap-icons" :title="capKindTitle(item)">
+                    <!-- ⭐ BIG unless the card is a comment or a fork
+                         (2026-10-18, `--relation` keeps those the tiny
+                         marks) — see the stylesheet. -->
+                    <span
+                      class="post-square__cap-icons"
+                      :class="{ 'post-square__cap-icons--relation': !!item.origin?.relation }"
+                      :title="capKindTitle(item)"
+                    >
                       <q-icon v-for="ic in capIcons(item)" :key="ic" :name="ic" />
                     </span>
                     <span class="post-square__cap-title-text">{{ capTitle(item) }}</span>
@@ -961,29 +974,11 @@
                 </button>
               </div>
               <span class="post-square__cap-rule" aria-hidden="true" />
-              <!-- ⭐ THE SIDE DOOR (2026-10-16, user ask: "add a new button on
-                   the header, between the pin button and the flyout button
-                   … to open the item on the side viewer. Use the material
-                   left_panel_open icon … open the post as a post on the
-                   side viewer"). The foot's thread doors' road: `thread`
-                   → FeedPage → `SideViewer.show(item, 'comments')`, the
-                   postcard over its comments band. Drawn only where this
-                   stream IS a thread host (the feed, with the side viewer
-                   standing, not the side viewer's own embedded card) — in a window or a
-                   phone with the rail slid up there is no side to open to. -->
-              <template v-if="threadHost && !embedItem">
-                <div class="post-square__cap-cell">
-                  <button
-                    type="button"
-                    class="post-square__cap-act post-square__cap-side"
-                    title="Open this post in the side viewer"
-                    @click.stop="$emit('thread', item, 'comments')"
-                  >
-                    <q-icon name="sym_o_left_panel_open" size="13px" />
-                  </button>
-                </div>
-                <span class="post-square__cap-rule" aria-hidden="true" />
-              </template>
+              <!-- THE SIDE DOOR (`.post-square__cap-side`, `sym_o_left_panel_open`)
+                   stood here, between pin and flyout, 2026-10-16 → 10-18. It is
+                   the NAME's press now (user ask: "remove the side-viewer-
+                   extending button … if the user clicks on the header, the side
+                   viewer is automatically opened") — `onCapTitle`. -->
               <div class="post-square__cap-cell">
                 <button
                   type="button"
@@ -3107,6 +3102,10 @@ export default defineComponent({
       return icons
     }
 
+    // The strip's palette — the post's nano-pill pair (kinds.js), one
+    // object for every card (2026-10-18).
+    const capPalette = { '--kind-accent': kindFor('posts').color, '--kind-ink': kindFor('posts').ink }
+
     const capKindTitle = (item) => {
       const rel = item.origin?.relation || ''
       if (rel === 'comment') return 'A comment on another element'
@@ -3209,9 +3208,26 @@ export default defineComponent({
     // long one is read whole — then what a press does, which flips with the
     // lens exactly as the expand lead's own tooltip did.
     // An embedded postcard's pill is no door (aria-disabled), so it says the name.
-    const capTitleTip = (item) => props.embedItem ? capTitle(item) : capTitle(item) + (isExpanded(item)
-      ? ' — click to release this post, back to the stream'
-      : ' — click to expand this post, the feed shows it alone')
+    const capTitleTip = (item) => props.embedItem ? capTitle(item) : capTitle(item) + (props.threadHost
+      ? ' — click to open this post in the side viewer'
+      : isExpanded(item)
+        ? ' — click to release this post, back to the stream'
+        : ' — click to expand this post, the feed shows it alone')
+
+    // ⭐ THE NAME OPENS THE SIDE VIEWER (2026-10-18, user ask: "remove the
+    // side-viewer-extending button … Now, if the user clicks on the header,
+    // the side viewer is automatically opened instead of going to the
+    // individual page"). Where this stream is a thread host (the feed with
+    // its side viewer standing) the press takes the retired side door's road
+    // — `thread(item, 'comments')` → FeedPage → `SideViewer.show`, the
+    // postcard over its comments band. Where there is no side to open to (a
+    // phone with the rail slid up) the name stays the hash lens's expand
+    // door it was since 2026-09-23; in embed mode it is inert as before.
+    const onCapTitle = (item) => {
+      if (props.embedItem) return
+      if (props.threadHost) { emit('thread', item, 'comments'); return }
+      toggleExpand(item)
+    }
 
     // The card's classification, taken from the element itself: every label it
     // holds, as its full root→leaf PATH. This replaced the header's kind
@@ -3299,6 +3315,8 @@ export default defineComponent({
       toggleExpand,
       hashFilter,
       capIcons,
+      capPalette,
+      onCapTitle,
       capKindTitle,
       originClauses,
       originName,
@@ -4802,12 +4820,26 @@ export default defineComponent({
   // is the one that bites. `--post-ceiling` is ONE dial because the pit's
   // `--media-max-h` reads the same number — a medium sized for a shorter
   // card than the card it stands in would leave the extra height empty.
+  //
+  // ⭐ × 1.3 SINCE 2026-10-18 (user ask: "update the max height of the
+  // postcards inside the feed container to be 30% higher"). Measured before
+  // the ask, the glimpse term bound on EVERY common window — 658px at
+  // 1440×900, 738 at 1512×982, 871 at 1728×1117, 834 at 1920×1080, 1187 at
+  // 2560×1440 — so raising only the width and vh terms would have moved no
+  // card at all. `--post-ceiling-scale` multiplies the ceiling AS IT LANDS,
+  // whichever term binds: 658 → 855 at 1440×900. The price, taken knowingly:
+  // a card filled to its ceiling now runs past the visible track (722px
+  // there), so the glimpse of the next card is gone until you scroll — the
+  // third term still keeps the ratio between windows. The flyout / side
+  // viewer embed (`.is-embed` above) keeps its own unscaled ceiling: it is
+  // bound by its host window, and 1.3 × the window is a card you can't see.
   --post-glimpse: 64px;
-  --post-ceiling: min(
+  --post-ceiling-scale: 1.3;
+  --post-ceiling: calc(var(--post-ceiling-scale) * min(
     calc(var(--post-square-max, 100cqw) * 1.5),
     90vh,
     calc(var(--feed-well-h, 100vh) - 6px - var(--fhead-h, 120px) - 18px - var(--frieze-h) - 8px - var(--post-glimpse))
-  );
+  ));
   max-height: var(--post-ceiling);
   // A FULLY DRAWN, ROUNDED box (end of 2026-07-25). The card spent most of that
   // day full-bleed — running frieze lip to frieze lip with its side borders and
@@ -5566,8 +5598,9 @@ export default defineComponent({
   letter-spacing: 0.02em;
   // The card's deepest ink, the same the trust chip is lettered in — this
   // strip is the post's NAME and belongs at that weight, not at the
-  // byline's.
-  color: var(--grey-9, #424242);
+  // byline's. ⭐ THE KIND'S INK since 2026-10-18 (`capPalette`, kinds.js's
+  // posts pair — the nano pill's text: indigo-10): every word on the strip.
+  color: var(--kind-ink, var(--grey-9, #424242));
   // THE CAP'S OWN CLOSING LINE (2026-08-22, user ask: "on the post card,
   // remove the frieze bar and leave just a thick grey-6 hairline"). For twelve
   // days this seam WAS the frieze — the cap drew no line of its own and the
@@ -5721,16 +5754,30 @@ export default defineComponent({
 // (of the mark's own size, 0.76px at 10.08) lifts it onto them. The gap is
 // 0.25em OF THE MARK (2.52px) — plus the glyph's side bearing it reads as
 // one letter space at the face's tracking.
+// ⭐ THE MARK IS BIG (2026-10-18, user ask: "make the icon bigger and well
+// aligned with the font size. It is currently too tiny and is floating above
+// the middle of the text … Use these tiny ones when representing comments
+// and forks only … for all other individual element representations please
+// make the icon bigger and well aligned with the text"). 1.4em of the name
+// (≈ its 16px line), centred on the line with the name and NOT lifted — the
+// −0.075em that aimed the 0.9em mark at the caps is what left it floating
+// above the text's middle. `--relation` (a comment, a fork) keeps the tiny
+// 2026-10-17 marks, lift and all — the ask names them as the tiny ones.
 .post-square__cap-icons {
   flex: 0 0 auto;
   display: inline-flex;
   align-items: center;
   gap: 1px;
+  margin-right: 0.3em;
+  font-size: 1.4em;
+  // the pill's glyph tone (`--kind-accent`, indigo-6 on a post) — 2026-10-18
+  color: var(--kind-accent, inherit);
+}
+.post-square__cap-icons--relation {
   margin-right: 0.25em;
   font-size: 0.9em;
   position: relative;
   top: -0.075em;
-  color: inherit;
 }
 .post-square.is-expanded .post-square__cap-icons { color: var(--accent, #c79a00); }
 
@@ -5902,7 +5949,10 @@ export default defineComponent({
   min-width: 0;
   display: flex;
   align-items: center;
-  justify-content: center;
+  // ⭐ LEFT since 2026-10-18 (user ask: "for all elements, align the title
+  // text and the icon to the left instead of centering it in the middle of
+  // its container"); centred since the 2026-09-13 pill ask.
+  justify-content: flex-start;
   box-sizing: border-box;
   height: 18px;
   margin: 0;
@@ -5927,7 +5977,8 @@ export default defineComponent({
   font-weight: 400;
   letter-spacing: 0.02em;
   line-height: 16px;
-  color: var(--ink, #2C3D4E);
+  // the kind's ink (2026-10-18; the platform's `--ink` slate until then)
+  color: var(--kind-ink, var(--ink, #2C3D4E));
   padding: 0;
   border: 0;
   background: none;
@@ -6536,7 +6587,13 @@ export default defineComponent({
   --quoted-bleed-x: 10px;
   // `--pit-pad-y` (2026-10-17): the top/bottom inset, published the same way
   // so the embraced mini (`.post-square__md` below) can pull out of it.
-  --pit-pad-y: 8px;
+  // ⭐ 12px since 2026-10-18 (user ask: "add a little more padding on the
+  // top and bottom inner sides of the content containers of the cards
+  // family"; 8 before). A mini embraced at the top or bottom pulls back out
+  // to `--pit-embrace` through `calc(embrace − pad-y)`, so only prose
+  // gains the air — and a card holding one quoted medium keeps its chrome,
+  // which is why the media budget's constant did not move.
+  --pit-pad-y: 12px;
   padding: var(--pit-pad-y) var(--quoted-bleed-x);
   // LESS ROUNDED since 2026-08-10 (same ask): `7px` → `3px`. Seven was
   // `--radius-sm`, the platform's panel radius, which is right for a panel

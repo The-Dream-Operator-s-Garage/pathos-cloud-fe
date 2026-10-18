@@ -24,7 +24,9 @@
          (32px), closed on both sides by a rule or the card's edge, the
          kind's own set (edit / lock / layout / share / pin / open…), the
          OPEN door last at the card's right edge by the post card's law. -->
-  <div class="element-card__cap" :class="{ 'is-on': titleOn }">
+  <!-- ⭐ The kind's palette (2026-10-18): the nano pill's pair from
+       kinds.js — `--kind-ink` letters every word, `--kind-accent` the mark. -->
+  <div class="element-card__cap" :class="{ 'is-on': titleOn }" :style="palette">
     <div class="element-card__cap-main">
       <span
         v-for="(o, i) in origins"
@@ -52,7 +54,11 @@
           :title="titleTip || title"
           @click.stop="onTitle"
         >
-          <span class="element-card__cap-icons" :title="iconsTitle || null">
+          <span
+            class="element-card__cap-icons"
+            :class="{ 'element-card__cap-icons--relation': relational }"
+            :title="iconsTitle || null"
+          >
             <q-icon v-for="(ic, i) in shownIcons" :key="ic + i" :name="ic" />
           </span>
           <span class="element-card__cap-title-text" :class="titleClass">{{ title }}</span>
@@ -107,10 +113,15 @@ export default defineComponent({
   setup (props, { emit }) {
     const meta = computed(() => kindFor(props.kind))
     const shownIcons = computed(() => (props.icons.length ? props.icons : [meta.value.icon]))
+    const palette = computed(() => ({ '--kind-accent': meta.value.color, '--kind-ink': meta.value.ink }))
     const shownActs = computed(() => props.acts.filter((a) => a && !a.hidden))
+    // A COMMENT or a FORK keeps the tiny marks (2026-10-18 — the ask names
+    // them as the tiny ones); every other card's mark is big. Read off the
+    // origin clause, the one place every card already says it.
+    const relational = computed(() => props.origins.some((o) => o && (o.word === 'Comment on' || o.word === 'Fork of')))
     const onTitle = () => { if (props.titleDoor) emit('title') }
     const press = (a) => { if (!a.disabled && a.onClick) a.onClick() }
-    return { shownIcons, shownActs, onTitle, press }
+    return { shownIcons, shownActs, relational, palette, onTitle, press }
   }
 })
 </script>
@@ -126,7 +137,8 @@ export default defineComponent({
   font-family: var(--font-display);
   font-size: calc(var(--cap-scale, 0.62) * 1em);
   letter-spacing: 0.02em;
-  color: var(--grey-9, #424242);
+  // the kind's ink (2026-10-18; grey-9 until then)
+  color: var(--kind-ink, var(--grey-9, #424242));
   border-bottom: 2px solid var(--grey-6, #9e9e9e);
 }
 .element-card__cap-main {
@@ -175,18 +187,26 @@ export default defineComponent({
   background: var(--grey-5, #bdbdbd);
 }
 // THE MARKS, FUSED with the name (2026-10-17) — the post card's arithmetic
-// (FeedStream `.post-square__cap-icons`): 0.9em of the name = cap height,
-// in its ink, centred with it and lifted −0.075em onto the pixel-snapped caps.
+// (FeedStream `.post-square__cap-icons`). ⭐ BIG since 2026-10-18 (user ask:
+// "make the icon bigger and well aligned with the font size … Use these tiny
+// ones when representing comments and forks only"): 1.4em of the name,
+// centred on its line, no lift; `--relation` (a comment, a fork) keeps the
+// 0.9em mark lifted −0.075em it wore since 10-17.
 .element-card__cap-icons {
   flex: 0 0 auto;
   display: inline-flex;
   align-items: center;
   gap: 1px;
+  margin-right: 0.3em;
+  font-size: 1.4em;
+  // the pill's glyph tone (`--kind-accent`) — 2026-10-18
+  color: var(--kind-accent, inherit);
+}
+.element-card__cap-icons--relation {
   margin-right: 0.25em;
   font-size: 0.9em;
   position: relative;
   top: -0.075em;
-  color: inherit;
 }
 .element-card__cap.is-on .element-card__cap-icons { color: var(--accent, #c79a00); }
 .element-card__cap-origin {
@@ -230,7 +250,9 @@ export default defineComponent({
   min-width: 0;
   display: flex;
   align-items: center;
-  justify-content: center;
+  // LEFT since 2026-10-18 (the post card's ask: "align the title text and
+  // the icon to the left instead of centering it").
+  justify-content: flex-start;
   box-sizing: border-box;
   height: 18px;
   margin: 0;
@@ -240,7 +262,7 @@ export default defineComponent({
   font-weight: 400;
   letter-spacing: 0.02em;
   line-height: 16px;
-  color: var(--ink, #2C3D4E);
+  color: var(--kind-ink, var(--ink, #2C3D4E));
   padding: 0;
   border: 0;
   background: none;

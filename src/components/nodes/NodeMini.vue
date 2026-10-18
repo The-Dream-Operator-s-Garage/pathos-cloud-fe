@@ -61,14 +61,17 @@
            EmbedFrame's `cap-end` slot went out with it, by the same ask
            ("remove the voting section"): a preview reports what the node IS,
            and the place to read its activity is the node's own viewer. -->
-      <div v-if="embed" class="node-mini__embed">
+      <!-- `mediaEl` + `nestStyle` (2026-10-18): a medium quoted a layer down
+           measures what the outer Minis spend around it and subtracts that
+           from the surface's budget (`--media-nest-h`, useNestedMediaBudget). -->
+      <div v-if="embed" ref="mediaEl" class="node-mini__embed" :style="nestStyle">
         <EmbedFrame :embed="embed" :caption="false" rimmed />
       </div>
 
-      <div v-else-if="mediaKind === 'image'" class="node-mini__media">
+      <div v-else-if="mediaKind === 'image'" ref="mediaEl" class="node-mini__media" :style="nestStyle">
         <img :src="node.file.url" :alt="`.${node.file.ext} image`" />
       </div>
-      <div v-else-if="mediaKind === 'video'" class="node-mini__media" @click.stop.prevent>
+      <div v-else-if="mediaKind === 'video'" ref="mediaEl" class="node-mini__media" :style="nestStyle" @click.stop.prevent>
         <video :src="node.file.url" controls preload="metadata" />
       </div>
       <div v-else-if="mediaKind === 'audio'" class="node-mini__audio" @click.stop.prevent>
@@ -137,7 +140,7 @@
 </template>
 
 <script>
-import { defineComponent, computed } from 'vue'
+import { defineComponent, computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import MiniPanel from 'src/components/shared/MiniPanel.vue'
 import MiniHead from 'src/components/shared/MiniHead.vue'
@@ -146,6 +149,7 @@ import MarkdownBody from 'src/components/shared/MarkdownBody.vue'
 import { bodyOf, excerptOf } from 'src/utils/nodeContent'
 import { safeCut } from 'src/utils/pathosRefs'
 import { useRenderBudget, budgetExhausted } from 'src/composables/useRenderDepth'
+import { useNestedMediaBudget } from 'src/composables/useNestedMediaBudget'
 import { useFlyoutViewersStore } from 'src/stores/flyoutViewers'
 
 export default defineComponent({
@@ -313,6 +317,13 @@ export default defineComponent({
       !!embed.value || ['image', 'video', 'audio'].includes(mediaKind.value)
     )
 
+    // THE NESTED SHARE (2026-10-18): what the Minis around this one spend
+    // of the surface's `--media-max-h` — 0 at layer 1, the outer Mini's head,
+    // margins and foot at layer 2. The media readers subtract it.
+    const mediaEl = ref(null)
+    const nestH = useNestedMediaBudget(mediaEl)
+    const nestStyle = computed(() => (nestH.value ? { '--media-nest-h': `${nestH.value}px` } : null))
+
     // (`votes` / `viewerVote` came out 2026-08-23 with the flat thumbs that
     // were their only reader — the ask removed the voting section outright.
     // `node.votes` still arrives on the enriched node for whoever wants it.)
@@ -346,6 +357,8 @@ export default defineComponent({
       mediaKind,
       isMedia,
       isBare,
+      mediaEl,
+      nestStyle,
       linkLine,
       linkTitle,
       nodeLabel
@@ -529,7 +542,8 @@ $item-r: 5px;
     display: block;
     margin: 0 auto;
     max-width: 100%;
-    max-height: var(--media-max-h, 180px);
+    // minus the nested share (`--media-nest-h`, 2026-10-18), never under 60px
+    max-height: max(60px, calc(var(--media-max-h, 180px) - var(--media-nest-h, 0px)));
     width: auto;
     height: auto;
     border-radius: $item-r;

@@ -211,7 +211,7 @@ export default defineComponent({
     const budgetStyle = computed(() => {
       // A fit's ceiling is whatever the provider may report, not a rung.
       const cap = isFit.value ? FIT_H_MAX : (rungs.value[0] || 0)
-      return { height: `min(${cap}px, var(--media-max-h, ${cap}px))` }
+      return { height: `min(${cap}px, max(60px, calc(var(--media-max-h, ${cap}px) - var(--media-nest-h, 0px))))` }
     })
     let ro = null
     const observe = () => {
@@ -251,19 +251,28 @@ export default defineComponent({
     })
 
     // A fit's geometry: the provider's reported height (else the rule's
-    // guess) inside the measured budget — natively when it fits, shrunk by
-    // at most a fifth (the card's floor, same zoom mechanics) when that
-    // lands it, and past that the box stops at the budget and SCROLLS the
-    // shrunken post inside itself: a long thread stays readable instead
-    // of shrinking to unreadable type or pushing a feed card off screen.
+    // guess) inside the measured budget — natively when it fits; the WHOLE
+    // post shrunk to the budget, width in proportion, when a shrink of at
+    // most a fifth (the card's floor) lands it; and past that NOT shrunk at
+    // all: full size, as wide as the column lets it be, in a budget-tall box
+    // that SCROLLS (`scroll`).
+    // ⭐ 2026-10-18, two asks the same morning: "adapt the width
+    // proportionally to display the whole thing under the available space"
+    // (a post a little too tall had scrolled at 0.8) — then, an hour later,
+    // "don't force it … just apply this to items that feel completely under
+    // the portrait space. If they don't fit completely, prefer extending to
+    // maximum width and turning the container into a scrollable section":
+    // with no floor a long Reddit post had shrunk to a stamp at 0.2. Until
+    // this day the scroll box held the post at 0.8; now a post that scrolls
+    // reads at full size.
     const fitGeom = computed(() => {
       if (!isFit.value) return null
       const h = reported.value?.h || rungs.value[0]
       const b = budget.value
       if (b == null) return { h, box: null, z: 1, scroll: false }
       if (b >= h) return { h, box: h, z: 1, scroll: false }
-      const z = Math.max(CARD_SHRINK_FLOOR, b / h)
-      return { h, box: Math.min(b, h * z), z, scroll: h * z > b + 0.5 }
+      if (b / h >= CARD_SHRINK_FLOOR) return { h, box: b, z: b / h, scroll: false }
+      return { h, box: b, z: 1, scroll: true }
     })
 
     // The ratio as a NUMBER, published as `--embed-ratio` beside the
@@ -281,7 +290,7 @@ export default defineComponent({
           // Unmeasured: the largest rung bounded by the budget in CSS;
           // measured: the chosen rung (or the shrunken box), and the zoom
           // that lays the iframe out at the provider's own height.
-          '--embed-height': fit?.h ? `${fit.h}px` : `min(${full}px, var(--media-max-h, ${full}px))`,
+          '--embed-height': fit?.h ? `${fit.h}px` : `min(${full}px, calc(var(--media-max-h, ${full}px) - var(--media-nest-h, 0px)))`,
           '--embed-zoom': String(fit?.z || 1)
         }
       }
@@ -289,12 +298,19 @@ export default defineComponent({
         const g = fitGeom.value
         const w = reported.value?.w || FIT_W_DEFAULT
         return {
-          '--embed-height': g.box ? `${g.box}px` : `min(${g.h}px, var(--media-max-h, ${g.h}px))`,
+          '--embed-height': g.box ? `${g.box}px` : `min(${g.h}px, calc(var(--media-max-h, ${g.h}px) - var(--media-nest-h, 0px)))`,
           '--embed-inner-h': `${g.h}px`,
           '--embed-zoom': String(g.z),
-          // The provider's card width (zoomed), so the box ends where the
-          // card does and the caption sits under it, not under air.
-          maxWidth: `min(100%, ${Math.ceil(w * g.z)}px)`
+          // The provider's card width, so the box ends where the card does
+          // and the caption sits under it, not under air — capped by the
+          // column, THEN zoomed. ⚠ The order is load-bearing (2026-10-18):
+          // the iframe lays out at box ÷ zoom, so `min(100%, w × z)` laid a
+          // shrunk post out WIDER than the column (a 540 column at 0.5 →
+          // 1080, clamped to the provider's 640), where it reflows SHORTER —
+          // and its height is what picks shrink vs scroll. Capped first, the
+          // layout width is `min(column, w)` at every zoom, so the reported
+          // height cannot flip the choice it was measured for.
+          maxWidth: `calc(min(100%, ${w}px) * ${g.z})`
         }
       }
       if (isPage.value) {
@@ -364,7 +380,7 @@ export default defineComponent({
 .embed-frame__box {
   position: relative;
   width: 100%;
-  max-width: min(100%, calc(var(--media-max-h, 100vh) * var(--embed-ratio, 1.7778)));
+  max-width: min(100%, calc(max(60px, calc(var(--media-max-h, 100vh) - var(--media-nest-h, 0px))) * var(--embed-ratio, 1.7778)));
   overflow: hidden;
   // A dial since 2026-10-17 eve: a host hands its concentric corner down
   // through `--embed-r` (a full `border-radius` value, four corners).
@@ -394,7 +410,7 @@ export default defineComponent({
 .embed-frame__box--page {
   aspect-ratio: auto;
   max-width: 100%;
-  height: var(--media-max-h, 60vh);
+  height: max(60px, calc(var(--media-max-h, 60vh) - var(--media-nest-h, 0px)));
   background: #fff;
 
   iframe {
@@ -447,12 +463,12 @@ export default defineComponent({
 // tall as the provider SAYS its card is (`--embed-inner-h`, from its
 // postMessage; the rule's HEIGHT until then) and as wide as that card
 // (an inline max-width), transparent and rimless like a card — X draws its
-// own bordered, 12px-cornered post. Over budget, the card's zoom shrinks it
-// by up to a fifth; past that `--scroll` turns the box into a well that
-// scrolls the post (`overscroll-behavior` keeps a fling from dragging the
-// feed along). The iframe is absolutely placed and transform-scaled, and a
-// transform DOES count toward a scroller's overflow, so the well scrolls
-// exactly the shrunken height.
+// own bordered, 12px-cornered post. Over budget by at most a fifth, the
+// card's zoom shrinks the whole post into it — height AND width, in
+// proportion; past that `--scroll` turns the box into a well that scrolls
+// the post at FULL size and the column's full width (2026-10-18 — it scrolled
+// the post shrunk to 0.8 until then). `overscroll-behavior` keeps a fling
+// from dragging the feed along.
 .embed-frame__box--fit {
   aspect-ratio: auto;
   max-width: 100%;
