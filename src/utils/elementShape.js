@@ -32,6 +32,7 @@ import { momentService } from 'src/services/moment.service'
 import { linkService } from 'src/services/link.service'
 import { secretService } from 'src/services/secret.service'
 import { refService } from 'src/services/ref.service'
+import { elementSummary } from 'src/utils/elementSummary'
 import { bodyOf } from 'src/utils/nodeContent'
 import { safeCut } from 'src/utils/pathosRefs'
 
@@ -111,6 +112,12 @@ export async function shapeFromElement (el) {
     // POST instances read as posts; every other skeleton (schema or
     // populated instance) is walked by the viewer.
     if (el.skeleton.name === 'POST') return fetchPostShape(el.skeleton.id)
+    // A DASHBOARD-descended instance (phase 9, 2026-10-19): the cached
+    // summary carries the mark — one read per skeleton, shared with every chip.
+    if (el.skeleton.ancestor_id && el.skeleton.ancestor_id !== el.skeleton.id) {
+      const s = await elementSummary({ prefix: 'skeletons', id: el.skeleton.id })
+      if (s?.dashboard) return { kind: 'dashboard', dashboard: s.dashboard, address: el.skeleton.path || `skeletons/${s.hash}`, summary: s }
+    }
     return { kind: 'skeleton', skeletonId: el.skeleton.id, skeletonName: el.skeleton.name || '' }
   }
   return NONE()
@@ -136,6 +143,7 @@ export async function shapeFromAddress (addr) {
       // spelling) resolves exactly as its `skeletons/<hash>` twin —
       // /refs/summary maps the prefix itself.
       case 'posts':
+      case 'dashboards':
       case 'skeletons': {
         const s = await refService.summary(address)
         // The locked stub CARRIES an id (the hash stays visible by doctrine)
@@ -144,6 +152,9 @@ export async function shapeFromAddress (addr) {
         if (s.success && s.summary?.locked) return { kind: 'locked' }
         if (!s.success || s.summary?.id == null) return NONE()
         if ((s.summary.route || '').startsWith('/posts/')) return fetchPostShape(s.summary.id)
+        // The board (phase 9, 2026-10-19): the summary's `dashboard` mark
+        // turns a skeleton ref — or its `dashboards/` dress — to the family.
+        if (s.summary.dashboard) return { kind: 'dashboard', dashboard: s.summary.dashboard, address: `skeletons/${ref_.hash}`, summary: s.summary }
         return { kind: 'skeleton', skeletonId: s.summary.id, skeletonName: s.summary.primary || '' }
       }
       case 'labels': {

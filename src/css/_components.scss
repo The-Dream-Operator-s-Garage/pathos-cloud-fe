@@ -782,7 +782,7 @@
   // ⚠ `--dock-coat` IS A BACKGROUND LAYER LIST NOW, NOT A COLOUR. Every
   // consumer must be a `background` shorthand — the shell and `.dock-bar`
   // here, `.dock-tab:hover` below, `DashboardDock`'s tab hover, and
-  // `SplitLayout`/`CuentistaRow`'s cell floors. It will NOT work in
+  // `DashboardSplit`/`CuentistaRow`'s cell floors. It will NOT work in
   // `border-color`, `color` or a gradient stop; `--plaque-flat` (#f8f2e4, the
   // composite) is the flat tone for those places.
   //

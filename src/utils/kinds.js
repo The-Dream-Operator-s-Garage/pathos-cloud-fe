@@ -126,6 +126,13 @@ export const KINDS = {
   // flyout's head, the explorer's squares, the dashboard's add-a-table rows).
   // (yellow-10 `#f57f17` / `--yellow-deep` `#c46008` / `schema` AM → PM5.)
   skeletons: { kind: 'skeleton', icon: 'sym_o_mitre', color: '#6d4c41', ink: '#3e2723', route: (id) => `/skeletons/${id}` },
+  // DASHBOARDS (phase 9, 2026-10-19, user ask: "use quasar brown to color
+  // the dashboard components") — a read alias of `skeletons/` the way
+  // `posts/` is: a DASHBOARD-descended instance, marked by `/refs/summary`'s
+  // `dashboard` field. Quasar `brown` (#795548, Material 500) for the glyph
+  // and rim, brown-8 (#4e342e — the dashboard dock's own `--dock-ink`) for
+  // the words, so the board family and the desk that holds it share an ink.
+  dashboards: { kind: 'dashboard', icon: 'dashboard', color: '#795548', ink: '#4e342e', route: (id) => `/skeletons/${id}` },
   // ⚠ CARVED GOLD IS A TRADITION — the pioneer's mark keeps it, alone as a
   // TREATMENT (`.pioneer-gold`, the star, the carved face). The moment shares
   // the hex below by the user's word, not by kinship: nothing else on the

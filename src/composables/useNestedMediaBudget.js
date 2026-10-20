@@ -26,7 +26,7 @@
 // — a share must never depend on the size of the thing it sizes.
 //
 // The walk stops at an element carrying `data-media-budget` — a surface
-// INSIDE a Mini that states its own budget (DashboardGrid's cells), whose
+// INSIDE a Mini that states its own budget (a DashboardSlot), whose
 // number was never the outer surface's to begin with.
 import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue'
 

@@ -21,7 +21,7 @@ import { useNavStore } from 'src/stores/navigation'
 import { kindFor, prefixFor } from 'src/utils/kinds'
 
 // The kinds pins take (api: targetType ∈ node | label | skeleton).
-export const PIN_TYPE = { nodes: 'node', labels: 'label', skeletons: 'skeleton', posts: 'skeleton' }
+export const PIN_TYPE = { nodes: 'node', labels: 'label', skeletons: 'skeleton', posts: 'skeleton', dashboards: 'skeleton' }
 
 // ── the session's pins, read once ──────────────────────────────────────
 let pinsPromise = null

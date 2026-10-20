@@ -17,7 +17,7 @@
        Used by post content-element rails, by MarkdownBody's inline
        reference rendering on post surfaces, and by the skeleton
        instance viewers' populated field rows. -->
-  <div class="element-mini" :class="{ 'element-mini--media': isMedia, 'element-mini--fill': isFill }">
+  <div class="element-mini" :class="{ 'element-mini--media': isMedia || isBoard, 'element-mini--fill': isFill }">
     <div v-if="loading" class="element-mini__loading">
       <q-spinner size="14px" color="primary" />
     </div>
@@ -32,6 +32,10 @@
     <MomentMini v-else-if="shape.kind === 'moment' && shape.moment" :moment="shape.moment" :human="shape.human" />
     <LinkMini v-else-if="shape.kind === 'link' && shape.link" :link="shape.link" :target="shape.target" :parent-path="shape.parentPath" />
     <SecretMini v-else-if="shape.kind === 'secret' && shape.secret" :secret="shape.secret" :owner="shape.owner" :receiver="shape.receiver" />
+    <!-- THE BOARD (phase 9, 2026-10-19): a DASHBOARD-descended instance —
+         by its summary's mark — blooms as DashboardMini, the board drawn
+         one layer down, in Quasar brown. -->
+    <DashboardMini v-else-if="shape.kind === 'dashboard' && shape.dashboard" :dashboard="shape.dashboard" :address="shape.address" :summary="shape.summary" />
     <!-- Non-POST skeletons wear the skeleton mini (dashboards phase 2,
          2026-08-10 as ResourceSkeletonMini; SkeletonMini since the
          skeletons plan phase 2, 2026-09-01) — it resolves the walk itself
@@ -63,6 +67,7 @@ import MomentMini from 'src/components/moments/MomentMini.vue'
 import LinkMini from 'src/components/links/LinkMini.vue'
 import SecretMini from 'src/components/secrets/SecretMini.vue'
 import SkeletonMini from 'src/components/skeletons/SkeletonMini.vue'
+import DashboardMini from 'src/components/dashboard/DashboardMini.vue'
 import InfoChip from './InfoChip.vue'
 import LockedChip from './LockedChip.vue'
 import { resolveElementShape } from 'src/utils/elementShape'
@@ -70,7 +75,7 @@ import { consumeRenderLayer } from 'src/composables/useRenderDepth'
 
 export default defineComponent({
   name: 'ElementMini',
-  components: { NodeMini, PathMini, PostMini, LabelMini, EntityMini, MomentMini, LinkMini, SecretMini, SkeletonMini, InfoChip, LockedChip },
+  components: { NodeMini, PathMini, PostMini, LabelMini, EntityMini, MomentMini, LinkMini, SecretMini, SkeletonMini, DashboardMini, InfoChip, LockedChip },
   props: {
     // '<kind>/<hash>' reference (optionally owner-scoped) — self-resolves.
     address: { type: String, default: '' },
@@ -133,8 +138,10 @@ export default defineComponent({
     })
 
     const isFill = computed(() => props.fill && shape.value.kind === 'label')
+    // A BOARD is a figure too (phase 9): it takes the surface's whole width.
+    const isBoard = computed(() => shape.value.kind === 'dashboard')
 
-    return { loading, shape, chipAddress, isMedia, isFill }
+    return { loading, shape, chipAddress, isMedia, isBoard, isFill }
   }
 })
 </script>

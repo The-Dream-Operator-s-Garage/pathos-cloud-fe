@@ -233,6 +233,21 @@
       <div v-else-if="showing === 'element' && isLinkTarget" class="element-flyout__link">
         <LinkFace :key="'link:' + targetElement.address" :id="linkFaceId" @loaded="onLinkLoaded" />
       </div>
+      <!-- ELEMENT FACE, dashboard (phase 9, 2026-10-19): a skeleton ref whose
+           summary carries the `dashboard` mark retargets to an ELEMENT and
+           draws the DASHBOARD CARD — the live board in the pit, arrangeable
+           by the owner — filling the window the way the postcard does. -->
+      <div v-else-if="showing === 'element' && isDashboardTarget" class="element-flyout__dashboard">
+        <DashboardCard
+          :key="'dashboard:' + targetElement.address"
+          :dashboard="targetElement.summary.dashboard"
+          :address="targetElement.address"
+          fill
+          window-host
+          @select="store.close(viewer.id)"
+          @pins-changed="$emit('pins-changed')"
+        />
+      </div>
       <div v-else-if="showing === 'element'" class="element-flyout__element">
         <ElementMini :key="'element:' + targetElement.address" :address="targetElement.address" fill />
       </div>
@@ -449,6 +464,7 @@ import InfoChip from 'src/components/shared/InfoChip.vue'
 import EntityFace from 'src/components/entities/EntityFace.vue'
 import ElementMini from 'src/components/shared/ElementMini.vue'
 import LinkFace from 'src/components/links/LinkFace.vue'
+import DashboardCard from 'src/components/dashboard/DashboardCard.vue'
 import MomentFace from 'src/components/moments/MomentFace.vue'
 import { useFlyoutViewersStore } from 'src/stores/flyoutViewers'
 import { useWindowsStore } from 'src/stores/windows'
@@ -495,13 +511,15 @@ const MOMENT_BOX = { w: 4, h: 5 }
 // The link face (2026-09-27): the chain, the facts, the target's Mini and
 // the decoded buffer stack — the moment's tall box.
 const LINK_BOX = { w: 4, h: 5 }
+// The dashboard face (2026-10-19) — a board is wide: 16:10.
+const DASHBOARD_BOX = { w: 16, h: 10 }
 // The ref prefixes the ELEMENT target answers for; nodes, entities and
 // skeletons (posts included) keep their own windows.
 const ELEMENT_PREFIXES = new Set(['labels', 'moments', 'paths', 'links', 'secrets'])
 
 export default defineComponent({
   name: 'ElementFlyout',
-  components: { CommentMaker, ConversationPicker, FriezeBar, MediaViewerBody, FeedStream, SkeletonTable, InfoChip, EntityFace, ElementMini, MomentFace, LinkFace },
+  components: { CommentMaker, ConversationPicker, FriezeBar, MediaViewerBody, FeedStream, SkeletonTable, InfoChip, EntityFace, ElementMini, MomentFace, LinkFace, DashboardCard },
   props: {
     viewerId: { type: String, required: true }
   },
@@ -551,6 +569,8 @@ export default defineComponent({
     // resolved one, else by the address's hash; the read retitles the window
     // `link #id → kind #target`.
     const isLinkTarget = computed(() => elementPrefix.value === 'links')
+    const isDashboardTarget = computed(() => !!targetElement.value?.summary?.dashboard)
+    const isSkeletonLikeRef = computed(() => ['skeletons', 'posts', 'dashboards'].includes(refPrefix.value || ''))
     const linkFaceId = computed(() => {
       const t = targetElement.value
       if (!t) return null
@@ -752,6 +772,21 @@ export default defineComponent({
         }
         return
       }
+      // A skeleton-shaped ref (phase 9): the summary's `dashboard` mark
+      // retargets the window to the board's ELEMENT face; a plain
+      // skeleton stays on the table, which self-resolves.
+      if (isSkeletonLikeRef.value) {
+        try {
+          const hash = ref0.split('/').pop()
+          const r = await refService.summary('skeletons/' + hash)
+          if (refString.value !== ref0 || !viewer.value) return
+          const sum = r?.success ? r.summary : null
+          if (sum && !sum.locked && sum.id != null && sum.dashboard) {
+            store.retarget(viewer.value.id, { kind: 'element', address: 'skeletons/' + hash, summary: sum })
+          }
+        } catch (_) { /* the table face reports */ }
+        return
+      }
       if (isNodeRef.value) {
         // nodes/<hash> → the enriched row, then BECOME a node window.
         try {
@@ -878,7 +913,7 @@ export default defineComponent({
       if (targetNode.value) return iconFor(targetNode.value)
       if (targetItem.value) return 'sym_o_post'
       if (targetEntity.value) return entityGlyph(entityInfo.value?.entity || targetEntity.value)
-      if (targetElement.value) return kindFor(elementPrefix.value).icon
+      if (targetElement.value) return isDashboardTarget.value ? 'dashboard' : kindFor(elementPrefix.value).icon
       return skeletonGlyph.value
     })
     const headIcon = computed(() =>
@@ -930,7 +965,10 @@ export default defineComponent({
       if (targetNode.value) return probeNaturalSize(targetNode.value)
       if (targetItem.value) return { ...POST_BOX }
       if (targetEntity.value) return { ...ENTITY_BOX }
-      if (targetElement.value) return isMomentTarget.value ? { ...MOMENT_BOX } : (isLinkTarget.value ? { ...LINK_BOX } : { ...ELEMENT_BOX })
+      if (targetElement.value) {
+        if (isDashboardTarget.value) return { ...DASHBOARD_BOX }
+        return isMomentTarget.value ? { ...MOMENT_BOX } : (isLinkTarget.value ? { ...LINK_BOX } : { ...ELEMENT_BOX })
+      }
       return { ...TABLE_BOX }
     }
     const place = async () => {
@@ -1257,6 +1295,7 @@ export default defineComponent({
       targetItem,
       targetEntity,
       targetElement,
+      isDashboardTarget,
       onEntityLoaded,
       refString,
       isEntityRef,
@@ -1508,6 +1547,17 @@ export default defineComponent({
   display: flex;
 
   :deep(.feed-stream-pane) { flex: 1 1 auto; min-width: 0; }
+}
+
+// ── ELEMENT FACE, DASHBOARD: the board card fills the window (2026-10-19) ─
+.element-flyout__dashboard {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  padding: 6px;
+
+  :deep(.element-card) { flex: 1 1 auto; min-width: 0; }
 }
 
 // ── ELEMENT FACE, ENTITY: the profile in a box (2026-09-11) ─────────────

@@ -69,6 +69,14 @@
       v-on="listeners"
     />
     <SecretCard v-else-if="shape.kind === 'secret' && shape.secret" :key="'card:secret:' + shape.secret.id" :secret="shape.secret" :owner="shape.owner" :receiver="shape.receiver" v-bind="dialect" v-on="listeners" />
+    <DashboardCard
+      v-else-if="shape.kind === 'dashboard' && shape.dashboard"
+      :key="'card:dashboard:' + shape.dashboard.id"
+      :dashboard="shape.dashboard"
+      :address="shape.address"
+      v-bind="dialect"
+      v-on="listeners"
+    />
     <SkeletonCard
       v-else-if="shape.kind === 'skeleton'"
       :key="'card:skeleton:' + shape.skeletonId"
@@ -94,6 +102,7 @@ import MomentCard from 'src/components/moments/MomentCard.vue'
 import LinkCard from 'src/components/links/LinkCard.vue'
 import SecretCard from 'src/components/secrets/SecretCard.vue'
 import SkeletonCard from 'src/components/skeletons/SkeletonCard.vue'
+import DashboardCard from 'src/components/dashboard/DashboardCard.vue'
 import InfoChip from './InfoChip.vue'
 import LockedChip from './LockedChip.vue'
 import { feedService } from 'src/services/feed.service'
@@ -104,11 +113,11 @@ import { CARD_PROPS, CARD_EMITS } from 'src/composables/useElementCard'
 
 // The kinds whose card is a full-height viewer (the pit scrolls itself and
 // wants the host's length): the label's unravel.
-const FILLING = new Set(['label'])
+const FILLING = new Set(['label', 'dashboard'])
 
 export default defineComponent({
   name: 'ElementCard',
-  components: { PostCard, NodeCard, PathCard, LabelCard, EntityCard, MomentCard, LinkCard, SecretCard, SkeletonCard, InfoChip, LockedChip },
+  components: { PostCard, NodeCard, PathCard, LabelCard, EntityCard, MomentCard, LinkCard, SecretCard, SkeletonCard, DashboardCard, InfoChip, LockedChip },
   props: {
     // '<kind>/<hash>' reference — self-resolves.
     address: { type: String, default: '' },

@@ -271,8 +271,8 @@
              magnifier chip plus the top-anchored dialog it opened over
              GET /api/search, Thread E's whole face since 2026-07-30 — is
              DELETED, not hidden, and this bar was its only mount. The
-             ENDPOINT lives on: `NodeSearchInput.vue` (the dashboard's node
-             picker) rides the same FULLTEXT shadow, so the ask took the face
+             ENDPOINT lives on: the side viewer's search board and
+             `SlotPicker.vue` (the dashboard's slot picker) ride the same FULLTEXT shadow, so the ask took the face
              and left the spine. ── -->
         <!-- ⭐ THE CHAT CHIP IS A SLIDER CHIP AGAIN (2026-10-12, user ask:
              "decouple the chat window and add to it a drag button on the

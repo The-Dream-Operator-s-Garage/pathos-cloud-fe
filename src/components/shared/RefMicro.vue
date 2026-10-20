@@ -8,7 +8,7 @@
   <LockedChip v-if="isLocked" :address="address" />
   <MicroChip
     v-else
-    :kind="prefix"
+    :kind="chipKind"
     :hash-str="hash"
     :to="route"
     :display="label || undefined"
@@ -65,7 +65,12 @@ export default defineComponent({
     // read this element — the chip must say so, not sit inert.
     const isLocked = computed(() => resolved.value?.locked === true)
 
-    return { prefix: computed(() => parts.value.prefix), hash: computed(() => parts.value.hash), route, isPioneer, claimStatus, integrityCard, isLocked }
+    // A skeleton ref whose summary carries the dashboard mark wears the
+    // DASHBOARD kind (phase 9) — brown glyph, brown ink — the way a POST
+    // instance's route turns its chip; the address itself is untouched.
+    const chipKind = computed(() => (resolved.value?.dashboard ? 'dashboards' : parts.value.prefix))
+
+    return { prefix: computed(() => parts.value.prefix), chipKind, hash: computed(() => parts.value.hash), route, isPioneer, claimStatus, integrityCard, isLocked }
   }
 })
 </script>

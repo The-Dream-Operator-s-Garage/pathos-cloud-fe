@@ -45,7 +45,7 @@ export const CARD_EMITS = ['select', 'thread', 'pins-changed']
 // The comment composer's parent kind per prefix (PostMakerSurface routes
 // node → its route, the skeleton family → the skeleton route, any other
 // kind → POST /refs/comment by address).
-const PARENT_KIND = { skeletons: 'skeleton', posts: 'post', nodes: 'node', labels: 'label', paths: 'path', links: 'link', moments: 'moment', secrets: 'secret', entities: 'entity' }
+const PARENT_KIND = { skeletons: 'skeleton', posts: 'post', dashboards: 'skeleton', nodes: 'node', labels: 'label', paths: 'path', links: 'link', moments: 'moment', secrets: 'secret', entities: 'entity' }
 // The PIN lives in `usePin` since 2026-10-18 (the mini family's pin
 // button): one session-wide pinned set for both families.
 

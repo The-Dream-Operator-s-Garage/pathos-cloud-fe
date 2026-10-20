@@ -23,5 +23,5 @@ export async function elementTarget ({ kind, id = null, path = '' } = {}) {
     const s = await elementSummary({ prefix: p, id })
     h = s?.hash || null
   }
-  return h ? { kind: 'ref', ref: `${p === 'posts' ? 'skeletons' : p}/${h}` } : null
+  return h ? { kind: 'ref', ref: `${(p === 'posts' || p === 'dashboards') ? 'skeletons' : p}/${h}` } : null
 }

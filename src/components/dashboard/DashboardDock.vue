@@ -118,12 +118,17 @@
             <q-icon name="close" size="10px" />
           </span>
         </button>
+        <!-- ⭐ phase 9 (2026-10-19): the ghost tab no longer mints an EMPTY
+             board — a dashboard needs its first element — it opens THE
+             COMPOSER in the well (name · template · the first slot or the
+             template's components), which mints on Create and lands the
+             new board's tab in edit mode. -->
         <button
           type="button"
           class="dock-tab dock-tab--new"
+          :class="{ 'is-active': composing }"
           title="New dashboard"
-          :disabled="creating"
-          @click="createBoard"
+          @click="composing = !composing"
         >
           <q-icon name="sym_o_dashboard_customize" size="14px" />
         </button>
@@ -197,15 +202,20 @@
         @applied="gridEl?.load()"
       />
 
-      <div class="flyout-window__well dashboard-dock__well">
-        <DashboardGrid
-          v-if="store.activeTab"
+      <!-- THE WELL mounts THE BOARD (phase 9) — the same DashboardBoard the
+           card's pit and the mini's body mount: one tree, split anywhere,
+           dividers with grips, any element in a slot. The composer takes
+           the well while a board is being minted. -->
+      <div class="flyout-window__well dashboard-dock__well" :class="{ 'is-composing': composing }">
+        <DashboardComposer v-if="composing" @created="onCreated" @cancel="composing = false" />
+        <DashboardBoard
+          v-else-if="store.activeTab"
           ref="gridEl"
           :dashboard-id="store.activeTab.skeletonId"
           :editing="store.isEditing"
           @resolved="onResolved"
-          @exported="onExported"
           @items="gridItemRefs = $event"
+          @cannot-write="store.setEditing(false)"
         />
       </div>
 
@@ -218,8 +228,10 @@
 
 <script>
 import { defineComponent, ref, computed, watch } from 'vue'
+import { provideRenderDepth, DEPTH_DEFAULT } from 'src/composables/useRenderDepth'
 import FriezeBar from 'src/components/layout/FriezeBar.vue'
-import DashboardGrid from 'src/components/dashboard/DashboardGrid.vue'
+import DashboardBoard from 'src/components/dashboard/DashboardBoard.vue'
+import DashboardComposer from 'src/components/dashboard/DashboardComposer.vue'
 import ConversationPicker from 'src/components/chat/ConversationPicker.vue'
 import CuentistaRow from 'src/components/dashboard/CuentistaRow.vue'
 import { useDashboardStore } from 'src/stores/dashboard'
@@ -228,11 +240,14 @@ import { dashboardService } from 'src/services/dashboard.service'
 
 export default defineComponent({
   name: 'DashboardDock',
-  components: { FriezeBar, DashboardGrid, ConversationPicker, CuentistaRow },
+  components: { FriezeBar, DashboardBoard, DashboardComposer, ConversationPicker, CuentistaRow },
   setup () {
     const store = useDashboardStore()
     const windows = useWindowsStore()
-    const creating = ref(false)
+    // The desk states the depth dial (the card family's default): a board
+    // in a slot draws its minis, a board in THAT draws pills.
+    provideRenderDepth(ref(DEPTH_DEFAULT))
+    const composing = ref(false)
     const shareOpen = ref(false)
     const gridEl = ref(null)
     const gridItemRefs = ref([])
@@ -272,18 +287,12 @@ export default defineComponent({
       boardsOpen.value = false
     }
 
-    // The ghost tab: mint an EMPTY dashboard and arrive in edit mode —
+    // The composer minted a board: open its tab and arrive in edit mode —
     // a fresh board exists to be arranged.
-    const createBoard = async () => {
-      creating.value = true
-      try {
-        const r = await dashboardService.create({})
-        if (r.success) {
-          store.openTab({ skeletonId: r.dashboard.id, name: r.dashboard.name, path: r.dashboard.path })
-          store.setEditing(true)
-        }
-      } catch (_) { /* leave the strip as it was */ }
-      creating.value = false
+    const onCreated = (d) => {
+      composing.value = false
+      store.openTab({ skeletonId: d.id, name: d.name, path: d.path })
+      store.setEditing(true)
     }
 
     // The grid resolved the board — name the tab after it (covers renames
@@ -293,12 +302,6 @@ export default defineComponent({
       if (store.activeTab && d?.id === store.activeTab.skeletonId) {
         store.nameTab(store.activeTab.id, d.name, d.path || null)
       }
-    }
-
-    // A canvas exported itself as a fresh board — open it (phase 5: the
-    // arrangement is itself a dashboard now).
-    const onExported = (d) => {
-      store.openTab({ skeletonId: d.id, name: d.name, path: d.path })
     }
 
     // The dock's tabs are canvas drag sources in edit mode.
@@ -318,7 +321,7 @@ export default defineComponent({
     return {
       store,
       windows,
-      creating,
+      composing,
       shareOpen,
       gridEl,
       gridItemRefs,
@@ -327,9 +330,8 @@ export default defineComponent({
       boards,
       toggleBoards,
       openBoard,
-      createBoard,
+      onCreated,
       onResolved,
-      onExported,
       onTabDragStart,
       meta
     }
@@ -357,10 +359,16 @@ export default defineComponent({
   // child must GROW or it sizes to content — the same contract
   // `.element-flyout__generic` states in the sibling box. Without it the
   // split canvas measured 393px inside a 1382px well.
-  :deep(.dash-grid-host) {
+  :deep(.dash-board) {
     flex: 1 1 auto;
     min-width: 0;
+    align-self: stretch;
   }
+
+  // While the composer stands the well scrolls it; a board never scrolls
+  // the well (its slots scroll themselves).
+  &.is-composing { overflow-y: auto; }
+  &:not(.is-composing) { overflow: hidden; }
 }
 
 // ── THE EXTENDED BOARD'S WELL IS A PAGE, NOT A PANE (2026-08-12, user ask:
