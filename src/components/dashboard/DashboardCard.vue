@@ -168,6 +168,11 @@ export default defineComponent({
 .dashboard-card__loading { padding: 6px 0; }
 
 // The board fills the pit; its slots scroll themselves.
+// ⭐ 2026-10-20 — THE HOST'S RIM, stated for the board: the pit's 1px
+// `--grey-5` line is the colour and width of every divider inside
+// (`--dash-rule` / `--dash-rule-w`), and its INNER corners (the outer
+// radius less that pixel — CardPanel's `--pit-r-top` above, `--pit-r`
+// below) are the corners a slot's mini turns with where it meets them.
 .dashboard-card__pit {
   flex: 1 1 auto;
   min-height: 0;
@@ -175,5 +180,11 @@ export default defineComponent({
   display: flex;
   height: 100%;
   --dash-board-h: 420px;
+  --dash-rule: var(--grey-5, #bdbdbd);
+  --dash-rule-w: 1px;
+  --dash-r-tl: calc(var(--pit-r-top, 6.34px) - 1px);
+  --dash-r-tr: calc(var(--pit-r-top, 6.34px) - 1px);
+  --dash-r-br: calc(var(--pit-r, 6.34px) - 1px);
+  --dash-r-bl: calc(var(--pit-r, 6.34px) - 1px);
 }
 </style>

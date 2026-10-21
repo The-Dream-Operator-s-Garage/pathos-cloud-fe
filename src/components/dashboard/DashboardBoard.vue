@@ -223,6 +223,15 @@ export default defineComponent({
   min-width: 0;
   min-height: 0;
   height: 100%;
+  // ⭐ THE BOARD'S FLOOR (2026-10-20, user ask: "always add a light creamy
+  // background color behind a dashboard because the transparency looks
+  // terrible if the background is dark"): `--light-cream`, opaque, on every
+  // board in every host — the minis' glass (8% grey) composites over cream,
+  // never over whatever the host stands on. Its corners are the host's
+  // inner ones (`--dash-r-*`), so the floor never pokes past a rim.
+  background: var(--light-cream, #FCF3E0);
+  border-radius: var(--dash-r-tl, 0px) var(--dash-r-tr, 0px) var(--dash-r-br, 0px) var(--dash-r-bl, 0px);
+  overflow: hidden;
 }
 
 // The canvas fills the board; the panes scroll, the board does not. A

@@ -13,6 +13,12 @@
            the grip grows a JOIN button that collapses the split back into
            the other pane.
          · a LEAF — `DashboardSlot` (the element, the picker, the tools).
+       ⭐ THE CORNERS (2026-10-20): `corners` names which of the host
+       container's rounded corners this node touches ('tl' 'tr' 'br' 'bl';
+       the root touches all four). A side-by-side split hands its left pane
+       the left pair and its right pane the right pair; a stacked one the
+       top pair and the bottom pair — so a leaf knows whether its mini
+       turns with the container (DashboardSlot) or stands square.
        Every structural change and every resize END bubbles `changed` to
        DashboardBoard, which saves (the LAYOUT NOTE versions — arrangements
        are history). The ops MUTATE the shared reactive node by design. -->
@@ -24,7 +30,7 @@
     :data-depth="depth"
   >
     <div class="dash-split__pane" :style="paneStyle">
-      <DashboardSplit :node="node.children[0]" :editing="editing" :depth="depth + 1" @changed="$emit('changed')" />
+      <DashboardSplit :node="node.children[0]" :editing="editing" :depth="depth + 1" :corners="childCorners[0]" @changed="$emit('changed')" />
     </div>
 
     <div
@@ -34,7 +40,6 @@
       @pointerdown="startDrag"
       @dblclick="resetRatio"
     >
-      <span class="dash-divider__line" aria-hidden="true" />
       <span class="dash-divider__grip" aria-hidden="true">
         <q-icon :name="node.split === 'v' ? 'drag_handle' : 'drag_indicator'" size="12px" />
       </span>
@@ -53,7 +58,7 @@
     </div>
 
     <div class="dash-split__pane dash-split__pane--rest">
-      <DashboardSplit :node="node.children[1]" :editing="editing" :depth="depth + 1" @changed="$emit('changed')" />
+      <DashboardSplit :node="node.children[1]" :editing="editing" :depth="depth + 1" :corners="childCorners[1]" @changed="$emit('changed')" />
     </div>
   </div>
 
@@ -62,6 +67,7 @@
     :node="node"
     :editing="editing"
     :depth="depth"
+    :corners="corners"
     @split="onSplit"
     @clear="onClear"
     @pick="onPick"
@@ -82,7 +88,9 @@ export default defineComponent({
   props: {
     node: { type: Object, required: true },
     editing: { type: Boolean, default: false },
-    depth: { type: Number, default: 0 }
+    depth: { type: Number, default: 0 },
+    // The host container's rounded corners this node touches (see the note).
+    corners: { type: Array, default: () => ['tl', 'tr', 'br', 'bl'] }
   },
   emits: ['changed'],
   setup (props, { emit }) {
@@ -90,12 +98,20 @@ export default defineComponent({
     const dragging = ref(false)
     const isSplit = computed(() => isSplitNode(props.node))
 
+    // ── the corners ────────────────────────────────────────────────
+    const childCorners = computed(() => {
+      const keep = (pair) => props.corners.filter((c) => pair.includes(c))
+      return props.node.split === 'v'
+        ? [keep(['tl', 'tr']), keep(['bl', 'br'])]
+        : [keep(['tl', 'bl']), keep(['tr', 'br'])]
+    })
+
     // ── the divider ────────────────────────────────────────────────
-    // Pane 0 takes `ratio` of the axis less its half of the divider; pane
-    // 1 fills the rest.
+    // Pane 0 takes `ratio` of the axis less its half of the divider (the
+    // host's rule width, 1px); pane 1 fills the rest.
     const paneStyle = computed(() => {
       const pct = Math.round((props.node.ratio ?? 0.5) * 1000) / 10
-      return { flex: `0 0 calc(${pct}% - 4px)` }
+      return { flex: `0 0 calc(${pct}% - var(--dash-rule-w, 1px) / 2)` }
     })
 
     const startDrag = (e) => {
@@ -157,7 +173,7 @@ export default defineComponent({
     const onClear = () => { clearLeaf(props.node); emit('changed') }
     const onPick = (ref) => { setLeaf(props.node, ref); emit('changed') }
 
-    return { boxEl, dragging, isSplit, paneStyle, startDrag, resetRatio, joinable, joinTitle, join, onSplit, onClear, onPick }
+    return { boxEl, dragging, isSplit, childCorners, paneStyle, startDrag, resetRatio, joinable, joinTitle, join, onSplit, onClear, onPick }
   }
 })
 </script>
@@ -190,29 +206,44 @@ export default defineComponent({
 }
 
 // ── THE DIVIDER — a visible line with a grip at its midpoint ──────────
-// 8px of hit area on the axis, the LINE drawn 2px at its centre in the
-// family's brown, the GRIP a 28×10 pill riding the line (rotated with the
-// axis). Hover and drag lift both to the dashboard accent.
+// ⭐ 2026-10-20 (user ask: "make the dividing lines … the same color and
+// thickness as the dashboard content container border color"): the LINE is
+// the divider's whole footprint on the axis — `--dash-rule-w` (1px) in
+// `--dash-rule`, the colour of the rim the HOST draws round the board
+// (the card's pit, the dock's well, the mini's well each state theirs) —
+// so the panes meet the line with no gutter. The 8px HIT AREA rides on
+// top, half over each pane (`::before`); the GRIP a 12×28 pill on the
+// line (rotated with the axis). Hover and drag lift both to the
+// dashboard accent.
 .dash-divider {
   position: relative;
-  flex: 0 0 8px;
+  flex: 0 0 var(--dash-rule-w, 1px);
+  // The grip is wider than the line: without these the flex item's
+  // automatic minimum (its min-content, the grip's 12px) widens the line.
+  min-width: 0;
+  min-height: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   touch-action: none;
   cursor: col-resize;
   z-index: 2;
-
-  .dash-split--v > & { cursor: row-resize; }
-}
-
-.dash-divider__line {
-  position: absolute;
-  background: var(--brown-3, #bcaaa4);
+  background: var(--dash-rule, var(--grey-5, #bdbdbd));
   transition: background 120ms;
 
-  .dash-split--h > .dash-divider > & { top: 0; bottom: 0; left: 3px; width: 2px; }
-  .dash-split--v > .dash-divider > & { left: 0; right: 0; top: 3px; height: 2px; }
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: -4px;
+    right: -4px;
+  }
+
+  .dash-split--v > & {
+    cursor: row-resize;
+    &::before { left: 0; right: 0; top: -4px; bottom: -4px; }
+  }
 }
 
 .dash-divider__grip {
@@ -234,7 +265,7 @@ export default defineComponent({
 
 .dash-divider:hover,
 .dash-divider.is-dragging {
-  .dash-divider__line { background: var(--brown-6, #795548); }
+  background: var(--brown-6, #795548);
   .dash-divider__grip {
     border-color: var(--brown-6, #795548);
     color: var(--brown-8, #4e342e);

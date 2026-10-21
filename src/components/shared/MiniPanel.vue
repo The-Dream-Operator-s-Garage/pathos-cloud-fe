@@ -310,12 +310,29 @@ export default defineComponent({
   // corner the pit's rounder top arcs around (FeedStream `--pit-r-top`).
   // Every Mini's frame is this one rule — the family's inner radii are
   // their own parts' (source panes, pills, rows), not the frame's.
-  border-radius: var(--radius-md) var(--radius-md) var(--pit-r, 6.34px) var(--pit-r, 6.34px);
+  // ⭐ THE CORNER DIALS (2026-10-20, user ask: "make the corner roundness a
+  // modifiable property"): `--mini-r-tl` / `-tr` / `-br` / `-bl`, one per
+  // corner, the family's numbers as their fallbacks. A host writes them ON
+  // the panel it places (DashboardSlot: the board's container corner where
+  // the slot touches one, square elsewhere); they stop at this panel — its
+  // children reset them (below), so a Mini nested in this one keeps the
+  // family's corners.
+  border-radius: var(--mini-r-tl, var(--radius-md)) var(--mini-r-tr, var(--radius-md))
+    var(--mini-r-br, var(--pit-r, 6.34px)) var(--mini-r-bl, var(--pit-r, 6.34px));
   box-shadow: var(--shadow-card);
   overflow: hidden;
   transition: border-color 0.12s, box-shadow 0.12s, transform 0.08s;
 
   & > * + * { border-top: 1px solid var(--panel-rule); }
+
+  // The dials are ONE panel's: `initial` is the guaranteed-invalid value, so
+  // every panel below falls back to the family's corners again.
+  & > * {
+    --mini-r-tl: initial;
+    --mini-r-tr: initial;
+    --mini-r-br: initial;
+    --mini-r-bl: initial;
+  }
 }
 
 // A NESTED panel draws no blur. In flow, what stands behind it is its host

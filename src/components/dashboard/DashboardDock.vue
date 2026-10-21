@@ -369,6 +369,22 @@ export default defineComponent({
   // the well (its slots scroll themselves).
   &.is-composing { overflow-y: auto; }
   &:not(.is-composing) { overflow: hidden; }
+
+  // ⭐ 2026-10-20 — A BOARD RUNS TO THE WELL'S RIM (user ask: no ghost
+  // space round the minis): the family well's 8px inset comes off while it
+  // holds a board, and the well states its rim for the board — the 1px
+  // `--grey-5` line its two lit walls draw (`.flyout-window__well`) is the
+  // dividers' colour and width, its INNER corners (`--radius-md` less the
+  // line) the corners a corner slot's mini turns with.
+  &:not(.is-composing) {
+    padding: 0;
+    --dash-rule: var(--grey-5, #bdbdbd);
+    --dash-rule-w: 1px;
+    --dash-r-tl: calc(var(--radius-md) - 1px);
+    --dash-r-tr: calc(var(--radius-md) - 1px);
+    --dash-r-br: calc(var(--radius-md) - 1px);
+    --dash-r-bl: calc(var(--radius-md) - 1px);
+  }
 }
 
 // ── THE EXTENDED BOARD'S WELL IS A PAGE, NOT A PANE (2026-08-12, user ask:
@@ -386,6 +402,11 @@ export default defineComponent({
   margin-top: 0;
   padding-top: 0;
   border-radius: 0;
+  // …and so are the corners a board inside turns with.
+  --dash-r-tl: 0px;
+  --dash-r-tr: 0px;
+  --dash-r-br: 0px;
+  --dash-r-bl: 0px;
 }
 
 // ── AND THE LEFT INSET RIDES THE WINDOW, NOT THE WELL (same ask) ──────────

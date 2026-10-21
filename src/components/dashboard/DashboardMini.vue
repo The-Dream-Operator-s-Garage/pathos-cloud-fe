@@ -120,10 +120,27 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
+// ⭐ 2026-10-20 — THE BOARD RUNS TO THE WELL'S RIM (user ask: no ghost
+// space round the minis): this panel's own well loses the family body's
+// 4px top and bottom pad (a CHILD chain from this root, so no panel nested
+// in the board is touched), and the board wrapper states the well's rim
+// for the board — `--mini-well-rule`, 1px, is every divider's colour and
+// width; the well's INNER corners (its top `--mini-well-r-top`, its bottom
+// `--pit-r`, less the line) are the corners a corner slot's mini turns with.
+.mini-panel-link > :deep(.mini-panel > .mini-panel__body) {
+  padding: 0;
+}
+
 .dashboard-mini__board {
   width: 100%;
   min-width: 0;
   display: flex;
+  --dash-rule: var(--mini-well-rule, rgba(33, 33, 33, 0.40));
+  --dash-rule-w: 1px;
+  --dash-r-tl: calc(var(--mini-well-r-top, 0.85em) - 1px);
+  --dash-r-tr: calc(var(--mini-well-r-top, 0.85em) - 1px);
+  --dash-r-br: calc(var(--pit-r, 6.34px) - 1px);
+  --dash-r-bl: calc(var(--pit-r, 6.34px) - 1px);
 
   > :deep(.dash-board) { flex: 1 1 auto; min-width: 0; }
 }

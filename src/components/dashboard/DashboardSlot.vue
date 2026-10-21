@@ -16,6 +16,17 @@
        A template slot wears its FIELD tag (`SLOT_1 · nodes`) so a board
        made from a template reads as its schema.
 
+       ⭐ FLUSH (2026-10-20, user ask: "adapt the mini viewers so they
+       adjust to their container's size completely, leaving no padding
+       around them … make the corner roundness a modifiable property"):
+       the slot has no inset — its mini runs to the dividers and the host's
+       rim, and STRETCHES to the slot's height (the body grows and scrolls,
+       the 110px excerpt cap comes off). The mini's frame corners ride
+       MiniPanel's `--mini-r-*` dials: a corner of the slot that sits on
+       one of the host container's rounded corners (`corners`, handed down
+       the split tree) turns with that container (`--dash-r-*`, the host's
+       INNER radius); every other corner is square.
+
        DEPTH: a leaf whose render budget is spent draws its nano PILL
        (RefMicro) instead of a mini — the dial that keeps a board quoted in
        a board quoted in a post from mounting the world. -->
@@ -26,7 +37,7 @@
     :data-leaf="node.leaf || null"
     :data-slot="node.slot || null"
     data-media-budget
-    :style="{ '--media-max-h': mediaMaxH + 'px', '--skel-mini-max-h': mediaMaxH + 'px' }"
+    :style="slotStyle"
     @dragover.prevent="onDragOver"
     @dragleave="dragOver = false"
     @drop.prevent="onDrop"
@@ -100,7 +111,9 @@ export default defineComponent({
   props: {
     node: { type: Object, required: true },
     editing: { type: Boolean, default: false },
-    depth: { type: Number, default: 0 }
+    depth: { type: Number, default: 0 },
+    // The host container's rounded corners this leaf touches (DashboardSplit).
+    corners: { type: Array, default: () => ['tl', 'tr', 'br', 'bl'] }
   },
   emits: ['split', 'clear', 'pick'],
   setup (props, { emit }) {
@@ -133,6 +146,17 @@ export default defineComponent({
     })
     onBeforeUnmount(() => { ro?.disconnect() })
 
+    // The corner dials: the host's inner radius where this leaf meets one
+    // of its rounded corners, square everywhere else. The slot clips to
+    // the same four, and its mini's frame reads them (`--mini-r-*`).
+    const slotStyle = computed(() => {
+      const style = { '--media-max-h': mediaMaxH.value + 'px', '--skel-mini-max-h': mediaMaxH.value + 'px' }
+      for (const c of ['tl', 'tr', 'br', 'bl']) {
+        style['--slot-r-' + c] = props.corners.includes(c) ? `var(--dash-r-${c}, 0px)` : '0px'
+      }
+      return style
+    })
+
     const onDragOver = (e) => {
       if (!props.editing) return
       dragOver.value = true
@@ -153,7 +177,7 @@ export default defineComponent({
     const flyouts = useFlyoutViewersStore()
     const openWindow = () => { if (props.node.leaf) flyouts.spawnRef(props.node.leaf) }
 
-    return { rootEl, dragOver, isEmpty, slotKind, slotTitle, exclude, asPill, mediaMaxH, onDragOver, onDrop, openWindow }
+    return { rootEl, dragOver, isEmpty, slotKind, slotTitle, exclude, asPill, slotStyle, onDragOver, onDrop, openWindow }
   }
 })
 </script>
@@ -167,25 +191,69 @@ export default defineComponent({
   height: 100%;
   min-width: 0;
   min-height: 0;
-  border-radius: 6px;
-  border: 1px solid transparent;
+  border-radius: var(--slot-r-tl) var(--slot-r-tr) var(--slot-r-br) var(--slot-r-bl);
+  overflow: hidden;
 
-  &.is-editing { border-color: var(--grey-3, #eee); }
-  &.is-empty.is-editing { border-style: dashed; border-color: var(--brown-3, #bcaaa4); }
-  &.is-dragover { border-color: var(--brown-6, #795548); background: rgba(121, 85, 72, 0.06); }
+  // The edit marks are INSET rings, not borders: a border would take a
+  // pixel of the flush slot's room (and move the mini when edit toggles).
+  &.is-empty.is-editing { box-shadow: inset 0 0 0 1px var(--brown-3, #bcaaa4); }
+  &.is-dragover { box-shadow: inset 0 0 0 2px var(--brown-6, #795548); background: rgba(121, 85, 72, 0.06); }
 }
 
 .dash-slot__body {
   flex: 1 1 auto;
   min-height: 0;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
   overflow: auto;
-  padding: 6px;
   scrollbar-width: thin;
 
-  // A mini in a slot runs the slot's width (ElementMini caps at 480px for
-  // post bodies; a board's slot IS the width).
-  :deep(.element-mini) { max-width: none; }
+  // THE FLUSH MINI — a CHILD chain from the slot to its own top panel
+  // (every Mini's root is MiniPanel's `.mini-panel-link`, or one wrapper
+  // around it — SkeletonMini's `.skel-mini`), so a mini nested in this one
+  // keeps the family's rules, and a board nested in it re-runs this chain
+  // from its own slots. The mini runs the slot's width (ElementMini's 480px
+  // prose cap lifted) and height.
+  > :deep(.element-mini),
+  > :deep(.element-mini > *),
+  > :deep(.element-mini > * > .mini-panel-link) {
+    flex: 1 1 auto;
+    min-height: 0;
+    max-width: none;
+    display: flex;
+    flex-direction: column;
+  }
+  // The frame: the slot's corners on MiniPanel's dials; no border and no
+  // shadow — the board's own lines (the host's rim, the dividers) ARE every
+  // slot's frame, so a seam is ONE line, never frame │ divider │ frame. The
+  // hover lift is off too: a tile in a wall does not rise out of it.
+  > :deep(.element-mini > .mini-panel-link > .mini-panel),
+  > :deep(.element-mini > * > .mini-panel-link > .mini-panel) {
+    flex: 1 1 auto;
+    min-height: 0;
+    --mini-r-tl: var(--slot-r-tl);
+    --mini-r-tr: var(--slot-r-tr);
+    --mini-r-br: var(--slot-r-br);
+    --mini-r-bl: var(--slot-r-bl);
+    border: 0;
+    box-shadow: none;
+    transform: none;
+  }
+  // The well takes the stretch: the excerpt cap comes off and the well
+  // scrolls what the slot cannot show.
+  > :deep(.element-mini > .mini-panel-link > .mini-panel > .mini-panel__body),
+  > :deep(.element-mini > * > .mini-panel-link > .mini-panel > .mini-panel__body) {
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: none;
+    overflow: auto;
+  }
+  // A board in a slot (DashboardMini) fills the well instead of its fixed
+  // 360/240 working height — the one inline height this chain must beat.
+  > :deep(.element-mini > .mini-panel-link > .mini-panel > .mini-panel__body > .dashboard-mini__board) {
+    height: 100% !important;
+  }
 }
 
 .dash-slot__pill {
@@ -196,7 +264,6 @@ export default defineComponent({
   padding: 6px;
   min-height: 0;
   background: var(--grey-1, #fafafa);
-  border-radius: 5px;
 }
 
 .dash-slot__picker {
