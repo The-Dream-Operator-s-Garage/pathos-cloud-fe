@@ -203,7 +203,7 @@ export default defineComponent({
           targetType: 'node', targetId: node.id, targetLabel: name, targetPath: node.path
         })
       } catch (_) { /* a capture must never fail because its log did */ }
-      emit('created', r.nodes, 'mic')
+      emit('created', r.nodes, 'mic', !!r.labeling)
       discard()
     }
 

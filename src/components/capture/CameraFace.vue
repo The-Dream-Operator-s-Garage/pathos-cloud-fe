@@ -229,7 +229,7 @@ export default defineComponent({
           targetType: 'node', targetId: node.id, targetLabel: name, targetPath: node.path
         })
       } catch (_) { /* a capture must never fail because its log did */ }
-      emit('created', r.nodes, s.kind === 'photo' ? 'photo_camera' : 'videocam')
+      emit('created', r.nodes, s.kind === 'photo' ? 'photo_camera' : 'videocam', !!r.labeling)
       clearShot()
     }
 

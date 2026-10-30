@@ -463,6 +463,11 @@ passing one.
 because the footer's hub disc rises about 20px into every dock's bottom-centre
 strip.
 
+**A node is tracked only when its upload asked (2026-10-29):** the dock reads
+the response's `labeling`. With the agents away it is false, so no row appears
+and the uploader's finished tab leaves as before. The capture faces pass it up
+as `created`'s third argument (`CaptureDock.onCreated(nodes, icon, labeling)`).
+
 - **A row per fresh upload of the sitting:** the node's collapsed nano chip,
   the red `TALAVERO` word, then either `looking…` (waiting on the seat) or the
   suggestions.

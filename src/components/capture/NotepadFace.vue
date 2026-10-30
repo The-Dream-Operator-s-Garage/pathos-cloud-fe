@@ -263,7 +263,7 @@ export default defineComponent({
       state.value = 'saved'
       errorText.value = ''
       recordAct('CREATE_NOTE', node, fileNameOf(n.title))
-      emit('created', [node], 'edit_note')
+      emit('created', [node], 'edit_note', !!r.labeling)
       loadNotes(true)
       return node
     }

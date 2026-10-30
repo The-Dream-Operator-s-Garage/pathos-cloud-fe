@@ -112,12 +112,13 @@ export default defineComponent({
     // face) and let the layout decide whether anything else cares (a
     // skeleton populate session takes fresh nodes into its tray).
     // Every capture went through the upload door, which asked Talavero for
-    // labels — except a note's later VERSIONS (`history`), minted by PUT.
+    // labels only while he can answer (`labeling`, 2026-10-29) — and never
+    // for a note's later VERSIONS (`history`), minted by PUT.
     const suggestions = useLabelSuggestionsStore()
     const receiptIds = computed(() => store.receipts.map(r => r.id))
-    const onCreated = (nodes, icon) => {
+    const onCreated = (nodes, icon, labeling = false) => {
       for (const n of nodes || []) store.pushReceipt({ id: n.id, path: n.path, icon: icon || 'adjust' })
-      if (icon !== 'history') suggestions.track(nodes, icon || 'adjust')
+      if (labeling && icon !== 'history') suggestions.track(nodes, icon || 'adjust')
       emit('created', nodes)
     }
 
