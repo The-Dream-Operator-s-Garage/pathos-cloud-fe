@@ -279,28 +279,27 @@
              left so i can drag it around the footer nav bar"). The night
              before it was a cell FUSED into the identity section; it is
              back on the trail with the makers' grip, its window riding its
-             offset (`--trail-shift`) like theirs. Glyph-only, cream at rest
-             like every chip on the bar. -->
-        <q-btn
-          unelevated no-caps
-          class="nav-btn chat-btn"
-          :class="{ 'is-active': chatExpanded }"
+             offset (`--trail-shift`) like theirs.
+             ⭐⭐ AND IT IS A STRIP NOW (2026-10-31, user ask: "making its
+             style match the same as the pinned elements window … the same
+             height as the pinned one … an inner bubble scroll but with
+             profile pics of the most recent chats"). ChatStrip.vue is the
+             pins strip's construction — full content row, brown-3
+             verticals, the strip handle, the head glyph, the bubble of
+             recent faces with their count chips — and still the slider's
+             `chat` body (its root registers through `setChip`, its handle
+             starts the same drag, its window centres on it). It left the
+             four-chip ONE WIDTH (`EQUAL_CHIPS`): it is `--chat-strip-w`.
+             The head keeps `.chat-btn`. On a phone it is the head alone,
+             seated against the identity section (the ≤600px block). -->
+        <ChatStrip
           :ref="setChip('chat')"
           :style="chipStyle('chat')"
-          title="Chats — private conversations"
-          @click="toggleChat"
-        >
-          <span class="nav-btn__grip" @pointerdown="startChipDrag('chat', $event)" @click.stop>
-            <q-icon name="drag_indicator" size="15px" />
-          </span>
-          <span class="nav-btn__grip-rule" />
-          <q-icon name="forum" size="17px" />
-          <q-badge
-            v-if="events.unreadCount > 0"
-            floating color="amber-9" text-color="black"
-            class="chat-unread-badge"
-          >{{ events.unreadCount }}</q-badge>
-        </q-btn>
+          :active="chatExpanded"
+          @toggle="toggleChat"
+          @open-chat="openChatAt"
+          @grip-down="startChipDrag('chat', $event)"
+        />
 
         <!-- ── NO DIVIDER HERE ANYMORE (2026-08-24, user ask: "there are
              weird hairlines in between the buttons … make sure each button is
@@ -462,11 +461,12 @@ import { useCaptureStore, captureLabel, MODE_META } from 'src/stores/capture'
 import { pinService } from 'src/services/pin.service'
 import IdentityChip from 'src/components/identity/IdentityChip.vue'
 import NavHub from './NavHub.vue'
+import ChatStrip from 'src/components/chat/ChatStrip.vue'
 import { installDockDrag } from 'src/utils/dockDrag'
 
 export default defineComponent({
   name: 'NavigationBar',
-  components: { IdentityChip, NavHub },
+  components: { IdentityChip, NavHub, ChatStrip },
   emits: ['toggle-drawer', 'open-maker', 'open-uploader', 'open-capture', 'open-schema-builder', 'open-label-maker', 'pins-changed'],
   props: {
     // Increment to force a pin-state refresh from the parent (e.g. after the
@@ -516,6 +516,19 @@ export default defineComponent({
       if (chatStore.isOpen && !chatStore.isMinimized && events.unreadCount > 0) {
         events.ackAll()
       }
+    }
+    // A FACE on the chat strip (2026-10-31): the window up on THAT
+    // conversation — raised from shut or parked, switched if it stood on
+    // another — and pressing the conversation already showing puts it down,
+    // the head's toggle read per face. ChatDock loads whichever chat the
+    // store names, so setting it is the whole pick.
+    const openChatAt = (id) => {
+      if (chatExpanded.value && chatStore.activeChatId === id) { chatStore.close(); return }
+      chatStore.setActive(id)
+      if (!chatStore.isOpen) chatStore.open()
+      else if (chatStore.isMinimized) chatStore.restore()
+      else windows.focus('chat')
+      if (events.unreadCount > 0) events.ackAll()
     }
 
     // ── Dashboard window toggle (2026-08-10) ─────────────────
@@ -648,7 +661,9 @@ export default defineComponent({
     // widest as `--nav-chip-w` on the bar. Only where the words show (≥1024px
     // — the CSS reads the dial there alone); runs ahead of every measure, so
     // the tabs and the slider see the equalised boxes.
-    const EQUAL_CHIPS = ['maker', 'schemaBuilder', 'labelMaker', 'chat']
+    // ⭐ THREE since 2026-10-31: chat became the chat STRIP, a fixed
+    // `--chat-strip-w` like the pins strip it now matches.
+    const EQUAL_CHIPS = ['maker', 'schemaBuilder', 'labelMaker']
     const equaliseChips = () => {
       const bar = document.querySelector('.nav-bar')
       if (!bar) return
@@ -988,6 +1003,7 @@ export default defineComponent({
       creationExpanded,
       chatExpanded,
       toggleChat,
+      openChatAt,
       dashboardExpanded,
       toggleDashboard,
       events,
@@ -2109,8 +2125,7 @@ export default defineComponent({
 // width is `equaliseChips`' measure; the face (glyph + word) centres in the
 // spare width while the grip keeps the chip's left end.
 @media (min-width: 1024px) {
-  .nav-bar .nav-btn.create-btn,
-  .nav-bar .nav-btn.chat-btn {
+  .nav-bar .nav-btn.create-btn {
     width: var(--nav-chip-w, auto);
     padding: 0 9px 0 5px; // the left 5px is the grip's own zone (see `.nav-btn__grip`)
     // Quasar's content row WRAPS by default — a word measured a hair wider
@@ -2119,7 +2134,8 @@ export default defineComponent({
     :deep(.q-btn__content) > .q-icon { margin-left: auto; }
   }
   .nav-bar .nav-btn.create-btn .nav-btn__label { margin-right: auto; }
-  .nav-bar .nav-btn.chat-btn :deep(.q-btn__content) > .q-icon { margin-right: auto; }
+  // (chat stood in this pair until 2026-10-31 — the chat strip is
+  // `--chat-strip-w`, ChatStrip.vue.)
 }
 
 @media (min-width: 1024px) {
@@ -2225,61 +2241,14 @@ export default defineComponent({
   }
 }
 
-// Chat — the conversation window's button. Aqua treatment on purpose:
-// this is where entities talk, not another maker pebble.
 @media (min-width: 1024px) {
   .identity-slot { flex: 0 0 auto; width: auto; max-width: var(--nav-id-w); }
 }
 
-.nav-bar .chat-btn {
-  flex-shrink: 0;
-
-  // ── ⭐ THE LAST THREE THINGS THAT MADE THIS CHIP ITS OWN OBJECT ARE GONE
-  // (2026-08-31, "homogenize their look"). All three were the ghost of the
-  // WORD this button carried until 2026-08-24:
-  //
-  //  · `gap: 4px` on its content row — the ONE chip on the bar not on the
-  //    shared 2px rhythm, and the reason its hairline stood at x=19 on five
-  //    chips and x=21 on this one. Two pixels, but they landed inside the
-  //    "drag icon section" the ask is about: the six handles now measure
-  //    identically (grip 6, rule 19, glyph 22) and the row reads as one part
-  //    repeated, which is the whole point of a slider's grips.
-  //  · `font-size: 0.7em` + `letter-spacing` + `text-transform` — typography
-  //    for text that no longer exists. Harmless today ONLY because the glyph
-  //    states its own `size="17px"` inline; put a label back on this chip and
-  //    it would have set in 9.8px against the makers' authored 9px, which is
-  //    exactly the kind of silent drift this bar keeps getting caught by.
-  //    `font-family: var(--font-display)` went with them — `.nav-btn` has
-  //    carried it since the bar was built, so the line was a restatement.
-  //  · `color: var(--ink-2)` — the resting ink. It was the visible one: at
-  //    #3f506a against the makers' #1f2a38 this glyph read a step PALER than
-  //    the four beside it, on a bar whose own doctrine is that every chip is
-  //    one flat cream face answering the pointer in one grey. The bar's ink
-  //    is `.nav-btn`'s `--ink-1` and this chip takes it like the rest.
-  //
-  // WHAT SURVIVES IS THE ONLY THING THAT WAS EVER LOAD-BEARING: the aqua
-  // `is-active` below. Homogenising the REST state is what makes that accent
-  // legible — six identical chips and one of them lit says "the chat dock is
-  // standing" far louder than it could from a row of six different inks.
-
-  // THE HOVER LEFT THE ACCENT ON 2026-08-23 and the ACTIVE STATE KEPT IT —
-  // one rule split in two, which is the whole shape of that day's repaint.
-  // Hover is now the bar's shared neutral step (`.nav-btn`'s own, in
-  // _components.scss): every chip on the trail answers the pointer the same
-  // way, because a row that reads as one material has to feel like one too.
-  // What aqua still says is the one thing it alone can say — THE CHAT DOCK IS
-  // STANDING — and a single accent on an otherwise cream bar states that
-  // louder than it ever did while the button was coloured at rest.
-  // ⭐ 2026-10-12 (user ask: the chat window "under the same color palette
-  // as the general dashboard window" + the buttons "match the creamy color
-  // of the footer nav bar") — the aqua standing state is gone too: the chip
-  // answers its standing window the way the dashboard button does, the
-  // `--grey-4` face and `--grey-10` ink, on the bar's cream at rest.
-  &.is-active {
-    background: var(--grey-4);
-    color: var(--grey-10);
-  }
-}
+// (`.nav-bar .chat-btn` — the chat CHIP's own rule: glyph-only, the shared
+// 2px rhythm, the grey-4 / grey-10 pressed state — stood here 2026-07 →
+// 2026-10-31. The chip became the chat STRIP, ChatStrip.vue, which carries
+// its own styles; the pressed state lives on the strip's head there.)
 
 // Dashboard — IT WAS "THE ONE GREY CONTROL ON THIS BAR" (2026-08-10) and that
 // distinction ENDED ON 2026-08-23, when the user's ask took every button on
@@ -2534,8 +2503,7 @@ export default defineComponent({
 // chips; every chip that carries a handle (the three makers + chat, a
 // slider chip again the same day) now carves it, so the row still reads as
 // one part repeated — and chat's glyph takes the carve with it.
-.nav-bar .create-btn,
-.nav-bar .chat-btn {
+.nav-bar .create-btn {
   --chip-carve:
     0 1px 0 rgba(255, 255, 255, 1),
     0 -1px 0 rgba(var(--ink-rgb-deep), 0.25);
@@ -2553,12 +2521,8 @@ export default defineComponent({
 
 // The event spine's unread count on the chat button — same tiny amber
 // treatment as the pin tack's counter (they share the bar; one voice).
-.chat-unread-badge {
-  font-size: 0.62em !important;
-  padding: 0 4px !important;
-  min-height: 12px !important;
-  letter-spacing: 0;
-}
+// ⚠ The rule MOVED to ChatStrip.vue with the badge (2026-10-31): a scoped
+// rule here cannot reach an element another component renders.
 
 // ⚠ IT FLOATS AT EVERY WIDTH AGAIN (2026-08-24) — and the round trip is worth
 // keeping, because it is the same rule read twice. Quasar's `floating` pins the
@@ -2626,28 +2590,42 @@ export default defineComponent({
   // above still covers anything narrower.
   // ⚠ 2026-09-30: the LEFT seat is gone — the stack strip moved up into the
   // header rail beside Back — so the left track's floor is 0 again.
+  // ⭐ 2026-10-31 — CHAT TOOK THE LEFT TRACK (user ask: "For mobile version,
+  // just attach the chat button to the left, next to the entity section,
+  // making it like stick to it (preserve the visible border, but make the
+  // button the same height as the entity section)"). The lookers' group
+  // (chat alone on a phone — `showTack` keeps the tack off) stands in
+  // track 1 at its START, so its left edge is `.nav-left`'s brown-3
+  // hairline (no padding, no gap: stuck), and track 3 is now just the PINS
+  // STRIP's seat, its floor `--strip-phone-w`. Both outer tracks are still
+  // equal fr shares with content floors, so the row stays centred: at 375
+  // the halves are ~70px, chat's 32 and the pins' 45 each fit inside one.
+  // Both cells name `grid-row: 1` — a definite column BEFORE the previous
+  // item's would otherwise be auto-placed on a second row.
   .nav-right {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) auto minmax(max-content, 1fr);
+    grid-template-columns: minmax(max-content, 1fr) auto minmax(var(--strip-phone-w), 1fr);
     column-gap: 4px;
     // No `--pins-strip-w` padding reserve here on a phone (the strips' seats
     // are the two outer TRACKS, above) — and no side padding at all: any
     // asymmetry here is an off-centre row.
     padding: 0;
   }
-  .create-row { grid-column: 2; }
+  .create-row { grid-column: 2; grid-row: 1; }
   .nav-looks {
-    grid-column: 3;
-    justify-self: end;
+    grid-column: 1;
+    grid-row: 1;
+    justify-self: start;
     align-self: stretch;
     display: flex;
-    align-items: center;
+    // The identity section's full height: the chat strip (its head alone
+    // here) stretches to the bar's 31px content row (ChatStrip.vue's phone
+    // block draws the rest).
+    align-items: stretch;
     gap: 0;
-    // The PINS STRIP's seat (PinsDrawer, `right: var(--nav-dash-w)`): chat
-    // butts its left rim exactly as it butted the tack slot that stood on
-    // these pixels until 2026-09-23 — the tack no longer renders on a phone
-    // (`showTack`), so chat is this group's only child here.
-    padding-right: var(--strip-phone-w);
+    // (`padding-right: var(--strip-phone-w)` — the PINS STRIP's seat, chat
+    // butting its left rim — stood here 2026-09-23 → 10-31; the seat is
+    // track 3's floor now.)
   }
 
   // The ONE remaining `.nav-divider` is the tack slot's, and mobile is exactly

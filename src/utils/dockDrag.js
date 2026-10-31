@@ -8,7 +8,7 @@
 // identity window. A dock opts in by carrying `data-dock-key="<its windows
 // key>"` on its `.dock-window` root and spreading `windows.winDragStyle(key)`
 // into its inline style; the offset lands in the store (`winDrag`) and the
-// CSS composes `--win-dx` / `--win-dy` into the window's `translate`
+// CSS composes `--win-dx` into the window's `translate`
 // (_components.scss — the property, never `transform`, which the dock-slide
 // enter/leave animation owns).
 //
@@ -18,8 +18,7 @@
 // · Maximized / split windows do not move (their geometry is the desk's), and
 //   on a phone every dock runs edge to edge, so nothing drags there.
 // · The box may not leave the screen: at least 80px of it stays on either
-//   side, and the head bar never rises over the top edge or sinks off the
-//   bottom one — the handle is always reachable.
+//   side — the handle is always reachable.
 // · A double-click on the head bar puts the window back on its seat.
 // · ⭐ THE BUTTON COMES ALONG (2026-10-12, user ask: "if i drag a window
 //   across the footer nav bar, its button should be moving along with it!
@@ -28,9 +27,13 @@
 //   HORIZONTAL travel on that body first, through the slider's own session
 //   (`beginTrailMove` — the walls, the pass-through re-seating): the button
 //   walks the bar and the window, centred on it, rides along. Only what the
-//   walls refuse lands in `--win-dx`; the vertical travel is always the
-//   window's own. The dashboard and identity windows open from the bar's
-//   fixed end cells, so they move alone.
+//   walls refuse lands in `--win-dx`. The dashboard and identity windows
+//   open from the bar's fixed end cells, so they move alone.
+// · ⭐ SIDEWAYS ONLY (2026-10-31, user ask: "I can drag them vertically. I
+//   should not be able to … make sure they remain attached to the footer nav
+//   bar"). The gesture reads the pointer's X alone: every footer window keeps
+//   its floor on the bar and only walks along it. The `--win-dy` half of the
+//   offset (2026-10-12 → 10-31) is gone from the store and the CSS.
 import { useWindowsStore } from 'src/stores/windows'
 import { beginTrailMove } from 'src/utils/trailSlider'
 
@@ -58,25 +61,22 @@ function onDown (e) {
   if (windows.isMobile) return
   const { bar, win, key } = head
   const sx = e.clientX
-  const sy = e.clientY
-  const d0 = windows.winDrag[key] || { x: 0, y: 0 }
+  const x0 = (windows.winDrag[key] || { x: 0 }).x
   const rect = win.getBoundingClientRect()
   let live = false
   let session = null
   const move = (ev) => {
     let dx = ev.clientX - sx
-    let dy = ev.clientY - sy
     if (!live) {
-      if (Math.hypot(dx, dy) < THRESHOLD) return
+      if (Math.abs(dx) < THRESHOLD) return
       live = true
       try { bar.setPointerCapture(e.pointerId) } catch (_) { /* listeners still work */ }
       win.classList.add('is-dragging')
       if (BODY_OF[key]) session = beginTrailMove(BODY_OF[key])
     }
     dx = Math.min(Math.max(dx, KEEP - rect.right), window.innerWidth - KEEP - rect.left)
-    dy = Math.min(Math.max(dy, -rect.top), window.innerHeight - 40 - rect.top)
     const carried = session ? session.moveBy(dx) : 0
-    windows.setWinDrag(key, d0.x + dx - carried, d0.y + dy)
+    windows.setWinDrag(key, x0 + dx - carried)
   }
   const up = () => {
     document.removeEventListener('pointermove', move)

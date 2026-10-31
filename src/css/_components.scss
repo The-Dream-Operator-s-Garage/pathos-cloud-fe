@@ -818,9 +818,10 @@
   // `left: 50vw`, so the floor is -50vw) and the right edge may not pass the
   // daylight it normally keeps off the pins column (`--dock-right` +
   // `--dock-gap` is exactly that reserve).
-  // ⭐ 2026-10-12: + the head-bar drag (`--win-dx` / `--win-dy`,
-  // utils/dockDrag.js) composed into the same property.
-  translate: calc(clamp(-50vw, var(--trail-shift, 0px), calc(var(--dock-right, 0px) + var(--dock-gap))) + var(--win-dx, 0px)) var(--win-dy, 0px);
+  // ⭐ 2026-10-12: + the head-bar drag (`--win-dx`, utils/dockDrag.js)
+  // composed into the same property — X only since 2026-10-31: the windows
+  // stay standing on the bar (the `--win-dy` half let them float off it).
+  translate: calc(clamp(-50vw, var(--trail-shift, 0px), calc(var(--dock-right, 0px) + var(--dock-gap))) + var(--win-dx, 0px)) 0;
   // ── DAYLIGHT OFF THE TOP CHROME, INCLUDING WHAT HANGS OFF IT (2026-08-24,
   // user ask: "make sure they leave a little space between their top border
   // and the header nav bar tabs") ──
@@ -1299,8 +1300,8 @@
 // and its dock binds that as `--dock-seat`; the box keeps the creation
 // width (50vw less the right reserve) and centres on seat + `--trail-shift`,
 // clamped so it never leaves the screen. The hub's two windows read
-// `--seat-hub`. `translate` carries only the head-bar drag now (`--win-dx` /
-// `--win-dy`, utils/dockDrag.js). Not the DASHBOARD: it is anchored to the
+// `--seat-hub`. `translate` carries only the head-bar drag now (`--win-dx`,
+// utils/dockDrag.js — sideways only since 2026-10-31). Not the DASHBOARD: it is anchored to the
 // screen's right edge by its own ask (below), which is where its end-cell
 // button stands anyway. Max/split keep their own geometry; ≤900px the
 // creation rule runs every window edge to edge.
@@ -1314,7 +1315,7 @@
       calc(var(--dock-seat, 75vw) + var(--trail-shift, 0px) - var(--dock-w) / 2),
       calc(100vw - var(--dock-right, 0px) - var(--dock-gap) - var(--dock-w))
     );
-    translate: var(--win-dx, 0px) var(--win-dy, 0px);
+    translate: var(--win-dx, 0px) 0;
   }
 }
 
@@ -1414,7 +1415,7 @@
     left: 0;
     border-left: none;
     border-top-left-radius: 0;
-    translate: var(--win-dx, 0px) var(--win-dy, 0px); // the head-bar drag (2026-10-12)
+    translate: var(--win-dx, 0px) 0; // the head-bar drag (2026-10-12; sideways only 10-31)
   }
 }
 

@@ -3,7 +3,8 @@ import api from './api'
 // Conversations (chat feature, 2026-07): CHAT skeletons + MESSAGE
 // instances, access-doctrine native. See docs/concepts/chat.md.
 export const chatService = {
-  // → { chats: [{ id, path, members[], last }] } — latest activity first.
+  // → { chats: [{ id, path, members[], last, message_count, unread }] } —
+  // latest activity first. The two counts feed the footer's chat strip.
   async list () {
     const { data } = await api.get('/chats')
     return data

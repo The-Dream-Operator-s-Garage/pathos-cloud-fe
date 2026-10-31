@@ -2784,6 +2784,20 @@ $warning:   #F2C037;
   // shoulders: 1 + 20 head + 2 + 68 lane + 2 + 1 + 2 + 11 + 5 + 1 = 113.
   // Three pills still in view; `.nav-right`'s reserve follows the dial.
   --pins-strip-w: 113px;
+  // ⭐ THE CHAT STRIP (2026-10-31, user ask: the chat button's "style match
+  // the same as the pinned elements window … the same height as the pinned
+  // one … an inner bubble scroll but with profile pics of the most recent
+  // chats", ChatStrip.vue). The pins strip's grammar read left to right —
+  // the chips' side for the handle, the faces where the pins' pills stand:
+  //   1 rim + 18 grip (5 · 11 · 2) + 1 hairline + 20 head + the lane
+  //   (2 shoulder + 1 rim + 2 pad + 3 × 21 faces + 2 × 5 gaps + 4 pad +
+  //   1 rim + 2 shoulder = 85) + 1 rim = 126.
+  // The gaps and the lane's right pad are 5 / 4 where the pins' are 2 / 1:
+  // each face's count chip hangs 4px off its top-right corner and must land
+  // in the well, not on the next face or under the rim. Three faces in
+  // view; the rest scroll, newest first from the left. Desktop only — a
+  // phone draws the head alone (NavigationBar's ≤600px block).
+  --chat-strip-w: 126px;
   // ⭐ THE PHONE'S STRIP WIDTH (2026-09-23, user ask: on mobile the pin
   // section should "match the style of the pin Bubble on desktop mode and show
   // only the last pinned item inside a Bubble", and the stack section come

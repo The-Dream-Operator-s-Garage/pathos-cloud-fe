@@ -168,8 +168,9 @@ export const useWindowsStore = defineStore('windows', {
     trailOffsets: loadTrailOffsets(),
     // ⭐ WINDOWS DRAG BY THEIR HEAD BAR (2026-10-12, user ask: "let me drag
     // any of the button's windows through the header bar"). Per dock key,
-    // `{ x, y }` px off the window's own seat, composed into its CSS
-    // `translate` (`--win-dx` / `--win-dy`, _components.scss). Session-only:
+    // `{ x }` px off the window's own seat, composed into its CSS
+    // `translate` (`--win-dx`, _components.scss) — SIDEWAYS ONLY since
+    // 2026-10-31 (the `y` half let a window leave the bar). Session-only:
     // a reload puts every window back on its seat; a double-click on the head
     // bar does it at once. `utils/dockDrag.js` writes it.
     winDrag: {},
@@ -210,13 +211,13 @@ export const useWindowsStore = defineStore('windows', {
       return (key) => (this.isMobile || !TRAIL_KEYS.includes(key) ? 0 : this.trailOffsets[key] || 0)
     },
 
-    // The two custom properties a dock binds into its inline style — how far
-    // its head bar has dragged it off its seat (`winDrag`). Empty on mobile,
+    // The custom property a dock binds into its inline style — how far its
+    // head bar has walked it along the bar (`winDrag`). Empty on mobile,
     // where every dock runs edge to edge.
     winDragStyle () {
       return (key) => {
         const d = this.winDrag[key]
-        return d && !this.isMobile ? { '--win-dx': d.x + 'px', '--win-dy': d.y + 'px' } : {}
+        return d && !this.isMobile ? { '--win-dx': d.x + 'px' } : {}
       }
     },
 
@@ -244,8 +245,8 @@ export const useWindowsStore = defineStore('windows', {
       this.trailOffsets[key] = Math.round(px)
     },
 
-    setWinDrag (key, x, y) {
-      this.winDrag[key] = { x: Math.round(x), y: Math.round(y) }
+    setWinDrag (key, x) {
+      this.winDrag[key] = { x: Math.round(x) }
     },
     clearWinDrag (key) {
       delete this.winDrag[key]

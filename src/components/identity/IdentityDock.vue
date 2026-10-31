@@ -358,8 +358,8 @@ export default defineComponent({
   border-bottom: none;
   border-top-left-radius: 0;
   border-top-right-radius: var(--radius-md);
-  // ⭐ the head-bar drag (2026-10-12, utils/dockDrag.js)
-  translate: var(--win-dx, 0px) var(--win-dy, 0px);
+  // ⭐ the head-bar drag (2026-10-12, utils/dockDrag.js; sideways only 10-31)
+  translate: var(--win-dx, 0px) 0;
   box-shadow:
     0 -10px 40px rgba(var(--ink-rgb-deep), 0.18),
     5px 0 12px rgba(var(--ink-rgb-deep), 0.16);

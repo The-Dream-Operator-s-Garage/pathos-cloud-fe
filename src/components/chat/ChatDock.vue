@@ -324,7 +324,9 @@ export default defineComponent({
     const windows = useWindowsStore()
     const auth = useAuthStore()
 
-    const chats = ref([])
+    // The list lives in the chat store since 2026-10-31 — the footer's chat
+    // strip draws its most recent faces from the same read.
+    const chats = computed(() => store.chats)
     const loadingChats = ref(false)
     const items = ref([])
     const members = ref([])
@@ -414,15 +416,10 @@ export default defineComponent({
 
     const loadChats = async () => {
       loadingChats.value = true
-      try {
-        const r = await chatService.list()
-        if (r.success) {
-          chats.value = r.chats
-          if (store.activeChatId && !chats.value.find((c) => c.id === store.activeChatId)) {
-            store.setActive(chats.value[0]?.id ?? null)
-          }
-        }
-      } catch (_) { /* bar shows empty list */ }
+      await store.loadChats()
+      if (store.activeChatId && !chats.value.find((c) => c.id === store.activeChatId)) {
+        store.setActive(chats.value[0]?.id ?? null)
+      }
       loadingChats.value = false
     }
 
@@ -439,6 +436,9 @@ export default defineComponent({
           pendingOthers.value = !!r.pending_others
           gateMsg.value = ''
           feedTick.value++
+          // Reading the feed IS the receipt — the strip's chip for this
+          // conversation clears with it.
+          store.markRead(store.activeChatId)
           if (grew) scrollToEnd()
         }
       } catch (_) { /* conversation may have been left/denied */ }
@@ -530,12 +530,16 @@ export default defineComponent({
     }
 
     const openChat = (id) => {
+      const same = id === store.activeChatId
       store.setActive(id)
       composeOpen.value = false
       // Picking a conversation IS the overlay's purpose — it closes back to
       // the faces rail so the thread you just chose is what you see.
       listOverlay.value = false
-      loadFeed()
+      // A NEW pick loads through the lifecycle watcher's `activeChatId` arm
+      // (the one door for every picker — this list and the footer's chat
+      // strip).
+      if (same) loadFeed()
     }
 
     // ── New conversation ────────────────────────────────────
@@ -626,10 +630,28 @@ export default defineComponent({
 
     // ── Lifecycle: load on open + a slow poll as the SSE fallback (the
     // spine does the live work; this catches a dropped stream).
+    //
+    // ⭐ AND THE ACTIVE CHAT IS WATCHED WITH THEM (2026-10-31): the footer's
+    // chat strip (ChatStrip.vue) picks a conversation by setting the store's
+    // `activeChatId`, often in the same tick it raises this window. One
+    // watcher over all three reads the change in either order: a window that
+    // RISES runs the full open (list + feed + poll), a window already up
+    // whose chat CHANGED loads that feed — never both, never twice.
     let pollTimer = null
-    watch(() => [store.isOpen, store.isMinimized], async ([open, min]) => {
+    watch(() => [store.isOpen, store.isMinimized, store.activeChatId], async ([open, min, id], prev) => {
+      const standing = open && !min
+      const wasStanding = !!prev && prev[0] && !prev[1]
+      if (standing && wasStanding) {
+        if (id !== prev[2]) {
+          composeOpen.value = false
+          listOverlay.value = false
+          await loadFeed()
+          scrollToEnd()
+        }
+        return
+      }
       clearInterval(pollTimer)
-      if (open && !min) {
+      if (standing) {
         await loadChats()
         await loadFeed()
         scrollToEnd()
