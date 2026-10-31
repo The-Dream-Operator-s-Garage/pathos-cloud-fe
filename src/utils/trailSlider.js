@@ -24,6 +24,9 @@
 //   · a gesture is clamped against the two walls only; ⭐ since 2026-10-12
 //     bodies PASS THROUGH each other — the others re-seat around the dragged
 //     one (see `startTrailDrag`), so the order is the user's to change;
+//     ⭐ since 2026-10-31 a RELEASE never leaves one body resting on another
+//     — the dragged body settles beside the neighbour it rode over (`settle`
+//     in `beginTrailMove`);
 //   · the WALLS are the bar's two end cells — the identity section's closing
 //     hairline and the dashboard block's opening one — the only things on
 //     the bar that never move (the strips were walls too until this day);
@@ -99,7 +102,8 @@ export function trailBounds () {
 // its button should be moving along with it"). `beginTrailMove(key)`
 // snapshots the bar; `moveBy(dx)` lays the row out for the dragged body `dx`
 // px off its pointer-down seat and returns the dx it could actually take
-// (the walls hold it); `end()` persists. Null on a phone / unmounted body.
+// (the walls hold it); `end()` settles the release (see `settle` below)
+// and persists. Null on a phone / unmounted body.
 export function beginTrailMove (key) {
   const windows = useWindowsStore()
   if (windows.isMobile) return null
@@ -116,7 +120,8 @@ export function beginTrailMove (key) {
   // OTHERS are laid out around it from their pointer-down seats: a body
   // whose centre the dragged one's centre has crossed re-seats on the far
   // side, one touched without being crossed is nudged aside — or, on a row
-  // packed wall to wall, slides BEHIND the dragged one until it is crossed —
+  // packed wall to wall, slides BEHIND the dragged one until it is crossed
+  // (or the pointer lets go — the release settles, see `settle` below) —
   // and every body returns to its own seat when the drag moves away again.
   // Each layout is computed from the snapshot, never from the last frame, so
   // a fast pointer cannot tunnel or strand a body mid-shove.
@@ -134,9 +139,9 @@ export function beginTrailMove (key) {
     const rights = others.filter((o) => o.left + o.width / 2 >= mid).sort((a, b) => a.left - b.left)
     return { lefts, rights }
   }
-  const moveBy = (dx) => {
-    const x = Math.min(Math.max(rect.left + dx, bounds.left), bounds.right - w)
-    const { lefts, rights } = layout(x)
+  // Lay the others out round the dragged body standing at `x`, `lefts` /
+  // `rights` being the sides `layout` sorted them onto.
+  const place = (x, lefts, rights) => {
     const seat = {}
     let edge = x - TRAIL_GAP
     for (const o of lefts) {
@@ -162,7 +167,45 @@ export function beginTrailMove (key) {
     windows.setTrailOffset(key, startOffset + (x - rect.left))
     return x - rect.left
   }
-  return { moveBy, end: () => windows.persistTrail() }
+  let last = null
+  const moveBy = (dx) => {
+    const x = Math.min(Math.max(rect.left + dx, bounds.left), bounds.right - w)
+    const { lefts, rights } = layout(x)
+    last = { x, lefts, rights }
+    return place(x, lefts, rights)
+  }
+  // ⭐ THE RELEASE SETTLES (2026-10-31, user ask — a chip let go over its
+  // neighbour should "settle beside it instead"). Mid-gesture a body the
+  // dragged one has touched but not crossed may slide BEHIND it — on a row
+  // packed wall to wall that is the only way the drag can keep going. The
+  // overlap only ever comes from a wall clamp, so the sides that last layout
+  // sorted (kept as they are — the user's order) bound where the dragged body
+  // can stand with every other body clear of it, daylight included: `lo`
+  // when the left side is pressed against the identity section, `hi` when
+  // the right side is pressed against the dashboard block. The body steps
+  // to the nearest of the two, the rest re-seat round it, and nothing is
+  // left resting on anything. A window dragged by its head bar rides its
+  // button there like on any other move (it centres on it — `left` eases
+  // over 0.18s — unless the screen's edge already holds it). A row too short
+  // to hold every body (never at desktop widths) keeps the overlap for
+  // `reconcileTrail` to shove.
+  const settle = () => {
+    if (!last) return
+    const { x, lefts, rights } = last
+    const span = (list) => list.reduce((s, o) => s + o.width + TRAIL_GAP, 0)
+    const lo = bounds.left + span(lefts)
+    const hi = bounds.right - span(rights) - w
+    if (lo > hi) return
+    const to = Math.min(Math.max(x, lo), hi)
+    if (Math.abs(to - x) >= 0.5) place(to, lefts, rights)
+  }
+  return {
+    moveBy,
+    end: () => {
+      settle()
+      windows.persistTrail()
+    }
+  }
 }
 
 // Start dragging one body by its grip. `e` is the grip's pointerdown; the
