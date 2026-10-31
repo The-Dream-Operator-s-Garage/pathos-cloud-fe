@@ -91,6 +91,9 @@ const FIT_W_MAX = 2000
 // card as wide as its frame; left alone it would stretch across a 1000px
 // post page with a two-line title. Its own widget seats it in a 640px
 // column, so that is the box's width until a provider says otherwise.
+// ⭐ 2026-10-31 (Instagram, 540): that column is the RULE's word now —
+// `embed.width` (EMBED_RULE `WIDTH`); 640 is only the fallback for a rule
+// that states none.
 const FIT_W_DEFAULT = 640
 
 // The {width, height} a provider's size message carries, wherever it sits
@@ -129,7 +132,7 @@ export default defineComponent({
   name: 'EmbedFrame',
   props: {
     // { provider, src, title, allow, aspect, icon, mode, zoom, height,
-    // heights, url, rule } — never HTML. `icon` is the rule's caption icon
+    // heights, radius, width, url, rule } — never HTML. `icon` is the rule's caption icon
     // (a video rule says play_circle, an article rule says menu_book, a
     // music rule music_note); `mode` picks the geometry (player =
     // ratio-locked, page = full-width document, card = full-width at one
@@ -202,6 +205,12 @@ export default defineComponent({
     onMounted(() => window.addEventListener('message', onMessage))
     onBeforeUnmount(() => window.removeEventListener('message', onMessage))
     watch(() => props.embed?.src, () => { reported.value = null })
+    // The provider's own column for a fit that reports no width — the
+    // rule's `width`, re-clamped (it lands on a style), else 640.
+    const fitCol = computed(() => {
+      const w = Number(props.embed?.width)
+      return w >= FIT_W_MIN && w <= FIT_W_MAX ? Math.round(w) : FIT_W_DEFAULT
+    })
 
     // The surface's height budget as a NUMBER — measured off the probe
     // strip in the template (null until the first measure, so the box
@@ -296,7 +305,7 @@ export default defineComponent({
       }
       if (isFit.value) {
         const g = fitGeom.value
-        const w = reported.value?.w || FIT_W_DEFAULT
+        const w = reported.value?.w || fitCol.value
         return {
           '--embed-height': g.box ? `${g.box}px` : `min(${g.h}px, calc(var(--media-max-h, ${g.h}px) - var(--media-nest-h, 0px)))`,
           '--embed-inner-h': `${g.h}px`,
@@ -497,6 +506,21 @@ export default defineComponent({
 // specificity, the later rule wins.
 .embed-frame__box--own {
   border-radius: var(--embed-own-r, 12px);
+}
+
+// ⭐ A FULL-BLEED FIT (2026-10-31, Instagram): the transparent, rimless,
+// 12px box above assumes the provider draws its own card (X, Reddit — the
+// rules that state a RADIUS). Instagram's embed is an opaque white page
+// edge to edge whose rim and corner its embed.js asks the HOST to draw
+// (its `MOUNTED` message: `border: 1px solid #dbdbdb`), so a fit WITHOUT a
+// provider corner is dressed like a player: the surface's corner and the
+// player's hairline — as a RING, never a border, because a fit frame's
+// width is load-bearing (X and Reddit report it back; Instagram
+// re-measures its height at it). Stated BEFORE the rim: equal specificity,
+// and a `rimmed` host's ring + shadow must win.
+.embed-frame__box--fit:not(.embed-frame__box--own) {
+  border-radius: var(--embed-r, 6px);
+  box-shadow: 0 0 0 1px rgba(var(--ink-rgb), 0.14);
 }
 
 // ── ⭐ THE RIM (2026-10-17 eve) ──────────────────────────────────────────

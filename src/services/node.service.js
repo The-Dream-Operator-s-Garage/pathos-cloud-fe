@@ -55,6 +55,22 @@ export const nodeService = {
     const { data } = await api.post(`/nodes/${nodeId}/label-suggestions/${sid}/discard`)
     return data
   },
+  // "Already in your pathchain?" (2026-10-31) — the authoring catch's
+  // duplicate check, asked AS the authoring entity (omit = the acting one;
+  // 403 code 40300 for an identity the caller may not author as). Only that
+  // entity's own nodes are compared. → { success, entityId, key,
+  // existing: { id, path, type_id, content, created_at, provider, icon } | null }
+  async lookupLink (url, entityId = null) {
+    const { data } = await api.post('/nodes/links/lookup', { url, ...(entityId ? { entityId } : {}) })
+    return data
+  },
+  // Same question for bytes: the hex sha256 (+ size) of a pasted file.
+  // → { success, entityId, existing: { id, path, type_id, content, created_at, name } | null }
+  async lookupFile ({ sha256, size }, entityId = null) {
+    const { data } = await api.post('/nodes/files/lookup', { sha256, size, ...(entityId ? { entityId } : {}) })
+    return data
+  },
+
   // Ask Talavero (again) — uploads ask by themselves; links + retries use this.
   async requestLabelSuggestions (nodeId) {
     const { data } = await api.post(`/nodes/${nodeId}/label-suggestions/request`)

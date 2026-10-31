@@ -75,6 +75,23 @@
           :height="embed ? '200px' : '100%'"
           @update:model-value="patch({ content: $event })"
           @insert-skeleton="addDraftGrid"
+          @paste.capture="onEditorPaste"
+        />
+
+        <!-- ⭐ THE AUTHORING CATCH (2026-10-31, user asks: the uploader's
+             teal link frame "when they're either writing a note or a post
+             … visible and glowing only when a new link is recognized" +
+             "if i paste a picture or a file on a post, it should recognize
+             it and help me prompt the addition of it into my pathchain (if
+             it is not duplicated)"). `LinkCatchList` + `useLinkCatch`: a
+             NEW link (pasted, or typed and finished) or a pasted file
+             glows with Add; one the draft's AUTHOR already holds shows
+             calm with Use it — asked as the author the header picked. The
+             URL, or the file's `⟪…⟫` mark at the caret, becomes the node's
+             nano pill in the body. -->
+        <LinkCatchList
+          :catches="catcher.catches.value"
+          @add="catcher.add" @use="catcher.use" @dismiss="catcher.dismiss"
         />
 
         <!-- Skeletons-to-be (skeletons plan phase 3, D10): the grids the
@@ -182,6 +199,8 @@ import RefBrowser from './RefBrowser.vue'
 import AccessTreeDialog from './AccessTreeDialog.vue'
 import NoteEditor from 'src/components/nodes/NoteEditor.vue'
 import DraftSkeletonGrid from './DraftSkeletonGrid.vue'
+import LinkCatchList from 'src/components/shared/LinkCatchList.vue'
+import { useLinkCatch } from 'src/composables/useLinkCatch'
 import { useMakerStore } from 'src/stores/maker'
 import { useNavStore } from 'src/stores/navigation'
 import { postService } from 'src/services/post.service'
@@ -195,7 +214,7 @@ const PARENT_ICONS = { post: 'article', comment: 'chat_bubble_outline', node: 'a
 
 export default defineComponent({
   name: 'PostMakerSurface',
-  components: { MakerHeader, RefBrowser, AccessTreeDialog, NoteEditor, DraftSkeletonGrid },
+  components: { MakerHeader, RefBrowser, AccessTreeDialog, NoteEditor, DraftSkeletonGrid, LinkCatchList },
   props: {
     draftId: { type: String, default: null },
     // Embedded density: compact header, fixed-height editor, Close button.
@@ -218,6 +237,20 @@ export default defineComponent({
     const patch = (p) => {
       if (draft.value) store.patchDraft(draft.value.id, p)
     }
+
+    // THE AUTHORING CATCH (2026-10-31) — per draft; a file's mark goes in
+    // at the editor's caret (NoteEditor.insertText, the ⟪skeleton⟫ token's
+    // door).
+    const draftOf = (id) => store.drafts.find(d => String(d.id) === String(id)) || null
+    const catcher = useLinkCatch({
+      scope: () => draft.value?.id,
+      text: (id) => draftOf(id)?.content || '',
+      setText: (next, id) => { if (draftOf(id)) store.patchDraft(draftOf(id).id, { content: next }) },
+      author: (id) => draftOf(id)?.authorEntityId || null,
+      labelIds: (id) => draftOf(id)?.labelIds || [],
+      insertAtCaret: (t) => editorRef.value?.insertText(t)
+    })
+    const onEditorPaste = (e) => catcher.onPaste(e)
 
     // The reference's chosen preview tier → its sigil: mini forces the
     // full panel (![[…]]), micro forces the smallest chip (-[[…]]), auto
@@ -455,6 +488,8 @@ export default defineComponent({
       store,
       draft,
       patch,
+      catcher,
+      onEditorPaste,
       invokeRef,
       draftGrids,
       hasUnminted,

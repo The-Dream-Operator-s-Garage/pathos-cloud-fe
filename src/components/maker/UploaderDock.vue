@@ -192,28 +192,15 @@
                    that text, in place, into the node's NANO PILL
                    `-[[pathos:nodes/<hash>|provider]]`. Dismissing keeps the
                    URL as plain text; deleting it from the note drops the
-                   catch. -->
-              <div v-if="linkCatches.length" class="link-catches">
-                <div
-                  v-for="c in linkCatches" :key="c.key"
-                  class="link-catch" :class="{ 'is-busy': c.busy, 'is-error': !!c.error }"
-                >
-                  <q-icon :name="c.embed?.icon || 'link'" size="15px" class="link-catch__icon" />
-                  <span class="link-catch__text">
-                    <span class="link-catch__url" :title="c.url">{{ c.url }}</span>
-                    <span class="link-catch__meta">{{ c.error || (c.embed ? `${c.embed.provider} — add it as a link pill?` : 'add it as a link pill?') }}</span>
-                  </span>
-                  <q-btn
-                    unelevated dense no-caps size="sm" icon="add_link"
-                    class="link-catch__add" label="Add link"
-                    :loading="c.busy" @click="confirmCatch(c)"
-                  />
-                  <button type="button" class="link-catch__x" title="Keep it as plain text"
-                    :disabled="c.busy" @click="dismissCatch(c)">
-                    <q-icon name="close" size="12px" />
-                  </button>
-                </div>
-              </div>
+                   catch. ⭐ 2026-10-31: the frame is the shared
+                   `LinkCatchList` + `useLinkCatch` (the notepad and the
+                   post composer wear it too) — a TYPED link is caught once
+                   finished, and a link the tab's author already holds shows
+                   calm, as "already in your pathchain" + Use it. -->
+              <LinkCatchList
+                :catches="catcher.catches.value"
+                @add="catcher.add" @use="catcher.use" @dismiss="catcher.dismiss"
+              />
             </section>
 
             <!-- FILES — 45% (55% since the link section folded into the note, 2026-10-12): drag-drop + browse, staged as PREVIEW TILES
@@ -320,11 +307,12 @@ import { useNavStore } from 'src/stores/navigation'
 import { uploadCodeFor } from 'src/utils/navActions'
 import { nodeService } from 'src/services/node.service'
 import { labelService } from 'src/services/label.service'
-import { embedService } from 'src/services/embed.service'
 import { formatBytes } from 'src/utils/nodeContent'
 import { extractPathosRefs } from 'src/utils/pathosRefs'
 import { srcFromEmbedMarkup } from 'src/utils/embedMarkup'
-import { findLinks, indexOfLink } from 'src/utils/linkCatch'
+import { findLinks } from 'src/utils/linkCatch'
+import { useLinkCatch, hostOf } from 'src/composables/useLinkCatch'
+import LinkCatchList from 'src/components/shared/LinkCatchList.vue'
 import LabelSuggestionTray from 'src/components/labels/LabelSuggestionTray.vue'
 import { useLabelSuggestionsStore } from 'src/stores/labelSuggestions'
 
@@ -349,7 +337,7 @@ const KIND_ICON = { text: 'notes', image: 'image', video: 'movie', audio: 'music
 
 export default defineComponent({
   name: 'UploaderDock',
-  components: { MakerHeader, FileExplorer, MarkdownBody, FriezeBar, LabelSuggestionTray },
+  components: { MakerHeader, FileExplorer, MarkdownBody, FriezeBar, LabelSuggestionTray, LinkCatchList },
   emits: ['created'],
 
   setup (props, { emit }) {
@@ -380,70 +368,26 @@ export default defineComponent({
       u.staged.length ? 'folder_open'
         : (u.noteText || '').trim() ? 'edit_note' : 'upload'
 
-    // ── THE LINK CATCH (2026-10-12) ──────────────────────────
-    // A link reaches the uploader only through the note now: a paste that
-    // carries URLs leaves them in the text as typed and raises one catch
-    // per new URL (one per URL per tab — pasting the same link twice asks
-    // once). Each catch is resolved against the EMBED_RULE skeletons
-    // (POST /embeds/resolve) for its provider word and glyph; a failure
-    // just means "no rule matched". Catches are transient, like a tab's
-    // busy state: a reload keeps the URL as text and drops the question.
-    const catches = ref([])
-    let catchSeq = 0
-    const linkCatches = computed(() =>
-      catches.value.filter(c => c.uploadId === upload.value?.id))
-
-    const catchLinks = (urls) => {
-      const u = upload.value
-      if (!u) return
-      for (const url of urls) {
-        if (catches.value.some(c => c.uploadId === u.id && c.url === url)) continue
-        catches.value.push({ key: ++catchSeq, uploadId: u.id, url, embed: null, busy: false, error: '' })
-        const c = catches.value[catches.value.length - 1]
-        embedService.resolve(url)
-          .then(r => { if (r.success && r.embed) c.embed = r.embed })
-          .catch(() => { /* unrecognized = a plain link pill */ })
-      }
-    }
-
-    const dismissCatch = (c) => {
-      catches.value = catches.value.filter(x => x.key !== c.key)
-    }
-
-    // A caught URL the author deleted from the note is no longer a
-    // question — and a closed tab's catches go with it.
-    watch(
-      () => store.uploads.map(u => [u.id, u.noteText]),
-      () => {
-        catches.value = catches.value.filter(c => {
-          if (c.busy) return true
-          const t = store.uploads.find(x => x.id === c.uploadId)
-          return !!t && indexOfLink(t.noteText || '', c.url) >= 0
-        })
-      }
-    )
-
-    // Add link: mint the LINK node, then swap the URL's text for the
-    // node's nano pill where it stands (the first bare occurrence — never
-    // a longer URL it prefixes). If the text moved under the request the
-    // pill is appended rather than lost.
-    const confirmCatch = async (c) => {
-      const t0 = store.uploads.find(x => x.id === c.uploadId)
-      if (!t0 || c.busy) return
-      c.busy = true
-      c.error = ''
-      try {
-        const r = await nodeService.create({
-          content: c.url,
-          typeId: 3,
-          labelIds: t0.labelIds,
-          authorEntityId: t0.authorEntityId
-        })
-        if (!r.success || !r.node?.path) {
-          c.error = r.error?.message || 'Invalid link'
-          return
-        }
-        const node = r.node
+    // ── THE LINK CATCH (2026-10-12; shared since 2026-10-31) ──
+    // A link reaches the uploader through the note: pasted (or typed and
+    // finished) it stays in the text as written and raises one catch per
+    // new URL per tab, asked — before it shows — what it is (EMBED_RULE)
+    // and whether the tab's AUTHOR already holds it (POST /nodes/links/
+    // lookup, seat-strict). The whole law is `composables/useLinkCatch`;
+    // what is the uploader's own is what happens after a mint.
+    const tabOf = (id) => store.uploads.find(x => String(x.id) === String(id))
+    const catcher = useLinkCatch({
+      scope: () => upload.value?.id,
+      text: (id) => tabOf(id)?.noteText || '',
+      setText: (next, id, caret) => {
+        const t = tabOf(id)
+        if (!t) return
+        store.patchUpload(t.id, { noteText: next })
+        if (caret != null && String(id) === String(upload.value?.id)) nextTick(() => { const el = noteBox.value; if (el) { el.focus(); el.setSelectionRange(caret, caret) } })
+      },
+      author: (id) => tabOf(id)?.authorEntityId || null,
+      labelIds: (id) => tabOf(id)?.labelIds || [],
+      onLinkMinted: (node, c) => {
         // Links don't pass the upload door — ask Talavero explicitly.
         nodeService.requestLabelSuggestions(node.id)
           .then((q) => { if (q?.success) trackSuggest([node], 'link') })
@@ -457,26 +401,9 @@ export default defineComponent({
             targetPath: node.path
           })
         } catch (_) { /* a link must never fail because its log did */ }
-        const label = refLabelOf(c.embed?.provider || node.embed?.provider || hostOf(c.url))
-        const pill = `-[[pathos:${node.path}|${label}]]`
-        const t = store.uploads.find(x => x.id === c.uploadId)
-        if (t) {
-          const text = t.noteText || ''
-          const at = indexOfLink(text, c.url)
-          const next = at >= 0
-            ? text.slice(0, at) + pill + text.slice(at + c.url.length)
-            : text + (!text || /\s$/.test(text) ? '' : ' ') + pill
-          store.patchUpload(c.uploadId, { noteText: next })
-        }
         refreshKey.value++
-        c.busy = false
-        dismissCatch(c)
-      } catch (e) {
-        c.error = e?.response?.data?.error?.message || e?.message || 'Could not save the link'
-      } finally {
-        c.busy = false
       }
-    }
+    })
 
     // Tab label: first staged file, or the note's first line.
     const tabLabel = uploadLabel
@@ -724,11 +651,11 @@ export default defineComponent({
       if (src) {
         e.preventDefault()
         insertAtNoteCaret(src)
-        catchLinks([src])
+        catcher.catchUrls([src])
         return
       }
       const urls = findLinks(raw)
-      if (urls.length) catchLinks(urls)
+      if (urls.length) catcher.catchUrls(urls)
     }
 
     // Drops carrying no files (dragged text) are simply ignored — the
@@ -845,10 +772,6 @@ export default defineComponent({
       }, 700)
     }
 
-    // The host a link names, for the sub-stack's label and the nano pill's
-    // label when no EMBED_RULE has a better word.
-    const hostOf = (url) => { try { return new URL(url).hostname.replace(/^www\./, '') } catch (_) { return 'link' } }
-
     const submit = async (kind) => {
       const u = upload.value
       if (!u || !canSubmit(kind)) return
@@ -942,9 +865,7 @@ export default defineComponent({
       prettySize,
       previewFor,
       previewKindOf,
-      linkCatches,
-      confirmCatch,
-      dismissCatch,
+      catcher,
       isBusy,
       canSubmit,
       filesLabel,
@@ -1317,89 +1238,7 @@ export default defineComponent({
   color: var(--ink-mute);
 }
 
-// ── THE LINK CATCH (2026-10-12) — the NEON teal frame: `--teal-13`
-// (A400, the node family's loud accent) as a 1.5px rim with a `--teal-12`
-// glow, on the field's pale. One row per caught URL under the note box:
-// glyph │ url + provider line │ Add link │ ×. The rows never grow the
-// section past its share — the list scrolls after three. ──
-.link-catches {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  flex-shrink: 0;
-  max-height: 120px;
-  overflow-y: auto;
-  // Room for the glow — an overflow box clips its children's shadows.
-  padding: 4px;
-  margin: -4px;
-}
-
-.link-catch {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 4px 6px 4px 8px;
-  border: 1.5px solid var(--teal-13);
-  border-radius: var(--radius-md);
-  background: var(--teal-1);
-  box-shadow: 0 0 0 2px rgba(29, 233, 182, 0.18), 0 0 10px rgba(100, 255, 218, 0.45);
-  min-width: 0;
-
-  &.is-error { border-color: var(--q-negative, #c10015); box-shadow: none; }
-}
-
-.link-catch__icon { color: var(--teal-10); flex-shrink: 0; }
-
-.link-catch__text {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-  flex: 1;
-  line-height: 1.25;
-}
-
-.link-catch__url {
-  font-family: var(--font-mono);
-  font-size: 0.72em;
-  color: var(--teal-10);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.link-catch__meta {
-  font-size: 0.68em;
-  color: var(--ink-mute);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-
-  .is-error & { color: var(--q-negative, #c10015); }
-}
-
-.link-catch__add {
-  flex-shrink: 0;
-  background: var(--teal-13);
-  color: var(--teal-10);
-  font-weight: 600;
-}
-
-.link-catch__x {
-  flex-shrink: 0;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 20px;
-  height: 20px;
-  border: 0;
-  border-radius: 50%;
-  background: transparent;
-  color: var(--teal-10);
-  cursor: pointer;
-
-  &:hover:not(:disabled) { background: rgba(0, 77, 64, 0.08); }
-  &:disabled { opacity: 0.35; cursor: default; }
-}
+// ── THE LINK CATCH — its frame is `shared/LinkCatchList.vue` since 2026-10-31. ──
 
 // ── FILES ──
 .method--files { overflow: hidden; }

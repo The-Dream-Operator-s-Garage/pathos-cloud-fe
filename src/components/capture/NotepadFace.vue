@@ -56,6 +56,21 @@
       :readonly="!!viewing"
       spellcheck="true"
       @input="onEdit"
+      @paste="onPaste"
+    />
+
+    <!-- ⭐ THE AUTHORING CATCH (2026-10-31, user ask: link recognition "in
+         teal coloring … when they're either writing a note or a post",
+         plus pasted pictures and files, "if it is not duplicated") — the
+         uploader's teal frame (`LinkCatchList` + `useLinkCatch`): a NEW
+         link (pasted, or typed and finished) or a pasted file glows with
+         Add; one already in the owner's pathchain shows calm with Use it.
+         Either way the URL / the file's `⟪…⟫` mark becomes the node's nano
+         pill in the note. Not while a version is open (read-only). -->
+    <LinkCatchList
+      v-if="!viewing"
+      :catches="catcher.catches.value"
+      @add="catcher.add" @use="catcher.use" @dismiss="catcher.dismiss"
     />
 
     <div v-if="viewing" class="pad__viewing">
@@ -113,12 +128,15 @@ import { useAuthStore } from 'src/stores/auth'
 import { useNavStore } from 'src/stores/navigation'
 import { nodeService } from 'src/services/node.service'
 import { uploadCapture } from './captureMedia'
+import { useLinkCatch } from 'src/composables/useLinkCatch'
+import LinkCatchList from 'src/components/shared/LinkCatchList.vue'
 
 const AUTOSAVE_MS = 1200
 const PAGE = 24
 
 export default defineComponent({
   name: 'NotepadFace',
+  components: { LinkCatchList },
   emits: ['created'],
   setup (props, { emit }) {
     const store = useCaptureStore()
@@ -247,6 +265,36 @@ export default defineComponent({
       schedule()
     }
 
+    // THE AUTHORING CATCH (2026-10-31). One scope per SITTING with a note
+    // (a new note, an opened one, a restore — each a fresh baseline: the
+    // links already in it are not new); an open version is its own,
+    // read-only scope. The owner authors here, so the duplicate check asks
+    // as the acting entity.
+    const sitting = ref(0)
+    const padScope = () => (viewing.value ? `v${viewing.value.id}` : `s${sitting.value}`)
+    const insertAtBodyCaret = (t) => {
+      const el = bodyEl.value
+      const v = body.value || ''
+      const s = el ? el.selectionStart : v.length
+      const e = el ? el.selectionEnd : v.length
+      body.value = v.slice(0, s) + t + v.slice(e)
+      onEdit()
+      nextTick(() => { if (el) { const at = s + t.length; el.setSelectionRange(at, at) } })
+    }
+    const catcher = useLinkCatch({
+      scope: padScope,
+      text: () => body.value || '',
+      setText: (next, k, caret) => {
+        if (k !== padScope() || viewing.value) return
+        body.value = next
+        onEdit()
+        nextTick(() => { const el = bodyEl.value; if (el && caret != null) { el.focus(); el.setSelectionRange(caret, caret) } })
+      },
+      author: () => auth.entityId || null,
+      insertAtCaret: insertAtBodyCaret
+    })
+    const onPaste = (e) => { if (!viewing.value) catcher.onPaste(e) }
+
     const mintOrigin = async () => {
       const n = store.note
       if (!store.noteHasWork || n.nodeId) return null
@@ -320,6 +368,7 @@ export default defineComponent({
       store.resetNote()
       title.value = ''
       body.value = ''
+      sitting.value++
       lastDraftBody = ''
       state.value = 'new'
       errorText.value = ''
@@ -350,6 +399,7 @@ export default defineComponent({
       store.patchNote({ nodeId: node.id, title: t, body: draftBody ?? b, savedTitle: t, savedBody: b })
       title.value = t
       body.value = draftBody ?? b
+      sitting.value++
       lastDraftBody = draftBody ?? b
       state.value = 'saved'
       errorText.value = ''
@@ -379,6 +429,7 @@ export default defineComponent({
       store.patchNote({ title: t, body: b })
       title.value = t
       body.value = b
+      sitting.value++
       await run(() => version('restore'))
     }
 
@@ -412,6 +463,8 @@ export default defineComponent({
       viewing,
       viewingIndex,
       onEdit,
+      onPaste,
+      catcher,
       newNote,
       version,
       toggleHistory,
