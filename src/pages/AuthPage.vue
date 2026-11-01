@@ -39,6 +39,18 @@
               :rules="[v => !!v || 'Required']" />
             <q-btn type="submit" class="auth-cta auth-cta--enter nasalization full-width"
               :loading="loading" label="Enter the pathchain" unelevated />
+            <!-- SIGN IN WITH GOOGLE (plan S4, decision 1, 2026-11-01): a
+                 linked ROOT's second way through the same door. A plain
+                 link, not a fetch — the API 302s to Google's consent
+                 (openid email only) and its callback returns here with a
+                 one-shot ?ticket= the page redeems below. Drawn only when
+                 the server says it is configured (GET /identity/status). -->
+            <q-btn v-if="googleReady" type="a" :href="googleUrl"
+              class="auth-cta auth-cta--google nasalization full-width"
+              data-testid="auth-google" :loading="loading" unelevated no-caps>
+              <span class="auth-google__mark" aria-hidden="true">G</span>
+              <span>Continue with Google</span>
+            </q-btn>
             <button type="button" class="auth-toggle" @click="recovering = true">
               lost your password? your inviter can mint you a recovery secret
             </button>
@@ -116,10 +128,19 @@
 </template>
 
 <script>
-import { defineComponent, ref, reactive } from 'vue'
+import { defineComponent, ref, reactive, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from 'src/stores/auth'
+import { authService } from 'src/services/auth.service'
 import FriezeBar from 'src/components/layout/FriezeBar.vue'
+
+// The callback's refusals, by code (api/utils/googleOAuth.js + loginTicket.js).
+const GOOGLE_ERRORS = {
+  40107: 'No pathos account is linked to that Google account — enter with your password, then link it from the identity window.',
+  40108: 'That Google sign-in expired or was already used — try again.',
+  40109: 'Google did not complete the sign-in — try again.',
+  50320: 'Google sign-in is not configured on this server.'
+}
 
 export default defineComponent({
   name: 'AuthPage',
@@ -135,6 +156,35 @@ export default defineComponent({
     const registerForm = reactive({ secret: '', username: '', password: '' })
     const recovering = ref(false)
     const recoverForm = reactive({ secret: '', username: '', newPassword: '' })
+
+    // ── Sign in with Google (S4) ──
+    const googleReady = computed(() => !!authStore.systemStatus?.google_login)
+    const googleUrl = authService.googleLoginUrl()
+    const redeemTicket = async (ticket) => {
+      loading.value = true
+      errorMsg.value = ''
+      try {
+        const result = await authStore.googleLogin(ticket)
+        if (result.success) { router.replace('/feed'); return }
+        errorMsg.value = GOOGLE_ERRORS[result.error?.code] || result.error?.message || 'Google sign-in failed'
+      } catch (err) {
+        const code = err.response?.data?.error?.code
+        errorMsg.value = GOOGLE_ERRORS[code] || err.response?.data?.error?.message || 'Connection error'
+      } finally {
+        loading.value = false
+        // The ticket is spent either way — take it out of the address bar.
+        router.replace('/auth')
+      }
+    }
+    onMounted(() => {
+      authStore.fetchStatus().catch(() => {})
+      const q = router.currentRoute.value.query || {}
+      if (q.ticket) redeemTicket(String(q.ticket))
+      else if (q.google_error) {
+        errorMsg.value = GOOGLE_ERRORS[q.google_error] || `Google sign-in failed (code ${q.google_error})`
+        router.replace('/auth')
+      }
+    })
 
     const handleLogin = async () => {
       loading.value = true
@@ -185,6 +235,8 @@ export default defineComponent({
     return {
       loading,
       errorMsg,
+      googleReady,
+      googleUrl,
       loginForm,
       registerForm,
       recovering,
@@ -391,6 +443,29 @@ export default defineComponent({
 .auth-cta--join {
   background: linear-gradient(94deg, #ffd180 0%, #ffab40 48%, #ff6e40 100%);
   &:hover { box-shadow: 0 0 22px rgba(255, 110, 64, 0.5); filter: saturate(1.25); }
+}
+
+// Continue with Google — the enter door's quieter twin: the plaque's own
+// brown-2 floor with a brown-4 rule, the mint door's ink; the "G" is a
+// typographic mark, not Google's logo (no brand asset shipped).
+.auth-cta--google {
+  background: var(--brown-2);
+  border: 1px solid var(--brown-4);
+  &:hover { box-shadow: 0 0 18px rgba(100, 255, 218, 0.28); border-color: var(--brown-8); }
+  :deep(.q-btn__content) { gap: 10px; }
+}
+.auth-google__mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--brown-10);
+  color: var(--brown-1);
+  font-weight: 700;
+  font-size: 0.9em;
+  line-height: 1;
 }
 
 .auth-error {

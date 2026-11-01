@@ -265,12 +265,15 @@ import { useSchemaBuilderStore } from 'src/stores/schemaBuilder'
 import { useLabelMakerStore } from 'src/stores/labelMaker'
 import { useGeoStore } from 'src/stores/geo'
 import { useEventsStore } from 'src/stores/events'
+import { useIdentityStore } from 'src/stores/identity'
+import { useQuasar } from 'quasar'
 
 export default defineComponent({
   name: 'MainLayout',
   components: { MakerDock, UploaderDock, CaptureDock, SchemaBuilderDock, LabelMakerDock, ChatDock, DashboardDock, IdentityDock, ElementFlyoutHost, FriezeBar, NavigationBar, PinsDrawer, StackPanel },
   setup () {
     const router = useRouter()
+    const $q = useQuasar()
     const navStore = useNavStore()
     const makerStore = useMakerStore()
     const uploaderStore = useUploaderStore()
@@ -386,6 +389,40 @@ export default defineComponent({
       // The push spine (Thread A): open the app's ONE SSE connection —
       // no-op when logged out; the store owns reconnection.
       useEventsStore().connect()
+      // THE GOOGLE LINK'S RETURN (plan S4, 2026-11-01): the API's callback
+      // lands the browser on /#/feed?gticket=<one-shot> — redeem it once
+      // for the storage facts, say so, take it out of the address bar and
+      // reopen the identity window on the new well. A refusal rides in as
+      // ?google_error=<code>.
+      const q = router.currentRoute.value.query || {}
+      if (q.gticket || q.google_error) {
+        const identity = useIdentityStore()
+        const clean = { path: router.currentRoute.value.path }
+        if (q.gticket) {
+          try {
+            const r = await identity.redeemGoogleLink(String(q.gticket))
+            if (r.success) {
+              const res = r.result || {}
+              const door = res.login_enabled ? ' You can also sign in with Google now.' : (res.login_conflict ? ' (That Google account already signs in another pathos account — storage only.)' : '')
+              $q.notify({ type: 'positive', icon: 'add_to_drive', timeout: 6000, message: `Google Drive linked — ${res.email || 'your account'} · folder ${res.folder_name || 'pathos.cloud'}.${door}` })
+            } else {
+              $q.notify({ type: 'negative', message: r.error?.message || 'The Google link could not be completed' })
+            }
+          } catch (e) {
+            $q.notify({ type: 'negative', message: e?.response?.data?.error?.message || 'The Google link could not be completed' })
+          }
+        } else {
+          const code = String(q.google_error)
+          const why = code === '40109' ? 'Google did not grant the Drive permission — try again and keep the box ticked'
+            : code === '40108' ? 'That link attempt expired or was already used — try again'
+              : code === '40330' ? 'Your organization\'s storage policy locks the backend for its masks'
+                : code === '50321' ? 'Google Drive refused to create the folder'
+                  : `The Google link failed (code ${code})`
+          $q.notify({ type: 'negative', message: why, timeout: 6000 })
+        }
+        await router.replace(clean)
+        identity.open()
+      }
     })
 
     return { drawerEnabled, drawer, mini, drawerRailW, hideDrawer, showBurger, makerStore, uploaderStore, captureStore, schemaBuilderStore, labelMakerStore, windows, pinsRefreshKey, onPostCreated, onUploaded, onCaptured }

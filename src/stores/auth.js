@@ -48,6 +48,18 @@ export const useAuthStore = defineStore('auth', {
       return result
     },
 
+    // Sign in with Google (S4, 2026-11-01): the auth page redeems the
+    // one-shot ticket the API's callback put in the URL — a success logs
+    // this device in exactly like a password login (session method google).
+    async googleLogin (ticket) {
+      const result = await authService.googleLogin(ticket)
+      if (result.success) {
+        this.token = result.token
+        this.user = result.entity
+      }
+      return result
+    },
+
     // Internal log-in: act as an alter-ego (or return to the root identity).
     // The API re-issues the JWT; everything downstream (makers, feeds,
     // profile links) reads the new acting identity from this store.

@@ -172,15 +172,120 @@
           </button>
         </div>
 
-        <!-- ── Delegated reads — who reads everything I own ──── -->
-        <div class="identity-dock__well identity-dock__well--delegations" data-testid="identity-delegations">
+        <!-- ── Storage — where this identity's bytes live, and who reads them ──
+             THE STORAGE WELL (plan S4, 2026-11-01 — docs/concepts/storage.md
+             § Who stores): the S3 Delegated reads well GROWN, not a fourth
+             well (the handoff's instruction). Top: the backend line (this
+             server / Google Drive + mode + the linked account), the
+             inherited-from line while an identity stores where its root
+             stores, the usage line (elements · segments · bytes, Drive's
+             quota when linked), the org lock when ORG_STORAGE_POLICY says
+             BACKEND_LOCKED, and the acts — Link Google Drive / Sync now ·
+             Unlink. Below, under its own sub-head: the delegated reads
+             exactly as S3 drew them. `data-testid="identity-delegations"`
+             stays on the whole well (flow-delegation reads its text). -->
+        <div class="identity-dock__well identity-dock__well--storage" data-testid="identity-delegations">
           <div class="identity-dock__well-head nasalization">
-            <q-icon name="key" size="13px" />
-            <span>Delegated reads</span>
-            <span v-if="identity.delegations.given.length" class="identity-dock__count mono">{{ identity.delegations.given.length }}</span>
-            <button type="button" class="identity-dock__refresh" title="Refresh" @click="identity.loadDelegations()">
+            <q-icon :name="storage?.google?.linked ? 'cloud' : 'dns'" size="13px" />
+            <span>Storage</span>
+            <span v-if="storage" class="identity-dock__count mono" data-testid="identity-storage-backend">{{ storage.google?.linked ? 'drive · ' + storage.mode : 'this server' }}</span>
+            <button type="button" class="identity-dock__refresh" title="Refresh" @click="identity.loadStorage(); identity.loadDelegations()">
               <q-icon name="refresh" size="12px" />
             </button>
+          </div>
+
+          <div class="identity-dock__storage" data-testid="identity-storage">
+            <div v-if="!storage" class="identity-dock__empty">Reading where your bytes live…</div>
+            <template v-else>
+              <div class="identity-dock__storage-row">
+                <q-icon :name="storage.google.linked ? 'add_to_drive' : 'dns'" size="18px" class="identity-dock__storage-glyph" />
+                <div class="identity-dock__storage-text">
+                  <span class="identity-dock__storage-line" data-testid="identity-storage-line">
+                    <template v-if="storage.google.linked">
+                      Stored on <b>Google Drive</b> · {{ storage.mode }}<template v-if="storage.google.email"> · <span class="mono">{{ storage.google.email }}</span></template>
+                    </template>
+                    <template v-else>
+                      Stored on <b>this server</b><template v-if="storage.packed"> · packed</template>
+                    </template>
+                  </span>
+                  <span v-if="storage.source === 'inherited' && storage.inherited_from" class="identity-dock__storage-meta" data-testid="identity-storage-inherited">
+                    stored where <b>{{ whoName(storage.inherited_from) }}</b> stores<template v-if="storage.can_link"> — link below to choose for this identity</template>
+                  </span>
+                  <span v-else-if="storage.google.linked && storage.google.own" class="identity-dock__storage-meta mono">
+                    {{ storage.google.state === 'ok' ? 'mirror' : storage.google.state }}<template v-if="storage.google.last_sync_at"> · synced {{ ago(storage.google.last_sync_at) }}</template><template v-else> · not synced yet</template>
+                  </span>
+                </div>
+              </div>
+
+              <!-- the quota line: what this tree weighs here, and on Drive when linked -->
+              <div class="identity-dock__storage-usage mono" data-testid="identity-storage-usage">
+                {{ fmtInt(storage.usage.elements) }} elements · {{ storage.usage.segments }} segment{{ storage.usage.segments === 1 ? '' : 's' }} · {{ fmtBytes(storage.usage.pack_bytes) }} on this server<template v-if="storage.usage.plain_files"> · {{ fmtInt(storage.usage.plain_files) }} plain files</template>
+                <template v-if="storage.google.quota?.reachable"> · Drive {{ fmtBytes(storage.google.quota.usage) }}<template v-if="storage.google.quota.limit"> of {{ fmtBytes(storage.google.quota.limit) }}</template></template>
+                <template v-else-if="storage.google.linked && storage.google.own && storage.google.quota"> · Drive unreachable</template>
+              </div>
+              <div v-if="quotaPct !== null" class="identity-dock__bar" :title="quotaPct + '% of the Google account used'">
+                <div class="identity-dock__bar-fill" :style="{ width: quotaPct + '%' }" />
+              </div>
+
+              <div v-if="storage.policy?.BACKEND_LOCKED === 'yes'" class="identity-dock__storage-lock" data-testid="identity-storage-lock">
+                <q-icon name="lock" size="11px" />
+                <span>{{ storage.policy.org?.name || 'the organization' }} chooses where its masks store</span>
+              </div>
+
+              <div class="identity-dock__storage-acts">
+                <button
+                  v-if="!storage.google.own && storage.can_link"
+                  type="button"
+                  class="identity-dock__btn"
+                  data-testid="identity-storage-link"
+                  :disabled="storageBusy !== null"
+                  title="Link a Google account: your tree mirrors to one folder in its Drive, and you may sign in with it"
+                  @click="linkGoogle"
+                >
+                  <q-spinner v-if="storageBusy === 'link'" size="11px" />
+                  <q-icon v-else name="add_to_drive" size="13px" />
+                  <span>Link Google Drive</span>
+                </button>
+                <template v-else-if="storage.google.own">
+                  <button type="button" class="identity-dock__btn identity-dock__btn--tiny" data-testid="identity-storage-sync" :disabled="storageBusy !== null" title="Upload every changed segment to your Drive now" @click="syncStorage">
+                    <q-spinner v-if="storageBusy === 'sync'" size="10px" />
+                    <q-icon v-else name="sync" size="11px" />
+                    <span>Sync now</span>
+                  </button>
+                  <button
+                    v-if="storage.policy?.BACKEND_LOCKED !== 'yes'"
+                    type="button"
+                    class="identity-dock__btn identity-dock__btn--tiny identity-dock__btn--quiet"
+                    data-testid="identity-storage-unlink"
+                    :disabled="storageBusy !== null"
+                    title="Unlink: revoke our access at Google, store on this server again, close the Google sign-in door"
+                    @click="unlinkGoogle"
+                  >
+                    <q-spinner v-if="storageBusy === 'unlink'" size="10px" />
+                    <q-icon v-else name="link_off" size="11px" />
+                    <span>Unlink</span>
+                  </button>
+                </template>
+                <span v-else-if="!storage.configured" class="identity-dock__storage-meta" data-testid="identity-storage-unconfigured">Google sign-in is not configured on this server</span>
+              </div>
+
+              <div v-if="storage.login?.google_linked" class="identity-dock__storage-meta" data-testid="identity-storage-login">
+                <q-icon name="login" size="11px" /> You can also sign in with Google<template v-if="storage.login.google_email"> as <span class="mono">{{ storage.login.google_email }}</span></template>.
+              </div>
+
+              <div class="identity-dock__hint">
+                Your tree is sealed per record; a linked Drive holds the same
+                segments as this server (mirror). Recently read segments may be
+                cached on the server for up to an hour.
+              </div>
+            </template>
+          </div>
+
+          <!-- ── Delegated reads — who reads everything I own (S3) ──── -->
+          <div class="identity-dock__deleg-head nasalization" data-testid="identity-delegations-head">
+            <q-icon name="key" size="12px" />
+            <span>Delegated reads</span>
+            <span v-if="identity.delegations.given.length" class="identity-dock__count mono">{{ identity.delegations.given.length }}</span>
           </div>
 
           <div class="identity-dock__deleg-sub">Who can read everything you own</div>
@@ -323,8 +428,36 @@ export default defineComponent({
     const switching = ref(null)
     const revoking = ref(null)
 
+    const storageBusy = ref(null)
+
     const user = computed(() => auth.user)
     const isAlterEgo = computed(() => auth.isActingAsAlterEgo)
+    // STORAGE (S4): the well reads the store's facts; the acts below move
+    // them on the server's word.
+    const storage = computed(() => identity.storage)
+    const quotaPct = computed(() => {
+      const q = storage.value?.google?.quota
+      if (!q || !q.reachable || !q.limit || q.usage == null) return null
+      return Math.min(100, Math.round((q.usage / q.limit) * 1000) / 10)
+    })
+    const fmtInt = (n) => (Number(n) || 0).toLocaleString('en-US')
+    const fmtBytes = (n) => {
+      const b = Number(n) || 0
+      if (b < 1024) return b + ' B'
+      if (b < 1024 * 1024) return (b / 1024).toFixed(1) + ' KB'
+      if (b < 1024 * 1024 * 1024) return (b / 1024 / 1024).toFixed(1) + ' MB'
+      return (b / 1024 / 1024 / 1024).toFixed(2) + ' GB'
+    }
+    const ago = (iso) => {
+      const ms = Date.now() - new Date(iso).getTime()
+      if (!Number.isFinite(ms) || ms < 0) return 'just now'
+      const m = Math.round(ms / 60000)
+      if (m < 1) return 'just now'
+      if (m < 60) return m + ' min ago'
+      const h = Math.round(m / 60)
+      if (h < 48) return h + ' h ago'
+      return Math.round(h / 24) + ' d ago'
+    }
     const name = computed(() =>
       auth.user?.display_name || auth.user?.username || `entity #${auth.user?.id}`)
     const handle = computed(() =>
@@ -384,6 +517,39 @@ export default defineComponent({
       } finally { switching.value = null }
     }
 
+    // THE GOOGLE LINK (S4): the consent page is a navigation away — the
+    // dance returns to /#/feed?gticket=…, which MainLayout redeems and then
+    // reopens this window on the new facts.
+    const linkGoogle = async () => {
+      storageBusy.value = 'link'
+      try {
+        const r = await identity.linkGoogle()
+        if (!r.success) $q.notify({ type: 'negative', message: r.error?.message || 'could not start the Google link' })
+      } catch (e) {
+        $q.notify({ type: 'negative', message: e?.response?.data?.error?.message || 'could not start the Google link' })
+      } finally { storageBusy.value = null }
+    }
+    const unlinkGoogle = async () => {
+      storageBusy.value = 'unlink'
+      try {
+        const r = await identity.unlinkGoogle()
+        if (r.success) $q.notify({ type: 'positive', message: 'Google Drive unlinked — stored on this server again', icon: 'link_off' })
+        else $q.notify({ type: 'negative', message: r.error?.message || 'unlink failed' })
+      } catch (e) {
+        $q.notify({ type: 'negative', message: e?.response?.data?.error?.message || 'unlink failed' })
+      } finally { storageBusy.value = null }
+    }
+    const syncStorage = async () => {
+      storageBusy.value = 'sync'
+      try {
+        const r = await identity.syncStorage()
+        if (r.success) $q.notify({ type: 'positive', message: `Synced: ${r.uploaded} uploaded · ${r.updated} updated · ${r.unchanged} unchanged${r.failed?.length ? ' · ' + r.failed.length + ' failed' : ''}`, icon: 'sync' })
+        else $q.notify({ type: 'negative', message: r.error?.message || 'sync failed' })
+      } catch (e) {
+        $q.notify({ type: 'negative', message: e?.response?.data?.error?.message || 'sync failed' })
+      } finally { storageBusy.value = null }
+    }
+
     // DELEGATED READS (S3): the row leaves on the server's word; a mandated
     // record answers 403 code 40330 and the window says whose rule it is.
     const whoName = (c) => c?.display_name || c?.username || ('entity #' + (c?.id ?? '?'))
@@ -403,6 +569,15 @@ export default defineComponent({
       windows,
       switching,
       revoking,
+      storageBusy,
+      storage,
+      quotaPct,
+      fmtInt,
+      fmtBytes,
+      ago,
+      linkGoogle,
+      unlinkGoogle,
+      syncStorage,
       whoName,
       revokeDelegation,
       user,
@@ -782,6 +957,112 @@ export default defineComponent({
   color: var(--grey-7);
   cursor: pointer;
   &:hover { color: var(--dock-ink); }
+}
+
+// ── The Storage block (S4, 2026-11-01) ───────────────────────
+// The well's top: one card in the org row's register (backend glyph ·
+// the line · the meta), the mono usage line, a 4px quota bar when Drive
+// answers, the org lock pill, the acts. Then the delegations' own sub-head.
+.identity-dock__storage {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.identity-dock__storage-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 6px 8px;
+  background: var(--paper-card, #fff);
+  border: 1px solid var(--dock-rule);
+  border-radius: var(--radius-sm, 6px);
+}
+
+.identity-dock__storage-glyph { color: var(--grey-7); flex: 0 0 auto; }
+
+.identity-dock__storage-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.25;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.identity-dock__storage-line {
+  font-size: 0.76em;
+  color: var(--ink-1);
+  b { font-weight: 700; }
+  .mono { font-size: 0.9em; }
+}
+
+.identity-dock__storage-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.62em;
+  color: rgba(66, 66, 66, 0.62);
+  line-height: 1.4;
+  min-width: 0;
+  b { font-weight: 700; }
+}
+
+.identity-dock__storage-usage {
+  font-size: 0.6em;
+  color: rgba(66, 66, 66, 0.7);
+  padding: 0 2px;
+  line-height: 1.4;
+}
+
+.identity-dock__bar {
+  height: 4px;
+  margin: 0 2px;
+  border-radius: 2px;
+  background: var(--grey-3);
+  overflow: hidden;
+}
+.identity-dock__bar-fill {
+  height: 100%;
+  background: var(--dock-rule-strong);
+  border-radius: 2px;
+}
+
+.identity-dock__storage-lock {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  align-self: flex-start;
+  padding: 1px 8px;
+  border: 1px solid var(--grey-7);
+  border-radius: 8px;
+  font-size: 0.6em;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--grey-7);
+}
+
+.identity-dock__storage-acts {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.identity-dock__deleg-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+  padding-top: 6px;
+  border-top: 1px dashed var(--dock-rule);
+  font-size: 0.6em;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--dock-ink);
+  .q-icon { color: var(--grey-7); }
 }
 
 // ── Delegation rows (S3, 2026-10-31) ─────────────────────────

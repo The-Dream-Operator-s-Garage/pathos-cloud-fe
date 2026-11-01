@@ -46,6 +46,14 @@ export const useIdentityStore = defineStore('identity', {
     // like the API: the lists move with every identity switch.
     delegations: { given: [], received: [] },
     delegationsLoaded: false,
+    // STORAGE (S4, 2026-11-01 — docs/concepts/storage.md § Who stores): the
+    // acting seat's storage facts for the window's Storage well — backend,
+    // mode, the linked Google account, the usage line, the inherited-from
+    // line, the org lock. Seat-strict like the API (an alter-ego shows its
+    // own row or its root's); re-read on every open (a mirror pass moves
+    // `last_sync_at` out-of-band).
+    storage: null,
+    storageLoaded: false,
     loaded: false,
     loading: false,
     // { [rootEntityId]: [member_id, …] } — see BADGES_KEY above.
@@ -108,7 +116,7 @@ export const useIdentityStore = defineStore('identity', {
       // Delegations move out-of-band (an alter-ego minted elsewhere delegates
       // to this seat at birth), so every open re-reads them even when the
       // orgs were loaded at mount and load() returns early.
-      if (this.loaded) this.loadDelegations()
+      if (this.loaded) { this.loadDelegations(); this.loadStorage() }
     },
 
     close () {
@@ -134,6 +142,42 @@ export const useIdentityStore = defineStore('identity', {
       } catch (_) { /* keep whatever we had */ }
       this.loading = false
       this.loadDelegations()
+      this.loadStorage()
+    },
+
+    // ── Storage + the Google link (S4) ─────────────────────────────────
+    async loadStorage () {
+      try {
+        const r = await authService.storage()
+        if (r.success) { this.storage = r.storage; this.storageLoaded = true }
+      } catch (_) { /* keep whatever we had */ }
+    },
+
+    // Link Google Drive: the API mints the consent URL for THIS seat and the
+    // browser goes there — the dance ends on /#/feed?gticket=…, which
+    // MainLayout redeems (redeemGoogleLink) and reopens this window.
+    async linkGoogle () {
+      const r = await authService.googleLinkStart()
+      if (r.success && r.url) window.location.assign(r.url)
+      return r
+    },
+
+    async redeemGoogleLink (ticket) {
+      const r = await authService.googleRedeemLink(ticket)
+      if (r.success && r.storage) { this.storage = r.storage; this.storageLoaded = true }
+      return r
+    },
+
+    async unlinkGoogle () {
+      const r = await authService.googleUnlink()
+      if (r.success && r.storage) this.storage = r.storage
+      return r
+    },
+
+    async syncStorage () {
+      const r = await authService.storageSync()
+      if (r.success) await this.loadStorage()
+      return r
     },
 
     // The delegations ride the same load (one open serves the window); a
