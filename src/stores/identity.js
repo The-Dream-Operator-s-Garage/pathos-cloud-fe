@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { useWindowsStore } from './windows'
 import { useAuthStore } from './auth'
 import { orgService } from 'src/services/org.service'
+import { authService } from 'src/services/auth.service'
 
 // The identity window — the profile/organizations features RELOCATED OUT OF
 // THE LEFT DRAWER (2026-08-31, user ask; the drawer itself is hidden the same
@@ -37,6 +38,14 @@ export const useIdentityStore = defineStore('identity', {
   state: () => ({
     isOpen: false,
     organizations: [],
+    // DELEGATED READS (S3, 2026-10-31 — docs/concepts/access.md § Delegated
+    // reads): the acting seat's live delegations, both directions. `given`
+    // = whose reads this seat handed out (the window's "who can read
+    // everything I own" list, with revoke); `received` = whose reads this
+    // seat holds (an alter-ego delegates to its root at mint). Seat-strict
+    // like the API: the lists move with every identity switch.
+    delegations: { given: [], received: [] },
+    delegationsLoaded: false,
     loaded: false,
     loading: false,
     // { [rootEntityId]: [member_id, …] } — see BADGES_KEY above.
@@ -96,6 +105,10 @@ export const useIdentityStore = defineStore('identity', {
       this.isOpen = true
       useWindowsStore().focus('identity')
       this.load()
+      // Delegations move out-of-band (an alter-ego minted elsewhere delegates
+      // to this seat at birth), so every open re-reads them even when the
+      // orgs were loaded at mount and load() returns early.
+      if (this.loaded) this.loadDelegations()
     },
 
     close () {
@@ -120,6 +133,32 @@ export const useIdentityStore = defineStore('identity', {
         this.loaded = true
       } catch (_) { /* keep whatever we had */ }
       this.loading = false
+      this.loadDelegations()
+    },
+
+    // The delegations ride the same load (one open serves the window); a
+    // failed read leaves the lists as they were — the well then says so.
+    async loadDelegations () {
+      try {
+        const r = await authService.delegations()
+        if (r.success) {
+          this.delegations = { given: r.given || [], received: r.received || [] }
+          this.delegationsLoaded = true
+        }
+      } catch (_) { /* keep whatever we had */ }
+    },
+
+    // Revoke = the row leaves the list on the server's word; the error
+    // (a mandated record while a member) is the caller's to show.
+    async revokeDelegation (id) {
+      const r = await authService.revokeDelegation(id)
+      if (r.success) {
+        this.delegations = {
+          given: this.delegations.given.filter((d) => d.id !== id),
+          received: this.delegations.received.filter((d) => d.id !== id)
+        }
+      }
+      return r
     },
 
     toggleBadge (memberId) {

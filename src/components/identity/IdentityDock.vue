@@ -42,6 +42,15 @@
     · ORGANIZATIONS — every membership with its role title, admin state and
       the put-on-the-mask identity switch (EntityOrganizations' seam, worn
       here); the All-organizations link is the drawer item's successor.
+    · DELEGATED READS (2026-10-31, docs/plans/entity-storage.md S3 /
+      docs/concepts/access.md § Delegated reads) — between ORGANIZATIONS
+      and BADGES, where the plan seats the Storage well: the acting seat's
+      live `entity_delegation` records. GIVEN = who may read everything
+      this seat may read (an alter-ego lists its root from its mint; a
+      mask lists its org, LOCKED with the org's name while the policy
+      mandates it) each with a revoke; RECEIVED = whose reads this seat
+      holds (a root lists its alter-egos) each with a drop. SEAT-STRICT
+      like the API: put on a mask and both lists change.
     · BADGES — the wardrobe: each org-given role title with a visibility
       toggle; shown badges ride the bar chip so the authority an org
       granted can be pointed at.
@@ -163,6 +172,91 @@
           </button>
         </div>
 
+        <!-- ── Delegated reads — who reads everything I own ──── -->
+        <div class="identity-dock__well identity-dock__well--delegations" data-testid="identity-delegations">
+          <div class="identity-dock__well-head nasalization">
+            <q-icon name="key" size="13px" />
+            <span>Delegated reads</span>
+            <span v-if="identity.delegations.given.length" class="identity-dock__count mono">{{ identity.delegations.given.length }}</span>
+            <button type="button" class="identity-dock__refresh" title="Refresh" @click="identity.loadDelegations()">
+              <q-icon name="refresh" size="12px" />
+            </button>
+          </div>
+
+          <div class="identity-dock__deleg-sub">Who can read everything you own</div>
+          <div v-if="!identity.delegations.given.length" class="identity-dock__empty">
+            Nobody — your reads are yours alone.
+          </div>
+          <div
+            v-for="d in identity.delegations.given"
+            :key="'g' + d.id"
+            class="identity-dock__deleg identity-dock__deleg--given"
+            :class="{ 'is-mandated': !d.revocable }"
+          >
+            <EntityAvatar :entity="d.grantee" :size="22" />
+            <div class="identity-dock__deleg-who">
+              <span class="identity-dock__deleg-name">{{ whoName(d.grantee) }}</span>
+              <span class="identity-dock__deleg-meta mono">
+                {{ d.kinds || 'everything' }}<template v-if="d.moment?.human"> · since {{ d.moment.human }}</template>
+              </span>
+            </div>
+            <span
+              v-if="!d.revocable"
+              class="identity-dock__deleg-lock"
+              :title="'Mandated by ' + (d.mandated_by_org?.name || 'the organization') + ' — not revocable while you are a member'"
+            >
+              <q-icon name="lock" size="11px" />
+              <span>{{ d.mandated_by_org?.name || 'mandated' }}</span>
+            </span>
+            <button
+              v-else
+              type="button"
+              class="identity-dock__btn identity-dock__btn--tiny identity-dock__deleg-revoke"
+              :disabled="revoking !== null"
+              title="Stop this entity reading what you own"
+              @click="revokeDelegation(d)"
+            >
+              <q-spinner v-if="revoking === d.id" size="10px" />
+              <q-icon v-else name="key_off" size="11px" />
+              <span>Revoke</span>
+            </button>
+          </div>
+
+          <template v-if="identity.delegations.received.length">
+            <div class="identity-dock__deleg-sub">Reads you hold</div>
+            <div
+              v-for="d in identity.delegations.received"
+              :key="'r' + d.id"
+              class="identity-dock__deleg identity-dock__deleg--received"
+            >
+              <EntityAvatar :entity="d.grantor" :size="22" />
+              <div class="identity-dock__deleg-who">
+                <span class="identity-dock__deleg-name">{{ whoName(d.grantor) }}</span>
+                <span class="identity-dock__deleg-meta mono">
+                  {{ d.kinds || 'everything' }}<template v-if="d.moment?.human"> · since {{ d.moment.human }}</template>
+                </span>
+              </div>
+              <button
+                type="button"
+                class="identity-dock__btn identity-dock__btn--tiny identity-dock__deleg-drop"
+                :disabled="revoking !== null"
+                title="Stop reading through this delegation"
+                @click="revokeDelegation(d)"
+              >
+                <q-spinner v-if="revoking === d.id" size="10px" />
+                <q-icon v-else name="key_off" size="11px" />
+                <span>Drop</span>
+              </button>
+            </div>
+          </template>
+
+          <div class="identity-dock__hint">
+            A delegation is one revocable record, never a copy: whoever holds
+            it reads what you may read, and nothing else — they cannot post,
+            grant or edit as you.
+          </div>
+        </div>
+
         <!-- ── Badges — the wardrobe ────────────────────────── -->
         <div class="identity-dock__well">
           <div class="identity-dock__well-head nasalization">
@@ -227,6 +321,7 @@ export default defineComponent({
     const windows = useWindowsStore()
     const flyouts = useFlyoutViewersStore()
     const switching = ref(null)
+    const revoking = ref(null)
 
     const user = computed(() => auth.user)
     const isAlterEgo = computed(() => auth.isActingAsAlterEgo)
@@ -289,10 +384,27 @@ export default defineComponent({
       } finally { switching.value = null }
     }
 
+    // DELEGATED READS (S3): the row leaves on the server's word; a mandated
+    // record answers 403 code 40330 and the window says whose rule it is.
+    const whoName = (c) => c?.display_name || c?.username || ('entity #' + (c?.id ?? '?'))
+    const revokeDelegation = async (d) => {
+      revoking.value = d.id
+      try {
+        const r = await identity.revokeDelegation(d.id)
+        if (r.success) $q.notify({ type: 'positive', message: 'Delegation revoked', icon: 'key_off' })
+        else $q.notify({ type: 'negative', message: r.error?.message || 'revoke failed' })
+      } catch (e) {
+        $q.notify({ type: 'negative', message: e?.response?.data?.error?.message || 'revoke failed' })
+      } finally { revoking.value = null }
+    }
+
     return {
       identity,
       windows,
       switching,
+      revoking,
+      whoName,
+      revokeDelegation,
       user,
       isAlterEgo,
       name,
@@ -670,6 +782,74 @@ export default defineComponent({
   color: var(--grey-7);
   cursor: pointer;
   &:hover { color: var(--dock-ink); }
+}
+
+// ── Delegation rows (S3, 2026-10-31) ─────────────────────────
+// The org row's card at a smaller scale: face · name + meta · the act at
+// the end (revoke / drop), or the LOCK pill naming the org whose policy
+// mandates the record. Received rows sit on the well floor with a dashed
+// top rule, the org-mask line's register: held, not given.
+.identity-dock__deleg-sub {
+  font-size: 0.62em;
+  font-style: italic;
+  color: rgba(66, 66, 66, 0.62);
+  padding: 2px 2px 0;
+}
+
+.identity-dock__deleg {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 5px 8px;
+  background: var(--paper-card, #fff);
+  border: 1px solid var(--dock-rule);
+  border-radius: var(--radius-sm, 6px);
+
+  &.is-mandated { border-style: dashed; }
+  &--received { background: transparent; border-color: transparent; border-top: 1px dashed var(--dock-rule); border-radius: 0; }
+}
+
+.identity-dock__deleg-who {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.identity-dock__deleg-name {
+  font-size: 0.78em;
+  font-weight: 700;
+  color: var(--ink-1);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.identity-dock__deleg-meta {
+  font-size: 0.6em;
+  color: rgba(66, 66, 66, 0.6);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.identity-dock__deleg-lock {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex: 0 0 auto;
+  max-width: 45%;
+  padding: 1px 7px;
+  border: 1px solid var(--grey-7);
+  border-radius: 8px;
+  font-size: 0.6em;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--grey-7);
+  span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 }
 
 // ── Badge rows ───────────────────────────────────────────────

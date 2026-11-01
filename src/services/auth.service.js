@@ -83,6 +83,30 @@ export const authService = {
     return data
   },
 
+  // ── Delegated reads (S3, 2026-10-31) ─────────────────────────────────
+  // Who may read everything the ACTING seat may read — both directions.
+  // → { given: [row], received: [row] }, row = { id, grantor, grantee,
+  //   kinds, mandated_by_org, moment, revocable }. Seat-strict: switch into
+  //   an alter-ego to list or give its own.
+  async delegations () {
+    const { data } = await api.get('/identity/delegations')
+    return data
+  },
+
+  // The acting seat delegates its reads to another entity (201 created /
+  // 200 already). `kinds` optional: 'all' | ['nodes', 'skeletons', …].
+  async delegate (granteeId, kinds = null) {
+    const { data } = await api.post('/identity/delegations', { granteeId, kinds })
+    return data
+  },
+
+  // Revoke one delegation — the grantor's or the grantee's seat act. A
+  // mandated record refuses the mask while a member (403 code 40330).
+  async revokeDelegation (id) {
+    const { data } = await api.delete(`/identity/delegations/${id}`)
+    return data
+  },
+
   // ── Device sessions (Thread H) ───────────────────────────────────────
   async sessions () {
     const { data } = await api.get('/identity/sessions')
