@@ -25,6 +25,7 @@ export default route(function () {
   // the bar itself drove the navigation (Back/Forward/Checkpoint*).
   router.afterEach((to) => {
     if (to.path === '/auth') return
+    if (to.meta.legal) return // the public legal pages sit outside the trail
     if (!localStorage.getItem('pathos_token')) return
 
     try {

@@ -102,6 +102,16 @@
 
       <FriezeBar slim />
     </div>
+
+    <!-- ── THE LEGAL DOORS (2026-10-31) — doors, not help text (the
+         no-floating-text rule keeps doors): Google's OAuth review requires
+         the homepage to link the privacy policy, and these hrefs are the
+         exact clean URLs its consent screen names (public/privacy/ +
+         public/terms/ forward to LegalPage). -->
+    <nav class="auth-legal" aria-label="Legal">
+      <a href="/privacy/">privacy</a>
+      <a href="/terms/">terms</a>
+    </nav>
   </q-page>
 </template>
 
@@ -404,6 +414,22 @@ export default defineComponent({
   text-decoration: underline dotted;
 
   &:hover { color: var(--brown-8); }
+}
+
+// The legal doors under the plaque — the toggle's quiet type, on the canvas.
+.auth-legal {
+  display: flex;
+  gap: 22px;
+  margin-top: -12px;
+  font-size: 0.7em;
+  letter-spacing: 0.16em;
+
+  a {
+    color: var(--brown-3);
+    text-decoration: underline dotted;
+    text-underline-offset: 3px;
+    &:hover { color: var(--teal-12); }
+  }
 }
 
 // (`.auth-epigraph` — the italic thesis line that filled the enter half's

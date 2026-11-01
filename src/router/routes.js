@@ -69,6 +69,22 @@ const routes = [
     },
     component: () => import('src/pages/ErrorNotFound.vue')
   },
+  // The legal pages (2026-10-31) — Privacy Policy + Terms of Service, PUBLIC
+  // (no requiresAuth) in the landing's chrome. LegalPage reads the text live
+  // from allegue's source note (GET /api/legal/:doc?lang=). The clean URLs
+  // Google's consent screen links are the static doors public/privacy/ and
+  // public/terms/, which forward here keeping ?lang= (a #fragment is no
+  // place to point a reviewer or a crawler).
+  {
+    path: '/privacy',
+    component: () => import('src/layouts/AuthLayout.vue'),
+    children: [{ path: '', component: () => import('src/pages/LegalPage.vue'), meta: { legal: 'privacy' } }]
+  },
+  {
+    path: '/terms',
+    component: () => import('src/layouts/AuthLayout.vue'),
+    children: [{ path: '', component: () => import('src/pages/LegalPage.vue'), meta: { legal: 'terms' } }]
+  },
   { path: '/:catchAll(.*)*', component: () => import('src/pages/ErrorNotFound.vue') }
 ]
 
