@@ -1,0 +1,30 @@
+<!doctype html>
+<!-- The clean door to the Privacy Policy (2026-10-31): https://pathos.cloud/privacy/
+     is the URL Google's OAuth consent screen links, so it must exist without
+     a #fragment. It forwards into the hash route /#/privacy (LegalPage.vue),
+     keeping ?lang=; the text lives in allegue's source note, read through
+     GET /api/legal/privacy. Without JavaScript, <noscript> offers that same
+     text as plain markdown. Twin: ../terms/index.html. -->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Privacy Policy · pathos.cloud</title>
+  <meta name="description" content="How pathos.cloud collects, uses, stores and shares data — including Google account and Google Drive data. Política de Privacidad en español: ?lang=es">
+  <link rel="canonical" href="https://pathos.cloud/privacy/">
+  <link rel="icon" href="/favicon.ico">
+  <script>location.replace('/#/privacy' + location.search)</script>
+</head>
+<body style="margin:0;background:#0D0D1A;color:#ffe0b2;font:15px/1.6 system-ui,sans-serif">
+  <noscript>
+    <main style="max-width:640px;margin:48px auto;padding:0 16px">
+      <h1 style="font-weight:400;letter-spacing:.08em">pathos.cloud — Privacy Policy</h1>
+      <p>This page needs JavaScript to render. The same text, as plain markdown:
+        <a style="color:#64ffda" href="https://api.pathos.cloud/api/legal/privacy?lang=en&amp;format=md">English</a> ·
+        <a style="color:#64ffda" href="https://api.pathos.cloud/api/legal/privacy?lang=es&amp;format=md">Español</a>
+      </p>
+      <p>Contact: <a style="color:#64ffda" href="mailto:allegue@pathos.cloud">allegue@pathos.cloud</a></p>
+    </main>
+  </noscript>
+</body>
+</html>
