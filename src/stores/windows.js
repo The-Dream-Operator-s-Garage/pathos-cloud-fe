@@ -87,7 +87,10 @@ const TRAIL_KEY = 'pathos_nav_trail'
 // a slider chip again, and the NAV HUB joins it (`hub`, user ask: "make the
 // node button draggable by its base"): the hub rides an offset off its
 // centre seat on desktop, the capture + uploader windows riding with it.
-export const TRAIL_CHIPS = ['maker', 'schemaBuilder', 'labelMaker', 'chat', 'hub']
+// ⭐ 2026-11-02 — `bugs` joins (user ask: "a big debug bug button of the
+// caliber and style of the creation ones"): the roach chip after LABELS,
+// a slider body with a grip like its three neighbours, its window riding it.
+export const TRAIL_CHIPS = ['maker', 'schemaBuilder', 'labelMaker', 'bugs', 'chat', 'hub']
 // ⭐ PINS ALONE SINCE 2026-09-30 — the stack strip moved up into the header
 // rail beside Back (StackPanel) and left the slider with the footer.
 export const TRAIL_STRIPS = ['pins']

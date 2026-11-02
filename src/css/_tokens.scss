@@ -1532,6 +1532,7 @@ $warning:   #F2C037;
   --uploader-flat:  #f1f3e7;  // teal-1 @40%         → rgb(241, 243, 231) (the August flat back)
   --labels-flat:    #fdf0e6;  // red-1 @40%          → rgb(253, 240, 230)
   --schemas-flat: #fdf5d5;  // ⚠ yellow-**2** @40%  → rgb(253, 245, 213) (see `--schemas-veil`)
+  --bugs-flat:      #ede3d6;  // ⚠ brown-**2** @40%   → rgb(237, 227, 214) (see `--bugs-veil`, 2026-11-02)
 
   // ── THE FOOTER STRIPS' NIGHT COAT — ⭐ THE PLATE CAME BACK OUT OF IT
   // ON 2026-09-05 (user ask: the two strips leave the frieze band and stand
@@ -1962,6 +1963,29 @@ $warning:   #F2C037;
   --labels-veil: rgba(255, 235, 238, 0.4);
   --labels-coat:
     linear-gradient(var(--labels-veil), var(--labels-veil)),
+    var(--light-cream);
+
+  // ── THE BUG DOCK'S COLORWAY (2026-11-02, user ask: "a big debug bug button
+  // of the caliber and style of the creation ones … Choose a roach-like bug
+  // for the button") — THE ROACH'S CHESTNUT. The labels window's construction
+  // one family over, into BROWN: the only Quasar family a roach is actually
+  // painted in. Brown is also the chrome's (the bar's `--brown-3` verticals,
+  // the populated skeleton's `--brown-7` in kinds.js), and that is why the
+  // veil takes **brown-2** at the usual 40%, not brown-1: brown-1 @40% over
+  // `--light-cream` lands within two points of the bar's own plaque
+  // (rgb(247,240,228) vs (252,243,224)) and the window would read as a hole
+  // in the bar. brown-2 gives rgb(237,227,214) — a wing-case parchment, the
+  // deepest coat of the creation windows (relative luminance 0.78 against
+  // 0.87–0.91 for the other four), which suits the one window that is about
+  // something going wrong. The ink is brown-7 (#6d4c41, 6.0:1 measured on the
+  // coat) and the chip's word brown-10 (#3e2723, 10.9:1).
+  //
+  // ⚠ THE SIXTH SANCTIONED BREAK IN THE ONE-PLAQUE LAW — `api/scripts/fsck.js`
+  // `SANCTIONED_COATS` names `BugDock.vue` → `--bugs-coat`.
+  --bugs-contrast: var(--brown-7);
+  --bugs-veil: rgba(215, 204, 200, 0.4);
+  --bugs-coat:
+    linear-gradient(var(--bugs-veil), var(--bugs-veil)),
     var(--light-cream);
 
   // ── THE SCHEMA BUILDER'S CONTRAST, AS A DIAL (2026-09-05, user ask: "and

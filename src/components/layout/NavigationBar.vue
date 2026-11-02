@@ -81,7 +81,34 @@
            beside the burger slot) — and the current element names itself on
            the page. What is left is the slack that pushes the right cluster
            to its edge. ── -->
-      <div class="nav-center" />
+      <div class="nav-center">
+        <!-- ⭐ 2026-11-02 — BUGS (user ask: "a big debug bug button of the
+             caliber and style of the creation ones on the footer nav bar …
+             Choose a roach-like bug for the button"). A creation chip of the
+             three makers' kind exactly — grip, hairline, glyph, word, the ONE
+             chip width (`EQUAL_CHIPS`), a slider body (`TRAIL_CHIPS`), its
+             window centred on it and riding its offset, its parked tab
+             standing on it — seated HERE, at the start of the bar's empty left
+             run beside the identity section, not after LABELS: a fourth
+             114px chip in the right cluster reached the bar's centre at
+             1440px and the slider shoved the hub 74px off its seat (the
+             cluster is ~620px with three). Here it balances the bar instead —
+             the one tool about the platform itself on the identity's side,
+             the makers on theirs. The glyph is not a font glyph (Material's
+             bugs are beetles) but `ROACH`, utils/glyphs.js. On a PHONE this
+             cell is hidden and the chip stands beside the chat head (see
+             `.nav-looks`). The window is the bug dock
+             (components/bugs/BugDock.vue). -->
+        <q-btn v-if="!windows.isMobile" unelevated class="nav-btn create-btn create-btn--bugs" :class="{ 'is-active': creationExpanded.bugs }" :ref="setChip('bugs')" :style="chipStyle('bugs')" @click="$emit('open-bugs')">
+          <span class="nav-btn__grip" @pointerdown="startChipDrag('bugs', $event)" @click.stop>
+            <q-icon name="drag_indicator" size="15px" />
+          </span>
+          <span class="nav-btn__grip-rule" />
+          <q-icon :name="ROACH" size="15px" class="create-btn__roach" />
+          <span class="nav-btn__label">BUGS</span>
+          <q-tooltip>Report a bug — or write the fix as an idea for the prompt layer (public, mailed to allegue@pathos.cloud)</q-tooltip>
+        </q-btn>
+      </div>
 
       <!-- ── ⭐ THE HUB (2026-10-11, user ask: "a big round button sticking
            to the center of the bottom nav bar … bigger than the nav bar so
@@ -300,6 +327,17 @@
           @open-chat="openChatAt"
           @grip-down="startChipDrag('chat', $event)"
         />
+        <!-- The BUGS chip's PHONE seat (2026-11-02): the bar's centre cell is
+             hidden under 600px and the creation row is full (and centred, by
+             ask), so the roach stands glyph-only beside the chat head in the
+             row's left track — 26px, butted to the head, which is what keeps
+             that track inside its half at 360px and the row centred.
+             No ref: a phone has no slider, and `measureChips` finds the chip
+             by its class for the parked tab. -->
+        <q-btn v-if="windows.isMobile" unelevated class="nav-btn create-btn create-btn--bugs create-btn--bugs-phone" :class="{ 'is-active': creationExpanded.bugs }" @click="$emit('open-bugs')">
+          <q-icon :name="ROACH" size="15px" class="create-btn__roach" />
+          <q-tooltip>Report a bug</q-tooltip>
+        </q-btn>
 
         <!-- ── NO DIVIDER HERE ANYMORE (2026-08-24, user ask: "there are
              weird hairlines in between the buttons … make sure each button is
@@ -458,6 +496,8 @@ import { useChatStore } from 'src/stores/chat'
 import { useDashboardStore } from 'src/stores/dashboard'
 import { useEventsStore } from 'src/stores/events'
 import { useCaptureStore, captureLabel, MODE_META } from 'src/stores/capture'
+import { useBugsStore, bugLabel } from 'src/stores/bugs'
+import { ROACH } from 'src/utils/glyphs'
 import { pinService } from 'src/services/pin.service'
 import IdentityChip from 'src/components/identity/IdentityChip.vue'
 import NavHub from './NavHub.vue'
@@ -467,7 +507,7 @@ import { installDockDrag } from 'src/utils/dockDrag'
 export default defineComponent({
   name: 'NavigationBar',
   components: { IdentityChip, NavHub, ChatStrip },
-  emits: ['toggle-drawer', 'open-maker', 'open-uploader', 'open-capture', 'open-schema-builder', 'open-label-maker', 'pins-changed'],
+  emits: ['toggle-drawer', 'open-maker', 'open-uploader', 'open-capture', 'open-schema-builder', 'open-label-maker', 'open-bugs', 'pins-changed'],
   props: {
     // Increment to force a pin-state refresh from the parent (e.g. after the
     // PinsDrawer unpins something so the tack indicator updates).
@@ -484,6 +524,7 @@ export default defineComponent({
     const makerStore = useMakerStore()
     const uploaderStore = useUploaderStore()
     const captureStore = useCaptureStore()
+    const bugsStore = useBugsStore()
     const schemaBuilderStore = useSchemaBuilderStore()
     const labelMakerStore = useLabelMakerStore()
     const chatStore = useChatStore()
@@ -556,6 +597,7 @@ export default defineComponent({
       maker: makerStore.isOpen && !makerStore.isMinimized,
       schemaBuilder: schemaBuilderStore.isOpen && !schemaBuilderStore.isMinimized,
       labelMaker: labelMakerStore.isOpen && !labelMakerStore.isMinimized,
+      bugs: bugsStore.isOpen && !bugsStore.isMinimized,
       uploader: uploaderStore.isOpen && !uploaderStore.isMinimized,
       // the hub's glyph lights while the capture window stands (its chip)
       capture: captureStore.isOpen && !captureStore.isMinimized
@@ -663,7 +705,8 @@ export default defineComponent({
     // the tabs and the slider see the equalised boxes.
     // ⭐ THREE since 2026-10-31: chat became the chat STRIP, a fixed
     // `--chat-strip-w` like the pins strip it now matches.
-    const EQUAL_CHIPS = ['maker', 'schemaBuilder', 'labelMaker']
+    // ⭐ FOUR since 2026-11-02: the BUGS chip takes the makers' width.
+    const EQUAL_CHIPS = ['maker', 'schemaBuilder', 'labelMaker', 'bugs']
     const equaliseChips = () => {
       const bar = document.querySelector('.nav-bar')
       if (!bar) return
@@ -679,7 +722,8 @@ export default defineComponent({
       equaliseChips()
       const next = {}
       for (const k of TRAIL_CHIPS) {
-        const el = chipEls[k]
+        // the BUGS chip's phone seat carries no ref (see its template note)
+        const el = chipEls[k] || (k === 'bugs' ? document.querySelector('.nav-bar .create-btn--bugs') : null)
         if (!el) continue
         const r = el.getBoundingClientRect()
         if (r.width > 0) next[k] = { left: r.left - windows.trailShiftOf(k), width: r.width }
@@ -926,6 +970,17 @@ export default defineComponent({
           restore: () => labelMakerStore.restore()
         })
       }
+      if (bugsStore.isOpen && bugsStore.isMinimized) {
+        tabs.push({
+          key: 'bugs',
+          icon: ROACH,
+          label: bugLabel(bugsStore),
+          meta: '',
+          busy: bugsStore.draft.shots.some(x => x.busy),
+          title: 'Restore the bug dock',
+          restore: () => bugsStore.restore()
+        })
+      }
       if (uploaderStore.isOpen && uploaderStore.isMinimized) {
         tabs.push({
           key: 'uploader',
@@ -1013,7 +1068,8 @@ export default defineComponent({
       hubStyle,
       startChipDrag,
       // the hub's two seats pick by the store's 600px gate (NavHub.vue)
-      windows
+      windows,
+      ROACH
     }
   }
 })
@@ -1322,6 +1378,12 @@ export default defineComponent({
   --mtab-rim-ink: var(--labels-contrast);
   --mtab-ink: var(--red-10);
 }
+// The bug dock (2026-11-02) — the roach's chestnut, the same three dials.
+.minitab--bugs {
+  --mtab-face: var(--bugs-flat);
+  --mtab-rim-ink: var(--bugs-contrast);
+  --mtab-ink: var(--brown-10);
+}
 // The capture window parks in the uploader's family (2026-10-11): same
 // face, same rim ink — one teal colorway, two windows.
 .minitab--capture,
@@ -1489,6 +1551,7 @@ export default defineComponent({
 .nav-bar .create-btn--maker           { --chip-word: var(--indigo-10); }
 .nav-bar .create-btn--schemaBuilder { --chip-word: var(--yellow-10); }
 .nav-bar .create-btn--labelMaker      { --chip-word: var(--red-10); }
+.nav-bar .create-btn--bugs            { --chip-word: var(--brown-10); }
 .nav-bar .create-btn .nav-btn__label { color: var(--chip-word); }
 .nav-bar .create-btn :deep(.q-btn__content) > .q-icon { color: var(--chip-word); }
 
@@ -1521,6 +1584,7 @@ export default defineComponent({
 .nav-bar .create-btn--maker           { --chip-rim: var(--maker-contrast);     --chip-grip: var(--maker-contrast);     --chip-glow: var(--indigo-3); }
 .nav-bar .create-btn--schemaBuilder { --chip-rim: var(--schemas-contrast); --chip-grip: var(--schemas-contrast); --chip-glow: var(--yellow-3); }
 .nav-bar .create-btn--labelMaker      { --chip-rim: var(--labels-contrast);    --chip-grip: var(--labels-contrast);    --chip-glow: var(--red-3); }
+.nav-bar .create-btn--bugs            { --chip-rim: var(--bugs-contrast);      --chip-grip: var(--bugs-contrast);      --chip-glow: var(--brown-3); }
 // (the uploader's chip line stood here until 2026-10-11 — the chip is gone,
 // the NAV HUB wears its teal; see the hub's own dials in NavHub.vue)
 
@@ -1998,7 +2062,16 @@ export default defineComponent({
 // stretch of the trail nothing stands on: the band runs behind this cell
 // (unpositioned and transparent, so it simply shows through) and the frieze is
 // the only thing drawn in the middle of the bar.
-.nav-center { min-width: 0; }
+// ⭐ 2026-11-02 — the centre cell is the LEFT RUN'S SEAT now: the BUGS chip
+// stands at its start, the bar's 6px gap off the identity section's
+// hairline (`.nav-right`'s own gap), on the chips' one centre line.
+.nav-center {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  align-self: center;
+  padding-left: 6px;
+}
 
 // ── THE HUB'S TWO SEATS (2026-10-11) ──────────────────────────────────
 // Desktop: absolute at the bar's horizontal centre with the disc's CENTRE
@@ -2512,6 +2585,21 @@ export default defineComponent({
   .nav-btn__grip .q-icon { text-shadow: var(--chip-carve); }
 }
 
+// ⭐ THE ROACH IS A PATH, NOT A LETTER (2026-11-02): `text-shadow` never
+// reaches an SVG glyph, so the BUGS chip states the same carve as two
+// drop-shadow filters (white below, a hair of ink above — the pair above,
+// read as light), and its LIT state below swaps them for the bloom.
+.nav-bar .create-btn--bugs :deep(.q-btn__content) > .create-btn__roach {
+  filter:
+    drop-shadow(0 1px 0 rgba(255, 255, 255, 1))
+    drop-shadow(0 -1px 0 rgba(var(--ink-rgb-deep), 0.25));
+}
+.nav-bar .create-btn--bugs.is-active :deep(.q-btn__content) > .create-btn__roach {
+  filter:
+    drop-shadow(0 0 1px color-mix(in srgb, var(--chip-rim) 80%, transparent))
+    drop-shadow(0 0 3px color-mix(in srgb, var(--chip-glow) 70%, transparent));
+}
+
 .pins-count-badge {
   font-size: 0.62em !important;
   padding: 0 4px !important;
@@ -2668,6 +2756,13 @@ export default defineComponent({
   // the glyph. The parked tab's body follows: 31 − 14 = 17px around its 12px
   // glyph. The width is what the centring leaves, as it was on 09-23.
   .nav-bar .create-btn { min-width: 31px; }
+  // THE ROACH BESIDE THE CHAT HEAD (2026-11-02) — 26px, butted to the head
+  // with no gap. The arithmetic is the row's centring law: at 360px the left
+  // track's half is 58px and the chat head takes 31, so the pair must come
+  // in at ≤ 58 or the row slides off the bar's centre (28px + a 4px gap made
+  // 64 and slid it 3px — `flow-phone-footer` law 2). Butted, the two read as
+  // one two-cell plate, the way the tack once butted its divider.
+  .nav-bar .create-btn--bugs-phone { min-width: 26px; width: 26px; margin-left: 0; }
 
   // No grips on a phone (2026-08-30, the slider pass): six handles+hairlines
   // cost ~90px this bar does not have at 375px, the docks run edge to edge

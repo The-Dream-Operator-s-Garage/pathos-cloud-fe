@@ -89,6 +89,10 @@ export const ACTIONS = {
   // petals open ONE dock with three faces; its NAV_WINDOW leaf is CAPTURE.
   OPEN_CAPTURE: { label: 'Opened capture', icon: 'adjust', group: 'window' },
   CLOSE_CAPTURE: { label: 'Closed capture', icon: 'adjust', group: 'window' },
+  // The bug dock (2026-11-02) — the footer's roach chip; leaf BUGS.
+  OPEN_BUGS: { label: 'Opened bug dock', icon: 'bug_report', group: 'window' },
+  CLOSE_BUGS: { label: 'Closed bug dock', icon: 'bug_report', group: 'window' },
+  FILE_BUG: { label: 'Filed a bug', icon: 'bug_report', group: 'author' },
 
   // ── author
   CREATE_POST: { label: 'Posted', icon: 'edit_note', group: 'author' },
@@ -217,7 +221,9 @@ export const DOCK_WINDOWS = {
   // 2026-10-11 — the fifth: NAV_WINDOW > CAPTURE is minted lazily by the
   // API like every NAV_* leaf (navSkeletonService._ensureSystemLeaf), so
   // no seed change was needed for the stop story to name it.
-  capture: { open: 'OPEN_CAPTURE', close: 'CLOSE_CAPTURE', label: 'Capture', leaf: 'CAPTURE' }
+  capture: { open: 'OPEN_CAPTURE', close: 'CLOSE_CAPTURE', label: 'Capture', leaf: 'CAPTURE' },
+  // 2026-11-02 — the sixth: the bug dock, NAV_WINDOW > BUGS (lazy, like CAPTURE).
+  bugs: { open: 'OPEN_BUGS', close: 'CLOSE_BUGS', label: 'Bug dock', leaf: 'BUGS' }
 }
 
 // The uploader's verb for a batch of files (File objects or { type } /

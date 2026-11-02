@@ -199,6 +199,7 @@
       @open-capture="captureStore.open($event)"
       @open-schema-builder="schemaBuilderStore.open()"
       @open-label-maker="labelMakerStore.open()"
+      @open-bugs="bugsStore.open()"
       @pins-changed="pinsRefreshKey++"
     />
 
@@ -224,6 +225,10 @@
     <CaptureDock @created="onCaptured" />
     <SchemaBuilderDock />
     <LabelMakerDock />
+    <!-- The bug dock (2026-11-02) — the footer's roach chip: a notepad with
+         screenshots, refs and page context, filed as a PUBLIC post in the
+         DEVELOPMENT family and mailed to allegue@pathos.cloud. -->
+    <BugDock />
     <ChatDock />
     <!-- The dashboard panel — the creation footprint in the flyout family's
          grey coat, empty until we fill it (2026-08-10, second ask: it rises
@@ -246,6 +251,7 @@ import { useWindowsStore } from 'src/stores/windows'
 import MakerDock from 'src/components/maker/MakerDock.vue'
 import UploaderDock from 'src/components/maker/UploaderDock.vue'
 import CaptureDock from 'src/components/capture/CaptureDock.vue'
+import BugDock from 'src/components/bugs/BugDock.vue'
 import SchemaBuilderDock from 'src/components/maker/SchemaBuilderDock.vue'
 import LabelMakerDock from 'src/components/maker/LabelMakerDock.vue'
 import ChatDock from 'src/components/chat/ChatDock.vue'
@@ -261,6 +267,7 @@ import StackPanel from 'src/components/layout/StackPanel.vue'
 import { useMakerStore } from 'src/stores/maker'
 import { useUploaderStore } from 'src/stores/uploader'
 import { useCaptureStore } from 'src/stores/capture'
+import { useBugsStore } from 'src/stores/bugs'
 import { useSchemaBuilderStore } from 'src/stores/schemaBuilder'
 import { useLabelMakerStore } from 'src/stores/labelMaker'
 import { useGeoStore } from 'src/stores/geo'
@@ -270,7 +277,7 @@ import { useQuasar } from 'quasar'
 
 export default defineComponent({
   name: 'MainLayout',
-  components: { MakerDock, UploaderDock, CaptureDock, SchemaBuilderDock, LabelMakerDock, ChatDock, DashboardDock, IdentityDock, ElementFlyoutHost, FriezeBar, NavigationBar, PinsDrawer, StackPanel },
+  components: { MakerDock, UploaderDock, CaptureDock, BugDock, SchemaBuilderDock, LabelMakerDock, ChatDock, DashboardDock, IdentityDock, ElementFlyoutHost, FriezeBar, NavigationBar, PinsDrawer, StackPanel },
   setup () {
     const router = useRouter()
     const $q = useQuasar()
@@ -278,6 +285,7 @@ export default defineComponent({
     const makerStore = useMakerStore()
     const uploaderStore = useUploaderStore()
     const captureStore = useCaptureStore()
+    const bugsStore = useBugsStore()
     const schemaBuilderStore = useSchemaBuilderStore()
     const labelMakerStore = useLabelMakerStore()
     const windows = useWindowsStore()
@@ -425,7 +433,7 @@ export default defineComponent({
       }
     })
 
-    return { drawerEnabled, drawer, mini, drawerRailW, hideDrawer, showBurger, makerStore, uploaderStore, captureStore, schemaBuilderStore, labelMakerStore, windows, pinsRefreshKey, onPostCreated, onUploaded, onCaptured }
+    return { drawerEnabled, drawer, mini, drawerRailW, hideDrawer, showBurger, makerStore, uploaderStore, captureStore, bugsStore, schemaBuilderStore, labelMakerStore, windows, pinsRefreshKey, onPostCreated, onUploaded, onCaptured }
   }
 })
 </script>
