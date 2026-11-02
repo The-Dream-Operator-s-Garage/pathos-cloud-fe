@@ -119,10 +119,12 @@
          no-floating-text rule keeps doors): Google's OAuth review requires
          the homepage to link the privacy policy, and these hrefs are the
          exact clean URLs its consent screen names (public/privacy/ +
-         public/terms/ forward to LegalPage). -->
+         public/terms/ forward to LegalPage). 2026-11-02: + assistance, the
+         support URL the extension's store listing names. -->
     <nav class="auth-legal" aria-label="Legal">
       <a href="/privacy/">privacy</a>
       <a href="/terms/">terms</a>
+      <a href="/assistance/">assistance</a>
     </nav>
   </q-page>
 </template>

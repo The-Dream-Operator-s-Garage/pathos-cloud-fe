@@ -74,7 +74,8 @@ const routes = [
   // from allegue's source note (GET /api/legal/:doc?lang=). The clean URLs
   // Google's consent screen links are the static doors public/privacy/ and
   // public/terms/, which forward here keeping ?lang= (a #fragment is no
-  // place to point a reviewer or a crawler).
+  // place to point a reviewer or a crawler). 2026-11-02: + /assistance, the
+  // help page — same page, its own source note (ASSISTANCE_SOURCE_NODE).
   {
     path: '/privacy',
     component: () => import('src/layouts/AuthLayout.vue'),
@@ -84,6 +85,11 @@ const routes = [
     path: '/terms',
     component: () => import('src/layouts/AuthLayout.vue'),
     children: [{ path: '', component: () => import('src/pages/LegalPage.vue'), meta: { legal: 'terms' } }]
+  },
+  {
+    path: '/assistance',
+    component: () => import('src/layouts/AuthLayout.vue'),
+    children: [{ path: '', component: () => import('src/pages/LegalPage.vue'), meta: { legal: 'assistance' } }]
   },
   { path: '/:catchAll(.*)*', component: () => import('src/pages/ErrorNotFound.vue') }
 ]

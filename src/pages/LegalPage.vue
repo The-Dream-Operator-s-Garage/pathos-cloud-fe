@@ -2,14 +2,19 @@
   <!-- ── THE LEGAL PAGES (2026-10-31, user ask: privacy policy + terms of
        service for Google's OAuth consent screen, "in plain written
        nasalization english", EN + ES, based on a node allegue can edit).
-       ONE page for both documents (`meta.legal` picks privacy | terms), in
+       ONE page for every document (`meta.legal` picks the doc), in
        the landing's grammar: the metallic wordmark over the starfield, one
        warm plaque, the whole surface in ONE FACE (Nasalization — the same
        single rule as `.auth-page`). The text is NOT in the repo: it is read
        live from allegue's source note through GET /api/legal/:doc
        (services/legalService.js), so a saved edit of the note IS the new
        policy. Google links the clean doors public/privacy/ + public/terms/,
-       which forward here keeping ?lang=. -->
+       which forward here keeping ?lang=.
+       ⭐ 2026-11-02 — a THIRD document, ASSISTANCE (user ask: "an ASSISTANCE
+       page under the same kind of element as the terms and privacy ones,
+       with their unique url and managed by a node"): /assistance, door
+       public/assistance/, read from its OWN note (ASSISTANCE_SOURCE_NODE),
+       so help edits never re-version the policy. -->
   <q-page class="legal-page" :style-fn="() => ({})">
     <header class="legal-hero">
       <router-link to="/auth" class="legal-wordmark nasalization">pathos.cloud</router-link>
@@ -61,14 +66,14 @@ import api from 'src/services/api'
 import MarkdownBody from 'src/components/shared/MarkdownBody.vue'
 import FriezeBar from 'src/components/layout/FriezeBar.vue'
 
-const DOCS = ['privacy', 'terms']
+const DOCS = ['privacy', 'terms', 'assistance']
 const LANGS = ['en', 'es']
 
 // The page's own chrome only — the documents themselves live in the note.
 const COPY = {
   en: {
     nav: 'Legal documents',
-    docs: { privacy: 'privacy', terms: 'terms' },
+    docs: { privacy: 'privacy', terms: 'terms', assistance: 'assistance' },
     unavailable: 'This page is unavailable right now. Write to',
     receipt: 'read live from a signed note by',
     version: 'version',
@@ -76,7 +81,7 @@ const COPY = {
   },
   es: {
     nav: 'Documentos legales',
-    docs: { privacy: 'privacidad', terms: 'condiciones' },
+    docs: { privacy: 'privacidad', terms: 'condiciones', assistance: 'asistencia' },
     unavailable: 'Esta página no está disponible por ahora. Escribe a',
     receipt: 'leído en vivo de una nota firmada por',
     version: 'versión',
