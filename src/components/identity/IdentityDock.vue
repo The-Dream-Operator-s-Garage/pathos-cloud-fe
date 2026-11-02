@@ -212,9 +212,19 @@
                     stored where <b>{{ whoName(storage.inherited_from) }}</b> stores<template v-if="storage.can_link"> — link below to choose for this identity</template>
                   </span>
                   <span v-else-if="storage.google.linked && storage.google.own" class="identity-dock__storage-meta mono">
-                    {{ storage.google.state === 'ok' ? 'mirror' : storage.google.state }}<template v-if="storage.google.last_sync_at"> · synced {{ ago(storage.google.last_sync_at) }}</template><template v-else> · not synced yet</template>
+                    <template v-if="syncing">uploading to Drive<template v-if="sync.total != null"> · {{ sync.done }} of {{ sync.total }} files</template></template>
+                    <template v-else>{{ storage.google.state === 'ok' ? 'mirror' : storage.google.state }}<template v-if="storage.google.last_sync_at"> · synced {{ ago(storage.google.last_sync_at) }}</template><template v-else> · not synced yet</template></template>
+                    <template v-if="storage.google.folder_url"> · <a :href="storage.google.folder_url" target="_blank" rel="noopener noreferrer" class="identity-dock__storage-folder" data-testid="identity-storage-folder" title="Open your pathos.cloud folder in Google Drive (a new tab)"><q-icon name="folder_open" size="11px" />open in Drive</a></template>
                   </span>
                 </div>
+              </div>
+
+              <!-- the pass in flight: a striped bar that moves as bytes land, and the count -->
+              <div v-if="syncing" class="identity-dock__sync" data-testid="identity-storage-syncing" :title="syncTitle">
+                <div class="identity-dock__bar identity-dock__bar--sync">
+                  <div class="identity-dock__bar-fill identity-dock__bar-fill--sync" :class="{ 'is-indeterminate': syncPct === null }" :style="syncPct === null ? undefined : { width: syncPct + '%' }" />
+                </div>
+                <span class="identity-dock__sync-text mono">{{ syncText }}</span>
               </div>
 
               <!-- the quota line: what this tree weighs here, and on Drive when linked -->
@@ -247,8 +257,8 @@
                   <span>Link Google Drive</span>
                 </button>
                 <template v-else-if="storage.google.own">
-                  <button type="button" class="identity-dock__btn identity-dock__btn--tiny" data-testid="identity-storage-sync" :disabled="storageBusy !== null" title="Upload every changed segment to your Drive now" @click="syncStorage">
-                    <q-spinner v-if="storageBusy === 'sync'" size="10px" />
+                  <button type="button" class="identity-dock__btn identity-dock__btn--tiny" data-testid="identity-storage-sync" :disabled="storageBusy !== null || syncing" :title="syncing ? 'A pass is running — the bar above follows it' : 'Upload every changed segment to your Drive now'" @click="syncStorage">
+                    <q-spinner v-if="storageBusy === 'sync' || syncing" size="10px" />
                     <q-icon v-else name="sync" size="11px" />
                     <span>Sync now</span>
                   </button>
@@ -257,7 +267,7 @@
                     type="button"
                     class="identity-dock__btn identity-dock__btn--tiny identity-dock__btn--quiet"
                     data-testid="identity-storage-unlink"
-                    :disabled="storageBusy !== null"
+                    :disabled="storageBusy !== null || syncing"
                     title="Unlink: revoke our access at Google, store on this server again, close the Google sign-in door"
                     @click="unlinkGoogle"
                   >
@@ -404,7 +414,7 @@
 </template>
 
 <script>
-import { defineComponent, ref, computed } from 'vue'
+import { defineComponent, ref, computed, watch, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
 import { useQuasar } from 'quasar'
 import { useAuthStore } from 'src/stores/auth'
@@ -440,6 +450,43 @@ export default defineComponent({
       if (!q || !q.reachable || !q.limit || q.usage == null) return null
       return Math.min(100, Math.round((q.usage / q.limit) * 1000) / 10)
     })
+    // THE PASS IN FLIGHT (2026-11-02): `storage.google.sync` is the mirror as
+    // it runs (done/total files, bytes, the current name) or null. While it
+    // is there the well re-reads the facts every 2 s and draws the bar; when
+    // it leaves, the row's state says how the pass ended. The first real pass
+    // took 5m39s and outlived the proxy — the button's request is not the
+    // truth of a sync, the row is.
+    const sync = computed(() => storage.value?.google?.sync || null)
+    const syncing = computed(() => !!sync.value)
+    const syncPct = computed(() => {
+      const s = sync.value
+      if (!s) return null
+      if (s.bytes_total) return Math.min(100, Math.round((s.bytes_done / s.bytes_total) * 1000) / 10)
+      if (s.total) return Math.min(100, Math.round((s.done / s.total) * 1000) / 10)
+      return null
+    })
+    const syncText = computed(() => {
+      const s = sync.value
+      if (!s) return ''
+      if (s.total == null) return 'uploading to Google Drive · listing the folder…'
+      const bytes = s.bytes_total ? ` · ${fmtBytes(s.bytes_done)} of ${fmtBytes(s.bytes_total)}` : ''
+      return `uploading to Google Drive · ${s.done} of ${s.total} files${bytes}${s.current ? ' · ' + s.current : ''}`
+    })
+    const syncTitle = computed(() => (sync.value?.started_at ? `A mirror pass has run since ${ago(sync.value.started_at)} — a first pass can take minutes` : 'A mirror pass is running'))
+    let syncTimer = null
+    const stopFollowing = () => { if (syncTimer) clearInterval(syncTimer); syncTimer = null }
+    watch(syncing, (now, before) => {
+      if (now && !syncTimer) syncTimer = setInterval(() => identity.loadStorage(), 2000)
+      if (!now) {
+        stopFollowing()
+        if (before) {
+          const st = storage.value?.google?.state
+          if (st === 'ok') $q.notify({ type: 'positive', message: 'Synced to Google Drive — every segment matches', icon: 'cloud_done' })
+          else if (st) $q.notify({ type: 'negative', message: `The sync ended with ${String(st).replace(/_/g, ' ')}` })
+        }
+      }
+    }, { immediate: true })
+    onBeforeUnmount(stopFollowing)
     const fmtInt = (n) => (Number(n) || 0).toLocaleString('en-US')
     const fmtBytes = (n) => {
       const b = Number(n) || 0
@@ -543,7 +590,8 @@ export default defineComponent({
       storageBusy.value = 'sync'
       try {
         const r = await identity.syncStorage()
-        if (r.success) $q.notify({ type: 'positive', message: `Synced: ${r.uploaded} uploaded · ${r.updated} updated · ${r.unchanged} unchanged${r.failed?.length ? ' · ' + r.failed.length + ' failed' : ''}`, icon: 'sync' })
+        if (r.success && r.accepted) $q.notify({ type: 'info', message: 'Uploading to Google Drive — a first pass can take minutes; the bar in the well follows it', icon: 'sync' })
+        else if (r.success) $q.notify({ type: 'positive', message: `Synced: ${r.uploaded} uploaded · ${r.updated} updated · ${r.unchanged} unchanged${r.failed?.length ? ' · ' + r.failed.length + ' failed' : ''}`, icon: 'sync' })
         else $q.notify({ type: 'negative', message: r.error?.message || 'sync failed' })
       } catch (e) {
         $q.notify({ type: 'negative', message: e?.response?.data?.error?.message || 'sync failed' })
@@ -570,6 +618,11 @@ export default defineComponent({
       switching,
       revoking,
       storageBusy,
+      sync,
+      syncing,
+      syncPct,
+      syncText,
+      syncTitle,
       storage,
       quotaPct,
       fmtInt,
@@ -1026,6 +1079,63 @@ export default defineComponent({
   height: 100%;
   background: var(--dock-rule-strong);
   border-radius: 2px;
+}
+/* the pass in flight: stripes that march while the fill grows (bytes landed) */
+.identity-dock__sync {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin: 2px 0 4px;
+}
+.identity-dock__bar--sync {
+  position: relative;
+  height: 5px;
+  /* the TRACK marches too, faintly, so a pass reads as alive while a big
+     file is still in flight and the fill has not moved */
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background-image: linear-gradient(135deg, rgba(66, 66, 66, 0.14) 25%, transparent 25%, transparent 50%, rgba(66, 66, 66, 0.14) 50%, rgba(66, 66, 66, 0.14) 75%, transparent 75%, transparent);
+    background-size: 14px 14px;
+    animation: identity-sync-stripes 0.8s linear infinite;
+  }
+}
+.identity-dock__bar-fill--sync { position: relative; z-index: 1; }
+.identity-dock__bar-fill--sync {
+  min-width: 6px;
+  background-color: var(--dock-rule-strong);
+  background-image: linear-gradient(135deg, rgba(255, 255, 255, 0.4) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.4) 50%, rgba(255, 255, 255, 0.4) 75%, transparent 75%, transparent);
+  background-size: 14px 14px;
+  animation: identity-sync-stripes 0.8s linear infinite;
+  transition: width 0.6s ease;
+}
+.identity-dock__bar-fill--sync.is-indeterminate {
+  width: 30%;
+  animation: identity-sync-stripes 0.8s linear infinite, identity-sync-slide 1.4s ease-in-out infinite alternate;
+}
+.identity-dock__sync-text {
+  font-size: 0.62em;
+  color: rgba(66, 66, 66, 0.62);
+  padding: 0 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.identity-dock__storage-folder {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  color: inherit;
+  text-decoration: none;
+  border-bottom: 1px dotted currentColor;
+  &:hover { border-bottom-style: solid; color: var(--dock-ink); }
+}
+@keyframes identity-sync-stripes { from { background-position: 0 0; } to { background-position: 14px 0; } }
+@keyframes identity-sync-slide { from { margin-left: 0; } to { margin-left: 70%; } }
+@media (prefers-reduced-motion: reduce) {
+  .identity-dock__bar-fill--sync, .identity-dock__bar-fill--sync.is-indeterminate, .identity-dock__bar--sync::after { animation: none; }
 }
 
 .identity-dock__storage-lock {
