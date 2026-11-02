@@ -37,6 +37,10 @@
        schema whose "table" is a card. -->
   <GithubPrCard v-else-if="isGithubPr" :slots="rows" />
 
+  <!-- CHROME_HISTORY instances (2026-11-02) draw their VISITS as a lane —
+       a history is read newest first, a page at a time, never as a grid. -->
+  <ChromeHistoryLane v-else-if="isChromeHistory" :skeleton-id="head.id" :profile="profileOf" />
+
   <div
     v-else
     class="skel-table"
@@ -380,6 +384,7 @@ import { defineComponent, defineAsyncComponent, ref, computed, onMounted, watch,
 import { useQuasar } from 'quasar'
 import InfoChip from 'src/components/shared/InfoChip.vue'
 import GithubPrCard from 'src/components/dev/GithubPrCard.vue'
+import ChromeHistoryLane from 'src/components/extensions/ChromeHistoryLane.vue'
 import LabelPicker from 'src/components/maker/LabelPicker.vue'
 import MicroChip from 'src/components/shared/MicroChip.vue'
 import { skeletonService } from 'src/services/skeleton.service'
@@ -418,7 +423,7 @@ const BARE_REF = /^\s*([a-z]+\/[0-9a-f]{16,})\s*$/i
 
 export default defineComponent({
   name: 'SkeletonTable',
-  components: { InfoChip, GithubPrCard, LabelPicker, MicroChip, SkeletonMini, PathMini },
+  components: { InfoChip, GithubPrCard, ChromeHistoryLane, LabelPicker, MicroChip, SkeletonMini, PathMini },
   props: {
     // Pre-walked mode: the walk's `skeleton` head + `slots` array, handed
     // down by a host that already batched the read.
@@ -513,6 +518,8 @@ export default defineComponent({
     // Declaration order as the walk serves it — ORDER-sorted server-side.
     const rows = computed(() => (preWalked.value ? props.slots : walkedSlots.value) || [])
     const isGithubPr = computed(() => head.value.name === 'GITHUB_PR' && !head.value.is_schema)
+    const isChromeHistory = computed(() => head.value.name === 'CHROME_HISTORY' && !head.value.is_schema && !!head.value.id && props.depth === 0)
+    const profileOf = computed(() => rows.value.find((r) => r.slotName === 'PROFILE')?.textValue || null)
 
     // After a write: pre-walked hosts get told (they reload and hand new
     // slots down); the self-resolving mode refreshes itself.
@@ -892,6 +899,8 @@ export default defineComponent({
       head,
       rows,
       isGithubPr,
+      isChromeHistory,
+      profileOf,
       canEditKeys,
       canEditCells,
       lockOf,

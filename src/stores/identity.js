@@ -3,6 +3,7 @@ import { useWindowsStore } from './windows'
 import { useAuthStore } from './auth'
 import { orgService } from 'src/services/org.service'
 import { authService } from 'src/services/auth.service'
+import { entityService } from 'src/services/entity.service'
 
 // The identity window — the profile/organizations features RELOCATED OUT OF
 // THE LEFT DRAWER (2026-08-31, user ask; the drawer itself is hidden the same
@@ -54,6 +55,12 @@ export const useIdentityStore = defineStore('identity', {
     // `last_sync_at` out-of-band).
     storage: null,
     storageLoaded: false,
+    // KEYS (2026-11-02 — docs/plans/chrome-history-extension.md Part 7):
+    // the capability keys of the acting seat and its alter-egos (the root
+    // sees its Chrome alter-ego's), revoked ones included. Re-read on
+    // every open — a key's `last_used_at` moves out-of-band.
+    keys: [],
+    keysLoaded: false,
     loaded: false,
     loading: false,
     // { [rootEntityId]: [member_id, …] } — see BADGES_KEY above.
@@ -116,7 +123,7 @@ export const useIdentityStore = defineStore('identity', {
       // Delegations move out-of-band (an alter-ego minted elsewhere delegates
       // to this seat at birth), so every open re-reads them even when the
       // orgs were loaded at mount and load() returns early.
-      if (this.loaded) { this.loadDelegations(); this.loadStorage() }
+      if (this.loaded) { this.loadDelegations(); this.loadStorage(); this.loadKeys() }
     },
 
     close () {
@@ -143,9 +150,53 @@ export const useIdentityStore = defineStore('identity', {
       this.loading = false
       this.loadDelegations()
       this.loadStorage()
+      this.loadKeys()
     },
 
-    // ── Storage + the Google link (S4) ─────────────────────────────────
+    // ── Keys (capability secrets, 2026-11-02) ──────────────────────────
+    async loadKeys () {
+      try {
+        const r = await authService.keys()
+        if (r.success) { this.keys = r.keys || []; this.keysLoaded = true }
+      } catch (_) { /* a mask / agent seat answers 403 — the well says so */ }
+    },
+
+    async revokeKey (id) {
+      const r = await authService.revokeKey(id)
+      if (r.success) {
+        this.keys = this.keys.map((k) => (k.id === id ? { ...k, revoked_at: r.revoked_at } : k))
+      }
+      return r
+    },
+
+    // NEW KEY → CHROME HISTORY (plan Part 7): the ROOT's alter-ego named
+    // "Chrome" is found or minted (S3 writes its delegation to the root at
+    // mint; it is born packed under a packed root and mirrored with the
+    // root's Drive — E0), the switch mints a token for THAT seat, and the
+    // key is minted with it on one request — the page keeps its own seat.
+    // → { success, token (once), secret, skeleton, grant, alterEgo, created }
+    async newChromeKey ({ label, profile = 'Default' } = {}) {
+      const auth = useAuthStore()
+      const root = auth.rootEntityId || auth.entityId
+      const list = await entityService.alterEgos(root)
+      // the ROOT's direct alter-egos (GET /entities/:id/alter-egos → { tree: { children } })
+      let chrome = (list?.tree?.children || []).find((e) => e.type_id === 4 && e.display_name === 'Chrome')
+      let created = false
+      if (!chrome) {
+        const made = await entityService.createAlterEgo(root, {
+          name: 'Chrome',
+          bio: 'Records the pages I visit in Chrome — the Garage extension\'s history upload.'
+        })
+        if (!made.success) return made
+        chrome = made.entity
+        created = true
+      }
+      const sw = await authService.switchToken(chrome.id)
+      if (!sw.success || !sw.token) return sw
+      const r = await authService.mintCapability({ purpose: 'chrome-history', label, profile }, sw.token)
+      if (r.success) await this.loadKeys()
+      return { ...r, alterEgo: { id: chrome.id, display_name: chrome.display_name || 'Chrome' }, created }
+    },
     async loadStorage () {
       try {
         const r = await authService.storage()

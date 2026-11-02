@@ -377,6 +377,114 @@
           </div>
         </div>
 
+        <!-- ── Keys — capability secrets (2026-11-02) ─────────────
+             THE KEYS WELL (docs/plans/chrome-history-extension.md Part 7),
+             the Storage well's idiom: head glyph + live count + refresh,
+             one row per key the acting seat and its alter-egos own (label,
+             purpose glyph, scopes, last use, whose seat it acts as, the
+             bound history as a door, Revoke). NEW KEY → CHROME HISTORY
+             finds or mints the ROOT's "Chrome" alter-ego and mints the key
+             AS it on one request — the page keeps its own seat; the token
+             shows ONCE with Copy and its on-chain receipt. -->
+        <div class="identity-dock__well identity-dock__well--keys" data-testid="identity-keys">
+          <div class="identity-dock__well-head nasalization">
+            <q-icon name="vpn_key" size="13px" />
+            <span>Keys</span>
+            <span v-if="liveKeys.length" class="identity-dock__count mono" data-testid="identity-keys-count">{{ liveKeys.length }}</span>
+            <button type="button" class="identity-dock__refresh" title="Refresh" @click="identity.loadKeys()">
+              <q-icon name="refresh" size="12px" />
+            </button>
+          </div>
+
+          <div v-if="freshKey" class="identity-dock__key-fresh" data-testid="identity-key-fresh">
+            <div class="identity-dock__key-fresh-head">
+              <q-icon name="new_releases" size="13px" />
+              <span>Copy this key now — it is shown once</span>
+            </div>
+            <div class="identity-dock__key-token mono" data-testid="identity-key-token">{{ freshKey.token }}</div>
+            <div class="identity-dock__key-fresh-acts">
+              <button type="button" class="identity-dock__btn identity-dock__btn--tiny" data-testid="identity-key-copy" @click="copyKey">
+                <q-icon :name="copied ? 'check' : 'content_copy'" size="11px" />
+                <span>{{ copied ? 'Copied' : 'Copy' }}</span>
+              </button>
+              <MicroChip kind="secrets" :id="freshKey.secret.id" :path="freshKey.secret.path" collapsed data-testid="identity-key-receipt" />
+              <span class="identity-dock__deleg-meta mono">receipt · acts as {{ freshKey.alterEgo.display_name }}</span>
+              <button type="button" class="identity-dock__btn identity-dock__btn--tiny identity-dock__key-done" data-testid="identity-key-done" @click="freshKey = null">Done</button>
+            </div>
+            <div class="identity-dock__hint">
+              Paste it into the Garage extension's options (pathos.cloud :: history upload).
+              It acts as {{ freshKey.alterEgo.display_name }}, may only add visits to its own
+              history, and cannot publish anything.
+            </div>
+          </div>
+
+          <div v-if="!identity.keysLoaded" class="identity-dock__empty">Reading your keys…</div>
+          <div v-else-if="!identity.keys.length" class="identity-dock__empty">
+            No keys — a key lets a machine (the Chrome extension) write to your pathchain, narrowly.
+          </div>
+          <div
+            v-for="k in identity.keys"
+            :key="k.id"
+            class="identity-dock__key"
+            :class="{ 'is-revoked': !!k.revoked_at }"
+            data-testid="identity-key-row"
+          >
+            <q-icon :name="purposeGlyph(k.purpose)" size="18px" class="identity-dock__storage-glyph" />
+            <div class="identity-dock__deleg-who">
+              <span class="identity-dock__deleg-name">{{ k.label }}</span>
+              <span class="identity-dock__deleg-meta mono">
+                {{ k.scopes.join(' · ') }} · {{ k.revoked_at ? 'revoked ' + ago(k.revoked_at) : (k.last_used_at ? 'used ' + ago(k.last_used_at) : 'never used') }}<template v-if="k.owner?.display_name"> · as {{ k.owner.display_name }}</template><template v-if="k.idle"> · idle 90 d</template>
+              </span>
+            </div>
+            <button
+              v-if="k.skeleton?.id"
+              type="button"
+              class="identity-dock__btn identity-dock__btn--tiny"
+              data-testid="identity-key-open"
+              title="Open this key's history"
+              @click="openKeyHistory(k)"
+            >
+              <q-icon name="history" size="11px" />
+              <span>History</span>
+            </button>
+            <button
+              v-if="!k.revoked_at"
+              type="button"
+              class="identity-dock__btn identity-dock__btn--tiny"
+              data-testid="identity-key-revoke"
+              :disabled="keyBusy !== null"
+              title="Revoke — the key stops working at once"
+              @click="revokeKey(k)"
+            >
+              <q-spinner v-if="keyBusy === k.id" size="10px" />
+              <q-icon v-else name="key_off" size="11px" />
+              <span>Revoke</span>
+            </button>
+          </div>
+
+          <div class="identity-dock__storage-acts">
+            <input
+              v-model="newKeyLabel"
+              class="identity-dock__key-label mono"
+              data-testid="identity-key-label"
+              placeholder="Chrome · this computer"
+              maxlength="80"
+            >
+            <button
+              type="button"
+              class="identity-dock__btn"
+              data-testid="identity-key-new"
+              :disabled="keyBusy !== null"
+              title="Mint a key for the Garage Chrome extension's history upload — it acts as your Chrome alter-ego"
+              @click="newChromeKey"
+            >
+              <q-spinner v-if="keyBusy === 'new'" size="11px" />
+              <q-icon v-else name="add_link" size="13px" />
+              <span>New key → Chrome history</span>
+            </button>
+          </div>
+        </div>
+
         <!-- ── Badges — the wardrobe ────────────────────────── -->
         <div class="identity-dock__well">
           <div class="identity-dock__well-head nasalization">
@@ -429,10 +537,11 @@ import { useFlyoutViewersStore } from 'src/stores/flyoutViewers'
 import EntityAvatar from 'src/components/entities/EntityAvatar.vue'
 import OrgLogoChip from 'src/components/organizations/OrgLogoChip.vue'
 import FriezeBar from 'src/components/layout/FriezeBar.vue'
+import MicroChip from 'src/components/shared/MicroChip.vue'
 
 export default defineComponent({
   name: 'IdentityDock',
-  components: { EntityAvatar, OrgLogoChip, FriezeBar },
+  components: { EntityAvatar, OrgLogoChip, FriezeBar, MicroChip },
   setup () {
     const $q = useQuasar()
     const router = useRouter()
@@ -617,11 +726,62 @@ export default defineComponent({
       } finally { revoking.value = null }
     }
 
+    // KEYS (2026-11-02): live = not revoked; the token is shown once and
+    // dropped from memory on Done (it is never stored anywhere else).
+    const keyBusy = ref(null)
+    const newKeyLabel = ref('')
+    const freshKey = ref(null)
+    const copied = ref(false)
+    const liveKeys = computed(() => identity.keys.filter((k) => !k.revoked_at))
+    const purposeGlyph = (p) => (p === 'chrome-history' ? 'travel_explore' : 'vpn_key')
+    const newChromeKey = async () => {
+      keyBusy.value = 'new'
+      try {
+        const label = newKeyLabel.value.trim() || 'Chrome · this computer'
+        const r = await identity.newChromeKey({ label })
+        if (r.success && r.token) {
+          freshKey.value = { token: r.token, secret: r.secret, alterEgo: r.alterEgo }
+          copied.value = false
+          newKeyLabel.value = ''
+          if (r.created) $q.notify({ type: 'info', message: 'Your Chrome alter-ego was minted — it delegates its reads to you', icon: 'travel_explore' })
+        } else $q.notify({ type: 'negative', message: r.error?.message || 'could not mint the key' })
+      } catch (e) {
+        $q.notify({ type: 'negative', message: e?.response?.data?.error?.message || 'could not mint the key' })
+      } finally { keyBusy.value = null }
+    }
+    const copyKey = async () => {
+      try { await navigator.clipboard.writeText(freshKey.value.token); copied.value = true } catch (_) { copied.value = false }
+    }
+    const revokeKey = async (k) => {
+      keyBusy.value = k.id
+      try {
+        const r = await identity.revokeKey(k.id)
+        if (r.success) $q.notify({ type: 'positive', message: `Key revoked — ${k.label} stops at once`, icon: 'key_off' })
+        else $q.notify({ type: 'negative', message: r.error?.message || 'revoke failed' })
+      } catch (e) {
+        $q.notify({ type: 'negative', message: e?.response?.data?.error?.message || 'revoke failed' })
+      } finally { keyBusy.value = null }
+    }
+    // The door: the key's CHROME_HISTORY instance in a window (its grid
+    // draws the visits lane — ChromeHistoryLane). The root opens it through
+    // the alter-ego's delegation, no mask worn.
+    const openKeyHistory = (k) => { flyouts.spawnRef(k.skeleton.path || String(k.skeleton.id), { flyout: true }) }
+
     return {
       identity,
       windows,
       switching,
       revoking,
+      keyBusy,
+      newKeyLabel,
+      freshKey,
+      copied,
+      liveKeys,
+      purposeGlyph,
+      newChromeKey,
+      copyKey,
+      revokeKey,
+      openKeyHistory,
       storageBusy,
       sync,
       syncing,
@@ -1204,6 +1364,74 @@ export default defineComponent({
 
   &.is-mandated { border-style: dashed; }
   &--received { background: transparent; border-color: transparent; border-top: 1px dashed var(--dock-rule); border-radius: 0; }
+}
+
+// THE KEYS WELL (2026-11-02): a key row wears the delegation row's card; a
+// revoked key fades to history. The fresh token sits in a dashed box that
+// says it is shown once; the label input shares the acts row with the button.
+.identity-dock__key {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 5px 8px;
+  background: var(--paper-card, #fff);
+  border: 1px solid var(--dock-rule);
+  border-radius: var(--radius-sm, 6px);
+
+  & + & { margin-top: 4px; }
+  &.is-revoked { opacity: 0.55; background: transparent; border-style: dashed; }
+}
+
+.identity-dock__key-fresh {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px;
+  margin-bottom: 6px;
+  border: 1px dashed var(--dock-rule-strong);
+  border-radius: var(--radius-sm, 6px);
+  background: var(--paper-card, #fff);
+}
+
+.identity-dock__key-fresh-head {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--dock-ink);
+}
+
+.identity-dock__key-token {
+  font-size: 11px;
+  word-break: break-all;
+  user-select: all;
+  padding: 4px 6px;
+  border-radius: 4px;
+  background: var(--grey-2, #eeeeee);
+  color: var(--dock-ink);
+}
+
+.identity-dock__key-fresh-acts {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.identity-dock__key-done { margin-left: auto; }
+
+.identity-dock__key-label {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 24px;
+  padding: 0 6px;
+  font-size: 11px;
+  border: 1px solid var(--dock-rule);
+  border-radius: 4px;
+  background: var(--paper-card, #fff);
+  color: var(--dock-ink);
 }
 
 .identity-dock__deleg-who {

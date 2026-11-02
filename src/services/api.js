@@ -6,8 +6,11 @@ const api = axios.create({
 })
 
 api.interceptors.request.use((config) => {
+  // An EXPLICIT Authorization on the request wins (2026-11-02): the Keys
+  // well mints a key AS the Chrome alter-ego with that seat's switch token
+  // on one request, and the page's own seat must not overwrite it.
   const token = localStorage.getItem('pathos_token')
-  if (token) config.headers.Authorization = `Bearer ${token}`
+  if (token && !config.headers.Authorization) config.headers.Authorization = `Bearer ${token}`
   // City-rounded 'lat,lon' written by stores/geo.js when the user agreed to
   // share their location — the API stamps it onto any moment it mints.
   const geo = localStorage.getItem('pathos_geo')

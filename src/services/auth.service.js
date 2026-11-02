@@ -66,6 +66,14 @@ export const authService = {
     return data
   },
 
+  // A token for another seat of the tree WITHOUT switching the page to it
+  // (2026-11-02 — the Keys well's New key mints AS the Chrome alter-ego on
+  // one request; the page's localStorage seat never moves).
+  async switchToken (entityId) {
+    const { data } = await api.post('/identity/switch', { entityId })
+    return data
+  },
+
   // ── Password recovery via the invite chain (Thread H) ────────────────
   // Inviter-only: mint a one-time reset secret bound to an invitee's entity.
   async mintRecoverySecret (entityId) {
@@ -143,6 +151,25 @@ export const authService = {
   // One mirror pass now → { uploaded, updated, unchanged, failed, segments }.
   async storageSync () {
     const { data } = await api.post('/identity/storage/sync')
+    return data
+  },
+
+  // ── Capability keys (2026-11-02 — docs/concepts/auth.md § Capability
+  // secrets): the keys of the acting seat and its alter-egos; a mint AS a
+  // seat — `token` (the alter-ego's switch token) rides ONE request so the
+  // page's own seat never moves; a revoke by the owner or an identity of it.
+  async keys () {
+    const { data } = await api.get('/identity/keys')
+    return data
+  },
+
+  async mintCapability (body, token = null) {
+    const { data } = await api.post('/identity/secret/capability', body, token ? { headers: { Authorization: `Bearer ${token}` } } : undefined)
+    return data
+  },
+
+  async revokeKey (id) {
+    const { data } = await api.post(`/secrets/${id}/revoke`)
     return data
   },
 

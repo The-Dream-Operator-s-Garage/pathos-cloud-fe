@@ -168,15 +168,22 @@
               <SecretInfo
                 :id="s.id"
                 :primary="'Secret #' + s.id"
-                :secondary="s.hash.slice(0, 12) + '…'"
+                :secondary="s.type === 'capability' && s.grant ? s.grant.label : s.hash.slice(0, 12) + '…'"
                 dense
               />
               <span
                 class="secret-status"
-                :class="s.status === 'used' ? 'secret-status--used' : 'secret-status--unused'"
-              >{{ s.type === 'reset' ? 'reset · ' + s.status : s.status }}</span>
+                :class="s.status === 'used' || s.status === 'revoked' ? 'secret-status--used' : 'secret-status--unused'"
+              >{{ s.type === 'reset' ? 'reset · ' + s.status : s.type === 'capability' ? 'key · ' + s.status : s.status }}</span>
             </div>
-            <div v-if="s.receiver" class="secret-row__used-by">
+            <!-- A CAPABILITY key (2026-11-02) is activated by its own owner
+                 on first use — no "used by" to show; its row says key ·
+                 unused | active | revoked and its label. -->
+            <div v-if="s.type === 'capability' && s.grant" class="secret-row__used-by" data-testid="anchors-key">
+              <span class="rail-label">key</span>
+              <span class="session-row__time mono">{{ s.grant.label }} · {{ s.grant.scopes.join(' · ') }}</span>
+            </div>
+            <div v-if="s.receiver && s.type !== 'capability'" class="secret-row__used-by">
               <!-- A reset secret's receiver is bound at MINT (who it
                    recovers); an invite's receiver arrives at use. -->
               <span class="rail-label">{{ s.type === 'reset' ? (s.status === 'used' ? 'recovered' : 'recovers') : 'used by' }}</span>
