@@ -233,6 +233,11 @@
                 <template v-if="storage.google.quota?.reachable"> · Drive {{ fmtBytes(storage.google.quota.usage) }}<template v-if="storage.google.quota.limit"> of {{ fmtBytes(storage.google.quota.limit) }}</template></template>
                 <template v-else-if="storage.google.linked && storage.google.own && storage.google.quota"> · Drive unreachable</template>
               </div>
+              <!-- the alter-egos that store where this seat stores (no row of their own):
+                   their packs ride this seat's mirror, each in its own sub-folder (E0) -->
+              <div v-if="storage.usage.inheritors?.count" class="identity-dock__storage-usage mono" data-testid="identity-storage-inheritors" :title="storage.usage.inheritors.list.map((l) => l.handle).join(' · ')">
+                + {{ storage.usage.inheritors.count }} alter-ego{{ storage.usage.inheritors.count === 1 ? '' : 's' }} · {{ fmtInt(storage.usage.inheritors.elements) }} elements · {{ storage.usage.inheritors.segments }} segment{{ storage.usage.inheritors.segments === 1 ? '' : 's' }} · {{ fmtBytes(storage.usage.inheritors.pack_bytes) }}<template v-if="storage.google.linked && storage.google.own"> — mirrored into their own folders</template><template v-else> — stored with you</template>
+              </div>
               <div v-if="quotaPct !== null" class="identity-dock__bar" :title="quotaPct + '% of the Google account used'">
                 <div class="identity-dock__bar-fill" :style="{ width: quotaPct + '%' }" />
               </div>
