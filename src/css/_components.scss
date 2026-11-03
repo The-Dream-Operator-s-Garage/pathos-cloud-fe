@@ -569,17 +569,26 @@
 }
 
 // Classic Mac traffic lights — glyphs fade in when the cluster is hovered.
+// ⭐ ONE SIZE ON EVERY WINDOW (2026-11-03, user ask: "make sure they all have
+// a consistent big size … very hard to be able to hit the button with my
+// thumb. Try not to alter the headers size") — `--traffic-d` / `--traffic-gap`
+// (_tokens.scss: 14px on 8 everywhere, 20px on 10 on a phone). No cluster
+// restates a size any more: the creation docks' 17px phone bump, the side
+// heads' 11px and the flyouts' bare 13px all read the dials. The heads keep
+// their heights — a 20px dot fits the docks' 30px bar and the side heads' 24.
 .traffic {
   display: flex;
   align-items: center;
-  gap: 7px;
+  gap: var(--traffic-gap);
 
   &:hover .traffic__dot .q-icon { opacity: 1; }
 }
 
 .traffic__dot {
-  width: 13px;
-  height: 13px;
+  position: relative;
+  flex: 0 0 auto;
+  width: var(--traffic-d);
+  height: var(--traffic-d);
   border-radius: 50%;
   border: 1px solid rgba(0, 0, 0, 0.15);
   padding: 0;
@@ -588,9 +597,18 @@
   justify-content: center;
   cursor: pointer;
   transition: filter 0.12s;
+  // THE THUMB'S TARGET: half a gap past each side and 5px past the top and
+  // bottom — the three targets tile the cluster with no dead seam, and a
+  // press that lands between two dots still lands on one of them.
+  &::after {
+    content: '';
+    position: absolute;
+    inset: -5px calc(-0.5 * var(--traffic-gap));
+    border-radius: 6px;
+  }
 
   .q-icon {
-    font-size: 9px;
+    font-size: calc(var(--traffic-d) * 0.66);
     color: rgba(0, 0, 0, 0.55);
     opacity: 0;
     transition: opacity 0.12s;
@@ -992,7 +1010,10 @@
   .dock-bar {
     position: relative;
     justify-content: center;
-    padding: 0 80px;
+    // the cluster (left 8 + `--traffic-w`) + daylight, mirrored so the
+    // title stays centred — 80 floor (the desktop's), 96 on a phone
+    // (2026-11-03, the lights' one size)
+    padding: 0 max(80px, calc(var(--traffic-w) + 16px));
     background: var(--dock-coat);
     border-bottom: 1px solid var(--dock-rule);
 
@@ -2003,59 +2024,83 @@ $prose: ':where(:not(.pathos-ref-slot *))';
   // giving #675 back most of what it asked for: 16px of a 375px screen, not
   // 28. The bottom stays welded to the nav bar, which is what a
   // bottom-docked window is.
-  .dock-window--creation,
-  .dock-window--creation.is-max {
-    --dock-gap: 8px;
-    left: var(--dock-gap);
-    // Both restated: the ≤900px rule above squares the left side off for
-    // tablets and it fires here too. The SHEET's dials, never a literal —
-    // the side has to come back as the window's own glass (2026-09-07 PM;
-    // it was `1px solid var(--dock-rule)` while the border was the contrast
-    // line, and chat's had to come back green). The lip follows by
-    // inheritance.
-    border-left: var(--dock-edge-w) solid var(--dock-edge);
-    border-top-left-radius: var(--dock-radius);
+  // ⭐⭐ THE PHONE WINDOW (2026-11-03, user ask: "for all the items that are
+  // unraveled horizontally, either from the header nav bar or the bottom
+  // footer nav bar … the window size occupies the same space as the feed
+  // container so the tabs on the right do not overlap on top of the window.
+  // Also for the height, please make the window occupy around 90% of the
+  // available space in between the footer and top nav bars. Make sure the
+  // window is never covered up by the footer or nav bar when opened").
+  // ONE footprint for every window a bar opens on a phone — the creation
+  // docks (chat and the dashboard included), the identity window, and the
+  // stack / pins panels' expanded faces (their own phone blocks read the
+  // same three dials):
+  //   · ACROSS: the feed container's span — x 0 to `--phone-win-r` short of
+  //     the right edge (`--phone-feed-reserve`: the turned planet's column,
+  //     where the parked tabs' wall stands — never drawn over);
+  //   · DOWN: `--phone-win-h` = 90% of the run between the header rail's
+  //     bottom (`--top-chrome-h`, which follows the rail's slide) and the
+  //     footer's top edge. A footer window stands ON the bar (bottom:
+  //     `--nav-footer-h`), a header window hangs FROM the rail — the 10%
+  //     left over is daylight at the far end.
+  // Nothing a bar draws can cover one either: a dock stands BETWEEN the bars
+  // (the hub's arch over its floor is the bar's own chrome), and a flyout —
+  // or a dock focused after one — rides above both since the same day
+  // (windows.js `Z_TOP`).
+  // `dvh`, not `vh`: on a phone the URL bar comes and goes and the fixed
+  // footer follows the dynamic viewport — a `100vh` window would reach up
+  // under the rail whenever the URL bar shows.
+  // (8px of daylight on the top and both sides stood here 2026-08-03 →
+  // 11-03 — "a little bit of space left … a little padding on the sides".)
+  :root {
+    --phone-win-r: var(--phone-feed-reserve);
+    --phone-avail-h: calc(100dvh - var(--top-chrome-h, var(--media-tabs-h, 0px)) - var(--nav-footer-h));
+    --phone-win-h: calc(var(--phone-avail-h) * 0.9);
   }
-
-  // The dashboard's edit expansion, restated (see the desktop rule): on a
-  // phone every dock is already the full width, so edit mode is simply the
-  // ordinary mobile dock — gap daylight, rounded caps, the creation top.
-  // Required because the desktop `.is-edit` pair outscores the bare
-  // `.dock-window--creation` above and would otherwise go edge-to-edge.
+  // (The identity window takes the same footprint in its own scoped block —
+  // IdentityDock.vue — which outranks a global rule.)
+  .dock-window--creation,
   .dock-window--dashboard.is-edit {
-    left: var(--dock-gap);
-    right: calc(var(--dock-right, 0px) + var(--dock-gap));
-    top: calc(var(--dock-gap) + var(--top-chrome-h, var(--media-tabs-h, 0px)) + var(--media-tabs-park-h, 0px));
+    left: 0;
+    right: var(--phone-win-r);
+    top: auto;
+    bottom: var(--nav-footer-h);
+    width: auto;
+    height: var(--phone-win-h);
+    max-height: none;
+    translate: none;
+    // The SHEET's dials, never a literal — the sides come back as the
+    // window's own glass (2026-09-07 PM); the ≤900px rule squares the left
+    // off for tablets and fires here too, so both are restated.
     border-left: var(--dock-edge-w) solid var(--dock-edge);
     border-right: var(--dock-edge-w) solid var(--dock-edge);
     border-top-left-radius: var(--dock-radius);
     border-top-right-radius: var(--dock-radius);
   }
 
-  // Bigger dots for touch: 13px → 17px on a wider gap (the header layout
-  // itself — centred title, traffic lights pinned left — is shared with
-  // desktop now; see `.dock-window--creation` above). Still the same
-  // classic lights (the glyphs keep their hover-only reveal — on a phone
-  // that means they show while a press is held).
-  //
-  // THE FLYOUTS TAKE THE SAME BUMP (2026-08-10, with the lights themselves —
-  // user ask: "make sure the traffic lights look bigger on mobile"). They are
-  // the same 13px dots in the same cluster, and a flyout is MORE of a touch
-  // target than a dock is on a phone, where it overlays the whole width and
-  // its two controls are the only way out of it besides Esc — which a phone
-  // has no key for. One rule, both families, so the two can never disagree
-  // about what a light is worth under a thumb.
-  .dock-window--creation .traffic,
-  .flyout-window .traffic {
-    gap: 8px;
+  // GREEN = THE WHOLE RUN BETWEEN THE BARS (same ask: "Green maximizes the
+  // window drawing it under the top header nav bar and on top of the footer
+  // nav bar, with no rounded corners or padding and occupying the whole
+  // available space on the screen in between those bars"): edge to edge,
+  // the rail's bottom to the footer's top, square, no side rims. Until this
+  // day the green light did nothing a phone could see (`.is-max` shared the
+  // ordinary rule's gap and top).
+  .dock-window--creation.is-max,
+  .dock-window--dashboard.is-edit.is-max {
+    right: 0;
+    top: var(--top-chrome-h, var(--media-tabs-h, 0px));
+    height: auto;
+    border-left: none;
+    border-right: none;
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
   }
 
-  .dock-window--creation .traffic__dot,
-  .flyout-window .traffic__dot {
-    width: 17px;
-    height: 17px;
-    .q-icon { font-size: 11px; }
-  }
+  // (The 13 → 17px traffic-light bump for `.dock-window--creation` and
+  // `.flyout-window` stood here 2026-08-10 → 11-03. The flyouts had stopped
+  // wearing `.flyout-window` long before, so on a phone they kept 13px dots —
+  // the "most are not big" of the 2026-11-03 ask. Every cluster reads
+  // `--traffic-d` / `--traffic-gap` now, one size per screen: _tokens.scss.)
 }
 
 // ── THE SIDE WIDGETS' THIN HEADER (2026-09-06 PM, user ask: "to the
@@ -2087,12 +2132,9 @@ $prose: ':where(:not(.pathos-ref-slot *))';
   background: var(--plaque-coat);
   user-select: none;
 
-  .traffic { gap: 5px; }
-  .traffic__dot {
-    width: 11px;
-    height: 11px;
-    .q-icon { font-size: 8px; }
-  }
+  // (The lights rode a size down here — 11px on a 5px gap — until
+  // 2026-11-03; they wear the house `--traffic-d` now, which the 24px head
+  // holds at either size.)
 }
 
 .side-head__title {

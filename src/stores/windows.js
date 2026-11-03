@@ -38,7 +38,27 @@ import { defineStore } from 'pinia'
 // stack widget 3130 (its bottom-left strip contests the drawer's corner
 // since 2026-08-30 and must out-paint it; the side widgets stay above every
 // dock, parked or expanded, by their own fixed EDGE_Z constants).
+// ⭐⭐ THE FLYOUTS RISE ABOVE THE BARS (2026-11-03, user ask: "for the flyout
+// items … when dragging them around by the header, I cannot accidentally put
+// em behind the header nav bar or the footer nav bar because if that
+// happens, I cannot use the header so I cannot close them, minimize them or
+// maximize em either. Prevent them from being overlapped by drawing them on
+// top of the bars … for both mobile and desktop"). TWO BANDS, ONE ORDER:
+//   · a FLYOUT always takes `Z_TOP + 1 + i` — over the nav bar (3110), the
+//     drawer + pins strip (3120), the rail (3125) and the stack strip (3130);
+//   · a DOCK keeps `Z_BASE + 1 + i` under the bars — it stands ON the
+//     footer's top edge, and the bar's hub rises ~21px into that floor (its
+//     arch must stay whole) — UNLESS a flyout stands earlier in the focus
+//     order: then it is LIFTED into the top band, so a dock opened over a
+//     flyout still comes to the front (on a phone both stand on one
+//     footprint). `i` is the shared order either way, so focus never lies.
+// What still stands over the top band: the stack / pins panels while
+// EXPANDED (3650, their EDGE_Z_OPEN), a maximized flyout (ElementFlyout
+// MAX_Z 3800), and Quasar's menus / dialogs (6000+). The minitab strip stays
+// at 3045 — bar chrome, over the docks' band and under a flyout's.
 const Z_BASE = 3010
+const Z_TOP = 3140
+const isFlyoutKey = (key) => String(key).startsWith('flyout:')
 // (RAIL_W 46 — the parked right-edge column + its gap — and PANEL_W 300 —
 // the expanded pins column — are RETIRED as of 2026-09-02: the pins widget
 // rides the footer trail now, sized by `--stack-w` like the stack, and no
@@ -187,9 +207,18 @@ export const useWindowsStore = defineStore('windows', {
   getters: {
     // z-index derived from stack position, so a newly focused window always
     // paints over the ones opened before it.
+    // Is any flyout standing (not parked)? A bar-born panel that does not
+    // ride the focus order (the pins panel) asks this to know whether it
+    // must lift over the bars too (the Z_TOP note, 2026-11-03).
+    flyoutUp: (s) => s.order.some(isFlyoutKey),
+
     zOf: (s) => (key) => {
       const i = s.order.indexOf(key)
-      return i < 0 ? Z_BASE : Z_BASE + 1 + i
+      if (isFlyoutKey(key)) return Z_TOP + 1 + Math.max(i, 0)
+      if (i < 0) return Z_BASE
+      // lifted over the bars only while a flyout is behind it (Z_TOP note)
+      const lifted = s.order.slice(0, i).some(isFlyoutKey)
+      return (lifted ? Z_TOP : Z_BASE) + 1 + i
     },
 
     // ⭐ NO SIDE PANEL STANDS AT THE RIGHT EDGE SINCE 2026-09-02 — the pins

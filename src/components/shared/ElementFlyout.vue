@@ -495,7 +495,10 @@ import { entitySummary } from 'src/utils/entityDisplay'
 
 // Fullscreen rides ABOVE the drawer (3120) — a maximized viewer is the
 // one thing meant to cover everything; normal z comes from windows.order.
-const MAX_Z = 3200
+// ⭐ 3200 → 3800 (2026-11-03): the flyouts' own band rose above the bars to
+// 3140+ (windows.js `Z_TOP`) and the open stack / pins panels to 3650, so
+// fullscreen moves past both to keep covering everything.
+const MAX_Z = 3800
 
 // Synthetic natural boxes for the non-media targets — the fit engine
 // thinks in media ratios, and these are the shapes the two faces settle
@@ -655,6 +658,20 @@ export default defineComponent({
       const v = viewer.value
       if (!v) return {}
       if (v.maximized) {
+        // ⭐ ON A PHONE, GREEN FILLS THE RUN BETWEEN THE BARS (2026-11-03,
+        // user ask: "drawing it under the top header nav bar and on top of
+        // the footer nav bar … occupying the whole available space on the
+        // screen in between those bars") — the docks' maximize, so the two
+        // families agree; the desktop keeps the whole screen.
+        if (windows.isMobile) {
+          return {
+            left: '0',
+            top: 'var(--top-chrome-h, var(--media-tabs-h, 0px))',
+            width: '100vw',
+            height: 'calc(100dvh - var(--top-chrome-h, var(--media-tabs-h, 0px)) - var(--nav-footer-h))',
+            zIndex: MAX_Z
+          }
+        }
         return { left: '0', top: '0', width: '100vw', height: '100vh', zIndex: MAX_Z }
       }
       const zIndex = animMax.value ? MAX_Z : windows.zOf('flyout:' + v.id)
@@ -996,6 +1013,16 @@ export default defineComponent({
       const natural = await naturalFor()
       if (!viewer.value) return
       store.setNatural(v.id, natural)
+      // A phone's arena is the window's whole footprint (2026-11-03 — the
+      // feed's span, 90% of the run between the bars; useMediaArena): no
+      // fit, no cascade. Re-measured first — the rail slides on a phone and
+      // the arena's ceiling is its bottom edge.
+      measure()
+      const a = arena.value
+      if (a.fill) {
+        store.setRect(v.id, { x: a.x, y: a.y, w: a.w, h: a.h })
+        return
+      }
       const index = Math.max(0, store.viewers.findIndex(x => x.id === v.id))
       store.setRect(v.id, fitRect(natural, arena.value, {
         chrome: chromeOf(friezeH.value),
@@ -1004,7 +1031,17 @@ export default defineComponent({
     }
     onMounted(() => {
       loadElementState()
-      if (viewer.value && !viewer.value.rect) place()
+      // On a phone a window always comes up on the footprint — a rehydrated
+      // tray row carries whatever rect it was saved with (a desktop's
+      // cascade, or a phone drag), and the tab wall is where it came from.
+      if (viewer.value && (!viewer.value.rect || (windows.isMobile && !viewer.value.minimized))) place()
+    })
+    // …and so does one RESTORED from the rail's tab wall (2026-11-03, user
+    // ask: a window "unraveled … from the header nav bar" takes the feed
+    // container's span at 90% of the run between the bars). A parked window
+    // keeps its DOM (`v-show` in the host), so this is the restore's seam.
+    watch(() => viewer.value?.minimized, (nv, ov) => {
+      if (ov && nv === false && windows.isMobile) place()
     })
     watch(targetIdentity, (nv, ov) => {
       if (!ov || nv === ov) return
@@ -1450,7 +1487,7 @@ export default defineComponent({
   position: relative;
   flex: 0 0 auto;
   justify-content: center;
-  padding: 0 66px 0 70px; // 40px until the layout toggle joined the switch (2026-09-06 PM)
+  padding: 0 66px 0 max(70px, calc(var(--traffic-w) + 14px)); // 40px until the layout toggle joined the switch (2026-09-06 PM); left = the cluster + daylight since the lights' one size (2026-11-03 — 94 on a phone)
   background: var(--grey-4, #e0e0e0); // the box's own coat — no cap
   border-bottom: none; // the frieze band is the divider
   cursor: grab;

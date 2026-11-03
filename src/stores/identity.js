@@ -38,6 +38,11 @@ function loadBadgePrefs () {
 export const useIdentityStore = defineStore('identity', {
   state: () => ({
     isOpen: false,
+    // The window's yellow and green lights (2026-11-03) — parked as a tab on
+    // the identity section / stretched from the rail to the bar. Session
+    // state like `isOpen`, the creation docks' pair.
+    isMinimized: false,
+    isMaximized: false,
     organizations: [],
     // DELEGATED READS (S3, 2026-10-31 — docs/concepts/access.md § Delegated
     // reads): the acting seat's live delegations, both directions. `given`
@@ -118,6 +123,7 @@ export const useIdentityStore = defineStore('identity', {
   actions: {
     open () {
       this.isOpen = true
+      this.isMinimized = false
       useWindowsStore().focus('identity')
       this.load()
       // Delegations move out-of-band (an alter-ego minted elsewhere delegates
@@ -128,13 +134,28 @@ export const useIdentityStore = defineStore('identity', {
 
     close () {
       this.isOpen = false
+      this.isMinimized = false
+      this.isMaximized = false
       useWindowsStore().release('identity')
     },
 
+    // The chip's three-step toggle (the creation docks'): shut → open,
+    // parked → restore, standing → close.
     toggle () {
-      if (this.isOpen) this.close()
-      else this.open()
+      if (!this.isOpen) this.open()
+      else if (this.isMinimized) this.restore()
+      else this.close()
     },
+
+    minimize () {
+      this.isMinimized = true
+      useWindowsStore().release('identity')
+    },
+    restore () {
+      this.isMinimized = false
+      useWindowsStore().focus('identity')
+    },
+    toggleMaximize () { this.isMaximized = !this.isMaximized },
 
     // One fetch serves chip + window; force re-reads (identity switches,
     // membership changes). Fail-soft — an unauthenticated or offline chip

@@ -294,18 +294,25 @@ export default defineComponent({
     // screen. Fix that part … so it cannot be moved away from there"): the
     // box's left edge IS the screen's — the stored left offset is not drawn
     // (the stylesheet's portrait block zeroes the margin), and the left
-    // rail's resize + THE MOVE are refused in `onRailDown`. The right rail
-    // still sizes the box from that pinned edge.
+    // rail's resize + THE MOVE are refused in `onRailDown`.
+    // ⭐ 2026-11-03 (user ask: "in the case of mobile mode, we want to keep the
+    // visible indigo frieze bar on the right pinned to its position on the
+    // right on its most expanded setting so we do not lose space"): the RIGHT
+    // edge is pinned too — the stored width is not drawn either (the
+    // stylesheet's portrait `flex` IS the widest the clamp allows), and the
+    // right rail's resize is refused as well. Both stored fractions are kept
+    // for the desktop and landscape postures.
     const boxStyle = computed(() => {
       const st = {}
-      if (leftPct.value != null && !phonePortrait.value) st.marginLeft = (leftPct.value * 100).toFixed(3) + '%'
+      if (phonePortrait.value) return st
+      if (leftPct.value != null) st.marginLeft = (leftPct.value * 100).toFixed(3) + '%'
       if (widthPct.value != null) {
         st.flex = '0 0 ' + (widthPct.value * 100).toFixed(3) + '%'
       }
       return st
     })
 
-    const railTitle = 'Drag to resize the feed — the bar is the handle'
+    const railTitle = computed(() => (phonePortrait.value ? null : 'Drag to resize the feed — the bar is the handle'))
 
     // ── The drag. Pointer Events with capture on the rail, the same hygiene
     // the head box and the media windows keep: one gesture at a time, the
@@ -403,7 +410,7 @@ export default defineComponent({
 
     const onRailDown = (e, side) => {
       if (pid != null || e.button !== 0) return
-      if (phonePortrait.value && side !== 'r') return // pinned to the screen's left edge (boxStyle note)
+      if (phonePortrait.value) return // pinned at both edges on a phone (boxStyle note)
       const track = trackEl.value
       const box = boxEl.value
       if (!track || !box) return
@@ -496,14 +503,11 @@ export default defineComponent({
       if (!trackW) return
       // LEFT-ANCHORED, like the right rail: a slot that narrowed takes it out
       // of the box's WIDTH and leaves its left edge where the user put it.
+      // Both edges are pinned on a phone (2026-11-03) — nothing stored is
+      // drawn there, so nothing stored is re-clamped against a phone's track
+      // (it would shrink the desktop's arrangement on the way through).
+      if (phonePortrait.value) return
       const { minW } = limits()
-      if (phonePortrait.value) {
-        // the left edge is pinned at 0 — only the width answers to the track
-        // (and the stored left offset is kept for the other postures)
-        const w = Math.min(Math.max((widthPct.value ?? 0.45) * trackW, minW), Math.max(minW, trackW - GAP - reserve())) / trackW
-        if (widthPct.value != null && Math.abs(w - widthPct.value) > 0.0005) { widthPct.value = w; persist() }
-        return
-      }
       const l0 = Math.min(Math.max((leftPct.value ?? 0.025) * trackW, GAP), Math.max(GAP, trackW - GAP - reserve() - minW))
       const w0 = Math.min(Math.max((widthPct.value ?? 0.45) * trackW, minW), Math.max(minW, trackW - GAP - reserve() - l0))
       const l = l0 / trackW
@@ -1376,11 +1380,19 @@ export default defineComponent({
 // reserve (planet 21 + sep 4) and GAP 8 — a stored width still wins inline.
 // Back on MediaTabsBar's row seats itself off the lip (`--feed-rail-lr`); its
 // left grip is hidden there (a 3px rail holds no oval).
+// ⭐ AND THE RIGHT EDGE IS PINNED AT THE WIDEST (2026-11-03, user ask: "keep
+// the visible indigo frieze bar on the right pinned to its position on the
+// right on its most expanded setting so we do not lose space"): the width
+// below is the clamp's own maximum (`--phone-feed-reserve`, _tokens.scss —
+// the same 33px every phone window stops at) and nothing inline overrides it
+// (`boxStyle` returns nothing in portrait). The right rail keeps its whole
+// frieze but takes no press and lights no glow — a handle that moves nothing
+// would only read as broken.
 @media (max-width: 600px) and (orientation: portrait) {
   .feed-container {
     margin-left: 0;
     border-left: 0;
-    flex: 0 0 calc(100% - 33px);
+    flex: 0 0 calc(100% - var(--phone-feed-reserve));
     box-shadow: 8px 0 18px -9px rgba(0, 0, 0, 0.55);
   }
   .feed-container__rail--l {
@@ -1388,6 +1400,11 @@ export default defineComponent({
     cursor: default;
     pointer-events: none;
     > .feed-container__edge { display: none; }
+    &::after { content: none; }
+  }
+  .feed-container__rail--r {
+    cursor: default;
+    pointer-events: none;
     &::after { content: none; }
   }
 }

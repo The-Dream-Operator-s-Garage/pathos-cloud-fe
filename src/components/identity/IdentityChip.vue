@@ -30,7 +30,7 @@
   <button
     type="button"
     class="identity-chip"
-    :class="{ 'is-active': identity.isOpen }"
+    :class="{ 'is-active': identity.isOpen && !identity.isMinimized }"
     :title="tooltip"
     @click="identity.toggle()"
   >

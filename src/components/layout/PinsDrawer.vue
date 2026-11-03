@@ -60,9 +60,10 @@
        identity section. -->
   <aside
     v-if="win.open"
+    ref="rootEl"
     class="pins-window dock-window"
     :class="{ 'is-parked': win.minimized, 'is-max': win.maximized }"
-    :style="{ zIndex: EDGE_Z, translate: windows.trailShiftOf('pins') + 'px 0' }"
+    :style="{ zIndex, translate: windows.trailShiftOf('pins') + 'px 0' }"
     @mouseenter="onHoverEnter"
     @mouseleave="onHoverLeave"
   >
@@ -232,7 +233,7 @@
 </template>
 
 <script>
-import { defineComponent, ref, reactive, computed, watch, nextTick } from 'vue'
+import { defineComponent, ref, reactive, computed, watch, nextTick, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useWindowsStore } from 'src/stores/windows'
 import { startTrailDrag } from 'src/utils/trailSlider'
@@ -480,6 +481,20 @@ export default defineComponent({
       settleUntil = Date.now() + 600
       windows.toggleMaximizePanel('pins')
     }
+    // ⭐ A TAP OUTSIDE PARKS IT ON A PHONE (2026-11-03). It did by ACCIDENT
+    // until today: the panel opened from under the finger (over the strip, on the bar),
+    // so the next tap elsewhere fired the synthetic `mouseleave` that
+    // `onHoverLeave` parks on. On the phone footprint it opens AWAY from the
+    // finger — never hovered, never left — so the park is stated outright:
+    // any press outside the open panel parks it (capture phase, before the
+    // press reaches whatever it lands on).
+    const rootEl = ref(null)
+    const onDocDown = (e) => {
+      if (!windows.isMobile || win.value.minimized) return
+      if (rootEl.value && !rootEl.value.contains(e.target)) windows.minimizePanel('pins')
+    }
+    onMounted(() => document.addEventListener('pointerdown', onDocDown, true))
+    onBeforeUnmount(() => document.removeEventListener('pointerdown', onDocDown, true))
     const onHoverLeave = () => {
       clearHover()
       if (Date.now() < settleUntil) return
@@ -540,8 +555,19 @@ export default defineComponent({
     // order between them is moot. (3120 was the number it took on 2026-08-02
     // to lie over the bar's right end as a column; nothing changed.)
     const EDGE_Z = 3120
+    // Expanded, over every window (2026-11-03 — StackPanel's EDGE_Z_OPEN note)…
+    const EDGE_Z_OPEN = 3650
+    // …except on a phone with no flyout up: there the open panel stands on
+    // the footer across the feed's span, over the hub's column, and the docks'
+    // rule holds (windows.js Z_TOP) — under the bar, so the hub's arch stays
+    // whole; lifted only when a flyout would otherwise cover it.
+    const EDGE_Z_UNDER = 3105
+    const zIndex = computed(() => {
+      if (win.value.minimized) return EDGE_Z
+      return windows.isMobile && !windows.flyoutUp ? EDGE_Z_UNDER : EDGE_Z_OPEN
+    })
 
-    return { win, windows, pins, listPins, shownPins, summaries, loading, copiedId, listEl, kindKeyOf, hashOf, isCurrent, openPin, onHoverEnter, onHoverLeave, clearHover, onGripLeave, onGripDown, toggleMax, railTitle, onUnpin, onCopy, onHistory, openSkeleton, skeletonOpening, pinnable, isCurrentPinned, onTack, EDGE_Z }
+    return { win, windows, pins, listPins, shownPins, summaries, loading, copiedId, listEl, kindKeyOf, hashOf, isCurrent, openPin, onHoverEnter, onHoverLeave, clearHover, onGripLeave, onGripDown, toggleMax, railTitle, onUnpin, onCopy, onHistory, openSkeleton, skeletonOpening, pinnable, isCurrentPinned, onTack, zIndex, rootEl }
   }
 })
 </script>
@@ -936,5 +962,27 @@ export default defineComponent({
 // bottom bar — or anywhere outside it — parks it again.
 @media (max-width: 600px) {
   .pins-side-head { width: 15px; }
+  // ⭐ THE PHONE WINDOW, RISING (2026-11-03 — _components.scss § THE PHONE
+  // WINDOW): open, the panel takes the footprint every bar-born window
+  // shares on a phone — the feed's span, 90% of the run between the bars —
+  // standing ON the footer like the docks (it rose from `bottom: 0` before,
+  // its controls row lying over the bar). Green = the whole run, edge to
+  // edge, square. No slider offset on a phone (`trailShiftOf` reads 0).
+  .pins-window:not(.is-parked) {
+    left: 0;
+    right: var(--phone-win-r);
+    width: auto;
+    max-width: none;
+    bottom: var(--nav-footer-h);
+    height: var(--phone-win-h);
+    max-height: none;
+  }
+  .pins-window:not(.is-parked).is-max {
+    right: 0;
+    height: var(--phone-avail-h);
+    border-left: none;
+    border-right: none;
+    border-radius: 0;
+  }
 }
 </style>

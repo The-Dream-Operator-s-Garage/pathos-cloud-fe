@@ -87,9 +87,10 @@
        seat it left. -->
   <section
     v-if="win.open"
+    ref="rootEl"
     class="stack-window dock-window"
     :class="{ 'is-parked': win.minimized, 'is-max': win.maximized }"
-    :style="{ zIndex: EDGE_Z }"
+    :style="{ zIndex: win.minimized ? EDGE_Z : EDGE_Z_OPEN }"
     @mouseenter="onHoverEnter"
     @mouseleave="onHoverLeave"
   >
@@ -194,7 +195,7 @@
           + (entry.actions.length ? ' — ' + lastActionOf(entry).label : '')
           + (i === currentIndex ? ' — you are here' : '')"
         rail-icon-size="12px"
-        :wide-current="!windows.isMobile"
+        wide-current
         inline
         @activate="jumpToIndex(i)"
       >
@@ -260,7 +261,7 @@
 </template>
 
 <script>
-import { defineComponent, computed, reactive, ref, watch, nextTick } from 'vue'
+import { defineComponent, computed, reactive, ref, watch, nextTick, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
 import { useNavStore } from 'src/stores/navigation'
 import { useWindowsStore } from 'src/stores/windows'
@@ -335,7 +336,14 @@ export default defineComponent({
     // with a single item … since it is gone") — the CURRENT stop alone, the
     // ledger's last entry, as a plain glyph tile (`wide-current` is off
     // there: the lettered face needs ~170px and a phone strip has 41).
-    const parkedSlots = computed(() => (windows.isMobile ? 1 : PARKED_SLOTS))
+    // ⭐ TWO ON A PHONE SINCE 2026-11-03 (user ask: "display 2 elements, the
+    // last element, on an enriched long pill, and with a single icon, the
+    // previous element before the last one"). The strip stands on the header
+    // rail between Back and Forward since 2026-09-30 — ~250px on a phone, not
+    // the footer's 41 — so the lettered wide tile fits again: one glyph tile,
+    // then the current stop's long pill (`wide-current` on every screen).
+    const PHONE_SLOTS = 2
+    const parkedSlots = computed(() => (windows.isMobile ? PHONE_SLOTS : PARKED_SLOTS))
     const parkedRows = computed(() => {
       const t = trail.value
       const start = Math.max(0, t.length - parkedSlots.value)
@@ -445,6 +453,20 @@ export default defineComponent({
       settleUntil = Date.now() + 600
       windows.toggleMaximizePanel('stack')
     }
+    // ⭐ A TAP OUTSIDE PARKS IT ON A PHONE (2026-11-03). It did by ACCIDENT
+    // until today: the panel opened from under the finger (over the strip, on the rail),
+    // so the next tap elsewhere fired the synthetic `mouseleave` that
+    // `onHoverLeave` parks on. On the phone footprint it opens AWAY from the
+    // finger — never hovered, never left — so the park is stated outright:
+    // any press outside the open panel parks it (capture phase, before the
+    // press reaches whatever it lands on).
+    const rootEl = ref(null)
+    const onDocDown = (e) => {
+      if (!windows.isMobile || win.value.minimized) return
+      if (rootEl.value && !rootEl.value.contains(e.target)) windows.minimizePanel('stack')
+    }
+    onMounted(() => document.addEventListener('pointerdown', onDocDown, true))
+    onBeforeUnmount(() => document.removeEventListener('pointerdown', onDocDown, true))
     const onHoverLeave = () => {
       clearHover()
       if (Date.now() < settleUntil) return
@@ -526,9 +548,17 @@ export default defineComponent({
     // drawer was hidden) — is never covered: the widget starts BESIDE it at
     // left: var(--nav-id-w).
     const EDGE_Z = 3130
+    // ⭐ OPEN, IT RISES OVER THE WINDOWS (2026-11-03): the flyouts moved
+    // above the bars (windows.js `Z_TOP` 3140+), so the parked strip — part
+    // of the rail — stays at 3130 under a dragged flyout, while the expanded
+    // panel (a hover / tap away from parking again) stands over every window
+    // at 3650, as it stood over every dock before.
+    const EDGE_Z_OPEN = 3650
 
     return {
+      rootEl,
       EDGE_Z,
+      EDGE_Z_OPEN,
       onHistory,
       openSkeleton,
       skeletonOpening,
@@ -1247,15 +1277,49 @@ export default defineComponent({
 // other stop wears (the solid kind fill still marks it current). The head
 // glyph drops to its bare 15px icon like the pins strip's. The expanded panel
 // keeps `--stack-w` — it rises over the page, not the bar.
+// ⭐ 2026-11-03: TWO STOPS, THE CURRENT ONE LETTERED (see `parkedSlots`) —
+// the tile-sized `.is-current` override that stood here is gone, so the
+// current stop wears the desktop's wide inline pill. Off the feed (no rails
+// to seat between) the strip takes the rail's run from Back to the turned
+// planet's column instead of the 45px bubble.
 @media (max-width: 600px) {
-  .stack-window.is-parked { width: var(--strip-phone-w); }
+  .stack-window.is-parked {
+    width: calc(100vw - 2 * var(--media-tabs-back-w, 26px) - var(--phone-feed-reserve));
+    max-width: none;
+  }
   .stack-side-head,
   .stack-window.is-parked .stack-side-head { width: 15px; margin-right: 0; }
-  .stack-list.is-parked :deep(.side-item__btn--rail.is-current) {
-    flex: 0 0 var(--strip-tile-w);
-    width: var(--strip-tile-w);
-    min-width: var(--strip-tile-w);
-    padding: 0;
+  // The pill's ~210px goes to the NAME first: the act and the age give way
+  // before a short title is clipped (the shared weights let "Feed" read
+  // "Fe…" beside a whole "Opened post m…").
+  .stack-list.is-parked :deep(.side-item__rail-lines.is-inline > .side-item__rail-line:first-child) {
+    flex-shrink: 0;
+    max-width: 62%;
+  }
+  // ⭐ THE PHONE WINDOW, HANGING (2026-11-03 — _components.scss § THE PHONE
+  // WINDOW): open, the panel is the footprint every bar-born window shares
+  // on a phone — the feed's span, 90% of the run between the bars — hung
+  // from the rail's BOTTOM edge (it hung over the rail's own face, at
+  // `--header-y`, from 2026-09-30: over Back and Forward). Green = the whole
+  // run, edge to edge, square. `:root.is-feed-railed` restated: the railed
+  // seat above outranks a bare class.
+  .stack-window:not(.is-parked),
+  :root.is-feed-railed .stack-window:not(.is-parked) {
+    left: 0;
+    right: var(--phone-win-r);
+    width: auto;
+    max-width: none;
+    top: var(--top-chrome-h, var(--media-tabs-h, 0px));
+    height: var(--phone-win-h);
+    max-height: none;
+  }
+  .stack-window:not(.is-parked).is-max,
+  :root.is-feed-railed .stack-window:not(.is-parked).is-max {
+    right: 0;
+    height: var(--phone-avail-h);
+    border-left: none;
+    border-right: none;
+    border-radius: 0;
   }
 }
 // (The ≤353px stand-down — the FOOTER had no seat for the strip on the

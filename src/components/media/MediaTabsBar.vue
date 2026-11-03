@@ -2209,7 +2209,10 @@ export default defineComponent({
 .media-tabs__wall { display: none; } // phones only — the block below draws it; this rule must stay ABOVE it (equal specificity, source order decides)
 
 @media (max-width: 600px) {
-  .media-tabs__forward { left: calc(var(--media-tabs-back-w, 26px) + var(--strip-phone-w, 45px)); }
+  // Off the feed, Forward closes the stack strip's run at the planet's
+  // column (2026-11-03 — the strip holds two stops and a lettered pill now,
+  // StackPanel's phone block; it was the 45px bubble before).
+  .media-tabs__forward { left: calc(100vw - var(--phone-feed-reserve) - var(--media-tabs-back-w, 26px)); }
   // ⭐ 2026-10-08: the phone's row — a 36px planet (the same hexagon, the
   // generator's W=36 paths: vertex inset W/4, corner radius 3.5·((W/48 +
   // H/21)/2), four layers at the desktop's insets), 30px grips with a 16×8

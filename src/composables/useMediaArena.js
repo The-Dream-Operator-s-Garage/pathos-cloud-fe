@@ -1,9 +1,10 @@
 // The ARENA — the one function that answers "where is a media window
 // BORN" (docs/plans/floating-media-viewer.md). Desktop: the right half of
 // the viewport (the docks' half), below the crown strip, above the nav
-// footer, left of the permanent stack/pins column. Mobile portrait: the
-// TOP half, over the content by design. Mobile landscape: the whole
-// viewport between the fixed bands. Spawn placement and the fit math ask
+// footer, left of the permanent stack/pins column. Phone (≤600px): the
+// feed's span at 90% of the run between the bars, `fill` — the window
+// takes the whole arena (since 2026-11-03; the top half before). A short
+// landscape viewport: the whole viewport between the fixed bands. Spawn placement and the fit math ask
 // this; nothing else knows about halves.
 //
 // TWO REGIONS since 2026-08-05 (user ask): the arena above is where a
@@ -68,12 +69,28 @@ export function useMediaArena () {
     // than by a right-half sliver anyway).
     const mobile = windows.isMobile
     const shortViewport = vh.value <= 500
-    const pad = (mobile || shortViewport) ? 8 : 14
+    // ⭐ THE PHONE WINDOW (2026-11-03, user ask — every window a bar opens on
+    // a phone "occupies the same space as the feed container so the tabs on
+    // the right do not overlap on top of the window … around 90% of the
+    // available space in between the footer and top nav bars"): a phone's
+    // arena IS that footprint — x 0 to the feed's right edge (the
+    // `--phone-feed-reserve` column is the parked tabs' wall), 90% of the run
+    // from the rail's bottom to the footer's top, centred in it. The docks'
+    // stylesheet states the same three numbers (_components.scss § THE PHONE
+    // WINDOW). (Portrait was the top HALF until this day — 105px tall under
+    // a rail slid a third of the way down.)
+    if (mobile) {
+      const reserve = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--phone-feed-reserve')) || 33
+      const run = Math.max(120, vh.value - footerH.value - crownBottom.value)
+      const h = Math.round(run * 0.9)
+      return { x: 0, y: crownBottom.value + Math.round((run - h) / 2), w: Math.max(160, vw.value - reserve), h, fill: true }
+    }
+    const pad = shortViewport ? 8 : 14
     const top = crownBottom.value + pad
     const floor = vh.value - footerH.value - pad
-    if (mobile || shortViewport) {
-      // Portrait: the top half (blocking the content's top is accepted).
-      // Landscape: everything between the bands.
+    if (shortViewport) {
+      // A short viewport wider than a phone (a phone held sideways):
+      // everything between the bands (portrait can't reach here any more).
       const portrait = vh.value >= vw.value
       const bottom = portrait ? Math.min(Math.round(vh.value / 2), floor) : floor
       return { x: pad, y: top, w: Math.max(160, vw.value - pad * 2), h: Math.max(120, bottom - top) }
@@ -89,12 +106,12 @@ export function useMediaArena () {
   // no band subtraction. Drag clamps, resize maxima and the stale-rect
   // re-clamp all ask this, so a window may be parked anywhere on screen,
   // edge included. The two fixed bands are not carved out because neither
-  // hides the thing that matters: the crown strip is z 3000 and PAINTS
-  // UNDER a media window (3010+), and the nav footer, which outranks it,
-  // can only ever cover the window's BOTTOM — the header stays visible
-  // and grabbable, which is the property that has to survive. clampRect
-  // keeps the whole rect inside, so no window can be dragged off-screen
-  // or lose its bar.
+  // hides the thing that matters: ⭐ since 2026-11-03 EVERY bar paints under
+  // a flyout (its band is 3140+, over the nav footer's 3110 and the header
+  // rail's 3125 — windows.js `Z_TOP`). Until then the footer outranked a
+  // window and the rail did too, and a window dragged over the rail hid its
+  // own lights ("I cannot close them, minimize them or maximize em"). clampRect keeps the whole rect inside, so no window can
+  // be dragged off-screen or lose its bar.
   const roam = computed(() => ({ x: 0, y: 0, w: vw.value, h: vh.value }))
 
   // `measure` is exported for interactions that must re-sample mid-gesture

@@ -58,16 +58,31 @@
 <template>
   <transition name="dock-slide">
     <section
-      v-if="identity.isOpen"
+      v-if="identity.isOpen && !identity.isMinimized"
       class="identity-dock dock-window"
+      :class="{ 'is-max': identity.isMaximized }"
       :data-dock-key="'identity'"
       :style="{ zIndex: windows.zOf('identity'), ...windows.winDragStyle('identity') }"
     >
+      <!-- ⭐ THE THREE LIGHTS (2026-11-03, user ask: every window a bar
+           opens "contains and has implemented on itself the three traffic
+           light buttons"). Red alone stood here since the window was born;
+           yellow parks it as a tab on top of the identity section (the
+           creation docks' minitab, NavigationBar `parkedTabs`), green fills
+           the run between the rail and the footer. -->
       <header class="dock-bar">
         <div class="traffic">
           <button type="button" class="traffic__dot traffic__dot--red"
             title="Close" @click="identity.close()">
             <q-icon name="close" />
+          </button>
+          <button type="button" class="traffic__dot traffic__dot--yellow"
+            title="Minimize to the identity section" @click="identity.minimize()">
+            <q-icon name="remove" />
+          </button>
+          <button type="button" class="traffic__dot traffic__dot--green"
+            :title="identity.isMaximized ? 'Restore size' : 'Maximize'" @click="identity.toggleMaximize()">
+            <q-icon :name="identity.isMaximized ? 'close_fullscreen' : 'open_in_full'" />
           </button>
         </div>
         <q-icon name="person" size="14px" class="dock-bar__icon" />
@@ -903,6 +918,42 @@ export default defineComponent({
   box-shadow:
     0 -10px 40px rgba(var(--ink-rgb-deep), 0.18),
     5px 0 12px rgba(var(--ink-rgb-deep), 0.16);
+}
+
+// GREEN (2026-11-03): the whole height from the rail to the bar, the seat's
+// width kept — the creation docks' maximize is a width, this window's
+// natural growth is up. Square at its free corner, no drag offset.
+.identity-dock.is-max {
+  top: var(--top-chrome-h, var(--media-tabs-h, 0px));
+  max-height: none;
+  border-top-right-radius: 0;
+  translate: none;
+}
+
+// ⭐ THE PHONE WINDOW (2026-11-03) — the footprint every bar-born window
+// shares on a phone (_components.scss § THE PHONE WINDOW): the feed's span,
+// 90% of the run between the bars, standing on the footer; green = that
+// whole run, edge to edge, square. Restated HERE because this file's scoped
+// `.identity-dock` outranks the global rule.
+@media (max-width: 600px) {
+  .identity-dock {
+    left: 0;
+    right: var(--phone-win-r);
+    width: auto;
+    top: auto;
+    height: var(--phone-win-h);
+    max-height: none;
+    translate: none;
+    border-right: 1px solid var(--dock-rule-strong);
+    border-top-right-radius: var(--radius-md);
+  }
+  .identity-dock.is-max {
+    right: 0;
+    top: var(--top-chrome-h, var(--media-tabs-h, 0px));
+    height: auto;
+    border-right: none;
+    border-top-right-radius: 0;
+  }
 }
 
 // The header row on the shared coat, ruled and inked in the family's dials —

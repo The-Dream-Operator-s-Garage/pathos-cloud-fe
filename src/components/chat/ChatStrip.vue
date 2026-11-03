@@ -297,7 +297,11 @@ export default defineComponent({
   .strip-grip,
   .strip-grip-rule,
   .chat-strip__lane { display: none; }
-  .chat-strip__head { flex: 0 0 31px; }
+  // 44 + the 1px right rim = `--strip-phone-w` (2026-11-03): the pins strip's
+  // width, so the bar's two ends mirror (identity + chat ≡ pins + dashboard)
+  // and the creation row between them centres the hub with even gaps
+  // (NavigationBar's phone block). 31px before.
+  .chat-strip__head { flex: 0 0 calc(var(--strip-phone-w) - 1px); }
   .chat-strip__glyph { font-size: 17px; }
 }
 </style>

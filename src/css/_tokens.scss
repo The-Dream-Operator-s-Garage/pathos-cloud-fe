@@ -2918,6 +2918,30 @@ $warning:   #F2C037;
   // so it reads as a rounded vertical key rather than a square.
   --side-item-h: 36px;
   --side-item-gap: 4px;
+
+  // ⭐ THE TRAFFIC LIGHTS' ONE SIZE (2026-11-03, user ask: "for the traffic
+  // light buttons displayed on ANY window … make sure they all have a
+  // consistent big size … it gets very hard to be able to hit the button
+  // with my thumb. Try not to alter the headers size"). Every `.traffic`
+  // cluster — the creation docks, the identity window, the flyouts, the
+  // stack/pins side heads — reads these two dials and nothing else (they
+  // were 13px, 17px on a phone for the docks only, 11px on the side heads).
+  // The phone block below raises them; `--traffic-w` is the cluster's width,
+  // which the centred titles pad by so a name never slides under a light.
+  // The dot's TAP target is wider than its paint (`.traffic__dot::after`,
+  // _components.scss) — half a gap on each side, so the three targets tile
+  // the cluster with no dead seam between them.
+  --traffic-d: 14px;
+  --traffic-gap: 8px;
+  --traffic-w: calc(3 * var(--traffic-d) + 2 * var(--traffic-gap));
+
+  // ⭐ THE PHONE'S FEED RESERVE (2026-11-03) — what a phone keeps free past
+  // the feed container's right edge: the turned planet's column (21) + the
+  // rail's sep (4) + FeedPage's GAP (8). The feed is PINNED at
+  // `100% − this` in portrait (FeedPage), and every window a bar opens on a
+  // phone stops at the same edge (`--phone-win-r`, _components.scss), so the
+  // parked tabs on the right-hand wall are never drawn over.
+  --phone-feed-reserve: 33px;
 }
 
 // ⭐ THE IDENTITY SECTION'S DESKTOP WIDTH (2026-09-22 PM, user ask: "on
@@ -2940,4 +2964,14 @@ $warning:   #F2C037;
 // every size.
 @media (max-width: 600px) {
   :root { --pins-strip-w: var(--strip-phone-w); }
+}
+
+// The thumb's lights (2026-11-03) — 20px dots fit every window head on a
+// phone without growing it (the docks' 30px bar, the side heads' 24px), on a
+// 10px gap: the cluster is 80px and each dot's tap target 30px wide.
+@media (max-width: 600px) {
+  :root {
+    --traffic-d: 20px;
+    --traffic-gap: 10px;
+  }
 }

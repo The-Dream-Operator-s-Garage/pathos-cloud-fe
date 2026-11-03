@@ -203,6 +203,25 @@
              Desktop-only: mobile hides the grips (the mobile block below) and
              `trailShiftOf` reads 0 there. ── -->
         <div class="create-row">
+        <!-- ⭐ TWO HALVES ROUND THE HUB ON A PHONE (2026-11-03, user ask: "the
+             buttons on the bottom nav bar … make sure they're properly
+             arranged, distributed evenly and with the big round upload one
+             being centered"). The phone row is BUGS · POST | ◉ | SCHEMAS ·
+             LABELS: each half spreads its two chips evenly over equal runs
+             and the hub stands between them on the screen's centre line
+             (the ≤600px block). Everywhere else both halves are `display:
+             contents` — no box — so the desktop row, its gaps and the
+             slider's measurements are untouched. -->
+        <div class="create-half create-half--l">
+        <!-- The BUGS chip's PHONE seat (2026-11-03 — it stood butted to the
+             chat head in `.nav-looks` from 2026-11-02, a 26px half-cell that
+             read as a chip missing its lower edge; it is an ordinary creation
+             chip in the row now). No ref (`setChip`): the desktop chip holds
+             `bugs`, and `measureChips` finds this one by its class. -->
+        <q-btn v-if="windows.isMobile" unelevated class="nav-btn create-btn create-btn--bugs create-btn--bugs-phone" :class="{ 'is-active': creationExpanded.bugs }" @click="$emit('open-bugs')">
+          <q-icon :name="ROACH" size="15px" class="create-btn__roach" />
+          <q-tooltip>Report a bug</q-tooltip>
+        </q-btn>
         <q-btn unelevated class="nav-btn create-btn create-btn--maker" :class="{ 'is-active': creationExpanded.maker }" :ref="setChip('maker')" :style="chipStyle('maker')" @click="$emit('open-maker')">
           <span class="nav-btn__grip" @pointerdown="startChipDrag('maker', $event)" @click.stop>
             <q-icon name="drag_indicator" size="15px" />
@@ -215,6 +234,19 @@
           <span class="nav-btn__label">POST</span>
           <q-tooltip>Make post</q-tooltip>
         </q-btn>
+        </div>
+        <!-- On a PHONE the hub stands IN this row (see `.nav-hub--row`
+             below), between the two halves — the screen's centre since
+             2026-11-03 (between SCHEMAS and LABELS before). -->
+        <NavHub
+          v-if="windows.isMobile"
+          class="nav-hub--row"
+          seat="row"
+          :lit="creationExpanded.capture"
+          @open-capture="$emit('open-capture', $event)"
+          @open-uploader="$emit('open-uploader')"
+        />
+        <div class="create-half create-half--r">
         <!-- ⭐ 2026-09-21 PM6 — SCHEMAS (user ask: "the section on the footer nav
              bar that reads 'skeletons' and is painted yellow corresponds to
              SCHEMA creation. Please rename the section as such ('SCHEMAS'),
@@ -236,14 +268,6 @@
           <span class="nav-btn__label">SCHEMAS</span>
           <q-tooltip>Build schemas — define and fork templates; instances are populated on their own viewer</q-tooltip>
         </q-btn>
-        <NavHub
-          v-if="windows.isMobile"
-          class="nav-hub--row"
-          seat="row"
-          :lit="creationExpanded.capture"
-          @open-capture="$emit('open-capture', $event)"
-          @open-uploader="$emit('open-uploader')"
-        />
         <q-btn unelevated class="nav-btn create-btn create-btn--labelMaker" :class="{ 'is-active': creationExpanded.labelMaker }" :ref="setChip('labelMaker')" :style="chipStyle('labelMaker')" @click="$emit('open-label-maker')">
           <span class="nav-btn__grip" @pointerdown="startChipDrag('labelMaker', $event)" @click.stop>
             <q-icon name="drag_indicator" size="15px" />
@@ -262,10 +286,10 @@
              window itself is unchanged (it still parks as `minitab--uploader`
              below). Its chip rules are deleted from the style block; the
              slider's key list lost `uploader` (stores/windows.js). -->
-        <!-- On a PHONE the hub stands IN this row (see `.nav-hub--row`
-             below): the bar's centre is not the row's centre there, so the
-             hub takes its seat among the chips — POST · SCHEMAS · ◉ · LABELS
-             — and the arc opens over the row. -->
+        <!-- (On a PHONE the hub stood here between SCHEMAS and LABELS —
+             POST · SCHEMAS · ◉ · LABELS — until 2026-11-03; it is the halves'
+             centre now, above.) -->
+        </div>
         </div>
 
         <!-- ── ORDER: THE FOUR CREATION CHIPS FIRST, THEN THE TWO
@@ -327,17 +351,9 @@
           @open-chat="openChatAt"
           @grip-down="startChipDrag('chat', $event)"
         />
-        <!-- The BUGS chip's PHONE seat (2026-11-02): the bar's centre cell is
-             hidden under 600px and the creation row is full (and centred, by
-             ask), so the roach stands glyph-only beside the chat head in the
-             row's left track — 26px, butted to the head, which is what keeps
-             that track inside its half at 360px and the row centred.
-             No ref: a phone has no slider, and `measureChips` finds the chip
-             by its class for the parked tab. -->
-        <q-btn v-if="windows.isMobile" unelevated class="nav-btn create-btn create-btn--bugs create-btn--bugs-phone" :class="{ 'is-active': creationExpanded.bugs }" @click="$emit('open-bugs')">
-          <q-icon :name="ROACH" size="15px" class="create-btn__roach" />
-          <q-tooltip>Report a bug</q-tooltip>
-        </q-btn>
+        <!-- (The BUGS chip's PHONE seat stood here 2026-11-02 → 11-03, 26px
+             and butted to the chat head; it is the creation row's first chip
+             now — `.create-half--l`.) -->
 
         <!-- ── NO DIVIDER HERE ANYMORE (2026-08-24, user ask: "there are
              weird hairlines in between the buttons … make sure each button is
@@ -497,6 +513,7 @@ import { useDashboardStore } from 'src/stores/dashboard'
 import { useEventsStore } from 'src/stores/events'
 import { useCaptureStore, captureLabel, MODE_META } from 'src/stores/capture'
 import { useBugsStore, bugLabel } from 'src/stores/bugs'
+import { useIdentityStore } from 'src/stores/identity'
 import { ROACH } from 'src/utils/glyphs'
 import { pinService } from 'src/services/pin.service'
 import IdentityChip from 'src/components/identity/IdentityChip.vue'
@@ -525,6 +542,7 @@ export default defineComponent({
     const uploaderStore = useUploaderStore()
     const captureStore = useCaptureStore()
     const bugsStore = useBugsStore()
+    const identityStore = useIdentityStore()
     const schemaBuilderStore = useSchemaBuilderStore()
     const labelMakerStore = useLabelMakerStore()
     const chatStore = useChatStore()
@@ -745,6 +763,13 @@ export default defineComponent({
       if (dash) {
         const r = dash.getBoundingClientRect()
         if (r.width > 0) next.dashboard = { left: r.left, width: r.width }
+      }
+      // The identity section's tab (2026-11-03, the identity window's yellow
+      // light) — its mirror at the bar's left end, the same one query.
+      const seat = document.querySelector('.nav-bar .identity-slot')
+      if (seat) {
+        const r = seat.getBoundingClientRect()
+        if (r.width > 0) next.identity = { left: r.left, width: r.width }
       }
       // ⭐ THE HUB'S FLANKS (2026-10-11): two windows park with NO chip of
       // their own now — the capture window never had one, the uploader's
@@ -1030,6 +1055,19 @@ export default defineComponent({
           restore: () => dashboardStore.restore()
         })
       }
+      // The identity window parks on its section (2026-11-03 — it had a red
+      // light alone until the three-lights ask).
+      if (identityStore.isOpen && identityStore.isMinimized) {
+        tabs.push({
+          key: 'identity',
+          icon: 'person',
+          label: 'identity',
+          meta: '',
+          busy: false,
+          title: 'Restore the identity window',
+          restore: () => identityStore.restore()
+        })
+      }
       return tabs
     })
 
@@ -1190,6 +1228,10 @@ export default defineComponent({
   left: 0;
   right: 0;
   height: 0;
+  // (2026-11-03: KEPT at 3045 when the flyouts rose over the bars to 3140+ —
+  // windows.js `Z_TOP`. A parked tab is bar chrome, and a flyout dragged
+  // onto the bar covers bar chrome by ask; the desktop hub's disc still
+  // paints over this strip, and the docks' own band is still under it.)
   z-index: 3045;
   display: flex;
   align-items: flex-end;
@@ -2163,6 +2205,9 @@ export default defineComponent({
   gap: 6px;
   align-items: center;
 }
+// The phone's two halves round the hub (2026-11-03) — no box above 600px,
+// so every chip stays one of the row's own grid items there.
+.create-half { display: contents; }
 
 // ── ⭐ AND THE EQUAL-WIDTH OVERRIDE IS GONE (2026-08-31, user ask: "the post
 // button has an ugly gap between the icon and the text. Homogenize the inner
@@ -2690,21 +2735,56 @@ export default defineComponent({
   // the halves are ~70px, chat's 32 and the pins' 45 each fit inside one.
   // Both cells name `grid-row: 1` — a definite column BEFORE the previous
   // item's would otherwise be auto-placed on a second row.
+  // ⭐⭐ 2026-11-03 — THE HUB ON THE SCREEN'S CENTRE, TWO CHIPS EACH SIDE
+  // (user ask: "make sure they're properly arranged, distributed evenly and
+  // with the big round upload one being centered"). The row was a 3-track
+  // grid with chat (+ the roach, butted) in track 1, the four makers' row
+  // centred in track 2 with the hub THIRD of four — 18px right of the
+  // screen's centre — and the pins seat in track 3. Now `.create-row` IS the
+  // whole run between the two end cells and the grid lives in it:
+  //
+  //   45 · minmax(0, 1fr) · hub · minmax(0, 1fr) · 45
+  //        BUGS · POST            SCHEMAS · LABELS
+  //
+  // The two 45s are the run's equal side paddings — the PINS STRIP's fixed
+  // seat at the right (`--strip-phone-w`) and, mirrored, the CHAT head's at
+  // the left (absolutely seated against the identity section's hairline,
+  // where the 2026-10-31 ask stuck it, and as wide as the pins strip since
+  // this ask — ChatStrip's phone block). Equal pads + equal fr halves +
+  // identity ≡ dashboard (42 = 42) = the hub on the screen's centre line,
+  // and each half spreads its two chips with `space-evenly` over runs of
+  // the same length. The hub's side margin is its mount's own reach past
+  // the 36px disc (3px), so the gap to the painted arch is the chips' gap:
+  // six equal gaps from chat to pins (10.3px at 390).
   .nav-right {
-    display: grid;
-    grid-template-columns: minmax(max-content, 1fr) auto minmax(var(--strip-phone-w), 1fr);
-    column-gap: 4px;
-    // No `--pins-strip-w` padding reserve here on a phone (the strips' seats
-    // are the two outer TRACKS, above) — and no side padding at all: any
-    // asymmetry here is an off-centre row.
+    position: relative;
+    display: flex;
+    align-items: stretch;
     padding: 0;
+    gap: 0;
   }
-  .create-row { grid-column: 2; grid-row: 1; }
+  .create-row {
+    flex: 1 1 auto;
+    min-width: 0;
+    grid-auto-flow: row;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    padding: 0 var(--strip-phone-w);
+    gap: 0;
+  }
+  .create-half {
+    display: flex;
+    align-items: center;
+    justify-content: space-evenly;
+    min-width: 0;
+  }
+  .create-half--l { grid-column: 1; }
+  .nav-hub--row { grid-column: 2; margin: 0 3px; }
+  .create-half--r { grid-column: 3; }
   .nav-looks {
-    grid-column: 1;
-    grid-row: 1;
-    justify-self: start;
-    align-self: stretch;
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
     display: flex;
     // The identity section's full height: the chat strip (its head alone
     // here) stretches to the bar's 31px content row (ChatStrip.vue's phone
@@ -2713,7 +2793,7 @@ export default defineComponent({
     gap: 0;
     // (`padding-right: var(--strip-phone-w)` — the PINS STRIP's seat, chat
     // butting its left rim — stood here 2026-09-23 → 10-31; the seat is
-    // track 3's floor now.)
+    // the row's right padding now.)
   }
 
   // The ONE remaining `.nav-divider` is the tack slot's, and mobile is exactly
@@ -2756,13 +2836,10 @@ export default defineComponent({
   // the glyph. The parked tab's body follows: 31 − 14 = 17px around its 12px
   // glyph. The width is what the centring leaves, as it was on 09-23.
   .nav-bar .create-btn { min-width: 31px; }
-  // THE ROACH BESIDE THE CHAT HEAD (2026-11-02) — 26px, butted to the head
-  // with no gap. The arithmetic is the row's centring law: at 360px the left
-  // track's half is 58px and the chat head takes 31, so the pair must come
-  // in at ≤ 58 or the row slides off the bar's centre (28px + a 4px gap made
-  // 64 and slid it 3px — `flow-phone-footer` law 2). Butted, the two read as
-  // one two-cell plate, the way the tack once butted its divider.
-  .nav-bar .create-btn--bugs-phone { min-width: 26px; width: 26px; margin-left: 0; }
+  // (THE ROACH BESIDE THE CHAT HEAD — 26px, butted to the head, a 25px chip
+  // hung at the top of the 31px cell — stood here 2026-11-02 → 11-03: "it's
+  // missing a piece down". It is a 31px creation chip in the row's left half
+  // now and wears the same rule as the other three.)
 
   // No grips on a phone (2026-08-30, the slider pass): six handles+hairlines
   // cost ~90px this bar does not have at 375px, the docks run edge to edge
@@ -2788,8 +2865,8 @@ export default defineComponent({
   // their own mobile rule through `.nav-bundle` until 2026-08-23 — they wear
   // `.nav-btn` now, so the rule above already tightens all six.)
 
-  // The creation row's own gap follows `.nav-right`'s down.
-  .create-row { gap: 4px; }
+  // (The creation row's 4px gap stood here — the halves' `space-evenly`
+  // spaces the chips since 2026-11-03.)
 
   // (`.tack-slot { margin-left: -4px }` stood here — the tack butting chat on
   // a phone. The tack stopped rendering on phones 2026-09-23; the pins strip
