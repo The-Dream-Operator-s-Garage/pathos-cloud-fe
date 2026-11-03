@@ -173,6 +173,12 @@ export const authService = {
     return data
   },
 
+  // { add?: [], remove?: [] } — the Keys well's Pins toggle (2026-11-02)
+  async setKeyScopes (id, body) {
+    const { data } = await api.post(`/identity/keys/${id}/scopes`, body)
+    return data
+  },
+
   // ── Sign in with Google (decision 1: a linked ROOT's second door) ────
   // A plain navigation, not a fetch: the API answers 302 to Google's consent
   // (openid email only) and its callback returns to /#/auth?ticket=….

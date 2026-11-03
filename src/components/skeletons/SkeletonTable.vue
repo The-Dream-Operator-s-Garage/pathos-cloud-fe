@@ -389,7 +389,7 @@ import LabelPicker from 'src/components/maker/LabelPicker.vue'
 import MicroChip from 'src/components/shared/MicroChip.vue'
 import { skeletonService } from 'src/services/skeleton.service'
 import { refService } from 'src/services/ref.service'
-import { pathService } from 'src/services/path.service'
+import { pathService, PATH_PREVIEW } from 'src/services/path.service'
 import { useAuthStore } from 'src/stores/auth'
 import { kindFor } from 'src/utils/kinds'
 import { useRenderBudget } from 'src/composables/useRenderDepth'
@@ -841,7 +841,8 @@ export default defineComponent({
     const loadList = async (row) => {
       const key = row.slotName
       try {
-        const r = await pathService.byHash(row.ref, 'forward')
+        // one block; the cell's PathMini reads the rest by its "+N more" pill (2026-11-02)
+        const r = await pathService.byHash(row.ref, 'forward', { limit: PATH_PREVIEW })
         const steps = (r?.steps || []).filter(st => st.link)
         lists.value[key] = { loading: false, steps, pathRow: r?.path || null, ref: row.ref || '' }
       } catch (_) {

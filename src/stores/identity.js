@@ -169,6 +169,17 @@ export const useIdentityStore = defineStore('identity', {
       return r
     },
 
+    // THE PINS TOGGLE (2026-11-02): grant / take back a live key's `pin`
+    // scope — the extension popup's Pin button pins pages onto THIS root's
+    // pins only while its key carries it (keys minted before it lack it).
+    async setKeyPins (id, on) {
+      const r = await authService.setKeyScopes(id, on ? { add: ['pin'] } : { remove: ['pin'] })
+      if (r.success) {
+        this.keys = this.keys.map((k) => (k.id === id ? { ...k, scopes: r.key.scopes } : k))
+      }
+      return r
+    },
+
     // NEW KEY → CHROME HISTORY (plan Part 7): the ROOT's alter-ego named
     // "Chrome" is found or minted (S3 writes its delegation to the root at
     // mint; it is born packed under a packed root and mirrored with the

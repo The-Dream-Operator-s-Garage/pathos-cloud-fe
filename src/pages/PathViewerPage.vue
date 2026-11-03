@@ -84,13 +84,28 @@
                  XMini if the family has one for the kind, otherwise the
                  XMicro chip. PathLinkConnector exposes the bond between
                  consecutive steps. -->
+            <!-- ⭐ 2026-11-02 THE RING OF BLOCKS (allegue: "paginate the load
+                 of large paths … like the feed"): the body card is the
+                 scroller; at most 4 blocks of PATH_BLOCK steps are mounted,
+                 spacers stand for the rest (measured above, estimated
+                 below), so a 2,000-step path opens on one read and the
+                 thumb reaches any step — useWindowedFeed, the feed's own. -->
             <div class="subject-panel__body">
-              <div class="subject-panel__body-card">
-                <div v-if="!steps.length" class="text-dim text-center q-py-md">
+              <div ref="bodyEl" class="subject-panel__body-card" data-testid="path-viewer-scroll">
+                <div v-if="!steps.length && !win.loading.value" class="text-dim text-center q-py-md">
                   No steps in this path yet.
                 </div>
                 <div v-else class="path-slider">
-                  <template v-for="(step, idx) in steps" :key="step.index">
+                  <div v-if="win.topSpacer.value > 0" class="path-spacer" :style="{ height: win.topSpacer.value + 'px' }" />
+                  <div
+                    v-for="block in win.blocks.value"
+                    :key="block.index"
+                    :ref="win.bindBlock(block.index)"
+                    class="path-block"
+                    data-testid="path-block"
+                    :data-block="block.index"
+                  >
+                  <template v-for="step in block.items" :key="step.index">
 
                     <component
                       :is="miniComponentFor(step)"
@@ -113,10 +128,12 @@
                     </div>
 
                     <PathLinkConnector
-                      v-if="idx < steps.length - 1"
+                      v-if="step.index < stepTotal - 1"
                       :link="step.link"
                     />
                   </template>
+                  </div>
+                  <div v-if="win.bottomSpacer.value > 0" class="path-spacer" :style="{ height: win.bottomSpacer.value + 'px' }" />
                 </div>
               </div>
             </div>
@@ -135,19 +152,20 @@
             <div class="steps-panel__header">
               <q-icon name="format_list_numbered" size="14px" class="q-mr-xs" />
               <span>Steps</span>
-              <span class="steps-count">{{ steps.length }}</span>
+              <span class="steps-count">{{ stepTotal }}</span>
             </div>
             <div class="steps-panel__scroll">
               <div v-if="!steps.length" class="steps-panel__empty">
                 empty path
               </div>
+              <!-- the index lists the steps the ring holds (absolute #) -->
               <router-link
-                v-for="(s, i) in steps"
+                v-for="s in steps"
                 :key="s.index"
                 :to="targetRouteFor(s) || '#'"
                 class="step-row"
               >
-                <span class="step-row-tag mono">#{{ i + 1 }}</span>
+                <span class="step-row-tag mono">#{{ s.index + 1 }}</span>
                 <q-icon :name="iconForTargetType(s.link.target_type)" size="12px" class="step-row-icon" />
                 <span class="step-row-label">{{ stepLabel(s) }}</span>
                 <q-space />
@@ -173,9 +191,10 @@
 </template>
 
 <script>
-import { defineComponent, ref, computed, onMounted, watch, markRaw } from 'vue'
+import { defineComponent, ref, computed, onMounted, watch, markRaw, nextTick } from 'vue'
+import { useWindowedFeed } from 'src/composables/useWindowedFeed'
 import { useRoute } from 'vue-router'
-import { pathService } from 'src/services/path.service'
+import { pathService, PATH_BLOCK } from 'src/services/path.service'
 
 import PathLinkConnector from 'src/components/paths/PathLinkConnector.vue'
 import LabelSlider from 'src/components/labels/LabelSlider.vue'
@@ -239,8 +258,31 @@ export default defineComponent({
     const locked = ref(null) // { kind, hash, id, address } when the read 403'd
     const pathRow = ref(null)
     const owner = ref(null)
-    const steps = ref([])
     const labels = ref([])
+
+    // THE RING (2026-11-02): blocks of PATH_BLOCK steps, the body card the
+    // scroller. load() reads block 0 itself (the head + the 403 come with
+    // it); the ring adopts that read instead of asking twice.
+    const bodyEl = ref(null)
+    let firstBlock = null
+    const win = useWindowedFeed({
+      fetchBlock: async (index) => {
+        if (index === 0 && firstBlock) {
+          const r = firstBlock
+          firstBlock = null
+          return { items: r.steps || [], total: r.path?.step_count || 0 }
+        }
+        const r = await pathService.byId(parseInt(route.params.id), 'forward', { offset: index * PATH_BLOCK, limit: PATH_BLOCK })
+        return { items: r?.steps || [], total: r?.path?.step_count || 0 }
+      },
+      blockSize: PATH_BLOCK,
+      estimateItemH: 120,
+      scrollEl: bodyEl,
+      keyOf: (st) => st?.link?.id ?? st?.index,
+      memoryKey: () => `path:${route.params.id}`
+    })
+    const steps = computed(() => win.items.value)
+    const stepTotal = computed(() => pathRow.value?.step_count ?? steps.value.length)
     const copied = ref(false)
 
     const ownerDisplayName = computed(() => {
@@ -271,21 +313,22 @@ export default defineComponent({
       locked.value = null
       pathRow.value = null
       owner.value = null
-      steps.value = []
       labels.value = []
+      firstBlock = null
 
       const id = parseInt(route.params.id)
       if (!id) { loading.value = false; return }
       try {
-        const r = await pathService.byId(id, 'forward')
+        const r = await pathService.byId(id, 'forward', { offset: 0, limit: PATH_BLOCK })
         if (r.success) {
           pathRow.value = r.path || null
           owner.value = r.owner || null
-          steps.value = r.steps || []
           labels.value = r.labels || []
+          firstBlock = r
         }
       } catch (e) { locked.value = lockedInfoFromError(e) }
       loading.value = false
+      if (pathRow.value) { await nextTick(); win.reset() }
       loadSurround()
     }
 
@@ -374,6 +417,9 @@ export default defineComponent({
       pathRow,
       owner,
       steps,
+      stepTotal,
+      win,
+      bodyEl,
       pathMomentId,
       sliderLabels,
       ownerDisplayName,
@@ -594,7 +640,15 @@ export default defineComponent({
   display: flex;
   flex-direction: column;
   gap: 0; // Mini panels + Connector handle their own spacing
+  overflow-anchor: none; // the ring anchors the scroll itself (useWindowedFeed)
 }
+// a block of the ring lays its steps as the slider did
+.path-block {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+.path-spacer { flex: none; }
 
 .path-step-fallback {
   display: inline-flex;

@@ -82,7 +82,23 @@
           :rest-at-end="restAtEnd"
           @remove="$emit('remove', $event)"
         >
-          <template #tail><slot name="tail" /></template>
+          <template #tail>
+            <!-- the next block (2026-11-02): a long path's first read is
+                 PATH_PREVIEW steps; the rest is one pill away, a block a click -->
+            <button
+              v-if="remaining > 0"
+              type="button"
+              class="path-mini__more mono"
+              data-testid="path-more"
+              :disabled="moreLoading"
+              :title="`Read the next ${Math.min(remaining, PATH_PREVIEW)} of ${remaining} more steps`"
+              @click.stop="more"
+            >
+              <q-spinner v-if="moreLoading" size="10px" />
+              <span v-else>+{{ remaining }} more</span>
+            </button>
+            <slot name="tail" />
+          </template>
         </PathLane>
       </template>
 
@@ -101,7 +117,7 @@ import MiniHead from 'src/components/shared/MiniHead.vue'
 import MiniFoot from 'src/components/shared/MiniFoot.vue'
 import InfoChip from 'src/components/shared/InfoChip.vue'
 import PathLane from './PathLane.vue'
-import { pathService } from 'src/services/path.service'
+import { pathService, PATH_PREVIEW } from 'src/services/path.service'
 import { useFlyoutViewersStore } from 'src/stores/flyoutViewers'
 import { hashOf, isHash } from 'src/utils/kinds'
 
@@ -159,7 +175,12 @@ export default defineComponent({
     const failed = ref(false)
     const fetched = ref(null) // { row, steps } when this mini walked
     const row = computed(() => fetched.value?.row || props.path || null)
-    const walked = computed(() => (Array.isArray(props.steps) ? props.steps : (fetched.value?.steps || [])))
+    // THE WINDOW (2026-11-02): the first read is one block (PATH_PREVIEW
+    // steps, or whatever the host handed in); `extra` holds the blocks the
+    // "+N more" pill read after it, in order.
+    const extra = ref([])
+    const moreLoading = ref(false)
+    const walked = computed(() => [...(Array.isArray(props.steps) ? props.steps : (fetched.value?.steps || [])), ...extra.value])
     const addressOf = computed(() => {
       if (row.value?.path) return row.value.path
       return typeof props.refOrId === 'string' && props.refOrId.includes('/') ? props.refOrId : ''
@@ -173,7 +194,9 @@ export default defineComponent({
       loading.value = true
       failed.value = false
       try {
-        const r = isHash(hash) ? await pathService.byHash(hash, 'forward') : await pathService.byId(id, 'forward')
+        const win = { limit: PATH_PREVIEW }
+        const r = isHash(hash) ? await pathService.byHash(hash, 'forward', win) : await pathService.byId(id, 'forward', win)
+        extra.value = []
         if (r?.success && r.path) {
           fetched.value = { row: { ...r.path, author: r.owner || row.value?.author || null }, steps: r.steps || [] }
           emit('resolved', fetched.value.row)
@@ -190,7 +213,21 @@ export default defineComponent({
     watch(() => [props.path?.path, props.path?.id, props.refOrId, props.steps], load)
 
     // ── the head ───────────────────────────────────────────────────────
-    const stepCount = computed(() => (walked.value.length || row.value?.step_count || 0))
+    // the WHOLE path's count (the server's), never just the block in hand
+    const stepCount = computed(() => Math.max(walked.value.length, row.value?.step_count || 0))
+    const remaining = computed(() => Math.max(0, stepCount.value - walked.value.length))
+    const more = async () => {
+      if (moreLoading.value || remaining.value <= 0) return
+      const hash = hashOf(row.value?.path || addressOf.value)
+      const id = row.value?.id ?? null
+      moreLoading.value = true
+      try {
+        const win = { offset: walked.value.length, limit: PATH_PREVIEW }
+        const r = isHash(hash) ? await pathService.byHash(hash, 'forward', win) : await pathService.byId(id, 'forward', win)
+        if (r?.success) extra.value = [...extra.value, ...(r.steps || [])]
+      } catch (_) { /* the pill stays; a click retries */ }
+      moreLoading.value = false
+    }
     const pathLabel = computed(() => {
       const t = String(row.value?.title || '').trim()
       if (t) return t
@@ -282,6 +319,10 @@ export default defineComponent({
       walked,
       addressOf,
       stepCount,
+      remaining,
+      more,
+      moreLoading,
+      PATH_PREVIEW,
       pathLabel,
       nameTitle,
       openViewer,
@@ -324,6 +365,27 @@ export default defineComponent({
 // edge to edge and brings its own padding.
 .path-mini > :deep(.mini-panel-link > .mini-panel > .mini-panel__body) {
   padding: 0;
+}
+
+// the "+N more" pill at the lane's end — the path family's lime, a nano pill
+.path-mini__more {
+  align-self: center;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 20px;
+  padding: 0 8px;
+  font-size: 10px;
+  color: var(--mini-ink, var(--path-ink, #827717));
+  background: transparent;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  cursor: pointer;
+  white-space: nowrap;
+
+  &:disabled { opacity: 0.5; cursor: default; }
+  &:hover:not(:disabled) { background: color-mix(in srgb, currentColor 8%, transparent); }
 }
 
 .path-mini__empty {

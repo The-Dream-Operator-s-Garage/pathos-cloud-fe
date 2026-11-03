@@ -24,7 +24,7 @@
 //   locked   {}                — the summary's locked stub (403 reads)
 //   null     {}                — unresolvable (the InfoChip fallback)
 import { nodeService } from 'src/services/node.service'
-import { pathService } from 'src/services/path.service'
+import { pathService, PATH_PREVIEW } from 'src/services/path.service'
 import { postService } from 'src/services/post.service'
 import { labelService } from 'src/services/label.service'
 import { entityService } from 'src/services/entity.service'
@@ -103,7 +103,8 @@ export async function shapeFromElement (el) {
   if (el.kind === 'path' && el.path) {
     // Fetch the walked steps so the viewer can draw its lane.
     try {
-      const r = await pathService.byId(el.path.id, 'forward')
+      // one block — the mini's "+N more" pill reads the rest (2026-11-02)
+      const r = await pathService.byId(el.path.id, 'forward', { limit: PATH_PREVIEW })
       if (r.success) return { kind: 'path', path: { ...r.path, author: r.owner }, steps: r.steps }
     } catch (_) { /* fall through */ }
     return { kind: 'path', path: el.path, steps: null }
@@ -136,7 +137,7 @@ export async function shapeFromAddress (addr) {
         return r.success ? { kind: 'node', node: r.node } : NONE()
       }
       case 'paths': {
-        const r = await pathService.byHash(ref_.hash, 'forward')
+        const r = await pathService.byHash(ref_.hash, 'forward', { limit: PATH_PREVIEW })
         return r.success ? { kind: 'path', path: { ...r.path, author: r.owner }, steps: r.steps } : NONE()
       }
       // A POST is a skeleton by address; a `posts/<hash>` ref (the pill's own

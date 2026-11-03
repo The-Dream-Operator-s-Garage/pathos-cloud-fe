@@ -414,7 +414,7 @@
             <div class="identity-dock__hint">
               Paste it into the Garage extension's options (pathos.cloud :: history upload).
               It acts as {{ freshKey.alterEgo.display_name }}, may only add visits to its own
-              history, and cannot publish anything.
+              history and pin pages onto your pins, and cannot publish anything.
             </div>
           </div>
 
@@ -446,6 +446,21 @@
             >
               <q-icon name="history" size="11px" />
               <span>History</span>
+            </button>
+            <button
+              v-if="!k.revoked_at && k.purpose === 'chrome-history'"
+              type="button"
+              class="identity-dock__btn identity-dock__btn--tiny identity-dock__key-pins"
+              :class="{ 'is-on': k.scopes.includes('pin') }"
+              data-testid="identity-key-pins"
+              :disabled="keyBusy !== null"
+              :aria-pressed="k.scopes.includes('pin') ? 'true' : 'false'"
+              :title="k.scopes.includes('pin') ? 'The extension\'s Pin button pins pages onto your pins — click to take it back' : 'Let the extension\'s Pin button pin pages onto your pins'"
+              @click="toggleKeyPins(k)"
+            >
+              <q-spinner v-if="keyBusy === 'pins-' + k.id" size="10px" />
+              <q-icon v-else name="push_pin" size="11px" />
+              <span>{{ k.scopes.includes('pin') ? 'Pins on' : 'Pins' }}</span>
             </button>
             <button
               v-if="!k.revoked_at"
@@ -762,6 +777,17 @@ export default defineComponent({
         $q.notify({ type: 'negative', message: e?.response?.data?.error?.message || 'revoke failed' })
       } finally { keyBusy.value = null }
     }
+    const toggleKeyPins = async (k) => {
+      const on = !k.scopes.includes('pin')
+      keyBusy.value = 'pins-' + k.id
+      try {
+        const r = await identity.setKeyPins(k.id, on)
+        if (r.success) $q.notify({ type: 'positive', message: on ? `${k.label} can pin pages onto your pins` : `${k.label} no longer pins`, icon: 'push_pin' })
+        else $q.notify({ type: 'negative', message: r.error?.message || 'could not change the key' })
+      } catch (e) {
+        $q.notify({ type: 'negative', message: e?.response?.data?.error?.message || 'could not change the key' })
+      } finally { keyBusy.value = null }
+    }
     // The door: the key's CHROME_HISTORY instance in a window (its grid
     // draws the visits lane — ChromeHistoryLane). The root opens it through
     // the alter-ego's delegation, no mask worn.
@@ -781,6 +807,7 @@ export default defineComponent({
       newChromeKey,
       copyKey,
       revokeKey,
+      toggleKeyPins,
       openKeyHistory,
       storageBusy,
       sync,
@@ -1381,6 +1408,11 @@ export default defineComponent({
 
   & + & { margin-top: 4px; }
   &.is-revoked { opacity: 0.55; background: transparent; border-style: dashed; }
+}
+// the Pins toggle reads ON in the key row's own teal, OFF as a plain tiny button
+.identity-dock__key-pins.is-on {
+  color: var(--teal-8);
+  border-color: var(--teal-8);
 }
 
 .identity-dock__key-fresh {

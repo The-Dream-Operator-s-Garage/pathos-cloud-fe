@@ -42,7 +42,22 @@
           :depth="0"
           :visited="[row.path || '']"
           :self="row.path || ''"
-        />
+        >
+          <!-- the next block (2026-11-02) — PathMini's pill, the card's lane -->
+          <template #tail>
+            <button
+              v-if="remaining > 0"
+              type="button"
+              class="path-card__more mono"
+              data-testid="path-more"
+              :disabled="moreLoading"
+              @click.stop="more"
+            >
+              <q-spinner v-if="moreLoading" size="10px" />
+              <span v-else>+{{ remaining }} more</span>
+            </button>
+          </template>
+        </PathLane>
       </div>
     </template>
 
@@ -70,7 +85,7 @@ import CardByline from 'src/components/shared/CardByline.vue'
 import CardFoot from 'src/components/shared/CardFoot.vue'
 import PathLane from './PathLane.vue'
 import CommentMaker from 'src/components/comments/CommentMaker.vue'
-import { pathService } from 'src/services/path.service'
+import { pathService, PATH_PREVIEW } from 'src/services/path.service'
 import { hashOf, isHash } from 'src/utils/kinds'
 import { absoluteTime } from 'src/utils/time'
 import { useElementCard, CARD_PROPS, CARD_EMITS } from 'src/composables/useElementCard'
@@ -102,7 +117,10 @@ export default defineComponent({
     const loading = ref(false)
     const fetched = ref(null) // { row, steps } when this card walked
     const row = computed(() => fetched.value?.row || props.path)
-    const walked = computed(() => (Array.isArray(props.steps) ? props.steps : (fetched.value?.steps || [])))
+    // one block first, the "+N more" pill's blocks after it (2026-11-02)
+    const extra = ref([])
+    const moreLoading = ref(false)
+    const walked = computed(() => [...(Array.isArray(props.steps) ? props.steps : (fetched.value?.steps || [])), ...extra.value])
 
     const load = async () => {
       if (Array.isArray(props.steps)) return
@@ -111,14 +129,28 @@ export default defineComponent({
       if (!hash && id == null) return
       loading.value = true
       try {
-        const r = isHash(hash) ? await pathService.byHash(hash, 'forward') : await pathService.byId(id, 'forward')
+        const win = { limit: PATH_PREVIEW }
+        const r = isHash(hash) ? await pathService.byHash(hash, 'forward', win) : await pathService.byId(id, 'forward', win)
+        extra.value = []
         if (r?.success && r.path) fetched.value = { row: { ...r.path, author: r.owner || props.path?.author || null }, steps: r.steps || [] }
       } catch (_) { /* the row alone still draws the head */ }
       loading.value = false
     }
     watch(() => [props.path?.id, props.path?.path, props.steps], load, { immediate: true })
 
-    const stepCount = computed(() => (walked.value.length || row.value?.step_count || 0))
+    const stepCount = computed(() => Math.max(walked.value.length, row.value?.step_count || 0))
+    const remaining = computed(() => Math.max(0, stepCount.value - walked.value.length))
+    const more = async () => {
+      if (moreLoading.value || remaining.value <= 0) return
+      const hash = hashOf(row.value?.path || '')
+      moreLoading.value = true
+      try {
+        const win = { offset: walked.value.length, limit: PATH_PREVIEW }
+        const r = isHash(hash) ? await pathService.byHash(hash, 'forward', win) : await pathService.byId(row.value?.id, 'forward', win)
+        if (r?.success) extra.value = [...extra.value, ...(r.steps || [])]
+      } catch (_) { /* the pill stays; a click retries */ }
+      moreLoading.value = false
+    }
     const pathLabel = computed(() => {
       const t = String(row.value?.title || '').trim()
       if (t) return t
@@ -188,12 +220,30 @@ export default defineComponent({
       ownerId: row.value?.owner_id ?? author.value?.id ?? null
     }))
 
-    return { loading, row, walked, stepCount, pathLabel, shownLayout, shownMode, modeAct, layoutAct, author, when, kindTally, ...card }
+    return { loading, row, walked, stepCount, remaining, more, moreLoading, pathLabel, shownLayout, shownMode, modeAct, layoutAct, author, when, kindTally, ...card }
   }
 })
 </script>
 
 <style lang="scss" scoped>
+.path-card__more {
+  align-self: center;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  height: 20px;
+  padding: 0 8px;
+  font-size: 10px;
+  color: var(--path-ink, #827717);
+  background: transparent;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  cursor: pointer;
+  white-space: nowrap;
+
+  &:disabled { opacity: 0.5; cursor: default; }
+}
+
 // The lane fills the pit and scrolls on its own axis.
 .path-card__lane {
   flex: 1 1 auto;

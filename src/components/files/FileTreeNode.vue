@@ -256,7 +256,8 @@ const MINI_FETCHERS = {
   // PathMini takes the row itself plus the enriched owner as `author`.
   paths: async (id) => {
     const { pathService } = await import('src/services/path.service')
-    const res = await pathService.byId(id)
+    // the row + labels only — one step's window, never the whole walk (2026-11-02)
+    const res = await pathService.byId(id, 'reverse', { limit: 1 })
     if (!res?.success || !res.path) {
       return { path: { id, path: '' }, labels: [] }
     }
