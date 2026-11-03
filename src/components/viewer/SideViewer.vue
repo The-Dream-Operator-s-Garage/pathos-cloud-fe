@@ -90,9 +90,10 @@
     </div>
     <div class="side-viewer__well">
       <!-- SideElementView since 2026-10-07: the element's face (a post =
-           its postcard, extended to the well; anything else its kind's Mini)
-           over its THREAD band — comments by default, forks on the fork door.
-           Keyed per stop so back/forward lands on a fresh face. -->
+           its postcard; anything else its kind's Card) — since 2026-11-02 on
+           the LEFT at full height, the THREAD (comments by default, forks on
+           the fork door) over the REFERENCES on the right. Keyed per stop so
+           back/forward lands on a fresh face. -->
       <SideElementView
         v-if="current"
         :key="current.key"
@@ -508,10 +509,11 @@ export default defineComponent({
 // SideElementView filling it wall to wall (the ask: the card "extending
 // inside its container below the side viewer's friezebar") — the 640px
 // reading cap that centred the card is gone; the view lays out its face
-// and its thread band itself.
+// and its thread band itself. ⭐ 8px since 2026-11-02 (14 before — the ask:
+// the side-by-side layout "slightly denser"): the boxes' own gap.
 .side-viewer__well {
   flex: 1 1 auto;
-  padding: 14px;
+  padding: 8px;
   display: flex;
   justify-content: center;
   min-width: 0;

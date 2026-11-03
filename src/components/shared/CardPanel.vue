@@ -230,6 +230,31 @@ export default defineComponent({
   margin-bottom: calc(var(--pit-embrace, 4px) - var(--pit-pad-y, 8px));
 }
 
+// THE HEADING TIER (2026-11-02) — the post card's (`.post-square__md`,
+// FeedStream), restated for a MarkdownBody in any card's pit: without it a
+// node card's `# heading` fell through to Quasar's global h1 (96px) — glaring
+// once the side viewer stretched the card to its full height. Prose only:
+// the `$prose` boundary stops at a ref slot, so a quoted mini keeps its own.
+.element-card__pit :deep(.markdown-body) {
+  :where(h1, h2, h3, h4, h5, h6):where(:not(.pathos-ref-slot *)) {
+    font-family: 'Space Mono', monospace;
+    font-weight: 700;
+    line-height: 1.25;
+    margin: 1.15em 0 0.35em;
+    color: var(--ink, #2C3D4E);
+  }
+  :where(h1):where(:not(.pathos-ref-slot *)) { font-size: 1.14em; }
+  :where(h2):where(:not(.pathos-ref-slot *)) { font-size: 1.06em; }
+  :where(h3):where(:not(.pathos-ref-slot *)) { font-size: 1em; }
+  :where(h4, h5, h6):where(:not(.pathos-ref-slot *)) {
+    font-size: 0.94em;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: rgba(var(--ink-rgb), 0.72);
+  }
+  > :where(h1, h2, h3, h4, h5, h6):first-child { margin-top: 0; }
+}
+
 // A viewer-body (lane / grid / unravel / map) meets the pit's rim and
 // scrolls itself; the pit keeps its floor and corner.
 .element-card__pit--fit {

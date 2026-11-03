@@ -30,13 +30,27 @@
        schemas give it no COMMENTS / FORKS holder (moments, secrets,
        entities; forks of paths and links) shows its section `supported:
        false` — the act is not offered rather than offered and refused. -->
-  <div class="side-element" :style="{ '--sev-thread-h': threadPct }">
-    <!-- THE ITEM CONTAINER (2026-10-07 PM, user ask: "make sure the comment
-         box is attached to the item container, not on an abandoned box
-         below"): the face and the thread are ONE box — the card at its own
-         height, the band hanging off its foot with a shared rim; the rest of
-         the well stays empty BELOW the item, never between its parts. -->
-    <div class="side-element__item" :class="{ 'is-card': true, 'is-fill': fills }">
+  <!-- ⭐ 2026-11-02 — SIDE BY SIDE (user ask: "we're displaying the element
+       on a subsection on top and the comments/forks on a subsection below.
+       This doesn't work very well. Please help me making the subsection
+       separation horizontal instead of vertical and then, on the left, let's
+       put the element, prioritizing the element is fully displayed, using all
+       available height and width on the side viewer. make the layout
+       slightly denser please. Then, we're going to have the feed-like section
+       on the right … divided on 2 subsections: the fork/comments part on the
+       top, and then the reference path below").
+
+       A ROW now: THE FACE on the left takes every pixel the right column
+       leaves — the card STRETCHED to the well's full height (its pit grows,
+       a tall body scrolls inside it), never capped at its content height;
+       THE SIDE on the right (`--sev-side-w`) stacks the THREAD box over the
+       REFERENCES box (`SideReferences` — every element the item holds, as
+       minis). The band no longer hangs off the card's foot: card, thread and
+       references are three whole boxes with their own four corners. A narrow
+       viewer (the phone strip, a squeezed track) stacks them instead — the
+       face over the side, the side's two boxes side by side. -->
+  <div class="side-element" :class="{ 'is-fill': fills }">
+    <div class="side-element__layout">
     <div class="side-element__face">
       <FeedStream
         v-if="card"
@@ -57,7 +71,7 @@
            element's full reading), the band's totals handed to its foot
            doors, its open doors spawning WINDOWS through the viewer
            (`window-host` → `select`), a filling kind (the label's unravel)
-           asking for the well's length through `resolved`. -->
+           asking for its full-height viewer through `resolved`. -->
       <div v-else-if="el" class="side-element__card-host">
         <ElementCard
           :key="'sev:' + el.address"
@@ -75,7 +89,8 @@
       </div>
     </div>
 
-    <section v-if="el" class="side-element__thread" aria-label="Comments and forks">
+    <aside v-if="el" class="side-element__side" aria-label="Around this element">
+    <section class="side-element__thread" aria-label="Comments and forks">
       <header class="side-element__bar">
         <button
           v-for="s in SECTIONS" :key="s.key"
@@ -107,7 +122,7 @@
         </button>
       </header>
 
-      <!-- Writing takes the WHOLE band (the ask: "use the available space of
+      <!-- Writing takes the WHOLE box (the ask: "use the available space of
            the comment section … the comment maker embedded on the comment
            section"): the CommentMaker family's `fill` member, in place of the
            list until it posts or cancels. -->
@@ -150,6 +165,14 @@
         </template>
       </div>
     </section>
+
+    <SideReferences
+      :key="'refs:' + el.address"
+      class="side-element__refs"
+      :address="el.address"
+      :kind-word="kindWord"
+    />
+    </aside>
     </div>
   </div>
 </template>
@@ -162,6 +185,7 @@ import MicroChip from 'src/components/shared/MicroChip.vue'
 import PostCommentItem from 'src/components/posts/PostCommentItem.vue'
 import CommentMaker from 'src/components/comments/CommentMaker.vue'
 import ForkConfirmPanel from 'src/components/nodes/ForkConfirmPanel.vue'
+import SideReferences from 'src/components/viewer/SideReferences.vue'
 import { refService } from 'src/services/ref.service'
 import { skeletonService } from 'src/services/skeleton.service'
 import { nodeService } from 'src/services/node.service'
@@ -182,17 +206,15 @@ const WORD = { skeletons: 'skeleton', nodes: 'node', labels: 'label', paths: 'pa
 
 export default defineComponent({
   name: 'SideElementView',
-  components: { FeedStream, ElementCard, MicroChip, PostCommentItem, CommentMaker, ForkConfirmPanel },
+  components: { FeedStream, ElementCard, MicroChip, PostCommentItem, CommentMaker, ForkConfirmPanel, SideReferences },
   props: {
     // A feed item (`GET /feed` row) — the element is that POST, drawn as
     // its postcard. Either this or `address`.
     item: { type: Object, default: null },
-    // Any element as '<kind>/<hash>' — drawn as its kind's Mini.
+    // Any element as '<kind>/<hash>' — drawn as its kind's Card.
     address: { type: String, default: '' },
     // The section to open with ('comments' default, 'forks').
-    initialSection: { type: String, default: 'comments' },
-    // The thread band's share of the view's height, in percent.
-    threadPct: { type: Number, default: 33.333 }
+    initialSection: { type: String, default: 'comments' }
   },
   emits: ['select', 'pins-changed'],
   setup (props) {
@@ -309,8 +331,9 @@ export default defineComponent({
     const forkConfirm = ref(false)
     const forking = ref(false)
     const forkError = ref('')
-    // A FILLING face (2026-10-07: the label's unravel viewer) runs the
-    // well's length; every other card keeps its own height. The card says
+    // A FILLING face (2026-10-07: the label's unravel viewer) asks its card
+    // for the full-height viewer inside it; since 2026-11-02 every card
+    // stretches to the face's height anyway (the styles). The card says
     // which it is once its kind resolves (`ElementCard` → `resolved`).
     const fills = ref(false)
     const onResolved = ({ fills: f } = {}) => { fills.value = !card.value && !!f }
@@ -393,72 +416,133 @@ export default defineComponent({
 </script>
 
 <style scoped lang="scss">
-// ── THE WELL, THEN THE ITEM (2026-10-07 PM). `.side-element` fills the side
-// viewer's well and is a SIZE container, so the band can be a share of the
-// viewer's height (`--sev-thread-h` × 1cqh, 1/3 by default) while the ITEM —
-// face + band in one box — sits at the top at its own height. A short card
-// leaves the well's grey BELOW the whole item, never a gap between the card
-// and its comments (the stranded band of the first pass); a tall card is
-// capped so the item never outgrows the well, and scrolls inside its face.
+// ── THE ROW (2026-11-02). `.side-element` fills the side viewer's well and
+// is a SIZE container; `__layout` inside it is the row — the face and the
+// side, both the well's full height — because a container query styles a
+// container's DESCENDANTS, never the container itself: the queries below
+// read `.side-element`'s width and stack `__layout` when the viewer is too
+// narrow to hold a card beside a column. Dense: 8px between the boxes (the
+// well's own pad came down to 8 with it).
 .side-element {
   flex: 1 1 auto;
   min-width: 0;
   min-height: 0;
   display: flex;
-  flex-direction: column;
   container-type: size;
 }
-
-.side-element__item {
-  flex: 0 1 auto;
-  max-height: 100%;
+.side-element__layout {
+  flex: 1 1 auto;
+  min-width: 0;
   min-height: 0;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  gap: 8px;
+  // THE SIDE'S WIDTH — the element first (the ask: "prioritizing the element
+  // is fully displayed"): ~36% of the viewer, never under 240px (a comment
+  // card's floor) nor over 380px (past that the face gives up reading width
+  // for a list). THE THREAD'S CEILING — its share of the side's height at
+  // most; under it the box is its content's height (an empty thread is its
+  // bar and one line), and the references take everything it leaves.
+  --sev-side-w: clamp(240px, 36cqw, 380px);
+  --sev-thread-share: 50%;
 }
 
+// THE FACE — every pixel the side leaves, the card stretched to its height.
 .side-element__face {
-  flex: 0 1 auto;
+  flex: 1 1 auto;
   min-height: 0;
   min-width: 0;
   display: flex;
+  flex-direction: column;
   overflow: hidden;
 }
 
-// The card EXTENDED (the ask): the embed pane fills the face's width — no
-// reading-width cap — at its content height; its own well scrolls when the
-// face is capped.
+// THE CARD AT FULL HEIGHT. The post card is FeedStream's embed (pane → well
+// → stream → block → `.post-square`), each a content-height column; flexed
+// here, from the host, so the square takes the face's height and its pit
+// takes the stretch (`.post-square__pit` is `flex: 1 1 auto`). The square's
+// own ceiling (`--post-ceiling`, 100cqh in an embed) is lifted — the face
+// bounds it — and a tall body scrolls inside the pit, never the face.
 .side-element__card {
   flex: 1 1 auto;
   min-width: 0;
   min-height: 0;
 }
-
-// ATTACHED: the card's foot loses its bottom corners and the band continues
-// its rim — one object, the comments the card's lowest storey. Every face
-// is a card since 2026-10-08 (the post's `.post-square`, every other kind's
-// `.element-card`), so the item is always `is-card`.
-.side-element__item.is-card .side-element__card :deep(.post-square),
-.side-element__item.is-card .side-element__card-host :deep(.post-square),
-.side-element__item.is-card .side-element__card-host :deep(.element-card) {
-  border-bottom-left-radius: 0;
-  border-bottom-right-radius: 0;
+.side-element__card :deep(.feed-stream__well) {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
-.side-element__item.is-card .side-element__card :deep(.post-square::before),
-.side-element__item.is-card .side-element__card-host :deep(.post-square::before),
-.side-element__item.is-card .side-element__card-host :deep(.element-card::before) {
-  border-bottom-left-radius: 0;
-  border-bottom-right-radius: 0;
+.side-element__card :deep(.feed-stream),
+.side-element__card :deep(.feed-stream__block) {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+.side-element__card :deep(.post-square) {
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: none;
+}
+// …and its MEDIA BUDGET is the pit (2026-11-02 — the X-Cards' note on
+// `.side-element__card-host`): the feed's `ceiling − 249` left a quoted
+// Instagram post 80px short of a pit that had the room. The pit is a size
+// container here, so `100cqh` is its own inner height; a quoted medium
+// gets that less its Mini's chrome (head + label strip + well rims, 61px
+// measured on a NodeMini), so a post whose body is one embed fills the pit.
+.side-element__card :deep(.post-square__pit) {
+  overflow-y: auto;
+  container-type: size;
+  --media-max-h: calc(100cqh - 61px);
 }
 
-// ONE STEP BIGGER on the cap and the label rail (the ask: "adjust the
-// content on the header and the label section so it is slightly bigger").
-// The card's own dials, set on its root from outside: `--cap-scale` 0.62 →
-// 0.7 (the strip: kind marks, origin words, acts) and `--cap-title-scale`
-// 0.8 → 0.9 (the name's pill, which divides the cap's scale back out), the
-// label members' 0.62em → 0.7em. The pit (the body) keeps its 0.88. The
-// family's cards read the SAME dials (CardPanel / CardCap / CardByline), so
-// one rule steps every kind up.
+// The card host: a column the card stretches inside (its pit scrolls),
+// never a scroller of its own — a card scrolling inside a scroller is two
+// bars. Every kind's card fills it (`.element-card-host--fill` is only the
+// labels' own ask; the stretch here is the face's, for all of them).
+.side-element__card-host {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  > :deep(.element-card-host) { flex: 1 1 auto; min-height: 0; }
+  > :deep(.element-card-host > .element-card) { flex: 1 1 auto; min-height: 0; }
+  // THE MEDIA BUDGET IS THE PIT (2026-11-02, user ask, on an Instagram node:
+  // "not properly extended inside its container. it looks cutted off …
+  // taking advantage of all available space"). A card's media budget is
+  // `--element-card-media` (60vh) less the feed card's chrome — sized for a
+  // card in a list, so in this stretched face a tall embed (Instagram ≈ 700
+  // reported) found a ~290px budget, past EmbedFrame's shrink floor, and
+  // drew full size in a SCROLLING box over an empty pit. Here the budget is
+  // what the face really leaves: the view's height (`100cqh` — the nearest
+  // size container is `.side-element`) for a prose pit, and for a FIGURE
+  // pit (`pit-fit` — a node that IS its medium) the pit itself, made a size
+  // container so `100cqh` reads its own box, less its figure's 6px pads. A
+  // fit embed then lands whole (natively, or shrunk ≤ a fifth) wherever the
+  // pit can hold it. A web link's figure also prints its address under the
+  // frame (NodeContentViewer `.ncv-link`, 20px + the frame's 4px margin) —
+  // that line comes off the budget so it stays in view.
+  --element-card-media: 100cqh;
+  :deep(.element-card__pit--fit) {
+    container-type: size;
+    --media-max-h: calc(100cqh - 12px);
+  }
+  :deep(.element-card__pit--fit:has(.ncv-link)) {
+    --media-max-h: calc(100cqh - 12px - 24px);
+  }
+}
+
+// ONE STEP BIGGER on the cap and the label rail (2026-10-07, the ask:
+// "adjust the content on the header and the label section so it is
+// slightly bigger"). The card's own dials, set on its root from outside:
+// `--cap-scale` 0.62 → 0.7 (the strip: kind marks, origin words, acts) and
+// `--cap-title-scale` 0.8 → 0.9 (the name's pill, which divides the cap's
+// scale back out), the label members' 0.62em → 0.7em. The pit (the body)
+// keeps its 0.88. The family's cards read the SAME dials (CardPanel /
+// CardCap / CardByline), so one rule steps every kind up.
 .side-element__card :deep(.post-square),
 .side-element__card-host :deep(.post-square),
 .side-element__card-host :deep(.element-card) {
@@ -471,48 +555,61 @@ export default defineComponent({
   font-size: 0.7em;
 }
 
-// The card host: a column the card shrinks inside (its pit scrolls), never
-// a scroller of its own — a card scrolling inside a scroller is two bars.
-.side-element__card-host {
-  flex: 1 1 auto;
+// ── THE SIDE — the feed-like column: the thread box over the references
+// box, each its share of the height, each scrolling its own list.
+.side-element__side {
+  flex: 0 0 var(--sev-side-w);
   min-width: 0;
   min-height: 0;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  gap: 8px;
 }
 
-// A FILLING face (2026-10-07 — a label's unravel viewer): the item takes
-// the well's whole height, the face everything above the thread band, so
-// the viewer runs the page's length; the squares scroll inside it.
-.side-element__item.is-fill {
-  flex: 1 1 auto;
-  > .side-element__face { flex: 1 1 auto; }
-}
-
-// ── THE THREAD BAND: the card's lowest storey — the card's own line ink
-// (`--grey-5`) for its rim, NO top rim (the card's foot rule is the seam),
-// the card's 8px corners at the bottom only. (Its detached form for a Mini
-// face — top rim, four corners, 8px of air — left with the Minis on
-// 2026-10-08: every face is a card now.)
+// THE THREAD BOX — a whole box since 2026-11-02 (it hung off the card's
+// foot with a shared rim from 2026-10-07): the card's line ink (`--grey-5`)
+// for its rim, the card's corner (`--pit-r`), the grey-2 floor.
 .side-element__thread {
-  flex: 0 0 calc(var(--sev-thread-h, 33.333) * 1cqh);
+  flex: 0 1 auto;
+  max-height: var(--sev-thread-share);
   min-height: 0;
   display: flex;
   flex-direction: column;
   background: var(--grey-2, #eeeeee);
   border: 1px solid var(--grey-5, #bdbdbd);
-  border-top: 0;
-  border-radius: 0 0 8px 8px;
+  border-radius: var(--pit-r, 6.34px);
   overflow: hidden;
 }
 
-// Writing: the CommentMaker (`fill`) takes the band below the bar.
+// THE REFERENCES BOX — the rest of the side (`SideReferences` draws it).
+.side-element__refs {
+  flex: 1 1 0;
+  min-height: 120px;
+}
+
+// ── NARROW (a squeezed track, the phone strip): the face over the side,
+// the side's two boxes side by side at 42% of the height; under 420px the
+// two boxes stack too, each half of that.
+@container (max-width: 620px) {
+  .side-element__layout { flex-direction: column; }
+  .side-element__face { flex: 1 1 0; }
+  .side-element__side {
+    flex: 0 0 42cqh;
+    flex-direction: row;
+  }
+  .side-element__thread,
+  .side-element__refs { flex: 1 1 0; min-width: 0; max-height: none; min-height: 0; }
+}
+@container (max-width: 420px) {
+  .side-element__side { flex-direction: column; }
+}
+
+// Writing: the CommentMaker (`fill`) takes the box below the bar.
 .side-element__compose {
   flex: 1 1 auto;
   min-height: 0;
   display: flex;
-  padding: 6px;
+  padding: 4px;
 }
 
 .side-element__bar {
@@ -520,7 +617,7 @@ export default defineComponent({
   display: flex;
   align-items: stretch;
   gap: 2px;
-  padding: 3px;
+  padding: 2px;
   border-bottom: 1px solid var(--grey-5, #bdbdbd);
   background: var(--grey-3, #e0e0e0);
   font-family: var(--font-display);
@@ -533,7 +630,7 @@ export default defineComponent({
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  padding: 3px 8px;
+  padding: 2px 7px;
   border: 1px solid transparent;
   border-radius: 4px;
   background: transparent;
@@ -565,10 +662,10 @@ export default defineComponent({
   flex: 1 1 auto;
   min-height: 0;
   overflow-y: auto;
-  padding: 8px 10px;
+  padding: 6px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
   scrollbar-width: thin;
 }
 

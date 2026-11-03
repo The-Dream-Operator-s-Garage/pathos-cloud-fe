@@ -63,6 +63,16 @@ export const refService = {
     return data
   },
 
+  // WHAT AN ELEMENT HOLDS (2026-11-02) — the elements referenced INSIDE
+  // one element (a post's body refs and media, a board's leaves, a path's
+  // members, a link's target), paged: { supported, total, offset, limit,
+  // truncated, items: [summary + address + via (+ slot, position)] }.
+  // Unreadable entries are locked stubs.
+  async references (ref, { limit = 20, offset = 0 } = {}) {
+    const { data } = await api.get('/refs/references', { params: { ref, limit, offset } })
+    return data
+  },
+
   // A comment on any element that takes them (posts, comments, nodes,
   // skeletons, paths, labels, links) — 400 40007 for kinds that do not.
   async commentOn (ref, payload) {
