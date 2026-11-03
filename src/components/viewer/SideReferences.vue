@@ -13,7 +13,17 @@
        target). Read off `GET /refs/references` (api/services/
        referenceService.js); an entry the viewer may not open is a locked
        row. A mini's own doors open INSIDE the side viewer (the viewer's
-       sink, 2026-10-07), so the list is a path the reader can walk. -->
+       sink, 2026-10-07), so the list is a path the reader can walk.
+
+       ⭐ 2026-11-03 — A FEED OF CARDS (the ask's second half: the right
+       column is "the feed-like section", and the feed element viewers it
+       waited on landed — `feed/FeedElement.vue`, the feed tier of the card
+       family): every reference is now its kind's CARD in a feed container
+       — the post card's grammar, a ceiling (`--feed-element-ceiling`), no
+       thread doors (the list-host rule), its open door a step INSIDE the
+       viewer through the same sink. The list is an inline-size container,
+       so a filling kind (a label's unravel, a board) stands as the
+       column's square. -->
   <section class="side-refs" aria-label="References">
     <header class="side-refs__bar">
       <span class="side-refs__tab">
@@ -34,7 +44,7 @@
           <div v-if="it.locked" class="side-refs__row is-locked">
             <q-icon name="lock" size="12px" /> {{ lockedWord(it) }} you cannot read
           </div>
-          <ElementMini v-else :address="it.address" />
+          <FeedElement v-else :address="it.address" :row="it" />
         </div>
         <div v-if="loading" class="side-refs__note"><q-spinner size="14px" /> loading…</div>
         <div v-else-if="error" class="side-refs__note is-error">{{ error }}</div>
@@ -52,7 +62,7 @@
 
 <script>
 import { defineComponent, ref, watch } from 'vue'
-import ElementMini from 'src/components/shared/ElementMini.vue'
+import FeedElement from 'src/components/feed/FeedElement.vue'
 import { refService } from 'src/services/ref.service'
 
 const PAGE = 12
@@ -60,7 +70,7 @@ const WORD = { skeletons: 'skeleton', posts: 'post', dashboards: 'board', nodes:
 
 export default defineComponent({
   name: 'SideReferences',
-  components: { ElementMini },
+  components: { FeedElement },
   props: {
     // The element whose contents are listed, '<kind>/<hash>'.
     address: { type: String, required: true },
@@ -165,8 +175,12 @@ export default defineComponent({
   opacity: 0.85;
 }
 
-// THE FEED OF MINIS — dense: 6px between items, a 6px inset, every medium
-// capped low so a picture-heavy post still lists several references in view.
+// THE FEED OF CARDS (2026-11-03; minis until then) — dense: 6px between
+// items, a 6px inset. The FeedElement contract's two dials, stated by this
+// host: an INLINE-SIZE container, so a filling kind's square is the column
+// (`100cqw`), and a low CEILING (360px — a card's chrome is ~100 of it), so
+// a picture-heavy post still lists several references in view; a tall
+// body scrolls inside its own pit.
 .side-refs__list {
   flex: 1 1 auto;
   min-height: 0;
@@ -176,7 +190,8 @@ export default defineComponent({
   flex-direction: column;
   gap: 6px;
   scrollbar-width: thin;
-  --media-max-h: 160px;
+  container-type: inline-size;
+  --feed-element-ceiling: 360px;
 }
 
 .side-refs__item {
