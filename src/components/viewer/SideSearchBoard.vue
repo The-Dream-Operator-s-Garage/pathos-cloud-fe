@@ -17,7 +17,11 @@
        160ms debounced, every answer cached per (kind, q) for the session and
        drawn the moment it lands — the slow kind never holds the quick ones.
        A hex q also matches hash prefixes on every kind (the server's rule),
-       and a pasted address (`kind/hash`, `pathos:…`) is offered as itself.
+       and a pasted address (`kind/hash`, `pathos:…`) is offered as itself —
+       and ONLY as itself (2026-11-03): no fan-out, one `GET /refs/summary`
+       names the row. Fanned out, the address made the posts and people
+       scans resolve their whole candidate lists (4–8 s), and every other
+       read in the side viewer queued behind them.
        Empty field + focus = the viewer's own history ("recently viewed").
        Keys: `/` focuses (outside any field), ↑ ↓ walk, Enter opens, Esc
        closes. -->
@@ -150,8 +154,18 @@ const WHERES = [
 const DEBOUNCE_MS = 160
 const ADDRESS_RE = /^(?:pathos:)?(posts|skeletons|nodes|labels|paths|links|moments|secrets|entities)\/([0-9a-f]{8,})$/i
 
-// Session cache: one answer per (kind, q) — a second keystroke back to a
-// prefix already asked costs nothing.
+// A pasted address → `{ kind, address, hash }` (posts/ reads as skeletons/).
+const addressOf = (text) => {
+  const m = ADDRESS_RE.exec(text)
+  if (!m) return null
+  const kind = m[1].toLowerCase() === 'posts' ? 'skeletons' : m[1].toLowerCase()
+  const hash = m[2].toLowerCase()
+  return { kind, address: `${kind}/${hash}`, hash }
+}
+
+// Session cache: one answer per (kind, q, limit) — a second keystroke back
+// to a prefix already asked costs nothing, and narrowing All (4 a kind) to
+// one kind (12) asks again instead of keeping the 4.
 const cache = new Map()
 
 export default defineComponent({
@@ -195,12 +209,17 @@ export default defineComponent({
     let seq = 0
     let timer = null
     const ask = async (kind, text, my) => {
-      const key = kind + '\u0000' + text
+      const limit = scope.value === 'all' ? 4 : 12
+      const key = [kind, text, limit].join('\u0000')
       let rows = cache.get(key)
       if (!rows) {
         pending.value++
         try {
-          if (kind === 'fulltext') {
+          if (kind === 'address') {
+            // the pasted address, named by its own summary
+            const s = (await refService.summary(text))?.summary
+            rows = s && s.id != null && !s.locked ? [{ primary: s.primary, secondary: s.secondary || '' }] : []
+          } else if (kind === 'fulltext') {
             const r = await refService.fulltext(text, 6)
             rows = (r?.nodes || []).map((n) => rowOf({
               kind: 'nodes',
@@ -211,7 +230,7 @@ export default defineComponent({
               secondary: 'words match'
             }, 'nodes'))
           } else {
-            const r = await refService.search(kind, text, scope.value === 'all' ? 4 : 12)
+            const r = await refService.search(kind, text, limit)
             rows = (r?.results || []).filter((x) => !x.locked).map((x) => rowOf(x, kind))
           }
           cache.set(key, rows)
@@ -231,6 +250,8 @@ export default defineComponent({
       results.value = {}
       active.value = 0
       if (!text) return
+      const addr = addressOf(text)
+      if (addr) return ask('address', addr.address, my)
       const kinds = scope.value === 'all' ? KIND_KEYS : [scope.value]
       kinds.forEach((k) => ask(k, text, my))
       if (text.length >= 3 && (scope.value === 'all' || scope.value === 'nodes')) ask('fulltext', text, my)
@@ -261,10 +282,11 @@ export default defineComponent({
         return rows.length ? [{ key: 'recent', word: 'Recent', icon: 'history', color: '#5d4037', rows }] : []
       }
       const out = []
-      const m = ADDRESS_RE.exec(text)
-      if (m) {
-        const prefix = m[1].toLowerCase() === 'posts' ? 'skeletons' : m[1].toLowerCase()
-        out.push({ key: 'address', word: 'Address', icon: 'link', color: kindFor(prefix).color, rows: [{ kind: prefix, address: `${prefix}/${m[2].toLowerCase()}`, hash: m[2].toLowerCase(), primary: 'Open this address', secondary: prefix }] })
+      const addr = addressOf(text)
+      if (addr) {
+        // the element's own headline once its summary lands
+        const named = (results.value.address || [])[0]
+        out.push({ key: 'address', word: 'Address', icon: 'link', color: kindFor(addr.kind).color, rows: [{ ...addr, primary: named?.primary || 'Open this address', secondary: named ? (named.secondary || addr.kind) : addr.kind }] })
       }
       const seen = new Set()
       for (const s of SCOPES) {
