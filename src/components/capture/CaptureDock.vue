@@ -40,7 +40,7 @@
         </div>
       </header>
 
-      <FriezeBar slim class="dock-window__frieze" />
+      <FriezeChecker :rows="2" class="dock-window__frieze" />
 
       <div class="dock-tabs capture-modes">
         <button
@@ -84,7 +84,7 @@
 
 <script>
 import { defineComponent, computed } from 'vue'
-import FriezeBar from 'src/components/layout/FriezeBar.vue'
+import FriezeChecker from 'src/components/layout/FriezeChecker.vue'
 import MicroChip from 'src/components/shared/MicroChip.vue'
 import LabelSuggestionTray from 'src/components/labels/LabelSuggestionTray.vue'
 import { useLabelSuggestionsStore } from 'src/stores/labelSuggestions'
@@ -96,7 +96,7 @@ import { useWindowsStore } from 'src/stores/windows'
 
 export default defineComponent({
   name: 'CaptureDock',
-  components: { FriezeBar, MicroChip, LabelSuggestionTray, CameraFace, RecorderFace, NotepadFace },
+  components: { FriezeChecker, MicroChip, LabelSuggestionTray, CameraFace, RecorderFace, NotepadFace },
   emits: ['created'],
   setup (props, { emit }) {
     const store = useCaptureStore()

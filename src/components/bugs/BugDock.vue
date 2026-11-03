@@ -53,7 +53,7 @@
         </div>
       </header>
 
-      <FriezeBar slim class="dock-window__frieze" />
+      <FriezeChecker :rows="2" class="dock-window__frieze" />
 
       <div class="dock-tabs bug-kinds">
         <button
@@ -212,7 +212,7 @@
 <script>
 import { defineComponent, ref, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import FriezeBar from 'src/components/layout/FriezeBar.vue'
+import FriezeChecker from 'src/components/layout/FriezeChecker.vue'
 import MicroChip from 'src/components/shared/MicroChip.vue'
 import SlotRefPicker from 'src/components/maker/SlotRefPicker.vue'
 import { useBugsStore, BUG_KINDS, KIND_META } from 'src/stores/bugs'
@@ -230,7 +230,7 @@ const MAX_SHOTS = 8
 
 export default defineComponent({
   name: 'BugDock',
-  components: { FriezeBar, MicroChip, SlotRefPicker },
+  components: { FriezeChecker, MicroChip, SlotRefPicker },
   setup () {
     const store = useBugsStore()
     const windows = useWindowsStore()

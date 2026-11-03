@@ -49,7 +49,7 @@
            = the family's darkest rung via `--dock-frieze` (set below), wave
            = the platform's cream. Recipe: `.dock-window__frieze`,
            `_components.scss`. -->
-      <FriezeBar slim class="dock-window__frieze" />
+      <FriezeChecker :rows="2" class="dock-window__frieze" />
 
       <!-- ── Draft tabs — one per unposted item. Comment drafts (parent
            set) carry a reply icon so they read as replies at a glance. ── -->
@@ -89,7 +89,7 @@ import { defineComponent, computed } from 'vue'
 import { useQuasar } from 'quasar'
 import { useRouter } from 'vue-router'
 import PostMakerSurface from './PostMakerSurface.vue'
-import FriezeBar from 'src/components/layout/FriezeBar.vue'
+import FriezeChecker from 'src/components/layout/FriezeChecker.vue'
 import { useMakerStore, draftLabel } from 'src/stores/maker'
 import { useWindowsStore } from 'src/stores/windows'
 import { useNavStore } from 'src/stores/navigation'
@@ -97,7 +97,7 @@ import { gotoCommentThread } from 'src/utils/threadNav'
 
 export default defineComponent({
   name: 'MakerDock',
-  components: { PostMakerSurface, FriezeBar },
+  components: { PostMakerSurface, FriezeChecker },
   emits: ['created'],
 
   setup (props, { emit }) {

@@ -23,9 +23,11 @@
        sides and leaves some space to have a header above. the remaining
        frieze bar separates the header from the content now"): the HEAD —
        Talavero's search board since 2026-10-07 eve (SideSearchBoard) —
-       then the DIVIDER, the pinwheel's old top bar alone (the feed rail's
-       bar turned 90°, cream coat above and below, `--grey-6` rim toward
-       the content) running wall to wall with bare ends, then the WELL with
+       then the DIVIDER, the pinwheel's old top bar alone (cream coat
+       above and below, `--grey-6` rim toward the content — ⭐ its band a
+       3-row CHECKER since 2026-11-02, FriezeChecker; the feed rail's wave
+       bar turned 90° until then) running wall to wall with bare ends,
+       then the WELL with
        the showcase: ONE random post, rendered as THE POSTCARD ITSELF
        through FeedStream's embed mode, exactly as the flyout's post face
        does (`:embed-item`). Random = two reads of `GET /feed`: one for
@@ -59,7 +61,12 @@
     </header>
     <div class="side-viewer__divider">
       <div class="side-viewer__rail" aria-hidden="true">
-        <FriezeBarVertical lip="right" slim class="side-viewer__bar" />
+        <!-- ⭐ 2026-11-02 — THE 3-ROW CHECKER (user ask: "the 3-square one
+             should be used to replace the one used on the side viewer,
+             making the checkered pattern of the respective color of the
+             element kind … the contrasting color … the same color as the
+             lips of the frieze bar (conservate the lips please)"). -->
+        <FriezeChecker :rows="3" class="side-viewer__bar" />
       </div>
       <!-- BACK / FORWARD RIDE THE BAR (2026-10-07 eve, user ask: "back and
            forward buttons inside the friezebar, using the lip color of the
@@ -113,7 +120,7 @@
 <script>
 import { defineComponent, ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
-import FriezeBarVertical from 'src/components/layout/FriezeBarVertical.vue'
+import FriezeChecker from 'src/components/layout/FriezeChecker.vue'
 import SideElementView from 'src/components/viewer/SideElementView.vue'
 import SideSearchBoard from 'src/components/viewer/SideSearchBoard.vue'
 import { feedService } from 'src/services/feed.service'
@@ -129,7 +136,7 @@ let stopSeq = 0
 
 export default defineComponent({
   name: 'SideViewer',
-  components: { FriezeBarVertical, SideElementView, SideSearchBoard },
+  components: { FriezeChecker, SideElementView, SideSearchBoard },
   emits: ['pins-changed'],
   setup () {
     const rootEl = ref(null)
@@ -263,6 +270,8 @@ export default defineComponent({
     // the kind's deep INK, the lip — and the two studs riding it — in the
     // kind's own colour (kinds.js, the one table every chip draws from). A
     // post keeps the bar it always had: posts' ink IS `--indigo-10`.
+    // ⭐ 2026-11-02: the plate is the checker's INK SQUARES now (their
+    // partners are the coat lips' cream); the 1px lip line is unchanged.
     const toneStyle = computed(() => {
       const k = kindFor(current.value?.kind || 'posts')
       return { '--side-viewer-plate': k.ink, '--side-viewer-lip': k.color }
@@ -363,12 +372,18 @@ export default defineComponent({
   // board since 2026-10-07 eve.
   // 40px since 2026-10-07 eve: it holds Talavero's search board now.
   --side-viewer-head-h: 40px;
-  // THE DIVIDER — the old frame's top RAIL, number for number: 2px of
-  // `--plaque-coat` each long face round the feed rail's 13px bar, a 1px
-  // `--grey-6` rim on the face toward the content = 18px. (Its 7px grey
-  // band round the old frame, `--side-viewer-pad`, left with the frame: the
-  // divider runs wall to wall.)
-  --side-viewer-bar-t: 13px;
+  // THE DIVIDER — the old frame's top RAIL: 2px of `--plaque-coat` each
+  // long face (the LIPS) round the bar, a 1px `--grey-6` rim on the face
+  // toward the content. (Its 7px grey band round the old frame,
+  // `--side-viewer-pad`, left with the frame: the divider runs wall to wall.)
+  // ⭐ 2026-11-02 — THE BAR IS A 3-ROW CHECKER (FriezeChecker): three
+  // `--side-viewer-cell` squares between the bar's two 1px edge rules (the
+  // `--grey-6` edge above, the kind-coloured lip line below — kept, they are
+  // what part the cream squares from the cream lips) = 14px, so the divider
+  // is 2 + 14 + 2 + 1 = 19px (18 while the bar was the feed rail's 13px).
+  --side-viewer-cell: 4px;
+  --side-viewer-rule: 1px;
+  --side-viewer-bar-t: calc(3 * var(--side-viewer-cell) + 2 * var(--side-viewer-rule));
   --side-viewer-coat: 2px;
   --side-viewer-rim: 1px;
   --side-viewer-rail-t: calc(var(--side-viewer-bar-t) + 2 * var(--side-viewer-coat) + var(--side-viewer-rim));
@@ -409,65 +424,43 @@ export default defineComponent({
   z-index: 3;
 }
 
-// ── THE DIVIDER: the pinwheel's top side, kept alone (template note). The
-// bar is still the feed's VERTICAL rail bar TURNED 90° — the motif, its
-// mirroring and the rim all as the frame drew them — so the side is a size
-// container and the rail's HEIGHT is `100cqw` (the box's inner width)
-// before the turn (gotchas § The side viewer's divider). ⚠ The real
-// `rotate()` is legal only because the carve is `none`.
+// ── THE DIVIDER: the pinwheel's top side, kept alone (template note).
+// ⭐ 2026-11-02 — NO LONGER A TURNED VERTICAL BAR: the feed rail's wave bar
+// stood here rotated 90° in a `container-type: size` box (its height
+// `100cqw`, its motif mirrored `scaleY(-1)`) until the checker replaced it —
+// a board of squares is the same object in either direction, so the rail is
+// a plain horizontal band now and the turn, the size container and the
+// mirror are gone with the waves.
 .side-viewer__divider {
   position: relative;
   flex: 0 0 var(--side-viewer-rail-t);
   overflow: hidden;
   pointer-events: none;
-  container-type: size;
 }
 
-// The rail, upright: coat on its two LONG faces only — its ends are bare
-// (the ask's "remove its side cream borders"), so after the turn the plate
-// runs into the box's rim on both sides. `border-right` is the rim: `lip=
-// "right"` put the bar's inner face on local right, and a 90° clockwise turn
-// carries local right DOWN, onto the content.
+// The rail: the coat LIPS on its two long faces, its ends bare (the
+// 2026-10-02 ask's "remove its side cream borders"), so the bar runs into
+// the box's rim on both sides; `border-bottom` is the rim toward the content.
 .side-viewer__rail {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: var(--side-viewer-rail-t);
-  height: 100cqw;
+  height: 100%;
+  box-sizing: border-box;
   display: flex;
-  align-items: stretch;
-  padding: 0 var(--side-viewer-coat);
+  flex-direction: column;
+  padding: var(--side-viewer-coat) 0;
   background: var(--plaque-coat);
-  border-right: var(--side-viewer-rim) solid var(--grey-6, #9e9e9e);
-  transform-origin: 0 0;
-  transform: rotate(90deg) translateY(-100%);
+  border-bottom: var(--side-viewer-rim) solid var(--grey-6, #9e9e9e);
 }
 
-// The bar: FeedPage's `.feed-container__edge` dials verbatim (indigo-10
-// plate, flat cream motif, grey-6 rules, carve off, 1px pad, slim's own
-// `117% auto` fit). Two classes so this host beats the component's own
-// `.frieze-bar-v--slim` rule (which zeroes the rules' width). No END rules
-// any more: the frame needed them to close its corners; a wall-to-wall bar
-// meets the box's own rim instead.
+// The bar: the checker in the shown element's kind (`toneStyle`) against
+// the lips' own cream, between the two edge rules the wave bar wore — the
+// `--grey-6` edge toward the head, the kind-coloured lip line toward the
+// content. Two classes so this host beats the component's own rule.
 .side-viewer .side-viewer__bar {
-  --frieze-bar-v-w: var(--side-viewer-bar-t);
-  --frieze-bar-v-slim-w: var(--side-viewer-bar-t);
-  // The plate + lip follow the shown element's kind (`toneStyle`).
-  --frieze-bar-v-base: var(--side-viewer-plate, var(--indigo-10, #1a237e));
-  --frieze-bar-v-wave-one: var(--plaque-flat, #f8f2e4);
-  --frieze-bar-v-wave-two: var(--plaque-flat, #f8f2e4);
-  --frieze-bar-v-edge: var(--grey-6, #9e9e9e);
-  --frieze-bar-v-edge-w: 1px;
-  --frieze-bar-v-lip: var(--side-viewer-lip, var(--grey-6, #9e9e9e));
-  --frieze-bar-v-carve: none;
-  --frieze-bar-v-pad: 1px;
-}
-
-// The motif MIRRORED end-for-end (2026-10-02 ask, kept from the frame):
-// `scaleY(-1)` along the bar's length, which the turn lands on screen as a
-// horizontal mirror. Only the layer flips; the rules and the rim stay put.
-.side-viewer__bar :deep(.frieze-bar-v__layer) {
-  transform: scaleY(-1);
+  --frieze-check-cell: var(--side-viewer-cell);
+  --frieze-check-ink: var(--side-viewer-plate, var(--indigo-10, #1a237e));
+  --frieze-check-lip: var(--plaque-flat, #f8f2e4);
+  border-top: var(--side-viewer-rule) solid var(--grey-6, #9e9e9e);
+  border-bottom: var(--side-viewer-rule) solid var(--side-viewer-lip, var(--grey-6, #9e9e9e));
 }
 
 // ── THE STUDS: back / forward riding the bar's left end — WHITE since

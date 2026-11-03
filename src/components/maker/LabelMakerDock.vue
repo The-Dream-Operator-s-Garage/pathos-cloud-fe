@@ -45,7 +45,7 @@
            cream. This window has no tab strip, so the band sits between the
            bar and the body. Recipe: `.dock-window__frieze`,
            `_components.scss`. -->
-      <FriezeBar slim class="dock-window__frieze" />
+      <FriezeChecker :rows="2" class="dock-window__frieze" />
 
       <div class="dock-body">
         <!-- ── LEFT: the recursive tree browser / search. Appendable:
@@ -261,7 +261,7 @@ import { useWindowsStore } from 'src/stores/windows'
 import { useAuthStore } from 'src/stores/auth'
 import { labelService } from 'src/services/label.service'
 import { useNavStore } from 'src/stores/navigation'
-import FriezeBar from 'src/components/layout/FriezeBar.vue'
+import FriezeChecker from 'src/components/layout/FriezeChecker.vue'
 import LabelTreeMini from 'src/components/labels/LabelTreeMini.vue'
 import LabelMiniMaker from 'src/components/labels/LabelMiniMaker.vue'
 
@@ -270,7 +270,7 @@ import LabelMiniMaker from 'src/components/labels/LabelMiniMaker.vue'
 // the selection (right): child/brother appends, rename, re-hang, fork.
 export default defineComponent({
   name: 'LabelMakerDock',
-  components: { FriezeBar, LabelTreeMini, LabelMiniMaker },
+  components: { FriezeChecker, LabelTreeMini, LabelMiniMaker },
 
   setup () {
     const store = useLabelMakerStore()

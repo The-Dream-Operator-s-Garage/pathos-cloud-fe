@@ -1047,10 +1047,21 @@
   // dashboard's band (whose wave is FriezeBar's default `--brown-1`; that
   // band and chat's `.chat-dock__frieze` are the same object under their own
   // names and did not move). Witness: `flow-dock-frieze.mjs`.
+  // ⭐ 2026-11-02 — THE BAND IS A 2-ROW CHECKER (user ask: "for the
+  // 2-square one, please apply it onto all elements from the bottom nav
+  // bar, following the coloring rule and adding a thin outer lip to
+  // those") — `FriezeChecker :rows="2"` on every window a footer element
+  // opens: the ink squares on the plate's old dial (`--dock-frieze`, the
+  // family's darkest rung), their partners and the 1px outer lips in the
+  // wave's old cream (`--plaque-flat`, the component's default). The rule's
+  // two `--frieze-bar-*` dials became the one `--frieze-check-ink`.
+  // A cream lip on the cream coat has no edge of its own, so the band closes
+  // under itself with the head's own underline (`--dock-rule`, mirrored):
+  // rule · lip · board · lip · rule, both lips read against a line.
   .dock-window__frieze {
     flex: 0 0 auto;
-    --frieze-bar-base: var(--dock-frieze, var(--grey-9));
-    --frieze-bar-wave-two: var(--plaque-flat);
+    --frieze-check-ink: var(--dock-frieze, var(--grey-9));
+    border-bottom: 1px solid var(--dock-rule, var(--grey-4));
   }
 
   // The tab strip on the plaque: resting tabs are the wells' --brown-2 in
@@ -1779,9 +1790,12 @@
 // default `--brown-4` is a light plate: the motif inverts and the brown waves
 // read as the light ON a dark strip, leaving the band the one carved and one
 // dark thing in the box.
+// ⭐ 2026-11-02: a 2-row `FriezeChecker` (the dashboard + identity windows,
+// both footer doors) — `--grey-9` squares against the lip cream.
 .flyout-window__frieze {
   flex: 0 0 auto;
-  --frieze-bar-base: var(--grey-9);
+  --frieze-check-ink: var(--grey-9);
+  border-bottom: 1px solid var(--dock-rule, var(--grey-4)); // the head's underline, mirrored — `.dock-window__frieze`'s note
 }
 
 // The information container: the stack/pins wells' geometry — 8px of reveal

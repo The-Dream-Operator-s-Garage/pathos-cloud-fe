@@ -45,7 +45,7 @@
            = the family's darkest rung via `--dock-frieze` (set below), wave
            = the platform's cream. Recipe: `.dock-window__frieze`,
            `_components.scss`. -->
-      <FriezeBar slim class="dock-window__frieze" />
+      <FriezeChecker :rows="2" class="dock-window__frieze" />
 
       <!-- ── Upload tabs — one per upload in course. The glyph reads the
            tab's CONTENT (files, then link, then note) now that the three
@@ -297,7 +297,7 @@
 import { defineComponent, ref, computed, watch, nextTick, onMounted, onBeforeUnmount } from 'vue'
 import { useQuasar } from 'quasar'
 import MakerHeader from './MakerHeader.vue'
-import FriezeBar from 'src/components/layout/FriezeBar.vue'
+import FriezeChecker from 'src/components/layout/FriezeChecker.vue'
 import FileExplorer from './FileExplorer.vue'
 import MarkdownBody from 'src/components/shared/MarkdownBody.vue'
 import { useUploaderStore, uploadLabel } from 'src/stores/uploader'
@@ -337,7 +337,7 @@ const KIND_ICON = { text: 'notes', image: 'image', video: 'movie', audio: 'music
 
 export default defineComponent({
   name: 'UploaderDock',
-  components: { MakerHeader, FileExplorer, MarkdownBody, FriezeBar, LabelSuggestionTray, LinkCatchList },
+  components: { MakerHeader, FileExplorer, MarkdownBody, FriezeChecker, LabelSuggestionTray, LinkCatchList },
   emits: ['created'],
 
   setup (props, { emit }) {

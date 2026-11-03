@@ -94,7 +94,7 @@
       <!-- The flyout family's band, on its `--grey-9` base: dark where the
            bar's default plate is light, so the motif inverts and the brown
            waves read as the light ON a dark strip. -->
-      <FriezeBar slim class="flyout-window__frieze" />
+      <FriezeChecker :rows="2" class="flyout-window__frieze" />
 
       <!-- The tab strip: one tab per open board, the ghost mints a new one,
            the pencil flips edit mode for the open board. -->
@@ -229,7 +229,7 @@
 <script>
 import { defineComponent, ref, computed, watch } from 'vue'
 import { provideRenderDepth, DEPTH_DEFAULT } from 'src/composables/useRenderDepth'
-import FriezeBar from 'src/components/layout/FriezeBar.vue'
+import FriezeChecker from 'src/components/layout/FriezeChecker.vue'
 import DashboardBoard from 'src/components/dashboard/DashboardBoard.vue'
 import DashboardComposer from 'src/components/dashboard/DashboardComposer.vue'
 import ConversationPicker from 'src/components/chat/ConversationPicker.vue'
@@ -240,7 +240,7 @@ import { dashboardService } from 'src/services/dashboard.service'
 
 export default defineComponent({
   name: 'DashboardDock',
-  components: { FriezeBar, DashboardBoard, DashboardComposer, ConversationPicker, CuentistaRow },
+  components: { FriezeChecker, DashboardBoard, DashboardComposer, ConversationPicker, CuentistaRow },
   setup () {
     const store = useDashboardStore()
     const windows = useWindowsStore()

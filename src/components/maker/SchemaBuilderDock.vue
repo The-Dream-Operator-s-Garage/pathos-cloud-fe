@@ -48,7 +48,7 @@
            = the family's darkest rung via `--dock-frieze` (set below), wave
            = the platform's cream. Recipe: `.dock-window__frieze`,
            `_components.scss`. -->
-      <FriezeBar slim class="dock-window__frieze" />
+      <FriezeChecker :rows="2" class="dock-window__frieze" />
 
       <!-- ── Work tabs — one per schema in progress ── -->
       <div class="dock-tabs">
@@ -308,7 +308,7 @@ import { useAuthStore } from 'src/stores/auth'
 import { useNavStore } from 'src/stores/navigation'
 import { skeletonService } from 'src/services/skeleton.service'
 import { kindFor } from 'src/utils/kinds'
-import FriezeBar from 'src/components/layout/FriezeBar.vue'
+import FriezeChecker from 'src/components/layout/FriezeChecker.vue'
 import LabelFieldPicker from 'src/components/labels/LabelFieldPicker.vue'
 
 // Every referenceable pathchain element kind — mirrors the API's
@@ -335,7 +335,7 @@ const KIND_OPTIONS = [
 
 export default defineComponent({
   name: 'SchemaBuilderDock',
-  components: { FriezeBar, LabelFieldPicker },
+  components: { FriezeChecker, LabelFieldPicker },
 
   setup () {
     const $q = useQuasar()

@@ -141,7 +141,7 @@
          corner; that role is over.) The shared shell's `overflow: hidden`
          clips this band INTO the panel's two rounded top corners, the same
          load-bearing rule the flyout leans on. -->
-    <FriezeBar v-if="!win.minimized" slim class="stack-frieze" />
+    <FriezeChecker v-if="!win.minimized" :rows="2" class="stack-frieze" />
 
     <div v-if="trail.length === 0 && !win.minimized" class="stack-empty">No visits yet.</div>
 
@@ -218,7 +218,7 @@
          its well (the stack's bar is at the bottom, so the band is above it).
          Expanded only since the bottom-left move (2026-08-30), same reason
          as its twin above. -->
-    <FriezeBar v-if="!win.minimized" slim class="stack-frieze stack-frieze--inner" />
+    <FriezeChecker v-if="!win.minimized" :rows="2" class="stack-frieze stack-frieze--inner" />
 
     <!-- Header/controls box at the BOTTOM of the expanded panel (below the
          list), so it sits right beside the newest step. The traffic light is
@@ -271,11 +271,11 @@ import { refService } from 'src/services/ref.service'
 import { navService } from 'src/services/nav.service'
 import { useFlyoutViewersStore } from 'src/stores/flyoutViewers'
 import SidePanelItem from './SidePanelItem.vue'
-import FriezeBar from './FriezeBar.vue'
+import FriezeChecker from './FriezeChecker.vue'
 
 export default defineComponent({
   name: 'StackPanel',
-  components: { SidePanelItem, FriezeBar },
+  components: { SidePanelItem, FriezeChecker },
 
   setup () {
     const router = useRouter()
@@ -994,11 +994,18 @@ export default defineComponent({
 // fallback wins the cascade and the "slim" band renders at full height with
 // the slim mask fit, i.e. a stretched motif. The flyout states `flex` and the
 // two paint dials and lets the component size itself; so does this.
+// ⭐ 2026-11-02 — both bands are 2-row `FriezeChecker`s (the footer
+// windows' checker ask), the pins widget's dress: `--grey-8` ink squares,
+// the lip cream between them and in the 1px outer lips. Still no `height:`
+// here — the checker sizes itself.
 .stack-frieze {
   flex: 0 0 auto;
-  --frieze-bar-base: var(--grey-8, #616161);
-  --frieze-bar-wave-two: var(--brown-1, #efebe9);
+  --frieze-check-ink: var(--grey-8, #616161);
 }
+// Each band has the list's `--grey-6` rim on ONE face; the other face gets
+// the same line, so both thin lips read against an edge on a cream coat.
+.stack-frieze:not(.stack-frieze--inner) { border-top: 1px solid var(--grey-6, #9e9e9e); }
+.stack-frieze--inner { border-bottom: 1px solid var(--grey-6, #9e9e9e); }
 
 .stack-empty {
   display: flex;

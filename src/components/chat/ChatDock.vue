@@ -47,7 +47,7 @@
            window's family (the two `--frieze-bar-*` dials — see the style
            block). It divides the header from the conversation the way the
            crown strip divides the chrome from the page. -->
-      <FriezeBar class="chat-dock__frieze" slim />
+      <FriezeChecker :rows="2" class="chat-dock__frieze" />
 
       <div class="chat-dock__body">
         <!-- ── Conversations column ──
@@ -302,7 +302,7 @@ import OrgInviteCard from 'src/components/organizations/OrgInviteCard.vue'
 import AccessTreeDialog from 'src/components/maker/AccessTreeDialog.vue'
 import EntityAvatar from 'src/components/entities/EntityAvatar.vue'
 import OrgLogoChip from 'src/components/organizations/OrgLogoChip.vue'
-import FriezeBar from 'src/components/layout/FriezeBar.vue'
+import FriezeChecker from 'src/components/layout/FriezeChecker.vue'
 
 const REF_RE = /[!-]?\[\[pathos:[a-z]+\/[0-9a-f]{4,64}(?:\|[^\]]*)?\]\]/
 
@@ -316,7 +316,7 @@ export default defineComponent({
     AccessTreeDialog,
     EntityAvatar,
     OrgLogoChip,
-    FriezeBar
+    FriezeChecker
   },
 
   setup () {
@@ -746,9 +746,12 @@ export default defineComponent({
 // FriezeBar's default waves — exactly what DashboardDock wears. The dials
 // themselves are `.dock-window--chat`'s (_components.scss), the dashboard's
 // greys + browns via `--chat-tone-*`.
+// ⭐ 2026-11-02: a 2-row `FriezeChecker` like every footer window's band —
+// the same `--grey-9` as its ink squares, the lip cream between them.
 .chat-dock__frieze {
   flex: 0 0 auto;
-  --frieze-bar-base: var(--grey-9);
+  --frieze-check-ink: var(--grey-9);
+  border-bottom: 1px solid var(--dock-rule, var(--grey-4)); // the head's underline, mirrored (`.dock-window__frieze`'s note)
 }
 
 .dock-bar__left { display: flex; align-items: center; gap: 7px; min-width: 0; }

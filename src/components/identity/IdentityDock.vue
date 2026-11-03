@@ -83,7 +83,7 @@
            inverts and the brown waves read as the light ON a dark strip —
            the one carved, one dark thing in the box, at both ends of the
            bar now. -->
-      <FriezeBar slim class="flyout-window__frieze" />
+      <FriezeChecker :rows="2" class="flyout-window__frieze" />
 
       <div class="identity-dock__body">
         <!-- ── The profile card ─────────────────────────────── -->
@@ -551,12 +551,12 @@ import { useWindowsStore } from 'src/stores/windows'
 import { useFlyoutViewersStore } from 'src/stores/flyoutViewers'
 import EntityAvatar from 'src/components/entities/EntityAvatar.vue'
 import OrgLogoChip from 'src/components/organizations/OrgLogoChip.vue'
-import FriezeBar from 'src/components/layout/FriezeBar.vue'
+import FriezeChecker from 'src/components/layout/FriezeChecker.vue'
 import MicroChip from 'src/components/shared/MicroChip.vue'
 
 export default defineComponent({
   name: 'IdentityDock',
-  components: { EntityAvatar, OrgLogoChip, FriezeBar, MicroChip },
+  components: { EntityAvatar, OrgLogoChip, FriezeChecker, MicroChip },
   setup () {
     const $q = useQuasar()
     const router = useRouter()

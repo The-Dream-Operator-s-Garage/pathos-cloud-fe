@@ -119,7 +119,7 @@
          style block). EXPANDED ONLY: the parked face is a band-height strip
          with no seat for a horizontal wave. The shared shell's `overflow:
          hidden` clips it into the two rounded top corners. -->
-    <FriezeBar v-if="!win.minimized" slim class="pins-frieze" />
+    <FriezeChecker v-if="!win.minimized" :rows="2" class="pins-frieze" />
 
     <div v-if="loading && !win.minimized" class="pins-loading">
       <q-spinner color="red-6" size="22px" />
@@ -180,7 +180,7 @@
          the flyout's band in the flyout's own position (the one line between
          a box's bar and its well; this box's bar is at the bottom). Expanded
          only, like its twin above. -->
-    <FriezeBar v-if="!win.minimized" slim class="pins-frieze pins-frieze--inner" />
+    <FriezeChecker v-if="!win.minimized" :rows="2" class="pins-frieze pins-frieze--inner" />
 
     <!-- Header/controls box at the BOTTOM of the expanded panel (the stack's
          arrangement): the bar ITSELF parks the widget (a touch affordance —
@@ -242,11 +242,11 @@ import { timeAgo as fmtTimeAgo } from 'src/utils/time'
 import { kindFor, hashOf } from 'src/utils/kinds'
 import { useFlyoutViewersStore } from 'src/stores/flyoutViewers'
 import SidePanelItem from './SidePanelItem.vue'
-import FriezeBar from './FriezeBar.vue'
+import FriezeChecker from './FriezeChecker.vue'
 
 export default defineComponent({
   name: 'PinsDrawer',
-  components: { SidePanelItem, FriezeBar },
+  components: { SidePanelItem, FriezeChecker },
   props: {
     // Bumped by the parent when pins mutate elsewhere (the nav bar's fallback
     // tack, a page's own cap) so the widget stays in sync.
@@ -706,11 +706,18 @@ export default defineComponent({
 // `_components.scss` for it (the drawer's alone now).
 // ⚠ DO NOT RESTATE `height:` HERE — a host-side height with a full
 // `--frieze-h` fallback defeats `slim` (specs/gotchas.md, 2026-09-02).
+// ⭐ 2026-11-02 — both bands are 2-row `FriezeChecker`s (the footer
+// windows' checker ask): the plate's `--grey-8` as the ink squares, the lip
+// cream between them and in the 1px outer lips. The height note above still
+// holds — the checker sizes itself (rows × cell + lips).
 .pins-frieze {
   flex: 0 0 auto;
-  --frieze-bar-base: var(--grey-8, #616161);
-  --frieze-bar-wave-two: var(--brown-1, #efebe9);
+  --frieze-check-ink: var(--grey-8, #616161);
 }
+// Each band has the list's `--grey-6` rim on ONE face; the other face gets
+// the same line, so both thin lips read against an edge on a cream coat.
+.pins-frieze:not(.pins-frieze--inner) { border-top: 1px solid var(--grey-6, #9e9e9e); }
+.pins-frieze--inner { border-bottom: 1px solid var(--grey-6, #9e9e9e); }
 
 // ── THE TACK, in the header (2026-09-02) ───────────────────
 // The seat is a plain inline box so its `@click.stop` (template) keeps a
