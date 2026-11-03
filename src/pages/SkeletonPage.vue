@@ -82,7 +82,7 @@
                    below, where per-kind is exactly what tells the rows
                    apart. -->
               <q-icon name="sym_o_orthopedics" size="20px" />
-              <span>{{ identifier.title || skeleton.name || '(unnamed)' }}</span>
+              <span class="subject-panel__name">{{ identifier.title || skeleton.name || '(unnamed)' }}</span>
               <q-space />
               <q-btn
                 v-if="isForkableInstance"
@@ -196,7 +196,7 @@
               <!-- The read-only branch wears the same mark as the editor's —
                    see the note in that header. -->
               <q-icon name="sym_o_orthopedics" size="20px" />
-              <span>{{ identifier.title || skeleton.name || '(unnamed)' }}</span>
+              <span class="subject-panel__name">{{ identifier.title || skeleton.name || '(unnamed)' }}</span>
               <q-space />
               <q-btn
                 v-if="isSchema"
@@ -1172,6 +1172,24 @@ export default defineComponent({
   color: var(--panel-ink-1);
   line-height: 1.25;
   word-break: break-word;
+}
+// THE NAME KEEPS ITS ROW ON A PHONE (2026-11-02). `word-break: break-word`
+// lets the name's min-content shrink to one glyph, so on the no-wrap row the
+// actions (Instantiate · Fork · Export · Edit · sk #…) squeezed CHROME_HISTORY
+// into a 17px column, one letter per line. ≤600px (MOBILE_Q) the row wraps:
+// the name takes the rest of the first line beside the mark, the actions
+// fall to the lines below, left-aligned, each button whole. Desktop keeps
+// the single line.
+@media (max-width: 600px) {
+  .subject-panel__title {
+    flex-wrap: wrap !important;  // beats Quasar's `.no-wrap` !important
+    row-gap: 6px;
+    > .q-space { display: none; }
+  }
+  .subject-panel__name {
+    flex: 1 1 calc(100% - 30px);  // the 20px mark + the row's 10px gap
+    min-width: 0;
+  }
 }
 .subject-panel__chips {
   font-size: 0.78em;
