@@ -183,7 +183,12 @@
              BACKEND_LOCKED, and the acts — Link Google Drive / Sync now ·
              Unlink. Below, under its own sub-head: the delegated reads
              exactly as S3 drew them. `data-testid="identity-delegations"`
-             stays on the whole well (flow-delegation reads its text). -->
+             stays on the whole well (flow-delegation reads its text).
+             ⭐ 2026-11-03 (allegue: "icons for popular sites next to the
+             links or the buttons, in color"): what talks to Google wears
+             Google's own marks (utils/brandIcons.js) — Drive on the backend
+             line, Link Google Drive and open in Drive; the G on the sign-in
+             line. The well-head glyph stays the font's, like every head. -->
         <div class="identity-dock__well identity-dock__well--storage" data-testid="identity-delegations">
           <div class="identity-dock__well-head nasalization">
             <q-icon :name="storage?.google?.linked ? 'cloud' : 'dns'" size="13px" />
@@ -198,7 +203,7 @@
             <div v-if="!storage" class="identity-dock__empty">Reading where your bytes live…</div>
             <template v-else>
               <div class="identity-dock__storage-row">
-                <q-icon :name="storage.google.linked ? 'add_to_drive' : 'dns'" size="18px" class="identity-dock__storage-glyph" />
+                <q-icon :name="storage.google.linked ? BRANDS.googleDrive : 'dns'" size="18px" class="identity-dock__storage-glyph" data-testid="identity-storage-glyph" />
                 <div class="identity-dock__storage-text">
                   <span class="identity-dock__storage-line" data-testid="identity-storage-line">
                     <template v-if="storage.google.linked">
@@ -214,7 +219,7 @@
                   <span v-else-if="storage.google.linked && storage.google.own" class="identity-dock__storage-meta mono">
                     <template v-if="syncing">uploading to Drive<template v-if="sync.total != null"> · {{ sync.done }} of {{ sync.total }} files</template></template>
                     <template v-else>{{ storage.google.state === 'ok' ? 'mirror' : storage.google.state }}<template v-if="storage.google.last_sync_at"> · synced {{ ago(storage.google.last_sync_at) }}</template><template v-else> · not synced yet</template></template>
-                    <template v-if="storage.google.folder_url"> · <a :href="storage.google.folder_url" target="_blank" rel="noopener noreferrer" class="identity-dock__storage-folder" data-testid="identity-storage-folder" title="Open your pathos.cloud folder in Google Drive (a new tab)"><q-icon name="folder_open" size="11px" />open in Drive</a></template>
+                    <template v-if="storage.google.folder_url"> · <a :href="storage.google.folder_url" target="_blank" rel="noopener noreferrer" class="identity-dock__storage-folder" data-testid="identity-storage-folder" title="Open your pathos.cloud folder in Google Drive (a new tab)"><q-icon :name="BRANDS.googleDrive" size="11px" />open in Drive</a></template>
                   </span>
                 </div>
               </div>
@@ -258,7 +263,7 @@
                   @click="linkGoogle"
                 >
                   <q-spinner v-if="storageBusy === 'link'" size="11px" />
-                  <q-icon v-else name="add_to_drive" size="13px" />
+                  <q-icon v-else :name="BRANDS.googleDrive" size="13px" />
                   <span>Link Google Drive</span>
                 </button>
                 <template v-else-if="storage.google.own">
@@ -285,7 +290,7 @@
               </div>
 
               <div v-if="storage.login?.google_linked" class="identity-dock__storage-meta" data-testid="identity-storage-login">
-                <q-icon name="login" size="11px" /> You can also sign in with Google<template v-if="storage.login.google_email"> as <span class="mono">{{ storage.login.google_email }}</span></template>.
+                <q-icon :name="BRANDS.google" size="11px" /> You can also sign in with Google<template v-if="storage.login.google_email"> as <span class="mono">{{ storage.login.google_email }}</span></template>.
               </div>
 
               <div class="identity-dock__hint">
@@ -494,7 +499,7 @@
               @click="newChromeKey"
             >
               <q-spinner v-if="keyBusy === 'new'" size="11px" />
-              <q-icon v-else name="add_link" size="13px" />
+              <q-icon v-else :name="BRANDS.chrome" size="13px" />
               <span>New key → Chrome history</span>
             </button>
           </div>
@@ -553,6 +558,7 @@ import EntityAvatar from 'src/components/entities/EntityAvatar.vue'
 import OrgLogoChip from 'src/components/organizations/OrgLogoChip.vue'
 import FriezeChecker from 'src/components/layout/FriezeChecker.vue'
 import MicroChip from 'src/components/shared/MicroChip.vue'
+import { BRANDS } from 'src/utils/brandIcons'
 
 export default defineComponent({
   name: 'IdentityDock',
@@ -748,7 +754,8 @@ export default defineComponent({
     const freshKey = ref(null)
     const copied = ref(false)
     const liveKeys = computed(() => identity.keys.filter((k) => !k.revoked_at))
-    const purposeGlyph = (p) => (p === 'chrome-history' ? 'travel_explore' : 'vpn_key')
+    // a key's purpose, said by the mark of what it serves (Chrome's own, in colour)
+    const purposeGlyph = (p) => (p === 'chrome-history' ? BRANDS.chrome : 'vpn_key')
     const newChromeKey = async () => {
       keyBusy.value = 'new'
       try {
@@ -804,6 +811,7 @@ export default defineComponent({
       copied,
       liveKeys,
       purposeGlyph,
+      BRANDS,
       newChromeKey,
       copyKey,
       revokeKey,
@@ -1408,6 +1416,8 @@ export default defineComponent({
 
   & + & { margin-top: 4px; }
   &.is-revoked { opacity: 0.55; background: transparent; border-style: dashed; }
+  // a dead key's brand mark loses its colour with it
+  &.is-revoked .identity-dock__storage-glyph { filter: grayscale(1); }
 }
 // the Pins toggle reads ON in the key row's own teal, OFF as a plain tiny button
 .identity-dock__key-pins.is-on {

@@ -16,10 +16,15 @@
        node) on the mini family's corners; the moment line is its head band.
        A video keeps its embed (the object IS the page); a plain link is
        REFERENCED — the page's title, its nano pill (the node, one door) and
-       host + path — never a mini around its raw URL. -->
+       host + path — never a mini around its raw URL.
+       ⭐ 2026-11-03 (allegue: "incorporate the icons for popular sites next
+       to the links … in color"): the head wears Chrome's own mark
+       (utils/brandIcons.js) and every title its SITE's icon — SiteIcon,
+       read from the site's <head> by the server, the brand mark while it
+       loads. -->
   <div class="chrome-lane" data-testid="chrome-history-lane">
     <div class="chrome-lane__head">
-      <q-icon name="travel_explore" size="14px" />
+      <q-icon :name="BRANDS.chrome" size="14px" data-testid="chrome-history-mark" />
       <span class="chrome-lane__name nasalization">Chrome history</span>
       <!-- ⭐ 2026-11-03 (allegue: "add a refresh button next to the
            title"): re-reads the newest page — visits the extension
@@ -57,7 +62,10 @@
         <span v-if="v.page?.channel" class="chrome-lane__channel">· {{ v.page.channel }}</span>
       </div>
       <div class="chrome-lane__page">
-        <div class="chrome-lane__title" :title="v.node?.content || ''">{{ v.title || placeOf(v.node).host || v.node?.content }}</div>
+        <div class="chrome-lane__title-row">
+          <SiteIcon v-if="placeOf(v.node).href" :href="placeOf(v.node).href" size="14px" />
+          <div class="chrome-lane__title" :title="v.node?.content || ''">{{ v.title || placeOf(v.node).host || v.node?.content }}</div>
+        </div>
         <div v-if="v.node?.path" class="chrome-lane__ref" data-testid="chrome-history-ref">
           <MicroChip kind="nodes" :id="v.node.id" :path="v.node.path" collapsed />
           <a
@@ -93,7 +101,9 @@ import { defineComponent, ref, onMounted, onBeforeUnmount, watch } from 'vue'
 import { extensionService } from 'src/services/extension.service'
 import MicroChip from 'src/components/shared/MicroChip.vue'
 import NodeMini from 'src/components/nodes/NodeMini.vue'
+import SiteIcon from 'src/components/shared/SiteIcon.vue'
 import { KINDS } from 'src/utils/kinds'
+import { BRANDS } from 'src/utils/brandIcons'
 
 const PAGE = 20
 
@@ -112,7 +122,7 @@ const placeOf = (node) => {
 
 export default defineComponent({
   name: 'ChromeHistoryLane',
-  components: { MicroChip, NodeMini },
+  components: { MicroChip, NodeMini, SiteIcon },
   props: {
     skeletonId: { type: [Number, String], required: true },
     profile: { type: String, default: null }
@@ -156,7 +166,7 @@ export default defineComponent({
     onBeforeUnmount(() => { if (observer) observer.disconnect() })
     watch(() => props.skeletonId, () => { visits.value = []; nextBefore.value = null; load() })
 
-    return { visits, total, nextBefore, loading, error, sentinel, more, refresh, cardStyle, placeOf }
+    return { visits, total, nextBefore, loading, error, sentinel, more, refresh, cardStyle, placeOf, BRANDS }
   }
 })
 </script>
@@ -238,7 +248,17 @@ export default defineComponent({
   min-width: 0;
 }
 
+// the site's icon, then its title — the icon is the first thing the eye
+// sorts a column of visits by
+.chrome-lane__title-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
 .chrome-lane__title {
+  min-width: 0;
   font-size: 12px;
   color: var(--brown-8);
   white-space: nowrap;

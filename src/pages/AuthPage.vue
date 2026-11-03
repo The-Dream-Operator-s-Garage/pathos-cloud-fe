@@ -48,7 +48,9 @@
             <q-btn v-if="googleReady" type="a" :href="googleUrl"
               class="auth-cta auth-cta--google nasalization full-width"
               data-testid="auth-google" :loading="loading" unelevated no-caps>
-              <span class="auth-google__mark" aria-hidden="true">G</span>
+              <!-- 2026-11-03: Google's own G in its colours (utils/
+                   brandIcons.js) on a white disc, not a letter. -->
+              <span class="auth-google__mark" aria-hidden="true"><q-icon :name="BRANDS.google" size="12px" /></span>
               <span>Continue with Google</span>
             </q-btn>
             <button type="button" class="auth-toggle" @click="recovering = true">
@@ -135,6 +137,7 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from 'src/stores/auth'
 import { authService } from 'src/services/auth.service'
 import FriezeBar from 'src/components/layout/FriezeBar.vue'
+import { BRANDS } from 'src/utils/brandIcons'
 
 // The callback's refusals, by code (api/utils/googleOAuth.js + loginTicket.js).
 const GOOGLE_ERRORS = {
@@ -245,7 +248,8 @@ export default defineComponent({
       recoverForm,
       handleLogin,
       handleRegister,
-      handleRecover
+      handleRecover,
+      BRANDS
     }
   }
 })
@@ -463,10 +467,8 @@ export default defineComponent({
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  background: var(--brown-10);
-  color: var(--brown-1);
-  font-weight: 700;
-  font-size: 0.9em;
+  background: #fff;   // Google's G is drawn on white
+  box-shadow: 0 0 0 1px var(--brown-4);
   line-height: 1;
 }
 

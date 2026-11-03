@@ -130,10 +130,27 @@
         <div v-else class="secret-list">
           <div v-for="s in sessions" :key="s.id" class="secret-row session-row">
             <div class="secret-row__top">
-              <q-icon name="devices" size="14px" class="session-row__icon" />
+              <!-- 2026-11-03: the browser's own mark in colour (utils/
+                   brandIcons.js), the font's `devices` for an unknown one;
+                   a Google sign-in carries the G after the label. -->
+              <q-icon
+                :name="browserBrand(s.user_agent) || 'devices'"
+                size="14px"
+                class="session-row__icon"
+                :class="{ 'is-brand': !!browserBrand(s.user_agent) }"
+                data-testid="anchors-session-browser"
+              />
               <span class="session-row__agent" :title="s.user_agent || 'unknown device'">
                 {{ deviceLabel(s) }}
               </span>
+              <q-icon
+                v-if="s.method === 'google'"
+                :name="BRANDS.google"
+                size="11px"
+                class="session-row__method"
+                title="signed in with Google"
+                data-testid="anchors-session-google"
+              />
               <span
                 v-if="s.current"
                 class="secret-status secret-status--unused"
@@ -207,6 +224,7 @@ import InfoChip from 'src/components/shared/InfoChip.vue'
 import MomentInfo from 'src/components/moments/MomentInfo.vue'
 import EntityInfo from 'src/components/entities/EntityInfo.vue'
 import SecretInfo from 'src/components/secrets/SecretInfo.vue'
+import { BRANDS, browserBrand } from 'src/utils/brandIcons'
 
 export default defineComponent({
   name: 'EntityAnchors',
@@ -410,6 +428,8 @@ export default defineComponent({
       revokingId,
       revokeSession,
       deviceLabel,
+      browserBrand,
+      BRANDS,
       timeLabel
     }
   }
@@ -577,7 +597,9 @@ export default defineComponent({
 .session-row__icon {
   flex: 0 0 auto;
   opacity: 0.55;
+  &.is-brand { opacity: 1; }   // a brand mark keeps its colours whole
 }
+.session-row__method { flex: 0 0 auto; }
 .session-row__agent {
   flex: 1 1 auto;
   min-width: 0;
