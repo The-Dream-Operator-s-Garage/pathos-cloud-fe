@@ -35,7 +35,9 @@
     ref fetches the enriched row and retargets into a node; an
     `entities/<hash>` ref resolves its summary card and retargets into an
     entity. Same window, same rect, new self — title, tab, faces and foot
-    all follow.
+    all follow. A ref that resolves to a CHROME_HISTORY instance (2026-11-03)
+    stays a ref but gains an ELEMENT face — the visits lane, where it opens;
+    its skeleton face is the instance's own grid (SkeletonTable `grid`).
   · entity (2026-09-11, user ask — every entity link on the platform,
     the identity window's Profile button, a resolved entities/ ref):
     element view = THE PROFILE PAGE IN A BOX (`entities/EntityFace`: the
@@ -271,10 +273,13 @@
           enriched
           @update:layout="setLayout"
         />
+        <!-- `grid`: a CHROME_HISTORY window's skeleton face (its lane is
+             the element face — the `lane` showing lands here too, bloomed). -->
         <SkeletonTable
           v-else-if="tableRef != null"
           :ref-or-id="tableRef"
           :layout="layout"
+          :grid="isLaneTarget && showing === 'skeleton'"
           enriched
           @update:layout="setLayout"
           @resolved="onResolved"
@@ -485,6 +490,7 @@ import { probeNaturalSize, fitRect, chromeOf, clampRect } from 'src/utils/mediaF
 import { titleOf, iconFor } from 'src/utils/mediaKind'
 import { kindFor } from 'src/utils/kinds'
 import { entityGlyph, entityHandle } from 'src/utils/entityKind'
+import { BRANDS } from 'src/utils/brandIcons'
 import { entitySummary } from 'src/utils/entityDisplay'
 
 // Fullscreen rides ABOVE the drawer (3120) — a maximized viewer is the
@@ -677,6 +683,7 @@ export default defineComponent({
     // with the move.)
     const kindView = () => {
       const k = target.value?.kind
+      if (k === 'ref' && isLaneTarget.value) return 'element'
       return (k === 'node' || k === 'post' || k === 'entity' || k === 'element') ? 'element' : 'skeleton'
     }
     const view = computed({
@@ -705,6 +712,15 @@ export default defineComponent({
       : 'Lay the skeleton out horizontally — keys across the top, lists flowing left to right')
 
     const resolvedInfo = ref(null) // ref-door walk answer
+    // A CHROME_HISTORY instance has TWO faces (2026-11-03, allegue: "the
+    // skeleton button to watch the whole schema is disabled on the viewer"):
+    // the visits LANE is its element face — where the window opens — and its
+    // own Field | Data grid (KEY, SOURCE, PROFILE, VISITS, the owner…) the
+    // skeleton face, one header press away. Both are the one SkeletonTable
+    // on the ref; the skeleton face hands it `grid`. Known once the walk
+    // resolves — until then the window is a plain skeleton ref.
+    const isLaneTarget = computed(() =>
+      target.value?.kind === 'ref' && resolvedInfo.value?.name === 'CHROME_HISTORY' && !resolvedInfo.value?.is_schema)
     const refFailed = ref(false) // nodes/ ref that would not enrich
     const nodeWalk = ref(null) // the node's OWN skeleton { skeleton, slots }
     const nodeWalkFailed = ref(false)
@@ -876,12 +892,13 @@ export default defineComponent({
       if (view.value === 'element' && targetItem.value) return 'post'
       if (view.value === 'element' && targetEntity.value) return 'entity'
       if (view.value === 'element' && targetElement.value) return 'element'
+      if (view.value === 'element' && isLaneTarget.value) return 'lane'
       return 'skeleton'
     })
     // An entity offers its skeleton face only once the read has named a
     // USER_PROFILE skeleton — a system row without one IS its own face.
     const hasElementFace = computed(() =>
-      !!targetNode.value || !!targetItem.value || !!targetElement.value ||
+      !!targetNode.value || !!targetItem.value || !!targetElement.value || isLaneTarget.value ||
       (!!targetEntity.value && entitySkeletonId.value != null))
     const swapView = () => {
       view.value = view.value === 'element' ? 'skeleton' : 'element'
@@ -914,6 +931,7 @@ export default defineComponent({
       if (targetItem.value) return 'sym_o_post'
       if (targetEntity.value) return entityGlyph(entityInfo.value?.entity || targetEntity.value)
       if (targetElement.value) return isDashboardTarget.value ? 'dashboard' : kindFor(elementPrefix.value).icon
+      if (isLaneTarget.value) return BRANDS.chrome
       return skeletonGlyph.value
     })
     const headIcon = computed(() =>
@@ -944,6 +962,7 @@ export default defineComponent({
     const swapTitle = computed(() => {
       if (view.value === 'element') return targetEntity.value ? 'Show the profile skeleton' : 'Show the skeleton'
       if (targetItem.value) return 'Show the post'
+      if (isLaneTarget.value) return 'Show the visits'
       return targetEntity.value ? 'Show the entity' : 'Show the element'
     })
 
@@ -1312,6 +1331,7 @@ export default defineComponent({
       view,
       showing,
       hasElementFace,
+      isLaneTarget,
       swapView,
       swapIcon,
       swapTitle,

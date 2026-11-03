@@ -21,7 +21,12 @@
        to the links … in color"): the head wears Chrome's own mark
        (utils/brandIcons.js) and every title its SITE's icon — SiteIcon,
        read from the site's <head> by the server, the brand mark while it
-       loads. -->
+       loads.
+       ⭐ 2026-11-03 PM: the row is ChromeHistoryVisit — a dense head band
+       (moment │ site icon · title │ pin), the node's EXTENDED pill with the
+       link at its right, the object under it when the page is one. And the
+       window holding the lane switches to the instance's own GRID (the
+       flyout's view switch; SkeletonTable `grid`). -->
   <div class="chrome-lane" data-testid="chrome-history-lane">
     <div class="chrome-lane__head">
       <q-icon :name="BRANDS.chrome" size="14px" data-testid="chrome-history-mark" />
@@ -48,38 +53,9 @@
     <div v-else-if="error" class="chrome-lane__empty">{{ error }}</div>
     <div v-else-if="!visits.length" class="chrome-lane__empty">No visits yet — the extension's first flush lands here.</div>
 
-    <div
-      v-for="v in visits"
-      :key="v.id"
-      class="chrome-lane__row"
-      :class="v.node?.embed ? 'is-object' : 'is-link'"
-      :style="cardStyle"
-      data-testid="chrome-history-row"
-    >
-      <div class="chrome-lane__when">
-        <MicroChip v-if="v.moment" kind="moments" :id="v.moment.id" :path="v.moment.path" collapsed />
-        <span class="chrome-lane__datetime mono">{{ v.moment?.datetime || v.visited_at }}</span>
-        <span v-if="v.page?.channel" class="chrome-lane__channel">· {{ v.page.channel }}</span>
-      </div>
-      <div class="chrome-lane__page">
-        <div class="chrome-lane__title-row">
-          <SiteIcon v-if="placeOf(v.node).href" :href="placeOf(v.node).href" size="14px" />
-          <div class="chrome-lane__title" :title="v.node?.content || ''">{{ v.title || placeOf(v.node).host || v.node?.content }}</div>
-        </div>
-        <div v-if="v.node?.path" class="chrome-lane__ref" data-testid="chrome-history-ref">
-          <MicroChip kind="nodes" :id="v.node.id" :path="v.node.path" collapsed />
-          <a
-            v-if="placeOf(v.node).href"
-            class="chrome-lane__place mono"
-            :href="placeOf(v.node).href"
-            target="_blank"
-            rel="noopener noreferrer"
-            :title="placeOf(v.node).href"
-          ><b>{{ placeOf(v.node).host }}</b>{{ placeOf(v.node).rest }}</a>
-        </div>
-      </div>
-      <NodeMini v-if="v.node?.embed && v.node?.path" :node="v.node" class="chrome-lane__object" />
-    </div>
+    <!-- one card per visit — ChromeHistoryVisit (its head band, its pin,
+         the node's reference line, the object when there is one) -->
+    <ChromeHistoryVisit v-for="v in visits" :key="v.id" :visit="v" />
 
     <div ref="sentinel" class="chrome-lane__sentinel" />
     <button
@@ -99,30 +75,14 @@
 <script>
 import { defineComponent, ref, onMounted, onBeforeUnmount, watch } from 'vue'
 import { extensionService } from 'src/services/extension.service'
-import MicroChip from 'src/components/shared/MicroChip.vue'
-import NodeMini from 'src/components/nodes/NodeMini.vue'
-import SiteIcon from 'src/components/shared/SiteIcon.vue'
-import { KINDS } from 'src/utils/kinds'
+import ChromeHistoryVisit from 'src/components/extensions/ChromeHistoryVisit.vue'
 import { BRANDS } from 'src/utils/brandIcons'
 
 const PAGE = 20
 
-// A visit card wears the node family's colorway — what it holds is a node.
-const cardStyle = { '--visit-c': KINDS.nodes.color, '--visit-ink': KINDS.nodes.ink }
-
-// The link, said as a place: host (www. dropped) + the rest of the address.
-const placeOf = (node) => {
-  try {
-    const u = new URL(String(node?.content || '').split('\n')[0].trim())
-    if (!/^https?:$/.test(u.protocol)) return {}
-    const rest = (u.pathname === '/' ? '' : u.pathname.replace(/\/$/, '')) + u.search
-    return { href: u.href, host: u.hostname.replace(/^www\./, ''), rest }
-  } catch (_) { return {} }
-}
-
 export default defineComponent({
   name: 'ChromeHistoryLane',
-  components: { MicroChip, NodeMini, SiteIcon },
+  components: { ChromeHistoryVisit },
   props: {
     skeletonId: { type: [Number, String], required: true },
     profile: { type: String, default: null }
@@ -166,7 +126,7 @@ export default defineComponent({
     onBeforeUnmount(() => { if (observer) observer.disconnect() })
     watch(() => props.skeletonId, () => { visits.value = []; nextBefore.value = null; load() })
 
-    return { visits, total, nextBefore, loading, error, sentinel, more, refresh, cardStyle, placeOf, BRANDS }
+    return { visits, total, nextBefore, loading, error, sentinel, more, refresh, BRANDS }
   }
 })
 </script>
@@ -213,79 +173,7 @@ export default defineComponent({
   color: var(--brown-4);
 }
 
-// ONE CARD PER VISIT: a thin rim in the node family's teal, the mini
-// family's corners (top radius-md, bottom the pit's), a coat a breath off
-// white so the card reads as a thing on the window's sheet.
-.chrome-lane__row {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  min-width: 0;
-  padding: 6px 8px 8px;
-  border: 1px solid color-mix(in srgb, var(--visit-c) 38%, transparent);
-  border-radius: var(--radius-md) var(--radius-md) var(--pit-r, 6.34px) var(--pit-r, 6.34px);
-  background: color-mix(in srgb, var(--visit-c) 4%, var(--paper-card, #fff));
-}
-
-// the head band: the moment line over a hairline of the same teal
-.chrome-lane__when {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  min-width: 0;
-  padding-bottom: 5px;
-  border-bottom: 1px solid color-mix(in srgb, var(--visit-c) 18%, transparent);
-  font-size: 10px;
-  color: var(--brown-4);
-}
-
-.chrome-lane__channel { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-
-.chrome-lane__page {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  min-width: 0;
-}
-
-// the site's icon, then its title — the icon is the first thing the eye
-// sorts a column of visits by
-.chrome-lane__title-row {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  min-width: 0;
-}
-
-.chrome-lane__title {
-  min-width: 0;
-  font-size: 12px;
-  color: var(--brown-8);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-// the reference: the node's nano pill + where the link goes
-.chrome-lane__ref {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  min-width: 0;
-}
-
-.chrome-lane__place {
-  min-width: 0;
-  font-size: 10px;
-  color: var(--visit-ink);
-  text-decoration: none;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-
-  b { font-weight: 700; }
-  &:hover { text-decoration: underline; }
-}
+// (the visit cards style themselves — ChromeHistoryVisit.vue)
 
 .chrome-lane__sentinel { height: 1px; }
 

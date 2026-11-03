@@ -455,7 +455,14 @@ export default defineComponent({
     // by default — the feed and the board nest the way the flyout does;
     // only a host mounting this grid BARE (a page, a draft) still gets
     // bare nesting.
-    enriched: { type: Boolean, default: false }
+    enriched: { type: Boolean, default: false },
+    // THE GRID, NEVER THE BLOOM (2026-11-03, allegue: "the skeleton button
+    // to watch the whole schema is disabled on the viewer … I can see all
+    // the information that the skeleton holds"): a GITHUB_PR card or a
+    // CHROME_HISTORY lane gives way to the Field | Data grid. The flyout
+    // sets it on a CHROME_HISTORY window's skeleton face — the lane is
+    // that window's element face, one switch away.
+    grid: { type: Boolean, default: false }
   },
   // resolved: what the walk found ({ id, name, path, is_schema }) — hosts
   // that frame this grid title themselves after it.
@@ -517,8 +524,8 @@ export default defineComponent({
     const head = computed(() => (preWalked.value ? props.skeleton : walked.value) || {})
     // Declaration order as the walk serves it — ORDER-sorted server-side.
     const rows = computed(() => (preWalked.value ? props.slots : walkedSlots.value) || [])
-    const isGithubPr = computed(() => head.value.name === 'GITHUB_PR' && !head.value.is_schema)
-    const isChromeHistory = computed(() => head.value.name === 'CHROME_HISTORY' && !head.value.is_schema && !!head.value.id && props.depth === 0)
+    const isGithubPr = computed(() => head.value.name === 'GITHUB_PR' && !head.value.is_schema && !props.grid)
+    const isChromeHistory = computed(() => head.value.name === 'CHROME_HISTORY' && !head.value.is_schema && !!head.value.id && props.depth === 0 && !props.grid)
     const profileOf = computed(() => rows.value.find((r) => r.slotName === 'PROFILE')?.textValue || null)
 
     // After a write: pre-walked hosts get told (they reload and hand new
