@@ -23,6 +23,19 @@
           </router-link>
           <EntityName v-else class="text-ink" :entity="child.author" :id="child.owner_id" />
           <span v-if="child.provenance === 'FORK'" class="text-coral mono" style="font-size:0.9em;">(fork)</span>
+          <!-- An INHERITED copy (2026-11-03): forking a post copies its
+               direct comments onto the fork (the fork doctrine) — the API
+               names the original (`inherited_from`). The mark is a door to
+               it, where the comment's own replies live. -->
+          <router-link
+            v-if="child.inherited_from"
+            :to="'/posts/' + child.inherited_from.id"
+            class="comment-inherited"
+            data-testid="comment-inherited"
+            title="Copied from the original post when it was forked — open the original comment, where its replies live"
+          >
+            <q-icon name="content_copy" size="10px" />inherited
+          </router-link>
           <q-space />
           <SkeletonRefLinks :id="child.id" />
           <span class="text-dim" style="font-size:0.86em;" :title="child.created_at">{{ formatTime(child.created_at) }}</span>
@@ -461,6 +474,25 @@ export default defineComponent({
 .comment :deep(.text-ink) { color: #1F2A38 !important; }
 .comment-author { text-decoration: none; border-radius: 3px; }
 .comment-author:hover { background: rgba(31, 42, 56, 0.07); }
+// The inherited mark — AttachedSection's amber `inherited` badge, inked
+// for the light comment card, and a link.
+.comment-inherited {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-family: 'Space Mono', monospace;
+  font-size: 0.82em;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #8a6400;
+  background: rgba(255, 180, 0, 0.10);
+  border: 1px solid rgba(255, 180, 0, 0.32);
+  border-radius: 3px;
+  padding: 0 5px;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.comment-inherited:hover { background: rgba(255, 180, 0, 0.18); }
 .comment :deep(.text-dim) { color: #6b7993 !important; opacity: 1; }
 .comment :deep(.text-coral) { color: #d35f5f !important; }
 .comment :deep(.mono) { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, "Courier New", monospace; }
