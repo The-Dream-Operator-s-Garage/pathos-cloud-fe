@@ -114,9 +114,10 @@ export default defineComponent({
   --pit-r: 6.34px;
   // THE EMBRACE (2026-10-17) — the post card's two dials (its note on
   // `.post-square` has the arithmetic): the air around an embraced mini,
-  // and the pit's top corner concentric with that mini's (16.9px).
+  // and the pit's top corner — concentric with that mini's (16.9px) until
+  // 2026-11-02, the bottom's `--pit-r` since (four equal corners).
   --pit-embrace: 4px;
-  --pit-r-top: calc(0.85 * var(--font-size-body, 14px) + var(--pit-embrace) + 1px);
+  --pit-r-top: var(--pit-r);
   --card-gutter: 4px;
   --pit-scale: 0.88;
   --cap-scale: 0.62;
@@ -204,7 +205,7 @@ export default defineComponent({
   // which is why the media budget's constant did not move.
   --pit-pad-y: 12px;
   padding: var(--pit-pad-y) var(--quoted-bleed-x);
-  // The top two embrace a mini (2026-10-17, the post card's rule).
+  // The post card's rule: four equal corners since 2026-11-02.
   border-radius: var(--pit-r-top) var(--pit-r-top) var(--pit-r, 6.34px) var(--pit-r, 6.34px);
   border: 1px solid var(--grey-5, #bdbdbd);
   background: var(--pit-coat, var(--grey-1, #fafafa));

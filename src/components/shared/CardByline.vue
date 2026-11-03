@@ -256,10 +256,13 @@ export default defineComponent({
   align-items: center;
   height: var(--author-h);
   padding: 0 6px 0 var(--face-inset);
+  // The pill and its face turn at the pit's corner (2026-11-02, the post
+  // card's rule — `.post-square__identity`).
+  border-radius: var(--pit-r, 6.34px);
   :deep(.entity-avatar) {
     grid-area: face;
     align-self: center;
-    border-radius: calc(var(--chip-half-h) * var(--round) - 1px - var(--face-inset));
+    border-radius: var(--pit-r, 6.34px);
   }
   &:hover .element-card__identity-name { color: var(--entity-accent, #546e7a); }
 }

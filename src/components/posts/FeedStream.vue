@@ -4756,8 +4756,14 @@ export default defineComponent({
   // pit's OUTER edge through its 1px rim, is r + gap + 1 = 16.9px. The
   // bottom corners keep `--pit-r` — the minis' bottoms took that number
   // (MiniPanel), so a mini at the pit's foot matches it instead.
+  // ⭐ ONE CORNER AGAIN SINCE 2026-11-02 (user ask: "The content container
+  // top borders should be as rounded as the bottom ones for consistency"):
+  // `--pit-r-top` = `--pit-r`, so the pit turns at 6.34px on all four
+  // corners. The embrace's AIR stays (`--pit-embrace`); an embraced mini
+  // keeps its own `--radius-md` top, so it now sits a touch rounder than the
+  // frame around it. The dial stays a dial — DashboardCard's board reads it.
   --pit-embrace: 4px;
-  --pit-r-top: calc(0.85 * var(--font-size-body, 14px) + var(--pit-embrace) + 1px);
+  --pit-r-top: var(--pit-r);
   // ⭐ THE CARD'S SIDE GUTTER (2026-09-23 PM, user ask: "make the label chips
   // match the beginning and the end of the sides so they look aligned to the
   // content container. They currently have a little extra padding
@@ -6635,9 +6641,10 @@ export default defineComponent({
   // `flow-feed-card-rows` measures both and holds them equal.
   // ⭐ The number lives on `.post-square` as `--pit-r` since 2026-09-23 — the
   // cap's name pill wears the same corner (user ask), so it is stated once.
-  // ⭐ THE TOP TWO ROUNDER since 2026-10-17 — `--pit-r-top` (16.9px), the arc
-  // that embraces a mini's corner concentrically (the dial's note on
-  // `.post-square`); the bottom two keep `--pit-r`.
+  // ⭐ THE TOP TWO ROUNDER 2026-10-17 → 2026-11-02 — `--pit-r-top` (16.9px),
+  // the arc that embraced a mini's corner concentrically; since 2026-11-02 it
+  // reads `--pit-r` again (the dial's note on `.post-square`): four equal
+  // corners.
   border-radius: var(--pit-r-top) var(--pit-r-top) var(--pit-r, 6.34px) var(--pit-r, 6.34px);
   // The pit's own two tones (2026-07-25): a `--grey-1` floor with the frame's
   // INNER border drawn around it in the card's line ink. The floor was a 5% ink
@@ -7776,13 +7783,18 @@ $prose: ':where(:not(.pathos-ref-slot *))';
   align-items: center;
   height: var(--author-h);
   padding: 0 6px 0 var(--face-inset);
+  // ⭐ THE PIT'S CORNER SINCE 2026-11-02 (user ask: "for the author
+  // container thin border, make those borders and the borders of the inner
+  // image match the roundness of the content container"): the pill leaves
+  // the row unit's 7px for `--pit-r` (6.34px), and so does its face.
+  border-radius: var(--pit-r, 6.34px);
   // The face: the pill's first column, both rows, 30px in the 32px inner
   // height (`:size` in the template — move it with the dials); its corner
-  // concentric with the pill's: 7 − 1 (border) − 1 (inset) = 5px.
+  // the pit's too (it was concentric with the pill's 7: 7 − 1 − 1 = 5px).
   :deep(.entity-avatar) {
     grid-area: face;
     align-self: center;
-    border-radius: calc(var(--chip-half-h) * var(--round) - 1px - var(--face-inset));
+    border-radius: var(--pit-r, 6.34px);
   }
   &:hover .post-square__identity-name { color: var(--entity-accent, #546e7a); } // the family's accent (2026-09-22 PM; was cyan-14)
 }
