@@ -21,6 +21,21 @@
     <div class="chrome-lane__head">
       <q-icon name="travel_explore" size="14px" />
       <span class="chrome-lane__name nasalization">Chrome history</span>
+      <!-- ⭐ 2026-11-03 (allegue: "add a refresh button next to the
+           title"): re-reads the newest page — visits the extension
+           flushed since the lane opened land on top, the paging resets. -->
+      <button
+        type="button"
+        class="chrome-lane__refresh"
+        title="Refresh"
+        aria-label="Refresh the history"
+        data-testid="chrome-history-refresh"
+        :disabled="loading"
+        @click="refresh"
+      >
+        <q-spinner v-if="loading" size="11px" />
+        <q-icon v-else name="refresh" size="13px" />
+      </button>
       <span class="chrome-lane__meta mono" data-testid="chrome-history-total">{{ total }} visit{{ total === 1 ? '' : 's' }}<template v-if="profile"> · {{ profile }}</template></span>
     </div>
 
@@ -127,6 +142,7 @@ export default defineComponent({
       } finally { loading.value = false }
     }
     const more = () => { if (nextBefore.value) load(nextBefore.value) }
+    const refresh = () => load()
 
     onMounted(() => {
       load()
@@ -140,7 +156,7 @@ export default defineComponent({
     onBeforeUnmount(() => { if (observer) observer.disconnect() })
     watch(() => props.skeletonId, () => { visits.value = []; nextBefore.value = null; load() })
 
-    return { visits, total, nextBefore, loading, error, sentinel, more, cardStyle, placeOf }
+    return { visits, total, nextBefore, loading, error, sentinel, more, refresh, cardStyle, placeOf }
   }
 })
 </script>
@@ -161,6 +177,24 @@ export default defineComponent({
 }
 
 .chrome-lane__name { font-size: 12px; }
+
+// the Identity dock's refresh idiom: a bare glyph, grey until hovered
+.chrome-lane__refresh {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: none;
+  border-radius: 4px;
+  background: none;
+  color: var(--grey-7);
+  cursor: pointer;
+
+  &:hover:not(:disabled) { color: var(--brown-8); background: var(--grey-3); }
+  &:disabled { cursor: default; }
+}
 .chrome-lane__meta { font-size: 10px; color: var(--brown-4); }
 
 .chrome-lane__empty {
