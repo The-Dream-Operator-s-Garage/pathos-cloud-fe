@@ -10,6 +10,17 @@ export const feedService = {
     return data
   },
 
+  // THE ELEMENT STREAM (2026-11-02) — every kind in one feed: `of` =
+  // kinds.js prefixes (default posts,nodes,labels,skeletons,dashboards,
+  // entities,paths), `page`/`limit`, `order`, and the lenses that mean the
+  // same on any element (`authors`, `maxHops`, `label`, `from`/`to`,
+  // `ownerId`). Post rows are whole GET /feed rows; the rest `{ kind, id,
+  // address, owner_id, created_at, name }`.
+  async getElements (params = {}) {
+    const { data } = await api.get('/feed/elements', { params })
+    return data
+  },
+
   // The seat's research surface: { seat, labels (the digest), digest_rev,
   // today }. `seat: null` = the install has no Talavero — the head box
   // keeps its field disabled on that answer.

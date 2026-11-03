@@ -64,11 +64,20 @@
 // delta is added to scrollTop in the same measurement so the view holds
 // still. The well sets `overflow-anchor: none` so Chrome's own anchoring
 // does not correct the same shift twice.
+// ⭐ THE SPACER'S ANCHOR (2026-11-03, the feed's KINDS lens): the top spacer
+// is mostly ESTIMATE (`avgH` × the unmeasured blocks above), so every new
+// measurement that moves `avgH` moves the spacer — and with it every live
+// block — under a scrollTop that stands still. A post stream's blocks are
+// alike and the drift stayed small; a mixed stream's are not (~1.5k px of
+// uploads vs ~7.6k px of schema cards at the ceiling), and a jump to the
+// middle watched its blocks slide out of view and the ring chase the
+// estimate to the end of the stream. While the same block heads the window,
+// the spacer's change is added to scrollTop (`recomputeSpacers`).
 //
 // docs/concepts/feed-windowing.md is the pattern's home — read it before
 // giving a new feed container this structure.
 
-import { ref, shallowRef, computed, watch, onBeforeUnmount } from 'vue'
+import { ref, shallowRef, computed, watch, nextTick, onBeforeUnmount } from 'vue'
 
 export const FEED_BLOCK_SIZE = 10
 export const FEED_LIVE_BLOCKS = 4
@@ -115,6 +124,9 @@ export function useWindowedFeed ({
   let generation = 0 // bumps on reset — a stale fetch is dropped
   let avgH = estimateItemH * blockSize
   let scrollFrame = 0
+  // The top spacer as last laid out, and the block it stood above.
+  let anchorFirst = -1
+  let anchorTop = 0
 
   const adoptMemory = () => {
     const key = typeof memoryKey === 'function' ? memoryKey() : memoryKey
@@ -189,11 +201,23 @@ export function useWindowedFeed ({
       let rest = 0
       for (let j = split; j < n; j++) rest += hOf(j) + g
       bottomSpacer.value = Math.max(0, rest - g)
+      anchorFirst = -1 // a jump: the next window anchors afresh
       return
     }
     let top = 0
     for (let j = 0; j < r.first; j++) top += hOf(j) + g
     topSpacer.value = r.first > 0 ? Math.max(0, top - g) : 0
+    // THE SPACER'S ANCHOR (see the head note): the same block heads the
+    // window and the estimate above it moved — the view moves with it, once
+    // the spacer's new height is in the DOM (before, a growing spacer's
+    // delta could clamp at the old track's end).
+    const sc = scrollEl?.value
+    if (sc && r.first === anchorFirst && topSpacer.value !== anchorTop) {
+      const delta = topSpacer.value - anchorTop
+      nextTick(() => { sc.scrollTop += delta })
+    }
+    anchorFirst = r.first
+    anchorTop = topSpacer.value
     let bottom = 0
     for (let j = r.last + 1; j < n; j++) bottom += hOf(j) + g
     bottomSpacer.value = n > r.last + 1 ? Math.max(0, bottom - g) : 0
@@ -369,6 +393,8 @@ export function useWindowedFeed ({
     filtered.value = false
     topSpacer.value = 0
     bottomSpacer.value = 0
+    anchorFirst = -1
+    anchorTop = 0
     const el = scrollEl?.value
     if (el) el.scrollTop = 0
     loading.value = true

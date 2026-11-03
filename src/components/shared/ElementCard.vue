@@ -108,7 +108,7 @@ import LockedChip from './LockedChip.vue'
 import { feedService } from 'src/services/feed.service'
 import { resolveElementShape } from 'src/utils/elementShape'
 import { hashOf } from 'src/utils/kinds'
-import { provideRenderDepth, DEPTH_DEFAULT } from 'src/composables/useRenderDepth'
+import { provideRenderDepth, useRenderBudget, DEPTH_DEFAULT } from 'src/composables/useRenderDepth'
 import { CARD_PROPS, CARD_EMITS } from 'src/composables/useElementCard'
 
 // The kinds whose card is a full-height viewer (the pit scrolls itself and
@@ -132,8 +132,10 @@ export default defineComponent({
   emits: [...CARD_EMITS, 'resolved'],
   setup (props, { emit }) {
     // A card is a reading surface: the quoted references inside its pit
-    // bloom as minis down to the feed's default depth.
-    provideRenderDepth(ref(DEPTH_DEFAULT))
+    // bloom as minis down to the feed's default depth — or, standing in a
+    // FEED (2026-11-02, the feed element family: FeedStream's KINDS lens),
+    // down to the depth dial that feed's reader set, like the posts beside it.
+    provideRenderDepth(useRenderBudget() ?? ref(DEPTH_DEFAULT))
 
     const loading = ref(false)
     const shape = ref({ kind: null })

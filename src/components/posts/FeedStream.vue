@@ -468,6 +468,35 @@
            BAR. Without it a press here starts a drag, and the menu opens
            under a box that is following the pointer. -->
       <template #sort>
+        <!-- THE KINDS LENS (2026-11-02) — WHAT this feed holds: posts (the
+             default, the feed as it always was) or every element kind, or
+             one. The sort's twin in look; the glyph is the kind's own
+             (kinds.js), `apps` for everything. A press here starts no drag. -->
+        <button
+          type="button"
+          class="feed-stream__sort feed-stream__kinds"
+          :class="{ 'is-on': !!kindsLens }"
+          :title="kindsTitle"
+          aria-label="What this feed holds — posts or every element kind"
+          :data-kinds="kindsLens || 'posts'"
+          @pointerdown.stop
+        >
+          <q-icon :name="kindsOpt.icon" size="13px" />
+          <q-menu auto-close anchor="bottom right" self="top right">
+            <q-list dense class="feed-stream__sort-menu feed-stream__kinds-menu">
+              <q-item
+                v-for="opt in KINDS_OPTS" :key="'kinds:' + (opt.v || 'posts')"
+                clickable
+                :class="{ 'is-current': kindsLens === opt.v }"
+                :data-kinds-opt="opt.v || 'posts'"
+                @click="setKinds(opt.v)"
+              >
+                <q-item-section avatar class="feed-stream__kinds-glyph"><q-icon :name="opt.icon" size="13px" /></q-item-section>
+                <q-item-section>{{ opt.label }}</q-item-section>
+              </q-item>
+            </q-list>
+          </q-menu>
+        </button>
         <button
           type="button"
           class="feed-stream__sort"
@@ -622,7 +651,7 @@
 
       <div v-else-if="items.length === 0" class="feed-stream__empty">
         <q-icon name="route" size="48px" style="opacity:0.18;" />
-        <div class="q-mt-sm">Nothing posted yet.</div>
+        <div class="q-mt-sm">{{ kindsLens ? 'Nothing here yet.' : 'Nothing posted yet.' }}</div>
       </div>
 
       <!-- THE RING OF BLOCKS (2026-10-07): the cards stand in BLOCKS of ten
@@ -647,7 +676,20 @@
           class="feed-stream__block"
           :data-block="block.index"
         >
-        <template v-for="item in block.items" :key="item.skeleton_id">
+        <template v-for="item in block.items" :key="feedKeyOf(item)">
+          <!-- THE FEED ELEMENT ROW (2026-11-02, the KINDS lens) — any element
+               that is not a post, as its X-Card through the feed tier of the
+               card family (components/feed/FeedElement.vue): the post card's
+               ceiling (`--feed-element-ceiling` below), no thread doors on a
+               list, open = its window. A post row of the same stream is a
+               whole feed row and takes the article below, unchanged. -->
+          <div
+            v-if="item.skeleton_id == null"
+            class="feed-stream__element"
+            :data-element-row="item.kind"
+          >
+            <FeedElement :row="item" @pins-changed="$emit('pins-changed')" />
+          </div>
           <!-- One square per post — bordered indigo-1 card, mono head strip,
                carved body pit holding the whole post. The card is NOT a
                select-toggle any more (2026-07-25): it used to unfold a
@@ -657,7 +699,7 @@
                square rule forbids. Everything the panel showed now lives on
                the card itself (whole body, author, label paths, tallies); the
                rest is one click away in the post viewer, via the title. -->
-          <article class="post-square" :class="{ 'is-open': isOpen(item), 'is-expanded': isExpanded(item) }" :data-post="item.skeleton_id">
+          <article v-else class="post-square" :class="{ 'is-open': isOpen(item), 'is-expanded': isExpanded(item) }" :data-post="item.skeleton_id">
             <!-- THE CAP (2026-08-07, user ask) — a thin header ABOVE the
                  byline band, and now the card's first strip. It answers the
                  one question the card could not: WHAT IS THIS POST, and
@@ -1735,7 +1777,7 @@
 </template>
 
 <script>
-import { defineComponent, ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
+import { defineComponent, defineAsyncComponent, ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
 import { labelPaths as utilLabelPaths, labelBundles as utilLabelBundles, bundleOrigin as utilBundleOrigin } from 'src/utils/labelBundles'
 import { useRoute, useRouter } from 'vue-router'
 import { feedService } from 'src/services/feed.service'
@@ -1824,6 +1866,35 @@ const whenText = (w) => {
   return ''
 }
 
+// THE FEED ELEMENT (2026-11-02) — every non-post row of the KINDS lens.
+// ASYNC on purpose: FeedElement → ElementCard → PostCard → FeedStream is a
+// cycle, and a static import would register an undefined component here.
+const FeedElement = defineAsyncComponent(() => import('src/components/feed/FeedElement.vue'))
+
+// A stream row's identity: a post by its skeleton id (the feed's key since
+// 2026-07), any other element of the KINDS lens by `<kind>:<id>` — ids of
+// different tables collide, kinds do not.
+const feedKeyOf = (it) => (it?.skeleton_id != null ? it.skeleton_id : `${it?.kind}:${it?.id}`)
+
+// THE KINDS LENS's options (2026-11-02) — WHAT the stream holds. `v` null =
+// the post feed itself (`GET /feed`); anything else reads the ELEMENT STREAM
+// (`GET /feed/elements`) with `of` (kinds.js prefixes; none = the stream's
+// default mix, "everything people make"). The words follow SideSearchBoard's
+// WHAT menu; the glyph is kinds.js'.
+const KINDS_OPTS = [
+  { v: null, label: 'posts', icon: 'sym_o_post' },
+  { v: 'all', label: 'everything', icon: 'apps', of: null },
+  { v: 'nodes', label: 'uploads', icon: 'adjust', of: 'nodes' },
+  { v: 'labels', label: 'labels', icon: 'label', of: 'labels' },
+  { v: 'skeletons', label: 'schemas', icon: 'sym_o_mitre', of: 'skeletons' },
+  { v: 'dashboards', label: 'boards', icon: 'dashboard', of: 'dashboards' },
+  { v: 'entities', label: 'people', icon: 'person', of: 'entities' },
+  { v: 'paths', label: 'paths', icon: 'route', of: 'paths' },
+  { v: 'moments', label: 'moments', icon: 'schedule', of: 'moments' },
+  { v: 'links', label: 'links', icon: 'link', of: 'links' },
+  { v: 'secrets', label: 'secrets', icon: 'key', of: 'secrets' }
+]
+
 const KIND_ICONS = {
   image: 'image',
   file: 'attach_file',
@@ -1834,7 +1905,7 @@ const KIND_ICONS = {
 
 export default defineComponent({
   name: 'FeedStream',
-  components: { EntityAvatar, OrgLogoChip, PostMicro, MicroChip, MarkdownBody, FeedHeadBox, ConversationPicker, CommentMaker },
+  components: { EntityAvatar, OrgLogoChip, PostMicro, MicroChip, MarkdownBody, FeedHeadBox, ConversationPicker, CommentMaker, FeedElement },
   props: {
     // The posts whose flyout VIEWERS are open right now (2026-08-17, the
     // fusion — it was a single `selectedId` while the feed owned one box).
@@ -1895,7 +1966,7 @@ export default defineComponent({
         const g = parseFloat(getComputedStyle(el).rowGap)
         return Number.isFinite(g) ? g : 0
       },
-      keyOf: (it) => it.skeleton_id,
+      keyOf: feedKeyOf,
       // The feed as the reader sees it — every lens — names the heights'
       // memory, so coming back from a post finds the track as it was
       // measured and the holder's proportional restore lands on the pixel.
@@ -1909,7 +1980,8 @@ export default defineComponent({
         when: dateWin.value || null,
         tod: todWin.value || null,
         who: pickedEntities.value.map((e) => e.id),
-        order: sortOrder.value || null
+        order: sortOrder.value || null,
+        kinds: kindsLens.value
       })
     })
     // The host may hand a NEWER copy of the same row (SideElementView's
@@ -2761,6 +2833,33 @@ export default defineComponent({
       load()
     }
 
+    // ── THE KINDS LENS (2026-11-02, user ask: "since the feed is post-only
+    // … a feed element viewer family that can showcase all elements inside
+    // feed containers") ─────────────────────────────────────────────────
+    // WHAT the stream holds: the post feed (null — every line of this file
+    // above), or the ELEMENT STREAM — every kind, or one. The lenses that
+    // mean the same on any element ride along (trust hops, the label lens,
+    // the date window, the clock hands, the picked authors, newest/oldest);
+    // the POST-ONLY ones rest: a spoken spec (its text / media kinds /
+    // place / title clauses read post bodies) and the hash lens (a post's
+    // address) are dropped on the way in, and either one arriving again
+    // brings the stream back to posts. Session-local, like every lens here.
+    const kindsLens = ref(null)
+    const kindsOpt = computed(() => KINDS_OPTS.find((o) => o.v === kindsLens.value) || KINDS_OPTS[0])
+    const kindsTitle = computed(() => (kindsLens.value
+      ? `Kinds — this feed holds ${kindsOpt.value.label}, not only posts`
+      : 'Kinds — this feed holds posts (show every element kind)'))
+    const setKinds = (v) => {
+      if (kindsLens.value === v) return
+      kindsLens.value = v
+      if (v) {
+        if (lensSpec.value) clearLens({ reload: false })
+        hashFilter.value = null
+        if (sortOrder.value === 'heat') sortOrder.value = null
+      }
+      load()
+    }
+
     // The spec → `GET /feed` params — symbols resolved HERE, in the
     // viewer's timezone, at execution.
     const lensParams = (spec) => {
@@ -2838,7 +2937,31 @@ export default defineComponent({
     // One block = one `GET /feed` page. Thrown errors reach the composable,
     // which leaves the block absent (the next scroll asks again); a refused
     // read answers as an empty feed, the way the old single load did.
+    // THE ELEMENT STREAM's block (the KINDS lens): the shared lenses only —
+    // see the lens's note. Post rows come back as whole feed rows, so the
+    // card below draws them as it always has.
+    const elementParams = (index) => {
+      const params = { limit: FEED_BLOCK_SIZE, page: index + 1, body: 'full' }
+      if (kindsOpt.value.of) params.of = kindsOpt.value.of
+      if (maxHops.value != null) params.maxHops = maxHops.value
+      if (labelFilter.value) params.label = labelFilter.value.id
+      const when = resolveWhenLocal(dateWin.value)
+      if (when?.from) params.from = when.from.toISOString()
+      if (when?.to) params.to = when.to.toISOString()
+      if (todWin.value?.from) params.timeFrom = todWin.value.from
+      if (todWin.value?.to) params.timeTo = todWin.value.to
+      if (todWin.value) params.tzOffset = new Date().getTimezoneOffset()
+      if (pickedEntities.value.length) params.authors = pickedEntities.value.map((e) => e.id).join(',')
+      if (sortOrder.value === 'oldest') params.order = 'oldest'
+      return params
+    }
+
     const fetchFeedBlock = async (index) => {
+      if (kindsLens.value) {
+        const r = await feedService.getElements(elementParams(index))
+        if (!r?.success) return { items: [], total: 0 }
+        return { items: r.items || [], total: r.total }
+      }
       const r = await feedService.getPublic(blockParams(index))
       if (!r?.success) return { items: [], total: 0 }
       return { items: r.items || [], total: r.total, filtered: !!r.filtered }
@@ -3039,6 +3162,13 @@ export default defineComponent({
     // the card that matches it draws full-height (see `.is-expanded`),
     // whoever set the filter.
     const hashFilter = ref(null) // { hash, id } | null — the local lens
+    // THE KINDS LENS's guard (declared with it, above): a post-only lens
+    // arriving — a spoken spec, this hash lens — takes the stream back to
+    // posts BEFORE its own load() runs (`sync`: the ring's first block is
+    // fetched inside that call).
+    watch([lensSpec, hashFilter], ([spec, hash]) => {
+      if ((spec || hash) && kindsLens.value) kindsLens.value = null
+    }, { flush: 'sync' })
     const postHash = (item) => String(item.skeleton_path || '').split('/').pop()
     const activeHash = computed(() => hashFilter.value?.hash || lensSpec.value?.hash || null)
     // Prefix match, both ways the platform abbreviates an address: the local
@@ -3331,6 +3461,13 @@ export default defineComponent({
       LENS_OPTS,
       maxHops,
       setLens,
+      // the kinds lens (2026-11-02)
+      KINDS_OPTS,
+      kindsLens,
+      kindsOpt,
+      kindsTitle,
+      setKinds,
+      feedKeyOf,
       hopsMark,
       hopsTitle,
       // the time lens (2026-08-07)
@@ -4018,6 +4155,33 @@ export default defineComponent({
   min-width: 92px;
   .q-item { font-size: 0.72em; color: var(--indigo-9, #283593); min-height: 26px; }
   .q-item.is-current { box-shadow: inset 3px 0 0 var(--indigo-7, #3949ab); font-weight: 700; }
+}
+
+// THE KINDS MENU (2026-11-02) — the sort menu's rows with the kind's glyph
+// in a narrow lead (Quasar's avatar section is 56px wide by default).
+.feed-stream__kinds-menu {
+  min-width: 128px;
+  .feed-stream__kinds-glyph { min-width: 20px; padding-right: 6px; color: var(--indigo-7, #3949ab); }
+}
+
+// THE FEED ELEMENT ROW (2026-11-02, the KINDS lens) — a non-post element in
+// the column, as its X-Card (components/feed/FeedElement.vue). It stands
+// under THE POST CARD'S CEILING, restated here number for number so an
+// element card is never taller than the posts beside it may be — ⚠ keep it
+// in step with `.post-square`'s `--post-ceiling` (and its two dials). The
+// card's pit takes the cut and scrolls in place; its media budget reads the
+// same number (FeedElement hands it to CardPanel).
+.feed-stream__element {
+  --post-glimpse: 64px;
+  --post-ceiling-scale: 1.3;
+  --feed-element-ceiling: calc(var(--post-ceiling-scale) * min(
+    calc(var(--post-square-max, 100cqw) * 1.5),
+    90vh,
+    calc(var(--feed-well-h, 100vh) - 6px - var(--fhead-h, 120px) - 18px - var(--frieze-h) - 8px - var(--post-glimpse))
+  ));
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 // THE TIME MENU (2026-08-07) — the preset list over a custom range panel,
