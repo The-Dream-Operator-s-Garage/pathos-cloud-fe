@@ -423,10 +423,24 @@ export default defineComponent({
 //      the field (ask of the same morning: "their roundness match the
 //      roundness of their containers") — 12 − 1 − 2 = 9px on an 18px pill,
 //      a capsule again because the field turned rounder.
+//   5. (later) "make side viewer talavero board bubble match the border
+//      roundness of its container, rounder on top corners and less round on
+//      bottom corners. never rounder than the container closest corners bc
+//      it looks weird" — the room left the feed board's 13px, which was
+//      rounder than the box it stands in (the viewer's 10px). Its corners now
+//      answer to the corners NEAREST them: the TOP pair turns CONCENTRIC with
+//      the box's inside corner (`--side-viewer-inner-r` 9 − the 3px body pad
+//      = 6px), so the ink band round it keeps one width through the turn;
+//      the BOTTOM pair sits on the divider's straight seam, which has no
+//      curve to follow, so it is the soft floor — 3px, less round, not
+//      square. The top never drops below the floor (a phone's box is square:
+//      the room is 3px all round there).
 .side-search {
   --ssb-pad: 3px;          // the body round the room (the feed body's 3px)
   --ssb-room-pad: 3px;     // the room round its face + field (the feed room's)
-  --ssb-room-r: 13px;      // FeedHeadBox `--fhead-talk-r`
+  --ssb-room-r-bottom: 3px; // on the divider's straight seam: the soft floor
+  // concentric with the box's inside corner, never under the floor
+  --ssb-room-r-top: max(var(--ssb-room-r-bottom), calc(var(--side-viewer-inner-r, 9px) - var(--ssb-pad)));
   --ssb-field-h: 24px;     // the one line: the field's and the face's height
   --ssb-field-r: 12px;     // FeedHeadBox `--fhead-chat-r`
   --ssb-field-rim: 1px;
@@ -455,7 +469,8 @@ export default defineComponent({
   padding: var(--ssb-room-pad);
   background: var(--light-cream, #fcf3e0);
   border: 1px solid var(--ssb-rim);
-  border-radius: var(--ssb-room-r);
+  // rounder on top (the box's corner), less round on the bottom (the seam)
+  border-radius: var(--ssb-room-r-top) var(--ssb-room-r-top) var(--ssb-room-r-bottom) var(--ssb-room-r-bottom);
 }
 
 // The face: the feed seat's avatar corner, the element's VEIL over it.
