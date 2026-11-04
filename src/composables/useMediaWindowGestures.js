@@ -11,7 +11,22 @@
 // gesture-state classes the shell wears kill its CSS transitions so the
 // window tracks the pointer 1:1 instead of rubber-banding after it.
 import { ref, onBeforeUnmount } from 'vue'
-import { clampRect, minSize, chromeOf } from 'src/utils/mediaFit'
+import { clampRect, minSize, chromeOf, MIN_W } from 'src/utils/mediaFit'
+import { dockedRectOf, measureDock, overRail, clampDockX, UNDOCK_PX, DOCK_MIN_H } from 'src/composables/useTopDock'
+
+// ── THE TOP DOCK's three gestures (2026-11-03, composables/useTopDock) ──
+// · ATTACH — a free window's bar drag whose POINTER reaches the top rail
+//   docks the window there and then: it drops into its docked box (the
+//   rail's lip to the side viewer's foot) and the same gesture goes on as a
+//   slide along the rail.
+// · SLIDE — a docked window's bar drag moves it horizontally only.
+// · DETACH — pulling a docked window's bar `UNDOCK_PX` below where the
+//   gesture stood on the rail lets it go: it takes its free size back under
+//   the pointer, grabbed where it was grabbed, and the drag carries on free.
+// Resizing a docked window is FREE (not the media ratio — its height is the
+// rail's to give): east / west move its sides, south writes `dockH`. The
+// north rims are not offered (the top is the rail's lip).
+export const DOCKED_HANDLES = ['s', 'e', 'w', 'se', 'sw']
 
 // The eight rim handles — edges first, then corners. The letters are
 // compass directions: they double as the shell's class suffixes, and the
@@ -36,9 +51,12 @@ const CURSORS = {
 // (useMediaArena), not the spawn arena. A window is composed into the
 // docks' half when it is born and free to be dragged anywhere after,
 // which is why this composable never sees the arena at all.
-export function useMediaWindowGestures ({ viewer, store, roam, measure, friezeH }) {
+export function useMediaWindowGestures ({ viewer, store, roam, measure, friezeH, canDock = () => false }) {
   const dragging = ref(false) // bar drag in progress
   const resizing = ref(null) // the active handle letter while a resize runs
+  // The gesture's posture — re-based mid-drag when the window attaches to
+  // or lets go of the top rail.
+  let docked = false
 
   // Gesture scratch — plain locals, not refs: nothing renders off these,
   // they only carry state from pointerdown to pointerup.
@@ -68,9 +86,17 @@ export function useMediaWindowGestures ({ viewer, store, roam, measure, friezeH 
     // anchor is read off it — the viewport may have shrunk since the last
     // gesture (orientation flip, a plain window resize).
     measure()
-    base = clampRect(v.rect, roam.value)
-    if (base.x !== v.rect.x || base.y !== v.rect.y ||
-      base.w !== v.rect.w || base.h !== v.rect.h) store.setRect(v.id, base)
+    docked = !!v.docked && canDock()
+    if (docked) {
+      // A docked window's box is derived (useTopDock) — the gesture works
+      // on what the user SEES, not on the free rect sleeping in the store.
+      measureDock()
+      base = dockedRectOf(v)
+    } else {
+      base = clampRect(v.rect, roam.value)
+      if (base.x !== v.rect.x || base.y !== v.rect.y ||
+        base.w !== v.rect.w || base.h !== v.rect.h) store.setRect(v.id, base)
+    }
     ratio = (v.natural?.w > 0 && v.natural?.h > 0)
       ? v.natural.w / v.natural.h
       : 16 / 9
@@ -127,6 +153,24 @@ export function useMediaWindowGestures ({ viewer, store, roam, measure, friezeH 
     }, a)
   }
 
+  // A docked window's rims: free, not proportional (see the note up top).
+  const resizedDocked = (dx, dy, a) => {
+    const east = mode.includes('e')
+    const west = mode.includes('w')
+    const right = base.x + base.w
+    let x = base.x
+    let w = base.w
+    if (east) w = Math.max(MIN_W, Math.min(base.w + dx, a.x + a.w - base.x))
+    if (west) {
+      w = Math.max(MIN_W, Math.min(base.w - dx, right - a.x))
+      x = right - w
+    }
+    const h = mode.includes('s')
+      ? Math.max(DOCK_MIN_H, Math.min(base.h + dy, a.y + a.h - base.y))
+      : null
+    return { x, w, h }
+  }
+
   const onMove = (e) => {
     if (e.pointerId !== pid) return
     const v = viewer.value
@@ -136,12 +180,55 @@ export function useMediaWindowGestures ({ viewer, store, roam, measure, friezeH 
     const a = roam.value
     const dx = e.clientX - origin.x
     const dy = e.clientY - origin.y
+    if (mode === 'move' && docked) {
+      if (dy > UNDOCK_PX) {
+        // DETACH: the free size comes back under the pointer, held at the
+        // same point of the bar it was grabbed by (x scaled if the free
+        // width differs; y capped to the bar so the pointer stays on it).
+        const free = v.rect
+        const w = Math.round(free.w)
+        const h = Math.round(free.h)
+        const gx = (origin.x - base.x) * (w / Math.max(1, base.w))
+        const gy = Math.max(4, Math.min(origin.y - base.y, 24))
+        const next = clampRect({ x: e.clientX - gx, y: e.clientY - gy, w, h }, a)
+        store.undock(v.id, next)
+        docked = false
+        base = { ...next }
+        origin = { x: e.clientX, y: e.clientY }
+        return
+      }
+      // SLIDE along the rail — horizontal only.
+      store.setRect(v.id, { ...v.rect, x: clampDockX(base.x + dx, base.w) })
+      return
+    }
     if (mode === 'move') {
       store.setRect(v.id, clampRect(
         { x: base.x + dx, y: base.y + dy, w: base.w, h: base.h }, a))
-    } else {
-      store.setRect(v.id, resized(dx, dy, a))
+      // ATTACH: the pointer reached the rail. The free y/h stay in the
+      // store as the posture to come back to; from here the gesture slides.
+      // (A press that has not MOVED is a focus, not a drag — a bar already
+      // standing over the rail must not attach on a click.)
+      if (canDock() && Math.abs(dx) + Math.abs(dy) > 2) {
+        measureDock()
+        if (overRail(e.clientY)) {
+          // The free y the window comes back to is where it was picked up,
+          // not the rail it was pressed against.
+          store.setRect(v.id, { ...v.rect, y: base.y })
+          store.dock(v.id)
+          docked = true
+          base = dockedRectOf(v)
+          origin = { x: e.clientX, y: e.clientY }
+        }
+      }
+      return
     }
+    if (docked) {
+      const r = resizedDocked(dx, dy, a)
+      store.setRect(v.id, { ...v.rect, x: r.x, w: r.w })
+      if (r.h != null) store.setDockH(v.id, r.h)
+      return
+    }
+    store.setRect(v.id, resized(dx, dy, a))
   }
 
   const end = (e) => {
@@ -162,6 +249,7 @@ export function useMediaWindowGestures ({ viewer, store, roam, measure, friezeH 
     capEl = null
     pid = null
     mode = null
+    docked = false
     dragging.value = false
     resizing.value = null
     document.body.style.userSelect = ''

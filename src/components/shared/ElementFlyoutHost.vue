@@ -14,6 +14,9 @@
        top chrome from stepping down and back up as viewers park. -->
   <div class="element-flyout-host">
     <MediaTabsBar />
+    <!-- THE TOP DOCK (2026-11-03): the buttons of the windows attached to
+         the rail — a docked window's tab lives ON the bar, not under it. -->
+    <FlyoutTopDock />
     <ElementFlyout
       v-for="v in store.viewers"
       v-show="!v.minimized"
@@ -25,17 +28,20 @@
 </template>
 
 <script>
-import { defineComponent, onMounted, onBeforeUnmount } from 'vue'
+import { defineComponent, onMounted, onBeforeUnmount, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import ElementFlyout from 'src/components/shared/ElementFlyout.vue'
 import MediaTabsBar from 'src/components/media/MediaTabsBar.vue'
+import FlyoutTopDock from 'src/components/media/FlyoutTopDock.vue'
 import { useFlyoutViewersStore } from 'src/stores/flyoutViewers'
+import { armTopDock, measureDock } from 'src/composables/useTopDock'
 import { installEntityLinkDoor, installMomentLinkDoor } from 'src/utils/entityDoor'
 import { momentService } from 'src/services/moment.service'
 import { isHash } from 'src/utils/kinds'
 
 export default defineComponent({
   name: 'ElementFlyoutHost',
-  components: { ElementFlyout, MediaTabsBar },
+  components: { ElementFlyout, MediaTabsBar, FlyoutTopDock },
   // A viewer's pin button changed the pin set — MainLayout owns the
   // refresh key the tack and the pins widget both watch, so the signal
   // travels the same road the nav bar's does.
@@ -50,7 +56,20 @@ export default defineComponent({
     // the rule and its escape hatches.
     let removeDoor = null
     let removeMomentDoor = null
+
+    // THE TOP DOCK's measures (composables/useTopDock): the rail's lip and
+    // the side viewer's foot. Armed once; re-read on every route change,
+    // because the side viewer comes and goes with the feed page (twice —
+    // the page lays its columns out after its data lands).
+    const route = useRoute()
+    watch(() => route.fullPath, () => {
+      setTimeout(measureDock, 60)
+      setTimeout(measureDock, 600)
+    })
+
     onMounted(() => {
+      armTopDock()
+      setTimeout(measureDock, 600)
       removeDoor = installEntityLinkDoor((id) => store.spawnEntity({ id }))
       // THE MOMENT DOOR (2026-09-21) — `#/moments/<id|hash>` anchors open the
       // moment window. The window is keyed by ADDRESS (`moments/<hash>`, the

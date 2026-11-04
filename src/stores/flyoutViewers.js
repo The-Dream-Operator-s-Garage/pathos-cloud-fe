@@ -245,16 +245,35 @@ export const useFlyoutViewersStore = defineStore('flyoutViewers', {
     // `label`/`icon` are what the parked tab draws — written back by the
     // window as its header resolves, so a tab and the window it restores
     // are never two different names.
+    // `docked` / `dockH` (2026-11-03) — THE TOP DOCK: a window ATTACHED to
+    // the top rail (composables/useTopDock). Docked, its `rect.x` / `rect.w`
+    // are its place along the rail and `rect.y` / `rect.h` sleep as its free
+    // posture; its top is the rail's lip and its foot the side viewer's
+    // bottom edge, unless the south rim wrote `dockH`. A docked window
+    // parks as a BUTTON on the rail (components/media/FlyoutTopDock), never
+    // as a tab in the row below — see `parked`. Desktop only: on a phone
+    // (`windows.isMobile`) the flags are kept but read as free.
     viewers: []
   }),
 
   getters: {
-    parked: (s) => s.viewers.filter(v => v.minimized),
+    // A docked window parks on the RAIL as its own button, not in the tab
+    // row (2026-11-03) — except on a phone, where nothing docks.
+    parked: (s) => {
+      const desk = !useWindowsStore().isMobile
+      return s.viewers.filter(v => v.minimized && !(desk && v.docked))
+    },
     // The parked windows NEWEST-PARKED FIRST (2026-10-13, user ask, the
     // phone's tab wall: "order them by most recently minimized so I first see
     // what I've just minimized"). `parked` keeps the spawn order for the
     // desktop row.
-    parkedByRecency: (s) => s.viewers.filter(v => v.minimized).sort((a, b) => (b.parkedAt || 0) - (a.parkedAt || 0)),
+    parkedByRecency: (s) => {
+      const desk = !useWindowsStore().isMobile
+      return s.viewers.filter(v => v.minimized && !(desk && v.docked)).sort((a, b) => (b.parkedAt || 0) - (a.parkedAt || 0))
+    },
+    // THE TOP DOCK's windows, open or parked — the rail's buttons. Empty on
+    // a phone (the flags sleep there).
+    dockedViewers: (s) => (useWindowsStore().isMobile ? [] : s.viewers.filter(v => v.docked && v.rect)),
     byId: (s) => (id) => s.viewers.find(v => v.id === id) || null,
     // The feed cards light their triggers off this: which POST elements
     // hold an OPEN (not parked) window right now.
@@ -322,6 +341,9 @@ export const useFlyoutViewersStore = defineStore('flyoutViewers', {
         label: opts.label || '',
         icon: opts.icon || '',
         view: opts.view || null,
+        // THE TOP DOCK (2026-11-03) — a boot row comes back attached.
+        docked: !!opts.docked,
+        dockH: Number.isFinite(opts.dockH) ? opts.dockH : null,
         // WHEN it parked (2026-10-13) — the phone's tab wall reads the
         // newest-parked first (`parkedByRecency`). A boot row carries the
         // stamp it was saved with; an old row without one gets its tray
@@ -381,7 +403,10 @@ export const useFlyoutViewersStore = defineStore('flyoutViewers', {
               parkedAt: v.parkedAt || 0,
               // The face it was left on (2026-09-23) — a window parked
               // mid-edit comes back on the grid, not on the postcard.
-              view: v.view || null
+              view: v.view || null,
+              // Attached to the rail (2026-11-03) — a reload keeps it there.
+              docked: !!v.docked,
+              dockH: v.dockH ?? null
             })
           }
           navService.saveWindows(rows)
@@ -409,6 +434,8 @@ export const useFlyoutViewersStore = defineStore('flyoutViewers', {
             label: w.label || '',
             icon: w.icon || '',
             view: w.view || null,
+            docked: !!w.docked,
+            dockH: w.dockH ?? null,
             parkedAt: w.parkedAt || i + 1,
             rehydrating: true
           })
@@ -568,6 +595,39 @@ export const useFlyoutViewersStore = defineStore('flyoutViewers', {
     setNatural (id, natural) {
       const v = this.byId(id)
       if (v) v.natural = natural ? { ...natural } : null
+    },
+
+    // ── THE TOP DOCK (2026-11-03) ─────────────────────────────────
+    // Posture, not story: attaching and detaching are geometry, like a drag,
+    // so neither mints a trail event (the trail's codes are the window's
+    // open / park / restore / maximize / close). They persist, so a reload
+    // finds the window on the rail where it was left.
+    dock (id) {
+      const v = this.byId(id)
+      if (!v || v.docked) return
+      v.docked = true
+      this._persist()
+    },
+
+    // Off the rail, into `rect` — the free posture the window comes back to
+    // (the gesture places it under the pointer). `dockH` is forgotten: the
+    // next attach drops to the side viewer's foot again.
+    undock (id, rect) {
+      const v = this.byId(id)
+      if (!v) return
+      v.docked = false
+      v.dockH = null
+      if (rect) v.rect = { ...rect }
+      this._persist()
+    },
+
+    // The south rim of a docked window — null puts the foot back on the side
+    // viewer's bottom edge.
+    setDockH (id, h) {
+      const v = this.byId(id)
+      if (!v) return
+      v.dockH = h == null ? null : Math.round(h)
+      this._persist()
     }
   }
 })

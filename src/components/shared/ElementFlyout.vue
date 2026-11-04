@@ -80,6 +80,7 @@
     class="element-flyout"
     :class="{
       'is-max': viewer.maximized,
+      'is-docked': isDocked && !viewer.maximized,
       'is-grabbed': dragging,
       'is-resizing': !!resizing,
       'is-anim-max': animMax
@@ -485,7 +486,8 @@ import { feedService } from 'src/services/feed.service'
 import { nodeService } from 'src/services/node.service'
 import { refService } from 'src/services/ref.service'
 import { useMediaArena } from 'src/composables/useMediaArena'
-import { useMediaWindowGestures } from 'src/composables/useMediaWindowGestures'
+import { useMediaWindowGestures, DOCKED_HANDLES } from 'src/composables/useMediaWindowGestures'
+import { dockedRectOf } from 'src/composables/useTopDock'
 import { probeNaturalSize, fitRect, chromeOf, clampRect } from 'src/utils/mediaFit'
 import { titleOf, iconFor } from 'src/utils/mediaKind'
 import { kindFor } from 'src/utils/kinds'
@@ -625,8 +627,13 @@ export default defineComponent({
     // Drag (bar) + proportional resize (rim handles) — pointer capture,
     // clamping and the shrink floor all live in the composable; the shell
     // only lends its classes and the two pointerdown seams.
-    const { HANDLES, dragging, resizing, onBarPointerDown, onHandlePointerDown } =
-      useMediaWindowGestures({ viewer, store, roam, measure, friezeH })
+    // THE TOP DOCK (2026-11-03): desktop only — a phone's windows stand on
+    // one footprint and its rail is a third of the way down the screen.
+    const canDock = () => !windows.isMobile
+    const isDocked = computed(() => !!viewer.value?.docked && canDock())
+    const { HANDLES: FREE_HANDLES, dragging, resizing, onBarPointerDown, onHandlePointerDown } =
+      useMediaWindowGestures({ viewer, store, roam, measure, friezeH, canDock })
+    const HANDLES = computed(() => (isDocked.value ? DOCKED_HANDLES : FREE_HANDLES))
 
     // The VIEWPORT moved (resize, phone rotate) — slide a stale rect back
     // inside so no window strands off-screen. Watches `roam`, not the
@@ -676,6 +683,12 @@ export default defineComponent({
       }
       const zIndex = animMax.value ? MAX_Z : windows.zOf('flyout:' + v.id)
       if (!v.rect) return { left: '40%', top: '20%', visibility: 'hidden', zIndex }
+      // DOCKED: hung from the rail's lip down to the side viewer's foot —
+      // the box is derived (useTopDock), the store keeps only x and w.
+      if (isDocked.value) {
+        const d = dockedRectOf(v)
+        return { left: d.x + 'px', top: d.y + 'px', width: d.w + 'px', height: d.h + 'px', zIndex }
+      }
       return {
         left: v.rect.x + 'px',
         top: v.rect.y + 'px',
@@ -1013,6 +1026,10 @@ export default defineComponent({
       const natural = await naturalFor()
       if (!viewer.value) return
       store.setNatural(v.id, natural)
+      // A DOCKED window stays where the user hung it (2026-11-03): a ref
+      // resolving into its element (a rehydrated tray row) re-places a free
+      // window, which would slide a docked one along the rail.
+      if (isDocked.value && v.rect) return
       // A phone's arena is the window's whole footprint (2026-11-03 — the
       // feed's span, 90% of the run between the bars; useMediaArena): no
       // fit, no cascade. Re-measured first — the rail slides on a phone and
@@ -1381,6 +1398,7 @@ export default defineComponent({
       tableRef,
       onResolved,
       styleObj,
+      isDocked,
       rootEl,
       barEl,
       HANDLES,
@@ -1450,6 +1468,31 @@ export default defineComponent({
   &.is-max {
     border-radius: 0;
     border: none;
+  }
+
+  // ⭐ THE TOP DOCK (2026-11-03, user ask: "on its top, it is sticking
+  // underneath the top header nav bar's bottom lip, with no rounded
+  // edges"). The rail's own rim IS the window's top edge, so the box drops
+  // its top border and both top radii; the bottom keeps the family's
+  // corners. `::after` lays the lip's shade on the window's top — the rail
+  // casts a shadow (`0 3px 10px`), but a flyout paints OVER the rail (z
+  // 3140+ over 3125), so the window has to draw the shade it stands in.
+  &.is-docked {
+    border-top: none;
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+
+    &::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      height: 6px;
+      z-index: 7; // over the bar's clusters (6) — a shade, click-through
+      background: linear-gradient(rgba(var(--ink-rgb-deep, 0, 0, 0), 0.2), transparent);
+      pointer-events: none;
+    }
   }
 
   // Maximize/restore ease — a short geometry glide scoped to the class
