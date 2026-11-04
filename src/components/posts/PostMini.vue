@@ -60,7 +60,9 @@
     </template>
 
     <template v-if="footFacts.length" #foot>
-      <MiniFoot kind="posts" :facts="footFacts" :title="footTitle" />
+      <!-- `vote-id`: the thumbs ride this foot inside a MiniVotesScope
+           (2026-11-04 — the side viewer's thread + references) -->
+      <MiniFoot kind="posts" :facts="footFacts" :title="footTitle" :vote-id="post.id" />
     </template>
   </MiniPanel>
 </template>

@@ -23,7 +23,20 @@
        thread doors (the list-host rule), its open door a step INSIDE the
        viewer through the same sink. The list is an inline-size container,
        so a filling kind (a label's unravel, a board) stands as the
-       column's square. -->
+       column's square.
+
+       ⭐ 2026-11-04 — A PLAIN SCROLL OF MINIS (user asks: draw the side
+       viewer's lists in "the same family that is used inside the skeleton
+       viewers to represent paths" — then, of this list: "is the reference
+       path an actual path? … I think it is inferred. do not display it as a
+       path if it isn't. keep the references a simple scroll of elements").
+       It IS inferred — referenceService computes it on every read from the
+       item's body, slots and members; nothing stores it, so the item's
+       skeleton never lists it. For the hour it wore a path mini's shell it
+       was an impostor; now each reference is its kind's MINI (the family a
+       path's members wear, so a comment, a fork and a reference read alike)
+       in one scroll, the `via` caption over it, the thumbs on every votable
+       member's foot (MiniVotesScope). The feed cards left. -->
   <section class="side-refs" aria-label="References">
     <header class="side-refs__bar">
       <span class="side-refs__tab">
@@ -37,15 +50,15 @@
         {{ kindWord === 'element' ? 'This element' : 'A ' + kindWord }} holds no references.
       </div>
       <template v-else>
-        <div v-for="it in items" :key="it.via + ':' + it.address + ':' + (it.position ?? '')" class="side-refs__item">
-          <div class="side-refs__via">
-            <span class="side-refs__via-word">{{ viaWord(it) }}</span>
+        <MiniVotesScope v-if="items.length">
+          <div v-for="it in items" :key="it.via + ':' + it.address + ':' + (it.position ?? '')" class="side-refs__item">
+            <div class="side-refs__via">
+              <span class="side-refs__via-word">{{ viaWord(it) }}</span>
+            </div>
+            <LockedChip v-if="it.locked" :address="it.address" />
+            <ElementMini v-else :address="it.address" />
           </div>
-          <div v-if="it.locked" class="side-refs__row is-locked">
-            <q-icon name="lock" size="12px" /> {{ lockedWord(it) }} you cannot read
-          </div>
-          <FeedElement v-else :address="it.address" :row="it" />
-        </div>
+        </MiniVotesScope>
         <div v-if="loading" class="side-refs__note"><q-spinner size="14px" /> loading…</div>
         <div v-else-if="error" class="side-refs__note is-error">{{ error }}</div>
         <div v-else-if="!items.length" class="side-refs__note">Nothing referenced inside.</div>
@@ -53,7 +66,7 @@
           v-if="!loading && items.length < (total || 0)"
           type="button" class="side-refs__more" @click="load(true)"
         >
-          {{ (total || 0) - items.length }} more
+          +{{ (total || 0) - items.length }} more
         </button>
       </template>
     </div>
@@ -62,15 +75,16 @@
 
 <script>
 import { defineComponent, ref, watch } from 'vue'
-import FeedElement from 'src/components/feed/FeedElement.vue'
+import ElementMini from 'src/components/shared/ElementMini.vue'
+import LockedChip from 'src/components/shared/LockedChip.vue'
+import MiniVotesScope from 'src/components/shared/MiniVotesScope.vue'
 import { refService } from 'src/services/ref.service'
 
 const PAGE = 12
-const WORD = { skeletons: 'skeleton', posts: 'post', dashboards: 'board', nodes: 'node', labels: 'label', paths: 'path', links: 'link', moments: 'moment', secrets: 'secret', entities: 'entity' }
 
 export default defineComponent({
   name: 'SideReferences',
-  components: { FeedElement },
+  components: { ElementMini, LockedChip, MiniVotesScope },
   props: {
     // The element whose contents are listed, '<kind>/<hash>'.
     address: { type: String, required: true },
@@ -116,8 +130,6 @@ export default defineComponent({
       if (it.via === 'CONTENT') return 'in the content'
       return String(it.via || '').toLowerCase().replace(/_/g, ' ')
     }
-    const lockedWord = (it) => 'a ' + (WORD[it.kind] || 'element')
-
     watch(() => props.address, () => {
       items.value = []
       total.value = null
@@ -126,21 +138,28 @@ export default defineComponent({
       load(false)
     }, { immediate: true })
 
-    return { items, total, supported, loading, error, listEl, load, viaWord, lockedWord }
+    return { items, total, supported, loading, error, listEl, load, viaWord }
   }
 })
 </script>
 
 <style scoped lang="scss">
 // The thread box's twin (SideElementView `.side-element__thread`): the
-// card's line ink for its rim, the card's corner, the grey-2 floor, the
-// grey-3 bar — two boxes stacked in one column read as one furniture.
+// card's line ink for its rim, the card's corner — two boxes stacked in one
+// column read as one furniture. ⭐ 2026-11-04: the CARD's grammar — a grey
+// frame (`--sev-frame`) with the bar on it and the list in a pit on the post
+// card's PIT coat (`--sev-floor`, grey-1 — one content tone for all three
+// sections; the box stood on grey-2 under a grey-3 bar until today); the
+// host also sets the corner (flush sections: the viewer's own corner where
+// this box meets it, square against the dividers).
 .side-refs {
   min-height: 0;
   min-width: 0;
   display: flex;
   flex-direction: column;
-  background: var(--grey-2, #eeeeee);
+  // ⭐ the FRAME since 2026-11-04 (the host's `--sev-frame`, the card's grey-4
+  // coat): the bar on it, the list in a pit — the card's grammar.
+  background: var(--sev-frame, var(--grey-4, #e0e0e0));
   border: 1px solid var(--grey-5, #bdbdbd);
   border-radius: var(--pit-r, 6.34px);
   overflow: hidden;
@@ -151,8 +170,7 @@ export default defineComponent({
   display: flex;
   align-items: stretch;
   padding: 2px;
-  border-bottom: 1px solid var(--grey-5, #bdbdbd);
-  background: var(--grey-3, #e0e0e0);
+  background: transparent; // on the frame (2026-11-04; grey-3 over a grey-5 line before)
   font-family: var(--font-display);
   font-size: 0.72em;
   letter-spacing: 0.02em;
@@ -175,23 +193,24 @@ export default defineComponent({
   opacity: 0.85;
 }
 
-// THE FEED OF CARDS (2026-11-03; minis until then) — dense: 6px between
-// items, a 6px inset. The FeedElement contract's two dials, stated by this
-// host: an INLINE-SIZE container, so a filling kind's square is the column
-// (`100cqw`), and a low CEILING (360px — a card's chrome is ~100 of it), so
-// a picture-heavy post still lists several references in view; a tall
-// body scrolls inside its own pit.
+// THE PIT round the scroll of minis (2026-11-04; a feed of FeedElement cards
+// 2026-11-03, minis before that).
+// …and the list is the section's PIT (2026-11-04): the card's content
+// container — the floor `--sev-floor`, a grey-5 rim, the pit's corner,
+// inset in the frame by the card pit's own margins.
 .side-refs__list {
   flex: 1 1 auto;
   min-height: 0;
   overflow-y: auto;
+  margin: var(--sev-pit-m, 3px 4px 4px);
+  background: var(--sev-floor, var(--grey-1, #fafafa));
+  border: 1px solid var(--grey-5, #bdbdbd);
+  border-radius: var(--sev-pit-r, 6.34px);
   padding: 6px;
   display: flex;
   flex-direction: column;
   gap: 6px;
   scrollbar-width: thin;
-  container-type: inline-size;
-  --feed-element-ceiling: 360px;
 }
 
 .side-refs__item {
@@ -202,6 +221,7 @@ export default defineComponent({
   gap: 2px;
 }
 
+// The caption over each mini: the edge that holds it, in the reader's words.
 .side-refs__via {
   display: flex;
   min-width: 0;
@@ -218,14 +238,6 @@ export default defineComponent({
   white-space: nowrap;
 }
 
-.side-refs__row {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 0.8em;
-  &.is-locked { color: rgba(var(--ink-rgb), 0.5); }
-}
-
 .side-refs__note {
   color: rgba(var(--ink-rgb), 0.55);
   font-size: 0.8em;
@@ -234,13 +246,14 @@ export default defineComponent({
 }
 
 .side-refs__more {
-  align-self: flex-start;
+  align-self: center;
   border: 0;
   background: transparent;
   color: rgba(var(--ink-rgb), 0.6);
-  font-size: 0.76em;
+  font-family: 'Space Mono', monospace;
+  font-size: 0.7em;
   cursor: pointer;
-  padding: 2px;
+  padding: 2px 6px;
   &:hover { color: rgba(var(--ink-rgb), 0.95); }
 }
 </style>

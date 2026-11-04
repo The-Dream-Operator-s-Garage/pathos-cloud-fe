@@ -41,7 +41,11 @@
        lime is what the nano pill says: the ink (`--mini-ink` = kinds.js
        paths.ink, lime-deep), the glyph tone (lime-10) and the lane's BONDS
        — the rail is the path's own accent. -->
-  <div v-if="loading && !row" class="path-mini__loading">
+  <!-- no row yet = loading, even on the render BEFORE `onMounted` starts the
+       walk: a mini given only `refOrId` (2026-11-04, the side viewer's thread
+       — its holder path's address) had `loading` false and `row` null on that
+       first pass and fell through to the panel, reading `row.id` of null -->
+  <div v-if="!row && !failed" class="path-mini__loading">
     <q-spinner size="14px" color="primary" />
   </div>
   <InfoChip v-else-if="failed" kind="paths" :address="addressOf" :label="pathLabel" />

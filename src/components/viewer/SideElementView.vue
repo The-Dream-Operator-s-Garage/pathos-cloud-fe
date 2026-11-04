@@ -49,8 +49,22 @@
        references are three whole boxes with their own four corners. A narrow
        viewer (the phone strip, a squeezed track) stacks them instead — the
        face over the side, the side's two boxes side by side. -->
-  <div class="side-element" :class="{ 'is-fill': fills }">
-    <div class="side-element__layout">
+  <!-- ⭐ 2026-11-04 — THE SPLITS (user ask: "we want to be able to modify the
+       proportion between the content container and the comments/reference
+       section (horizontally), and also between the comments and the
+       references section (vertically) … dividing those sections using thin
+       bars made like the checkered frieze bar on the side viewer header. Use
+       the lips, but make them thinner and then for the inner pattern … a
+       single thin line … that color that represents the viewed element").
+       The three sections stand FLUSH now — no well padding, no gaps: two
+       draggable dividers (`__split`) part them, each the header rail's
+       material thinned to 1px cream lips round a 1px line in the kind's ink
+       (`--side-viewer-plate`), wall to wall with bare ends like the rail.
+       A drag sets a SHARE (a fraction of the box it divides) per axis,
+       remembered in this browser (`pathos_side_split`); a double-click or
+       Home puts the default back; arrows step it 2%. -->
+  <div class="side-element" :class="{ 'is-fill': fills, 'is-splitting': !!dragging }">
+    <div ref="layoutEl" class="side-element__layout" :style="splitStyle">
     <div class="side-element__face">
       <FeedStream
         v-if="card"
@@ -89,8 +103,25 @@
       </div>
     </div>
 
-    <aside v-if="el" class="side-element__side" aria-label="Around this element">
-    <section class="side-element__thread" aria-label="Comments and forks">
+    <div
+      v-if="el"
+      class="side-element__split side-element__split--side"
+      :class="{ 'is-dragging': dragging === 'side' }"
+      role="separator"
+      tabindex="0"
+      :aria-orientation="axes.side === 'x' ? 'vertical' : 'horizontal'"
+      :aria-valuenow="shareNow('side')"
+      aria-valuemin="0"
+      aria-valuemax="100"
+      aria-label="Resize the element and the column beside it"
+      title="Drag to resize · double-click to reset"
+      @pointerdown="beginSplit('side', $event)"
+      @dblclick="resetSplit('side')"
+      @keydown="keySplit('side', $event)"
+    />
+
+    <aside v-if="el" ref="sideEl" class="side-element__side" aria-label="Around this element">
+    <section ref="threadEl" class="side-element__thread" aria-label="Comments and forks">
       <header class="side-element__bar">
         <button
           v-for="s in SECTIONS" :key="s.key"
@@ -140,31 +171,53 @@
             {{ kindWord === 'element' ? 'This element' : 'A ' + kindWord }} does not take {{ section }}.
           </div>
         </template>
+        <!-- ⭐ 2026-11-04 — THE THREAD IS ITS PATH (user ask: "for the
+             comment, forks and references on the side viewer, instead of the
+             weird design used to display them currently, help me using the
+             same family that is used inside the skeleton viewers to represent
+             paths … keep the representation of the same things consistent" +
+             "attach the voting section on the footer of the family … thumbs
+             up and down"). A section's items ARE a chain path — the holder
+             rule's COMMENTS / FORKS slot (`pathRef` on GET /refs/comments |
+             forks) — so the section draws that path the way a skeleton
+             viewer draws a bound path: its PathMini, vertical, enriched
+             (each member its Mini, a link chip on every bond, the family's
+             own paging), the thumbs on every member's foot (MiniVotesScope).
+             Keyed by the section's total, so a comment or fork landing here
+             re-walks it. The comment cards (PostCommentItem) left this box. -->
         <template v-else>
-          <template v-for="row in rows" :key="row.kind + ':' + row.id">
-            <PostCommentItem v-if="row.kind === 'skeletons' && !row.locked" :child="row" @reply-posted="reload" />
-            <div v-else-if="row.locked" class="side-element__row is-locked">
-              <q-icon name="lock" size="12px" /> a {{ section === 'forks' ? 'fork' : 'comment' }} you cannot read
-            </div>
-            <div v-else class="side-element__row">
-              <MicroChip :kind="row.kind" :id="row.id" :path="row.address" />
-              <span class="side-element__row-text">{{ row.primary }}</span>
-              <span class="side-element__row-by">{{ row.secondary }}</span>
-            </div>
-          </template>
-          <div v-if="loading" class="side-element__note"><q-spinner size="14px" /> loading…</div>
-          <div v-else-if="!rows.length && !forkConfirm" class="side-element__note">
+          <MiniVotesScope v-if="pathRefs[section] && (totals[section] || 0) > 0">
+            <PathMini
+              :key="section + ':' + pathRefs[section] + ':' + totals[section]"
+              class="side-element__path"
+              :ref-or-id="pathRefs[section]"
+              layout="vertical"
+              mode="enriched"
+            />
+          </MiniVotesScope>
+          <div v-else-if="loading" class="side-element__note"><q-spinner size="14px" /> loading…</div>
+          <div v-else-if="!forkConfirm" class="side-element__note">
             {{ section === 'comments' ? 'No comments yet.' : 'No forks yet.' }}
           </div>
-          <button
-            v-if="!loading && rows.length < (totals[section] || 0)"
-            type="button" class="side-element__more" @click="load(true)"
-          >
-            {{ (totals[section] || 0) - rows.length }} more
-          </button>
         </template>
       </div>
     </section>
+
+    <div
+      class="side-element__split side-element__split--thread"
+      :class="{ 'is-dragging': dragging === 'thread' }"
+      role="separator"
+      tabindex="0"
+      :aria-orientation="axes.thread === 'x' ? 'vertical' : 'horizontal'"
+      :aria-valuenow="shareNow('thread')"
+      aria-valuemin="0"
+      aria-valuemax="100"
+      aria-label="Resize the comments and the references"
+      title="Drag to resize · double-click to reset"
+      @pointerdown="beginSplit('thread', $event)"
+      @dblclick="resetSplit('thread')"
+      @keydown="keySplit('thread', $event)"
+    />
 
     <SideReferences
       :key="'refs:' + el.address"
@@ -178,11 +231,11 @@
 </template>
 
 <script>
-import { defineComponent, ref, computed, watch } from 'vue'
+import { defineComponent, ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
 import FeedStream from 'src/components/posts/FeedStream.vue'
 import ElementCard from 'src/components/shared/ElementCard.vue'
-import MicroChip from 'src/components/shared/MicroChip.vue'
-import PostCommentItem from 'src/components/posts/PostCommentItem.vue'
+import PathMini from 'src/components/paths/PathMini.vue'
+import MiniVotesScope from 'src/components/shared/MiniVotesScope.vue'
 import CommentMaker from 'src/components/comments/CommentMaker.vue'
 import ForkConfirmPanel from 'src/components/nodes/ForkConfirmPanel.vue'
 import SideReferences from 'src/components/viewer/SideReferences.vue'
@@ -197,16 +250,36 @@ const SECTIONS = [
   { key: 'comments', word: 'Comments', icon: 'chat_bubble_outline' },
   { key: 'forks', word: 'Forks', icon: 'alt_route' }
 ]
-const PAGE = 20
 // The maker's comment-parent kind per element prefix (PostMakerSurface
 // routes node → its route, the skeleton family → the skeleton route, any
 // other kind → POST /refs/comment by address).
 const PARENT_KIND = { skeletons: 'skeleton', nodes: 'node', labels: 'label', paths: 'path', links: 'link' }
 const WORD = { skeletons: 'skeleton', nodes: 'node', labels: 'label', paths: 'path', links: 'link', moments: 'moment', secrets: 'secret', entities: 'entity' }
 
+// ── THE SPLITS (2026-11-04). Two dividers, each with a SHARE per axis — the
+// layout flips with the viewer's width (container queries below), so the
+// side's share across a row (x) and down a stack (y) are two numbers, and
+// so are the thread's. A share is the fraction of the dividing box the
+// SECOND pane takes for `side` (the column beside the face) and the FIRST
+// for `thread` (the thread over / beside the references). Remembered per
+// browser — a viewer convenience, never state anyone else needs.
+const SPLIT_KEY = 'pathos_side_split'
+// The floors a drag (and the CSS clamp on a stored share) keeps, in px.
+const SPLIT_MIN = {
+  side: { x: [200, 240], y: [90, 120] }, // [the side's floor, the face's floor]
+  thread: { x: [140, 140], y: [32, 72] } // [the thread's floor, the references' floor]
+}
+const readSplit = () => {
+  try {
+    const s = JSON.parse(localStorage.getItem(SPLIT_KEY) || '{}')
+    return (s && typeof s === 'object') ? s : {}
+  } catch (_) { return {} }
+}
+const pct = (f) => (Math.round(f * 10000) / 100) + '%'
+
 export default defineComponent({
   name: 'SideElementView',
-  components: { FeedStream, ElementCard, MicroChip, PostCommentItem, CommentMaker, ForkConfirmPanel, SideReferences },
+  components: { FeedStream, ElementCard, PathMini, MiniVotesScope, CommentMaker, ForkConfirmPanel, SideReferences },
   props: {
     // A feed item (`GET /feed` row) — the element is that POST, drawn as
     // its postcard. Either this or `address`.
@@ -245,55 +318,41 @@ export default defineComponent({
     const kindWord = computed(() => (props.item ? 'post' : WORD[el.value?.kind]) || 'element')
 
     const section = ref(props.initialSection === 'forks' ? 'forks' : 'comments')
-    const rows = ref([])
     const totals = ref({ comments: null, forks: null })
     const supported = ref({ comments: true, forks: true })
+    // ⭐ 2026-11-04: each section's HOLDER PATH (`pathRef`, 'paths/<hash>') —
+    // the section draws it as its PathMini; the rows themselves are the
+    // mini's to walk.
+    const pathRefs = ref({ comments: null, forks: null })
     const loading = ref(false)
     const listEl = ref(null)
 
-    // The tallies of BOTH sections (the bar shows both) — one row each.
-    const loadTotals = async () => {
+    // BOTH sections in one go (the bar shows both tallies): one row each,
+    // for the total, the support verdict and the holder path.
+    let seq = 0
+    const reload = async () => {
       if (!el.value) return
+      const my = ++seq
+      loading.value = true
       const [c, f] = await Promise.all([
         refService.comments(el.value.address, { limit: 1 }).catch(() => null),
         refService.forks(el.value.address, { limit: 1 }).catch(() => null)
       ])
+      if (my !== seq) return
       totals.value = { comments: c?.total ?? 0, forks: f?.total ?? 0 }
       supported.value = { comments: c?.supported !== false, forks: f?.supported !== false }
+      pathRefs.value = { comments: c?.pathRef || null, forks: f?.pathRef || null }
       if (card.value) {
         card.value = { ...card.value, comment_count: totals.value.comments, fork_count: totals.value.forks }
       }
+      loading.value = false
     }
-
-    let seq = 0
-    const load = async (more = false) => {
-      if (!el.value) return
-      const my = ++seq
-      loading.value = true
-      const offset = more ? rows.value.length : 0
-      try {
-        const r = section.value === 'forks'
-          ? await refService.forks(el.value.address, { limit: PAGE, offset })
-          : await refService.comments(el.value.address, { limit: PAGE, offset })
-        if (my !== seq) return
-        rows.value = more ? rows.value.concat(r.items || []) : (r.items || [])
-        totals.value = { ...totals.value, [section.value]: r.total ?? 0 }
-        supported.value = { ...supported.value, [section.value]: r.supported !== false }
-      } catch (_) {
-        if (my === seq && !more) rows.value = []
-      }
-      if (my === seq) loading.value = false
-    }
-
-    const reload = async () => { await Promise.all([loadTotals(), load(false)]) }
 
     const show = (slot) => {
       const next = slot === 'forks' ? 'forks' : 'comments'
       if (next === section.value) return
       section.value = next
       forkConfirm.value = false
-      rows.value = []
-      load(false)
       if (listEl.value) listEl.value.scrollTop = 0
     }
 
@@ -373,7 +432,7 @@ export default defineComponent({
 
     watch(() => [props.item?.skeleton_id, props.address], async () => {
       card.value = props.item ? { ...props.item } : null
-      rows.value = []
+      pathRefs.value = { comments: null, forks: null }
       composing.value = false
       forkConfirm.value = false
       fills.value = false
@@ -383,7 +442,149 @@ export default defineComponent({
 
     watch(() => props.initialSection, (s) => show(s))
 
+    // ── THE SPLITS (2026-11-04 — the notes at SPLIT_KEY above) ────────────
+    const layoutEl = ref(null)
+    const sideEl = ref(null)
+    const threadEl = ref(null)
+    const split = ref(readSplit()) // { side: { x, y }, thread: { x, y } }
+    const dragging = ref('')
+    // Which way each divider runs right now: `x` = it parts a ROW (the bar
+    // is vertical, a sideways drag), `y` = it parts a STACK. Read off the
+    // live flex direction the container queries set, so the thresholds
+    // stay written once (in the styles).
+    const axes = ref({ side: 'x', thread: 'y' })
+    const axisOf = (box) => (box && getComputedStyle(box).flexDirection.startsWith('row')) ? 'x' : 'y'
+    const readAxes = () => {
+      axes.value = { side: axisOf(layoutEl.value), thread: sideEl.value ? axisOf(sideEl.value) : 'y' }
+    }
+    let ro = null
+    onMounted(() => {
+      readAxes()
+      if (typeof ResizeObserver !== 'undefined' && layoutEl.value) {
+        ro = new ResizeObserver(readAxes)
+        ro.observe(layoutEl.value)
+      }
+    })
+    onBeforeUnmount(() => { if (ro) ro.disconnect() })
+    watch(el, () => setTimeout(readAxes, 0))
+
+    // The stored shares → the layout's dials. Each share is clamped again
+    // in CSS against the box it divides, so a share taken in a wide viewer
+    // never squeezes a pane under its floor once the viewer narrows.
+    const splitStyle = computed(() => {
+      const s = split.value
+      const out = {}
+      const [sx0, sx1] = SPLIT_MIN.side.x
+      const [sy0, sy1] = SPLIT_MIN.side.y
+      const [tx0, tx1] = SPLIT_MIN.thread.x
+      const [ty0, ty1] = SPLIT_MIN.thread.y
+      if (s.side?.x != null) out['--sev-side-w'] = `clamp(${sx0}px, ${s.side.x * 100}cqw, calc(100cqw - ${sx1}px))`
+      if (s.side?.y != null) out['--sev-side-h'] = `clamp(${sy0}px, ${s.side.y * 100}cqh, calc(100cqh - ${sy1}px))`
+      if (s.thread?.y != null) {
+        out['--sev-thread-flex-y'] = `0 0 clamp(${ty0}px, ${pct(s.thread.y)}, calc(100% - ${ty1}px))`
+        out['--sev-thread-max-y'] = 'none'
+      }
+      if (s.thread?.x != null) out['--sev-thread-flex-x'] = `0 0 clamp(${tx0}px, ${pct(s.thread.x)}, calc(100% - ${tx1}px))`
+      return out
+    })
+    const saveSplit = () => {
+      try { localStorage.setItem(SPLIT_KEY, JSON.stringify(split.value)) } catch (_) { /* a private window keeps it for the session */ }
+    }
+    const setShare = (which, axis, f) => {
+      split.value = { ...split.value, [which]: { ...(split.value[which] || {}), [axis]: Math.round(f * 10000) / 10000 } }
+    }
+    // The box a divider parts, and the pane whose size IS the share.
+    const boxOf = (which) => which === 'side' ? layoutEl.value : sideEl.value
+    const paneOf = (which) => which === 'side' ? sideEl.value : threadEl.value
+    const sizeOf = (node, axis) => {
+      const r = node.getBoundingClientRect()
+      return axis === 'x' ? r.width : r.height
+    }
+    // A pane size in px → a share, held between the two panes' floors.
+    const shareFor = (which, axis, size, boxSize, barT) => {
+      const [lo0, hi0] = SPLIT_MIN[which][axis]
+      const hi = boxSize - barT - hi0
+      const px = Math.max(Math.min(lo0, hi), Math.min(hi, size))
+      return boxSize > 0 ? px / boxSize : 0
+    }
+
+    const beginSplit = (which, e) => {
+      if (e.button !== 0) return
+      const bar = e.currentTarget
+      const box = boxOf(which)
+      const pane = paneOf(which)
+      if (!box || !pane) return
+      e.preventDefault()
+      const axis = axisOf(box)
+      const boxSize = sizeOf(box, axis)
+      const barT = sizeOf(bar, axis)
+      const start = sizeOf(pane, axis)
+      const p0 = axis === 'x' ? e.clientX : e.clientY
+      // The side is the SECOND pane (dragging toward it shrinks it); the
+      // thread the FIRST (dragging away grows it).
+      const sign = which === 'side' ? -1 : 1
+      try { bar.setPointerCapture(e.pointerId) } catch (_) { /* old engines: the listeners still run */ }
+      dragging.value = which
+      const move = (ev) => {
+        const d = (axis === 'x' ? ev.clientX : ev.clientY) - p0
+        setShare(which, axis, shareFor(which, axis, start + sign * d, boxSize, barT))
+      }
+      const end = () => {
+        bar.removeEventListener('pointermove', move)
+        bar.removeEventListener('pointerup', end)
+        bar.removeEventListener('pointercancel', end)
+        dragging.value = ''
+        saveSplit()
+      }
+      bar.addEventListener('pointermove', move)
+      bar.addEventListener('pointerup', end)
+      bar.addEventListener('pointercancel', end)
+    }
+
+    // Back to the layout's own proportion — for the axis the divider runs
+    // on now (the other axis keeps whatever it was given).
+    const resetSplit = (which) => {
+      const axis = axes.value[which]
+      const next = { ...(split.value[which] || {}) }
+      delete next[axis]
+      split.value = { ...split.value, [which]: next }
+      saveSplit()
+    }
+
+    // The keyboard: arrows step the BAR 2% of its box (toward the start —
+    // left / up — or the end), Home resets.
+    const keySplit = (which, e) => {
+      const axis = axes.value[which]
+      if (e.key === 'Home') { e.preventDefault(); resetSplit(which); return }
+      const back = axis === 'x' ? 'ArrowLeft' : 'ArrowUp'
+      const fwd = axis === 'x' ? 'ArrowRight' : 'ArrowDown'
+      if (e.key !== back && e.key !== fwd) return
+      e.preventDefault()
+      const box = boxOf(which)
+      const pane = paneOf(which)
+      if (!box || !pane) return
+      const boxSize = sizeOf(box, axis)
+      const bar = e.currentTarget
+      const step = 0.02 * boxSize * (e.key === fwd ? 1 : -1) * (which === 'side' ? -1 : 1)
+      setShare(which, axis, shareFor(which, axis, sizeOf(pane, axis) + step, boxSize, sizeOf(bar, axis)))
+      saveSplit()
+    }
+    const shareNow = (which) => {
+      const f = split.value[which]?.[axes.value[which]]
+      return f == null ? undefined : Math.round(f * 100)
+    }
+
     return {
+      layoutEl,
+      sideEl,
+      threadEl,
+      dragging,
+      axes,
+      splitStyle,
+      beginSplit,
+      resetSplit,
+      keySplit,
+      shareNow,
       SECTIONS,
       fills,
       onResolved,
@@ -392,12 +593,11 @@ export default defineComponent({
       el,
       kindWord,
       section,
-      rows,
+      pathRefs,
       totals,
       supported,
       loading,
       listEl,
-      load,
       reload,
       show,
       composing,
@@ -429,6 +629,46 @@ export default defineComponent({
   min-height: 0;
   display: flex;
   container-type: size;
+  // NAMED (2026-11-04): the narrow queries below also restyle the CARD
+  // (`:deep(.post-square)`), whose nearest container is one of FeedStream's
+  // own — an unnamed query read THAT box (≈ the face's width, always under
+  // 620) and squared the card's corner on a wide viewer.
+  container-name: side-element;
+  // ⭐ 2026-11-04 — ONE FLOOR, ONE CORNER (user ask: "the background color
+  // for all 3 sections is the same as the content container on the bigger
+  // section, on the same tone of grey … the aesthetic of the three sections
+  // consistent"; "remove the outer padding around them and make their corner
+  // roundness match the roundness of their containers").
+  //   `--sev-floor`  the post card's PIT coat (`--pit-coat`, grey-1) — the
+  //                  floor of the face, the thread and the references alike
+  //                  (the two side boxes stood on grey-2 until today).
+  //   `--sev-r`      the corner a section's box takes where it meets the
+  //                  VIEWER's own rounded corner — the viewer's radius seen
+  //                  from inside its 1px rim (`--side-viewer-inner-r`: the
+  //                  flyout coat's 10px less the rim = 9px; 0 on the phone
+  //                  strip, which is square). Every corner a
+  //                  box turns against a divider or the header rail is
+  //                  square: the sections stand flush, so a rounded corner
+  //                  there would open a notch of the viewer's grey.
+  --sev-floor: var(--grey-1, #fafafa);
+  --sev-r: var(--side-viewer-inner-r, 9px);
+  // ⭐ THE FRAME (2026-11-04, user ask: "the content container … a grey
+  // layout outside the content container and then a white inner content
+  // container with slightly rounded corners … apply the gray frame onto the
+  // other sections on the right so they look consistent"): every section is
+  // the CARD's grammar — a grey FRAME (`--sev-frame`, the card's own coat,
+  // grey-4) with its head on it and its content in a PIT (`--sev-floor`,
+  // a 1px grey-5 rim, `--sev-pit-r` = the card's `--pit-r`, set
+  // `--sev-pit-m` inside the frame — the card pit's own 3px 4px 4px).
+  --sev-frame: var(--card-coat, var(--grey-4, #e0e0e0));
+  --sev-pit-r: 6.34px;
+  --sev-pit-m: 3px 4px 4px;
+}
+// While a divider is dragged: no text selection, and no embed (an iframe is
+// another document) may swallow the pointer under the moving bar.
+.side-element.is-splitting {
+  user-select: none;
+  :deep(iframe) { pointer-events: none; }
 }
 .side-element__layout {
   flex: 1 1 auto;
@@ -436,15 +676,18 @@ export default defineComponent({
   min-height: 0;
   display: flex;
   flex-direction: row;
-  gap: 8px;
+  // ⭐ 2026-11-04 — no gap: the DIVIDERS part the sections (8px of the
+  // viewer's grey stood between them since 2026-11-02).
+  gap: 0;
   // THE SIDE'S WIDTH — the element first (the ask: "prioritizing the element
   // is fully displayed"): ~36% of the viewer, never under 240px (a comment
   // card's floor) nor over 380px (past that the face gives up reading width
-  // for a list). THE THREAD'S CEILING — its share of the side's height at
-  // most; under it the box is its content's height (an empty thread is its
-  // bar and one line), and the references take everything it leaves.
+  // for a list). A DRAG replaces it (`splitStyle`, inline on this element:
+  // the stored share, clamped to the floors). THE THREAD — by default its
+  // content's height, at most half the side (an empty thread is its bar and
+  // one line), the references taking everything it leaves; a drag gives it
+  // a fixed share instead (`--sev-thread-flex-y` + `--sev-thread-max-y`).
   --sev-side-w: clamp(240px, 36cqw, 380px);
-  --sev-thread-share: 50%;
 }
 
 // THE FACE — every pixel the side leaves, the card stretched to its height.
@@ -455,7 +698,89 @@ export default defineComponent({
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  background: var(--sev-frame);
 }
+
+// ── THE CORNERS (2026-11-04). The card fills its section to the edge now,
+// so it turns where the section turns: square under the header rail and
+// against the divider, the viewer's own corner at the bottom left. (The
+// card's PIT keeps its 6.34 — it is the card's inner box, not the
+// section's.) A face with no column beside it (an element still resolving)
+// owns both bottom corners.
+.side-element__card :deep(.post-square),
+.side-element__card-host :deep(.element-card) {
+  border-radius: 0 0 0 var(--sev-r);
+}
+.side-element__face:only-child .side-element__card :deep(.post-square),
+.side-element__face:only-child .side-element__card-host :deep(.element-card) {
+  border-radius: 0 0 var(--sev-r) var(--sev-r);
+}
+// NO INNER RING (2026-11-04, user ask: "remove the subtle inner white
+// border"): the card's veil (`::before`, the frosted sheet over its coat)
+// carries a 1px grey-1 ring at 7px corners — inside a flush, square-cornered
+// section it read as a white hairline inside the rim and notched the three
+// square corners. Here the veil keeps its job but drops the ring and turns
+// with the card.
+.side-element__card :deep(.post-square)::before,
+.side-element__card-host :deep(.element-card)::before {
+  border: 0;
+  border-radius: inherit;
+}
+
+// ── THE DIVIDERS (2026-11-04, user ask — the template note): the header
+// rail's material, thinned. The rail is 2px cream LIPS round a 3-row
+// checker in the kind's ink; a divider is 1px lips (`--plaque-flat`, the
+// coat as one flat colour — a border takes a <color>, never the coat's
+// layer list) round ONE 1px line in that same ink (`--side-viewer-plate`,
+// set by SideViewer per shown kind), 3px in all, running wall to wall with
+// bare ends like the rail. It meets the boxes' own grey-5 rims on both
+// faces, so it reads rim · lip · line · lip · rim — the rail's sandwich.
+// The grab is wider than the paint: `::before` reaches 4px over each
+// neighbour, so a 3px bar is still easy to take. Hover, focus and a drag
+// light the line in the kind's own colour (the rail's lip line).
+.side-element__split {
+  --sev-split-lip: 1px;
+  --sev-split-line: 1px;
+  // The grab's reach past each face: 4px beyond the PAINT — an absolute
+  // pseudo is placed from the padding box, inside the lips, so the lip is
+  // added back or the reach comes up a pixel short on both sides.
+  --sev-split-grab: calc(-4px - var(--sev-split-lip));
+  position: relative;
+  z-index: 4;
+  flex: 0 0 calc(2 * var(--sev-split-lip) + var(--sev-split-line));
+  align-self: stretch;
+  box-sizing: border-box;
+  min-width: 0;
+  min-height: 0;
+  background: var(--side-viewer-plate, var(--indigo-10, #1a237e));
+  border: 0 solid var(--plaque-flat, #f8f2e4);
+  touch-action: none;
+  outline: none;
+  transition: background-color 0.15s;
+  &::before {
+    content: '';
+    position: absolute;
+  }
+  &:hover,
+  &:focus-visible,
+  &.is-dragging {
+    background: var(--side-viewer-lip, var(--indigo-6, #3949ab));
+  }
+}
+// A bar between two panes side by side (a sideways drag) …
+@mixin sev-split-x {
+  cursor: col-resize;
+  border-width: 0 var(--sev-split-lip);
+  &::before { top: 0; bottom: 0; left: var(--sev-split-grab); right: var(--sev-split-grab); }
+}
+// … and one between two stacked panes.
+@mixin sev-split-y {
+  cursor: row-resize;
+  border-width: var(--sev-split-lip) 0;
+  &::before { left: 0; right: 0; top: var(--sev-split-grab); bottom: var(--sev-split-grab); }
+}
+.side-element__split--side { @include sev-split-x; }
+.side-element__split--thread { @include sev-split-y; }
 
 // THE CARD AT FULL HEIGHT. The post card is FeedStream's embed (pane → well
 // → stream → block → `.post-square`), each a content-height column; flexed
@@ -563,45 +888,62 @@ export default defineComponent({
   min-height: 0;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 0;
 }
 
 // THE THREAD BOX — a whole box since 2026-11-02 (it hung off the card's
 // foot with a shared rim from 2026-10-07): the card's line ink (`--grey-5`)
-// for its rim, the card's corner (`--pit-r`), the grey-2 floor.
+// for its rim. ⭐ 2026-11-04: flush in its section — the pit's floor
+// (`--sev-floor`, grey-2 until today), square corners (it meets the header
+// rail and two dividers; the narrow layouts give it the viewer's corner).
 .side-element__thread {
-  flex: 0 1 auto;
-  max-height: var(--sev-thread-share);
+  flex: var(--sev-thread-flex-y, 0 1 auto);
+  max-height: var(--sev-thread-max-y, 50%);
   min-height: 0;
   display: flex;
   flex-direction: column;
-  background: var(--grey-2, #eeeeee);
+  background: var(--sev-frame);
   border: 1px solid var(--grey-5, #bdbdbd);
-  border-radius: var(--pit-r, 6.34px);
+  border-radius: 0;
   overflow: hidden;
 }
 
-// THE REFERENCES BOX — the rest of the side (`SideReferences` draws it).
+// THE REFERENCES BOX — the rest of the side (`SideReferences` draws it; its
+// floor reads `--sev-floor` too). Two classes so this host's corner beats
+// the component's own rule whatever order the two sheets land in.
 .side-element__refs {
   flex: 1 1 0;
-  min-height: 120px;
+  min-height: 72px;
+}
+.side-element__side .side-element__refs {
+  border-radius: 0 0 var(--sev-r) 0;
 }
 
 // ── NARROW (a squeezed track, the phone strip): the face over the side,
 // the side's two boxes side by side at 42% of the height; under 420px the
-// two boxes stack too, each half of that.
-@container (max-width: 620px) {
+// two boxes stack too, each half of that. The dividers turn with them —
+// the side's runs across, the thread's stands up between the two boxes
+// (and lies down again under 420) — and so do the corners.
+@container side-element (max-width: 620px) {
   .side-element__layout { flex-direction: column; }
   .side-element__face { flex: 1 1 0; }
   .side-element__side {
-    flex: 0 0 42cqh;
+    flex: 0 0 var(--sev-side-h, 42cqh);
     flex-direction: row;
   }
-  .side-element__thread,
-  .side-element__refs { flex: 1 1 0; min-width: 0; max-height: none; min-height: 0; }
+  .side-element__thread { flex: var(--sev-thread-flex-x, 1 1 0); min-width: 0; max-height: none; min-height: 0; }
+  .side-element__refs { flex: 1 1 0; min-width: 0; min-height: 0; }
+  .side-element__split--side { @include sev-split-y; }
+  .side-element__split--thread { @include sev-split-x; }
+  .side-element__card :deep(.post-square),
+  .side-element__card-host :deep(.element-card) { border-radius: 0; }
+  .side-element__thread { border-radius: 0 0 0 var(--sev-r); }
 }
-@container (max-width: 420px) {
+@container side-element (max-width: 420px) {
   .side-element__side { flex-direction: column; }
+  .side-element__thread { flex: var(--sev-thread-flex-y, 1 1 0); border-radius: 0; }
+  .side-element__split--thread { @include sev-split-y; }
+  .side-element__side .side-element__refs { border-radius: 0 0 var(--sev-r) var(--sev-r); }
 }
 
 // Writing: the CommentMaker (`fill`) takes the box below the bar.
@@ -610,6 +952,11 @@ export default defineComponent({
   min-height: 0;
   display: flex;
   padding: 4px;
+  margin: var(--sev-pit-m);
+  background: var(--sev-floor);
+  border: 1px solid var(--grey-5, #bdbdbd);
+  border-radius: var(--sev-pit-r);
+  overflow: hidden;
 }
 
 .side-element__bar {
@@ -618,8 +965,10 @@ export default defineComponent({
   align-items: stretch;
   gap: 2px;
   padding: 2px;
-  border-bottom: 1px solid var(--grey-5, #bdbdbd);
-  background: var(--grey-3, #e0e0e0);
+  // ON THE FRAME since 2026-11-04 (a grey-3 band over a grey-5 line before):
+  // the head of the section the way the cap is the card's — the pit's rim
+  // under it is the only line.
+  background: transparent;
   font-family: var(--font-display);
   font-size: 0.72em;
   letter-spacing: 0.02em;
@@ -658,11 +1007,20 @@ export default defineComponent({
   background: var(--grey-1, #fafafa);
 }
 
+// The list IS the section's pit (2026-11-04): the card's content container,
+// inset in the frame.
 .side-element__list {
   flex: 1 1 auto;
   min-height: 0;
   overflow-y: auto;
+  margin: var(--sev-pit-m);
+  background: var(--sev-floor);
+  border: 1px solid var(--grey-5, #bdbdbd);
+  border-radius: var(--sev-pit-r);
   padding: 6px;
+  // The pit is the ONE scroller (2026-11-04): the path mini inside lifts its
+  // own lane cap, so a long thread scrolls here, not in a box in a box.
+  --path-lane-max-h: none;
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -671,38 +1029,4 @@ export default defineComponent({
 
 .side-element__composer { flex: 0 0 auto; }
 
-.side-element__row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  min-width: 0;
-  font-size: 0.8em;
-  &.is-locked { color: rgba(var(--ink-rgb), 0.5); gap: 4px; }
-}
-.side-element__row-text {
-  flex: 1 1 auto;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.side-element__row-by { color: rgba(var(--ink-rgb), 0.5); flex-shrink: 0; }
-
-.side-element__note {
-  color: rgba(var(--ink-rgb), 0.55);
-  font-size: 0.8em;
-  padding: 4px 0;
-  &.is-error { color: var(--red-10, #b71c1c); }
-}
-
-.side-element__more {
-  align-self: flex-start;
-  border: 0;
-  background: transparent;
-  color: rgba(var(--ink-rgb), 0.6);
-  font-size: 0.76em;
-  cursor: pointer;
-  padding: 2px 0;
-  &:hover { color: rgba(var(--ink-rgb), 0.95); }
-}
 </style>

@@ -7,7 +7,11 @@
        The side viewer's HEAD, built from the feed's own Talavero board
        material (FeedHeadBox's talk pit): the seat's face at the left of a
        carved `--brown-1` pit, then ONE bubble — `--indigo-8` rim, Nasalization
-       — holding two pill dropdowns and the field:
+       — holding two pill dropdowns and the field (⭐ 2026-11-04: the pit's
+       floor is the shown element's INK — the rail checker's dark tiles — and
+       the face + the field sit in a light-cream ROOM, FeedHeadBox's talk room
+       at one line, its corners the feed board's, the pills and a veil over
+       the face and the field in the element's tone — the style notes):
          · WHAT  — All, or one kind (posts, people, labels, nodes, paths,
                    schemas, moments, links), each in its kinds.js colour;
          · WHERE — open a hit in the side viewer (default) or as a window.
@@ -26,15 +30,23 @@
        Keys: `/` focuses (outside any field), ↑ ↓ walk, Enter opens, Esc
        closes. -->
   <div ref="rootEl" class="side-search" :class="{ 'is-open': open }">
+    <!-- ⭐ 2026-11-04 — THE ROOM (user ask: "make this bubble look the same
+         as the feed container talavero board … a clear light bubble with the
+         talavero and the input bubble inside, except … a single-line one"):
+         FeedHeadBox's talk room at one line — a light-cream room on the dark
+         body, the seat's face and the field inside it. -->
+    <div class="side-search__room">
     <span class="side-search__seat" :class="{ 'is-thinking': pending > 0 }" :title="seatName + ' finds things for you'">
       <EntityAvatar :entity="seatEntity" :size="24" />
     </span>
 
     <div class="side-search__bubble">
+      <!-- Both pills wear the SHOWN element's tone (2026-11-04: "make the
+           buttons … match the color of the given reviewed element"); the
+           scope's own colour stays on its glyph in the menu. -->
       <button
         type="button"
         class="side-search__pill"
-        :style="{ '--pill-tone': kindMeta.color }"
         :title="'Search in: ' + kindMeta.word"
         @mousedown.prevent
       >
@@ -93,6 +105,7 @@
           </button>
         </q-menu>
       </button>
+    </div>
     </div>
 
     <!-- THE DROP: grouped by kind, drawn as each kind answers. -->
@@ -376,62 +389,131 @@ export default defineComponent({
 </script>
 
 <style scoped lang="scss">
-// ── THE PIT: Talavero's talk room at header scale — FeedHeadBox's
-// `.feed-head__half--talk` floor (`--brown-1`, carved by an inset shadow),
-// the seat's face at its left, the bubble filling the rest.
+// ── THE BOARD: Talavero's talk room at header scale — FeedHeadBox's talk
+// half, one line tall.
+// ⭐ 2026-11-04, the day's four asks, in order:
+//   1. "reduce the outer padding around talavero's pic and … the bubble …
+//      make those item's outer thick border … exactly the same as the lips"
+//      — the pad came down to 3px; the 2px cream LIP rims it asked for are
+//      now THE ROOM's own cream (ask 3), the room being the rail lips' tone.
+//   2. "the background color of the side viewer's header … use the same dark
+//      one as the tiles on the checkered frieze bar" — THE BODY is the shown
+//      element's INK (`--side-viewer-plate`, kinds.js `ink`, set by
+//      SideViewer per stop: posts indigo-10, nodes teal-10, labels red-10 …),
+//      flat like the feed board's indigo-8 body. (`--brown-1` carved before;
+//      the kind's lighter `color` for an hour — "too light".)
+//   3. "make this bubble look the same as the feed container talavero board
+//      … a clear light bubble with the talavero and the input bubble inside
+//      … single-line … keep the current occupied space, but if needed, make
+//      the section slightly bigger … make the buttons and add an overlay over
+//      talavero's pic and the input bubble match the color of the given
+//      reviewed element" — THE ROOM: `--light-cream` (the feed room's face)
+//      in a 1px rim of the element's tone lightened (`--ssb-rim`, 70% tone +
+//      white: for a post that IS the feed room's indigo-4), 3px pad, the face
+//      and the FIELD inside it; the field the feed's chat field (brown-1
+//      face, the same carve, a 1px `--ssb-rim`), one line; a VEIL of the
+//      element's tone over the face (`--ssb-veil`, 30%) and a WASH over the
+//      field's face (`--ssb-wash`, 12% — under its contents, so the words
+//      and pills stay crisp); both pills in the tone. The head grew 34 → 38
+//      (3 + room 32 + 3) — "slightly bigger", to seat a 24px field.
+//   4. "match the roundness of the feed container talavero board so they
+//      look like they're of the same kind" — the feed board's own numbers:
+//      the room 13px (`--fhead-talk-r`), the field 12px (`--fhead-chat-r`),
+//      the face 40% (the feed seat's avatar); the pills stay CONCENTRIC with
+//      the field (ask of the same morning: "their roundness match the
+//      roundness of their containers") — 12 − 1 − 2 = 9px on an 18px pill,
+//      a capsule again because the field turned rounder.
 .side-search {
+  --ssb-pad: 3px;          // the body round the room (the feed body's 3px)
+  --ssb-room-pad: 3px;     // the room round its face + field (the feed room's)
+  --ssb-room-r: 13px;      // FeedHeadBox `--fhead-talk-r`
+  --ssb-field-h: 24px;     // the one line: the field's and the face's height
+  --ssb-field-r: 12px;     // FeedHeadBox `--fhead-chat-r`
+  --ssb-field-rim: 1px;
+  --ssb-inset: 2px;        // the field's inner pad round its pills
+  --ssb-tone: var(--side-viewer-lip, var(--indigo-6, #3f51b5));
+  --ssb-rim: color-mix(in srgb, var(--ssb-tone) 70%, white);
+  --ssb-veil: color-mix(in srgb, var(--ssb-tone) 30%, transparent);
+  --ssb-wash: color-mix(in srgb, var(--ssb-tone) 12%, transparent);
   position: relative;
   height: 100%;
   display: flex;
   align-items: center;
-  gap: 7px;
-  padding: 4px 8px;
-  background: var(--brown-1, #efebe9);
-  box-shadow: inset 0 1px 3px rgba(62, 39, 35, 0.28), inset 0 -1px 0 rgba(62, 39, 35, 0.12);
+  padding: var(--ssb-pad);
+  background: var(--side-viewer-plate, var(--indigo-8, #303f9f));
   font-family: var(--font-display);
+  transition: background-color 0.25s;
 }
 
+// THE ROOM — the clear light bubble that holds the face and the field.
+.side-search__room {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  padding: var(--ssb-room-pad);
+  background: var(--light-cream, #fcf3e0);
+  border: 1px solid var(--ssb-rim);
+  border-radius: var(--ssb-room-r);
+}
+
+// The face: the feed seat's avatar corner, the element's VEIL over it.
 .side-search__seat {
+  position: relative;
   flex: 0 0 auto;
   display: inline-flex;
-  border-radius: 7px;
-  box-shadow: 0 0 0 1.5px var(--indigo-8, #283593);
-  transition: box-shadow 0.2s;
-  &.is-thinking { animation: side-search-think 0.9s ease-in-out infinite alternate; }
+  border-radius: 40%;
+  :deep(.entity-avatar) { border-radius: 40%; }
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: var(--ssb-veil);
+    pointer-events: none;
+    transition: background-color 0.25s;
+  }
+  // Thinking: the veil breathes.
+  &.is-thinking::after { animation: side-search-think 0.9s ease-in-out infinite alternate; }
 }
 @keyframes side-search-think {
-  from { box-shadow: 0 0 0 1.5px var(--indigo-8, #283593); }
-  to { box-shadow: 0 0 0 3px var(--indigo-4, #7986cb); }
+  from { opacity: 1; }
+  to { opacity: 0.25; }
 }
 
-// The bubble: the feed board's chat field (`.feed-head__chat-input`) —
-// `--indigo-8` 2px rim, pale face, carved.
+// The field: the feed board's chat field (`.feed-head__chat-input`) at one
+// line — brown-1 face under the element's WASH, carved, a 1px rim in the
+// room's tone.
 .side-search__bubble {
   flex: 1 1 auto;
   min-width: 0;
-  height: 28px;
+  height: var(--ssb-field-h);
+  box-sizing: border-box;
   display: flex;
   align-items: center;
   gap: 4px;
-  padding: 0 3px;
-  border: 2px solid var(--indigo-8, #283593);
-  border-radius: 9px;
-  background: var(--grey-1, #fafafa);
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.12);
+  padding: 0 var(--ssb-inset);
+  border: var(--ssb-field-rim) solid var(--ssb-rim);
+  border-radius: var(--ssb-field-r);
+  background: linear-gradient(var(--ssb-wash), var(--ssb-wash)), var(--brown-1, #efebe9);
+  box-shadow:
+    inset 0 1.5px 4px rgba(var(--ink-rgb-deep, 31, 42, 56), 0.3),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.4);
 }
-.side-search.is-open .side-search__bubble { border-color: var(--indigo-10, #1a237e); }
 
-// THE CUTE DROPDOWNS: soft pills tinted by the kind they name.
+// THE DROPDOWNS: soft pills in the shown element's tone (ask 3), CONCENTRIC
+// with the field (ask 4 — its corner less its rim and the inset).
 .side-search__pill {
-  --pill-tone: var(--indigo-8, #283593);
+  --pill-tone: var(--ssb-tone);
   flex: 0 0 auto;
   display: inline-flex;
   align-items: center;
   gap: 3px;
-  height: 20px;
+  height: calc(var(--ssb-field-h) - 2 * var(--ssb-field-rim) - 2 * var(--ssb-inset));
   padding: 0 5px 0 6px;
   border: 1px solid color-mix(in srgb, var(--pill-tone) 55%, transparent);
-  border-radius: 999px;
+  border-radius: calc(var(--ssb-field-r) - var(--ssb-field-rim) - var(--ssb-inset));
   background: color-mix(in srgb, var(--pill-tone) 13%, white);
   color: var(--pill-tone);
   font: inherit;

@@ -13,8 +13,8 @@
        not closable, not a member of the floating-viewer family
        (`stores/flyoutViewers.js`), whose windows are fixed-position and
        float ABOVE this one. It wears that family's coat so the two read
-       as one material: `--grey-4` box, `--grey-6` rim, 10px corners (6px since
-       2026-10-02), the
+       as one material: `--grey-4` box, `--grey-6` rim, 10px corners (6px from
+       2026-10-02, 10px again since 2026-11-04), the
        same drop shadow (`ElementFlyout.vue`, `.element-flyout`).
 
        INSIDE, A COLUMN (2026-10-02 eve, user ask: "remove all friezebars
@@ -272,6 +272,10 @@ export default defineComponent({
     // post keeps the bar it always had: posts' ink IS `--indigo-10`.
     // ⭐ 2026-11-02: the plate is the checker's INK SQUARES now (their
     // partners are the coat lips' cream); the 1px lip line is unchanged.
+    // ⭐ 2026-11-04: two more wearers — the HEAD's floor (SideSearchBoard)
+    // takes the plate (the checker's dark tiles, the kind's INK), and the
+    // view's two draggable dividers (SideElementView `__split`) draw their
+    // one line in it too, lit in the lip tone on hover.
     const toneStyle = computed(() => {
       const k = kindFor(current.value?.kind || 'posts')
       return { '--side-viewer-plate': k.ink, '--side-viewer-lip': k.color }
@@ -371,7 +375,13 @@ export default defineComponent({
   // reserved for the viewer's header (2026-10-02 eve) — Talavero's search
   // board since 2026-10-07 eve.
   // 40px since 2026-10-07 eve: it holds Talavero's search board now.
-  --side-viewer-head-h: 40px;
+  // ⭐ 38px since 2026-11-04: 34 for an hour (user ask: "reduce the outer
+  // padding around talavero's pic and … the bubble" — the board's 28px
+  // objects + a 3px pad), then 38 when the board became the feed board's
+  // talk ROOM at one line ("if needed, make the section slightly bigger"):
+  // 3px body pad + the room's 1 + 3 + a 24px field + 3 + 1 + 3
+  // (SideSearchBoard `--ssb-*`).
+  --side-viewer-head-h: 38px;
   // THE DIVIDER — the old frame's top RAIL: 2px of `--plaque-coat` each
   // long face (the LIPS) round the bar, a 1px `--grey-6` rim on the face
   // toward the content. (Its 7px grey band round the old frame,
@@ -410,7 +420,14 @@ export default defineComponent({
   border: 1px solid var(--grey-6, #9e9e9e);
   // 6px since 2026-10-02 (user ask: "make the side viewer's corners a
   // little less rounded") — the one place it leaves the flyout coat's 10px.
-  border-radius: 6px;
+  // ⭐ 2026-11-04: a dial, and its INSIDE radius (less the 1px rim) is
+  // published for the flush sections, which turn this corner from within.
+  // ⭐ 10px AGAIN since 2026-11-04 (user ask: "make the corners of the side
+  // viewer match the roundness of the flyout viewers") — `.element-flyout`'s
+  // 10px, the coat it was born in; the flush boxes turn at 9 inside it.
+  --side-viewer-r: 10px;
+  --side-viewer-inner-r: calc(var(--side-viewer-r) - 1px);
+  border-radius: var(--side-viewer-r);
   overflow: hidden;
   box-shadow: 0 12px 34px rgba(0, 0, 0, 0.45);
 }
@@ -502,11 +519,15 @@ export default defineComponent({
 // SideElementView filling it wall to wall (the ask: the card "extending
 // inside its container below the side viewer's friezebar") — the 640px
 // reading cap that centred the card is gone; the view lays out its face
-// and its thread band itself. ⭐ 8px since 2026-11-02 (14 before — the ask:
-// the side-by-side layout "slightly denser"): the boxes' own gap.
+// and its thread band itself. 8px since 2026-11-02 (14 before — the ask:
+// the side-by-side layout "slightly denser"). ⭐ 0 SINCE 2026-11-04 (user
+// ask: "remove the outer padding around them"): the three sections stand
+// flush against the rail and the box's rim, parted by SideElementView's
+// draggable dividers, and their boxes turn the box's own corner
+// (`--side-viewer-inner-r`) where they meet it.
 .side-viewer__well {
   flex: 1 1 auto;
-  padding: 8px;
+  padding: 0;
   display: flex;
   justify-content: center;
   min-width: 0;
@@ -550,6 +571,8 @@ export default defineComponent({
     height: var(--header-y, 0px);
     margin: 0;
     border: none;
+    --side-viewer-r: 0px;
+    --side-viewer-inner-r: 0px;
     border-radius: 0;
     box-shadow: none;
     z-index: 3000;
