@@ -29,10 +29,9 @@ export const DOCK_MIN_H = 160
 // stood on the rail, before the window lets go of it. Hysteresis on purpose:
 // a horizontal slide along the bar wobbles vertically and must not detach.
 export const UNDOCK_PX = 32
-// The daylight a docked window keeps from the parked tabs it displaces — the
-// tab row's end fillet reaches ~14px past a tab's side (MediaTabsBar's
-// `--mtab-fillet-x`), plus a hair.
-export const DOCK_TAB_PAD = 16
+// (The parked tabs it hangs over stay put BEHIND it — the window paints over
+// the rail's row. `DOCK_TAB_PAD`, the daylight a docked window kept from the
+// tabs it displaced, went with THE PARTING the same day: MediaTabsBar.)
 
 export const railTop = ref(0)
 export const railBottom = ref(22)

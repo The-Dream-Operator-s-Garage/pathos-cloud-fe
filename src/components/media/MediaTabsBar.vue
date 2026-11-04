@@ -390,21 +390,21 @@
     <!-- ⭐ THE MEMBRANE (2026-09-29 EVE): the row paints it — a strip from
          the feed's right rail (`seamEdge`) to the screen's right end, past
          and under Forward, the tabs hanging out of it (style block). Only
-         while something is parked. -->
+         while something is parked.
+         ⭐ A WINDOW ATTACHED TO THE RAIL (the top dock, 2026-11-03 PM —
+         components/media/FlyoutTopDock) hangs where these tabs hang and
+         simply paints OVER them (a flyout's z 3140+ over the rail's 3125):
+         the tabs keep their slots behind it. THE PARTING — an open docked
+         window pushing the tabs to its sides through per-tab margins and
+         split fillets — shipped that afternoon and was retired within the
+         hour (user ask: "let's keep the tabs behind the attached window
+         instead of displacing it"). -->
     <TransitionGroup ref="rowEl" tag="div" name="mtab" class="media-tabs__row nasalization" :class="{ 'has-membrane': tabs.length > 0, 'is-railed': railed }" :style="membraneStyle" appear @scroll.passive="measurePages">
-      <!-- ⭐ THE PARTING (2026-11-03, the top dock): a window docked under
-           the rail displaces the tabs it would hang over to its sides — the
-           tab left of the gap carries the gap as its `margin-right` and
-           closes its end with a fillet (`is-split-r`), the tab right of it
-           opens with one (`is-split-l`); see `splits` in the script. -->
       <button
-        v-for="(t, i) in tabs"
+        v-for="t in tabs"
         :key="t.key"
         type="button"
         class="media-tabs__tab"
-        :class="{ 'is-split-r': splits[t.key] > 0, 'is-split-l': i > 0 && splits[tabs[i - 1].key] > 0 }"
-        :style="splits[t.key] > 0 ? { marginRight: splits[t.key] + 'px' } : null"
-        :data-key="t.key"
         :title="'restore ' + t.name"
         @click="t.restore()"
       >
@@ -444,7 +444,6 @@ import { seamEdge, seamRails, shiftSeam } from 'src/composables/useSeamAnchor'
 import { headerY, slideTo, rememberSlide, maxSlide, engageHeaderSlide, releaseHeaderSlide } from 'src/composables/useHeaderSlide'
 import { iconForTarget, titleOfTarget } from 'src/utils/mediaKind'
 import { phonePortrait } from 'src/composables/usePhonePortrait'
-import { dockedRectOf, DOCK_TAB_PAD } from 'src/composables/useTopDock'
 
 // (THE PHONE QUERY `MOBILE_Q` stood here 2026-09-26 → 09-29 EVE, feeding the
 // retired `isPhone` glyph swap — see the pair's template note.)
@@ -734,72 +733,8 @@ export default defineComponent({
     onMounted(() => { window.addEventListener('resize', measurePages); nextTick(() => measurePages()) })
     onBeforeUnmount(() => window.removeEventListener('resize', measurePages))
 
-    // ── ⭐ THE PARTING (2026-11-03, user ask: "When expanded, this attached
-    // window displaces the tabs around it to the sides") ─────────────────
-    // An OPEN docked window hangs from the rail's lip right where the parked
-    // tabs hang, so each one is an OBSTACLE on the row: its span, padded by
-    // `DOCK_TAB_PAD` for the end fillets. The row is laid out the way it
-    // reads — from its right end leftward (the oldest tab is the rightmost) —
-    // and a tab that would land on an obstacle jumps to the obstacle's left
-    // side; the jump is that tab's `margin-right`, which in a right-packed
-    // flex row pushes it AND everything left of it along. Widths are read,
-    // never positions, so the margins this writes never feed back into it.
-    // A tab with no room left of the obstacle stays put (under the window)
-    // rather than overflowing the row. Parked docked windows are buttons on
-    // the rail, not obstacles (they hang nothing). Never on a phone.
-    const obstacles = computed(() => {
-      if (phonePortrait.value || store.dockedViewers.length === 0) return []
-      return store.dockedViewers
-        .filter((v) => !v.minimized && !v.maximized)
-        .map((v) => {
-          const r = dockedRectOf(v)
-          return { l: r.x - DOCK_TAB_PAD, r: r.x + r.w + DOCK_TAB_PAD }
-        })
-        .sort((a, b) => b.l - a.l)
-    })
-    const splits = ref({})
-    const layoutSplits = () => {
-      const next = {}
-      const el = rowNode()
-      const obs = obstacles.value
-      if (el && obs.length) {
-        const cs = getComputedStyle(el)
-        const gap = parseFloat(cs.columnGap) || 0
-        const box = el.getBoundingClientRect()
-        const rowL = box.left + (parseFloat(cs.paddingLeft) || 0)
-        let cursor = box.right - (parseFloat(cs.paddingRight) || 0)
-        const els = [...el.children].filter((n) => n.classList.contains('media-tabs__tab') && !n.classList.contains('mtab-leave-active'))
-        for (let i = els.length - 1; i >= 0; i--) {
-          const w = els[i].getBoundingClientRect().width
-          let jump = 0
-          for (const o of obs) {
-            if (cursor - w < o.r && cursor > o.l && o.l - w >= rowL) {
-              jump += cursor - o.l
-              cursor = o.l
-            }
-          }
-          if (jump > 0) next[els[i].dataset.key] = Math.round(jump)
-          cursor -= w + gap
-        }
-      }
-      const prev = splits.value
-      const same = Object.keys(next).length === Object.keys(prev).length &&
-        Object.keys(next).every((k) => prev[k] === next[k])
-      if (!same) splits.value = next
-    }
-    watch([obstacles, tabs, seamEdge], () => {
-      nextTick(() => {
-        layoutSplits()
-        // the tabs' enter slide (0.16s) settles before a new tab's width is final
-        setTimeout(layoutSplits, 220)
-      })
-    }, { deep: true })
-    onMounted(() => window.addEventListener('resize', layoutSplits))
-    onBeforeUnmount(() => window.removeEventListener('resize', layoutSplits))
-
     return {
       tabs,
-      splits,
       rowEl,
       portrait: phonePortrait,
       page,
@@ -1828,7 +1763,7 @@ export default defineComponent({
   color: var(--grey-8, #616161);
   font-size: 0.7em; // ⭐ 09-28: a step larger (0.62em until then)
   cursor: pointer;
-  transition: background 0.12s, transform 0.12s, margin-right 0.14s ease; // margin: the parting slides
+  transition: background 0.12s, transform 0.12s;
 
   // Hover pulls the tab a little further out of the band — the same
   // "this one will answer" cue the side widgets use, stated as reach —
@@ -1905,7 +1840,7 @@ export default defineComponent({
   // (the row hangs off the padding box, so it lands on it — measured
   // `9e` across the whole gap), clipped with the strip to the rims so it
   // joins the two tabs' top borders edge to edge.
-  &:not(:last-child):not(.is-split-r)::after { // no web across a docked window's gap (THE PARTING)
+  &:not(:last-child)::after {
     content: '';
     position: absolute;
     z-index: 1;
@@ -1960,12 +1895,7 @@ export default defineComponent({
   // tab (`::before`), mirrored on the last (`::after` — the web's selector
   // is `:not(:last-child)`, so the two never meet; one tab wears both).
   &:first-child::before,
-  &:last-child::after,
-  // THE PARTING (2026-11-03): a group of tabs a docked window split off
-  // closes its ends the way the row does — `is-split-r` is the tab left of
-  // the gap, `is-split-l` the tab right of it (script: `splits`).
-  &.is-split-l::before,
-  &.is-split-r::after {
+  &:last-child::after {
     content: '';
     position: absolute;
     z-index: 1;
@@ -1978,8 +1908,7 @@ export default defineComponent({
     -webkit-mask-composite: source-in;
     mask-composite: intersect;
   }
-  &:first-child::before,
-  &.is-split-l::before {
+  &:first-child::before {
     left: calc(-1 * var(--mtab-rim) - (var(--mtab-fillet-x) - var(--mtab-r)));
     background: radial-gradient(circle at 0 calc(100% - var(--mtab-r) + var(--mtab-web-r)), var(--mtab-rim-ink) calc(var(--mtab-web-r) + var(--mtab-rim) - 0.4px), var(--mtab-membrane) calc(var(--mtab-web-r) + var(--mtab-rim) + 0.4px));
     clip-path: polygon(
@@ -1998,8 +1927,7 @@ export default defineComponent({
       radial-gradient(circle at 0 calc(100% - var(--mtab-r) + var(--mtab-web-r)), transparent calc(var(--mtab-web-r) - 0.4px), #000 calc(var(--mtab-web-r) + 0.4px)),
       radial-gradient(circle at 100% calc(100% - var(--mtab-r)), transparent calc(var(--mtab-r) - var(--mtab-rim) - 1.2px), #000 calc(var(--mtab-r) - var(--mtab-rim) - 0.4px));
   }
-  &:last-child::after,
-  &.is-split-r::after {
+  &:last-child::after {
     right: calc(-1 * var(--mtab-rim) - (var(--mtab-fillet-x) - var(--mtab-r)));
     background: radial-gradient(circle at 100% calc(100% - var(--mtab-r) + var(--mtab-web-r)), var(--mtab-rim-ink) calc(var(--mtab-web-r) + var(--mtab-rim) - 0.4px), var(--mtab-membrane) calc(var(--mtab-web-r) + var(--mtab-rim) + 0.4px));
     clip-path: polygon(

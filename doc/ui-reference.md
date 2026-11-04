@@ -606,7 +606,8 @@ User ask: drag a flyout window onto the top header nav bar and it ATTACHES
 there; a button the window's colour, with the parked tab's title and a drag
 icon, slides it along the bar; attached, the window drops to the side
 viewer's bottom edge, hung square-topped under the rail's lip; parked, only
-the button stays on the bar; open, it parts the parked tabs to its sides.
+the button stays on the bar; open, it hangs OVER the parked tabs, which keep
+their slots behind it.
 
 - **State** (`stores/flyoutViewers.js`): `docked` + `dockH` per viewer,
   persisted in the `__windows` tray (a reload keeps it attached). Docked, the
@@ -635,15 +636,16 @@ the button stays on the bar; open, it parts the parked tabs to its sides.
   shadow it stands in). `place()` leaves a docked window where it hangs when
   a ref resolves.
 - **The buttons** (`media/FlyoutTopDock.vue`, see its row).
-- **The parting** (`MediaTabsBar.vue` `splits`): each OPEN docked window is
-  an obstacle (its span ± `DOCK_TAB_PAD` 16); the row is walked from its
-  right end leftward and a tab that would land on an obstacle jumps left of
-  it — the jump is that tab's `margin-right` (`is-split-r`, its web replaced
-  by the row's end fillet); the tab right of the gap opens with the start
-  fillet (`is-split-l`). Widths are read, never positions, so the margins
-  never feed back. A tab with no room left of the obstacle stays put.
+- **The tabs stay BEHIND it** (`MediaTabsBar.vue` untouched): an open
+  docked window hangs exactly where the parked tabs hang and paints over
+  them (z 3140+ over the rail's 3125); every tab keeps its slot. ⚠ THE
+  PARTING — open docked windows pushing the tabs to their sides (per-tab
+  `margin-right` + `is-split-r` / `is-split-l` end fillets, `DOCK_TAB_PAD`)
+  — shipped the same afternoon and was RETIRED within the hour (user ask:
+  "let's keep the tabs behind the attached window instead of displacing
+  it").
 
 Witness: `flow-top-dock.mjs` (37 laws — attach, slide, lip, foot, shell,
 button coat/name/grip/centre/tab posture, the east rim, the button drag,
-the parting to both sides with its fillets, press park/restore, ←, reload,
+the tabs keeping their slots behind the window, press park/restore, ←, reload,
 the hysteresis, detach, phone).
