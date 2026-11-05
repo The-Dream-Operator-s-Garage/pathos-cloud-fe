@@ -435,16 +435,32 @@ export default defineComponent({
 //      curve to follow, so it is the soft floor — 3px, less round, not
 //      square. The top never drops below the floor (a phone's box is square:
 //      the room is 3px all round there).
+//   6. ⭐ 2026-11-05 — "apply it inward too": the same law one level down,
+//      and again inside that. The face and the field stand 3px inside the
+//      room's 1px rim, so their corners are CONCENTRIC with the room's
+//      inside corners — top 6 − 1 − 3 = 2px, bottom 3 − 1 − 3 → 0 (square:
+//      a corner can't go below nothing); the pills stand 2px inside the
+//      field's 1px rim — 2 − 1 − 2 → 0, square. The face's 40%, the field's
+//      12px capsule and the pills' 9px (all rounder than the room they now
+//      sit in) are gone. Every radius is DERIVED from the one above it, so a
+//      change to the box's corner reaches all three levels (phone: the room
+//      3px → face, field and pills square).
 .side-search {
   --ssb-pad: 3px;          // the body round the room (the feed body's 3px)
   --ssb-room-pad: 3px;     // the room round its face + field (the feed room's)
+  --ssb-room-rim: 1px;
   --ssb-room-r-bottom: 3px; // on the divider's straight seam: the soft floor
   // concentric with the box's inside corner, never under the floor
   --ssb-room-r-top: max(var(--ssb-room-r-bottom), calc(var(--side-viewer-inner-r, 9px) - var(--ssb-pad)));
   --ssb-field-h: 24px;     // the one line: the field's and the face's height
-  --ssb-field-r: 12px;     // FeedHeadBox `--fhead-chat-r`
   --ssb-field-rim: 1px;
   --ssb-inset: 2px;        // the field's inner pad round its pills
+  // ask 6 — each level concentric with the inside corners of the one round
+  // it (its corner less the rim less the pad), never below square.
+  --ssb-field-r-top: max(0px, calc(var(--ssb-room-r-top) - var(--ssb-room-rim) - var(--ssb-room-pad)));
+  --ssb-field-r-bottom: max(0px, calc(var(--ssb-room-r-bottom) - var(--ssb-room-rim) - var(--ssb-room-pad)));
+  --ssb-pill-r-top: max(0px, calc(var(--ssb-field-r-top) - var(--ssb-field-rim) - var(--ssb-inset)));
+  --ssb-pill-r-bottom: max(0px, calc(var(--ssb-field-r-bottom) - var(--ssb-field-rim) - var(--ssb-inset)));
   --ssb-tone: var(--side-viewer-lip, var(--indigo-6, #3f51b5));
   --ssb-rim: color-mix(in srgb, var(--ssb-tone) 70%, white);
   --ssb-veil: color-mix(in srgb, var(--ssb-tone) 30%, transparent);
@@ -468,18 +484,19 @@ export default defineComponent({
   gap: 3px;
   padding: var(--ssb-room-pad);
   background: var(--light-cream, #fcf3e0);
-  border: 1px solid var(--ssb-rim);
+  border: var(--ssb-room-rim) solid var(--ssb-rim);
   // rounder on top (the box's corner), less round on the bottom (the seam)
   border-radius: var(--ssb-room-r-top) var(--ssb-room-r-top) var(--ssb-room-r-bottom) var(--ssb-room-r-bottom);
 }
 
-// The face: the feed seat's avatar corner, the element's VEIL over it.
+// The face: the element's VEIL over it; its corners the field's (ask 6 —
+// concentric with the room's; the feed seat's 40% before).
 .side-search__seat {
   position: relative;
   flex: 0 0 auto;
   display: inline-flex;
-  border-radius: 40%;
-  :deep(.entity-avatar) { border-radius: 40%; }
+  border-radius: var(--ssb-field-r-top) var(--ssb-field-r-top) var(--ssb-field-r-bottom) var(--ssb-field-r-bottom);
+  :deep(.entity-avatar) { border-radius: inherit; }
   &::after {
     content: '';
     position: absolute;
@@ -499,7 +516,7 @@ export default defineComponent({
 
 // The field: the feed board's chat field (`.feed-head__chat-input`) at one
 // line — brown-1 face under the element's WASH, carved, a 1px rim in the
-// room's tone.
+// room's tone. Its corners concentric with the room's (ask 6; 12px before).
 .side-search__bubble {
   flex: 1 1 auto;
   min-width: 0;
@@ -510,7 +527,7 @@ export default defineComponent({
   gap: 4px;
   padding: 0 var(--ssb-inset);
   border: var(--ssb-field-rim) solid var(--ssb-rim);
-  border-radius: var(--ssb-field-r);
+  border-radius: var(--ssb-field-r-top) var(--ssb-field-r-top) var(--ssb-field-r-bottom) var(--ssb-field-r-bottom);
   background: linear-gradient(var(--ssb-wash), var(--ssb-wash)), var(--brown-1, #efebe9);
   box-shadow:
     inset 0 1.5px 4px rgba(var(--ink-rgb-deep, 31, 42, 56), 0.3),
@@ -518,7 +535,8 @@ export default defineComponent({
 }
 
 // THE DROPDOWNS: soft pills in the shown element's tone (ask 3), CONCENTRIC
-// with the field (ask 4 — its corner less its rim and the inset).
+// with the field (ask 4 — its corner less its rim and the inset; ask 6 per
+// pair, which squares them now the field turns at 2 / 0).
 .side-search__pill {
   --pill-tone: var(--ssb-tone);
   flex: 0 0 auto;
@@ -528,7 +546,7 @@ export default defineComponent({
   height: calc(var(--ssb-field-h) - 2 * var(--ssb-field-rim) - 2 * var(--ssb-inset));
   padding: 0 5px 0 6px;
   border: 1px solid color-mix(in srgb, var(--pill-tone) 55%, transparent);
-  border-radius: calc(var(--ssb-field-r) - var(--ssb-field-rim) - var(--ssb-inset));
+  border-radius: var(--ssb-pill-r-top) var(--ssb-pill-r-top) var(--ssb-pill-r-bottom) var(--ssb-pill-r-bottom);
   background: color-mix(in srgb, var(--pill-tone) 13%, white);
   color: var(--pill-tone);
   font: inherit;
