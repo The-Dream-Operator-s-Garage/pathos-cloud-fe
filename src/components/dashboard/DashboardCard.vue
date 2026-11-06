@@ -18,7 +18,7 @@
         :origins="origins"
         :title="headline"
         :title-tip="address || headline"
-        :acts="[editAct, shareAct, pinAct, openAct]"
+        :acts="[editAct, shareAct, pinAct, skeletonAct, openAct]"
       />
     </template>
 

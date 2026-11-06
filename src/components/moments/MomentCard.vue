@@ -18,7 +18,7 @@
         icons-title="A moment — a time/space anchor"
         :title="headline"
         :title-tip="moment.time_utc ? `${headline} (UTC ${moment.time_utc})` : headline"
-        :acts="[shareAct, openAct]"
+        :acts="[shareAct, skeletonAct, openAct]"
       />
     </template>
 

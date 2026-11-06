@@ -1021,6 +1021,31 @@
                    the NAME's press now (user ask: "remove the side-viewer-
                    extending button … if the user clicks on the header, the side
                    viewer is automatically opened") — `onCapTitle`. -->
+              <!-- ⭐ THE SKELETON DOOR (2026-11-06, user ask: "put the same
+                   skeleton icon on the header that lets users access the
+                   skeleton view of all components. refactor the whole family
+                   to display this button on the headers") — the card family's
+                   `skeletonAct` (composables/useElementCard), by hand here:
+                   the skeletons' mitre (kinds.js, the flyout view switch's
+                   glyph) opens the post's window ON ITS SKELETON FACE, for
+                   every reader (the owner's EDIT door above is the same face
+                   under the write intent). Just left of the flyout door, the
+                   family's place for it; lit while the post's window stands
+                   on the skeleton. (The 2026-09-23 ORTHOPEDICS link the note
+                   above retired was a route into /skeletons/:id — this is a
+                   window face.) -->
+              <div class="post-square__cap-cell">
+                <button
+                  type="button"
+                  class="post-square__cap-act post-square__cap-skeleton"
+                  :class="{ 'is-on': skeletonDoorOn(item) }"
+                  :title="skeletonDoorTitle(item)"
+                  @click.stop="showSkeleton(item)"
+                >
+                  <q-icon :name="skeletonDoorIcon(item)" size="13px" />
+                </button>
+              </div>
+              <span class="post-square__cap-rule" aria-hidden="true" />
               <div class="post-square__cap-cell">
                 <button
                   type="button"
@@ -1777,7 +1802,7 @@
 </template>
 
 <script>
-import { defineComponent, defineAsyncComponent, ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
+import { defineComponent, defineAsyncComponent, ref, computed, watch, inject, provide, unref, onMounted, onBeforeUnmount } from 'vue'
 import { labelPaths as utilLabelPaths, labelBundles as utilLabelBundles, bundleOrigin as utilBundleOrigin } from 'src/utils/labelBundles'
 import { useRoute, useRouter } from 'vue-router'
 import { feedService } from 'src/services/feed.service'
@@ -3088,7 +3113,33 @@ export default defineComponent({
     const canEdit = (item) => item.owner_id != null && item.owner_id === auth.entityId
     const isEditing = (item) =>
       flyouts.editPostIds.some((id) => String(id) === String(item.skeleton_id))
-    const editPost = (item) => { flyouts.spawnPost(item, { view: 'skeleton' }) }
+    // ⭐ 2026-11-06: `flyout: true` — a press inside the side viewer armed
+    // its sink, which swallowed the window and made the post a viewer stop
+    // (the side viewer has no skeleton face). The skeleton door below is
+    // the same call for every reader.
+    const editPost = (item) => { flyouts.spawnPost(item, { view: 'skeleton', flyout: true }) }
+    // ⭐ SAME DAY — IN THE SIDE VIEWER THE DOOR FLIPS THE FACE (user ask:
+    // "displayed inside the side viewer content viewer section … change the
+    // icon on the header like the button the flyout does"): the host's
+    // `cardSkeletonFace` switch (SideElementView; useElementCard's seam) is
+    // taken by the EMBEDDED postcard only, and the door then wears the
+    // flyout switch's glyphs — the mitre while the post is up, the post's
+    // own glyph while its skeleton is. Anywhere else it is the window door.
+    const skeletonFace = props.embedItem ? inject('cardSkeletonFace', null) : null
+    provide('cardSkeletonFace', null)
+    const SKELETON_GLYPH = kindFor('skeletons').icon
+    const POST_GLYPH = kindFor('posts').icon
+    const faceOn = () => !!(skeletonFace && unref(skeletonFace.on))
+    const showSkeleton = (item) => {
+      if (skeletonFace) { skeletonFace.toggle(); return }
+      editPost(item)
+    }
+    const skeletonDoorOn = (item) => (skeletonFace ? faceOn() : isEditing(item))
+    const skeletonDoorIcon = () => (faceOn() ? POST_GLYPH : SKELETON_GLYPH)
+    const skeletonDoorTitle = () => {
+      if (!skeletonFace) return "Show this post's skeleton in the flyout viewer"
+      return faceOn() ? 'Show the post' : "Show this post's skeleton"
+    }
 
     // ── THE FOOT'S COPY (2026-08-10, user ask) ──────────────────────────
     // The PATHCHAIN ADDRESS — `skeletons/<hash>`, the string the chip beside
@@ -3432,6 +3483,10 @@ export default defineComponent({
       canEdit,
       isEditing,
       editPost,
+      showSkeleton,
+      skeletonDoorOn,
+      skeletonDoorIcon,
+      skeletonDoorTitle,
       copiedId,
       copyAddress,
       onThread,

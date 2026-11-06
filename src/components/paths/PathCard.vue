@@ -18,7 +18,7 @@
         icons-title="A path — elements bonded in order"
         :title="pathLabel"
         :title-tip="row.path || pathLabel"
-        :acts="[modeAct, layoutAct, shareAct, openAct]"
+        :acts="[modeAct, layoutAct, shareAct, skeletonAct, openAct]"
       />
     </template>
 

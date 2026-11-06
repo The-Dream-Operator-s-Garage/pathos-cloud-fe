@@ -19,7 +19,7 @@
 //     on a list that shows no doors;
 //   · OWNERSHIP — `owner_id` against the acting entity (SkeletonTable's
 //     `canWrite`), the gate for the owner-only acts.
-import { ref, computed, watch, inject, onMounted, unref } from 'vue'
+import { ref, computed, watch, inject, provide, onMounted, unref } from 'vue'
 import { useAuthStore } from 'src/stores/auth'
 import { useFlyoutViewersStore } from 'src/stores/flyoutViewers'
 import { refService } from 'src/services/ref.service'
@@ -58,6 +58,14 @@ export function useElementCard (props, emit, spec) {
   const auth = useAuthStore()
   const flyouts = useFlyoutViewersStore()
   const openShare = inject('cardShare', null)
+  // THE HOST'S FACE SWITCH (2026-11-06) — a host that draws the element's
+  // skeleton ITSELF (the side viewer's face, SideElementView) provides
+  // `cardSkeletonFace` = { on, toggle }; the skeleton door then flips that
+  // face instead of opening a window. Taken by THIS card alone: a card
+  // nested inside it (a board's leaf, a quoted card) must never flip its
+  // host's face, so the seam is closed again for every descendant.
+  const skeletonFace = inject('cardSkeletonFace', null)
+  provide('cardSkeletonFace', null)
 
   const facts = computed(() => (typeof spec === 'function' ? spec() : unref(spec)) || {})
   const prefix = computed(() => prefixFor(facts.value.kind || 'unknown'))
@@ -74,11 +82,11 @@ export function useElementCard (props, emit, spec) {
     if (props.windowHost) emit('select', t)
     else flyouts.spawn(t)
   }
-  // Lit while this element's window is open (the store dedupes by address).
-  const isOpen = computed(() => {
+  // This element's open window, if one stands (the store dedupes by address).
+  const windowOf = () => {
     const h = hash.value
     const id = facts.value.id
-    return (flyouts.viewers || []).some((v) => {
+    return (flyouts.viewers || []).find((v) => {
       if (!v || v.minimized) return false
       const t = v.target || {}
       const addr = t.kind === 'post'
@@ -90,7 +98,61 @@ export function useElementCard (props, emit, spec) {
             : t.kind === 'element' ? t.address : (t.kind === 'entity' ? t.entity?.path : '')
       if (h && addr && String(addr).replace(/^pathos:/, '').endsWith(h)) return true
       return t.kind === 'entity' && prefix.value === 'entities' && id != null && String(t.entity?.id) === String(id)
-    })
+    }) || null
+  }
+  // Lit while this element's window is open.
+  const isOpen = computed(() => !!windowOf())
+
+  // ── THE SKELETON DOOR (2026-11-06, user ask: "to the header of all
+  // components that are skeletons (like the nodes, the posts, etc.. they
+  // exist and are accessible through skeletons) … put the same skeleton icon
+  // on the header that lets users access the skeleton view of all
+  // components. refactor the whole family to display this button on the
+  // headers"). The flyout's VIEW SWITCH, brought onto the card: the
+  // skeletons' mitre (kinds.js — the glyph the window's switch wears while
+  // the element is up) opens this element's window ON ITS SKELETON FACE (a
+  // node's / element's surround walk, a post's or a skeleton's grid, an
+  // entity's profile skeleton). Always a WINDOW (`flyout: true` — the side
+  // viewer's sink must not turn it into a stop: it has no skeleton face), so
+  // no host needs to relay it; a window already up turns to that face.
+  // Every XCard puts it just left of the OPEN door; the feed card's cap
+  // (FeedStream) carries the same door by hand.
+  // ⭐ SAME DAY, IN THE SIDE VIEWER (user ask: "make sure they're displayed
+  // inside the side viewer content viewer section. i do not want u to open a
+  // flyout window. just change the icon on the header like the button the
+  // flyout does"): under a host face switch (`cardSkeletonFace` above) the
+  // door FLIPS the host's face and wears the flyout switch's grammar — the
+  // mitre while the element is up, the element's own glyph while the
+  // skeleton is, lit while the skeleton is out. Anywhere else it is the
+  // window door.
+  const SKELETON_GLYPH = kindFor('skeletons').icon
+  const isSkeletonOpen = computed(() => windowOf()?.view === 'skeleton')
+  const openSkeleton = () => {
+    if (skeletonFace) { skeletonFace.toggle(); return }
+    const t = target()
+    if (t) flyouts.spawn(t, { view: 'skeleton', flyout: true })
+  }
+  const skeletonAct = computed(() => {
+    if (skeletonFace) {
+      const on = !!unref(skeletonFace.on)
+      return {
+        key: 'skeleton',
+        icon: on ? meta.value.icon : SKELETON_GLYPH,
+        title: on ? `Show the ${meta.value.kind}` : `Show this ${meta.value.kind}'s skeleton`,
+        on,
+        onClick: openSkeleton
+      }
+    }
+    return {
+      key: 'skeleton',
+      icon: SKELETON_GLYPH,
+      title: prefix.value === 'skeletons'
+        ? 'Open this skeleton\'s grid in the flyout viewer'
+        : `Show this ${meta.value.kind}'s skeleton in the flyout viewer`,
+      on: isSkeletonOpen.value,
+      hidden: !target(),
+      onClick: openSkeleton
+    }
   })
 
   // ── SHARE ─────────────────────────────────────────────────────────────
@@ -202,6 +264,8 @@ export function useElementCard (props, emit, spec) {
     share,
     shareAct,
     openAct,
+    skeletonAct,
+    openSkeleton,
     pinned,
     pinAct,
     togglePin,

@@ -55,5 +55,18 @@ export const navService = {
 
   saveWindows (windows) {
     api.put('/nav/windows', { windows }).catch(() => {})
+  },
+
+  // ── THE SIDE VIEWER'S HISTORY (2026-11-06) ────────────────────
+  // Its back/forward stops `{ address, kind, label, section }` + cursor,
+  // so a reload lands on the last item it showed. Read once on mount,
+  // written fire-and-forget (debounced by the viewer) on every move.
+  async getSideViewer () {
+    const { data } = await api.get('/nav/side-viewer')
+    return data
+  },
+
+  saveSideViewer ({ stops, cursor }) {
+    api.put('/nav/side-viewer', { stops, cursor }).catch(() => {})
   }
 }

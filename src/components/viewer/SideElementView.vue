@@ -65,7 +65,7 @@
        Home puts the default back; arrows step it 2%. -->
   <div class="side-element" :class="{ 'is-fill': fills, 'is-splitting': !!dragging }">
     <div ref="layoutEl" class="side-element__layout" :style="splitStyle">
-    <div class="side-element__face">
+    <div class="side-element__face" :class="{ 'is-skeleton': skeletonOn }">
       <FeedStream
         v-if="card"
         :key="'sev:' + card.skeleton_id"
@@ -100,6 +100,19 @@
           @pins-changed="$emit('pins-changed')"
           @resolved="onResolved"
         />
+      </div>
+      <!-- ⭐ 2026-11-06 — THE SKELETON FACE, IN PLACE (user ask: "make sure
+           they're displayed inside the side viewer content viewer section. i
+           do not want u to open a flyout window. just change the icon on the
+           header like the button the flyout does"): the card's skeleton door
+           (useElementCard `skeletonAct` / FeedStream's cap cell) flips
+           `skeletonOn` through the `cardSkeletonFace` seam provided here; the
+           card folds to its CAP (its door now wearing the element's glyph,
+           the flyout switch's grammar) and the flyout's skeleton face fills
+           the rest of the face in a pit. The card stays mounted, so flipping
+           back is instant. -->
+      <div v-if="skeletonOn && el" class="side-element__skeleton">
+        <SideSkeletonFace :item="card" :address="el.address" />
       </div>
     </div>
 
@@ -185,21 +198,23 @@
              own paging), the thumbs on every member's foot (MiniVotesScope).
              Keyed by the section's total, so a comment or fork landing here
              re-walks it. The comment cards (PostCommentItem) left this box. -->
-        <template v-else>
-          <MiniVotesScope v-if="pathRefs[section] && (totals[section] || 0) > 0">
-            <PathMini
-              :key="section + ':' + pathRefs[section] + ':' + totals[section]"
-              class="side-element__path"
-              :ref-or-id="pathRefs[section]"
-              layout="vertical"
-              mode="enriched"
-            />
-          </MiniVotesScope>
-          <div v-else-if="loading" class="side-element__note"><q-spinner size="14px" /> loading…</div>
-          <div v-else-if="!forkConfirm" class="side-element__note">
-            {{ section === 'comments' ? 'No comments yet.' : 'No forks yet.' }}
-          </div>
-        </template>
+        <!-- ⭐ 2026-11-06 — THE REFERENCES' LIST (user ask: "for the
+             comments, please make sure we're using the same kind of viewer
+             component as the ones we're using on the references section …
+             The current one's aesthetic comes from a old place"): the
+             holder path's PathMini (2026-11-04) left this box; each comment
+             (a post) and each fork is its kind's MINI in SideMiniList, the
+             very list SideReferences draws — the thumbs on every foot, a
+             locked row as its chip, "+N more" paging the chain. -->
+        <SideMiniList
+          v-else
+          :items="rowsOf(section)"
+          :loading="loading || paging"
+          :error="listError"
+          :empty="forkConfirm ? '' : (section === 'comments' ? 'No comments yet.' : 'No forks yet.')"
+          :more="Math.max((totals[section] || 0) - lists[section].length, 0)"
+          @more="loadMore"
+        />
       </div>
     </section>
 
@@ -231,14 +246,14 @@
 </template>
 
 <script>
-import { defineComponent, ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
+import { defineComponent, ref, computed, watch, provide, onMounted, onBeforeUnmount } from 'vue'
 import FeedStream from 'src/components/posts/FeedStream.vue'
 import ElementCard from 'src/components/shared/ElementCard.vue'
-import PathMini from 'src/components/paths/PathMini.vue'
-import MiniVotesScope from 'src/components/shared/MiniVotesScope.vue'
 import CommentMaker from 'src/components/comments/CommentMaker.vue'
 import ForkConfirmPanel from 'src/components/nodes/ForkConfirmPanel.vue'
 import SideReferences from 'src/components/viewer/SideReferences.vue'
+import SideMiniList from 'src/components/viewer/SideMiniList.vue'
+import SideSkeletonFace from 'src/components/viewer/SideSkeletonFace.vue'
 import { refService } from 'src/services/ref.service'
 import { skeletonService } from 'src/services/skeleton.service'
 import { nodeService } from 'src/services/node.service'
@@ -254,6 +269,8 @@ const SECTIONS = [
 // routes node → its route, the skeleton family → the skeleton route, any
 // other kind → POST /refs/comment by address).
 const PARENT_KIND = { skeletons: 'skeleton', nodes: 'node', labels: 'label', paths: 'path', links: 'link' }
+// One page of a thread section (the references page 12; a conversation 20).
+const THREAD_PAGE = 20
 const WORD = { skeletons: 'skeleton', nodes: 'node', labels: 'label', paths: 'path', links: 'link', moments: 'moment', secrets: 'secret', entities: 'entity' }
 
 // ── THE SPLITS (2026-11-04). Two dividers, each with a SHARE per axis — the
@@ -279,7 +296,7 @@ const pct = (f) => (Math.round(f * 10000) / 100) + '%'
 
 export default defineComponent({
   name: 'SideElementView',
-  components: { FeedStream, ElementCard, PathMini, MiniVotesScope, CommentMaker, ForkConfirmPanel, SideReferences },
+  components: { FeedStream, ElementCard, CommentMaker, ForkConfirmPanel, SideReferences, SideMiniList, SideSkeletonFace },
   props: {
     // A feed item (`GET /feed` row) — the element is that POST, drawn as
     // its postcard. Either this or `address`.
@@ -317,35 +334,76 @@ export default defineComponent({
 
     const kindWord = computed(() => (props.item ? 'post' : WORD[el.value?.kind]) || 'element')
 
+    // ── THE FACE SWITCH (2026-11-06 — the template note at
+    // `.side-element__skeleton`): element | skeleton, this view's own. The
+    // card's skeleton door reads + flips it through `cardSkeletonFace`
+    // (useElementCard / FeedStream take it for the face's card alone); a new
+    // element opens on its element face.
+    const skeletonOn = ref(false)
+    provide('cardSkeletonFace', { on: skeletonOn, toggle: () => { skeletonOn.value = !skeletonOn.value } })
+
     const section = ref(props.initialSection === 'forks' ? 'forks' : 'comments')
     const totals = ref({ comments: null, forks: null })
     const supported = ref({ comments: true, forks: true })
     // ⭐ 2026-11-04: each section's HOLDER PATH (`pathRef`, 'paths/<hash>') —
-    // the section draws it as its PathMini; the rows themselves are the
-    // mini's to walk.
+    // drawn as its PathMini until 2026-11-06; kept as the record's address
+    // now that the rows are SideMiniList's (`lists` below).
     const pathRefs = ref({ comments: null, forks: null })
     const loading = ref(false)
     const listEl = ref(null)
 
-    // BOTH sections in one go (the bar shows both tallies): one row each,
-    // for the total, the support verdict and the holder path.
+    // ⭐ 2026-11-06: each section's ROWS — the thread draws them as
+    // SideMiniList (the references' list), paged off the same reads.
+    const lists = ref({ comments: [], forks: [] })
+    const paging = ref(false)
+    const listError = ref('')
+    // A thread row → SideMiniList's row: a skeleton target (a comment, a
+    // post fork) names itself by `path`, a node / label fork by `address`.
+    const rowsOf = (slot) => lists.value[slot].map((it, i) => {
+      const address = String(it.address || it.path || '').replace(/^pathos:/, '')
+      return { key: slot + ':' + (address || i) + ':' + i, address, locked: !!it.locked }
+    }).filter((r) => r.address)
+    const readSlot = (slot, offset) => (slot === 'forks'
+      ? refService.forks(el.value.address, { limit: THREAD_PAGE, offset })
+      : refService.comments(el.value.address, { limit: THREAD_PAGE, offset }))
+
+    // BOTH sections in one go (the bar shows both tallies): each section's
+    // first page, its total, its support verdict and its holder path.
     let seq = 0
     const reload = async () => {
       if (!el.value) return
       const my = ++seq
       loading.value = true
+      listError.value = ''
       const [c, f] = await Promise.all([
-        refService.comments(el.value.address, { limit: 1 }).catch(() => null),
-        refService.forks(el.value.address, { limit: 1 }).catch(() => null)
+        readSlot('comments', 0).catch(() => null),
+        readSlot('forks', 0).catch(() => null)
       ])
       if (my !== seq) return
       totals.value = { comments: c?.total ?? 0, forks: f?.total ?? 0 }
       supported.value = { comments: c?.supported !== false, forks: f?.supported !== false }
       pathRefs.value = { comments: c?.pathRef || null, forks: f?.pathRef || null }
+      lists.value = { comments: c?.items || [], forks: f?.items || [] }
+      if (!c && !f) listError.value = 'The thread could not be read'
       if (card.value) {
         card.value = { ...card.value, comment_count: totals.value.comments, fork_count: totals.value.forks }
       }
       loading.value = false
+    }
+
+    // "+N more": the open section's next page, appended.
+    const loadMore = async () => {
+      if (!el.value || paging.value) return
+      const slot = section.value
+      const my = seq
+      paging.value = true
+      try {
+        const r = await readSlot(slot, lists.value[slot].length)
+        if (my === seq) lists.value = { ...lists.value, [slot]: lists.value[slot].concat(r?.items || []) }
+      } catch (e) {
+        if (my === seq) listError.value = e?.response?.data?.error?.message || 'The next page could not be read'
+      }
+      paging.value = false
     }
 
     const show = (slot) => {
@@ -432,7 +490,10 @@ export default defineComponent({
 
     watch(() => [props.item?.skeleton_id, props.address], async () => {
       card.value = props.item ? { ...props.item } : null
+      skeletonOn.value = false
       pathRefs.value = { comments: null, forks: null }
+      lists.value = { comments: [], forks: [] }
+      listError.value = ''
       composing.value = false
       forkConfirm.value = false
       fills.value = false
@@ -586,6 +647,7 @@ export default defineComponent({
       keySplit,
       shareNow,
       SECTIONS,
+      skeletonOn,
       fills,
       onResolved,
       threadTotals,
@@ -594,6 +656,11 @@ export default defineComponent({
       kindWord,
       section,
       pathRefs,
+      lists,
+      rowsOf,
+      paging,
+      listError,
+      loadMore,
       totals,
       supported,
       loading,
@@ -699,6 +766,37 @@ export default defineComponent({
   flex-direction: column;
   overflow: hidden;
   background: var(--sev-frame);
+}
+
+// ── THE SKELETON FACE (2026-11-06): the card folds to its cap — every
+// other child of the card hidden, nothing stretched — and the skeleton's
+// pit takes the face's remaining height, on the frame like the other two
+// sections' pits. The card stays mounted under the fold.
+.side-element__face.is-skeleton {
+  .side-element__card,
+  .side-element__card-host { flex: 0 0 auto; }
+  .side-element__card :deep(.feed-stream__well),
+  .side-element__card :deep(.feed-stream),
+  .side-element__card :deep(.feed-stream__block),
+  .side-element__card :deep(.post-square),
+  .side-element__card-host > :deep(.element-card-host),
+  .side-element__card-host > :deep(.element-card-host > .element-card) { flex: 0 0 auto; }
+  .side-element__card :deep(.post-square > :not(.post-square__cap)),
+  .side-element__card-host :deep(.element-card > :not(.element-card__cap)) { display: none; }
+  .side-element__card :deep(.post-square),
+  .side-element__card-host :deep(.element-card) { border-radius: 0; }
+}
+.side-element__skeleton {
+  flex: 1 1 auto;
+  min-height: 0;
+  min-width: 0;
+  overflow: auto;
+  margin: var(--sev-pit-m, 3px 4px 4px);
+  background: var(--sev-floor, var(--grey-1, #fafafa));
+  border: 1px solid var(--grey-5, #bdbdbd);
+  border-radius: var(--sev-pit-r, 6.34px);
+  padding: 6px;
+  scrollbar-width: thin;
 }
 
 // ── THE CORNERS (2026-11-04). The card fills its section to the edge now,
@@ -1018,9 +1116,9 @@ export default defineComponent({
   border: 1px solid var(--grey-5, #bdbdbd);
   border-radius: var(--sev-pit-r);
   padding: 6px;
-  // The pit is the ONE scroller (2026-11-04): the path mini inside lifts its
-  // own lane cap, so a long thread scrolls here, not in a box in a box.
-  --path-lane-max-h: none;
+  // The pit is the ONE scroller (2026-11-04): a long thread scrolls here,
+  // not in a box in a box (SideMiniList's rows since 2026-11-06; the holder
+  // path's PathMini lifted its own lane cap for it until then).
   display: flex;
   flex-direction: column;
   gap: 6px;

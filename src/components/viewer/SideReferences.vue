@@ -49,42 +49,32 @@
       <div v-if="!supported" class="side-refs__note">
         {{ kindWord === 'element' ? 'This element' : 'A ' + kindWord }} holds no references.
       </div>
-      <template v-else>
-        <MiniVotesScope v-if="items.length">
-          <div v-for="it in items" :key="it.via + ':' + it.address + ':' + (it.position ?? '')" class="side-refs__item">
-            <div class="side-refs__via">
-              <span class="side-refs__via-word">{{ viaWord(it) }}</span>
-            </div>
-            <LockedChip v-if="it.locked" :address="it.address" />
-            <ElementMini v-else :address="it.address" />
-          </div>
-        </MiniVotesScope>
-        <div v-if="loading" class="side-refs__note"><q-spinner size="14px" /> loading…</div>
-        <div v-else-if="error" class="side-refs__note is-error">{{ error }}</div>
-        <div v-else-if="!items.length" class="side-refs__note">Nothing referenced inside.</div>
-        <button
-          v-if="!loading && items.length < (total || 0)"
-          type="button" class="side-refs__more" @click="load(true)"
-        >
-          +{{ (total || 0) - items.length }} more
-        </button>
-      </template>
+      <!-- ⭐ 2026-11-06: the rows are SideMiniList — the one list the
+           thread draws too (comments and forks), so the side viewer's
+           columns share one component, not one copy of its markup. -->
+      <SideMiniList
+        v-else
+        :items="rows"
+        :loading="loading"
+        :error="error"
+        empty="Nothing referenced inside."
+        :more="Math.max((total || 0) - items.length, 0)"
+        @more="load(true)"
+      />
     </div>
   </section>
 </template>
 
 <script>
-import { defineComponent, ref, watch } from 'vue'
-import ElementMini from 'src/components/shared/ElementMini.vue'
-import LockedChip from 'src/components/shared/LockedChip.vue'
-import MiniVotesScope from 'src/components/shared/MiniVotesScope.vue'
+import { defineComponent, ref, computed, watch } from 'vue'
+import SideMiniList from 'src/components/viewer/SideMiniList.vue'
 import { refService } from 'src/services/ref.service'
 
 const PAGE = 12
 
 export default defineComponent({
   name: 'SideReferences',
-  components: { ElementMini, LockedChip, MiniVotesScope },
+  components: { SideMiniList },
   props: {
     // The element whose contents are listed, '<kind>/<hash>'.
     address: { type: String, required: true },
@@ -130,6 +120,13 @@ export default defineComponent({
       if (it.via === 'CONTENT') return 'in the content'
       return String(it.via || '').toLowerCase().replace(/_/g, ' ')
     }
+    // The rows SideMiniList draws: each reference, its edge as the caption.
+    const rows = computed(() => items.value.map((it) => ({
+      key: it.via + ':' + it.address + ':' + (it.position ?? ''),
+      address: it.address,
+      locked: !!it.locked,
+      caption: viaWord(it)
+    })))
     watch(() => props.address, () => {
       items.value = []
       total.value = null
@@ -138,7 +135,7 @@ export default defineComponent({
       load(false)
     }, { immediate: true })
 
-    return { items, total, supported, loading, error, listEl, load, viaWord }
+    return { items, rows, total, supported, loading, error, listEl, load }
   }
 })
 </script>
@@ -213,47 +210,11 @@ export default defineComponent({
   scrollbar-width: thin;
 }
 
-.side-refs__item {
-  flex: 0 0 auto;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-// The caption over each mini: the edge that holds it, in the reader's words.
-.side-refs__via {
-  display: flex;
-  min-width: 0;
-  padding: 0 2px;
-  font-family: 'Space Mono', monospace;
-  font-size: 0.66em;
-  letter-spacing: 0.02em;
-  color: rgba(var(--ink-rgb), 0.55);
-  text-transform: lowercase;
-}
-.side-refs__via-word {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
+// The rows, their captions, notes and "+N more" are SideMiniList's own
+// (2026-11-06) — the one list the thread draws too.
 .side-refs__note {
   color: rgba(var(--ink-rgb), 0.55);
   font-size: 0.8em;
   padding: 4px 2px;
-  &.is-error { color: var(--red-10, #b71c1c); }
-}
-
-.side-refs__more {
-  align-self: center;
-  border: 0;
-  background: transparent;
-  color: rgba(var(--ink-rgb), 0.6);
-  font-family: 'Space Mono', monospace;
-  font-size: 0.7em;
-  cursor: pointer;
-  padding: 2px 6px;
-  &:hover { color: rgba(var(--ink-rgb), 0.95); }
 }
 </style>

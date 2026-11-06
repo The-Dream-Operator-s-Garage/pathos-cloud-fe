@@ -23,7 +23,7 @@
         :title="title"
         :title-tip="entity.path || title"
         :title-class="isPioneer ? 'pioneer-gold entity-card__pioneer' : null"
-        :acts="[shareAct, openAct]"
+        :acts="[shareAct, skeletonAct, openAct]"
       />
     </template>
 

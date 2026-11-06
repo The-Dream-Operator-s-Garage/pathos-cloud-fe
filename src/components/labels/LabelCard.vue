@@ -20,7 +20,7 @@
         :origins="origins"
         :title="name"
         :title-tip="label.path || name"
-        :acts="[shareAct, pinAct, openAct]"
+        :acts="[shareAct, pinAct, skeletonAct, openAct]"
       />
     </template>
 

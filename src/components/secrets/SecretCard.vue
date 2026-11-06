@@ -13,7 +13,7 @@
         icons-title="A secret — an invitation"
         :title="`secret #${secret.id}`"
         :title-tip="secret.path"
-        :acts="[shareAct, openAct]"
+        :acts="[shareAct, skeletonAct, openAct]"
       />
     </template>
 

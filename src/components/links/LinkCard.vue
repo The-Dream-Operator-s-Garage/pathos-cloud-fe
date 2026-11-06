@@ -17,7 +17,7 @@
         :origins="origins"
         :title="headline"
         :title-tip="link.path"
-        :acts="[shareAct, openAct]"
+        :acts="[shareAct, skeletonAct, openAct]"
       />
     </template>
 

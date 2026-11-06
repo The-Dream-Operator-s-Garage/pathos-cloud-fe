@@ -43,6 +43,12 @@
        HERE as a new stop of the viewer's own history (back / forward studs
        on the bar), the bar wears the shown element's kind (script notes).
 
+       ⭐ 2026-11-06 — IT REMEMBERS: that history is saved on every move and
+       put back on mount (the reserved `__side_viewer` nav_state row), so a
+       reload lands on the item that was showing; the random post is the
+       FIRST visit's showcase only. A third stud on the bar opens the whole
+       history as a sheet (script notes at `hydrate` / THE HISTORY SHEET).
+
        `select` from inside the card (the references button, the cap's
        open door) spawns the post's flyout — the viewer is a showcase, the
        flyout is where the post is worked on. `pins-changed` rides up to
@@ -93,7 +99,70 @@
         >
           <q-icon name="arrow_forward_ios" size="9px" />
         </button>
+        <!-- ⭐ 2026-11-06 — THE HISTORY STUD (user ask: "make the side viewer
+             history be preserved. Add a button on the frieze bar to access
+             it"): the third stud opens the whole stack below the bar. -->
+        <button
+          ref="historyBtn"
+          type="button"
+          class="side-viewer__step side-viewer__step--history"
+          :class="{ 'is-on': historyOpen }"
+          :disabled="!stops.length"
+          :aria-expanded="historyOpen ? 'true' : 'false'"
+          :title="stops.length ? 'History · ' + stops.length + (stops.length === 1 ? ' item' : ' items') : 'Nothing viewed yet'"
+          aria-label="History"
+          @click="historyOpen = !historyOpen"
+        >
+          <q-icon name="history" size="11px" />
+        </button>
       </nav>
+    </div>
+    <!-- THE HISTORY SHEET (2026-11-06): every stop of the viewer's own stack,
+         newest on top, the one on screen marked; a row is a jump (the cursor
+         moves, nothing is dropped — the back/forward studs walk on from
+         there). The stack is STATE: it is saved on every move (the reserved
+         `__side_viewer` nav_state row, GET/PUT /api/nav/side-viewer) and put
+         back on the next mount, which lands on the stop that was showing. -->
+    <div
+      v-if="historyOpen"
+      ref="historyEl"
+      class="side-viewer__history"
+      role="dialog"
+      aria-label="Viewer history"
+      @keydown.esc="historyOpen = false"
+    >
+      <header class="side-viewer__history-head">
+        <q-icon name="history" size="12px" />
+        <span>History</span>
+        <span class="side-viewer__history-n">{{ stops.length }}</span>
+        <span class="side-viewer__history-fill" />
+        <button
+          v-if="stops.length > 1"
+          type="button"
+          class="side-viewer__history-clear"
+          title="Forget every item but the one on screen"
+          @click="clearHistory"
+        >
+          Clear
+        </button>
+      </header>
+      <ol class="side-viewer__history-list">
+        <li v-for="row in historyRows" :key="row.key">
+          <button
+            type="button"
+            class="side-viewer__history-row"
+            :class="{ 'is-here': row.here }"
+            :style="{ '--pill-tone': row.color }"
+            :aria-current="row.here ? 'true' : null"
+            :title="row.address"
+            @click="jump(row.i)"
+          >
+            <q-icon :name="row.icon" size="13px" class="side-viewer__history-glyph" />
+            <span class="side-viewer__history-label">{{ row.label }}</span>
+            <span class="side-viewer__history-hash">{{ row.hash }}</span>
+          </button>
+        </li>
+      </ol>
     </div>
     <div class="side-viewer__well">
       <!-- SideElementView since 2026-10-07: the element's face (a post =
@@ -102,7 +171,7 @@
            the fork door) over the REFERENCES on the right. Keyed per stop so
            back/forward lands on a fresh face. -->
       <SideElementView
-        v-if="current"
+        v-if="current && !current.pending"
         :key="current.key"
         :item="current.item"
         :address="current.item ? '' : current.address"
@@ -111,24 +180,28 @@
         @pins-changed="$emit('pins-changed')"
       />
       <div v-else class="side-viewer__empty">
-        {{ error || 'Looking for a post…' }}
+        {{ emptyNote }}
       </div>
     </div>
   </section>
 </template>
 
 <script>
-import { defineComponent, ref, computed, onMounted, onBeforeUnmount } from 'vue'
+import { defineComponent, ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
 import FriezeChecker from 'src/components/layout/FriezeChecker.vue'
 import SideElementView from 'src/components/viewer/SideElementView.vue'
 import SideSearchBoard from 'src/components/viewer/SideSearchBoard.vue'
 import { feedService } from 'src/services/feed.service'
 import { refService } from 'src/services/ref.service'
+import { navService } from 'src/services/nav.service'
 import { useFlyoutViewersStore, installSideViewerSink, consumeSideArm } from 'src/stores/flyoutViewers'
 import { kindFor, isHash } from 'src/utils/kinds'
 
 const MAX_STOPS = 60
+// The history's write is debounced so a burst of steps lands as ONE PUT, in
+// order (two racing PUTs could arrive reversed).
+const SAVE_DEBOUNCE_MS = 150
 // Element pages a plain link inside the viewer may name — the router guard
 // turns them into stops instead of leaving the feed.
 const ROUTE_RE = /^\/(posts|skeletons|nodes|labels|paths|links|secrets|moments|entities)\/([0-9a-zA-Z]+)\/?$/
@@ -281,8 +354,125 @@ export default defineComponent({
       return { '--side-viewer-plate': k.ink, '--side-viewer-lip': k.color }
     })
 
-    // A random post off the public feed — the viewer's first stop, its own
-    // GET /feed, seat-strict like every read on this surface.
+    // ── THE HISTORY IS STATE (2026-11-06, user ask: "instead of rendering a
+    // random post, make the side viewer history be preserved … when i reload
+    // the page, the last opened item is remembered"). The stack is saved as
+    // ADDRESSES on every move (nav.service `saveSideViewer` → the reserved
+    // `__side_viewer` nav_state row) and put back on mount, the cursor on the
+    // stop that was showing. A restored POST stop is `pending` — its feed row
+    // is not stored, so it re-reads it (`GET /feed?hash=`) the first time the
+    // cursor stands on it, the way a tray window re-spawns from its ref; any
+    // other kind draws straight from its address.
+    const hydrated = ref(false)
+    let saveTimer = null
+    const saveNow = () => {
+      if (saveTimer) { clearTimeout(saveTimer); saveTimer = null }
+      if (!hydrated.value) return
+      navService.saveSideViewer({
+        stops: stops.value.map((s) => ({ address: s.address, kind: s.kind, label: s.label || '', section: s.section || 'comments' })),
+        cursor: cursor.value
+      })
+    }
+    // What a save would write — read per stop, so a splice (a pending stop
+    // resolving, a section move) is seen as well as a whole new stack.
+    const signature = computed(() => cursor.value + '#' + stops.value
+      .map((s) => s.address + '|' + (s.section || '') + '|' + (s.label || '')).join('\n'))
+    watch(signature, () => {
+      if (!hydrated.value) return
+      if (saveTimer) clearTimeout(saveTimer)
+      saveTimer = setTimeout(saveNow, SAVE_DEBOUNCE_MS)
+    })
+
+    const hydrate = async () => {
+      try {
+        const r = await navService.getSideViewer()
+        const kept = Array.isArray(r?.stops) ? r.stops : []
+        if (r?.success && kept.length) {
+          const restored = kept.map((s) => ({
+            item: null,
+            address: s.address,
+            kind: s.kind || s.address.split('/')[0],
+            label: s.label || '',
+            section: s.section === 'forks' ? 'forks' : 'comments',
+            pending: s.kind === 'posts',
+            key: 's' + (++stopSeq)
+          }))
+          // A door pressed while the read was out (a feed card's comment
+          // tally) already pushed a stop: it stays the newest one.
+          const live = stops.value
+          stops.value = restored.concat(live).slice(-MAX_STOPS)
+          cursor.value = live.length
+            ? stops.value.length - 1
+            : Math.min(Math.max(r.cursor ?? restored.length - 1, 0), restored.length - 1)
+        }
+      } catch (_) { /* a viewer without its history still opens */ }
+      hydrated.value = true
+      // The random post is the FIRST visit's showcase only — an empty
+      // history has nothing to land on.
+      if (!stops.value.length) pick()
+    }
+
+    // A restored post stop re-reads its feed row when the cursor reaches it
+    // (same key — nothing was mounted for it yet).
+    watch(current, async (s) => {
+      if (!s?.pending) return
+      const hash = s.address.split('/').pop()
+      let it = null
+      try {
+        const r = await feedService.getPublic({ hash, body: 'full', limit: 1 })
+        const row = r?.items?.[0]
+        if (row && String(row.skeleton_path || '').endsWith(hash)) it = row
+      } catch (_) { /* drawn from its address below */ }
+      const i = stops.value.findIndex((x) => x.key === s.key)
+      if (i < 0) return
+      stops.value.splice(i, 1, it
+        ? { ...stopOfItem(it, s.section), key: s.key }
+        // Not a feed post any more (deleted, unlisted): its skeleton's card.
+        : { ...s, kind: 'skeletons', pending: false })
+    }, { immediate: true })
+
+    // ── THE HISTORY SHEET (the third stud): newest on top.
+    const historyOpen = ref(false)
+    const historyEl = ref(null)
+    const historyBtn = ref(null)
+    const historyRows = computed(() => {
+      const out = []
+      for (let i = stops.value.length - 1; i >= 0; i--) {
+        const s = stops.value[i]
+        const k = kindFor(s.kind || 'posts')
+        const hash = String(s.address || '').split('/').pop() || ''
+        out.push({
+          key: s.key,
+          i,
+          here: i === cursor.value,
+          address: s.address,
+          icon: k.icon,
+          color: k.color,
+          label: s.label || (k.kind + ' ' + hash.slice(0, 6)),
+          hash: hash.slice(0, 6)
+        })
+      }
+      return out
+    })
+    const jump = (i) => {
+      if (i >= 0 && i < stops.value.length) cursor.value = i
+      historyOpen.value = false
+    }
+    const clearHistory = () => {
+      const here = current.value
+      stops.value = here ? [here] : []
+      cursor.value = here ? 0 : -1
+    }
+    // A press anywhere outside the sheet (and its stud) closes it.
+    const onOutside = (e) => {
+      if (!historyOpen.value) return
+      const t = e.target
+      if (historyEl.value?.contains(t) || historyBtn.value?.contains(t)) return
+      historyOpen.value = false
+    }
+
+    // A random post off the public feed — the FIRST visit's stop (an empty
+    // history), its own GET /feed, seat-strict like every read on this surface.
     const pick = async () => {
       try {
         const first = await feedService.getPublic({ limit: 1, body: 'full' })
@@ -310,8 +500,12 @@ export default defineComponent({
     //     `/posts/7` …) that would have left the feed become stops.
     let removeSink = null
     let removeGuard = null
+    // A move made in the debounce window before a reload still lands.
+    const onPageHide = () => { if (saveTimer) saveNow() }
     onMounted(() => {
-      pick()
+      hydrate()
+      document.addEventListener('pointerdown', onOutside, true)
+      window.addEventListener('pagehide', onPageHide)
       removeSink = installSideViewerSink(rootEl.value, openTarget)
       removeGuard = router.beforeEach((to) => {
         const m = ROUTE_RE.exec(to.path || '')
@@ -321,6 +515,9 @@ export default defineComponent({
       })
     })
     onBeforeUnmount(() => {
+      if (saveTimer) saveNow()
+      document.removeEventListener('pointerdown', onOutside, true)
+      window.removeEventListener('pagehide', onPageHide)
       if (removeSink) removeSink()
       if (removeGuard) removeGuard()
     })
@@ -332,6 +529,12 @@ export default defineComponent({
       push(stopOfItem(it, slot === 'forks' ? 'forks' : 'comments'))
     }
 
+    const emptyNote = computed(() => {
+      if (error.value) return error.value
+      if (current.value?.pending) return 'Opening ' + (current.value.label || 'the last item') + '…'
+      return hydrated.value ? 'Looking for a post…' : 'Opening your last item…'
+    })
+
     return {
       rootEl,
       error,
@@ -339,6 +542,13 @@ export default defineComponent({
       cursor,
       current,
       go,
+      historyOpen,
+      historyEl,
+      historyBtn,
+      historyRows,
+      jump,
+      clearHistory,
+      emptyNote,
       recent,
       toneStyle,
       onSelect,
@@ -513,6 +723,99 @@ export default defineComponent({
   transition: filter 0.15s, transform 0.15s, background 0.25s;
   &:hover:not(:disabled) { filter: brightness(1.15); transform: scale(1.08); }
   &:disabled { cursor: default; opacity: 0.45; }
+  // The history stud lit while its sheet is open: the lip tone filled in.
+  &.is-on { background: var(--side-viewer-lip, var(--indigo-6)); color: #ffffff; }
+}
+
+// ── THE HISTORY SHEET (2026-11-06): the search board's cream drop
+// (SideSearchBoard `.side-search__drop`) hung from the bar's left end, over
+// the well — inside the box, so its `overflow: hidden` frames it and the
+// phone strip's height caps it. Rows in each kind's kinds.js tone, the stop
+// on screen marked by the tone's left rule.
+.side-viewer__history {
+  position: absolute;
+  top: calc(var(--side-viewer-head-h) + var(--side-viewer-rail-t) + 2px);
+  left: 8px;
+  z-index: 4;
+  width: min(360px, calc(100% - 16px));
+  max-height: calc(100% - var(--side-viewer-head-h) - var(--side-viewer-rail-t) - 10px);
+  display: flex;
+  flex-direction: column;
+  padding: 6px;
+  border: 1px solid var(--grey-6, #9e9e9e);
+  border-radius: 8px;
+  background: var(--light-cream, #fcf3e0);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.32);
+}
+.side-viewer__history-head {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 6px 4px;
+  color: var(--side-viewer-plate, var(--indigo-10));
+  font-family: var(--font-display);
+  font-size: 0.6em;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.side-viewer__history-n { opacity: 0.6; font-variant-numeric: tabular-nums; }
+.side-viewer__history-fill { flex: 1 1 auto; }
+.side-viewer__history-clear {
+  border: 0;
+  background: transparent;
+  padding: 0 2px;
+  color: rgba(var(--ink-rgb), 0.55);
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  cursor: pointer;
+  &:hover { color: var(--red-10, #b71c1c); }
+}
+.side-viewer__history-list {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  scrollbar-width: thin;
+}
+.side-viewer__history-row {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 8px 4px 8px;
+  border: 0;
+  border-left: 2px solid transparent;
+  border-radius: 5px;
+  background: transparent;
+  color: rgba(var(--ink-rgb), 0.88);
+  font-family: var(--font-body, inherit);
+  font-size: 0.78em;
+  text-align: left;
+  cursor: pointer;
+  &:hover { background: color-mix(in srgb, var(--pill-tone) 10%, white); }
+  &.is-here {
+    background: color-mix(in srgb, var(--pill-tone) 16%, white);
+    border-left-color: var(--pill-tone);
+  }
+}
+.side-viewer__history-glyph { flex: 0 0 auto; color: var(--pill-tone); }
+.side-viewer__history-label {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.side-viewer__history-hash {
+  flex: 0 0 auto;
+  color: var(--pill-tone);
+  font-family: var(--font-mono, monospace);
+  font-size: 0.82em;
+  opacity: 0.75;
 }
 
 // The content under the divider. Since 2026-10-07 the well holds ONE

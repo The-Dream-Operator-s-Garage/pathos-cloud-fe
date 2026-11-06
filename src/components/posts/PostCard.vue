@@ -32,7 +32,7 @@
         :origins="origins"
         :title="title"
         :title-tip="post.path || title"
-        :acts="[shareAct, pinAct, openAct]"
+        :acts="[shareAct, pinAct, skeletonAct, openAct]"
       />
     </template>
 

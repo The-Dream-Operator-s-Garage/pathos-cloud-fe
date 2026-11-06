@@ -23,7 +23,7 @@
         :origins="origins"
         :title="headline"
         :title-tip="head.path || headline"
-        :acts="[lockAct, layoutAct, shareAct, pinAct, openAct]"
+        :acts="[lockAct, layoutAct, shareAct, pinAct, skeletonAct, openAct]"
       />
     </template>
 

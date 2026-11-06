@@ -3,7 +3,7 @@
        a link, a reference) as a CARD. Where NodeMini is the quoted node (a
        few lines, a thumbnail-sized figure, 110px), this is the full reading
        in the post card's grammar: the cap states what it is (the node glyph
-       + its TYPE's mark) and what it came out of (`Comment on <chip> ::`
+       — its TYPE's mark beside it until 2026-11-06) and what it came out of (`Comment on <chip> ::`
        off `node.origin`), the byline who made it, when, and the labels on
        it (the read carries them with their chains), the pit THE WHOLE
        BODY — a note or a doc rendered through MarkdownBody (the one
@@ -23,7 +23,7 @@
         :origins="origins"
         :title="nodeLabel"
         :title-tip="row.path || nodeLabel"
-        :acts="[editAct, shareAct, pinAct, openAct]"
+        :acts="[editAct, shareAct, pinAct, skeletonAct, openAct]"
       />
     </template>
 
@@ -80,7 +80,6 @@ import { absoluteTime } from 'src/utils/time'
 import { useElementCard, CARD_PROPS, CARD_EMITS } from 'src/composables/useElementCard'
 
 // The type's mark beside the node glyph — Material Icons ligatures.
-const TYPE_GLYPH = { NOTE: 'notes', FILE: 'attach_file', URL: 'link', REFERENCE: 'tag' }
 
 export default defineComponent({
   name: 'NodeCard',
@@ -118,7 +117,12 @@ export default defineComponent({
     }, { immediate: true })
 
     const typeName = computed(() => row.value.type?.name || row.value.type_name || (row.value.file ? 'FILE' : 'NOTE'))
-    const icons = computed(() => ['adjust', TYPE_GLYPH[typeName.value] || 'notes'])
+    // ⭐ 2026-11-06 (user ask: "remove the icon in between the node icon and
+    // the title there on the header. that extra icon looks weird"): the mark
+    // is the node's glyph alone — the TYPE's glyph (📝 / 📎 / 🔗 / #) that
+    // stood between it and the name left; the name says the type when the
+    // node has no title (`node #5 · URL`) and the mark's tooltip always does.
+    const icons = computed(() => ['adjust'])
     const nodeLabel = computed(() => {
       const t = String(row.value.title || '').trim()
       if (t) return t
