@@ -5,9 +5,10 @@
        finding a way of finding everything through it somewhat fast").
 
        The side viewer's HEAD, built from the feed's own Talavero board
-       material (FeedHeadBox's talk pit): the seat's face at the left of a
-       carved `--brown-1` pit, then ONE bubble — `--indigo-8` rim, Nasalization
-       — holding two pill dropdowns and the field (⭐ 2026-11-04: the pit's
+       material (FeedHeadBox's talk pit): ONE bubble — Nasalization — holding
+       two pill dropdowns, Talavero's line icon and the field (⭐ 2026-11-06:
+       the seat's FACE that stood at the bubble's left is gone; his icon
+       rides inside the field after the WHAT pill) (⭐ 2026-11-04: the pit's
        floor is the shown element's INK — the rail checker's dark tiles — and
        the face + the field sit in a light-cream ROOM, FeedHeadBox's talk room
        at one line, its corners the feed board's, the pills and a veil over
@@ -35,14 +36,18 @@
          talavero and the input bubble inside, except … a single-line one"):
          FeedHeadBox's talk room at one line — a light-cream room on the dark
          body, the seat's face and the field inside it. -->
+    <!-- ⭐ 2026-11-06 (user ask: "remove that pic and then adjust the input
+         box accordingly … next to the 'all' button, before the help line on
+         the input box, put talavero's icon"): the seat's FACE left the room —
+         the field takes its width — and Talavero stands INSIDE the field as
+         his line icon, after the WHAT pill, before the words. -->
     <div class="side-search__room">
-    <span class="side-search__seat" :class="{ 'is-thinking': pending > 0 }" :title="seatName + ' finds things for you'">
-      <EntityAvatar :entity="seatEntity" :size="24" />
-    </span>
-
-    <div class="side-search__bubble">
-      <!-- Both pills wear the SHOWN element's tone (2026-11-04: "make the
-           buttons … match the color of the given reviewed element"); the
+      <!-- ⭐ 2026-11-06 — THE PILLS FUSE TO THE ROOM (user ask: "just remove
+           the border out of the buttons except the inner-facing ones and fuse
+           them to their cream container"): both pills stand OUTSIDE the field
+           now, in the cream room, faceless and borderless — their words and
+           icons in the frieze bar's ink straight on the room's cream — and the
+           field's own rim is the one inner-facing line beside each. The
            scope's own colour stays on its glyph in the menu. -->
       <button
         type="button"
@@ -50,7 +55,7 @@
         :title="'Search in: ' + kindMeta.word"
         @mousedown.prevent
       >
-        <q-icon :name="kindMeta.icon" size="12px" />
+        <q-icon :name="kindMeta.icon" size="13px" />
         <span class="side-search__pill-word">{{ kindMeta.short }}</span>
         <q-icon name="expand_more" size="12px" class="side-search__caret" />
         <q-menu class="side-search__menu" anchor="bottom left" self="top left" :offset="[0, 4]" auto-close>
@@ -68,6 +73,19 @@
         </q-menu>
       </button>
 
+    <div class="side-search__bubble">
+      <!-- Talavero's glyph (assets/talavero/talavero-glyph.svg) as a MASK
+           painted in the field's own ink — the same colour as the words, the
+           room showing through everywhere else. Breathes while he looks. -->
+      <span
+        class="side-search__talavero"
+        :class="{ 'is-thinking': pending > 0 }"
+        :title="seatName + ' finds things for you'"
+        aria-hidden="true"
+        @mousedown.prevent
+        @click="inputEl && inputEl.focus()"
+      />
+
       <input
         ref="inputEl"
         v-model="q"
@@ -83,6 +101,7 @@
         @keydown.enter.prevent="pick(flat[active])"
         @keydown.esc.prevent="close"
       >
+    </div>
 
       <button
         type="button"
@@ -90,7 +109,7 @@
         :title="where === 'viewer' ? 'Hits open here, in the side viewer' : 'Hits open as floating windows'"
         @mousedown.prevent
       >
-        <q-icon :name="where === 'viewer' ? 'view_sidebar' : 'open_in_new'" size="12px" />
+        <q-icon :name="where === 'viewer' ? 'view_sidebar' : 'open_in_new'" size="13px" />
         <q-icon name="expand_more" size="12px" class="side-search__caret" />
         <q-menu class="side-search__menu" anchor="bottom right" self="top right" :offset="[0, 4]" auto-close>
           <button
@@ -105,7 +124,6 @@
           </button>
         </q-menu>
       </button>
-    </div>
     </div>
 
     <!-- THE DROP: grouped by kind, drawn as each kind answers. -->
@@ -141,7 +159,6 @@
 
 <script>
 import { defineComponent, ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
-import EntityAvatar from 'src/components/entities/EntityAvatar.vue'
 import { refService } from 'src/services/ref.service'
 import { feedService } from 'src/services/feed.service'
 import { kindFor } from 'src/utils/kinds'
@@ -183,7 +200,6 @@ const cache = new Map()
 
 export default defineComponent({
   name: 'SideSearchBoard',
-  components: { EntityAvatar },
   props: {
     // The viewer's history, newest first — `{ address, kind, label }` —
     // shown as "recently viewed" while the field is empty.
@@ -203,12 +219,9 @@ export default defineComponent({
     const seat = ref(null)
 
     const kindMeta = computed(() => SCOPES.find((s) => s.key === scope.value) || SCOPES[0])
+    // The seat's NAME still voices the field ("Ask Talavero to find …");
+    // its face left the board 2026-11-06 for the icon in the field.
     const seatName = computed(() => seat.value?.display_name || 'Talavero')
-    const seatEntity = computed(() => ({
-      id: seat.value?.id || null,
-      display_name: seatName.value,
-      photo: seat.value?.photo || null
-    }))
 
     const rowOf = (r, kind) => ({
       kind: r.kind || kind,
@@ -376,7 +389,6 @@ export default defineComponent({
       pending,
       kindMeta,
       seatName,
-      seatEntity,
       groups,
       flat,
       setScope,
@@ -454,17 +466,47 @@ export default defineComponent({
   --ssb-room-r-top: max(var(--ssb-room-r-bottom), calc(var(--side-viewer-inner-r, 9px) - var(--ssb-pad)));
   --ssb-field-h: 24px;     // the one line: the field's and the face's height
   --ssb-field-rim: 1px;
-  --ssb-inset: 2px;        // the field's inner pad round its pills
-  // ask 6 — each level concentric with the inside corners of the one round
-  // it (its corner less the rim less the pad), never below square.
-  --ssb-field-r-top: max(0px, calc(var(--ssb-room-r-top) - var(--ssb-room-rim) - var(--ssb-room-pad)));
-  --ssb-field-r-bottom: max(0px, calc(var(--ssb-room-r-bottom) - var(--ssb-room-rim) - var(--ssb-room-pad)));
-  --ssb-pill-r-top: max(0px, calc(var(--ssb-field-r-top) - var(--ssb-field-rim) - var(--ssb-inset)));
-  --ssb-pill-r-bottom: max(0px, calc(var(--ssb-field-r-bottom) - var(--ssb-field-rim) - var(--ssb-inset)));
+  // ⭐ 2026-11-06 — the FIELD leaves the chain too (user ask: "make the input
+  // box that contains the buttons have slightly rounded borders please. also
+  // add a little inner padding on the sides … the buttons are too close to
+  // the edge"): ask 6 had derived it concentric with the room (6 − 1 − 3 =
+  // 2px top, 3 − 1 − 3 → 0 bottom); it wears the board's soft 3px all round
+  // now — still never rounder than the room's nearest corners (6px top, 3px
+  // bottom; 3px all round on the phone). Its SIDES pad 2px — 1px (the
+  // shared inset) before the ask, 4px for an hour ("reduce a little the
+  // padding between the buttons and the input box containers. it is too
+  // much"). Since the pills fused to the room (below) the pad holds only
+  // Talavero and the words off the field's rim.
+  --ssb-field-r: 3px;
+  --ssb-field-pad-x: 2px;
+  // ⭐ 2026-11-06 — the PILLS leave the chain (user ask: "for the two buttons
+  // inside the bubble, make them have slightly rounded corners … and also
+  // be slightly bigger. just a little"): ask 6 had squared them (field 2/0 −
+  // rim − inset → 0); they took the board's soft floor, 3px, and stood 20px
+  // (a 1px inset) — then left the field altogether (`.side-search__pill`):
+  // 3px is now only the corner of their hover tint.
+  --ssb-pill-r: 3px;
   --ssb-tone: var(--side-viewer-lip, var(--indigo-6, #3f51b5));
   --ssb-rim: color-mix(in srgb, var(--ssb-tone) 70%, white);
-  --ssb-veil: color-mix(in srgb, var(--ssb-tone) 30%, transparent);
   --ssb-wash: color-mix(in srgb, var(--ssb-tone) 12%, transparent);
+  // The field's face as ONE flat colour — the wash composited over brown-1,
+  // exactly what `.side-search__bubble`'s background paints. The words'
+  // thinning stroke is drawn in it (see `.side-search__input`).
+  --ssb-face: color-mix(in srgb, var(--ssb-tone) 12%, var(--brown-1, #efebe9));
+  // ⭐ 2026-11-06 — THE FRIEZE BAR'S TWO TONES (user asks: "make the buttons
+  // the same color as the frieze bar outer lips and have the text, icons and
+  // thin borders be the same color tone as the contrast frieze bar color
+  // (darker)"; "make the inner text and the talavero icon be the same color
+  // tone as the displayed item, but a couple tones lighter than the buttons
+  // contrast tone"): the checker under the head is cream lips + the kind's
+  // INK squares (SideViewer `.side-viewer__bar`), so —
+  --ssb-plate: var(--side-viewer-plate, var(--indigo-10, #1a237e)); // the bar's dark squares: pill words, icons, rims; typed words
+  --ssb-cream: var(--plaque-flat, #f8f2e4);                          // the bar's lips: the pills' face
+  // the help line AND Talavero: the kind's hue two rungs up from the ink —
+  // half ink, half the kind's colour (900 + 500/600 ≈ 700: posts ≈
+  // indigo-8, nodes ≈ teal-8, labels ≈ red-7). Grey `rgba(ink, .55)` before.
+  --ssb-word: color-mix(in srgb, var(--ssb-plate) 50%, var(--ssb-tone));
+  --ssb-ink: var(--ssb-plate); // the words typed in the field (`rgba(ink, .9)` before)
   position: relative;
   height: 100%;
   display: flex;
@@ -475,13 +517,15 @@ export default defineComponent({
   transition: background-color 0.25s;
 }
 
-// THE ROOM — the clear light bubble that holds the face and the field.
+// THE ROOM — the clear light bubble that holds the WHAT pill, the field and
+// the WHERE pill, flush (gap 0 since the pills fused to it, 2026-11-06; the
+// seat's face stood at its left until that morning).
 .side-search__room {
   flex: 1 1 auto;
   min-width: 0;
   display: flex;
   align-items: center;
-  gap: 3px;
+  gap: 0;
   padding: var(--ssb-room-pad);
   background: var(--light-cream, #fcf3e0);
   border: var(--ssb-room-rim) solid var(--ssb-rim);
@@ -489,34 +533,70 @@ export default defineComponent({
   border-radius: var(--ssb-room-r-top) var(--ssb-room-r-top) var(--ssb-room-r-bottom) var(--ssb-room-r-bottom);
 }
 
-// The face: the element's VEIL over it; its corners the field's (ask 6 —
-// concentric with the room's; the feed seat's 40% before).
-.side-search__seat {
-  position: relative;
+// ⭐ 2026-11-06 — THE FACE LEFT (user ask: "remove that pic and then adjust
+// the input box accordingly"): `.side-search__seat` (the seat's avatar under
+// the element's `--ssb-veil`) is gone, so the field is the room's only
+// child and its `flex: 1` takes the whole width; the room's pad, rim and
+// corners stand as they were, the head still 38px.
+//
+// TALAVERO IN THE FIELD (same ask: "next to the 'all' button, before the
+// help line … coloring the svg with the same color as the font and leaving
+// its background transparent"): the line icon as a CSS MASK, the FriezeBar
+// waves' technique — `background-color` is the paint, the SVG's alpha the
+// stencil — so the field's face shows through everywhere but his lines.
+// THE GLYPH, NOT THE PICTURE (same day, user: "if necessary, … make another
+// picture inspired on the original … reducing the tentacles and making him
+// smaller, but still preserving his essence"): the full drawing
+// (`talavero-icon.svg`, 100 cells of 1-cell lines) put ~0.2px lines in an
+// 18px box — a grey smudge even at 2×. `talavero-glyph.svg` is Talavero
+// redrawn AT this size, one cell = one CSS px (every line a whole pixel at
+// 1× and 2×, `crispEdges`). Its third cut (asks of the same hour: "his
+// head is huuuuuge … a little bit more neck", "he can be wiiiide instead
+// of tall") is 32 × 16: a 7-wide head under a ball-topped toothed crown,
+// one-dot eyes, a mouth, a taper and a NECK, then five tentacles spread
+// sideways — out left curling up, out right curling up, the tall hooked
+// one up-right, and two branching down past the swirl, which keeps the
+// middle under him (an outer ring round an inner turn).
+// ⭐ Same day, "add a little more padding around talavero and also make the
+// inner text a little bigger so they look of a similar height … make the
+// text slightly bolder so it looks as thick as talavero … paint both the
+// same tone of grey": 4px of air either side of him (on the field's 4px
+// gap), 3px above and below inside the field's 22px; the words grew
+// 0.68em → 0.93em (9.5 → 13px — their cap height ≈ his crown-to-neck), and
+// the growth IS the bolder: measured at 2×, his lines are 2 device px and
+// the 13px stems already 3 — a 0.3px `-webkit-text-stroke` made them 4,
+// heavier than him, so it came straight back out (Nasalization ships ONE
+// weight; `font-weight: bold` would be the browser's faked bold). He and
+// the help line are ONE tone, `--ssb-word` (a grey for an hour, then the
+// kind's hue two rungs above the bar's ink); typed words wear `--ssb-ink`.
+// ⭐ Later still ("make the text back thinner instead of bolder and put the
+// text close to talavero. the gap is huge"): the gap read 12.5px ink to
+// ink — 2 empty columns inside the glyph's box + his 4px margin + the
+// field's 4px gap + the input's 2px padding. The glyph is cropped to its
+// ink (29 × 16, viewBox `0 0 29 16`), his right margin and the input's
+// left padding are gone: ~4.5px now (the field's gap + the A's bearing).
+// His 8px on the pill side stay. The thinning is on `.side-search__input`.
+.side-search__talavero {
   flex: 0 0 auto;
-  display: inline-flex;
-  border-radius: var(--ssb-field-r-top) var(--ssb-field-r-top) var(--ssb-field-r-bottom) var(--ssb-field-r-bottom);
-  :deep(.entity-avatar) { border-radius: inherit; }
-  &::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    background: var(--ssb-veil);
-    pointer-events: none;
-    transition: background-color 0.25s;
-  }
-  // Thinking: the veil breathes.
-  &.is-thinking::after { animation: side-search-think 0.9s ease-in-out infinite alternate; }
+  width: 29px;
+  height: 16px;
+  margin-left: 4px;
+  background-color: var(--ssb-word);
+  mask: url('../../assets/talavero/talavero-glyph.svg') center / 29px 16px no-repeat;
+  -webkit-mask: url('../../assets/talavero/talavero-glyph.svg') center / 29px 16px no-repeat;
+  cursor: text;
+  // Thinking (a search in flight): he breathes — the face's veil did before.
+  &.is-thinking { animation: side-search-think 0.9s ease-in-out infinite alternate; }
 }
 @keyframes side-search-think {
   from { opacity: 1; }
-  to { opacity: 0.25; }
+  to { opacity: 0.35; }
 }
 
 // The field: the feed board's chat field (`.feed-head__chat-input`) at one
 // line — brown-1 face under the element's WASH, carved, a 1px rim in the
-// room's tone. Its corners concentric with the room's (ask 6; 12px before).
+// room's tone. Its corners `--ssb-field-r` 3px (12px until 11-05, then
+// concentric with the room's 2 / 0 until 11-06); 4px side pad.
 .side-search__bubble {
   flex: 1 1 auto;
   min-width: 0;
@@ -525,38 +605,53 @@ export default defineComponent({
   display: flex;
   align-items: center;
   gap: 4px;
-  padding: 0 var(--ssb-inset);
+  padding: 0 var(--ssb-field-pad-x);
   border: var(--ssb-field-rim) solid var(--ssb-rim);
-  border-radius: var(--ssb-field-r-top) var(--ssb-field-r-top) var(--ssb-field-r-bottom) var(--ssb-field-r-bottom);
+  border-radius: var(--ssb-field-r);
   background: linear-gradient(var(--ssb-wash), var(--ssb-wash)), var(--brown-1, #efebe9);
   box-shadow:
     inset 0 1.5px 4px rgba(var(--ink-rgb-deep, 31, 42, 56), 0.3),
     inset 0 -1px 0 rgba(255, 255, 255, 0.4);
 }
 
-// THE DROPDOWNS: soft pills in the shown element's tone (ask 3), CONCENTRIC
-// with the field (ask 4 — its corner less its rim and the inset; ask 6 per
-// pair, which squares them now the field turns at 2 / 0).
+// THE DROPDOWNS: soft pills in the shown element's tone (ask 3) — concentric
+// with the field until 2026-11-06 (ask 4, then ask 6 squared them); now
+// `--ssb-pill-r` 3px, 20px tall, words 0.62em → 0.68em, a px more side pad
+// ("slightly rounded corners … slightly bigger. just a little"). ⭐ Their
+// colours are the FRIEZE BAR's since the same evening: a `--ssb-cream` face
+// (the bar's lips) with words and icons in `--ssb-plate` (the bar's dark
+// squares) and the thin rim in `--ssb-tone` — the kind's own colour, the
+// bar's 1px lip line under the checker (the ink for a few minutes, then
+// "make the buttons thin border contrasting color lighter please"); a tint
+// of the kind's colour on white with a 55% rim before.
+// ⭐ THEN FUSED (same evening, "just remove the border out of the buttons
+// except the inner-facing ones and fuse them to their cream container"):
+// the pills left the field for the ROOM — WHAT before the field, WHERE after
+// it, the room's gap 0 so each stands flush on the field's rim — with NO
+// face and NO border of their own: their words and icons, still in
+// `--ssb-plate`, sit straight on the room's cream, and the field's 1px rim
+// is the one inner-facing line beside each (a pill border there would
+// double it). The field's height, so a hover tint (8% of the ink, the 3px
+// corner) spans the line.
 .side-search__pill {
-  --pill-tone: var(--ssb-tone);
   flex: 0 0 auto;
   display: inline-flex;
   align-items: center;
   gap: 3px;
-  height: calc(var(--ssb-field-h) - 2 * var(--ssb-field-rim) - 2 * var(--ssb-inset));
-  padding: 0 5px 0 6px;
-  border: 1px solid color-mix(in srgb, var(--pill-tone) 55%, transparent);
-  border-radius: var(--ssb-pill-r-top) var(--ssb-pill-r-top) var(--ssb-pill-r-bottom) var(--ssb-pill-r-bottom);
-  background: color-mix(in srgb, var(--pill-tone) 13%, white);
-  color: var(--pill-tone);
+  height: var(--ssb-field-h);
+  padding: 0 6px 0 4px;
+  border: 0;
+  border-radius: var(--ssb-pill-r);
+  background: transparent;
+  color: var(--ssb-plate);
   font: inherit;
-  font-size: 0.62em;
+  font-size: 0.68em;
   letter-spacing: 0.03em;
   cursor: pointer;
-  transition: background 0.15s, transform 0.15s;
-  &:hover { background: color-mix(in srgb, var(--pill-tone) 22%, white); transform: translateY(-1px); }
+  transition: background 0.15s;
+  &:hover { background: color-mix(in srgb, var(--ssb-plate) 8%, transparent); }
 }
-.side-search__pill--where { padding: 0 3px 0 5px; }
+.side-search__pill--where { padding: 0 3px 0 6px; }
 .side-search__caret { opacity: 0.7; margin-left: -1px; }
 
 .side-search__input {
@@ -565,11 +660,20 @@ export default defineComponent({
   height: 100%;
   border: 0;
   outline: 0;
+  padding: 0 2px 0 0; // no left pad: the words start right after Talavero
   background: transparent;
-  color: rgba(var(--ink-rgb), 0.9);
+  color: var(--ssb-ink);
   font: inherit;
-  font-size: 0.68em;
-  &::placeholder { color: rgba(var(--ink-rgb), 0.4); }
+  font-size: 0.93em;
+  // THINNER (2026-11-06, "make the text back thinner instead of bolder"):
+  // Nasalization has no light weight, so the strokes are SHAVED — a 0.3px
+  // `-webkit-text-stroke` in the field's own face colour (`--ssb-face`) is
+  // painted over each letter's edge and eats 0.15px a side. Measured at 2×:
+  // stems 3 → 2 device px, exactly Talavero's 1px lines; inherited by the
+  // placeholder. The stroke colour MUST stay the field's composited face
+  // (a mismatch would draw a halo) — hence the shared token.
+  -webkit-text-stroke: 0.3px var(--ssb-face);
+  &::placeholder { color: var(--ssb-word); }
   &::-webkit-search-cancel-button { cursor: pointer; }
 }
 
