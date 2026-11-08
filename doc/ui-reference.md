@@ -23,7 +23,7 @@ Then replace/add the pre-built files in `src/`.
 Each frontend service is a thin axios wrapper around one backend resource. Conventions:
 - Return the raw API payload (`{ success, ...payload }` or `{ success: false, error }`).
 - Components handle both shapes inline.
-- The axios instance lives in `services/api.js` with a request-interceptor that injects the JWT and a 401 interceptor that clears auth + redirects to `/auth`. ⭐ 2026-11-02: an EXPLICIT `Authorization` on a request wins over the page's token (the Keys well mints AS the Chrome alter-ego with its switch token on one request; until then the interceptor overwrote it and the key was minted as the page's seat).
+- The axios instance lives in `services/api.js` with a request-interceptor that injects the JWT and a 401 interceptor that clears auth + redirects to `/auth`. ⭐ 2026-11-08 — **THE SESSION ENDS WITH THE PAGE** (user ask: tabs still on the rail after logging out): that redirect, both Log out buttons (identity dock + own profile, via `authStore.logout` → `authService.logout`) and a logout in ANOTHER tab (App.vue's `watchSessionEnd`) all RELOAD the app onto `/#/auth` through `utils/leaveToAuth.js` — no Pinia store (window tray, trail, docks) outlives the token, so the landing rail is empty and the next login starts clean. Callers no longer `router.push('/auth')`. Witness `flow-logout-clean.mjs` 14/14. ⭐ 2026-11-02: an EXPLICIT `Authorization` on a request wins over the page's token (the Keys well mints AS the Chrome alter-ego with its switch token on one request; until then the interceptor overwrote it and the key was minted as the page's seat).
 
 | File | Backs |
 |------|-------|

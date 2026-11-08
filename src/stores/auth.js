@@ -72,10 +72,12 @@ export const useAuthStore = defineStore('auth', {
       return result
     },
 
+    // The state is NOT nulled here any more (2026-11-08): the service ends
+    // in a reload, which discards it whole — nulling it first would only
+    // re-render the still-mounted shell against a missing user for the
+    // moment the revoke takes.
     logout () {
-      authService.logout()
-      this.token = null
-      this.user = null
+      return authService.logout()
     },
 
     async fetchStatus () {

@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { leaveToAuth } from 'src/utils/leaveToAuth'
 
 const api = axios.create({
   baseURL: process.env.API_URL || 'http://localhost:3000/api',
@@ -24,10 +25,9 @@ api.interceptors.response.use(
     if (err.response?.status === 401) {
       localStorage.removeItem('pathos_token')
       localStorage.removeItem('pathos_user')
-      // App uses hash routing — a bare '/auth' navigates to the wrong place.
-      if (!window.location.hash.startsWith('#/auth')) {
-        window.location.href = window.location.origin + '/#/auth'
-      }
+      // A RELOAD onto /auth (2026-11-08), not a hash change: the session's
+      // in-memory state (window tray, trail, docks) must not outlive it.
+      if (!window.location.hash.startsWith('#/auth')) leaveToAuth()
     }
     return Promise.reject(err)
   }

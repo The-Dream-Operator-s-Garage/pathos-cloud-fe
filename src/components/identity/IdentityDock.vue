@@ -683,11 +683,11 @@ export default defineComponent({
     }
 
     // Logout followed the section out of the drawer: an action belongs with
-    // the identity it ends.
+    // the identity it ends. No route push after it (2026-11-08): the store
+    // reloads the app onto /auth itself (utils/leaveToAuth.js).
     const handleLogout = () => {
       identity.close()
       auth.logout()
-      router.push('/auth')
     }
 
     // The put-on-the-mask switch — EntityOrganizations' seam, worn here.

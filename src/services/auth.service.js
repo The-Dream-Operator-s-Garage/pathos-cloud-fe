@@ -1,4 +1,5 @@
 import api from './api'
+import { leaveToAuth } from 'src/utils/leaveToAuth'
 
 export const authService = {
   async login (username, password) {
@@ -207,17 +208,25 @@ export const authService = {
     return data
   },
 
-  logout () {
-    // Best-effort server-side revoke of THIS session before dropping the
-    // token — a sid-less (legacy/driver) token is a server no-op. The
-    // header is explicit because the interceptor may read localStorage
-    // AFTER the removes below have run.
+  // Ends the session AND the page (2026-11-08 — utils/leaveToAuth.js says
+  // why): revoke, drop the token, reboot the app on /auth. Callers do not
+  // route anywhere after it — the reload is the navigation.
+  async logout () {
+    // Server-side revoke of THIS session before dropping the token — a
+    // sid-less (legacy/driver) token is a server no-op. AWAITED now, since
+    // the reload below would abort a request still in flight; capped, so a
+    // slow API never holds anyone on a page they asked to leave. The header
+    // is explicit because the interceptor reads localStorage at send time.
     const token = localStorage.getItem('pathos_token')
     if (token) {
-      api.post('/identity/logout', {}, { headers: { Authorization: `Bearer ${token}` } }).catch(() => {})
+      await Promise.race([
+        api.post('/identity/logout', {}, { headers: { Authorization: `Bearer ${token}` } }).catch(() => {}),
+        new Promise((resolve) => setTimeout(resolve, 2000))
+      ])
     }
     localStorage.removeItem('pathos_token')
     localStorage.removeItem('pathos_user')
+    leaveToAuth()
   },
 
   getUser () {

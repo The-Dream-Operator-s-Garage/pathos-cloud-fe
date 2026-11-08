@@ -95,7 +95,7 @@
 
 <script>
 import { defineComponent, ref, computed, onMounted, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute } from 'vue-router'
 import { useAuthStore } from 'src/stores/auth'
 import { entityService } from 'src/services/entity.service'
 import { seatEntityId } from 'src/utils/entityDisplay'
@@ -130,7 +130,6 @@ export default defineComponent({
   },
   setup () {
     const route = useRoute()
-    const router = useRouter()
     const authStore = useAuthStore()
 
     const entity = ref(null)
@@ -171,9 +170,9 @@ export default defineComponent({
       })
     }
 
+    // The store reloads the app onto /auth itself (2026-11-08).
     const logout = () => {
       authStore.logout()
-      router.push('/auth')
     }
 
     onMounted(load)

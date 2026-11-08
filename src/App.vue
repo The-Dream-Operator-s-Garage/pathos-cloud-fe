@@ -3,8 +3,9 @@
 </template>
 
 <script>
-import { defineComponent, onMounted } from 'vue'
+import { defineComponent, onMounted, onBeforeUnmount } from 'vue'
 import { authService } from 'src/services/auth.service'
+import { watchSessionEnd } from 'src/utils/leaveToAuth'
 
 export default defineComponent({
   name: 'App',
@@ -17,6 +18,10 @@ export default defineComponent({
         authService.verify().catch(() => { /* interceptor handles 401 */ })
       }
     })
+    // A logout in ANOTHER tab ends this tab's session too — reloaded onto
+    // /auth so none of its windows or trail outlive the token (2026-11-08).
+    const unwatch = watchSessionEnd()
+    onBeforeUnmount(unwatch)
   }
 })
 </script>
