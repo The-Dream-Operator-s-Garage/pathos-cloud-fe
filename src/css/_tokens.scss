@@ -1468,6 +1468,11 @@ $warning:   #F2C037;
   // ask) — the rows it covered are painted by `.nav-bar`'s own
   // `background: var(--plaque-coat)` now, which is the one wearer this
   // paragraph started from.
+  // ⭐ ROLE ADDED 2026-11-06 (user ask: the feed container's background "the
+  // same cream color … as the feed container frieze bar lips"): THE FEED'S
+  // FIELD — `.feed-container` (FeedPage) and its scroll bed
+  // `.feed-stream__well` (FeedStream), both from `--grey-8`. The lips are the
+  // `.feed-container__rail` coat strips, so field and lips are one paint.
   --plaque-coat:
     linear-gradient(rgba(238, 238, 238, 0.3), rgba(238, 238, 238, 0.3)),
     var(--light-cream);

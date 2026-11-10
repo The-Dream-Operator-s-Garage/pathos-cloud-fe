@@ -4606,7 +4606,13 @@ export default defineComponent({
   //    a scrollbar track — since each of those now has a dark plate behind it.
   //    The dark settings this line tried and rejected in one sitting
   //    (`--grey-8` itself, then -7 and -6) were rejected on that ground.
-  background: var(--grey-8, #616161);
+  // ⭐ **`--plaque-coat` SINCE 2026-11-06** (user ask, named on the CONTAINER a
+  // fifth time: "the same cream color … as the feed container frieze bar
+  // lips") — the rails' own lip paint, a layer list, legal here because this
+  // is a `background:` shorthand. The field goes back to the LIGHT half: the
+  // veiled card (≈rgb 242,239,234) now sits a shade BELOW the bed
+  // (rgb 248,242,228), so its `--grey-5` outline does the separating again.
+  background: var(--plaque-coat);
   // The bed's REVEAL around the cards. The sides walked the whole way down and
   // then back up: `10px` (from the day the well took padding back) → `5px` →
   // `0` ("remove completely") → `3px` ("just a little little", all four on

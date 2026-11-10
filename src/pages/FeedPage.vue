@@ -1271,7 +1271,16 @@ export default defineComponent({
   // plate, inverted in the same message), so the field is the darkest element
   // on the surface and its edges the lightest — the exact reverse of the
   // arrangement this file described for two weeks.
-  background: var(--grey-8, #616161);
+  // ⭐ THE RAILS' LIP CREAM SINCE 2026-11-06 (user ask: "try putting on the
+  // same cream color on the feed container background color as the color of
+  // the feed container frieze bar lips"): `--plaque-coat`, the very layer list
+  // `.feed-container__rail` paints its 2px lips with (light-cream under the
+  // chrome's 30% grey-3 veil → rgb(248,242,228)), so field and lips are one
+  // material and the rails' 1px `--grey-6` inner rim is the only line between
+  // them. The figure/ground of 08-24 inverts back: the cards are a hair
+  // DARKER than their field now and lean on their own outline. ⚠ HALF OF ONE
+  // CHANGE — `.feed-stream__well` (FeedStream.vue) carries the same paint.
+  background: var(--plaque-coat);
 
   // ── THE BOX'S SIDE BORDERS (2026-08-07, user ask) — 1px `--indigo-4` down
   // each side and NOTHING on the ends, which is the same shape as the bars'
