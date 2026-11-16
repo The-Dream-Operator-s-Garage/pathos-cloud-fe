@@ -16,15 +16,15 @@
        · DRAG (past 3px, from anywhere on the button; the grip says so)
          slides it along the rail — horizontally only — carrying the window.
        · ←/→ walk it 8px (40 with Shift); Enter / Space toggle.
-       Two postures, read off the window: PARKED, a plate on the bar (all
-       four corners round, its foot above the rail's rim); OPEN, a tab that
-       opens INTO its window — its foot reaches through the rim to the
-       window's top, no bottom rim, top corners round only — so button and
-       window read as one shape hung from the bar.
+       Both postures sit BETWEEN THE LIPS (2026-11-16): inside the frieze's
+       two rules, 15px, the rail's lips drawn over them. PARKED, a plate in
+       the frieze (all four corners round); OPEN, a tab standing on the
+       frieze's bottom rule — no bottom rim, top corners round only — over
+       its window hung from the bottom lip.
        z 3135: over the rail (3125) and the parked stack strip (3130), under
        every flyout (3140+) — a free window dragged across the bar covers
-       these buttons as it covers the bar. Desktop only (nothing docks on a
-       phone). -->
+       these buttons as it covers the bar — and under the lips (3700).
+       Desktop only (nothing docks on a phone). -->
   <div v-if="docks.length" class="flyout-top-dock" role="toolbar" aria-label="windows attached to the top bar">
     <button
       v-for="d in docks"
@@ -154,14 +154,18 @@ export default defineComponent({
 }
 
 .flyout-top-dock__btn {
-  // The rail's face: from its lead (2px under the rail's top, which slides
-  // with `--header-y`) down to just above its 1px rim.
-  --dock-btn-top: calc(var(--header-y, 0px) + var(--media-tabs-lead, 2px));
+  // ⭐ 2026-11-16 — BETWEEN THE LIPS (user ask: "make sure they're sticking
+  // inside the friezebar, between the lips and not overlaying on top of
+  // them"): the frieze's inner box — under its top rule, over its bottom
+  // rule — 15px. The rail's lips ride OVER the button now (MediaTabsBar
+  // `.rail-lips`, z 3700). Until then the button ran from the lead down to
+  // the rim (open: through it), covering the frieze's rules and the lower lip.
+  --dock-btn-top: calc(var(--header-y, 0px) + var(--media-tabs-lead, 2px) + 1px);
   --dock-btn-r: 5px;
   position: fixed;
-  z-index: 3135; // over the rail (3125) + the parked stack strip (3130), under every flyout (3140+)
+  z-index: 3135; // over the rail (3125) + the parked stack strip (3130), under every flyout (3140+) and the lips (3700)
   top: var(--dock-btn-top);
-  height: calc(var(--media-tabs-h, 22px) - var(--media-tabs-lead, 2px) - var(--media-tabs-rim, 1px));
+  height: calc(var(--media-tabs-frieze-h, 17px) - 2px);
   transform: translateX(-50%); // `left` is the window's centre
   box-sizing: border-box;
   display: inline-flex;
@@ -185,11 +189,11 @@ export default defineComponent({
   &:hover { background: var(--grey-3, #eeeeee); }
   &:focus-visible { outline: 2px solid var(--teal-7, #00897b); outline-offset: 1px; }
 
-  // OPEN: the button is the window's tab — its foot passes through the
-  // rail's rim to the window's top (the rail's bottom edge), no bottom rim,
-  // only the top corners round, no cast below it (the window is there).
+  // OPEN: the button sits on the frieze's bottom rule — no bottom rim, only
+  // the top corners round, no cast — so it reads as opening DOWN through the
+  // lip into its window hung just below. (Its foot reached through the rim to
+  // the window's top until 2026-11-16; the lips ride over the bar now.)
   &.is-open {
-    height: calc(var(--media-tabs-h, 22px) - var(--media-tabs-lead, 2px));
     border-bottom: none;
     border-radius: var(--dock-btn-r) var(--dock-btn-r) 0 0;
     box-shadow: none;

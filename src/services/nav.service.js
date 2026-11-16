@@ -44,6 +44,13 @@ export const navService = {
     return data
   },
 
+  // ⭐ 2026-11-16 — the parked tabs' order as a routable element: the
+  // WINDOW_STACK path skeleton (visited, its path reads top-first = the row left → right).
+  async getWindowStackSkeleton () {
+    const { data } = await api.get('/nav/window-stack')
+    return data
+  },
+
   // ── THE WINDOW TRAY (2026-09-06) ──────────────────────────────
   // The floating viewers open on the tab bar, so a reload puts them back.
   // Read once on boot; written fire-and-forget on every open/park/close —

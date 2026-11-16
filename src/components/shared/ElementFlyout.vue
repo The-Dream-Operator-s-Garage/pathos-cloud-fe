@@ -289,6 +289,11 @@
         @posted="commenting = false"
       />
     </div>
+    <!-- THE BASE (2026-11-16, user ask: "making the footer of the bars look
+         like the header"): the glass's lip, then the foot on the header's
+         solid grey. (A mirrored slim frieze stood between them for an hour —
+         removed the same day, user ask.) -->
+    <div class="element-flyout__base">
     <footer class="element-flyout__foot">
       <div class="element-flyout__actions">
         <button
@@ -409,6 +414,7 @@
         </button>
       </div>
     </footer>
+    </div>
 
     <!-- Share-to-conversation picker (skeletons plan phase 4) — the chat
          drafts seam: prefills the picked conversation with the ref chip;
@@ -1550,8 +1556,14 @@ export default defineComponent({
   // same color and style as the minimized tabs, solid grey and dark text"):
   // `.media-tabs__tab` = flat grey-4, grey-8 glyph + name — read off the tab
   --flyout-head: var(--grey-4, #e0e0e0);
-  --flyout-head-ink: var(--grey-8, #616161);
-  --flyout-head-ink-hover: var(--grey-10, #212121);
+  // THE PLATE INK (2026-11-16, user ask: "the text inside the header and the
+  // footer … the same as the background color of the frieze bar"): the
+  // frieze plate's solid signature tone is now ONE dial, and the header's +
+  // foot's names, glyphs, controls and tallies all wear it (grey-8 until
+  // then); hover / ON pull it a further 30% toward black (was grey-10).
+  --flyout-plate: color-mix(in srgb, var(--flyout-sig) 67%, #000);
+  --flyout-head-ink: var(--flyout-plate);
+  --flyout-head-ink-hover: color-mix(in srgb, var(--flyout-plate) 70%, #000);
   --flyout-lip: var(--grey-5, #bdbdbd); // the frieze's two lips
   // THE FACES' CORNERS (same evening, user ask: "the content container …
   // rounded borders that match the rounded borders of what they contain").
@@ -1566,7 +1578,12 @@ export default defineComponent({
   backdrop-filter: blur(var(--flyout-glass-blur)) saturate(1.1);
   -webkit-backdrop-filter: blur(var(--flyout-glass-blur)) saturate(1.1);
   color: var(--flyout-ink-soft);
-  border: 1px solid var(--grey-6, #9e9e9e); // the rim: a light hairline on the glass
+  // THE RIM IS THE HEADER'S GREY (2026-11-16, user ask: "the border around
+  // the glass … the same color as the header background … a little
+  // thicker"): 2px of `--flyout-head` (was a 1px grey-6 hairline), so bar,
+  // rim and foot read as one solid frame round the pane. `sideChrome` /
+  // `chromeOf` in utils/mediaFit count the 2px.
+  border: 2px solid var(--flyout-head);
   border-radius: 10px;
   overflow: hidden;
   box-shadow: 0 12px 34px rgba(0, 0, 0, 0.45);
@@ -1733,7 +1750,7 @@ export default defineComponent({
   // motif reads cut through to the coat, still the header's two tones
   // ⭐ the plate is the SIGNATURE's solid dark tone since the tint pass
   // (was `--flyout-head-ink`, the header's grey-8, an hour before)
-  --frieze-bar-base: color-mix(in srgb, var(--flyout-sig) 67%, #000);
+  --frieze-bar-base: var(--flyout-plate); // = the header + foot ink since 2026-11-16
   --frieze-bar-wave-two: var(--flyout-head);
   // THE LIPS (same evening, user ask: "thin solid grey color lips up and
   // down the frieze bar"): 1px each side, drawn as OUTER shadows so the
@@ -1846,6 +1863,16 @@ export default defineComponent({
   padding: 6px 8px 0;
 }
 
+// THE BASE (2026-11-16): the glass's 1px lip (`BASE_LIP` in utils/mediaFit)
+// over the foot on the header's coat and inks. No frieze down here — the
+// mirrored band was tried and removed the same day (user ask).
+.element-flyout__base {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--flyout-lip);
+}
+
 .element-flyout__foot {
   flex: 0 0 auto;
   display: flex;
@@ -1853,6 +1880,8 @@ export default defineComponent({
   justify-content: space-between;
   height: 22px;
   padding: 0 8px 1px;
+  background: var(--flyout-head); // solid — the header's coat
+  color: var(--flyout-head-ink);
   font-family: var(--font-display);
   font-size: 0.58em;
   position: relative;
@@ -1865,12 +1894,14 @@ export default defineComponent({
   gap: 1px;
 }
 
+// the foot's inks are the header's since the base pass (light-on-glass
+// until 2026-11-16): grey-8 at rest, grey-10 under the pointer
 .element-flyout__act {
-  color: var(--flyout-ink-soft);
+  color: var(--flyout-head-ink);
   width: 19px;
   height: 19px;
 
-  &:hover { color: var(--flyout-ink-hover); }
+  &:hover { color: var(--flyout-head-ink-hover); }
   // A held pin is a STATE, not a hover.
   &.is-on,
   &.is-on:hover { color: var(--accent); }
@@ -1882,7 +1913,7 @@ export default defineComponent({
   width: 1px;
   height: 12px;
   margin: 0 4px;
-  background: var(--flyout-hairline);
+  background: var(--grey-6, #9e9e9e); // a mid grey on the header's plate
 }
 
 .element-flyout__votes {
@@ -1900,12 +1931,12 @@ export default defineComponent({
   padding: 0 2px;
   border: none;
   background: transparent;
-  color: var(--flyout-ink-soft);
+  color: var(--flyout-head-ink);
   font: inherit;
   letter-spacing: 0.04em;
   cursor: pointer;
 
-  &:hover { color: var(--flyout-ink-hover); }
+  &:hover { color: var(--flyout-head-ink-hover); }
   &.is-up { color: var(--positive); }
   &.is-down { color: var(--negative); }
 }

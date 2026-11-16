@@ -38,10 +38,19 @@ const AUDIO_STRIP = { w: 8, h: 1 } // a wide controls bar
 
 // Total vertical chrome for a given crown-strip height in px (the slim
 // frieze is half of it; `friezePx` comes from useMediaArena's measurement).
+// Since THE BASE (2026-11-16) the foot wears the header's coat under the
+// glass's 1px lip (`BASE_LIP`), and the rim is 2px a side.
 export function chromeOf (friezePx) {
   return HEADER_H + Math.round((friezePx || 19) / 2 + 2) +
-    GLASS_LIP + WELL_PAD * 2 + FOOT_H + 2
+    GLASS_LIP + WELL_PAD * 2 + BASE_LIP + FOOT_H + RIM * 2
 }
+
+// THE BASE'S LIP (2026-11-16): `.element-flyout__base`'s 1px border-top.
+export const BASE_LIP = 1
+
+// THE RIM (2026-11-16): ElementFlyout's border, 2px of the header's grey
+// (a 1px grey-6 hairline before).
+export const RIM = 2
 
 // THE GLASS'S OWN LIP (2026-11-15): ElementFlyout's well stands 1px of
 // glass under the frieze's lower lip and draws a 1px lip of its own — the
@@ -52,7 +61,7 @@ export const GLASS_LIP = 2
 // Stated once so the fit and the shrink floor cannot drift apart — the
 // content container adds nothing of its own (it briefly had a rim on
 // 2026-08-05; the box is uniform now).
-const sideChrome = () => WELL_PAD * 2 + 2
+const sideChrome = () => WELL_PAD * 2 + RIM * 2
 
 // "W / H" — the enrich seam's normalized aspect form — parsed to a box,
 // or null on absent/malformed/zeroed input so the caller picks a default

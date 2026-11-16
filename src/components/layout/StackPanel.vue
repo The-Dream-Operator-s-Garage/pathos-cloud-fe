@@ -766,7 +766,14 @@ export default defineComponent({
     // ⭐ THE RAIL'S FACE SINCE 2026-09-30 — `--media-tabs-band` (21px: the
     // rail's height less its bottom rim, the Back plate's own box), where it
     // was the footer's 31px content row.
-    height: var(--media-tabs-band);
+    // ⭐ 2026-11-16 — BETWEEN THE LIPS (user ask: the frieze bar's lips ride
+    // on top of everything, the stack re-seated under them — MediaTabsBar
+    // `.rail-lips`): the frieze's inner span, under its top rule, over its
+    // bottom rule, 15px, four round corners. It stood on the rail's whole
+    // 21px face (`top: --header-y`, `height: --media-tabs-band`, bottom
+    // corners only) until then.
+    top: calc(var(--header-y, 0px) + var(--media-tabs-lead) + 1px);
+    height: calc(var(--media-tabs-frieze-h) - 2px);
     // FIXED at the widget's one width since 2026-09-02 (`width: auto` —
     // shrink-to-fit — from the relocation until then): the strip is exactly
     // as wide as the panel that rises out of it. The 48vw cap below stays
@@ -814,7 +821,7 @@ export default defineComponent({
     // below, exactly as they do for the other two end cells.
     border: 1px solid rgba(255, 255, 255, 0.45);
     border-bottom-color: rgba(var(--ink-rgb-deep), 0.25);
-    border-radius: 0 0 5px 5px;
+    border-radius: 4px; // ⭐ 11-16: all four — a plate between the lips (`0 0 5px 5px`, hung from the rail's top, until then)
     box-shadow:
       inset 0 1px 0 rgba(255, 255, 255, 0.35),
       0 1px 3px rgba(var(--ink-rgb-deep), 0.18);
@@ -1237,7 +1244,10 @@ export default defineComponent({
     // ⭐ ON THE GLASS SINCE 2026-09-30: no well, no rim, no shoulders — the
     // tiles stand straight on the pane, 17px in the rail's 19px interior
     // (21 less the pane's two rims), 1px of glass above and below.
-    --side-item-h: 17px;
+    // ⭐ 2026-11-16 — BETWEEN THE LIPS: the strip is the frieze's 15px inner
+    // span now, so the tiles are its 13px interior, flush with the pane's
+    // rims (1px of glass a side would leave an 11px tile — too small to letter).
+    --side-item-h: 13px;
     margin: 0;
     padding: 0 3px;
     background: transparent;

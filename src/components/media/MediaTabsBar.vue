@@ -432,6 +432,21 @@
       <span class="media-tabs__pager-count">{{ page }}/{{ pages }}</span>
     </button>
   </div>
+  <!-- ── ⭐ THE LIPS RIDE ON TOP (2026-11-16, user ask: "make sure the bottom
+       and top lip of the friezebar is always on top of everything") ───────
+       The rail's two lips — TOP = the lead's coat + the frieze's top rule,
+       BOTTOM = the frieze's bottom rule + the pad's coat + the rim — redrawn
+       as a click-through layer OUTSIDE the rail's stacking context (z 3125),
+       at z 3700: over the rail's own children (Back/Forward, the feed-rail
+       grips), the top dock's buttons (3135) and every lifted flyout (3141+),
+       under a maximized one (3800). Everything that sits on the bar sits
+       BETWEEN them now; the parked tabs hang from the bottom one. The badge
+       keeps its seat over both (a hole at the planet's x — it is the seam the
+       two friezes converge on, with its own lips cut into its frame). -->
+  <div class="rail-lips" aria-hidden="true">
+    <div class="rail-lips__lip rail-lips__lip--top" />
+    <div class="rail-lips__lip rail-lips__lip--bottom" />
+  </div>
 </template>
 
 <script>
@@ -683,8 +698,17 @@ export default defineComponent({
     // ⭐ 2026-10-13: on a phone in PORTRAIT the wall reads NEWEST-PARKED
     // first (`parkedByRecency` — the ask: "so I first see what I've just
     // minimized"); everywhere else the spawn order above holds.
+    // ⭐ 2026-11-16 — THE STACK EVERYWHERE (user ask: "the tabs re-arrange
+    // everytime they're opened and then minimized again. the lastly minimized
+    // one should become the first one on the left, displacing the latest last
+    // one"): the desktop row reads `parkedByRecency` too — a park puts its tab
+    // FIRST on the left and pushes the rest right. The order is saved twice:
+    // `parkedAt` in the `__windows` tray (what a reload rebuilds from) and the
+    // on-chain WINDOW_STACK path skeleton (GET /nav/window-stack — visit
+    // `/#/skeletons/<id>`; its path reads top-first = this row left → right). The spawn
+    // order above (`[...store.parked].reverse()`) held until then.
     const tabs = computed(() => {
-      const list = phonePortrait.value ? store.parkedByRecency : [...store.parked].reverse()
+      const list = store.parkedByRecency
       return list.map((v) => ({
         key: v.id,
         icon: v.icon || iconForTarget(v.target),
@@ -1591,6 +1615,17 @@ export default defineComponent({
   // strip's foot, the webs, the fillets and `--media-tabs-park-h` do not
   // move.
   --mtab-lift: calc(var(--media-tabs-frieze-pad) + var(--media-tabs-rim));
+  // ⭐ 2026-11-16 — THE TABS HANG FROM THE BOTTOM LIP (user ask): on desktop
+  // the row no longer reaches up over the lip to the frieze's rule — its top
+  // (the tabs' top rims) lands on the rail's rim row, which the lips layer
+  // redraws over it, so the lip runs unbroken and the tabs hang under it.
+  // The phone's turned wall keeps its lift (its own geometry, untouched).
+  // ⭐ 2026-11-16 later — HEADROOM (user ask: "the hanging tabs … look like
+  // they're sticking way too close. add them a little padding on the top"):
+  // `--mtab-head` 3px of face between the lip and the lettering, inside the
+  // tab (it counts in `--mtab-h`, so the membrane's strip deepens with it).
+  --mtab-head: 0px;
+  @media (min-width: 601px) { --mtab-lift: 0px; --mtab-head: 3px; }
   position: absolute;
   top: calc(100% - var(--mtab-lift));
   // ── CLEAR OF THE FORWARD BUTTON (2026-08-31 — the pair moved INTO the
@@ -1635,7 +1670,7 @@ export default defineComponent({
   --mtab-r: 9px; // the tabs' two free corners' radius — the webs' and fillets' geometry is derived from it
   --mtab-web-r: 6px; // THE WEB'S ARC: sqrt((gap/2 + r)² + r²) − r = sqrt(12² + 9²) − 9 = 6 for gap 6, r 9. Re-derive if the gap or r moves
   --mtab-fillet-x: 13.75px; // THE FILLET'S REACH: sqrt(r² + 2·r·web-r) = sqrt(81 + 108) — the fillet circle (radius web-r, under the strip's foot) sits this far out from the tab's corner centre. Re-derive with r / web-r
-  --mtab-h: calc(12px + 1px + 2 * var(--mtab-rim) + var(--mtab-lift)); // a tab's OUTER height: glyph + pad-bottom + two rims (the `tab-hang` arithmetic, rims included) + the lift — 18
+  --mtab-h: calc(12px + 1px + 2 * var(--mtab-rim) + var(--mtab-lift) + var(--mtab-head)); // ⭐ 11-16: + the headroom // a tab's OUTER height: glyph + pad-bottom + two rims (the `tab-hang` arithmetic, rims included) + the lift — 18
   --mtab-strip: calc(var(--mtab-h) - var(--mtab-r)); // the strip's depth: down to the corners' centres, where the tabs' sides turn — 9 from the frieze's rule (its foot on the same row as before the lift)
   --mtab-membrane: var(--grey-4, #e0e0e0); // the membrane's face — the tabs' rest face, and NOT their hover/press face: the membrane holds still while a tab lights
 
@@ -1750,7 +1785,7 @@ export default defineComponent({
   min-width: 46px; // the shrink floor: glyph + a sliver of name
   max-width: 180px;
   padding: 0 8px 1px; // ⭐ 09-28: a step tighter (0 10px 2px until then)
-  padding-top: var(--mtab-lift); // ⭐ 09-29 EVE: the tab reaches up to the frieze's rule with the row (row note) — the writing stays where it was
+  padding-top: calc(var(--mtab-lift) + var(--mtab-head)); // ⭐ 11-16: + the headroom under the lip // ⭐ 09-29 EVE: the tab reaches up to the frieze's rule with the row (row note) — the writing stays where it was
   line-height: 1;
   border: var(--mtab-rim) solid var(--mtab-rim-ink); // ⭐ 09-28: ALL FOUR SIDES — the top edge lands on the rail's rim row in the rail's ink (`border-top: none`, "it flows out of the band", until then)
   border-radius: 0 0 var(--mtab-r) var(--mtab-r);
@@ -2000,8 +2035,11 @@ export default defineComponent({
 .media-tabs__forward {
   pointer-events: auto;
   position: absolute;
-  top: 0;
-  bottom: 0;
+  // ⭐ 2026-11-16 — BETWEEN THE LIPS: inside the frieze's two rules (the
+  // lips ride over the bar now — `.rail-lips`); `0 / 0` (the full face,
+  // lips included) until then. The glyph's empty box overhangs under the lips.
+  top: calc(var(--media-tabs-lead) + 1px);
+  bottom: calc(var(--media-tabs-frieze-pad) + 1px);
   display: inline-flex;
   align-items: center;
   padding: 0 2px; // ⭐ 10-12: 22px glyph, 2px a side in the 26px free seat (`0 3px` round the 19px one 09-29 EVE → 10-12; `0 9px` + a 4px gap beside the word before that)
@@ -2121,6 +2159,60 @@ export default defineComponent({
 :root.is-feed-railed .media-tabs__planet {
   left: calc(var(--feed-rail-rr) + var(--media-tabs-sep));
 }
+
+// ── ⭐ THE LIPS RIDE ON TOP (2026-11-16 — the template note has the ask) ──
+// Two fixed strips that repaint the rail's lips over everything on the bar:
+//   TOP    = `--media-tabs-lead` of coat + the frieze's 1px top rule;
+//   BOTTOM = the frieze's 1px bottom rule + `--media-tabs-frieze-pad` of coat
+//            + the 1px rim — i.e. the bar's last `pad + rim + 1` rows.
+// Same paint as the rail they cover (`--plaque-coat`, `--grey-6` lines), so on
+// a bare bar they are invisible; they only SHOW where something used to sit on
+// a lip. `pointer-events: none` — a press on a lip still reaches Back/Forward,
+// a grip or a dock button underneath. The mask cuts a hole the planet's width
+// at the planet's seat (its two `left`s below, its phone seat in the phone
+// block): the badge stands over both lips as it always has.
+.rail-lips {
+  --rail-lips-hole-l: calc(2 * var(--media-tabs-back-w, 26px) + min(var(--stack-head-w, 228px), 50vw - var(--media-tabs-back-w, 26px)) + var(--media-tabs-sep));
+  --rail-lips-hole-w: var(--media-tabs-hex-w);
+  display: contents;
+}
+:root.is-feed-railed .rail-lips {
+  --rail-lips-hole-l: calc(var(--feed-rail-rr) + var(--media-tabs-sep));
+}
+.rail-lips__lip {
+  position: fixed;
+  left: 0;
+  right: 0;
+  z-index: 3700; // over every lifted flyout (3141+) and the dock buttons (3135); under a maximized window (3800)
+  box-sizing: border-box;
+  pointer-events: none;
+  background: var(--plaque-coat);
+  -webkit-mask-image: linear-gradient(90deg, #000 var(--rail-lips-hole-l), transparent var(--rail-lips-hole-l), transparent calc(var(--rail-lips-hole-l) + var(--rail-lips-hole-w)), #000 calc(var(--rail-lips-hole-l) + var(--rail-lips-hole-w)));
+  mask-image: linear-gradient(90deg, #000 var(--rail-lips-hole-l), transparent var(--rail-lips-hole-l), transparent calc(var(--rail-lips-hole-l) + var(--rail-lips-hole-w)), #000 calc(var(--rail-lips-hole-l) + var(--rail-lips-hole-w)));
+}
+.rail-lips__lip--top {
+  top: var(--header-y, 0px);
+  height: calc(var(--media-tabs-lead) + 1px);
+  border-bottom: 1px solid var(--grey-6, #9e9e9e); // the frieze's top rule
+}
+.rail-lips__lip--bottom {
+  top: calc(var(--header-y, 0px) + var(--media-tabs-h) - var(--media-tabs-rim) - var(--media-tabs-frieze-pad) - 1px);
+  height: calc(var(--media-tabs-frieze-pad) + var(--media-tabs-rim) + 1px);
+  border-top: 1px solid var(--grey-6, #9e9e9e); // the frieze's bottom rule
+  border-bottom: var(--media-tabs-rim) solid var(--grey-6, #9e9e9e); // the rail's rim
+  // The badge paints rows 0–20 only, so the RIM ROW keeps no hole: a second
+  // mask layer — the last `--media-tabs-rim` rows, opaque — UNIONED with the
+  // hole's, so the rim runs whole under the badge too (a tab hanging there
+  // would otherwise show its own grey-7 edge through the hole).
+  -webkit-mask-image:
+    linear-gradient(180deg, transparent calc(100% - var(--media-tabs-rim)), #000 calc(100% - var(--media-tabs-rim))),
+    linear-gradient(90deg, #000 var(--rail-lips-hole-l), transparent var(--rail-lips-hole-l), transparent calc(var(--rail-lips-hole-l) + var(--rail-lips-hole-w)), #000 calc(var(--rail-lips-hole-l) + var(--rail-lips-hole-w)));
+  -webkit-mask-composite: source-over;
+  mask-image:
+    linear-gradient(180deg, transparent calc(100% - var(--media-tabs-rim)), #000 calc(100% - var(--media-tabs-rim))),
+    linear-gradient(90deg, #000 var(--rail-lips-hole-l), transparent var(--rail-lips-hole-l), transparent calc(var(--rail-lips-hole-l) + var(--rail-lips-hole-w)), #000 calc(var(--rail-lips-hole-l) + var(--rail-lips-hole-w)));
+  mask-composite: add;
+}
 // THE GRIPS — PERFORATED GLASS. The plate is the stack strip's glass recipe
 // (StackPanel `.stack-window.is-parked`: the cream-tinted wash, the 1.6px
 // backdrop blur, the bright rim, the rounded foot), CUT: a `mask` of one
@@ -2151,9 +2243,12 @@ export default defineComponent({
   --grip-hole-h: 15px;
   pointer-events: auto;
   position: absolute;
-  top: 0;
+  // ⭐ 2026-11-16 — BETWEEN THE LIPS: the frieze's own box (lead → pad), so
+  // the 15px oval centres in the 15px between the rules; the bar's lips run
+  // over the grip's (the full header incl. the rim row until then).
+  top: var(--media-tabs-lead);
   box-sizing: border-box;
-  height: calc(var(--media-tabs-band) + var(--media-tabs-rim));
+  height: var(--media-tabs-frieze-h);
   padding: 0 2px;
   // The coat on the LIPS only — two 2px stops, the channel left clear so the
   // header's band reads through the glass (the vertical frieze stays below).
@@ -2252,6 +2347,12 @@ export default defineComponent({
     top: calc((var(--media-tabs-band) - var(--media-tabs-hex-h)) / 2);
     transform: rotate(90deg);
     transform-origin: 50% 50%;
+  }
+  // the lips' hole follows the turned badge: 21 wide at the screen's edge
+  .rail-lips,
+  :root.is-feed-railed .rail-lips {
+    --rail-lips-hole-l: calc(100vw - var(--media-tabs-hex-h));
+    --rail-lips-hole-w: var(--media-tabs-hex-h);
   }
   .media-tabs__hex {
     clip-path: path('M 7.007 2.325 Q 9 0 12.063 0 L 23.938 0 Q 27 0 28.993 2.325 L 34.007 8.175 Q 36 10.5 34.007 12.825 L 28.993 18.675 Q 27 21 23.938 21 L 12.063 21 Q 9 21 7.007 18.675 L 1.993 12.825 Q 0 10.5 1.993 8.175 Z');
