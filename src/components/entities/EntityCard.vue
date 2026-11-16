@@ -49,6 +49,13 @@
           </dl>
         </div>
       </div>
+      <!-- THE ORIGIN SKY (2026-11-15): a FILLING card — the flyout window,
+           which draws this card since EntityFace retired from it — carries
+           the lineage constellation under the portrait. It lived only in
+           EntityFace's window (the page keeps it behind a button), so the
+           card takes it rather than drop it; a list card (no fill) skips the
+           read. -->
+      <OriginSky v-if="fill" inline :entity-id="entity.id" class="entity-card__sky" />
     </template>
 
     <template #foot>
@@ -72,6 +79,7 @@ import CardCap from 'src/components/shared/CardCap.vue'
 import CardByline from 'src/components/shared/CardByline.vue'
 import CardFoot from 'src/components/shared/CardFoot.vue'
 import EntityAvatar from './EntityAvatar.vue'
+import OriginSky from './OriginSky.vue'
 import EntityMicro from './EntityMicro.vue'
 import { entitySummary } from 'src/utils/entityDisplay'
 import { entityGlyph, entityTypeLabel, entityHandle } from 'src/utils/entityKind'
@@ -80,7 +88,7 @@ import { useElementCard, CARD_PROPS, CARD_EMITS } from 'src/composables/useEleme
 
 export default defineComponent({
   name: 'EntityCard',
-  components: { CardPanel, CardCap, CardByline, CardFoot, EntityAvatar, EntityMicro },
+  components: { CardPanel, CardCap, CardByline, CardFoot, EntityAvatar, EntityMicro, OriginSky },
   props: {
     // Enriched entity { id, path, username, display_name, joined_at, bio, type_id, affiliations? }
     entity: { type: Object, required: true },
@@ -188,4 +196,5 @@ export default defineComponent({
   dd { margin: 0; }
 }
 .entity-card__note { color: rgba(var(--ink-rgb), 0.5); }
+.entity-card__sky { margin-top: 12px; }
 </style>

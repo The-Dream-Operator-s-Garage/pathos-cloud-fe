@@ -14,7 +14,7 @@
 // its 2px padding) + the well's thin padding + the foot's tally ledge +
 // the window's own 1px borders.
 export const HEADER_H = 30
-export const WELL_PAD = 4
+export const WELL_PAD = 8 // ElementFlyout's `.element-flyout__well` padding (4 until 2026-11-15, the glass window's roomier pane)
 export const FOOT_H = 22 // the action cluster + tally ledge (2026-08-05)
 export const MIN_W = 220 // header shrink floor: lights + a name sliver
 
@@ -40,8 +40,13 @@ const AUDIO_STRIP = { w: 8, h: 1 } // a wide controls bar
 // frieze is half of it; `friezePx` comes from useMediaArena's measurement).
 export function chromeOf (friezePx) {
   return HEADER_H + Math.round((friezePx || 19) / 2 + 2) +
-    WELL_PAD * 2 + FOOT_H + 2
+    GLASS_LIP + WELL_PAD * 2 + FOOT_H + 2
 }
+
+// THE GLASS'S OWN LIP (2026-11-15): ElementFlyout's well stands 1px of
+// glass under the frieze's lower lip and draws a 1px lip of its own — the
+// "double lip" between the header and the glass. 2px of vertical chrome.
+export const GLASS_LIP = 2
 
 // Horizontal chrome: the well padding plus the window's two 1px borders.
 // Stated once so the fit and the shrink floor cannot drift apart — the

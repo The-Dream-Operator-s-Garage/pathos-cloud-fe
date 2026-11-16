@@ -16,11 +16,19 @@
     the one-window-per-element individuality) and kept the element
     viewer's FACES and view switch.
 
+  ⭐ 2026-11-15 — THE FAMILY FACE: whatever the target, the ELEMENT view
+  is the CARD FAMILY's member for its kind in one container
+  (`.element-flyout__card`): NodeCard · EntityCard · LabelCard · PathCard ·
+  MomentCard · LinkCard · SecretCard through ElementCard, the postcard
+  (FeedStream's embed), DashboardCard. The per-target notes below say what
+  each face WAS where it differs (MediaViewerBody, EntityFace and LinkFace
+  were deleted that day; MomentFace is the moment PAGE's face only).
+
   WHAT A WINDOW HOLDS — its TARGET, from `stores/flyoutViewers.js`:
   · node (NodeMini's corner, or a resolved nodes/ ref): element view =
-    `MediaViewerBody`, the per-kind media faces — embed players and PAGE
-    articles (Wikipedia), images, video, audio, markdown docs, text, the
-    download card. Skeleton view = the NODE's OWN skeleton, pre-walked
+    NodeCard (was `MediaViewerBody`, the per-kind media faces — embed
+    players and PAGE articles, images, video, audio, markdown docs, text,
+    the download card). Skeleton view = the NODE's OWN skeleton, pre-walked
     from `GET /refs/surround` on first switch (lazy — a media preview
     should not cost a walk it may never show).
   · post (the card cap's open_in_new / the foot's references button):
@@ -40,9 +48,9 @@
     its skeleton face is the instance's own grid (SkeletonTable `grid`).
   · entity (2026-09-11, user ask — every entity link on the platform,
     the identity window's Profile button, a resolved entities/ ref):
-    element view = THE PROFILE PAGE IN A BOX (`entities/EntityFace`: the
-    entity card, the origin sky inline, the org / alter-ego panel, the
-    anchors, the contribution bands — laid out by the window's width).
+    element view = the family's EntityCard, the origin sky in its pit (was
+    THE PROFILE PAGE IN A BOX — `entities/EntityFace`: the entity card, the
+    sky, the org / alter-ego panel, the anchors, the contribution bands).
     Skeleton view = the entity's USER_PROFILE skeleton (SkeletonTable),
     offered only when the row has one. The bar and the parked tab wear
     the entity's KIND glyph and its @handle (utils/entityKind).
@@ -50,14 +58,12 @@
   · element (2026-09-21, user ask — the chips' door "to extend the item"
     for every kind): a LABEL / MOMENT / PATH / LINK / SECRET, resolved
     from its `<kind>/<hash>` ref through the summary seam. Element view =
-    the kind's MINI PANEL (`shared/ElementMini`, the family's any-element
-    dispatcher — what a post quoting it shows, at the window's width).
+    the kind's family CARD through ElementCard (was the kind's MINI PANEL,
+    `shared/ElementMini`; moments / links had their page-in-a-box faces).
     Skeleton view = the element's SURROUND walk (`GET /refs/surround`),
     the same pre-walked door a node's skeleton face uses, loaded lazily.
-    Not the page in a box the entity got: five pages of 500–700 lines
-    each would have to be decomposed for that, and the Mini IS the
-    platform's extended reading of these kinds; the foot's page button
-    is the door onward.
+    The foot's page button is the door onward to everything a page holds
+    beyond the card.
 
   DEFAULT VIEW follows the KIND: posts, nodes, entities and elements open
   on the ELEMENT, the skeleton one header press away; a bare schema IS its
@@ -85,7 +91,8 @@
       'is-resizing': !!resizing,
       'is-anim-max': animMax
     }"
-    :style="styleObj"
+    :style="[styleObj, sigStyle]"
+    :data-sig="sigKind || null"
     role="dialog"
     :aria-label="title"
     @pointerdown="store.focus(viewer.id)"
@@ -173,75 +180,32 @@
     <FriezeBar slim class="element-flyout__frieze" />
 
     <div class="element-flyout__well">
-      <!-- ELEMENT FACE, node: the media faces — embeds (player AND page
-           articles), image, video, audio, markdown doc, text, download
-           card. MediaViewerBody reads { node, natural } — exactly what
-           the viewer record carries once retargeted/enriched. -->
-      <MediaViewerBody
-        v-if="showing === 'node'"
-        :viewer="{ id: viewer.id, node: targetNode, natural: viewer.natural }"
-      />
-
-      <!-- ELEMENT FACE, post: the postcard as it is on the feed, embedded.
-           `select` from inside the card (the references button, the cap's
-           open_in_new) closes THIS window — the same toggle that opened
-           it; the pin tack's pins-changed rides up to MainLayout. -->
-      <div v-else-if="showing === 'post'" class="element-flyout__card">
+      <!-- ⭐ THE ELEMENT FACE IS THE CARD FAMILY'S (2026-11-15, user ask: "the
+           content containers and the style of the contained items is not
+           consistent … the entity one is rounder … uses an old style that
+           does not match the post and the board ones … like we're using an
+           external component instead of the family one for each … we want
+           the same roundness and coloring style for all kinds"). Every
+           element view is now ONE family member in ONE container
+           (`.element-flyout__card`): the post keeps THE postcard (FeedStream's
+           embed — the family's post member), the board its DashboardCard, and
+           every other kind — node, entity, label, moment, link, path, secret —
+           the X-Card ElementCard dispatches to. `fill` + `stretch` make any
+           kind run the window's height; `window-host` keeps the open doors
+           in windows. Retired from this window: MediaViewerBody (the node's
+           bare media), EntityFace / MomentFace / LinkFace (the pages in a
+           box) and the element's Mini. The window still READS the entity /
+           moment / link once (`faceRead`) to title itself. -->
+      <div v-if="showing !== 'skeleton' && showing !== 'lane'" class="element-flyout__card">
         <FeedStream
+          v-if="showing === 'post'"
           :key="'embed:' + targetItem.skeleton_id"
           :embed-item="targetItem"
           @select="store.close(viewer.id)"
           @pins-changed="$emit('pins-changed')"
         />
-      </div>
-
-      <!-- ELEMENT FACE, entity (2026-09-11): the profile page's whole
-           content — the entity card, the origin sky, the org / alter-ego
-           panel, the anchors, the contribution bands — laid out by the
-           WINDOW's width (container queries), one scroller. `loaded`
-           hands the row up so the bar, the tab and the tray learn the
-           entity's handle, kind and address. -->
-      <div v-else-if="showing === 'entity'" class="element-flyout__entity">
-        <EntityFace
-          :key="'entity:' + targetEntity.id"
-          :entity-id="targetEntity.id"
-          :seed="targetEntity"
-          @loaded="onEntityLoaded"
-        />
-      </div>
-
-      <!-- ELEMENT FACE, element (2026-09-21): a label / moment / path /
-           link / secret as its Mini panel — ElementMini reads the address
-           and picks the kind's panel, so the window shows exactly what a
-           post quoting this element would, at the window's width. The
-           panel routes to its page (it is a router-link); the foot offers
-           the same door. Keyed on the address so a retarget remounts. -->
-      <!-- THE MOMENT FACE (2026-09-21, user ask: "a flyout moment viewer that
-           contains everything i see when visiting a moment"): a `moments/…`
-           element target draws `MomentFace` — the page in a box, the entity
-           face's box (`__moment` = `__entity`'s rule) — where the fifth
-           target's MomentMini stood. Every other element prefix keeps its
-           Mini. `loaded` retitles the window off the read (the datetime). -->
-      <div v-else-if="showing === 'element' && isMomentTarget" class="element-flyout__moment">
-        <MomentFace :key="'moment:' + targetElement.address" :id="momentFaceId" @loaded="onMomentLoaded" />
-      </div>
-      <!-- THE LINK FACE (2026-09-27, user ask: "a flyout link viewer to display
-           the links information … opens when clicking on the references"): a
-           `links/…` element target draws `LinkFace` — the chain around the
-           link, its facts, its target as a Mini, the decoded buffer — in the
-           moment face's box, where the fifth target's LinkMini stood. Every
-           link nano chip (the path viewer's bonds, a post body's ref) opens
-           it through the chips' door. `loaded` retitles the window off the
-           read. -->
-      <div v-else-if="showing === 'element' && isLinkTarget" class="element-flyout__link">
-        <LinkFace :key="'link:' + targetElement.address" :id="linkFaceId" @loaded="onLinkLoaded" />
-      </div>
-      <!-- ELEMENT FACE, dashboard (phase 9, 2026-10-19): a skeleton ref whose
-           summary carries the `dashboard` mark retargets to an ELEMENT and
-           draws the DASHBOARD CARD — the live board in the pit, arrangeable
-           by the owner — filling the window the way the postcard does. -->
-      <div v-else-if="showing === 'element' && isDashboardTarget" class="element-flyout__dashboard">
         <DashboardCard
+          v-else-if="showing === 'element' && isDashboardTarget"
           :key="'dashboard:' + targetElement.address"
           :dashboard="targetElement.summary.dashboard"
           :address="targetElement.address"
@@ -250,9 +214,20 @@
           @select="store.close(viewer.id)"
           @pins-changed="$emit('pins-changed')"
         />
-      </div>
-      <div v-else-if="showing === 'element'" class="element-flyout__element">
-        <ElementMini :key="'element:' + targetElement.address" :address="targetElement.address" fill />
+        <ElementCard
+          v-else-if="cardTarget"
+          :key="'card:' + cardTarget.key"
+          :address="cardTarget.address"
+          :element="cardTarget.element"
+          fill
+          stretch
+          window-host
+          @select="store.close(viewer.id)"
+          @pins-changed="$emit('pins-changed')"
+        />
+        <div v-else class="element-flyout__loading">
+          <q-spinner size="14px" color="primary" />
+        </div>
       </div>
 
       <!-- SKELETON FACE: the dense Field | Type | Data table — pre-walked
@@ -463,15 +438,10 @@
 import { defineComponent, computed, ref, watch, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
 import FriezeBar from 'src/components/layout/FriezeBar.vue'
-import MediaViewerBody from 'src/components/media/MediaViewerBody.vue'
 import FeedStream from 'src/components/posts/FeedStream.vue'
 import SkeletonTable from 'src/components/skeletons/SkeletonTable.vue'
 import InfoChip from 'src/components/shared/InfoChip.vue'
-import EntityFace from 'src/components/entities/EntityFace.vue'
-import ElementMini from 'src/components/shared/ElementMini.vue'
-import LinkFace from 'src/components/links/LinkFace.vue'
 import DashboardCard from 'src/components/dashboard/DashboardCard.vue'
-import MomentFace from 'src/components/moments/MomentFace.vue'
 import { useFlyoutViewersStore } from 'src/stores/flyoutViewers'
 import { useWindowsStore } from 'src/stores/windows'
 import { useNavStore } from 'src/stores/navigation'
@@ -490,7 +460,11 @@ import { useMediaWindowGestures, DOCKED_HANDLES } from 'src/composables/useMedia
 import { dockedRectOf } from 'src/composables/useTopDock'
 import { probeNaturalSize, fitRect, chromeOf, clampRect } from 'src/utils/mediaFit'
 import { titleOf, iconFor } from 'src/utils/mediaKind'
-import { kindFor } from 'src/utils/kinds'
+import { kindFor, isHash } from 'src/utils/kinds'
+import { entityService } from 'src/services/entity.service'
+import { momentService } from 'src/services/moment.service'
+import { linkService } from 'src/services/link.service'
+import ElementCard from 'src/components/shared/ElementCard.vue'
 import { entityGlyph, entityHandle } from 'src/utils/entityKind'
 import { BRANDS } from 'src/utils/brandIcons'
 import { entitySummary } from 'src/utils/entityDisplay'
@@ -530,7 +504,7 @@ const ELEMENT_PREFIXES = new Set(['labels', 'moments', 'paths', 'links', 'secret
 
 export default defineComponent({
   name: 'ElementFlyout',
-  components: { CommentMaker, ConversationPicker, FriezeBar, MediaViewerBody, FeedStream, SkeletonTable, InfoChip, EntityFace, ElementMini, MomentFace, LinkFace, DashboardCard },
+  components: { CommentMaker, ConversationPicker, FriezeBar, FeedStream, SkeletonTable, InfoChip, ElementCard, DashboardCard },
   props: {
     viewerId: { type: String, required: true }
   },
@@ -1077,9 +1051,96 @@ export default defineComponent({
     const votes = ref({ up: 0, down: 0, viewer_vote: null })
     const voting = ref(false)
 
+    // ── THE FAMILY CARD'S TARGET (2026-11-15) ───────────────────────────
+    // What ElementCard draws: a node / entity hands its row over (no second
+    // read); an element hands its address (the card resolves it, the way
+    // the side viewer's cards do).
+    // ⚠ The element objects are MEMOIZED on their own source (the node row,
+    // the entity read) — ElementCard re-resolves on a new `element` object,
+    // and a reload unmounts the card (and the origin sky's read inside it).
+    // Built inside `cardTarget`, a retarget of the window (which every
+    // titling read does) handed it a fresh object and the card blinked.
+    const nodeElement = computed(() => (targetNode.value ? { kind: 'node', node: targetNode.value } : null))
+    const entityElement = computed(() => {
+      const info = entityInfo.value
+      return info?.entity
+        ? { kind: 'entity', entity: info.entity, moment: info.moment || null, labels: info.labels || [], organization: info.organization || null }
+        : null
+    })
+    const cardTarget = computed(() => {
+      if (showing.value === 'node' && nodeElement.value) {
+        return { key: 'node:' + targetNode.value.id, address: '', element: nodeElement.value }
+      }
+      if (showing.value === 'entity') {
+        const el = entityElement.value
+        if (!el || el.entity.id !== targetEntity.value?.id) return null
+        return { key: 'entity:' + el.entity.id, address: '', element: el }
+      }
+      if (showing.value === 'element' && targetElement.value) {
+        return { key: 'el:' + targetElement.value.address, address: targetElement.value.address, element: null }
+      }
+      return null
+    })
+    // THE TITLING READ — the retired faces' one job the window still needs:
+    // the entity's handle / kind / address, the moment's datetime + place,
+    // the link's headline. Same handlers, same retargets as before.
+    let faceSeq = 0
+    // ⚠ A STRING key, not an array: an array getter is a new value on every
+    // run, so the watch would fire on each retarget its own read causes —
+    // a read → retarget → read loop.
+    watch(
+      () => [targetEntity.value?.id ?? '', isMomentTarget.value ? (momentFaceId.value ?? '') : '', isLinkTarget.value ? (linkFaceId.value ?? '') : ''].join('|'),
+      async (key) => {
+        const [e, m, l] = key.split('|')
+        const eid = e === '' ? null : parseInt(e, 10)
+        const mid = m === '' ? null : m
+        const lid = l === '' ? null : l
+        const my = ++faceSeq
+        try {
+          if (eid != null) {
+            const r = await entityService.get(eid)
+            if (my === faceSeq && r?.success) {
+              onEntityLoaded({ entity: r.entity, moment: r.moment || null, labels: r.labels || [], decoded: r.decoded || null, organization: r.organization || null, org_access: r.org_access || null })
+            }
+          } else if (mid != null) {
+            const p = String(mid)
+            const r = isHash(p) ? await momentService.getByHash(p) : await momentService.get(parseInt(p, 10))
+            if (my === faceSeq && r?.success) onMomentLoaded({ moment: r.moment, human: r.human, header: r.header })
+          } else if (lid != null) {
+            const p = String(lid)
+            const r = isHash(p) ? await linkService.getByHash(p) : await linkService.get(parseInt(p, 10))
+            if (my === faceSeq && r?.success) onLinkLoaded({ link: r.link, target: r.target, parentPath: r.parentPath, position: r.position })
+          }
+        } catch (_) { /* the card still draws off its own read; the title keeps its seed */ }
+      },
+      { immediate: true }
+    )
+
     const kindWord = computed(() =>
       targetNode.value ? 'node' : (targetItem.value ? 'post' : (targetEntity.value ? 'entity' : (targetElement.value ? kindFor(elementPrefix.value).kind : 'skeleton')))
     )
+    // ⭐ THE SIGNATURE TINT (2026-11-15, user ask: "make the dark glass
+    // color match the element signature color; for example, red for labels,
+    // brown for skeletons/boards, teal for nodes … the friezebar background
+    // … a solid dark tone of the element's color"). The tint follows what
+    // the window is SHOWING, like the head glyph: kinds.js is the one
+    // palette, and its `ink` — each family's darkest Quasar tone — is the
+    // dark tone. The CSS darkens it further for the glass and lays it flat
+    // for the frieze plate; the grey header and lips stay as they are.
+    const sigKind = computed(() => {
+      switch (showing.value) {
+        case 'node': return 'nodes'
+        case 'post': return 'posts'
+        case 'entity': return 'entities'
+        case 'element': return isDashboardTarget.value ? 'dashboards' : (elementPrefix.value || null)
+        case 'skeleton': return 'skeletons'
+        default: return null // the lane (a browser history) keeps the neutral glass
+      }
+    })
+    const sigStyle = computed(() => {
+      const k = sigKind.value && kindFor(sigKind.value)
+      return k && k.kind !== 'unknown' ? { '--flyout-sig': k.ink } : {}
+    })
     const pageGlyph = computed(() =>
       targetNode.value ? 'adjust' : (targetItem.value ? 'sym_o_post' : ((targetEntity.value || targetElement.value) ? elementGlyph.value : skeletonKind.icon))
     )
@@ -1398,6 +1459,9 @@ export default defineComponent({
       tableRef,
       onResolved,
       styleObj,
+      sigKind,
+      sigStyle,
+      cardTarget,
       isDocked,
       rootEl,
       barEl,
@@ -1455,12 +1519,54 @@ export default defineComponent({
 // rounded corners otherwise. The grey-3/brown flyout-window dress the
 // single-instance box wore stays with `css/_components.scss` for the
 // dashboard dock; THIS family is the metal one.
+//
+// ⭐ THE GLASS WINDOW (2026-11-15, two asks the same evening). First "a
+// metallic frame holding a opaque window" — metal bar/foot/stiles round a
+// dark glass pane; then, the same sitting: "let's try making the whole
+// window look like the glass … keep the icons, text and hairlines of a
+// visible contrasting color". So the WHOLE box is the pane now: the shell
+// wears `--flyout-glass` over a light `backdrop-filter` blur, bar / foot /
+// well / comment strip paint nothing of their own, and every ink on the
+// chrome steps to the LIGHT half of the grey scale (`--flyout-ink*`). The
+// faces keep their own coats (cards, minis, tables). Floating and
+// top-docked windows are one shell, so both wear it. (The blur only sees
+// the page while no ANCESTOR is a backdrop root — never put `filter` /
+// `opacity` / `mask` / `backdrop-filter` on `ElementFlyoutHost`.)
 .element-flyout {
+  // THE SIGNATURE TINT (2026-11-15): `--flyout-sig` = the kind's kinds.js
+  // `ink`, set inline per window (`sigStyle`). The glass = that tone pulled
+  // halfway to near-black, at the same .58 clarity; the frieze plate = the
+  // tone pulled a third of the way, SOLID. No signature (the lane) → the
+  // neutral `--flyout-sig` below, i.e. the grey glass of the first pass.
+  --flyout-sig: #4a4a50; // neutral: mixes to rgb(44, 44, 48), the grey glass of the first pass
+  --flyout-sig-dark: color-mix(in srgb, var(--flyout-sig) 50%, #0e0e10);
+  --flyout-glass: color-mix(in srgb, var(--flyout-sig-dark) 58%, transparent); // 2026-11-15 PM: lighter + clearer (was 24/24/26 @ .72), then tinted
+  --flyout-glass-blur: 6px;
+  --flyout-ink: var(--grey-3, #eeeeee);       // names, pressed controls
+  --flyout-ink-soft: var(--grey-5, #bdbdbd);  // resting icons, tallies
+  --flyout-ink-hover: #ffffff;
+  --flyout-hairline: var(--grey-7, #757575);  // control rings, act rules
+  // THE HEADER IS THE PARKED TAB'S (2026-11-15, third ask: "the header the
+  // same color and style as the minimized tabs, solid grey and dark text"):
+  // `.media-tabs__tab` = flat grey-4, grey-8 glyph + name — read off the tab
+  --flyout-head: var(--grey-4, #e0e0e0);
+  --flyout-head-ink: var(--grey-8, #616161);
+  --flyout-head-ink-hover: var(--grey-10, #212121);
+  --flyout-lip: var(--grey-5, #bdbdbd); // the frieze's two lips
+  // THE FACES' CORNERS (same evening, user ask: "the content container …
+  // rounded borders that match the rounded borders of what they contain").
+  // First cut: each face wrapper concentric with its panels (+6 / +8px).
+  // Since the FAMILY PASS (below, `.element-flyout__card`) every element face
+  // IS a family card, so the container simply wears the card's own corner.
+  --flyout-face-r: 8px; // = CardPanel's / the postcard's corner — every face wears the family's
   position: fixed;
   display: flex;
   flex-direction: column;
-  background: var(--grey-4, #e0e0e0);
-  border: 1px solid var(--grey-6, #9e9e9e);
+  background: var(--flyout-glass);
+  backdrop-filter: blur(var(--flyout-glass-blur)) saturate(1.1);
+  -webkit-backdrop-filter: blur(var(--flyout-glass-blur)) saturate(1.1);
+  color: var(--flyout-ink-soft);
+  border: 1px solid var(--grey-6, #9e9e9e); // the rim: a light hairline on the glass
   border-radius: 10px;
   overflow: hidden;
   box-shadow: 0 12px 34px rgba(0, 0, 0, 0.45);
@@ -1531,7 +1637,7 @@ export default defineComponent({
   flex: 0 0 auto;
   justify-content: center;
   padding: 0 66px 0 max(70px, calc(var(--traffic-w) + 14px)); // 40px until the layout toggle joined the switch (2026-09-06 PM); left = the cluster + daylight since the lights' one size (2026-11-03 — 94 on a phone)
-  background: var(--grey-4, #e0e0e0); // the box's own coat — no cap
+  background: var(--flyout-head); // solid — the parked tab's coat
   border-bottom: none; // the frieze band is the divider
   cursor: grab;
   touch-action: none;
@@ -1557,7 +1663,7 @@ export default defineComponent({
   gap: 6px;
   min-width: 0;
   max-width: 100%;
-  color: var(--grey-9, #424242);
+  color: var(--flyout-head-ink);
   font-family: var(--font-display);
   font-size: 0.72em;
   letter-spacing: 0.04em;
@@ -1566,7 +1672,7 @@ export default defineComponent({
 
 .element-flyout__kind {
   flex: 0 0 auto;
-  color: var(--grey-8, #616161); // a step under the ink — glyph, not word
+  color: var(--flyout-head-ink); // the tab's glyph wears the name's ink
 }
 
 .element-flyout__label {
@@ -1601,24 +1707,41 @@ export default defineComponent({
   border: 1px solid transparent;
   border-radius: 6px;
   background: none;
-  color: var(--grey-8, #616161);
+  color: var(--flyout-head-ink);
   cursor: pointer;
 
-  &:hover { color: var(--grey-10, #212121); border-color: var(--grey-6, #9e9e9e); }
+  &:hover { color: var(--flyout-head-ink-hover); border-color: var(--grey-6, #9e9e9e); }
 
   &.is-on {
-    color: var(--grey-10, #212121);
+    color: var(--flyout-head-ink-hover);
     border-color: var(--grey-6, #9e9e9e);
     background: rgba(255, 255, 255, 0.55);
   }
 }
 
-// The band between bar and well — dark strip across the light field, the
-// box's ONLY line (the fusion keeps the media window's setting).
+// The band between bar and well — PART OF THE HEADER (2026-11-15, user
+// ask: "the frieze bar well matched inside, like the frieze was carved just
+// like the text on the header"). The plate IS the header's solid grey and
+// the one wave wears the header text's own ink, so the motif reads as
+// engraved into the same plate as the title — one piece, greys only. (The
+// same evening's first cut — clear grey-3 plate, dark grey-9 wave on the
+// glass — gave way to this.)
 .element-flyout__frieze {
   flex: 0 0 auto;
-  --frieze-bar-base: var(--grey-8, #616161);
-  --frieze-bar-wave-two: var(--brown-1, #efebe9);
+  // INVERTED the same evening (user ask: "grey inside and dark outside"):
+  // the plate takes the header's ink, the wave the header's grey — the
+  // motif reads cut through to the coat, still the header's two tones
+  // ⭐ the plate is the SIGNATURE's solid dark tone since the tint pass
+  // (was `--flyout-head-ink`, the header's grey-8, an hour before)
+  --frieze-bar-base: color-mix(in srgb, var(--flyout-sig) 67%, #000);
+  --frieze-bar-wave-two: var(--flyout-head);
+  // THE LIPS (same evening, user ask: "thin solid grey color lips up and
+  // down the frieze bar"): 1px each side, drawn as OUTER shadows so the
+  // slim band keeps its motif height (and mediaFit's HEADER_H its sum);
+  // raised over the well so the lower one is never painted over
+  position: relative;
+  z-index: 1;
+  box-shadow: 0 -1px 0 var(--flyout-lip), 0 1px 0 var(--flyout-lip);
 }
 
 // The one flexible track, and a SIZE CONTAINER so the faces can convert
@@ -1631,84 +1754,67 @@ export default defineComponent({
   min-height: 0;
   min-width: 0;
   display: flex;
-  padding: 4px;
+  padding: 8px; // glass daylight round the face — `WELL_PAD` in utils/mediaFit (4 until 2026-11-15)
   container-type: size;
+  // THE DOUBLE LIP (2026-11-15, user ask: "a border like the lip on the
+  // friezebar to the dark glass container … as thick as the lip … like
+  // double lip between the header and the glass"): 1px of glass under the
+  // frieze's lower lip, then the glass's own 1px lip in the same grey.
+  // Both count in mediaFit's `GLASS_LIP`.
+  margin-top: 1px;
+  border-top: 1px solid var(--flyout-lip);
 }
 
-// ── ELEMENT FACE, POST: the embedded card's frame ────────────────────────
-// The postcard arrives wearing its own everything through FeedStream's
-// embed dress; this wrapper's whole job is geometry — fill the well, let
-// the embed's own well be the one scroller. Deliberately NOT re-dialled:
-// "as it is on the feed" means its indigo/cream self on the metal box.
+// ── THE ELEMENT FACE: ONE CONTAINER FOR THE WHOLE CARD FAMILY (2026-11-15) ─
+// Every element view — the postcard, the board, the eight X-Cards — stands
+// in this one box: no padding of its own (the well's 8px of glass is the
+// air), the CARD's own corner (`--flyout-face-r` = CardPanel's 8px) and a
+// clip at it, so nothing inside ever squares off or pokes past. The card
+// fills the window; its pit is the one scroller.
+//
+// THE FAMILY, CALM (user ask: "the board one has like a halo around the
+// content and the post one has like weird glow and the corners of the
+// content container are like blurred. we do not want halos or glow or
+// blurred corners"). On the feed a card glows in its kind's accent on hover
+// / open (`--card-glow`, 9–13px blooms) and lays a frosted veil with a 1px
+// white inner rim over its coat (`::before`, `backdrop-filter: blur(2px)`).
+// In a window the window IS the focus, so here: no box-shadow in any state,
+// the resting grey-5 rim in every state, and the veil flat — no blur, no
+// inner rim. Both family roots (`.element-card` and the post's
+// `.post-square`) take it by name.
 .element-flyout__card {
   flex: 1 1 auto;
   min-width: 0;
   min-height: 0;
   display: flex;
-
-  :deep(.feed-stream-pane) { flex: 1 1 auto; min-width: 0; }
-}
-
-// ── ELEMENT FACE, DASHBOARD: the board card fills the window (2026-10-19) ─
-.element-flyout__dashboard {
-  flex: 1 1 auto;
-  min-width: 0;
-  min-height: 0;
-  display: flex;
-  padding: 6px;
-
-  :deep(.element-card) { flex: 1 1 auto; min-width: 0; }
-}
-
-// ── ELEMENT FACE, ENTITY: the profile in a box (2026-09-11) ─────────────
-// The face is its own scroller and its own size container (the well
-// hands it the window's box; its grid answers the width — two columns
-// past ~700px, one under). A grey-3 ground behind the white panels — the
-// skeleton table's own step above the metal well — so the cards read as
-// the page's panels rather than as more metal.
-.element-flyout__entity {
-  flex: 1 1 auto;
-  min-width: 0;
-  min-height: 0;
-  display: flex;
-  border-radius: 6px;
-  background: var(--grey-3, #eeeeee);
-}
-
-// ── ELEMENT FACE (2026-09-21): a Mini panel in the well ──────────────────
-// The panel keeps its own coat (each kind's Mini draws its chrome); this
-// wrapper owns the scroll and the breathing room, on the metal well.
-.element-flyout__element {
-  flex: 1 1 auto;
-  min-width: 0;
-  min-height: 0;
-  overflow: auto;
-  padding: 8px;
-  :deep(.element-mini) { max-width: none; }
-  // a PATH's viewer (2026-09-27): this wrapper is the scroller, so the
-  // lane's own 360px cap comes off — one scrollbar, not one inside another
-  :deep(.path-mini) { --path-mini-max-h: none; }
-}
-// a LABEL's unravel viewer (2026-10-07) fills the window: the well becomes
-// a column so the filling Mini can take its height (the squares scroll
-// inside the viewer, not the well).
-.element-flyout__element:has(> .element-mini--fill) {
-  display: flex;
-  flex-direction: column;
+  border-radius: var(--flyout-face-r);
   overflow: hidden;
-}
 
-// The moment face's well (2026-09-21) — the entity face's box, verbatim:
-// the face is its own scrolling surface on the grey-3 bed. The LINK face
-// (2026-09-27) takes the same well.
-.element-flyout__moment,
-.element-flyout__link {
-  flex: 1 1 auto;
-  min-width: 0;
-  min-height: 0;
-  display: flex;
-  border-radius: 6px;
-  background: var(--grey-3, #eeeeee);
+  > :deep(*) { flex: 1 1 auto; min-width: 0; min-height: 0; }
+  :deep(.feed-stream-pane) { flex: 1 1 auto; min-width: 0; }
+  :deep(.element-card-host) { display: flex; flex-direction: column; }
+  // the postcard sizes to its content on the feed; in a window it runs the
+  // well's height like every X-Card (its pit is already the flex track)
+  :deep(.feed-stream-pane.is-embed .post-square) { min-height: 100cqh; }
+
+  :deep(.element-card),
+  :deep(.element-card:hover),
+  :deep(.element-card.is-open),
+  :deep(.post-square),
+  :deep(.post-square:hover),
+  :deep(.post-square.is-expanded) {
+    box-shadow: none;
+    border-color: var(--grey-5, #bdbdbd);
+    border-radius: var(--flyout-face-r);
+    transition: none;
+  }
+  :deep(.element-card::before),
+  :deep(.post-square::before) {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    border: none;
+    border-radius: calc(var(--flyout-face-r) - 1px);
+  }
 }
 
 // ── SKELETON FACE: the dense table's frame ───────────────────────────────
@@ -1720,12 +1826,14 @@ export default defineComponent({
   min-width: 0;
   min-height: 0;
   overflow: auto;
+  border-radius: 6px; // = the table's own corner — it fills the face
 
   :deep(.skel-table) { width: 100%; }
 }
 
 .element-flyout__loading {
   padding: 6px 0;
+  color: var(--grey-4, #e0e0e0); // light ink — it sits on the dark glass
 }
 
 // The foot — the media window's ledge, whole: actions left, tally right,
@@ -1758,11 +1866,11 @@ export default defineComponent({
 }
 
 .element-flyout__act {
-  color: var(--grey-8, #616161);
+  color: var(--flyout-ink-soft);
   width: 19px;
   height: 19px;
 
-  &:hover { color: var(--grey-10, #212121); }
+  &:hover { color: var(--flyout-ink-hover); }
   // A held pin is a STATE, not a hover.
   &.is-on,
   &.is-on:hover { color: var(--accent); }
@@ -1774,7 +1882,7 @@ export default defineComponent({
   width: 1px;
   height: 12px;
   margin: 0 4px;
-  background: var(--grey-6, #9e9e9e);
+  background: var(--flyout-hairline);
 }
 
 .element-flyout__votes {
@@ -1792,12 +1900,12 @@ export default defineComponent({
   padding: 0 2px;
   border: none;
   background: transparent;
-  color: var(--grey-8, #616161);
+  color: var(--flyout-ink-soft);
   font: inherit;
   letter-spacing: 0.04em;
   cursor: pointer;
 
-  &:hover { color: var(--grey-10, #212121); }
+  &:hover { color: var(--flyout-ink-hover); }
   &.is-up { color: var(--positive); }
   &.is-down { color: var(--negative); }
 }

@@ -5,7 +5,8 @@ import { kindFor } from 'src/utils/kinds'
 // ONE branch decision, shared: the viewer body picks its renderer off
 // `faceOf`, and the minimize tabs bar picks its glyph off `iconFor` — the
 // same classification, so a parked window's tab wears the icon of the
-// face it will restore to. It lived inside MediaViewerBody's setup until
+// face it will restore to. It lived inside MediaViewerBody's setup (that
+// file deleted 2026-11-15, the window draws NodeCard) until
 // 2026-08-05, when the tabs bar needed per-kind icons and copying the
 // ladder would have made two ladders to keep in step.
 

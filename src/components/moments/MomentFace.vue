@@ -2,7 +2,7 @@
   <!-- THE MOMENT FACE (2026-09-21, user ask: "a flyout moment viewer that
        contains everything i see when visiting a moment … copying the
        aesthetic of other flyout viewers, such as the node and skeleton
-       ones"). The moment page in a box, the way `EntityFace` is the profile
+       ones"). The moment page in a box, the way `EntityFace` (deleted 2026-11-15) was the profile
        page in a box: `ElementFlyout` mounts it as the face of a `moments/…`
        element target (in place of the MomentMini the fifth target drew
        until today), and `pages/MomentViewerPage.vue` mounts the SAME
@@ -281,7 +281,7 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-// The box — `EntityFace`'s root, to the letter: the face fills whatever
+// The box — `EntityFace`'s root (deleted 2026-11-15), to the letter: the face fills whatever
 // mounts it (the flyout's well or the page), scrolls as ONE surface with the
 // thin scrollbar the windows share, and measures itself for the grid below.
 .moment-face {

@@ -269,8 +269,9 @@ export default defineComponent({
     // viewer's verdict on it ('member' | 'locked').
     organization: { type: Object, default: null },
     orgAccess: { type: String, default: null },
-    // The install's Talavero seat is this entity (EntityFace resolves it
-    // off GET /feed/lens-context) — the nature line names him.
+    // The install's Talavero seat is this entity (the host resolves it off
+    // GET /feed/lens-context — EntityFace did until its 2026-11-15 delete)
+    // — the nature line names him.
     seat: { type: Boolean, default: false }
   },
   setup (props) {

@@ -981,11 +981,28 @@ export default defineComponent({
   border-radius: 6px;
   overflow: visible;
 
+  // the corner cells' radius = the frame's, less its 1px rim
+  --st-corner: 5px;
+
   &.is-nested {
     border-radius: 4px;
     background: rgba(255, 255, 255, 0.35);
+    --st-corner: 3px;
   }
 }
+
+// ── THE CORNER CELLS (2026-11-15, user ask: "no square corners over the
+// rounded borders"). The frame is rounded but stays `overflow: visible`
+// (the key picker hangs out of it), so a painted key cell at a corner used
+// to draw its square corner OVER the frame's round one — and a collapsed
+// table ignores `border-radius` on cells. Each of the four corner cells
+// clips its OWN outer corner instead: a clip-path that rounds that one
+// corner and runs far past the other three sides, so nothing anchored in
+// the cell (a picker, a tool) is ever cut.
+.skel-table__grid > tbody > tr:first-child > :first-child { clip-path: inset(0 -100vw -100vh 0 round var(--st-corner) 0 0 0); }
+.skel-table__grid > tbody > tr:first-child > :last-child { clip-path: inset(0 0 -100vh -100vw round 0 var(--st-corner) 0 0); }
+.skel-table__grid > tbody > tr:last-child > :first-child { clip-path: inset(-100vh -100vw 0 0 round 0 0 0 var(--st-corner)); }
+.skel-table__grid > tbody > tr:last-child > :last-child { clip-path: inset(-100vh 0 0 -100vw round 0 0 var(--st-corner) 0); }
 
 .skel-table__error {
   padding: 2px 6px;

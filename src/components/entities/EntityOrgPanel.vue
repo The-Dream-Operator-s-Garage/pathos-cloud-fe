@@ -6,8 +6,9 @@
        sub-organizations — exactly what OrgDetailPage shows a member, and
        exactly what it refuses an outsider: `access` is the server's word
        (GET /organizations/:id), and a locked org shows the lock line the
-       org page shows, never a redacted tree. Mounted by EntityFace (the
-       window) and EntityProfilePage (the page) for type-3 entities. -->
+       org page shows, never a redacted tree. Mounted by EntityProfilePage
+       (the page) for type-3 entities — the window's EntityFace host was
+       deleted 2026-11-15 (the window draws the family EntityCard). -->
   <section v-if="organization" class="org-panel">
     <div class="org-panel__header">
       <q-icon name="corporate_fare" size="14px" class="q-mr-xs" />

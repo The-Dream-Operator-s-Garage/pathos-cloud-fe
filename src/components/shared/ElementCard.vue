@@ -28,7 +28,7 @@
        `pins-changed` up the same route the feed's takes, and `resolved({
        kind, fills })` once the kind is known — a FILLING kind (the label's
        unravel viewer) asks its host for the whole height. -->
-  <div class="element-card-host" :class="{ 'element-card-host--fill': fill && fills }">
+  <div class="element-card-host" :class="{ 'element-card-host--fill': fill && (fills || stretch) }">
     <div v-if="loading" class="element-card-host__loading">
       <q-spinner size="16px" color="primary" />
     </div>
@@ -127,6 +127,10 @@ export default defineComponent({
     item: { type: Object, default: null },
     // The InfoChip fallback's headline / a skeleton card's name.
     label: { type: String, default: '' },
+    // STRETCH (2026-11-15, the flyout window's family pass): with `fill`,
+    // EVERY kind runs the host's height — not only the FILLING ones (label,
+    // dashboard). A window host whose box is the card's box sets it.
+    stretch: { type: Boolean, default: false },
     ...CARD_PROPS
   },
   emits: [...CARD_EMITS, 'resolved'],
@@ -192,7 +196,7 @@ export default defineComponent({
       threadHost: props.threadHost,
       thread: props.thread,
       windowHost: props.windowHost,
-      fill: props.fill && fills.value
+      fill: props.fill && (fills.value || props.stretch)
     }))
     const listeners = {
       select: (t) => emit('select', t),

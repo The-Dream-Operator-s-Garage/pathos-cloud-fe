@@ -110,7 +110,8 @@ import EntityContributions from 'src/components/entities/EntityContributions.vue
 import EntityPolls from 'src/components/entities/EntityPolls.vue'
 
 // The entity PAGE — since 2026-09-11 the thin host of the same parts the
-// entity WINDOW composes (EntityFace): the card, the anchors, the org /
+// entity WINDOW composed (EntityFace, deleted 2026-11-15 — the window
+// draws the family EntityCard now): the card, the anchors, the org /
 // alter-ego panel, the bands. The page keeps what only a page has — the
 // viewport-tall 75/25 grid, the origin dialog's button, log out — and the
 // route. Every entity LINK on the platform now opens the window

@@ -3,7 +3,8 @@
        OriginTree's dialog; its own component since 2026-09-11, when the
        entity WINDOW wanted the sky INLINE — a block in the window's side
        column, no dialog). OriginTree is the dialog host that still mounts
-       it for the profile page's button; EntityFace mounts it bare. Same
+       it for the profile page's button; the family EntityCard mounts it bare
+       when it fills a window (EntityFace did until 2026-11-15). Same
        stars, same thread, same disclosure switch; `inline` only changes
        the box (full width, capped height, no close button). -->
   <div class="origin-sky" :class="{ 'origin-sky--inline': inline }">
