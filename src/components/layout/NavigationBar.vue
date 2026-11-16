@@ -1,7 +1,28 @@
 <template>
   <q-footer class="nav-footer">
 
-    <div class="nav-bar">
+    <div class="nav-bar" :class="{ 'nav-bar--painted': !!bandPaint }">
+
+      <!-- ── ⭐ THE BAND'S OPEN SQUARES TAKE THE BUTTONS' COLOURS (2026-11-16,
+           user ask: "instead of the transparent squares … paint the squares
+           dynamically … the position of the creation buttons will determine
+           the coloring"). A layer UNDER the checker (`.nav-bar::before`
+           paints only the cream squares), so it shows through exactly the
+           eight open squares of every tile. Each gap between two neighbouring
+           creation buttons is split by ONE diagonal, from the TOP of the
+           button nearer the last-selected one to the BOTTOM of the farther
+           one: the wedge under it wears the nearer button's contrast, the
+           wedge over it the farther one's — so the selected button is the
+           peak of a tent of colour and every other gap cascades outward from
+           it. WHOLE SQUARES ONLY (PM): one rect per open square, one colour each
+           by its centre, so the diagonal is a staircase on the grid.
+           Recomputed off `chipBoxes` (seats) + the live slider offsets,
+           so a drag repaints every frame. See `bandPaint`. ── -->
+      <svg v-if="bandPaint" class="nav-band-paint" :viewBox="`0 0 ${bandPaint.w} ${bandPaint.h}`" preserveAspectRatio="none" aria-hidden="true">
+        <rect v-for="c in bandPaint.cells" :key="c.k" :x="c.x" :y="c.y" :width="c.s" :height="c.s" :style="{ fill: c.fill }" />
+        <!-- the cream squares, drawn in the SAME svg (see `bandPaint`) -->
+        <rect v-for="c in bandPaint.cream" :key="'c' + c.k" class="nav-band-paint__cream" :x="c.x" :y="c.y" :width="c.s" :height="c.s" />
+      </svg>
 
       <!-- ── THE TRAIL BAND IS DELETED (2026-09-23, user ask: "remove the frieze
            bar from the footer navigation and paint the space where the
@@ -665,7 +686,11 @@ export default defineComponent({
     // against every other body and the two walls, writes the offset on each
     // move and persists on release. Kept as a named handler so the five
     // templates read as they always did.
-    const startChipDrag = (key, e) => { startTrailDrag(key, e) }
+    const startChipDrag = (key, e) => {
+      // taking a button's grip selects it: the band's paint leans from it
+      if (PAINT_INK[key]) paintPivot.value = key
+      startTrailDrag(key, e)
+    }
 
     // Persisted offsets were measured against SOME OTHER layout — another
     // viewport width, another word gate, another strip width. The shared
@@ -801,7 +826,128 @@ export default defineComponent({
         }
       }
       chipBoxes.value = next
+      // The band's own box (its padding box — `.nav-bar::before` lays out
+      // against it), the frame `bandPaint` draws in.
+      if (bar) {
+        const br = bar.getBoundingClientRect()
+        // the interior = the band's box less its two rules; one square = a quarter of it
+        const h = parseFloat(getComputedStyle(bar, '::before').height) - 2
+        bandBox.value = { left: br.left + bar.clientLeft, width: bar.clientWidth, h: h > 0 ? h : 25 }
+      }
     }
+
+    // ── THE BAND'S PAINT (2026-11-16) — the template note on
+    // `.nav-band-paint` has the ask. The creation buttons and the tone each
+    // one lends the open squares: its window's CONTRAST, the very ink its
+    // rim and grip are drawn in (`--chip-rim`), so the paint and the chip
+    // are one colour. The hub stands for the uploader + capture pair.
+    // ⭐ A DARKER TONE (2026-11-16 eve, user ask: "use a darker tone for
+    // all the tile coloring"): each contrast is mixed toward black by ONE
+    // dial, `--nav-band-paint-shade` (_tokens.scss, beside the checker), so
+    // the five families darken together and keep their hues.
+    const shade = (v) => `color-mix(in srgb, var(${v}), black var(--nav-band-paint-shade, 35%))`
+    const PAINT_INK = {
+      maker: shade('--maker-contrast'),
+      schemaBuilder: shade('--schemas-contrast'),
+      labelMaker: shade('--labels-contrast'),
+      bugs: shade('--bugs-contrast'),
+      hub: shade('--uploader-contrast')
+    }
+    const bandBox = ref(null)
+    // The LATEST SELECTED button — the peak every diagonal leans from. Set
+    // when a button's window comes up (a click, a restore) and when its grip
+    // is taken; POST until the first selection.
+    const paintPivot = ref('maker')
+    watch(creationExpanded, (now, before) => {
+      const lit = (k) => (k === 'hub' ? now.capture || now.uploader : now[k])
+      const was = (k) => (k === 'hub' ? before && (before.capture || before.uploader) : before && before[k])
+      for (const k of Object.keys(PAINT_INK)) if (lit(k) && !was(k)) paintPivot.value = k
+    })
+    // ⭐ WHOLE SQUARES ONLY (2026-11-16 PM, user ask: "we do not want
+    // squares that are half one color and half another … even if you modify
+    // the diagonal a little and it looks 'curvated'"). The paint is not a
+    // pair of triangles any more: it is ONE RECT PER OPEN SQUARE of the
+    // checker, and each square takes ONE colour, decided by where its CENTRE
+    // falls — so the diagonal becomes a staircase on the board's own grid.
+    // The grid is the tile's: square side = interior / 4 (the tile is 4 × 4
+    // and `background-size: auto 100%`), phase 0 at the band's left edge and
+    // the interior's top row; the open squares are where (col + row) is even
+    // (the tile's cream path starts at `M1 0`). Each rect is inflated by
+    // `BLEED` into its four cream neighbours, which the checker covers: the
+    // tile's `crispEdges` snaps the 6.25px squares to whole pixels, and the
+    // bleed keeps that snapping from ever uncovering a sliver of the layer
+    // under an open square.
+    // ⚠ THAT WAS NOT ENOUGH — ⭐ ONE DRAWING (2026-11-16 eve, user report:
+    // "the tiles are half-painted horizontally now"). Two drawings can't be
+    // kept in register: the browser rasterises the checker's 25px TILE and
+    // snaps it to whole DEVICE pixels, so at any zoom / display scale where
+    // 25px isn't a whole number of device pixels (110%, 125%, 150%…) each
+    // tile repeats a fraction off and the board drifts against these rects
+    // tile after tile — half paint, half cream. At 1× it is exact, which is
+    // why the 1× witness passed. So while the paint stands, THIS svg draws
+    // the CREAM squares too (`cream`, with their grey hairline — the tile's
+    // `$nav-band-check-cream` / `-line` as `--nav-band-check-cream` /
+    // `-line`), from the same coordinates, and `.nav-bar--painted` drops the
+    // checker's image (its two rules stay). One grid, one rasteriser: no
+    // drift at any scale, and no bleed needed.
+    const BLEED = 0
+    const bandPaint = computed(() => {
+      const band = bandBox.value
+      if (!band || !band.width) return null
+      // Every measured button, where it is PAINTED: seat + live offset
+      // (`trailShiftOf` is reactive, so a drag repaints with no re-measure).
+      const chips = Object.keys(PAINT_INK)
+        .filter((k) => chipBoxes.value[k] && chipBoxes.value[k].width)
+        .map((k) => {
+          const b = chipBoxes.value[k]
+          const l = b.left + windows.trailShiftOf(k) - band.left
+          return { key: k, l, r: l + b.width, fill: PAINT_INK[k] }
+        })
+        .sort((a, b) => a.l - b.l)
+      if (!chips.length) return null
+      const W = band.width
+      const H = band.h
+      const s = H / 4
+      let p = chips.findIndex((c) => c.key === paintPivot.value)
+      if (p < 0) p = 0
+      const last = chips.length - 1
+      // The one colour of the point (x, y): a button's own, the outer runs'
+      // edge buttons', or — in a gap — the side of the gap's diagonal it is
+      // on. The diagonal runs from the TOP of the near button's facing edge
+      // (nearer the pivot) to the BOTTOM of the far one's: a point whose
+      // fraction across the gap (from the near edge) is under its fraction
+      // down the lane is under the diagonal → the near button's colour.
+      const inkAt = (x, y) => {
+        if (x < chips[0].l) return chips[0].fill
+        if (x >= chips[last].r) return chips[last].fill
+        for (let i = 0; i <= last; i++) {
+          const c = chips[i]
+          if (x < c.r) return c.fill
+          const next = chips[i + 1]
+          if (next && x < next.l) {
+            const nearIsRight = i + 1 <= p
+            const nx = nearIsRight ? next.l : c.r
+            const fx = nearIsRight ? c.r : next.l
+            const t = (x - nx) / (fx - nx)
+            return t < y / H ? (nearIsRight ? next.fill : c.fill) : (nearIsRight ? c.fill : next.fill)
+          }
+        }
+        return chips[last].fill
+      }
+      const cells = []
+      const cream = []
+      const cols = Math.ceil(W / s)
+      for (let row = 0; row < 4; row++) {
+        for (let col = row % 2; col < cols; col += 2) {
+          const x = col * s
+          cells.push({ k: col * 4 + row, x: x - BLEED, y: row * s - BLEED, s: s + 2 * BLEED, fill: inkAt(x + s / 2, row * s + s / 2) })
+        }
+        // the cream squares: the other parity, a hairline drawn INSIDE each
+        // (inset half its 1px stroke, as the tile drew it)
+        for (let col = 1 - (row % 2); col < cols; col += 2) cream.push({ k: col * 4 + row, x: col * s + 0.5, y: row * s + 0.5, s: s - 1 })
+      }
+      return { w: W, h: H, cells, cream }
+    })
 
     // The flare span, in JS as well as in CSS, because the tab's BOX is inset
     // by it at both ends: the sweep hangs outside the box and the ask was
@@ -1104,6 +1250,7 @@ export default defineComponent({
       setChip,
       chipStyle,
       hubStyle,
+      bandPaint,
       startChipDrag,
       // the hub's two seats pick by the store's 600px gate (NavHub.vue)
       windows,
@@ -1995,6 +2142,34 @@ export default defineComponent({
   background-origin: padding-box;          // phase 0 at the lane's corner, inside the rules
   border-top: 1px solid var(--nav-band-rule);
   border-bottom: 1px solid var(--nav-band-rule);
+}
+// ⭐ THE PAINT UNDER THE OPEN SQUARES (2026-11-16; the template note on
+// `.nav-band-paint` has the ask). The band's INTERIOR exactly — one row in
+// from each rule, the rows the chips fill — at `z-index: -2`, one step under
+// the checker's -1 inside the bar's `isolation: isolate` context, so the
+// cream squares (and their grey hairlines) stay on top and the paint shows
+// only where the tile is open. The SVG's viewBox is the band's width in px
+// by the lane's interior height in px — one unit per px both ways — and it
+// draws one rect per OPEN square, each in ONE colour (`bandPaint`).
+.nav-band-paint {
+  position: absolute;
+  left: 0;
+  top: calc((var(--nav-bar-h) - 1px - var(--nav-band-h)) / 2 + 1px);
+  width: 100%;
+  height: calc(var(--nav-band-h) - 2px);
+  z-index: -2;
+  pointer-events: none;
+  display: block;
+  shape-rendering: crispEdges;             // the tile's own snapping — every rect edge shared by two squares lands on one pixel row
+}
+// ⭐ ONE DRAWING (2026-11-16 eve — the why is on `bandPaint`): while the paint
+// stands it draws the cream squares itself, so the checker's own tile goes;
+// the band's two rules (`::before`'s borders) stay.
+.nav-bar--painted::before { background-image: none; }
+.nav-band-paint__cream {
+  fill: var(--nav-band-check-cream);
+  stroke: var(--nav-band-check-line);
+  stroke-width: 1px;
 }
 
 // ── Three sections ─────────────────────────────────────────
