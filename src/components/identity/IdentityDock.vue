@@ -428,19 +428,24 @@
                 <span>{{ copied ? 'Copied' : 'Copy' }}</span>
               </button>
               <MicroChip kind="secrets" :id="freshKey.secret.id" :path="freshKey.secret.path" collapsed data-testid="identity-key-receipt" />
-              <span class="identity-dock__deleg-meta mono">receipt · acts as {{ freshKey.alterEgo.display_name }}</span>
+              <span class="identity-dock__deleg-meta mono">receipt · acts as {{ freshKey.alterEgo ? freshKey.alterEgo.display_name : 'you' }}</span>
               <button type="button" class="identity-dock__btn identity-dock__btn--tiny identity-dock__key-done" data-testid="identity-key-done" @click="freshKey = null">Done</button>
             </div>
-            <div class="identity-dock__hint">
+            <div v-if="freshKey.purpose === 'publish'" class="identity-dock__hint" data-testid="identity-key-hint-publish">
+              Paste it into the app's pathos connection. It acts as you, can publish one
+              file (audio, image or video) and a post embedding it to your profile at a
+              time, and can do nothing else — not read, not edit, not message.
+            </div>
+            <div v-else class="identity-dock__hint">
               Paste it into the Garage extension's options (pathos.cloud :: history upload).
-              It acts as {{ freshKey.alterEgo.display_name }}, may only add visits to its own
+              It acts as {{ freshKey.alterEgo ? freshKey.alterEgo.display_name : 'you' }}, may only add visits to its own
               history and pin pages onto your pins, and cannot publish anything.
             </div>
           </div>
 
           <div v-if="!identity.keysLoaded" class="identity-dock__empty">Reading your keys…</div>
           <div v-else-if="!identity.keys.length" class="identity-dock__empty">
-            No keys — a key lets a machine (the Chrome extension) write to your pathchain, narrowly.
+            No keys — a key lets a machine (the Chrome extension, an app that publishes your work) write to your pathchain, narrowly.
           </div>
           <div
             v-for="k in identity.keys"
@@ -516,6 +521,18 @@
               <q-spinner v-if="keyBusy === 'new'" size="11px" />
               <q-icon v-else :name="BRANDS.chrome" size="13px" />
               <span>New key → Chrome history</span>
+            </button>
+            <button
+              type="button"
+              class="identity-dock__btn"
+              data-testid="identity-key-new-publish"
+              :disabled="keyBusy !== null"
+              title="Mint a key an app (motion.music, …) uses to publish one file + a post to THIS profile — it acts as the current seat"
+              @click="newPublishKey"
+            >
+              <q-spinner v-if="keyBusy === 'new-publish'" size="11px" />
+              <q-icon v-else name="publish" size="13px" />
+              <span>New key → App publish</span>
             </button>
           </div>
         </div>
@@ -770,17 +787,32 @@ export default defineComponent({
     const copied = ref(false)
     const liveKeys = computed(() => identity.keys.filter((k) => !k.revoked_at))
     // a key's purpose, said by the mark of what it serves (Chrome's own, in colour)
-    const purposeGlyph = (p) => (p === 'chrome-history' ? BRANDS.chrome : 'vpn_key')
+    const purposeGlyph = (p) => (p === 'chrome-history' ? BRANDS.chrome : p === 'publish' ? 'publish' : 'vpn_key')
     const newChromeKey = async () => {
       keyBusy.value = 'new'
       try {
         const label = newKeyLabel.value.trim() || 'Chrome · this computer'
         const r = await identity.newChromeKey({ label })
         if (r.success && r.token) {
-          freshKey.value = { token: r.token, secret: r.secret, alterEgo: r.alterEgo }
+          freshKey.value = { token: r.token, secret: r.secret, alterEgo: r.alterEgo, purpose: 'chrome-history' }
           copied.value = false
           newKeyLabel.value = ''
           if (r.created) $q.notify({ type: 'info', message: 'Your Chrome alter-ego was minted — it delegates its reads to you', icon: 'travel_explore' })
+        } else $q.notify({ type: 'negative', message: r.error?.message || 'could not mint the key' })
+      } catch (e) {
+        $q.notify({ type: 'negative', message: e?.response?.data?.error?.message || 'could not mint the key' })
+      } finally { keyBusy.value = null }
+    }
+    // the app publish key (2026-11-16): the current seat, no alter-ego
+    const newPublishKey = async () => {
+      keyBusy.value = 'new-publish'
+      try {
+        const label = newKeyLabel.value.trim() || 'App publish'
+        const r = await identity.newPublishKey({ label })
+        if (r.success && r.token) {
+          freshKey.value = { token: r.token, secret: r.secret, alterEgo: null, purpose: 'publish' }
+          copied.value = false
+          newKeyLabel.value = ''
         } else $q.notify({ type: 'negative', message: r.error?.message || 'could not mint the key' })
       } catch (e) {
         $q.notify({ type: 'negative', message: e?.response?.data?.error?.message || 'could not mint the key' })
@@ -828,6 +860,7 @@ export default defineComponent({
       purposeGlyph,
       BRANDS,
       newChromeKey,
+      newPublishKey,
       copyKey,
       revokeKey,
       toggleKeyPins,

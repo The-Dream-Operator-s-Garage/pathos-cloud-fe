@@ -229,6 +229,15 @@ export const useIdentityStore = defineStore('identity', {
       if (r.success) await this.loadKeys()
       return { ...r, alterEgo: { id: chrome.id, display_name: chrome.display_name || 'Chrome' }, created }
     },
+    // An APP PUBLISH key (2026-11-16): minted as the CURRENT seat — no
+    // switch token — so the app publishes onto this profile. Its one door is
+    // POST /api/publish (one media file + a post embedding it).
+    // → { success, token (once), secret, grant }
+    async newPublishKey ({ label } = {}) {
+      const r = await authService.mintCapability({ purpose: 'publish', label })
+      if (r.success) await this.loadKeys()
+      return r
+    },
     async loadStorage () {
       try {
         const r = await authService.storage()
