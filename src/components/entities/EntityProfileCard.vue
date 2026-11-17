@@ -32,8 +32,8 @@
           :class="tintClass"
         />
         <span class="vsep" aria-hidden="true" />
-        <div class="subject-panel__title nasalization">
-          <span :class="{ 'pioneer-gold entity-title--pioneer': isPioneer }">{{ displayName }}</span>
+        <div class="subject-panel__title nasalization" :class="{ 'pioneer-gold': isPioneer }">
+          <span>{{ displayName }}</span>
           <span v-if="username" class="title-username mono">@{{ username }}</span>
         </div>
       </div>
@@ -53,10 +53,10 @@
     </header>
 
     <!-- Meta strip — id + kind + on-disk address with copy. -->
-    <div class="subject-panel__meta">
+    <div class="subject-panel__meta" :class="{ 'pioneer-gold': isPioneer }">
       <q-icon :name="glyph" size="14px" class="meta-icon" :class="tintClass" />
       <div class="meta-label">
-        <span v-if="isPioneer" class="pioneer-gold entity-meta--pioneer">★ pioneer</span>
+        <span v-if="isPioneer" class="entity-meta--pioneer">★ pioneer</span>
         <strong>entity #{{ entity.id }}</strong>
         <span class="meta-typename">({{ typeLabel }})</span>
         <span v-if="organization" class="meta-typename">· org #{{ organization.id }}</span>
@@ -98,9 +98,9 @@
             class="entity-hero__avatar"
             :class="{ 'pioneer-gold entity-hero__avatar--pioneer': isPioneer }"
           />
-          <div class="entity-hero__names">
-            <div class="entity-hero__display nasalization">
-              <span :class="{ 'pioneer-gold entity-title--pioneer': isPioneer }">{{ displayName }}</span>
+          <div class="entity-hero__names" :class="{ 'entity-hero__names--fill': isPioneer }">
+            <div class="entity-hero__display nasalization" :class="{ 'pioneer-gold entity-hero__display--pioneer': isPioneer }">
+              <span>{{ displayName }}</span>
               <!-- An org wears its own badge beside its name — the LOGO
                    the masks wear on the feed, on the org itself. -->
               <OrgLogoChip v-if="orgCard" :org="orgCard" :size="20" :link="false" class="entity-hero__logo" />
@@ -435,17 +435,23 @@ export default defineComponent({
 .meta-icon.bot-tint     { color: var(--entity-accent, #546e7a); }
 .meta-icon.ego-tint     { color: #7b4f9d; }
 
-// Chip-shaped wrappers so the global .pioneer-gold surface reads as a badge.
-.entity-title--pioneer {
+// THE PIONEER FILLS ITS CONTAINERS (2026-11-17, user ask: "paint golden
+// straight out the whole container instead of just the text"): the title
+// bar, the hero's name row and the meta strip each wear `.pioneer-gold`
+// whole; the runs inside inherit the carved ink.
+.entity-hero__names--fill { flex: 1 1 auto; }
+.entity-hero__display--pioneer {
   padding: 1px 10px;
   border-radius: 6px;
   border: 1px solid transparent;
 }
+.subject-panel__meta.pioneer-gold {
+  border-radius: 0;
+  .meta-label, .meta-label strong, .meta-typename, .meta-hash { color: inherit; }
+}
 .entity-meta--pioneer {
   padding: 0 8px;
   margin-right: 6px;
-  border-radius: 4px;
-  border: 1px solid transparent;
   font-size: 0.86em;
   letter-spacing: 0.04em;
   text-transform: uppercase;

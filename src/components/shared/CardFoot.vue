@@ -74,7 +74,7 @@
 
     <template v-if="$slots.end">
       <span class="element-card__foot-rule" aria-hidden="true" />
-      <div class="element-card__foot-end">
+      <div class="element-card__foot-end" :class="endClass">
         <slot name="end" />
       </div>
     </template>
@@ -92,6 +92,8 @@ export default defineComponent({
     kind: { type: String, required: true },
     id: { type: [Number, String], default: null },
     path: { type: String, default: '' },
+    // A class on the whole END cell (2026-11-17: the pioneer's gold).
+    endClass: { type: [String, Array, Object], default: null },
     // What the copy glyph hands over; default = `path`.
     address: { type: String, default: '' },
     // [{ key, icon, title, on, onClick, hidden }] — the lead cell's acts.
@@ -213,4 +215,10 @@ export default defineComponent({
 }
 // The end cell's words wear the stat's type.
 .element-card__foot-end :deep(.element-card__stat) { gap: 3px; }
+// The pioneer's end cell is gold whole (2026-11-17): its facts read carved
+// into the metal, not in the foot's quiet ink.
+.element-card__foot-end.pioneer-gold {
+  border-radius: 4px;
+  :deep(.element-card__stat) { color: inherit; }
+}
 </style>

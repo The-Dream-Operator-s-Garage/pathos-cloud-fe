@@ -50,7 +50,7 @@
        the element in the side viewer, a floating window where none is
        mounted — never its page. -->
   <span
-    :class="zone('name')"
+    :class="[zone('name'), nameClass]"
     :title="nameTitle || name"
     role="link"
     tabindex="0"
@@ -58,7 +58,7 @@
     @keydown.enter.prevent="openSide"
   >
     <slot name="name">
-      <span :class="[el('name-text'), nameClass]">{{ name }}</span>
+      <span :class="el('name-text')">{{ name }}</span>
     </slot>
   </span>
 
@@ -134,8 +134,9 @@ export default defineComponent({
     id: { type: [Number, String], default: null },
     path: { type: String, default: '' },
     integrity: { type: Object, default: null },
-    // The name zone: the text, its tooltip, an extra class on the run
-    // (the pioneer's carved gold).
+    // The name zone: the text, its tooltip, an extra class on the WHOLE
+    // zone (the pioneer's carved gold fills it — 2026-11-17, never just
+    // the text run).
     name: { type: String, default: '' },
     nameTitle: { type: String, default: '' },
     nameClass: { type: [String, Array, Object], default: null },

@@ -24,7 +24,7 @@
         :id="entity.id"
         :path="entity.path"
         :name="effectiveTitle"
-        :name-class="isPioneer ? 'pioneer-gold entity-mini__pioneer' : null"
+        :name-class="isPioneer ? 'pioneer-gold' : null"
       >
         <template #chip>
           <EntityMicro :id="entity.id" :path="entity.path" collapsed />
@@ -98,12 +98,8 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-// The global `.pioneer-gold` surface on the name run reads as a badge.
-.entity-mini__pioneer {
-  padding: 0 6px;
-  border-radius: 4px;
-  border: 1px solid transparent;
-}
+// The pioneer's name ZONE is gold whole (2026-11-17 — MiniHead puts
+// `nameClass` on the zone, out to its hairlines, never just the run).
 
 // THE FACE beside the words — a row, the tile at the start, the bio
 // justified in the rest (NodeMini's prose inset: 4px a side).

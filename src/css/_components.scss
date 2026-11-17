@@ -1948,7 +1948,10 @@ $prose: ':where(:not(.pathos-ref-slot *))';
 
 // ── PIONEER GOLD — the one-and-only origin entity ──
 // Applied by the chip family (MicroChip / InfoChip / EntityName / EntityMini)
-// whenever a reference resolves to the pioneer. Gold surface; content reads
+// whenever a reference resolves to the pioneer — and, since 2026-11-17, on
+// the CONTAINER that holds the pioneer's name (a card's cap chip, byline
+// pill, foot end cell, a mini's name zone, the profile's bars), never the
+// bare text run inside it. Gold surface; content reads
 // as carved into the metal (dark relief above, light catch below). Global +
 // !important on purpose: it must beat every per-kind scoped chip tint.
 .pioneer-gold {

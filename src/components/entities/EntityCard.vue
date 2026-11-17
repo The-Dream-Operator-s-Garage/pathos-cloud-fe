@@ -22,7 +22,7 @@
         :icons-title="kindWord"
         :title="title"
         :title-tip="entity.path || title"
-        :title-class="isPioneer ? 'pioneer-gold entity-card__pioneer' : null"
+        :title-class="isPioneer ? 'pioneer-gold' : null"
         :acts="[shareAct, skeletonAct, openAct]"
       />
     </template>
@@ -59,7 +59,7 @@
     </template>
 
     <template #foot>
-      <CardFoot kind="entities" :id="entity.id" :path="entity.path" :stats="threadStats" @stat="onStat">
+      <CardFoot kind="entities" :id="entity.id" :path="entity.path" :stats="threadStats" :end-class="isPioneer ? 'pioneer-gold' : null" @stat="onStat">
         <template #chip>
           <EntityMicro class="element-card__chip" :id="entity.id" :path="entity.path" />
         </template>
@@ -147,10 +147,6 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-.entity-card__pioneer {
-  padding: 0 6px;
-  border-radius: 4px;
-}
 .entity-card__body {
   display: flex;
   align-items: flex-start;

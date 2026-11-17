@@ -49,7 +49,7 @@
         <button
           type="button"
           class="element-card__cap-title-chip"
-          :class="{ 'is-on': titleOn }"
+          :class="[{ 'is-on': titleOn }, titleClass]"
           :aria-disabled="titleDoor ? null : 'true'"
           :title="titleTip || title"
           @click.stop="onTitle"
@@ -61,7 +61,7 @@
           >
             <q-icon v-for="(ic, i) in shownIcons" :key="ic + i" :name="ic" />
           </span>
-          <span class="element-card__cap-title-text" :class="titleClass">{{ title }}</span>
+          <span class="element-card__cap-title-text">{{ title }}</span>
         </button>
       </span>
       <slot name="main-end" />
@@ -105,6 +105,9 @@ export default defineComponent({
     titleTip: { type: String, default: '' },
     titleOn: { type: Boolean, default: false },
     titleDoor: { type: Boolean, default: false },
+    // A class on the WHOLE title chip — glyphs + name, out to the first act
+    // (2026-11-17: the pioneer's carved gold fills the container, never
+    // just the text run).
     titleClass: { type: [String, Array, Object], default: null },
     // [{ key, icon, title, on, onClick, disabled, hidden, cls }]
     acts: { type: Array, default: () => [] }
@@ -273,6 +276,12 @@ export default defineComponent({
     text-underline-offset: 2px;
   }
   &[aria-disabled='true'] { cursor: default; }
+}
+// The pioneer's gold fills the chip (2026-11-17) — inset so the glyph and
+// the name sit off the metal's edge.
+.element-card__cap-title-chip.pioneer-gold {
+  padding: 0 6px;
+  border-radius: 4px;
 }
 .element-card__cap-title-text {
   min-width: 0;

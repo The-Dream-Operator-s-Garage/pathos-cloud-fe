@@ -37,7 +37,7 @@
        card's coat, its name 1.2em. -->
   <div class="element-card__byline" :class="{ 'has-who': hasWho }">
     <slot name="who">
-      <div v-if="author" class="element-card__pill element-card__identity">
+      <div v-if="author" class="element-card__pill element-card__identity" :class="{ 'pioneer-gold': !!author.pioneer }">
         <router-link
           :to="'/entities/' + author.id"
           class="element-card__identity-door"
@@ -48,7 +48,7 @@
                prop, not CSS (the avatar sizes itself inline): move it with
                the two dials. -->
           <EntityAvatar :entity="author" :size="38" class="element-card__pill-face" />
-          <span class="element-card__identity-name" :class="{ 'pioneer-gold': !!author.pioneer }">{{ authorName }}</span>
+          <span class="element-card__identity-name">{{ authorName }}</span>
         </router-link>
         <span class="element-card__identity-seats">
           <span
@@ -265,6 +265,9 @@ export default defineComponent({
     border-radius: var(--pit-r, 6.34px);
   }
   &:hover .element-card__identity-name { color: var(--entity-accent, #546e7a); }
+  // The pioneer's pill is gold whole (2026-11-17): the name stays carved
+  // into the metal under the pointer too.
+  &.pioneer-gold:hover .element-card__identity-name { color: inherit; }
 }
 .element-card__identity-door {
   display: contents;
