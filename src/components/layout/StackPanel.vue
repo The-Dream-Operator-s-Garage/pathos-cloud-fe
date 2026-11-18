@@ -89,8 +89,11 @@
     v-if="win.open"
     ref="rootEl"
     class="stack-window dock-window"
-    :class="{ 'is-parked': win.minimized, 'is-max': win.maximized }"
-    :style="{ zIndex: win.minimized ? EDGE_Z : EDGE_Z_OPEN }"
+    :class="{ 'is-parked': win.minimized, 'is-max': win.maximized, 'is-dragging': dragging }"
+    :style="{ zIndex: win.minimized ? EDGE_Z : EDGE_Z_OPEN, '--stack-dx': stackDx + 'px' }"
+    @pointerdown="onDragDown"
+    @click.capture="onDragClick"
+    @dblclick="onDragReset"
     @mouseenter="onHoverEnter"
     @mouseleave="onHoverLeave"
   >
@@ -438,7 +441,7 @@ export default defineComponent({
       // ⚠ NEVER ON A PHONE (2026-09-23) — a tap fires `mouseenter` first;
       // see PinsDrawer's `onHoverEnter` for the whole argument. The head
       // glyph (or the lone tile) is the phone's tap up.
-      if (windows.isMobile || !win.value.minimized) return
+      if (windows.isMobile || !win.value.minimized || dragging.value) return
       armHover()
     }
     // ⚠ A HEIGHT TOGGLE CAN LEAVE THE POINTER OUTSIDE (2026-09-06 PM): the
@@ -466,6 +469,91 @@ export default defineComponent({
       if (rootEl.value && !rootEl.value.contains(e.target)) windows.minimizePanel('stack')
     }
     onMounted(() => document.addEventListener('pointerdown', onDocDown, true))
+
+    // ⭐ THE STRIP SLIDES ALONG THE RAIL (2026-11-18 — the style note on
+    // `.stack-window`). Press anywhere on the strip (or the open panel's
+    // head) that is not a control, travel 4px, and the glass follows the
+    // pointer's X — strip and hanging panel together. Under 4px it is still
+    // a tap (a tile jumps, the glyph opens); past it the click that ends the
+    // gesture is swallowed. Clamped so the whole box stays on screen;
+    // persisted per browser; a double-click puts it back on its seat. Not on
+    // a phone, where the strip owns its run.
+    const DX_KEY = 'pathos.stackDx'
+    const readDx = () => {
+      try { return Number(localStorage.getItem(DX_KEY)) || 0 } catch { return 0 }
+    }
+    const stackDx = ref(readDx())
+    const dragging = ref(false)
+    let drag = null
+    let swallowClick = false
+    const clampDx = (dx) => {
+      const el = rootEl.value
+      if (!el) return dx
+      const r = el.getBoundingClientRect()
+      const base = r.left - stackDx.value
+      const min = -base
+      const max = window.innerWidth - r.width - base
+      return Math.round(Math.min(Math.max(dx, min), Math.max(min, max)))
+    }
+    const saveDx = () => {
+      try { localStorage.setItem(DX_KEY, String(stackDx.value)) } catch { /* private window */ }
+    }
+    const onDragMove = (e) => {
+      if (!drag) return
+      const travel = e.clientX - drag.x0
+      if (!dragging.value) {
+        if (Math.abs(travel) < 4) return
+        dragging.value = true
+        clearHover()
+        try { rootEl.value.setPointerCapture(e.pointerId) } catch { /* gone */ }
+      }
+      stackDx.value = clampDx(drag.dx0 + travel)
+    }
+    const onDragUp = () => {
+      window.removeEventListener('pointermove', onDragMove)
+      window.removeEventListener('pointerup', onDragUp)
+      window.removeEventListener('pointercancel', onDragUp)
+      if (dragging.value) {
+        swallowClick = true
+        setTimeout(() => { swallowClick = false }, 0)
+        saveDx()
+      }
+      dragging.value = false
+      drag = null
+    }
+    const onDragDown = (e) => {
+      if (windows.isMobile || e.button !== 0) return
+      // The open panel drags by its head only — the list scrolls.
+      if (!win.value.minimized && !e.target.closest('.stack-head')) return
+      if (e.target.closest('.traffic, .side-head__open')) return
+      drag = { x0: e.clientX, dx0: stackDx.value }
+      window.addEventListener('pointermove', onDragMove)
+      window.addEventListener('pointerup', onDragUp)
+      window.addEventListener('pointercancel', onDragUp)
+    }
+    const onDragClick = (e) => {
+      if (!swallowClick) return
+      swallowClick = false
+      e.stopPropagation()
+      e.preventDefault()
+    }
+    const onDragReset = (e) => {
+      if (windows.isMobile || stackDx.value === 0) return
+      if (e.target.closest('.traffic, .side-head__open')) return
+      stackDx.value = 0
+      saveDx()
+    }
+    const onResize = () => {
+      if (stackDx.value) stackDx.value = clampDx(stackDx.value)
+    }
+    onMounted(() => {
+      window.addEventListener('resize', onResize)
+      nextTick(onResize)
+    })
+    onBeforeUnmount(() => {
+      window.removeEventListener('resize', onResize)
+      onDragUp()
+    })
     onBeforeUnmount(() => document.removeEventListener('pointerdown', onDocDown, true))
     const onHoverLeave = () => {
       clearHover()
@@ -573,6 +661,11 @@ export default defineComponent({
       jumpToIndex,
       onHoverEnter,
       onHoverLeave,
+      stackDx,
+      dragging,
+      onDragDown,
+      onDragClick,
+      onDragReset,
       toggleMax,
       authorOf,
       typeIcon,
@@ -641,6 +734,20 @@ export default defineComponent({
   left: var(--media-tabs-back-w, 26px);
   right: auto;
   border-top: none;
+  // ⭐ 2026-11-18 — 60% WIDE AND IT SLIDES (user ask: "make the stack bar on
+  // the header draggable across the header and make it like 60% of its
+  // current width … when sliding it can overlap on the other things bc its
+  // transparent"). `--stack-frac` scales BOTH faces' width (the free seat's
+  // `--stack-head-w` and the railed seat's feed span) so the panel still
+  // hangs straight out of the strip; `--stack-dx` (bound inline from the
+  // gesture in the script, persisted per browser) walks strip + panel along
+  // the rail — the `translate` PROPERTY, as every dock does, never
+  // `transform`. Back, Forward and the tabs keep their seats: the glass may
+  // slide over them. Desktop only — the phone block below resets it.
+  --stack-frac: 0.6;
+  translate: var(--stack-dx, 0px) 0;
+  touch-action: pan-y;
+  &.is-dragging { cursor: grabbing; user-select: none; }
   // The shared `--plaque-coat` since 2026-08-17 (user ask) — a --light-cream
   // sheet under a 30% --grey-3 veil, the same two layers the nav bar, the left
   // drawer and the pins widget took that session, so the window's chrome edges
@@ -665,7 +772,7 @@ export default defineComponent({
   // Parked, the cap is horizontal: 48vw, stopping short of the creation
   // docks' 50vw half (see the note at the top of this block).
   &:not(.is-parked) {
-    width: var(--stack-head-w);
+    width: calc(var(--stack-head-w) * var(--stack-frac));
     max-width: calc(100vw - var(--media-tabs-back-w, 26px) - 8px);
     height: auto;
     // HANGS from the rail since 2026-09-30: the cap grows by the rail's own
@@ -778,7 +885,8 @@ export default defineComponent({
     // shrink-to-fit — from the relocation until then): the strip is exactly
     // as wide as the panel that rises out of it. The 48vw cap below stays
     // as the guard it always was.
-    width: var(--stack-head-w);
+    width: calc(var(--stack-head-w) * var(--stack-frac));
+    cursor: grab;
     // The cap subtracts the LEFT FLANK's width — the identity section's
     // `--nav-id-w` since 2026-08-31 (the burger's `--dock-rail-w` before) —
     // so the strip's right edge still stops at 48vw, short of the creation
@@ -854,7 +962,7 @@ export default defineComponent({
 // block's 45px included — by specificity, so source order cannot undo it.
 :root.is-feed-railed .stack-window {
   left: calc(var(--feed-rail-lr) + 2 * var(--media-tabs-sep) + var(--media-tabs-pair-w));
-  width: calc(var(--feed-rail-rl) - var(--feed-rail-lr) - 2 * (2 * var(--media-tabs-sep) + var(--media-tabs-pair-w)));
+  width: calc((var(--feed-rail-rl) - var(--feed-rail-lr) - 2 * (2 * var(--media-tabs-sep) + var(--media-tabs-pair-w))) * var(--stack-frac, 1));
   max-width: none;
 }
 .stack-window .dock-bar {
@@ -1293,6 +1401,8 @@ export default defineComponent({
 // to seat between) the strip takes the rail's run from Back to the turned
 // planet's column instead of the 45px bubble.
 @media (max-width: 600px) {
+  // The 11-18 slide and 60% stand down on a phone: the strip keeps its run.
+  .stack-window { --stack-frac: 1; translate: none; }
   .stack-window.is-parked {
     width: calc(100vw - 2 * var(--media-tabs-back-w, 26px) - var(--phone-feed-reserve));
     max-width: none;
