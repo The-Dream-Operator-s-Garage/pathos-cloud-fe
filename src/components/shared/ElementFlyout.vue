@@ -1782,6 +1782,21 @@ export default defineComponent({
   border-top: 1px solid var(--flyout-lip);
 }
 
+// ⭐ THE HTML PAGE FILLS ITS WINDOW (2026-11-23, the in-built page displayer
+// — EmbedFrame `kind: 'html'`). A card's media budget is the feed card's
+// `--element-card-media` (60vh) less its chrome — sized for a card in a
+// list, so a page opened as a window drew 290px tall over an empty pit. A
+// page is a DOCUMENT with no ratio to keep, so here (only for a page — a
+// picture or a player keeps the window mediaFit sized round it) the budget
+// is the figure pit itself, a size container, less its 6px pads and the
+// address line NodeContentViewer prints under the frame (24px) — the side
+// viewer's own rule (SideElementView, 2026-11-02).
+.element-flyout__well :deep(.element-card__pit--fit:has(.embed-frame__doc, .embed-frame__doc-wait)) {
+  flex: 1 1 auto;
+  container-type: size;
+  --media-max-h: calc(100cqh - 12px - 24px);
+}
+
 // ── THE ELEMENT FACE: ONE CONTAINER FOR THE WHOLE CARD FAMILY (2026-11-15) ─
 // Every element view — the postcard, the board, the eight X-Cards — stands
 // in this one box: no padding of its own (the well's 8px of glass is the

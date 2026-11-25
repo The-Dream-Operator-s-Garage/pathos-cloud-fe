@@ -66,7 +66,7 @@
            measures what the outer Minis spend around it and subtracts that
            from the surface's budget (`--media-nest-h`, useNestedMediaBudget). -->
       <div v-if="embed" ref="mediaEl" class="node-mini__embed" :style="nestStyle">
-        <EmbedFrame :embed="embed" :caption="false" rimmed />
+        <EmbedFrame :embed="embed" :caption="false" rimmed @unavailable="pageRefused = true" />
       </div>
 
       <div v-else-if="mediaKind === 'image'" ref="mediaEl" class="node-mini__media" :style="nestStyle">
@@ -232,7 +232,13 @@ export default defineComponent({
 
     // The embed descriptor an EMBED_RULE produced for this node's URL
     // (API-side; null for links no rule matches and for every other kind).
-    const embed = computed(() => props.node.embed || null)
+    // ⭐ 2026-11-23 — a `kind: 'html'` descriptor is the in-built page
+    // displayer's OFFER (any web address that is not a file); when the API
+    // says the link is no readable page the frame emits `unavailable` and
+    // the panel goes back to the plain link face.
+    const pageRefused = ref(false)
+    const embed = computed(() =>
+      (pageRefused.value && props.node.embed?.kind === 'html') ? null : (props.node.embed || null))
 
     // THE HEADER'S LINK LINE (2026-08-23) — the fields EmbedFrame's
     // figcaption used to print under the frame, resolved here because the
@@ -357,6 +363,7 @@ export default defineComponent({
       sourceText,
       showsSource,
       embed,
+      pageRefused,
       mediaKind,
       isMedia,
       isBare,

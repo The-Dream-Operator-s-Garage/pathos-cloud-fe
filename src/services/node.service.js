@@ -36,6 +36,20 @@ export const nodeService = {
     const { data } = await api.get(`/nodes/by-path/${encodeURIComponent(path)}`)
     return data
   },
+  // The in-built HTML page displayer (2026-11-23): the LINK node's own page,
+  // sanitized → { success, page: { url, host, title, truncated, bytes, html } }.
+  // A link that is not a page answers 422 (axios throws).
+  async getPage (path) {
+    const { data } = await api.get(`/nodes/by-path/${encodeURIComponent(path)}/page`)
+    return data
+  },
+  // The SURFABLE viewer's step (2026-11-23): the reader clicked `url` inside
+  // the page of LINK node `path` → { success, node (the reader's, enriched),
+  // visit, reference }.
+  async visitFromPage (path, url, title = null) {
+    const { data } = await api.post(`/nodes/by-path/${encodeURIComponent(path)}/visit`, { url, title })
+    return data
+  },
   async addLabel (nodeId, labelId) {
     const { data } = await api.post(`/nodes/${nodeId}/labels`, { labelId })
     return data

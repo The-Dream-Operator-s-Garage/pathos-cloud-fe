@@ -15,7 +15,7 @@
        `--embed-own-r` already multiplied by the frame's zoom. -->
   <figure
     class="embed-frame"
-    :class="{ 'embed-frame--rimmed': rimmed, 'is-own': ownR != null }"
+    :class="{ 'embed-frame--rimmed': rimmed, 'is-own': ownR != null, 'embed-frame--html': isHtml }"
     :style="ownStyle"
     @click.stop.prevent
   >
@@ -26,6 +26,30 @@
          as the budget (capped at the card's full rung) and a
          ResizeObserver turns it into `budget`, from which the box picks
          its rung below. -->
+    <!-- ⭐ THE SURFABLE VIEWER'S BAR (2026-11-23): an HTML page is a small
+         browser — back / forward through the pages walked in THIS frame,
+         the current address (opens the real page in a tab), and the step
+         in flight. A link clicked in the page steps the frame in place
+         (the navigator script → `pathos-page-nav` → POST …/visit). -->
+    <div v-if="isHtml" class="embed-frame__nav">
+      <button type="button" class="embed-frame__nav-btn" :disabled="pos <= 0" title="back" @click.stop.prevent="go(-1)">
+        <q-icon name="arrow_back" size="13px" />
+      </button>
+      <button type="button" class="embed-frame__nav-btn" :disabled="pos >= stack.length - 1" title="forward" @click.stop.prevent="go(1)">
+        <q-icon name="arrow_forward" size="13px" />
+      </button>
+      <a
+        class="embed-frame__nav-url mono"
+        :href="current.url"
+        target="_blank"
+        rel="noopener"
+        :title="(pageTitle ? pageTitle + ' · ' : '') + current.url"
+        @click.stop
+      >
+        <q-spinner v-if="stepping" size="10px" class="q-mr-xs" />{{ prettyCurrent }}
+      </a>
+      <span v-if="stepError" class="embed-frame__nav-err" :title="stepError">!</span>
+    </div>
     <div v-if="isCard || isFit" ref="budgetEl" class="embed-frame__budget" :style="budgetStyle" aria-hidden="true" />
     <div
       class="embed-frame__box"
@@ -38,7 +62,30 @@
       }"
       :style="boxStyle"
     >
+      <!-- ⭐ THE IN-BUILT HTML PAGE (2026-11-23, `embed.kind === 'html'`):
+           no rule names this site, so the API reads the node's page and
+           sanitizes it (services/pageService.js) and the frame renders it
+           from `srcdoc` — SANDBOXED with no allow-same-origin: the
+           document lives at an opaque origin and reaches nothing of the
+           app's. `allow-scripts` runs ONE script — the navigator the page's
+           CSP names by hash (the page's own scripts are stripped AND
+           blocked); `allow-popups` lets a modified click open a tab. -->
       <iframe
+        v-if="isHtml && pageHtml"
+        ref="frameEl"
+        class="embed-frame__doc"
+        :srcdoc="pageHtml"
+        :title="pageTitle || embed.title || provider"
+        sandbox="allow-scripts allow-popups allow-popups-to-escape-sandbox"
+        referrerpolicy="no-referrer"
+        frameborder="0"
+      />
+      <div v-else-if="isHtml" class="embed-frame__doc-wait" :class="{ 'is-failed': pageFailed }">
+        <q-spinner v-if="!pageFailed" size="18px" />
+        <span v-else>page unavailable · <a :href="current.url" target="_blank" rel="noopener" @click.stop>open it in a tab</a></span>
+      </div>
+      <iframe
+        v-else
         ref="frameEl"
         :src="embed.src"
         :title="embed.title || provider"
@@ -75,6 +122,22 @@
 
 <script>
 import { defineComponent, computed, ref, watch, onMounted, onBeforeUnmount } from 'vue'
+import { nodeService } from 'src/services/node.service'
+import { useFlyoutViewersStore } from 'src/stores/flyoutViewers'
+
+// The HTML page displayer's reads, shared by every frame on the screen: the
+// same node quoted in a card, its side viewer and its window fetches once.
+// A failure is remembered too (the API caches its own answer for minutes).
+const _pageReads = new Map() // node path → Promise<{ html, title } | null>
+const readPage = (doc) => {
+  if (!_pageReads.has(doc)) {
+    if (_pageReads.size > 200) _pageReads.delete(_pageReads.keys().next().value)
+    _pageReads.set(doc, nodeService.getPage(doc)
+      .then(r => (r?.success && r.page?.html ? { html: r.page.html, title: r.page.title || null } : null))
+      .catch(() => null))
+  }
+  return _pageReads.get(doc)
+}
 
 // A card never shrinks a rung by more than a fifth before stepping down
 // to the provider's next design: 352 at 0.91 is still the full Spotify
@@ -149,14 +212,85 @@ export default defineComponent({
     // corner to turn (`--embed-r`).
     rimmed: { type: Boolean, default: false }
   },
-  setup (props) {
+  // `unavailable` — an HTML page (kind 'html') the API could not read as a
+  // document; the host may fall back to its plain link face.
+  emits: ['unavailable'],
+  setup (props, { emit }) {
     const provider = computed(() => props.embed?.provider || 'Embed')
+
+    // THE IN-BUILT HTML PAGE (2026-11-23): page geometry, srcdoc content.
+    const isHtml = computed(() => props.embed?.kind === 'html' && !!props.embed?.doc)
+    const pageHtml = ref(null)
+    const pageTitle = ref(null)
+    const pageFailed = ref(false)
+
+    // THE SURFABLE VIEWER (same day): the pages walked in THIS frame, each
+    // { doc (the reader's LINK node path), url }; `pos` is the one shown.
+    // Entry 0 is the node the frame was given — the host's own node.
+    const stack = ref([])
+    const pos = ref(0)
+    const stepping = ref(false)
+    const stepError = ref(null)
+    const current = computed(() => stack.value[pos.value] || { doc: props.embed?.doc, url: props.embed?.url || '' })
+    const prettyCurrent = computed(() => String(current.value.url || '').replace(/^https?:\/\/(www\.)?/, ''))
+    watch(() => (isHtml.value ? props.embed.doc : null), (doc) => {
+      stack.value = doc ? [{ doc, url: props.embed.url || props.embed.src || '' }] : []
+      pos.value = 0
+    }, { immediate: true })
+
+    watch(() => (isHtml.value ? current.value.doc : null), (doc) => {
+      pageHtml.value = null
+      pageTitle.value = null
+      pageFailed.value = false
+      if (!doc) return
+      readPage(doc).then((p) => {
+        if (current.value.doc !== doc) return
+        if (p) { pageHtml.value = p.html; pageTitle.value = p.title } else {
+          pageFailed.value = true
+          // only the host's OWN page sends it back to its link face; a page
+          // walked to keeps the bar, so back still works
+          if (pos.value === 0) emit('unavailable')
+        }
+      })
+    }, { immediate: true })
+
+    const go = (d) => {
+      const next = pos.value + d
+      if (next >= 0 && next < stack.value.length) { pos.value = next; stepError.value = null }
+    }
+
+    // A link clicked in the page: record the step on the reader's history
+    // (their node + the visit — never a reference: deleted 2026-11-25), then
+    // show its page here — unless the
+    // address is a PROVIDER's (a rule embed: a video, a post), which opens
+    // as that node's window, its player, instead of a scriptless page.
+    const flyoutViewers = useFlyoutViewersStore()
+    const step = async (href, text) => {
+      if (stepping.value) return
+      stepping.value = true
+      stepError.value = null
+      try {
+        const r = await nodeService.visitFromPage(current.value.doc, href, text || null)
+        const node = r?.node
+        if (!node?.path) throw new Error('no node')
+        if (node.embed && node.embed.kind !== 'html') {
+          flyoutViewers.spawnNode(node, { flyout: true })
+          return
+        }
+        stack.value = [...stack.value.slice(0, pos.value + 1), { doc: node.path, url: node.content || href }]
+        pos.value = stack.value.length - 1
+      } catch (e) {
+        stepError.value = e?.response?.data?.error?.message || e?.message || 'step failed'
+      } finally {
+        stepping.value = false
+      }
+    }
 
     const aspect = computed(() => props.embed?.aspect || '16 / 9')
 
     // A 'page' is a scrollable DOCUMENT, not a fixed-ratio player — the
     // aspect machinery below does not apply to it.
-    const isPage = computed(() => props.embed?.mode === 'page')
+    const isPage = computed(() => props.embed?.mode === 'page' || isHtml.value)
 
     // A 'card' (2026-09-28, Spotify) is the THIRD geometry: the provider
     // draws its own card at a few FIXED heights — 352px for Spotify's
@@ -190,6 +324,14 @@ export default defineComponent({
       try { return new URL(props.embed?.src).origin } catch (_) { return null }
     })
     const onMessage = (e) => {
+      // the page navigator's hand-off (opaque origin, so `e.origin` is the
+      // string "null" — the SOURCE window is what proves it is our frame)
+      if (isHtml.value && frameEl.value && e.source === frameEl.value.contentWindow &&
+          e.data && e.data.type === 'pathos-page-nav' && typeof e.data.href === 'string' &&
+          /^https?:\/\//i.test(e.data.href) && e.data.href.length <= 2048) {
+        step(e.data.href, typeof e.data.text === 'string' ? e.data.text.slice(0, 200) : null)
+        return
+      }
       if (!isFit.value || !frameEl.value || e.source !== frameEl.value.contentWindow) return
       if (!frameOrigin.value || e.origin !== frameOrigin.value) return
       const size = sizeIn(e.data)
@@ -355,7 +497,7 @@ export default defineComponent({
       return raw.replace(/^https?:\/\/(www\.)?/, '')
     })
 
-    return { provider, isPage, isCard, isFit, fitGeom, frameEl, boxStyle, budgetEl, budgetStyle, prettyUrl, ownR, ownStyle }
+    return { provider, isHtml, pageHtml, pageTitle, pageFailed, stack, pos, current, prettyCurrent, stepping, stepError, go, isPage, isCard, isFit, fitGeom, frameEl, boxStyle, budgetEl, budgetStyle, prettyUrl, ownR, ownStyle }
   }
 })
 </script>
@@ -416,6 +558,76 @@ export default defineComponent({
 // — 16px type at zoom .75 reads as 12px, and the page shows more of its
 // column. Width × scale lands exactly on the box; the article scrolls
 // inside the frame.
+// THE SURFABLE VIEWER'S BAR (2026-11-23): one slim row over the page box —
+// back, forward, the address. Calm: the family's ink at low contrast, the
+// mono address ellipsed, nothing that competes with the page under it.
+.embed-frame__nav {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  height: 22px;
+  padding: 0 2px 2px;
+  font-size: 10.5px;
+  color: rgba(var(--ink-rgb), 0.7);
+}
+.embed-frame__nav-btn {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 18px;
+  padding: 0;
+  border: 0;
+  border-radius: 3px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  &:hover:not(:disabled) { background: rgba(var(--ink-rgb), 0.08); }
+  &:disabled { opacity: 0.3; cursor: default; }
+}
+.embed-frame__nav-url {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  padding: 0 6px;
+  height: 18px;
+  line-height: 18px;
+  border-radius: 3px;
+  background: rgba(var(--ink-rgb), 0.05);
+  color: inherit;
+  text-decoration: none;
+  &:hover { text-decoration: underline; }
+}
+.embed-frame__nav-err {
+  flex: 0 0 auto;
+  width: 16px;
+  text-align: center;
+  font-weight: 700;
+  color: var(--q-negative, #c10015);
+}
+
+// …and the bar's 24px come OFF the page box's budget, so the figure as a
+// whole stays inside the surface's `--media-max-h` (a card pit, a window).
+.embed-frame--html .embed-frame__box--page {
+  height: max(60px, calc(var(--media-max-h, 60vh) - var(--media-nest-h, 0px) - 24px));
+}
+
+// The HTML page displayer's waiting / refused face — the page box's own
+// size, a spinner or one quiet line, never a black rectangle.
+.embed-frame__doc-wait {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(var(--ink-rgb), 0.45);
+  font-size: 11px;
+  background: #fff;
+}
+
 .embed-frame__box--page {
   aspect-ratio: auto;
   max-width: 100%;

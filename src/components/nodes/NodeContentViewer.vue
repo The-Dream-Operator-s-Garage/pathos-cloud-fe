@@ -29,7 +29,7 @@
          the address still printed underneath — the node's content IS that
          address, and the frame is only a reading of it. -->
     <template v-else-if="isLink">
-      <EmbedFrame v-if="embed" :embed="embed" :caption="false" class="q-mb-xs" />
+      <EmbedFrame v-if="embed" :embed="embed" :caption="false" class="q-mb-xs" @unavailable="pageRefused = true" />
       <a :href="node.content" target="_blank" rel="noopener" class="ncv-link">
         <q-icon name="link" size="16px" />{{ node.content }}
       </a>
@@ -58,7 +58,7 @@
 </template>
 
 <script>
-import { defineComponent, computed } from 'vue'
+import { defineComponent, computed, ref } from 'vue'
 import MarkdownBody from 'src/components/shared/MarkdownBody.vue'
 import EmbedFrame from 'src/components/shared/EmbedFrame.vue'
 import { bodyOf, formatBytes } from 'src/utils/nodeContent'
@@ -96,7 +96,11 @@ export default defineComponent({
       (props.node?.type_id === 3 || props.node?.type_id === 4) &&
       /^https?:\/\//.test(props.node?.content || ''))
     // Resolved API-side by an EMBED_RULE — see docs/concepts/embeds.md.
-    const embed = computed(() => props.node?.embed || null)
+    // A `kind: 'html'` page the API could not read drops back to the bare
+    // address (EmbedFrame `unavailable`, 2026-11-23).
+    const pageRefused = ref(false)
+    const embed = computed(() =>
+      (pageRefused.value && props.node?.embed?.kind === 'html') ? null : (props.node?.embed || null))
 
     const excerpt = computed(() => {
       const text = body.value.replace(/[#*_`>[\]]/g, '').replace(/\s+/g, ' ').trim()
@@ -106,7 +110,7 @@ export default defineComponent({
     const thumbIcon = computed(() => KIND_ICON[file.value?.kind] || 'notes')
     const prettySize = computed(() => formatBytes(file.value?.size))
 
-    return { file, body, isLink, embed, excerpt, thumbIcon, prettySize }
+    return { file, body, isLink, embed, pageRefused, excerpt, thumbIcon, prettySize }
   }
 })
 </script>
