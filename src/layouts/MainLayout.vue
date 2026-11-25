@@ -258,7 +258,7 @@ import ChatDock from 'src/components/chat/ChatDock.vue'
 import DashboardDock from 'src/components/dashboard/DashboardDock.vue'
 import IdentityDock from 'src/components/identity/IdentityDock.vue'
 import ElementFlyoutHost from 'src/components/shared/ElementFlyoutHost.vue'
-import { useFlyoutViewersStore } from 'src/stores/flyoutViewers'
+import { useFlyoutViewersStore, openInSideViewer } from 'src/stores/flyoutViewers'
 import { pinsEpoch, reloadPins } from 'src/composables/usePin'
 import FriezeBar from 'src/components/layout/FriezeBar.vue'
 import NavigationBar from 'src/components/layout/NavigationBar.vue'
@@ -328,15 +328,19 @@ export default defineComponent({
     watch(pinsEpoch, () => { pinsRefreshKey.value++ })
     watch(pinsRefreshKey, () => reloadPins())
 
-    // When the user finishes "+ Make post", drop them straight into the
-    // post they just made — the dock minimizes itself (or closes when no
-    // drafts remain), so the new post lands in full view. Exception: when a
-    // SkeletonPage is populating an instance, the fresh post joins its
-    // "just created" tray instead of navigating (the page stays put so the
-    // user can drag it into a slot).
+    // When the user finishes "+ Make post", show them the post they just
+    // made — the dock minimizes itself (or closes when no drafts remain).
+    // ⭐ 2026-11-25 (user ask: "do not redirect me, just open the post on
+    // the side viewer"): it opens IN THE SIDE VIEWER, the main viewer —
+    // never a route change to the retired `/posts/:id` page. The side
+    // door (`openInSideViewer`) falls back to a floating window where no
+    // side viewer is mounted (another page, the phone), still no redirect.
+    // Exception: when a SkeletonPage is populating an instance, the fresh
+    // post joins its "just created" tray instead (the page stays put so
+    // the user can drag it into a slot).
     const onPostCreated = (created) => {
       if (created?.path && schemaBuilderStore.deliverFresh('posts', created.path, created.title)) return
-      if (created?.id) router.push('/posts/' + created.id)
+      if (created?.path) openInSideViewer({ kind: 'ref', ref: created.path })
     }
 
     // Uploader emits an ARRAY of created nodes. Single upload → jump to
